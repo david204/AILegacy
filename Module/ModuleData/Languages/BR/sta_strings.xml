@@ -1410,5 +1410,14 @@
     <string id="AIL_c3e1a903" text="Horas de jogo entre a declaração de um rei e a seguinte" />
     <string id="AIL_c3e1a904" text="Grupo: personagens com nome podem usar todas as ações" />
     <string id="AIL_c3e1a905" text="Em uma conversa em grupo, os senhores e outros personagens com nome podem fazer o que fariam a sós com você: dar ouro, jurar lealdade, juntar-se a você, desafiar você. Desligado: só ações de cena, como antes. Deixa o pedido do grupo mais longo." />
+    <string id="AIL_d5a0e001" text="Romance: {0}" />
+    <string id="AIL_d5a0e002" text="Suspeita que você mente" />
+    <string id="AIL_d5a0e003" text="Histórico" />
+    <string id="AIL_d5a0e004" text="Fechar histórico" />
+    <string id="AIL_d5a0e010" text="Barras ao lado do nome nas conversas" />
+    <string id="AIL_d5a0e011" text="Na tela de conversa do jogo, ao lado do nome do personagem: relação, confiança e romance em barras, e um aviso se ele suspeita que você mente. Com isto ligado, a linha de números sob cada resposta não aparece." />
+    <string id="AIL_d5a0e012" text="Botão de histórico nas conversas" />
+    <string id="AIL_d5a0e013" text="Um botão ao lado do nome abre, sobre a caixa de diálogo, o que você e esse personagem disseram um ao outro, com barra de rolagem." />
+    <string id="AIL_d5a0e014" text="Histórico: linhas mostradas" />
   </strings>
 </base>

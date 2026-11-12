@@ -1410,5 +1410,14 @@
     <string id="AIL_c3e1a903" text="Ore di gioco tra la dichiarazione di un re e la successiva" />
     <string id="AIL_c3e1a904" text="Gruppo: i personaggi con nome possono usare tutte le azioni" />
     <string id="AIL_c3e1a905" text="In una conversazione di gruppo, i signori e gli altri personaggi con nome possono fare ciò che farebbero da soli con te: dare oro, giurare fedeltà, unirsi a te, sfidarti. Disattivato: solo azioni di scena, come prima. Allunga la richiesta del gruppo." />
+    <string id="AIL_d5a0e001" text="Romanticismo: {0}" />
+    <string id="AIL_d5a0e002" text="Sospetta che tu menta" />
+    <string id="AIL_d5a0e003" text="Cronologia" />
+    <string id="AIL_d5a0e004" text="Chiudi cronologia" />
+    <string id="AIL_d5a0e010" text="Barre accanto al nome nelle conversazioni" />
+    <string id="AIL_d5a0e011" text="Nella schermata di conversazione del gioco, accanto al nome del personaggio: relazione, fiducia e romanticismo in barre, e un avviso se sospetta che tu menta. Con questa opzione non compare la riga di cifre sotto ogni risposta." />
+    <string id="AIL_d5a0e012" text="Pulsante della cronologia nelle conversazioni" />
+    <string id="AIL_d5a0e013" text="Un pulsante accanto al nome apre, sopra il riquadro di dialogo, ciò che tu e quel personaggio vi siete detti, con barra di scorrimento." />
+    <string id="AIL_d5a0e014" text="Cronologia: righe mostrate" />
   </strings>
 </base>

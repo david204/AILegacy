@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.39.0</Version>
+    <Version>0.40.0</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -42,6 +42,8 @@
     <Reference Include="TaleWorlds.CampaignSystem"><HintPath>$(GameBin)\TaleWorlds.CampaignSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.MountAndBlade"><HintPath>$(GameBin)\TaleWorlds.MountAndBlade.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Engine"><HintPath>$(GameBin)\TaleWorlds.Engine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Bannerlord.UIExtenderEx"><HintPath>$(GameDir)\Modules\Bannerlord.UIExtenderEx\bin\Win64_Shipping_Client\Bannerlord.UIExtenderEx.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.CampaignSystem.ViewModelCollection"><HintPath>$(GameBin)/TaleWorlds.CampaignSystem.ViewModelCollection.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="MCMv5"><HintPath>$(GameDir)\Modules\Bannerlord.MBOptionScreen\bin\Win64_Shipping_Client\MCMv5.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.InputSystem"><HintPath>$(GameBin)\TaleWorlds.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.ScreenSystem"><HintPath>$(GameBin)\TaleWorlds.ScreenSystem.dll</HintPath><Private>false</Private></Reference>

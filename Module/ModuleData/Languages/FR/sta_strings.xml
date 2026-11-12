@@ -1410,5 +1410,14 @@
     <string id="AIL_c3e1a903" text="Heures de jeu entre la déclaration d'un roi et la suivante" />
     <string id="AIL_c3e1a904" text="Groupe : les personnages nommés peuvent utiliser toutes les actions" />
     <string id="AIL_c3e1a905" text="Dans une discussion de groupe, les seigneurs et autres personnages nommés peuvent faire ce qu'ils feraient seuls avec vous : donner de l'or, prêter serment, vous rejoindre, vous défier. Désactivé : seulement les actions de scène, comme avant. La requête du groupe est plus longue." />
+    <string id="AIL_d5a0e001" text="Romance : {0}" />
+    <string id="AIL_d5a0e002" text="Vous soupçonne de mentir" />
+    <string id="AIL_d5a0e003" text="Historique" />
+    <string id="AIL_d5a0e004" text="Fermer l'historique" />
+    <string id="AIL_d5a0e010" text="Barres à côté du nom dans les conversations" />
+    <string id="AIL_d5a0e011" text="Dans l'écran de conversation du jeu, à côté du nom du personnage : relation, confiance et romance en barres, et un avertissement s'il vous soupçonne de mentir. Avec cette option, la ligne de chiffres sous chaque réponse n'est plus affichée." />
+    <string id="AIL_d5a0e012" text="Bouton d'historique dans les conversations" />
+    <string id="AIL_d5a0e013" text="Un bouton à côté du nom ouvre, au-dessus de la boîte de dialogue, ce que vous et ce personnage vous êtes dit, avec une barre de défilement." />
+    <string id="AIL_d5a0e014" text="Historique : lignes affichées" />
   </strings>
 </base>

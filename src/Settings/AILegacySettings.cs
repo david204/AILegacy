@@ -259,6 +259,20 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
         public bool ReplyReadySound { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_d5a0e010}Bars next to the name in conversations", Order = 8, RequireRestart = false,
+            HintText = "{=AIL_d5a0e011}In the game's conversation screen, next to the character's name: relation, trust and romance as bars, and a warning if they suspect you lie. With this on, the line of figures under each reply is not shown.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public bool ShowNameBars { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_d5a0e012}History button in conversations", Order = 8, RequireRestart = false,
+            HintText = "{=AIL_d5a0e013}A button next to the name opens, over the dialogue box, what you and that character have said to each other, with a scrollbar.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public bool ShowDialogHistory { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_d5a0e014}History: lines shown", 5, 200, Order = 8, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public int DialogHistoryLines { get; set; } = 60;
+
         [SettingPropertyBool("{=AIL_a7e1d3c4}Relation, trust and romance under each reply", Order = 8, RequireRestart = false,
             HintText = "{=AIL_a7e1d3c5}Under each answer, one line with where you stand with that character right now: relation, trust, tension, romance, and how many times they have caught you lying.")]
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]

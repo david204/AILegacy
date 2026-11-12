@@ -1410,5 +1410,14 @@
     <string id="AIL_c3e1a903" text="Spielstunden zwischen der Erklärung eines Königs und der nächsten" />
     <string id="AIL_c3e1a904" text="Gruppe: Benannte Charaktere können alle Aktionen nutzen" />
     <string id="AIL_c3e1a905" text="In einem Gruppengespräch können Fürsten und andere benannte Charaktere dasselbe tun wie allein mit dir: Gold geben, Treue schwören, sich dir anschließen, dich herausfordern. Aus: nur Szenenaktionen, wie bisher. Die Gruppenanfrage wird dadurch länger." />
+    <string id="AIL_d5a0e001" text="Romanze: {0}" />
+    <string id="AIL_d5a0e002" text="Vermutet, dass du lügst" />
+    <string id="AIL_d5a0e003" text="Verlauf" />
+    <string id="AIL_d5a0e004" text="Verlauf schließen" />
+    <string id="AIL_d5a0e010" text="Balken neben dem Namen in Gesprächen" />
+    <string id="AIL_d5a0e011" text="Im Gesprächsbildschirm des Spiels, neben dem Namen der Figur: Beziehung, Vertrauen und Romanze als Balken und ein Hinweis, wenn sie eine Lüge vermutet. Ist dies aktiv, entfällt die Zahlenzeile unter jeder Antwort." />
+    <string id="AIL_d5a0e012" text="Verlaufsknopf in Gesprächen" />
+    <string id="AIL_d5a0e013" text="Ein Knopf neben dem Namen öffnet über dem Dialogfeld, was du und diese Figur zueinander gesagt habt, mit Bildlaufleiste." />
+    <string id="AIL_d5a0e014" text="Verlauf: angezeigte Zeilen" />
   </strings>
 </base>

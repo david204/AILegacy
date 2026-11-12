@@ -22,6 +22,15 @@ namespace AILegacy
             var cfg = LegacyConfig.Current; // primera lectura (queda en el log)
             try { new HarmonyLib.Harmony("com.ailegacy").PatchAll(typeof(SubModule).Assembly); Log.Info("Parches de Harmony aplicados"); }
             catch (Exception ex) { Log.Error("Harmony", ex); }
+            // Lo que se añade a pantallas del propio juego (barras junto al nombre e historial en la conversación)
+            try
+            {
+                var ui = Bannerlord.UIExtenderEx.UIExtender.Create("AILegacy");
+                ui.Register(typeof(SubModule).Assembly);
+                ui.Enable();
+                Log.Info("Extensiones de interfaz registradas");
+            }
+            catch (Exception ex) { Log.Error("UIExtenderEx", ex); }
         }
 
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
@@ -42,6 +51,7 @@ namespace AILegacy
             {
                 Dialogue.ChatSession.TickUI();
                 UI.MapHud.Tick();
+                UI.ConversationMixin.Tick(dt);
             }
 
             // Cartas pendientes: comprobar cada segundo si el jugador está en el mapa

@@ -181,6 +181,7 @@ namespace AILegacy.Dialogue
             {
                 var cfg = S.Get;
                 if (!cfg.ShowDialogStats || !_s.IsHero) return "";
+                if (UI.ConversationMixin.ShowingStats) return "";      // ya están en las barras junto al nombre
                 var parts = new List<string> { L.F("AIL_f3138943", $"Relación: {(int)_s.Hero.GetRelationWithPlayer():+0;-0;0}") };
                 if (cfg.EnableTrust) { Bonds.EnsureTrust(_s); parts.Add(L.F("AIL_2cb6f858", $"Confianza: {Mem.Trust}")); }
                 if (cfg.EnableTension && Bonds.Tension(Mem) > 0) parts.Add(L.F("AIL_55654690", $"Tensión: {Bonds.Tension(Mem)}"));

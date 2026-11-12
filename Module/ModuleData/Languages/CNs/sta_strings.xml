@@ -1410,5 +1410,14 @@
     <string id="AIL_c3e1a903" text="一位国王声明与下一位之间相隔的游戏小时数" />
     <string id="AIL_c3e1a904" text="群聊：有名字的角色可以使用所有行动" />
     <string id="AIL_c3e1a905" text="在群聊中，领主和其他有名字的角色可以做他们与你单独交谈时能做的事：给金币、宣誓效忠、加入你、向你挑战。关闭：只有场景行动，和以前一样。会让群聊请求变长。" />
+    <string id="AIL_d5a0e001" text="恋情：{0}" />
+    <string id="AIL_d5a0e002" text="怀疑你在说谎" />
+    <string id="AIL_d5a0e003" text="对话记录" />
+    <string id="AIL_d5a0e004" text="关闭对话记录" />
+    <string id="AIL_d5a0e010" text="对话中名字旁的进度条" />
+    <string id="AIL_d5a0e011" text="在游戏的对话界面中，角色名字旁以进度条显示关系、信任和恋情，并在对方怀疑你说谎时给出提示。开启后，每次回复下方不再显示数字行。" />
+    <string id="AIL_d5a0e012" text="对话中的记录按钮" />
+    <string id="AIL_d5a0e013" text="名字旁的按钮会在对话框上方打开你与该角色说过的话，带滚动条。" />
+    <string id="AIL_d5a0e014" text="对话记录：显示的行数" />
   </strings>
 </base>

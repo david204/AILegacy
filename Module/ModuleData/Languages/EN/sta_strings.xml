@@ -1410,5 +1410,14 @@
     <string id="AIL_c3e1a903" text="Game hours between one king's declaration and the next" />
     <string id="AIL_c3e1a904" text="Group: named characters can use every action" />
     <string id="AIL_c3e1a905" text="In a group talk, lords and other named characters can do what they could do alone with you: give gold, swear fealty, join you, challenge you. Off: only scene actions, as before. It makes the group request longer." />
+    <string id="AIL_d5a0e001" text="Romance: {0}" />
+    <string id="AIL_d5a0e002" text="Suspects you are lying" />
+    <string id="AIL_d5a0e003" text="History" />
+    <string id="AIL_d5a0e004" text="Close history" />
+    <string id="AIL_d5a0e010" text="Bars next to the name in conversations" />
+    <string id="AIL_d5a0e011" text="In the game's conversation screen, next to the character's name: relation, trust and romance as bars, and a warning if they suspect you lie. With this on, the line of figures under each reply is not shown." />
+    <string id="AIL_d5a0e012" text="History button in conversations" />
+    <string id="AIL_d5a0e013" text="A button next to the name opens, over the dialogue box, what you and that character have said to each other, with a scrollbar." />
+    <string id="AIL_d5a0e014" text="History: lines shown" />
   </strings>
 </base>
