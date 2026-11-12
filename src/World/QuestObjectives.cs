@@ -325,6 +325,7 @@ namespace AILegacy.World
                 {
                     bool mine = destroyer != null && (destroyer == PartyBase.MainParty || (MobileParty.MainParty?.Army != null && destroyer.MobileParty?.Army == MobileParty.MainParty.Army));
                     q.BandByPlayer = mine;
+                    GameJournal.Untrack(q, destroyed);      // una partida destruida no se queda marcada en el diario
                     MarkMet(q, mine ? L.F("AIL_d83e63f4", $"Has acabado con la banda de {q.ObjTargetName}. Vuelve con {q.GiverName}.")
                                     : L.F("AIL_8525c8a9", $"Otros han acabado con la banda de {q.ObjTargetName} antes que tú. Vuelve con {q.GiverName}."));
                 }
