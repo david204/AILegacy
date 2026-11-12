@@ -284,7 +284,7 @@ namespace AILegacy.World
                 Pending.Enqueue(() =>
                 {
                     // De otra partida: ResetSession ya soltó sus claves y vació la cola
-                    if (r.Session != _session || Campaign.Current == null || Campaign.Current.UniqueGameId != r.Camp) { Log.Info($"[mundo] {r.What}: respuesta de otra partida, descartada"); return; }
+                    if (r.Session != _session || Campaign.Current == null || Campaign.Current.UniqueGameId != r.Camp) { if (r.Session == _session) Release(r.Key); Log.Info($"[mundo] {r.What}: respuesta de otra partida, descartada"); return; }
                     if (j == null)
                     {
                         // Lo importante (la declaración del jugador) se reintenta una vez; lo demás devuelve su agenda

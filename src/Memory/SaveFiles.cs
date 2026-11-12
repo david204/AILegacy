@@ -159,7 +159,16 @@ namespace AILegacy.Memory
                     if (File.Exists(path))
                     {
                         try { File.Replace(tmp, path, null, true); }
-                        catch (PlatformNotSupportedException) { File.Delete(path); File.Move(tmp, path); }   // unidades sin Replace (FAT, red)
+                        catch (PlatformNotSupportedException)
+                        {
+                            // Unidades sin Replace (FAT, red): el original se aparta y solo se borra cuando el nuevo ya está en su sitio
+                            var old = path + ".old";
+                            if (File.Exists(old)) File.Delete(old);
+                            File.Move(path, old);
+                            try { File.Move(tmp, path); }
+                            catch { if (!File.Exists(path)) File.Move(old, path); throw; }
+                            try { File.Delete(old); } catch { }
+                        }
                     }
                     else File.Move(tmp, path);
                     return true;
