@@ -220,6 +220,7 @@ namespace AILegacy.Behaviors
             LetterSystem.AddMenu(starter);
             Diseases.AddMenus(starter);
             try { World.ArenaTraining.AddMenus(starter); } catch (Exception ex) { Log.Error("Menú de entrenamiento en la arena", ex); }
+            try { World.Activities.AddMenus(starter); } catch (Exception ex) { Log.Error("Menús de actividades", ex); }
 
             // --- Héroes: lores, notables, compañeros, vagabundos (estilo ventana de chat)
             starter.AddPlayerLine(

@@ -1419,5 +1419,25 @@
     <string id="AIL_d5a0e012" text="对话中的记录按钮" />
     <string id="AIL_d5a0e013" text="名字旁的按钮会在对话框上方打开你与该角色说过的话，带滚动条。" />
     <string id="AIL_d5a0e014" text="对话记录：显示的行数" />
+    <string id="AIL_e6b1c001" text="{0}的传闻" />
+    <string id="AIL_e6b1c002" text="没有人告诉你任何你不知道的事。" />
+    <string id="AIL_e6b1c003" text="{0}的传闻" />
+    <string id="AIL_e6b1c004" text="这一晚让士兵们很受用：士气+{0}。" />
+    <string id="AIL_e6b1c005" text="有{0}名同伴对你多了几分信任。" />
+    <string id="AIL_e6b1c006" text="{=!}算了" />
+    <string id="AIL_e6b1c007" text="{=!}四处打听消息（{AIL_ASK_HOURS}小时）" />
+    <string id="AIL_e6b1c008" text="{=!}你今天已经在这里打听过了。明天会有新消息。" />
+    <string id="AIL_e6b1c009" text="{=!}你在酒馆和集市待上一阵，听听人们在说什么：传来的消息、谁在这一带、百姓担心什么。" />
+    <string id="AIL_e6b1c00a" text="你混进{0}的人群里：请大家喝一轮，在集市上听着，谁想说就让谁说。" />
+    <string id="AIL_e6b1c00b" text="{=!}与部下共度一晚，4小时（{AIL_EVENING_COST}{GOLD_ICON}）" />
+    <string id="AIL_e6b1c00c" text="{{=!}}你的部下还记得上一次。{0}天后才能再来。" />
+    <string id="AIL_e6b1c00d" text="{=!}你付不起所有人的酒钱。" />
+    <string id="AIL_e6b1c00e" text="{=!}你为队伍付酒钱和晚饭。士气上升，与你同行的同伴也会多信任你一些。" />
+    <string id="AIL_e6b1c00f" text="你付了酒钱，大家坐在一起。有人唱起一首{0}的歌；唱完时，已经没人记得最近几天的行军了。" />
+    <string id="AIL_e6b1c010" text="城镇和村庄中的活动" />
+    <string id="AIL_e6b1c011" text="城镇和村庄菜单里两个需要花几小时的选项，使用游戏自带的等待进度条：四处打听消息（一次AI请求），以及与部下共度一晚（士气和同伴的信任）。" />
+    <string id="AIL_e6b1c012" text="与部下共度一晚：每人第纳尔" />
+    <string id="AIL_e6b1c013" text="与部下共度一晚：获得的士气" />
+    <string id="AIL_e6b1c014" text="与部下共度一晚：再次进行前的天数" />
   </strings>
 </base>

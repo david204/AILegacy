@@ -1419,5 +1419,25 @@
     <string id="AIL_d5a0e012" text="Botão de histórico nas conversas" />
     <string id="AIL_d5a0e013" text="Um botão ao lado do nome abre, sobre a caixa de diálogo, o que você e esse personagem disseram um ao outro, com barra de rolagem." />
     <string id="AIL_d5a0e014" text="Histórico: linhas mostradas" />
+    <string id="AIL_e6b1c001" text="o que se conta em {0}" />
+    <string id="AIL_e6b1c002" text="Ninguém conta nada que você já não soubesse." />
+    <string id="AIL_e6b1c003" text="O que se conta em {0}" />
+    <string id="AIL_e6b1c004" text="A noitada faz bem aos homens: moral +{0}." />
+    <string id="AIL_e6b1c005" text="{0} dos seus companheiros confiam um pouco mais em você." />
+    <string id="AIL_e6b1c006" text="{=!}Deixar para lá" />
+    <string id="AIL_e6b1c007" text="{=!}Perguntar por aí o que se conta ({AIL_ASK_HOURS} horas)" />
+    <string id="AIL_e6b1c008" text="{=!}Você já perguntou aqui hoje. Amanhã haverá algo novo." />
+    <string id="AIL_e6b1c009" text="{=!}Você passa um tempo na taverna e no mercado e fica sabendo do que se fala: notícias que chegaram, quem anda por aqui, o que preocupa o povo." />
+    <string id="AIL_e6b1c00a" text="Você se mistura com o povo de {0}: paga uma rodada, escuta no mercado e deixa falar quem quiser falar." />
+    <string id="AIL_e6b1c00b" text="{=!}Passar a noite com seus homens, 4 horas ({AIL_EVENING_COST}{GOLD_ICON})" />
+    <string id="AIL_e6b1c00c" text="{{=!}}Seus homens ainda se lembram da última. De novo em {0} dias." />
+    <string id="AIL_e6b1c00d" text="{=!}Você não tem como pagar a bebida de todos." />
+    <string id="AIL_e6b1c00e" text="{=!}Você paga a bebida e a ceia do grupo. A moral sobe, e os companheiros que cavalgam com você confiam um pouco mais em você." />
+    <string id="AIL_e6b1c00f" text="Você paga a bebida e todos se sentam juntos. Alguém puxa uma canção de {0}; quando ela acaba, ninguém mais se lembra dos últimos dias de marcha." />
+    <string id="AIL_e6b1c010" text="Atividades em cidades e aldeias" />
+    <string id="AIL_e6b1c011" text="Duas opções nos menus de cidade e aldeia que levam algumas horas, com a barra de espera do jogo: perguntar por aí o que se conta (um pedido à IA) e passar a noite com seus homens (moral e confiança dos companheiros)." />
+    <string id="AIL_e6b1c012" text="Noite com seus homens: denares por homem" />
+    <string id="AIL_e6b1c013" text="Noite com seus homens: moral ganha" />
+    <string id="AIL_e6b1c014" text="Noite com seus homens: dias até poder repetir" />
   </strings>
 </base>

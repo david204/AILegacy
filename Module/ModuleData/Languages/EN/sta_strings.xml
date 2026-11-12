@@ -1419,5 +1419,25 @@
     <string id="AIL_d5a0e012" text="History button in conversations" />
     <string id="AIL_d5a0e013" text="A button next to the name opens, over the dialogue box, what you and that character have said to each other, with a scrollbar." />
     <string id="AIL_d5a0e014" text="History: lines shown" />
+    <string id="AIL_e6b1c001" text="the talk in {0}" />
+    <string id="AIL_e6b1c002" text="Nobody tells you anything you did not know already." />
+    <string id="AIL_e6b1c003" text="The talk in {0}" />
+    <string id="AIL_e6b1c004" text="The evening does the men good: morale +{0}." />
+    <string id="AIL_e6b1c005" text="{0} of your companions trust you a little more." />
+    <string id="AIL_e6b1c006" text="{=!}Leave it" />
+    <string id="AIL_e6b1c007" text="{=!}Ask around to hear what people are saying ({AIL_ASK_HOURS} hours)" />
+    <string id="AIL_e6b1c008" text="{=!}You have already asked here today. There will be something new tomorrow." />
+    <string id="AIL_e6b1c009" text="{=!}You spend a while in the tavern and the market and hear what is being said: news that has come in, who is about, what worries people." />
+    <string id="AIL_e6b1c00a" text="You mix with the people of {0}: you buy a round, listen at the market and let anyone talk who wants to talk." />
+    <string id="AIL_e6b1c00b" text="{=!}Spend the evening with your men, 4 hours ({AIL_EVENING_COST}{GOLD_ICON})" />
+    <string id="AIL_e6b1c00c" text="{{=!}}Your men still remember the last one. Again in {0} days." />
+    <string id="AIL_e6b1c00d" text="{=!}You cannot afford to pay for everyone's drink." />
+    <string id="AIL_e6b1c00e" text="{=!}You pay for the party's drink and supper. Morale goes up, and the companions who ride with you trust you a little more." />
+    <string id="AIL_e6b1c00f" text="You pay for the drink and sit down together. Someone starts a song from {0}; by the time it ends, nobody remembers the last days of marching." />
+    <string id="AIL_e6b1c010" text="Activities in towns and villages" />
+    <string id="AIL_e6b1c011" text="Two options in the town and village menus that take a few hours, with the game's waiting bar: ask around to hear what people are saying (one AI request), and spend the evening with your men (morale, and trust from companions)." />
+    <string id="AIL_e6b1c012" text="Evening with your men: denars per man" />
+    <string id="AIL_e6b1c013" text="Evening with your men: morale gained" />
+    <string id="AIL_e6b1c014" text="Evening with your men: days before you can repeat it" />
   </strings>
 </base>

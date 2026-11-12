@@ -259,6 +259,23 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
         public bool ReplyReadySound { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e6b1c010}Activities in towns and villages", Order = 9, RequireRestart = false,
+            HintText = "{=AIL_e6b1c011}Two options in the town and village menus that take a few hours, with the game's waiting bar: ask around to hear what people are saying (one AI request), and spend the evening with your men (morale, and trust from companions).")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public bool EnableActivities { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e6b1c012}Evening with your men: denars per man", 1, 20, Order = 9, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public int EveningCostPerMan { get; set; } = 3;
+
+        [SettingPropertyInteger("{=AIL_e6b1c013}Evening with your men: morale gained", 1, 20, Order = 9, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public int EveningMorale { get; set; } = 6;
+
+        [SettingPropertyInteger("{=AIL_e6b1c014}Evening with your men: days before you can repeat it", 1, 30, Order = 9, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public int EveningCooldownDays { get; set; } = 3;
+
         [SettingPropertyBool("{=AIL_d5a0e010}Bars next to the name in conversations", Order = 8, RequireRestart = false,
             HintText = "{=AIL_d5a0e011}In the game's conversation screen, next to the character's name: relation, trust and romance as bars, and a warning if they suspect you lie. With this on, the line of figures under each reply is not shown.")]
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]

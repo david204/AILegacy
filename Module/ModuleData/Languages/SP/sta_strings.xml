@@ -1419,5 +1419,25 @@
     <string id="AIL_d5a0e012" text="Botón de historial en las conversaciones" />
     <string id="AIL_d5a0e013" text="Un botón junto al nombre abre, sobre el cuadro de diálogo, lo que os habéis dicho tú y ese personaje, con barra de desplazamiento." />
     <string id="AIL_d5a0e014" text="Historial: líneas que se muestran" />
+    <string id="AIL_e6b1c001" text="lo que se cuenta en {0}" />
+    <string id="AIL_e6b1c002" text="Nadie cuenta nada que no supieras ya." />
+    <string id="AIL_e6b1c003" text="Lo que se cuenta en {0}" />
+    <string id="AIL_e6b1c004" text="La velada sienta bien a la tropa: moral +{0}." />
+    <string id="AIL_e6b1c005" text="{0} de tus compañeros te tienen algo más de confianza." />
+    <string id="AIL_e6b1c006" text="{=!}Dejarlo" />
+    <string id="AIL_e6b1c007" text="{=!}Preguntar por ahí qué se cuenta ({AIL_ASK_HOURS} horas)" />
+    <string id="AIL_e6b1c008" text="{=!}Hoy ya has preguntado aquí. Mañana habrá algo nuevo que contar." />
+    <string id="AIL_e6b1c009" text="{=!}Pasas un rato en la taberna y el mercado y te enteras de lo que se dice: noticias que han llegado, quién anda por aquí, qué preocupa a la gente." />
+    <string id="AIL_e6b1c00a" text="Te mezclas con la gente de {0}: invitas a una ronda, escuchas en el mercado y dejas hablar a quien quiera hablar." />
+    <string id="AIL_e6b1c00b" text="{=!}Pasar la velada con tus hombres, 4 horas ({AIL_EVENING_COST}{GOLD_ICON})" />
+    <string id="AIL_e6b1c00c" text="{{=!}}Tus hombres aún recuerdan la última. Otra vez dentro de {0} días." />
+    <string id="AIL_e6b1c00d" text="{=!}No te llega para pagar la bebida de todos." />
+    <string id="AIL_e6b1c00e" text="{=!}Pagas la bebida y la cena de la partida. Sube la moral, y los compañeros que cabalgan contigo te cogen algo más de confianza." />
+    <string id="AIL_e6b1c00f" text="Pagas la bebida y os sentáis juntos. Alguien empieza una canción de {0}; para cuando acaba, ya nadie se acuerda de los últimos días de marcha." />
+    <string id="AIL_e6b1c010" text="Actividades en ciudades y aldeas" />
+    <string id="AIL_e6b1c011" text="Dos opciones en los menús de ciudad y aldea que llevan unas horas, con la barra de espera del juego: preguntar por ahí qué se cuenta (una petición a la IA) y pasar la velada con tus hombres (moral, y confianza de los compañeros)." />
+    <string id="AIL_e6b1c012" text="Velada con tus hombres: denarios por hombre" />
+    <string id="AIL_e6b1c013" text="Velada con tus hombres: moral que se gana" />
+    <string id="AIL_e6b1c014" text="Velada con tus hombres: días hasta poder repetirla" />
   </strings>
 </base>

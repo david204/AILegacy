@@ -1419,5 +1419,25 @@
     <string id="AIL_d5a0e012" text="Bouton d'historique dans les conversations" />
     <string id="AIL_d5a0e013" text="Un bouton à côté du nom ouvre, au-dessus de la boîte de dialogue, ce que vous et ce personnage vous êtes dit, avec une barre de défilement." />
     <string id="AIL_d5a0e014" text="Historique : lignes affichées" />
+    <string id="AIL_e6b1c001" text="ce qui se dit à {0}" />
+    <string id="AIL_e6b1c002" text="Personne ne vous apprend rien que vous ne sachiez déjà." />
+    <string id="AIL_e6b1c003" text="Ce qui se dit à {0}" />
+    <string id="AIL_e6b1c004" text="La soirée fait du bien aux hommes : moral +{0}." />
+    <string id="AIL_e6b1c005" text="{0} de vos compagnons vous font un peu plus confiance." />
+    <string id="AIL_e6b1c006" text="{=!}Laisser tomber" />
+    <string id="AIL_e6b1c007" text="{=!}Se renseigner sur ce qui se dit ({AIL_ASK_HOURS} heures)" />
+    <string id="AIL_e6b1c008" text="{=!}Vous avez déjà demandé ici aujourd'hui. Il y aura du nouveau demain." />
+    <string id="AIL_e6b1c009" text="{=!}Vous passez un moment à la taverne et au marché et vous apprenez ce qui se dit : les nouvelles arrivées, qui est dans les parages, ce qui inquiète les gens." />
+    <string id="AIL_e6b1c00a" text="Vous vous mêlez aux gens de {0} : vous payez une tournée, écoutez au marché et laissez parler qui veut parler." />
+    <string id="AIL_e6b1c00b" text="{=!}Passer la soirée avec vos hommes, 4 heures ({AIL_EVENING_COST}{GOLD_ICON})" />
+    <string id="AIL_e6b1c00c" text="{{=!}}Vos hommes se souviennent encore de la dernière. À nouveau dans {0} jours." />
+    <string id="AIL_e6b1c00d" text="{=!}Vous n'avez pas de quoi payer à boire à tout le monde." />
+    <string id="AIL_e6b1c00e" text="{=!}Vous payez à boire et à souper à la troupe. Le moral monte, et les compagnons qui chevauchent avec vous vous font un peu plus confiance." />
+    <string id="AIL_e6b1c00f" text="Vous payez à boire et vous vous asseyez ensemble. Quelqu'un entonne une chanson de {0} ; quand elle s'achève, plus personne ne pense aux derniers jours de marche." />
+    <string id="AIL_e6b1c010" text="Activités dans les villes et villages" />
+    <string id="AIL_e6b1c011" text="Deux options dans les menus de ville et de village qui prennent quelques heures, avec la barre d'attente du jeu : se renseigner sur ce qui se dit (une requête à l'IA) et passer la soirée avec vos hommes (moral, et confiance des compagnons)." />
+    <string id="AIL_e6b1c012" text="Soirée avec vos hommes : deniers par homme" />
+    <string id="AIL_e6b1c013" text="Soirée avec vos hommes : moral gagné" />
+    <string id="AIL_e6b1c014" text="Soirée avec vos hommes : jours avant de pouvoir recommencer" />
   </strings>
 </base>

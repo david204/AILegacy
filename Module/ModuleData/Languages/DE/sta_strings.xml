@@ -1419,5 +1419,25 @@
     <string id="AIL_d5a0e012" text="Verlaufsknopf in Gesprächen" />
     <string id="AIL_d5a0e013" text="Ein Knopf neben dem Namen öffnet über dem Dialogfeld, was du und diese Figur zueinander gesagt habt, mit Bildlaufleiste." />
     <string id="AIL_d5a0e014" text="Verlauf: angezeigte Zeilen" />
+    <string id="AIL_e6b1c001" text="das Gerede in {0}" />
+    <string id="AIL_e6b1c002" text="Niemand erzählt dir etwas, das du nicht schon wusstest." />
+    <string id="AIL_e6b1c003" text="Das Gerede in {0}" />
+    <string id="AIL_e6b1c004" text="Der Abend tut den Männern gut: Moral +{0}." />
+    <string id="AIL_e6b1c005" text="{0} deiner Gefährten vertrauen dir etwas mehr." />
+    <string id="AIL_e6b1c006" text="{=!}Abbrechen" />
+    <string id="AIL_e6b1c007" text="{=!}Herumfragen, was geredet wird ({AIL_ASK_HOURS} Stunden)" />
+    <string id="AIL_e6b1c008" text="{=!}Du hast heute hier schon gefragt. Morgen gibt es Neues." />
+    <string id="AIL_e6b1c009" text="{=!}Du verbringst eine Weile in der Taverne und auf dem Markt und hörst, was geredet wird: eingetroffene Neuigkeiten, wer in der Gegend ist, was die Leute bedrückt." />
+    <string id="AIL_e6b1c00a" text="Du mischst dich unter die Leute von {0}: Du gibst eine Runde aus, hörst auf dem Markt zu und lässt reden, wer reden will." />
+    <string id="AIL_e6b1c00b" text="{=!}Den Abend mit deinen Männern verbringen, 4 Stunden ({AIL_EVENING_COST}{GOLD_ICON})" />
+    <string id="AIL_e6b1c00c" text="{{=!}}Deine Männer erinnern sich noch an den letzten. Wieder in {0} Tagen." />
+    <string id="AIL_e6b1c00d" text="{=!}Du kannst nicht für alle die Getränke bezahlen." />
+    <string id="AIL_e6b1c00e" text="{=!}Du zahlst Getränke und Abendessen für die Truppe. Die Moral steigt, und die Gefährten, die mit dir reiten, vertrauen dir etwas mehr." />
+    <string id="AIL_e6b1c00f" text="Du zahlst die Getränke und ihr setzt euch zusammen. Jemand stimmt ein Lied aus {0} an; als es endet, denkt niemand mehr an die letzten Marschtage." />
+    <string id="AIL_e6b1c010" text="Aktivitäten in Städten und Dörfern" />
+    <string id="AIL_e6b1c011" text="Zwei Optionen in den Stadt- und Dorfmenüs, die einige Stunden dauern, mit dem Wartebalken des Spiels: herumfragen, was geredet wird (eine KI-Anfrage), und den Abend mit deinen Männern verbringen (Moral und Vertrauen der Gefährten)." />
+    <string id="AIL_e6b1c012" text="Abend mit deinen Männern: Denare pro Mann" />
+    <string id="AIL_e6b1c013" text="Abend mit deinen Männern: gewonnene Moral" />
+    <string id="AIL_e6b1c014" text="Abend mit deinen Männern: Tage bis zur Wiederholung" />
   </strings>
 </base>
