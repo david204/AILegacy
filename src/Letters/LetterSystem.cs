@@ -74,12 +74,15 @@ namespace AILegacy.Letters
                 sel => { if (sel?.Count > 0) MainThread.Post(() => Compose((Hero)sel[0].Identifier)); }, null, "", true), true);
         }
 
-        private static void Compose(Hero hero)
+        /// <param name="reply">Contestas a una carta que acabas de recibir: el mensajero que la trajo lleva la respuesta, sin cobrar.</param>
+        private static void Compose(Hero hero, bool reply = false)
         {
             var (cost, hours) = Quote(hero);
+            if (reply) cost = 0;
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                L.F("AIL_27a8d342", $"Carta para {hero.Name}"),
-                L.F("AIL_dcd92686", $"El mensajero cobra {cost} denarios y tardará {TravelText(hours)} en llegar.\nSi te contesta, la respuesta tardará lo mismo en volver."),
+                reply ? L.F("AIL_f6d0c4b1", $"Tu respuesta a {hero.Name}") : L.F("AIL_27a8d342", $"Carta para {hero.Name}"),
+                reply ? L.F("AIL_f6d0c4b2", $"El mensajero que la ha traído espera tu respuesta y la lleva de vuelta sin cobrar. Tardará {TravelText(hours)} en llegar.")
+                      : L.F("AIL_dcd92686", $"El mensajero cobra {cost} denarios y tardará {TravelText(hours)} en llegar.\nSi te contesta, la respuesta tardará lo mismo en volver."),
                 true, true, L.T("AIL_e5c9b3ac", "Enviar"), L.T("AIL_e5c9b3a4", "Cancelar"),
                 text =>
                 {
@@ -274,9 +277,13 @@ namespace AILegacy.Letters
             var (hero, text) = ToShow.Dequeue();
             _showing = true;
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
+            // Contestar ahí mismo (el mensajero espera) o darse por enterado
+            bool canReply = CanWrite(hero);
             InformationManager.ShowInquiry(new InquiryData(
-                L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, false, L.T("AIL_e5c9b3a7", "Guardar"), "",
-                () => { _showing = false; }, null), true);
+                L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, canReply,
+                canReply ? L.T("AIL_f6d0c4b3", "Responder") : L.T("AIL_f6d0c4b4", "Enterado"), L.T("AIL_f6d0c4b4", "Enterado"),
+                () => { _showing = false; if (canReply) MainThread.Post(() => Compose(hero, reply: true)); },
+                () => { _showing = false; }), true);
         }
     }
 }

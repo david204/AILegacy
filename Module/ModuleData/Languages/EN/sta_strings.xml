@@ -1327,5 +1327,9 @@
     <string id="AIL_e5c9b3ab" text="Write" />
     <string id="AIL_e5c9b3ac" text="Send" />
     <string id="AIL_e5c9b3ad" text="Proclaim" />
+    <string id="AIL_f6d0c4b1" text="Your reply to {0}" />
+    <string id="AIL_f6d0c4b2" text="The messenger who brought it waits for your answer and carries it back at no charge. It will take {0} to arrive." />
+    <string id="AIL_f6d0c4b3" text="Reply" />
+    <string id="AIL_f6d0c4b4" text="Acknowledge" />
   </strings>
 </base>

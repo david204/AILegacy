@@ -48,7 +48,7 @@ namespace AILegacy
             _letterCheck += dt;
             if (_letterCheck >= 1f)
             {
-                Core.L.SyncGameTexts();          // los ajustes de MCM, en el idioma elegido en el mod
+                Core.L.SyncGameTexts();          // los textos «{=AIL_…}», en el idioma elegido en el mod
                 _letterCheck = 0f;
                 try { if (Campaign.Current != null) LetterSystem.TryShowPending(); } catch (Exception ex) { Log.Error("Cartas", ex); }
                 try { World.OrderSystem.Pump(); } catch (Exception ex) { Log.Error("Órdenes", ex); }

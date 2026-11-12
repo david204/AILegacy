@@ -204,6 +204,7 @@ namespace AILegacy.Behaviors
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             LoadCampaignData();
+            World.NewsTracker.Live = true;       // a partir de aquí, lo que pase es noticia
             AddDialogStyleLines(starter);
             LetterSystem.AddMenu(starter);
             Diseases.AddMenus(starter);

@@ -1327,5 +1327,9 @@
     <string id="AIL_e5c9b3ab" text="Schreiben" />
     <string id="AIL_e5c9b3ac" text="Senden" />
     <string id="AIL_e5c9b3ad" text="Verkünden" />
+    <string id="AIL_f6d0c4b1" text="Deine Antwort an {0}" />
+    <string id="AIL_f6d0c4b2" text="Der Bote, der den Brief gebracht hat, wartet auf deine Antwort und bringt sie kostenlos zurück. Sie braucht {0}." />
+    <string id="AIL_f6d0c4b3" text="Antworten" />
+    <string id="AIL_f6d0c4b4" text="Zur Kenntnis nehmen" />
   </strings>
 </base>

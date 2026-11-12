@@ -20,6 +20,7 @@ namespace AILegacy.World
     {
         public static void Register(object owner)
         {
+            Live = false;
             CampaignEvents.WarDeclared.AddNonSerializedListener(owner, OnWarDeclared);
             CampaignEvents.MakePeace.AddNonSerializedListener(owner, OnPeace);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(owner, OnSettlementOwnerChanged);
@@ -32,7 +33,13 @@ namespace AILegacy.World
             CampaignEvents.OnSiegeEventStartedEvent.AddNonSerializedListener(owner, OnSiegeStarted);
         }
 
-        private static bool On => S.Get.EnableNews;
+        /// <summary>
+        /// La partida ya está en marcha. Mientras el juego crea el mundo (o carga) hace ajustes que disparan los mismos
+        /// eventos que una muerte o una guerra de verdad: eso no es noticia.
+        /// </summary>
+        public static bool Live;
+
+        private static bool On => Live && S.Get.EnableNews;
 
         private static void Safe(string what, Action a)
         {
@@ -104,7 +111,8 @@ namespace AILegacy.World
         private static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification) => Safe("muerte", () =>
         {
             if (victim == null || !(victim.IsLord || victim.IsNotable || victim.IsPlayerCompanion)) return;
-            try { if (detail.ToString() == "Lost" && Campaign.Current != null && Campaign.Current.Models.CampaignTimeModel.CampaignStartTime.ElapsedDaysUntilNow < 3) return; } catch { }
+            // «Desaparecido» es como el juego retira a un notable sin más: solo es noticia si era un noble
+            if (detail.ToString() == "Lost" && !victim.IsLord) return;
             string how, howEs;
             switch (detail.ToString())
             {

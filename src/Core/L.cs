@@ -101,7 +101,9 @@ namespace AILegacy.Core
             {
                 if (Tables.TryGetValue(code, out var t)) return t;
                 t = new Dictionary<string, string>();
-                string path = Path.Combine(Paths.ModuleDir, "ModuleData", "Languages", Folder(code), "sta_strings.xml");
+                // Carpeta propia, NO ModuleData\Languages: si el juego cargara estos archivos, traduciría los ajustes de MCM
+                // al idioma del juego aunque en el mod se haya elegido otro. Los textos los pone el mod (SyncGameTexts).
+                string path = Path.Combine(Paths.ModuleDir, "ModuleData", "AILegacyTexts", Folder(code), "sta_strings.xml");
                 try
                 {
                     if (File.Exists(path))

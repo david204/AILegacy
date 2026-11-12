@@ -1327,5 +1327,9 @@
     <string id="AIL_e5c9b3ab" text="Écrire" />
     <string id="AIL_e5c9b3ac" text="Envoyer" />
     <string id="AIL_e5c9b3ad" text="Proclamer" />
+    <string id="AIL_f6d0c4b1" text="Votre réponse à {0}" />
+    <string id="AIL_f6d0c4b2" text="Le messager qui l'a apportée attend votre réponse et la rapporte sans frais. Elle mettra {0} à arriver." />
+    <string id="AIL_f6d0c4b3" text="Répondre" />
+    <string id="AIL_f6d0c4b4" text="Pris note" />
   </strings>
 </base>

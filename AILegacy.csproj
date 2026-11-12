@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.29.1</Version>
+    <Version>0.29.2</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -66,7 +66,9 @@
     <Copy SourceFiles="@(GuiPrefabs)" DestinationFolder="$(ModuleDir)\GUI\Prefabs" />
     <Copy SourceFiles="@(GuiBrushes)" DestinationFolder="$(ModuleDir)\GUI\Brushes" />
     <Copy SourceFiles="Module\web\editor.html" DestinationFolder="$(ModuleDir)\web" />
-    <Copy SourceFiles="@(LangFiles)" DestinationFiles="@(LangFiles->'$(ModuleDir)\ModuleData\Languages\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(LangFiles)" DestinationFiles="@(LangFiles->'$(ModuleDir)\ModuleData\AILegacyTexts\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <!-- Hasta la v0.29.1 iban en ModuleData\Languages y el juego los cargaba por su cuenta: fuera -->
+    <RemoveDir Directories="$(ModuleDir)\ModuleData\Languages" />
     <Copy SourceFiles="libs\webview2\WebView2Loader.dll" DestinationFolder="$(OutputPath)" />
     <Copy SourceFiles="libs\webview2\runtimes\win-x64\native\WebView2Loader.dll" DestinationFolder="$(OutputPath)runtimes\win-x64\native" />
     <Copy SourceFiles="Module\config.example.json" DestinationFolder="$(ModuleDir)" />

@@ -1327,5 +1327,9 @@
     <string id="AIL_e5c9b3ab" text="Написать" />
     <string id="AIL_e5c9b3ac" text="Отправить" />
     <string id="AIL_e5c9b3ad" text="Провозгласить" />
+    <string id="AIL_f6d0c4b1" text="Ваш ответ для {0}" />
+    <string id="AIL_f6d0c4b2" text="Гонец, доставивший письмо, ждёт вашего ответа и отвезёт его обратно бесплатно. Дорога займёт {0}." />
+    <string id="AIL_f6d0c4b3" text="Ответить" />
+    <string id="AIL_f6d0c4b4" text="Принять к сведению" />
   </strings>
 </base>
