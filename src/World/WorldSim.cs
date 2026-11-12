@@ -212,6 +212,7 @@ namespace AILegacy.World
         public static void ResetSession()
         {
             _session++;
+            for (int i = 0; i < ModelDay.Length; i++) ModelDay[i] = -1;
             lock (Triggers) Triggers.Clear();
             _urgent = false;
             _reactRetries = 0;
@@ -709,6 +710,65 @@ Write ONE development that follows directly from it: how the people, the nobles,
             catch (Exception ex) { Log.Error("[mundo] tick diario", ex); }
         }
 
+        // ---- efectos diarios dentro de la cuenta del juego (ver Patches\TownEffectsPatch.cs)
+        public const int StatProsperity = 0, StatFood = 1, StatSecurity = 2, StatLoyalty = 3;
+        // Último día en que el juego pidió cada cuenta pasando por nuestro enganche. Si deja de pasar (otro mod ha cambiado
+        // el modelo), los efectos vuelven a sumarse a mano para no perderse.
+        private static readonly double[] ModelDay = { -1, -1, -1, -1 };
+
+        public static void ModelSeen(int stat)
+        {
+            try { if (stat >= 0 && stat < 4 && Campaign.Current != null) ModelDay[stat] = CampaignTime.Now.ToDays; } catch { }
+        }
+
+        /// <summary>¿La cuenta de ese valor está pasando por el juego (y por tanto ya incluye nuestros efectos)?</summary>
+        private static bool ViaModel(int stat, double now)
+        {
+            if (ModelDay[stat] < 0) { ModelDay[stat] = now; return true; }      // primer día de la sesión: se da por bueno
+            return now - ModelDay[stat] < 2.0;
+        }
+
+        /// <summary>Las cuatro cuentas pasan por el juego: las leyes no hay que sumarlas a mano.</summary>
+        public static bool LawsViaModel()
+        {
+            try
+            {
+                double now = CampaignTime.Now.ToDays;
+                return ViaModel(StatProsperity, now) && ViaModel(StatFood, now) && ViaModel(StatSecurity, now) && ViaModel(StatLoyalty, now);
+            }
+            catch { return false; }
+        }
+
+        /// <summary>Lo que sucesos y leyes suman o restan hoy a ese valor de esa ciudad o castillo, con su motivo.</summary>
+        public static List<(float value, string label)> TownModifiers(Town town, int stat)
+        {
+            var list = new List<(float, string)>();
+            try
+            {
+                var st = town?.Settlement;
+                if (st == null || State == null) return list;
+                double now = CampaignTime.Now.ToDays;
+                foreach (var fx in State.Effects)
+                {
+                    if (fx.SettlementId != st.StringId || !string.IsNullOrEmpty(fx.ClanId) || now >= fx.UntilDay) continue;
+                    float v = stat == StatProsperity ? fx.ProsperityPerDay : stat == StatFood ? fx.FoodPerDay : stat == StatSecurity ? fx.SecurityPerDay : fx.LoyaltyPerDay;
+                    if (Math.Abs(v) < 0.005f) continue;
+                    string why = string.IsNullOrWhiteSpace(fx.Reason) ? L.T("AIL_a9c3e7f1", "Sucesos del mundo") : (fx.Reason.Length > 60 ? fx.Reason.Substring(0, 60) + "…" : fx.Reason);
+                    list.Add((v, why));
+                }
+                if (st.MapFaction is Kingdom k)
+                    foreach (var law in State.Laws)
+                    {
+                        if (law.KingdomId != k.StringId) continue;
+                        float v = stat == StatProsperity ? Math.Max(-1.5f, Math.Min(1.5f, law.ProsperityPerDay)) : stat == StatFood ? law.FoodPerDay : stat == StatSecurity ? law.SecurityPerDay : law.LoyaltyPerDay;
+                        if (Math.Abs(v) < 0.005f) continue;
+                        list.Add((v, L.T("AIL_a9c3e7f2", "Ley: ") + (string.IsNullOrWhiteSpace(law.Name) ? "?" : law.Name)));
+                    }
+            }
+            catch { }
+            return list;
+        }
+
         private static void ApplyEffects(double now)
         {
             foreach (var fx in State.Effects.ToList())
@@ -721,10 +781,12 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 {
                     if (st.Town != null)
                     {
-                        st.Town.Prosperity = Math.Max(0f, st.Town.Prosperity + fx.ProsperityPerDay);
-                        st.Town.FoodStocks = Math.Max(0f, st.Town.FoodStocks + fx.FoodPerDay);
-                        st.Town.Security = Math.Max(0f, Math.Min(100f, st.Town.Security + fx.SecurityPerDay));
-                        st.Town.Loyalty = Math.Max(0f, Math.Min(100f, st.Town.Loyalty + fx.LoyaltyPerDay));
+                        // Lo normal es que estos efectos ya vayan dentro de la cuenta diaria del juego (y se vean en su desglose).
+                        // Solo se suman a mano los que hayan dejado de pasar por ahí.
+                        if (!ViaModel(StatProsperity, now)) st.Town.Prosperity = Math.Max(0f, st.Town.Prosperity + fx.ProsperityPerDay);
+                        if (!ViaModel(StatFood, now)) st.Town.FoodStocks = Math.Max(0f, st.Town.FoodStocks + fx.FoodPerDay);
+                        if (!ViaModel(StatSecurity, now)) st.Town.Security = Math.Max(0f, Math.Min(100f, st.Town.Security + fx.SecurityPerDay));
+                        if (!ViaModel(StatLoyalty, now)) st.Town.Loyalty = Math.Max(0f, Math.Min(100f, st.Town.Loyalty + fx.LoyaltyPerDay));
                     }
                     else if (st.Village != null)
                         st.Village.Hearth = Math.Max(10f, st.Village.Hearth + fx.ProsperityPerDay);   // en aldeas, la prosperidad son los hogares

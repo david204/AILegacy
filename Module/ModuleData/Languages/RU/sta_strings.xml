@@ -1385,5 +1385,7 @@
     <string id="AIL_f4c8e2a2" text="{0}, ваш спутник, просит уделить минуту." />
     <string id="AIL_f4c8e2a3" text="Принять" />
     <string id="AIL_f4c8e2a4" text="Не сейчас" />
+    <string id="AIL_a9c3e7f1" text="События мира" />
+    <string id="AIL_a9c3e7f2" text="Закон: " />
   </strings>
 </base>

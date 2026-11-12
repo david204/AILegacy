@@ -423,6 +423,9 @@ namespace AILegacy.World
             {
                 var k = WorldSim.FindKingdom(law.KingdomId);
                 if (k == null) { WorldSim.State.Laws.Remove(law); continue; }
+                // Los efectos de las leyes van dentro de la cuenta diaria del juego (WorldSim.TownModifiers, con su motivo en el
+                // desglose). Aquí solo se suman a mano si esa cuenta ha dejado de pasar por nuestro enganche.
+                if (WorldSim.LawsViaModel()) continue;
                 foreach (var town in k.Fiefs)
                 {
                     town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty + law.LoyaltyPerDay));

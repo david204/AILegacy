@@ -1385,5 +1385,7 @@
     <string id="AIL_f4c8e2a2" text="{0}, der mit dir reitet, bittet um einen Moment." />
     <string id="AIL_f4c8e2a3" text="Empfangen" />
     <string id="AIL_f4c8e2a4" text="Nicht jetzt" />
+    <string id="AIL_a9c3e7f1" text="Weltereignisse" />
+    <string id="AIL_a9c3e7f2" text="Gesetz: " />
   </strings>
 </base>

@@ -1385,5 +1385,7 @@
     <string id="AIL_f4c8e2a2" text="{0}, who rides with you, asks for a moment." />
     <string id="AIL_f4c8e2a3" text="Receive them" />
     <string id="AIL_f4c8e2a4" text="Not now" />
+    <string id="AIL_a9c3e7f1" text="World events" />
+    <string id="AIL_a9c3e7f2" text="Law: " />
   </strings>
 </base>

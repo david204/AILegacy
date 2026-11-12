@@ -1385,5 +1385,7 @@
     <string id="AIL_f4c8e2a2" text="{0}, che cavalca con te, ti chiede un momento." />
     <string id="AIL_f4c8e2a3" text="Riceverlo" />
     <string id="AIL_f4c8e2a4" text="Non ora" />
+    <string id="AIL_a9c3e7f1" text="Eventi del mondo" />
+    <string id="AIL_a9c3e7f2" text="Legge: " />
   </strings>
 </base>

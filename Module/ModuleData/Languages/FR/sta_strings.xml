@@ -1385,5 +1385,7 @@
     <string id="AIL_f4c8e2a2" text="{0}, qui chevauche avec vous, vous demande un instant." />
     <string id="AIL_f4c8e2a3" text="Le recevoir" />
     <string id="AIL_f4c8e2a4" text="Pas maintenant" />
+    <string id="AIL_a9c3e7f1" text="Événements du monde" />
+    <string id="AIL_a9c3e7f2" text="Loi : " />
   </strings>
 </base>
