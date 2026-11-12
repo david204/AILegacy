@@ -65,8 +65,7 @@ namespace AILegacy.Dialogue
             List<ChatMessage> messages;
             try
             {
-                messages = PromptBuilder.BuildDialogue(s, S.Get.MaxRelationChangePerConversation);
-                messages.Add(new ChatMessage("user", "[They have not said anything to you yet. " + openingInstruction + "]"));
+                messages = PromptBuilder.BuildDialogue(s, S.Get.MaxRelationChangePerConversation, openingInstruction);
             }
             catch (Exception ex) { Log.Error("Iniciativa: prompt", ex); return false; }
 
@@ -74,7 +73,7 @@ namespace AILegacy.Dialogue
             int session = World.WorldSim.Session;
             Log.Info($"Iniciativa: {s.Name} va a dirigirse al jugador");
             bool first = s.Memory.Profile == null || s.Memory.Profile.IsEmpty;
-            LlmClient.CompleteAsync(messages, wantJson: true, maxTokensOverride: first ? Math.Max(S.Get.MaxTokens, 1800) : (int?)null,
+            LlmClient.CompleteAsync(messages, wantJson: true, task: "initiative", maxTokensOverride: first ? Math.Max(S.Get.MaxTokens, 1800) : (int?)null,
                 preferredProvider: s.IsHero ? S.Get.ProviderHeroes : S.Get.ProviderResidents).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;

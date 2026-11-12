@@ -78,7 +78,7 @@ namespace AILegacy.Memory
             int session = World.WorldSim.Session;
             Log.Info($"Resumiendo {old.Count} turnos antiguos de {s.Name}" + (merge.Count > 0 ? $" y fundiendo {merge.Count} tramos viejos" : ""));
 
-            LlmClient.CompleteAsync(messages, wantJson: true, maxTokensOverride: merge.Count > 0 ? 1200 : 900, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
+            LlmClient.CompleteAsync(messages, wantJson: true, task: "summary", maxTokensOverride: merge.Count > 0 ? 1200 : 900, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>

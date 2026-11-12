@@ -93,7 +93,7 @@ namespace AILegacy.World
 
             // Lo que va dirigido a ti como rey: decides tú, con una ventana
             var mine = PlayerRealm;
-            if (PlayerRules(mine))
+            if (PlayerRules(mine) && WorldSim.OnMap())
                 foreach (var p in St.Proposals.Where(x => x.To == mine.StringId && !x.Notified).ToList())
                 {
                     p.Notified = true;

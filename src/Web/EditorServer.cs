@@ -411,7 +411,7 @@ namespace AILegacy.Web
                     string hint = ((string)d["hint"] ?? "").Trim();
                     string prompt = TGenerate.Format("facts", facts.ToString().TrimEnd(), "hint", hint.Length > 0 ? "The author of this world asks for this in particular: " + hint : "", "language", Settings.S.Get.Language);
                     Generating.Add(id);
-                    Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 1200, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
+                    Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "editor", maxTokensOverride: 1200, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
                     {
                         var res = t.IsFaulted ? null : t.Result;
                         MainThread.Post(() =>
@@ -488,6 +488,17 @@ namespace AILegacy.Web
 
                 case "/api/lang":
                     return new { code = L.Code, table = L.Current() };
+
+                // ---------------------------------------------------------------- gasto de IA
+                case "/api/usage":
+                    return new
+                    {
+                        rows = Llm.UsageMeter.Snapshot(),
+                        today = Llm.UsageMeter.SpentToday,
+                        cap = Math.Max(0, Settings.S.Get.DailySpendCapCents) / 100.0,
+                        queue = Llm.LlmClient.QueueLength,
+                        providers = Llm.LlmClient.ProviderStatus(),
+                    };
 
                 case "/api/cultures":
                     return TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObjectTypeList<CultureObject>().Where(c => c.IsMainCulture).Select(c => new { id = c.StringId, name = c.Name.ToString() });

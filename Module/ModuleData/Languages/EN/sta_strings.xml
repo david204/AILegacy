@@ -1280,5 +1280,29 @@
     <string id="AIL_a1c0e5d6" text="Women aged 13 to 47 have a cycle: it changes their mood depending on the day (a lot for some, hardly at all for others) and the chance of pregnancy, the game's own included. No cycle during pregnancy or after giving birth. She knows what day she is on." />
     <string id="AIL_a1c0e5d7" text="Cycle length in days" />
     <string id="AIL_a1c0e5d8" text="Campaign days. A game year has 84 days, so 21 means four cycles a year." />
+    <string id="AIL_c3a7f1e1" text="The daily spending cap has been reached (MCM › 7. AI) and there is no free provider." />
+    <string id="AIL_c3a7f1e2" text="Input price ($ per million tokens)" />
+    <string id="AIL_c3a7f1e3" text="What this provider charges per million tokens. 0 = free. Used to work out spending (shown in the editor, Service tab) and for the daily cap; it changes nothing else." />
+    <string id="AIL_c3a7f1e4" text="Output price ($ per million tokens)" />
+    <string id="AIL_c3a7f1e5" text="Background tasks on free providers only" />
+    <string id="AIL_c3a7f1e6" text="Ambient talk, world events, summaries and other tasks you are not waiting for never use a paid provider while a free one exists. The paid one is kept in reserve for dialogue." />
+    <string id="AIL_c3a7f1e7" text="Daily spending cap (US cents, 0 = no cap)" />
+    <string id="AIL_c3a7f1e8" text="Once that amount is reached in a day (real day, not game day) paid providers stop being used until tomorrow. Only providers with a price set under 0. AI keys are counted." />
+    <string id="AIL_c3a7f1e9" text="Facts about what is named" />
+    <string id="AIL_c3a7f1ea" text="If a place, a house, a realm, a person or a trade good is named in the talk, its public facts go into that request (where it is, whose it is, what it is worth), and on the map also the parties in sight. The character knows what you mean without loading the whole world every time." />
+    <string id="AIL_c3a7f1eb" text="AI spending (this session)" />
+    <string id="AIL_c3a7f1ec" text="Requests, tokens and estimated cost per provider and task. Cost only shows if you set the provider's price in MCM › 0. AI keys." />
+    <string id="AIL_c3a7f1ed" text="Refresh" />
+    <string id="AIL_c3a7f1ee" text="Today:" />
+    <string id="AIL_c3a7f1ef" text="Queued:" />
+    <string id="AIL_c3a7f1f0" text="paid" />
+    <string id="AIL_c3a7f1f1" text="No requests yet." />
+    <string id="AIL_c3a7f1f2" text="Provider" />
+    <string id="AIL_c3a7f1f3" text="Task" />
+    <string id="AIL_c3a7f1f4" text="Requests" />
+    <string id="AIL_c3a7f1f5" text="Input" />
+    <string id="AIL_c3a7f1f6" text="Cached" />
+    <string id="AIL_c3a7f1f7" text="Output" />
+    <string id="AIL_c3a7f1f8" text="Cost ($)" />
   </strings>
 </base>

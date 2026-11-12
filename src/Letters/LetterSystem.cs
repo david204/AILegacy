@@ -210,7 +210,7 @@ namespace AILegacy.Letters
 
             _generating = true;
             int session = World.WorldSim.Session;
-            LlmClient.CompleteAsync(msgs, wantJson: true, preferredProvider: S.Get.ProviderLetters).ContinueWith(t =>
+            LlmClient.CompleteAsync(msgs, wantJson: true, task: "letter", preferredProvider: S.Get.ProviderLetters).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>

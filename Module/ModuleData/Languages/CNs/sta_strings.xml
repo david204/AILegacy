@@ -1280,5 +1280,29 @@
     <string id="AIL_a1c0e5d6" text="13 到 47 岁的女性有周期：情绪随周期的日子变化（有人明显，有人几乎没有），怀孕几率也随之变化，游戏本身的几率也一样。怀孕期间和分娩之后没有周期。她知道自己处在第几天。" />
     <string id="AIL_a1c0e5d7" text="周期天数" />
     <string id="AIL_a1c0e5d8" text="战役天数。游戏中一年有 84 天，所以 21 天就是一年四个周期。" />
+    <string id="AIL_c3a7f1e1" text="已达到每日花费上限（MCM › 7. AI），且没有免费的服务商。" />
+    <string id="AIL_c3a7f1e2" text="输入价格（每百万 token 的美元数）" />
+    <string id="AIL_c3a7f1e3" text="该服务商每百万 token 的收费。0 = 免费。用于计算花费（在编辑器的“服务”页查看）和每日上限；不影响其他任何功能。" />
+    <string id="AIL_c3a7f1e4" text="输出价格（每百万 token 的美元数）" />
+    <string id="AIL_c3a7f1e5" text="后台任务只用免费服务商" />
+    <string id="AIL_c3a7f1e6" text="环境闲聊、世界事件、摘要以及其他你并不在等待的任务，只要有免费服务商就绝不使用付费的。付费服务商留作对话的后备。" />
+    <string id="AIL_c3a7f1e7" text="每日花费上限（美分，0 = 无上限）" />
+    <string id="AIL_c3a7f1e8" text="一天内（现实中的一天，不是游戏内）达到该金额后，付费服务商停用到明天。只统计在“0. AI 密钥”中填了价格的服务商。" />
+    <string id="AIL_c3a7f1e9" text="被提及事物的资料" />
+    <string id="AIL_c3a7f1ea" text="如果谈话中提到某个地方、家族、王国、人物或货物，它的公开资料会加入这次请求（在哪里、归谁、值多少），在大地图上还会加入视野内的部队。角色知道你在说什么，而不必每次都加载整个世界。" />
+    <string id="AIL_c3a7f1eb" text="AI 花费（本次会话）" />
+    <string id="AIL_c3a7f1ec" text="按服务商和任务统计的请求数、token 和估算费用。只有在 MCM › 0. AI 密钥 中填了服务商价格才会显示费用。" />
+    <string id="AIL_c3a7f1ed" text="刷新" />
+    <string id="AIL_c3a7f1ee" text="今天：" />
+    <string id="AIL_c3a7f1ef" text="排队中：" />
+    <string id="AIL_c3a7f1f0" text="付费" />
+    <string id="AIL_c3a7f1f1" text="还没有请求。" />
+    <string id="AIL_c3a7f1f2" text="服务商" />
+    <string id="AIL_c3a7f1f3" text="任务" />
+    <string id="AIL_c3a7f1f4" text="请求数" />
+    <string id="AIL_c3a7f1f5" text="输入" />
+    <string id="AIL_c3a7f1f6" text="已缓存" />
+    <string id="AIL_c3a7f1f7" text="输出" />
+    <string id="AIL_c3a7f1f8" text="费用（$）" />
   </strings>
 </base>

@@ -332,7 +332,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             _waiting = true;
             var circle = Circle.ToList();
 
-            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
+            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "group", maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>

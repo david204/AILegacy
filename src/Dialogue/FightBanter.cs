@@ -75,7 +75,7 @@ Answer ONLY with JSON: { ""opening"": ""as it starts"", ""when_hit"": [""on taki
                 string prompt = TLines.Format("place", Settlement.CurrentSettlement?.Name?.ToString() ?? "the camp", "kind", what, "opponent_name", who.Name, "opponent", desc,
                     "player", player, "between", between, "max_chars", 70, "language", cfg.Language);
 
-                LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 450,
+                LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "banter", maxTokensOverride: 450,
                     preferredProvider: who.IsHero ? cfg.ProviderHeroes : cfg.ProviderResidents).ContinueWith(t =>
                 {
                     var res = t.IsFaulted ? null : t.Result;

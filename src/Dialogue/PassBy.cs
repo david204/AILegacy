@@ -83,7 +83,7 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
             string prompt = TPool.Format("place", st.Name, "walker", Walker(st), "context", sp != null ? Ambient.Context(st, sp) : st.Name.ToString(),
                 "max_chars", cfg.PassByMaxChars, "language", cfg.Language, "n_guard", 5, "n_folk", 9, "n_merchant", 5, "n_noble", 3);
             _busy = true; _asked = true;
-            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 900, preferredProvider: cfg.ProviderResidents).ContinueWith(t =>
+            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "passby", maxTokensOverride: 900, preferredProvider: cfg.ProviderResidents).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>

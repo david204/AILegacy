@@ -370,9 +370,10 @@ namespace AILegacy.Dialogue
                 Name = "declare_war", Usage = "declare_war",
                 Description = "As ruler, you declare war on the other person's kingdom, effective immediately. Only for grave insults, threats or when it truly serves your realm.",
                 IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction != PlayerKingdom
-                                   && !s.Hero.MapFaction.IsAtWarWith(PlayerKingdom),
+                                   && !s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction),
                 Execute = (s, arg, ctx) =>
                 {
+                    MarkWarPeace(s.Hero.MapFaction);
                     DeclareWarAction.ApplyByDefault(s.Hero.MapFaction, PlayerKingdom);
                     ctx.EndConversation = true;
                     return L.F("AIL_ae73db8a", $"¡{s.Hero.MapFaction.Name} declara la guerra a {PlayerKingdom.Name}!");
@@ -383,9 +384,10 @@ namespace AILegacy.Dialogue
                 Name = "make_peace", Usage = "make_peace",
                 Description = "As ruler, you agree to peace between your kingdom and theirs, effective immediately. Only when you have truly accepted the terms " +
                               "(often after tribute was paid with take_gold).",
-                IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction.IsAtWarWith(PlayerKingdom),
+                IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction),
                 Execute = (s, arg, ctx) =>
                 {
+                    MarkWarPeace(s.Hero.MapFaction);
                     MakePeaceAction.Apply(s.Hero.MapFaction, PlayerKingdom);
                     return L.F("AIL_7def1f8e", $"{s.Hero.MapFaction.Name} y {PlayerKingdom.Name} firman la paz.");
                 }
@@ -482,7 +484,7 @@ namespace AILegacy.Dialogue
                     if (Repeated(s, key, asked)) return null;
                     qty = Math.Min(qty, have);
                     int pay = PriceOf(item, true) * qty;
-                    int purse = st.Town != null ? st.Town.Gold : pay;
+                    int purse = st.Town != null ? st.Town.Gold : st.SettlementComponent != null ? st.SettlementComponent.Gold : pay;
                     if (purse < pay) { qty = Math.Max(0, purse / Math.Max(1, PriceOf(item, true))); pay = PriceOf(item, true) * qty; }
                     if (qty <= 0) return Nope(L.T("AIL_b720cde3", "El mercado no tiene dinero para comprártelo."), "there is no coin here to pay for it. Nothing was bought");
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -qty);
@@ -1520,6 +1522,16 @@ namespace AILegacy.Dialogue
         }
 
         private static string Clip(string t, int max) => t == null ? "" : t.Length <= max ? t : t.Substring(0, max) + "…";
+
+        // Guerra y paz decididas en una charla: entre una y otra con el mismo reino tienen que pasar unos días
+        private const double WarPeaceCooldownDays = 7;
+        private static string WarPeaceKey(IFaction f) => f == null || PlayerKingdom == null ? null : string.CompareOrdinal(f.StringId, PlayerKingdom.StringId) < 0 ? f.StringId + "|" + PlayerKingdom.StringId : PlayerKingdom.StringId + "|" + f.StringId;
+        private static bool WarPeaceSettled(IFaction f)
+        {
+            try { var k = WarPeaceKey(f); return k == null || WorldSim.State == null || !WorldSim.State.WarPeaceDay.TryGetValue(k, out double d) || CampaignTime.Now.ToDays - d >= WarPeaceCooldownDays; }
+            catch { return true; }
+        }
+        private static void MarkWarPeace(IFaction f) { try { var k = WarPeaceKey(f); if (k != null && WorldSim.State != null) WorldSim.State.WarPeaceDay[k] = CampaignTime.Now.ToDays; } catch { } }
 
         /// <summary>¿Son del mismo bando? (mismo clan o mismo reino o facción): a uno de los suyos no se le tiene preso.</summary>
         private static bool SameSide(Hero a, Hero b)

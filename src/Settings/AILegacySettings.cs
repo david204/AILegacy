@@ -44,6 +44,16 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_208da3de}Proveedor 1")]
         public string P1Url { get; set; } = "";
 
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e2}Precio de entrada ($ por millón de tokens)", 0f, 200f, "0.00", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_208da3de}Proveedor 1")]
+        public float P1PriceIn { get; set; } = 0f;
+
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e4}Precio de salida ($ por millón de tokens)", 0f, 400f, "0.00", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_208da3de}Proveedor 1")]
+        public float P1PriceOut { get; set; } = 0f;
+
         [SettingPropertyBool("{=AIL_7c7093eb}Usar este proveedor", Order = 0, RequireRestart = false,
             HintText = "{=AIL_454f39f4}Los proveedores se prueban en orden (1, 2, 3, 4): si el primero falla o se queda sin cupo, se pasa al siguiente. Las claves se guardan en Documentos, en Mount and Blade II Bannerlord / Configs / ModSettings, no en la carpeta del mod.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_1f8da24b}Proveedor 2")]
@@ -68,6 +78,16 @@ namespace AILegacy.Settings
             HintText = "{=AIL_5e0df453}Dirección base compatible con OpenAI, p. ej. https://mi-servidor/v1. Para los servicios conocidos se pone sola.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_1f8da24b}Proveedor 2")]
         public string P2Url { get; set; } = "";
+
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e2}Precio de entrada ($ por millón de tokens)", 0f, 200f, "0.00", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_1f8da24b}Proveedor 2")]
+        public float P2PriceIn { get; set; } = 0f;
+
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e4}Precio de salida ($ por millón de tokens)", 0f, 400f, "0.00", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_1f8da24b}Proveedor 2")]
+        public float P2PriceOut { get; set; } = 0f;
 
         [SettingPropertyBool("{=AIL_7c7093eb}Usar este proveedor", Order = 0, RequireRestart = false,
             HintText = "{=AIL_454f39f4}Los proveedores se prueban en orden (1, 2, 3, 4): si el primero falla o se queda sin cupo, se pasa al siguiente. Las claves se guardan en Documentos, en Mount and Blade II Bannerlord / Configs / ModSettings, no en la carpeta del mod.")]
@@ -94,6 +114,16 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_1e8da0b8}Proveedor 3")]
         public string P3Url { get; set; } = "";
 
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e2}Precio de entrada ($ por millón de tokens)", 0f, 200f, "0.00", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_1e8da0b8}Proveedor 3")]
+        public float P3PriceIn { get; set; } = 0f;
+
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e4}Precio de salida ($ por millón de tokens)", 0f, 400f, "0.00", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_1e8da0b8}Proveedor 3")]
+        public float P3PriceOut { get; set; } = 0f;
+
         [SettingPropertyBool("{=AIL_7c7093eb}Usar este proveedor", Order = 0, RequireRestart = false,
             HintText = "{=AIL_454f39f4}Los proveedores se prueban en orden (1, 2, 3, 4): si el primero falla o se queda sin cupo, se pasa al siguiente. Las claves se guardan en Documentos, en Mount and Blade II Bannerlord / Configs / ModSettings, no en la carpeta del mod.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_258dabbd}Proveedor 4")]
@@ -119,11 +149,21 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_258dabbd}Proveedor 4")]
         public string P4Url { get; set; } = "";
 
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e2}Precio de entrada ($ por millón de tokens)", 0f, 200f, "0.00", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_258dabbd}Proveedor 4")]
+        public float P4PriceIn { get; set; } = 0f;
+
+        [SettingPropertyFloatingInteger("{=AIL_c3a7f1e4}Precio de salida ($ por millón de tokens)", 0f, 400f, "0.00", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e3}Lo que cobra este proveedor por cada millón de tokens. 0 = gratis. Sirve para calcular el gasto (se ve en el editor, pestaña Servicio) y para el tope diario; no cambia nada más.")]
+        [SettingPropertyGroup("{=AIL_6c7f2b62}0. Claves de IA/{=AIL_258dabbd}Proveedor 4")]
+        public float P4PriceOut { get; set; } = 0f;
+
         /// <summary>Los proveedores escritos en MCM, en orden, ya con los detalles técnicos de cada servicio.</summary>
         public System.Collections.Generic.List<Config.ProviderConfig> McmProviders()
         {
             var list = new System.Collections.Generic.List<Config.ProviderConfig>();
-            void Add(int n, bool on, string service, string key, string model, string url)
+            void Add(int n, bool on, string service, string key, string model, string url, float priceIn, float priceOut)
             {
                 service = (service ?? "").Trim().ToLowerInvariant(); key = (key ?? "").Trim(); model = (model ?? "").Trim(); url = (url ?? "").Trim();
                 if (!on || service.Length == 0) return;
@@ -148,16 +188,18 @@ namespace AILegacy.Settings
                 }
                 // Si escribes una dirección, manda la tuya (para servidores propios o «otro»)
                 if (url.Length > 0) p.BaseUrl = url;
+                p.PriceIn = Math.Max(0f, priceIn); p.PriceOut = Math.Max(0f, priceOut);
                 list.Add(p);
             }
-            Add(1, P1Enabled, P1Service, P1Key, P1Model, P1Url); Add(2, P2Enabled, P2Service, P2Key, P2Model, P2Url);
-            Add(3, P3Enabled, P3Service, P3Key, P3Model, P3Url); Add(4, P4Enabled, P4Service, P4Key, P4Model, P4Url);
+            Add(1, P1Enabled, P1Service, P1Key, P1Model, P1Url, P1PriceIn, P1PriceOut); Add(2, P2Enabled, P2Service, P2Key, P2Model, P2Url, P2PriceIn, P2PriceOut);
+            Add(3, P3Enabled, P3Service, P3Key, P3Model, P3Url, P3PriceIn, P3PriceOut); Add(4, P4Enabled, P4Service, P4Key, P4Model, P4Url, P4PriceIn, P4PriceOut);
             return list;
         }
 
         /// <summary>Cambia cuando tocas algo de los proveedores en MCM (para recargarlos al momento).</summary>
         public string McmProvidersSignature() =>
-            string.Join("|", P1Enabled, P1Service, P1Key, P1Model, P1Url, P2Enabled, P2Service, P2Key, P2Model, P2Url, P3Enabled, P3Service, P3Key, P3Model, P3Url, P4Enabled, P4Service, P4Key, P4Model, P4Url);
+            string.Join("|", P1Enabled, P1Service, P1Key, P1Model, P1Url, P2Enabled, P2Service, P2Key, P2Model, P2Url, P3Enabled, P3Service, P3Key, P3Model, P3Url, P4Enabled, P4Service, P4Key, P4Model, P4Url,
+                P1PriceIn, P1PriceOut, P2PriceIn, P2PriceOut, P3PriceIn, P3PriceOut, P4PriceIn, P4PriceOut);
 
         // ------------------------------------------------------------ General
         [SettingPropertyDropdown("{=AIL_e250598b}Idioma de la interfaz (Interface language)", Order = -2, RequireRestart = false,
@@ -610,6 +652,11 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_1057a530}Turnos de historial en el prompt", 4, 60, Order = 0, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria", GroupOrder = 4)]
         public int HistoryTurnsInPrompt { get; set; } = 16;
+
+        [SettingPropertyBool("{=AIL_c3a7f1e9}Datos de lo que se nombra", Order = 20, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1ea}Si en la charla se nombra un lugar, una casa, un reino, una persona o una mercancía, sus datos públicos entran en esa petición (dónde está, de quién es, cuánto vale), y en el mapa también las partidas que hay a la vista. El personaje sabe de qué le hablas sin cargar el mundo entero cada vez.")]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
+        public bool EnableMentions { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_effea661}Resumir a partir de N turnos", 10, 200, Order = 1, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
@@ -1363,6 +1410,16 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_2fc52b1a}Puerto del editor", 1024, 65000, Order = 1, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_1d38423b}9. Editor")]
         public int EditorPort { get; set; } = 17890;
+
+        [SettingPropertyBool("{=AIL_c3a7f1e5}Tareas de fondo solo con proveedores gratis", Order = 10, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e6}Las charlas de ambiente, los sucesos del mundo, los resúmenes y demás tareas que no estás esperando no usan nunca un proveedor de pago mientras haya uno gratis. El de pago queda de reserva para el diálogo.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. IA")]
+        public bool BackgroundOnFreeProviders { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_c3a7f1e7}Tope de gasto diario (céntimos de $, 0 = sin tope)", 0, 5000, Order = 11, RequireRestart = false,
+            HintText = "{=AIL_c3a7f1e8}Al llegar a esa cantidad en un día (día real, no del juego) los proveedores de pago dejan de usarse hasta mañana. Solo cuenta lo que tenga precio puesto en 0. Claves de IA.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. IA")]
+        public int DailySpendCapCents { get; set; } = 0;
 
         [SettingPropertyBool("{=AIL_7ff37c4e}Guardar petición/respuesta en logs", Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. IA")]

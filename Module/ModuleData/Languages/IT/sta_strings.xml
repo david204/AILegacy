@@ -1280,5 +1280,29 @@
     <string id="AIL_a1c0e5d6" text="Le donne dai 13 ai 47 anni hanno il ciclo: cambia il loro umore secondo il giorno (ad alcune molto, ad altre quasi per niente) e la probabilità di gravidanza, anche quella del gioco. Nessun ciclo in gravidanza né dopo il parto. Lei sa a che giorno è." />
     <string id="AIL_a1c0e5d7" text="Durata del ciclo in giorni" />
     <string id="AIL_a1c0e5d8" text="Giorni di campagna. Un anno di gioco ha 84 giorni, quindi 21 significano quattro cicli l'anno." />
+    <string id="AIL_c3a7f1e1" text="È stato raggiunto il tetto di spesa giornaliero (MCM › 7. IA) e non c'è alcun fornitore gratuito." />
+    <string id="AIL_c3a7f1e2" text="Prezzo di ingresso ($ per milione di token)" />
+    <string id="AIL_c3a7f1e3" text="Quanto addebita questo fornitore per ogni milione di token. 0 = gratis. Serve a calcolare la spesa (si vede nell'editor, scheda Servizio) e per il tetto giornaliero; non cambia nient'altro." />
+    <string id="AIL_c3a7f1e4" text="Prezzo di uscita ($ per milione di token)" />
+    <string id="AIL_c3a7f1e5" text="Attività di fondo solo con fornitori gratuiti" />
+    <string id="AIL_c3a7f1e6" text="Le chiacchiere d'ambiente, gli eventi del mondo, i riassunti e le altre attività che non stai aspettando non usano mai un fornitore a pagamento finché ce n'è uno gratuito. Quello a pagamento resta di riserva per il dialogo." />
+    <string id="AIL_c3a7f1e7" text="Tetto di spesa giornaliero (centesimi di $, 0 = nessun tetto)" />
+    <string id="AIL_c3a7f1e8" text="Raggiunta quella cifra in un giorno (giorno reale, non di gioco) i fornitori a pagamento non vengono più usati fino a domani. Conta solo ciò che ha un prezzo impostato in 0. Chiavi IA." />
+    <string id="AIL_c3a7f1e9" text="Dati su ciò che viene nominato" />
+    <string id="AIL_c3a7f1ea" text="Se nella conversazione viene nominato un luogo, una casata, un regno, una persona o una merce, i suoi dati pubblici entrano in quella richiesta (dov'è, di chi è, quanto vale), e sulla mappa anche le schiere in vista. Il personaggio sa di cosa parli senza caricare ogni volta il mondo intero." />
+    <string id="AIL_c3a7f1eb" text="Spesa IA (questa sessione)" />
+    <string id="AIL_c3a7f1ec" text="Richieste, token e costo stimato per fornitore e attività. Il costo compare solo se hai impostato il prezzo del fornitore in MCM › 0. Chiavi IA." />
+    <string id="AIL_c3a7f1ed" text="Aggiorna" />
+    <string id="AIL_c3a7f1ee" text="Oggi:" />
+    <string id="AIL_c3a7f1ef" text="In coda:" />
+    <string id="AIL_c3a7f1f0" text="a pagamento" />
+    <string id="AIL_c3a7f1f1" text="Ancora nessuna richiesta." />
+    <string id="AIL_c3a7f1f2" text="Fornitore" />
+    <string id="AIL_c3a7f1f3" text="Attività" />
+    <string id="AIL_c3a7f1f4" text="Richieste" />
+    <string id="AIL_c3a7f1f5" text="Ingresso" />
+    <string id="AIL_c3a7f1f6" text="In cache" />
+    <string id="AIL_c3a7f1f7" text="Uscita" />
+    <string id="AIL_c3a7f1f8" text="Costo ($)" />
   </strings>
 </base>

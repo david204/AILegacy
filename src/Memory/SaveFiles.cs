@@ -487,7 +487,20 @@ namespace AILegacy.Memory
             var path = Path.Combine(dir, file);
             if (!File.Exists(path)) return null;
             try { return JsonConvert.DeserializeObject<T>(File.ReadAllText(path, Encoding.UTF8)); }
-            catch (Exception ex) { Log.Warn($"{file} ilegible, se ignora: {ex.Message}"); return null; }
+            catch (Exception ex)
+            {
+                // Se guarda aparte tal cual: lo que traía se puede recuperar a mano
+                try
+                {
+                    string keep = Path.Combine(dir, "_ilegibles");
+                    Directory.CreateDirectory(keep);
+                    string to = Path.Combine(keep, Path.GetFileNameWithoutExtension(file) + "." + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json");
+                    File.Copy(path, to, true);
+                    Log.Error($"{file} es ilegible ({ex.Message}). Copia guardada en _ilegibles\\{Path.GetFileName(to)}; se sigue sin esos datos.");
+                }
+                catch (Exception ex2) { Log.Error($"{file} ilegible y no se pudo apartar: {ex.Message} / {ex2.Message}"); }
+                return null;
+            }
         }
     }
 }

@@ -61,7 +61,7 @@ namespace AILegacy.Dialogue
                     if (j["actions"] is JArray arr)
                         r.Actions = arr.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                     else if (j["actions"]?.Type == JTokenType.String)
-                        r.Actions = j["actions"].ToString().Split(new[] { ';', '|' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                        r.Actions = j["actions"].ToString().Split(new[] { ';', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
 
                     if (j["profile"] is JObject p)
                     {

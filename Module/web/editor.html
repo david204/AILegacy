@@ -245,6 +245,13 @@
   <!-- SERVICIO -->
   <section class="tab" id="t-service">
     <div class="card">
+      <h2>Gasto de IA (esta sesión)</h2>
+      <p class="hint">Peticiones, tokens y coste estimado por proveedor y tarea. El coste solo sale si has puesto el precio del proveedor en MCM › 0. Claves de IA.</p>
+      <div class="row"><button class="btn" onclick="loadUsage()">Actualizar</button> <span id="usageToday" class="hint"></span></div>
+      <div id="usageProviders" class="hint" style="margin:8px 0"></div>
+      <table id="usageTable" style="width:100%;border-collapse:collapse;font-size:13px"></table>
+    </div>
+    <div class="card">
       <h2>Carpetas</h2>
       <p class="hint">Se abren en el Explorador de Windows del equipo donde corre el juego.</p>
       <div class="row">
@@ -283,6 +290,20 @@ function trNode(n) {
   for (const a of ['placeholder', 'title']) { const v = n.getAttribute && n.getAttribute(a); if (v && LANG[v.trim()]) n.setAttribute(a, LANG[v.trim()]); }
   n.childNodes.forEach(trNode);
 }
+async function loadUsage() {
+  const u = await api('/api/usage');
+  const n = x => Number(x || 0).toLocaleString();
+  $('usageToday').textContent = T('Hoy:') + ' ' + Number(u.today || 0).toFixed(4) + ' $' + (u.cap > 0 ? ' / ' + u.cap.toFixed(2) + ' $' : '') + (u.queue > 0 ? '   ·   ' + T('En cola:') + ' ' + u.queue : '');
+  $('usageProviders').innerHTML = (u.providers || []).map(p => `${esc(p.name)} (${esc(p.model)}): ${esc(p.state)}${p.paid ? ' · ' + T('de pago') : ''}`).join('<br>');
+  const rows = u.rows || [];
+  if (!rows.length) { $('usageTable').innerHTML = `<tr><td class="hint">${T('Sin peticiones todavía.')}</td></tr>`; return; }
+  const th = s => `<th style="text-align:left;border-bottom:1px solid #6665;padding:3px 6px">${T(s)}</th>`;
+  const td = s => `<td style="padding:3px 6px;border-bottom:1px solid #6662">${s}</td>`;
+  $('usageTable').innerHTML = '<tr>' + ['Proveedor', 'Tarea', 'Peticiones', 'Entrada', 'En caché', 'Salida', 'Coste ($)'].map(th).join('') + '</tr>' +
+    rows.map(r => '<tr>' + [esc(r.provider), esc(r.task), n(r.calls) + (r.failed ? ` (${n(r.failed)} ✗)` : ''), n(r['in']), n(r.cached) + (r['in'] > 0 ? ` (${Math.round(r.cached * 100 / r['in'])} %)` : ''), n(r.out), Number(r.usd || 0).toFixed(4)].map(td).join('') + '</tr>').join('');
+}
+document.querySelector('nav button[data-t="service"]').addEventListener('click', () => loadUsage().catch(() => {}));
+
 async function loadLang() {
   try { const r = await (await authFetch('/api/lang')).json(); LANG = r.table || {}; document.documentElement.lang = r.code || 'en'; } catch { LANG = {}; }
   trNode(document.body); document.title = T(document.title);

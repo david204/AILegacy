@@ -88,7 +88,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 _busy = true;
                 int session = WorldSim.Session;
                 Say(L.F("AIL_7576bfa9", $"Esperas en los calabozos de {st.Name} a que {lord.Name} decida qué hacer contigo…"), Colors.Gray);
-                LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
+                LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "verdict", maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
                 {
                     var res = t.IsFaulted ? null : t.Result;
                     MainThread.Post(() =>

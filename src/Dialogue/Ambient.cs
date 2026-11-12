@@ -520,7 +520,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             _busy = true;
             int gen = _gen;
             string provider = (sa != null && sa.IsHero) || (sb != null && sb.IsHero) ? S.Get.ProviderHeroes : S.Get.ProviderResidents;
-            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: tokens, preferredProvider: provider).ContinueWith(t =>
+            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "ambient", maxTokensOverride: tokens, preferredProvider: provider).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>

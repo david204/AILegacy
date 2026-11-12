@@ -272,7 +272,7 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
             mem.LastDevelopmentDay = now;
             string prompt = TDevelopment.Format("npc_name", s.Name, "event", whatHappened, "profile", JsonConvert.SerializeObject(mem.Profile), "max_fields", cfg.DevelopmentMaxFields);
             Log.Info($"Evolución del carácter de {s.Name}: {whatHappened}");
-            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 700, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
+            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "lore", maxTokensOverride: 700, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>

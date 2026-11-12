@@ -41,6 +41,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener(this, World.Mood.OnPrisonerReleased);
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, World.Mood.OnWarDeclared);
             CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(this, World.Mood.OnGivenBirth);
+            CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, WorldSim.OnHeroKilled);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, WorldSim.OnPrisonerTaken);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, WorldSim.OnSettlementOwnerChanged);

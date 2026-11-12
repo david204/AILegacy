@@ -266,6 +266,7 @@ Answer ONLY with JSON: { ""title"": ""3 to 7 words"", ""text"": ""the chronicle"
                     if (text.Length < 40) return;
                     if (title.Length < 3) title = L.F("AIL_f8ac2cac", $"Crónica de {name}");
                     m.Pages.Add(new MemoryPage { Title = title, Text = text, Day = CampaignTime.Now.ToDays });
+                    while (m.Pages.Count > Math.Max(5, S.Get.MaxMemoryPages)) m.Pages.RemoveAt(0);
                     NewsStore.Add(new NewsItem { Type = "death", Importance = 2, Text = $"The chronicle of {name}, who has died, has been written.", TitleEs = title, TextEs = text, Heroes = new List<string> { id }, PlayerInvolved = true });
                     SaveFiles.Flush();
                     InformationManager.ShowInquiry(new InquiryData(title, text, true, false, L.T("AIL_e8438e2a", "Cerrar"), "", null, null), true);

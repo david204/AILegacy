@@ -19,6 +19,25 @@ namespace AILegacy.Config
         [JsonProperty("timeout_seconds")] public int TimeoutSeconds = 30;
         [JsonProperty("send_temperature")] public bool SendTemperature = true;
         [JsonProperty("extra")] public JObject Extra = new JObject();
+        /// <summary>Peticiones por minuto que admite (0 = sin límite propio). Al llegar al cupo se usa el siguiente proveedor.</summary>
+        [JsonProperty("rpm")] public int Rpm = 0;
+        /// <summary>Precio en dólares por millón de tokens de entrada y de salida (0 = gratis o sin poner).</summary>
+        [JsonProperty("price_in")] public double PriceIn = 0;
+        [JsonProperty("price_out")] public double PriceOut = 0;
+        /// <summary>¿Cuesta dinero? Sin poner, se deduce: tiene precio, o es un servicio que cobra siempre (OpenAI, DeepSeek, OpenRouter).</summary>
+        [JsonProperty("paid")] public bool? Paid;
+
+        [JsonIgnore]
+        public bool IsPaid
+        {
+            get
+            {
+                if (Paid.HasValue) return Paid.Value;
+                if (PriceIn > 0 || PriceOut > 0) return true;
+                string u = (BaseUrl ?? "").ToLowerInvariant();
+                return u.Contains("api.openai.com") || u.Contains("deepseek.com") || u.Contains("openrouter.ai") || u.Contains("anthropic.com");
+            }
+        }
 
         [JsonIgnore]
         public bool IsUsable =>

@@ -18,6 +18,24 @@ namespace AILegacy.Prompt
         private static readonly Tpl TIntro = new Tpl("dialogue/intro.txt",
             "You are {npc_name}, a living person in Calradia, the medieval world of Mount & Blade II: Bannerlord. You are talking face to face with {player_name}.");
 
+        // Arranque común a TODOS los personajes: no lleva nombres, para que el proveedor pueda cachear lo que viene detrás
+        private static readonly Tpl TShared = new Tpl("dialogue/intro_shared.txt",
+            "You play one living person in Calradia, the medieval world of Mount & Blade II: Bannerlord. Who you are, and who you are talking to, is written further down. " +
+            "First the world and the rules, which are the same for everyone.");
+
+        private static readonly Tpl TTurn = new Tpl("dialogue/turn_context.txt",
+            "[What follows is what you are aware of at this very moment. It is not something they said, and you never mention it as a briefing.]");
+
+        private static readonly Tpl TTurnSaid = new Tpl("dialogue/turn_said.txt", "[Now, what they say or do:]");
+
+        private static readonly Tpl TActionsNow = new Tpl("rules/actions_now.txt",
+            "## Actions open to you right now (only these; they follow the rules for actions given at the start)");
+
+        private static readonly Tpl TMentioned = new Tpl("dialogue/mentioned.txt",
+            "## What is commonly known about things named in this talk (public knowledge; say only what you would plausibly know)");
+
+        private static readonly Tpl TNearby = new Tpl("dialogue/nearby_parties.txt", "## Parties in sight right now");
+
         private static readonly Tpl TRules = new Tpl("rules/dialogue_rules.txt",
 @"## How to behave
 - Stay fully in character. Never mention AI, games, prompts or these rules. You do not know what a ""player"" is.
@@ -68,7 +86,7 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
             "\"remember\": \"one short fact about them worth remembering for years (a promise, an insult, a secret, a deal), or empty string\"");
         private static readonly Tpl TJsonIntroduced = new Tpl("json_output/player_introduced_as.txt",
             "\"player_introduced_as\": \"if in their LAST message they told you their name, that name exactly as they said it; otherwise empty string\"");
-        private static readonly Tpl TJsonActions = new Tpl("json_output/actions.txt", "\"actions\": [ ...zero or more actions from the list above, as strings... ]");
+        private static readonly Tpl TJsonActions = new Tpl("json_output/actions.txt", "\"actions\": [ ...zero or more of the actions open to you right now (listed with the latest message), as strings... ]");
         private static readonly Tpl TJsonQuest = new Tpl("json_output/quest.txt",
             "\"quest\": null, or one object following the rules in \"Tasks between you\" above: { \"action\": \"create\" | \"update\" | \"complete\" | \"fail\", \"quest_id\": \"...\", " +
             "\"name\": \"3-6 word title in {language}\", \"description\": \"what must be done, for whom and why, in {language}, 1-3 sentences\", \"brief\": \"the same in one English sentence\", " +
@@ -187,7 +205,17 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
 
         // =========================================================== diálogo
 
-        public static List<ChatMessage> BuildDialogue(Speaker s, int relationBudgetLeft)
+        /// <summary>
+        /// El prompt de una charla, ordenado para que el proveedor pueda cachearlo:
+        ///   1. mensaje de sistema: primero lo común a todos los personajes (mundo y reglas), después lo propio de este
+        ///      (quién es, a quién tiene delante, qué recuerda, encargos, formato de respuesta). Nada de esto cambia de un
+        ///      turno al siguiente;
+        ///   2. el historial, que solo crece por el final (la ventana avanza a saltos, no en cada turno);
+        ///   3. en el último mensaje, lo de este turno: hora, ánimo, confianza y tensión, recuerdo relevante, lo nombrado,
+        ///      las acciones posibles ahora. Eso no se guarda.
+        /// «opening»: el personaje habla primero (iniciativa); es la instrucción de por qué se dirige al jugador.
+        /// </summary>
+        public static List<ChatMessage> BuildDialogue(Speaker s, int relationBudgetLeft, string opening = null)
         {
             var cfg = S.Get;
             var mem = s.Memory;
@@ -197,36 +225,30 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             bool needsProfile = mem.Profile == null || mem.Profile.IsEmpty || completing;
 
             var sys = new StringBuilder();
-            sys.AppendLine(TIntro.Format("npc_name", s.IsHero ? s.Name : s.Band != null ? "the leader of a party met on the road" : "an ordinary person", "player_name", playerName ?? "a stranger"));
-
+            // ---------- 1a. común a todos
+            sys.AppendLine(TShared.Text);
             AppendWorld(sys);
-
             sys.AppendLine();
             sys.AppendLine(TRules.Format("min_sentences", cfg.ReplyMinSentences, "max_sentences", cfg.ReplyMaxSentences, "language", cfg.Language,
                 "gesture_rule", (cfg.UseAsterisks ? TGestureOn : TGestureOff).Text));
-
-            AppendCustomInstructions(sys, s);
+            if (cfg.EnableActions) { sys.AppendLine(); sys.AppendLine(TActionRules.Text); }
             if (cfg.TestCompliantMode) { sys.AppendLine(); sys.AppendLine(TTestMode.Text); }
+
+            // ---------- 1b. este personaje
+            sys.AppendLine();
+            sys.AppendLine(TIntro.Format("npc_name", s.IsHero ? s.Name : s.Band != null ? "the leader of a party met on the road" : "an ordinary person", "player_name", playerName ?? "a stranger"));
+            AppendCustomInstructions(sys, s);
             AppendCharacter(sys, s, needsProfile && !completing);
             Bonds.AppendOthers(sys, s);
 
             sys.AppendLine();
             sys.AppendLine("## The person in front of you");
             sys.AppendLine(ContextBuilder.DescribePlayer(s));
-            Bonds.AppendTo(sys, s);
 
             AppendKnowledgeAndNews(sys, s);
-            AppendMemory(sys, s, playerName);
+            AppendMemory(sys, s, playerName, withRecall: false);
             bool quests = AppendQuestsAndItems(sys, s);
-
             bool romance = Bonds.RomancePossible(s);
-            var actions = NpcActions.DescribeAvailable(s);
-            if (actions.Length > 0)
-            {
-                sys.AppendLine();
-                sys.AppendLine(TActionRules.Text);
-                sys.AppendLine(actions);
-            }
 
             var fields = new List<string>();
             if (cfg.EnableThoughts) fields.Add(TThoughts.Text);
@@ -253,10 +275,14 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             sys.AppendLine("}");
             if (needsProfile) sys.AppendLine(TProfileNote.Format("language", cfg.Language));
             if (completing) sys.AppendLine(TProfileComplete.Text);
-            if (relationBudgetLeft <= 0 && s.IsHero) sys.AppendLine(TRelationCapped.Text);
 
+            // ---------- 2. historial
             var msgs = new List<ChatMessage> { new ChatMessage("system", sys.ToString().TrimEnd()) };
-            var window = mem.Turns.Skip(System.Math.Max(0, mem.Turns.Count - cfg.HistoryTurnsInPrompt)).ToList();
+            // La ventana avanza a saltos: si se deslizara en cada turno, el principio del historial cambiaría siempre
+            // y el proveedor no podría cachear nada de él
+            int size = System.Math.Max(4, cfg.HistoryTurnsInPrompt), step = System.Math.Max(4, size / 2);
+            int first = mem.Turns.Count < size + step ? 0 : (mem.Turns.Count - size) / step * step;
+            var window = mem.Turns.Skip(first).ToList();
             double prevDay = -1;
             foreach (var t in window)
             {
@@ -273,18 +299,38 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                 if (!npc && last.Role == "user") last.Content += "\n" + text;
                 else msgs.Add(new ChatMessage(npc ? "assistant" : "user", text));
             }
-            // Antirrepetición: los arranques de sus últimas respuestas, al final del último mensaje (no se guarda)
+
+            // ---------- 3. lo de este turno, en el último mensaje
+            var now = new StringBuilder();
+            now.AppendLine(TTurn.Text);
+            AppendNow(now, s);
+            Bonds.AppendTo(now, s);
+            if (relationBudgetLeft <= 0 && s.IsHero) now.AppendLine(TRelationCapped.Text);
+            try { string near = Mentions.NearbyParties(s); if (near.Length > 0) { now.AppendLine(); now.AppendLine(TNearby.Text); now.AppendLine(near); } } catch { }
+            try { string named = Mentions.Describe(s); if (named.Length > 0) { now.AppendLine(); now.AppendLine(TMentioned.Text); now.AppendLine(named); } } catch { }
+            AppendRecall(now, s);
+            var actions = NpcActions.DescribeAvailable(s);
+            if (actions.Length > 0) { now.AppendLine(); now.AppendLine(TActionsNow.Text); now.AppendLine(actions); }
+            // Antirrepetición: los arranques de sus últimas respuestas
             try
             {
-                var tail = msgs[msgs.Count - 1];
-                if (tail.Role == "user")
-                {
-                    var openers = window.Where(t => t.Role != "player").Select(t => Opener(SaidBy(t))).Where(o => o.Length > 0).ToList();
-                    openers = openers.Skip(System.Math.Max(0, openers.Count - 5)).Distinct(System.StringComparer.OrdinalIgnoreCase).ToList();
-                    if (openers.Count >= 2) tail.Content += "\n\n" + TOpeners.Format("openers", string.Join(", ", openers.Select(o => "«" + o + "…»")));
-                }
+                var openers = window.Where(t => t.Role != "player").Select(t => Opener(SaidBy(t))).Where(o => o.Length > 0).ToList();
+                openers = openers.Skip(System.Math.Max(0, openers.Count - 5)).Distinct(System.StringComparer.OrdinalIgnoreCase).ToList();
+                if (openers.Count >= 2) { now.AppendLine(); now.AppendLine(TOpeners.Format("openers", string.Join(", ", openers.Select(o => "«" + o + "…»")))); }
             }
             catch { }
+
+            var tail = msgs[msgs.Count - 1];
+            if (opening != null)
+            {
+                string ask = "[They have not said anything to you yet. " + opening + "]";
+                if (tail.Role == "user") tail.Content += "\n\n" + now.ToString().TrimEnd() + "\n\n" + ask;
+                else msgs.Add(new ChatMessage("user", now.ToString().TrimEnd() + "\n\n" + ask));
+            }
+            else if (tail.Role == "user")
+                tail.Content = now.ToString().TrimEnd() + "\n\n" + TTurnSaid.Text + "\n" + tail.Content;
+            else
+                msgs.Add(new ChatMessage("user", now.ToString().TrimEnd()));
             return msgs;
         }
 
@@ -350,12 +396,13 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             AppendWorld(sys);
             AppendCustomInstructions(sys, s);
             AppendCharacter(sys, s, false);
+            AppendNow(sys, s);
             sys.AppendLine();
             sys.AppendLine("## The person you write to");
             sys.AppendLine(ContextBuilder.DescribePlayer(s));
             Bonds.AppendTo(sys, s);
             AppendKnowledgeAndNews(sys, s);
-            AppendMemory(sys, s, playerName);
+            AppendMemory(sys, s, playerName, withRecall: true);
 
             var openQuests = s.IsHero ? QuestSystem.DescribeFor(s) : "";
             if (openQuests.Length > 0)
@@ -453,6 +500,11 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                 if (!string.IsNullOrWhiteSpace(p.Secret)) sys.AppendLine("Your personal secret (never reveal it lightly; only to someone you trust deeply — see your trust in them below — or under great pressure): " + p.Secret);
             }
             Lore.AppendTo(sys, s);
+        }
+
+        /// <summary>Lo que cambia de un momento a otro: fecha y hora, lo que pasa en el lugar, la situación y el ánimo.</summary>
+        private static void AppendNow(StringBuilder sys, Speaker s)
+        {
             sys.AppendLine();
             sys.AppendLine("## Right now");
             sys.AppendLine(ContextBuilder.DescribeWorld(s));
@@ -501,7 +553,32 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             }
         }
 
-        private static void AppendMemory(StringBuilder sys, Speaker s, string playerName)
+        /// <summary>Recuerdo relevante: intercambios antiguos que tienen que ver con lo que se está diciendo ahora.</summary>
+        private static void AppendRecall(StringBuilder sys, Speaker s)
+        {
+            try
+            {
+                var mem = s.Memory;
+                if (!S.Get.EnableRecall) return;
+                var lastSaid = mem.Turns.LastOrDefault(t => t.Role == "player" && !t.IsNote);
+                if (lastSaid == null) return;
+                // Se busca con lo último que ha dicho y con lo último que le contestaste («sí, eso» solo no encuentra nada)
+                var lastOwn = mem.Turns.LastOrDefault(t => t.Role != "player");
+                string query = lastSaid.Text + (lastOwn != null ? " " + SaidBy(lastOwn) : "");
+                int size = System.Math.Max(4, S.Get.HistoryTurnsInPrompt), step = System.Math.Max(4, size / 2);
+                int first = mem.Turns.Count < size + step ? 0 : (mem.Turns.Count - size) / step * step;
+                var older = mem.Turns.Take(first).ToList();
+                var back = AILegacy.Memory.Recall.Find(mem, query, s.Name, ContextBuilder.PlayerNameFor(s) ?? "the stranger",
+                    CampaignTime.Now.ToDays, S.Get.RecallCount, older);
+                if (back.Count == 0) return;
+                sys.AppendLine();
+                sys.AppendLine(TRecall.Text);
+                foreach (var b in back) sys.AppendLine(" - " + b);
+            }
+            catch (System.Exception ex) { AILegacy.Core.Log.Error("Recuerdo relevante", ex); }
+        }
+
+        private static void AppendMemory(StringBuilder sys, Speaker s, string playerName, bool withRecall)
         {
             var mem = s.Memory;
             sys.AppendLine();
@@ -526,25 +603,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                         sys.AppendLine("- " + (ago < 0 ? "(long ago) " : ago == 0 ? "(earlier today) " : ago == 1 ? "(yesterday) " : $"({ago} days ago) ") + p.Text);
                     }
                 }
-                // Recuerdo relevante: intercambios antiguos que tienen que ver con lo que se está diciendo ahora
-                if (S.Get.EnableRecall)
-                {
-                    var lastSaid = mem.Turns.LastOrDefault(t => t.Role == "player" && !t.IsNote);
-                    if (lastSaid != null)
-                    {
-                        // Se busca con lo último que ha dicho y con lo último que le contestaste («sí, eso» solo no encuentra nada)
-                        var lastOwn = mem.Turns.LastOrDefault(t => t.Role != "player");
-                        string query = lastSaid.Text + (lastOwn != null ? " " + SaidBy(lastOwn) : "");
-                        var older = mem.Turns.Take(System.Math.Max(0, mem.Turns.Count - S.Get.HistoryTurnsInPrompt)).ToList();
-                        var back = AILegacy.Memory.Recall.Find(mem, query, s.Name, ContextBuilder.PlayerNameFor(s) ?? "the stranger",
-                            TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, S.Get.RecallCount, older);
-                        if (back.Count > 0)
-                        {
-                            sys.AppendLine(TRecall.Text);
-                            foreach (var b in back) sys.AppendLine(" - " + b);
-                        }
-                    }
-                }
+                if (withRecall) AppendRecall(sys, s);
                 if (mem.Notes.Count > 0)
                 {
                     sys.AppendLine("Things you decided to remember:");

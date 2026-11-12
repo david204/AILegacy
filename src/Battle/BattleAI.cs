@@ -268,7 +268,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             int gen = ++s.Gen;
             var m = _mission;
             s.MenAtLastDecision = ownMen;
-            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 500, preferredProvider: cfg.ProviderBattle).ContinueWith(t =>
+            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "battle", maxTokensOverride: 500, preferredProvider: cfg.ProviderBattle).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>
@@ -322,7 +322,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     _playerWaiting = true;
                     Say(L.F("AIL_2bd4d43b", $"Ordenas: «{text}»"), new Color(0.55f, 0.9f, 0.55f));
                     try { Bubbles.Show(Agent.Main, text, 4f); } catch { }
-                    LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 400, preferredProvider: cfg.ProviderBattle).ContinueWith(t =>
+                    LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "order", maxTokensOverride: 400, preferredProvider: cfg.ProviderBattle).ContinueWith(t =>
                     {
                         var res = t.IsFaulted ? null : t.Result;
                         MainThread.Post(() =>

@@ -120,6 +120,10 @@ namespace AILegacy.World
         /// <summary>Sucesos que pesan en el ánimo de alguien (o de un reino) unos días, y quién mató a quién.</summary>
         [JsonProperty("mood_events")] public List<MoodEvent> MoodEvents = new List<MoodEvent>();
         [JsonProperty("recent_kills")] public List<KillRecord> RecentKills = new List<KillRecord>();
+        /// <summary>Día en que se concibió cada embarazo en curso (la madre tarda unos días en saberlo).</summary>
+        [JsonProperty("conceived")] public Dictionary<string, double> Conceived = new Dictionary<string, double>();
+        /// <summary>Último día en que una charla cambió guerra o paz entre dos reinos ("a|b").</summary>
+        [JsonProperty("war_peace_day")] public Dictionary<string, double> WarPeaceDay = new Dictionary<string, double>();
         [JsonProperty("next_unique_day")] public double NextUniqueDay = -1;
         [JsonProperty("fatigue")] public Dictionary<string, float> WarFatigue = new Dictionary<string, float>();
         [JsonProperty("taxes")] public Dictionary<string, int> KingdomTaxPercent = new Dictionary<string, int>();
@@ -269,7 +273,7 @@ namespace AILegacy.World
             _lastCall = DateTime.UtcNow;
             r.Attempts++;
             Log.Info($"[mundo] petición: {r.What}");
-            LlmClient.CompleteAsync(r.Messages, wantJson: true, maxTokensOverride: r.MaxTokens, preferredProvider: S.Get.ProviderWorld).ContinueWith(t =>
+            LlmClient.CompleteAsync(r.Messages, wantJson: true, task: "world", maxTokensOverride: r.MaxTokens, preferredProvider: S.Get.ProviderWorld).ContinueWith(t =>
             {
                 _busy = false;
                 var res = t.IsFaulted ? null : t.Result;

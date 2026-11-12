@@ -84,6 +84,7 @@ namespace AILegacy.World
                 double now = Now;
                 St.MoodEvents.RemoveAll(e => e.Until < now && e.CoolUntil < now);
                 St.RecentKills.RemoveAll(k => now - k.Day > 40);
+                foreach (var id in St.Conceived.Where(kv => now - kv.Value > 60).Select(kv => kv.Key).ToList()) St.Conceived.Remove(id);
             }
             catch { }
         }
@@ -175,6 +176,24 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: parto", ex); }
         }
 
+        /// <summary>Concepción: se apunta el día. Ella no lo sabe hasta pasados entre 7 y 11 días (cada una, los suyos).</summary>
+        public static void OnChildConceived(Hero mother)
+        {
+            try { if (mother != null && St != null) St.Conceived[mother.StringId] = Now; } catch { }
+        }
+
+        /// <summary>¿Sabe ya que está embarazada? (los embarazos de antes de apuntar el día se dan por sabidos)</summary>
+        public static bool KnowsSheIsPregnant(Hero h)
+        {
+            try
+            {
+                if (h == null || !h.IsPregnant) return false;
+                if (St == null || !St.Conceived.TryGetValue(h.StringId, out double day)) return true;
+                return Now - day >= 7 + Stable(h.StringId + "|p") % 5u;
+            }
+            catch { return true; }
+        }
+
         /// <summary>Quién mató a quién, para que el asesino no llore a su víctima.</summary>
         public static void OnHeroKilled(Hero victim, Hero killer)
         {
@@ -209,7 +228,7 @@ namespace AILegacy.World
                         Live("You are a prisoner" + (by != null ? $" of {by}" : "") + ": humiliated, watchful, thinking of how to get out.", -1, 3);
                     }
                     if (h.IsWounded) Live("You are wounded and in pain: short-tempered and tired.", -1, 2);
-                    if (h.IsPregnant) Live("You are with child: tired, careful of yourself, and thinking of what is coming.", 0, 2);
+                    if (h.IsPregnant && KnowsSheIsPregnant(h)) Live("You are with child: tired, careful of yourself, and thinking of what is coming.", 0, 2);
                     var p = h.PartyBelongedTo;
                     if (p != null && p.LeaderHero == h && !h.IsPrisoner)
                     {

@@ -1280,5 +1280,29 @@
     <string id="AIL_a1c0e5d6" text="Frauen zwischen 13 und 47 haben einen Zyklus: Er verändert je nach Tag ihre Stimmung (bei manchen stark, bei anderen kaum) und die Wahrscheinlichkeit einer Schwangerschaft, auch die des Spiels. Kein Zyklus während der Schwangerschaft und nach der Geburt. Sie weiß, an welchem Tag sie ist." />
     <string id="AIL_a1c0e5d7" text="Dauer des Zyklus in Tagen" />
     <string id="AIL_a1c0e5d8" text="Kampagnentage. Ein Spieljahr hat 84 Tage, 21 bedeuten also vier Zyklen pro Jahr." />
+    <string id="AIL_c3a7f1e1" text="Das tägliche Ausgabenlimit ist erreicht (MCM › 7. KI) und es gibt keinen kostenlosen Anbieter." />
+    <string id="AIL_c3a7f1e2" text="Eingabepreis ($ pro Million Token)" />
+    <string id="AIL_c3a7f1e3" text="Was dieser Anbieter pro Million Token berechnet. 0 = kostenlos. Dient zur Berechnung der Ausgaben (im Editor, Reiter Service) und für das Tageslimit; sonst ändert es nichts." />
+    <string id="AIL_c3a7f1e4" text="Ausgabepreis ($ pro Million Token)" />
+    <string id="AIL_c3a7f1e5" text="Hintergrundaufgaben nur mit kostenlosen Anbietern" />
+    <string id="AIL_c3a7f1e6" text="Umgebungsgespräche, Weltereignisse, Zusammenfassungen und andere Aufgaben, auf die du nicht wartest, nutzen nie einen kostenpflichtigen Anbieter, solange es einen kostenlosen gibt. Der kostenpflichtige bleibt als Reserve für den Dialog." />
+    <string id="AIL_c3a7f1e7" text="Tägliches Ausgabenlimit (US-Cent, 0 = kein Limit)" />
+    <string id="AIL_c3a7f1e8" text="Ist dieser Betrag an einem Tag erreicht (echter Tag, nicht Spieltag), werden kostenpflichtige Anbieter bis morgen nicht mehr genutzt. Gezählt wird nur, wofür unter 0. KI-Schlüssel ein Preis eingetragen ist." />
+    <string id="AIL_c3a7f1e9" text="Daten zu dem, was genannt wird" />
+    <string id="AIL_c3a7f1ea" text="Wird im Gespräch ein Ort, ein Haus, ein Reich, eine Person oder eine Ware genannt, gehen deren öffentliche Daten in diese Anfrage ein (wo es liegt, wem es gehört, was es wert ist), auf der Karte auch die Trupps in Sichtweite. Die Figur weiß, wovon du sprichst, ohne jedes Mal die ganze Welt zu laden." />
+    <string id="AIL_c3a7f1eb" text="KI-Ausgaben (diese Sitzung)" />
+    <string id="AIL_c3a7f1ec" text="Anfragen, Token und geschätzte Kosten pro Anbieter und Aufgabe. Kosten erscheinen nur, wenn du den Preis des Anbieters in MCM › 0. KI-Schlüssel eingetragen hast." />
+    <string id="AIL_c3a7f1ed" text="Aktualisieren" />
+    <string id="AIL_c3a7f1ee" text="Heute:" />
+    <string id="AIL_c3a7f1ef" text="In der Warteschlange:" />
+    <string id="AIL_c3a7f1f0" text="kostenpflichtig" />
+    <string id="AIL_c3a7f1f1" text="Noch keine Anfragen." />
+    <string id="AIL_c3a7f1f2" text="Anbieter" />
+    <string id="AIL_c3a7f1f3" text="Aufgabe" />
+    <string id="AIL_c3a7f1f4" text="Anfragen" />
+    <string id="AIL_c3a7f1f5" text="Eingabe" />
+    <string id="AIL_c3a7f1f6" text="Im Cache" />
+    <string id="AIL_c3a7f1f7" text="Ausgabe" />
+    <string id="AIL_c3a7f1f8" text="Kosten ($)" />
   </strings>
 </base>

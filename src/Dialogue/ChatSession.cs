@@ -34,6 +34,10 @@ namespace AILegacy.Dialogue
         private bool _closed;
         private bool _npcEnded;
         private int _lines;
+        /// <summary>Respuestas del personaje que han llegado: una charla sin ninguna no cuenta como charla.</summary>
+        private int _answered;
+        /// <summary>Ya se ha pedido otra vez la respuesta de este turno por repetirse.</summary>
+        private bool _retriedRepeat;
         private ChatWindow _win;
         private readonly List<string> _transcript = new List<string>(); // solo modo antiguo
 
@@ -91,6 +95,7 @@ namespace AILegacy.Dialogue
             HasUnreadReply = true;
             Seeded = true;
             _lines++;
+            _answered++;
         }
         public bool IsWaiting => _waiting;
         public bool Ended => _npcEnded;
@@ -265,6 +270,12 @@ namespace AILegacy.Dialogue
                 return;
             }
 
+            _retriedRepeat = false;
+            Ask(messages, text);
+        }
+
+        private void Ask(List<ChatMessage> messages, string text)
+        {
             _waiting = true;
             UiWaiting(true);
 
@@ -272,7 +283,7 @@ namespace AILegacy.Dialogue
             bool firstTime = Mem.Profile == null || Mem.Profile.IsEmpty;
             int? tokens = firstTime ? Math.Max(S.Get.MaxTokens, 1800) : (int?)null;
             int session = World.WorldSim.Session;
-            LlmClient.CompleteAsync(messages, wantJson: true, maxTokensOverride: tokens, preferredProvider: _s.IsHero ? S.Get.ProviderHeroes : S.Get.ProviderResidents).ContinueWith(task =>
+            LlmClient.CompleteAsync(messages, wantJson: true, task: "dialogue", maxTokensOverride: tokens, preferredProvider: _s.IsHero ? S.Get.ProviderHeroes : S.Get.ProviderResidents).ContinueWith(task =>
             {
                 var res = task.IsFaulted ? new LlmResult { Ok = false, Error = task.Exception?.GetBaseException().Message } : task.Result;
                 MainThread.Post(() =>
@@ -322,10 +333,23 @@ namespace AILegacy.Dialogue
                 Log.Info($"Personalidad creada para {_s.Name}: {reply.Profile.Personality} | Secreto: {reply.Profile.Secret}");
             }
 
-            WarnIfRepeated(reply.Reply);
+            // Casi la misma frase que hace un momento: no se pronuncia, se le pide otra (una sola vez por turno)
+            if (WarnIfRepeated(reply.Reply) && !_retriedRepeat)
+            {
+                _retriedRepeat = true;
+                try
+                {
+                    var again = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk);
+                    again[again.Count - 1].Content += "\n\n[Your last attempt at a reply was almost word for word something you already said. Say something new: react to what they just said, move the talk forward, or keep it very short.]";
+                    Ask(again, playerText);
+                    return;
+                }
+                catch (Exception ex) { Log.Error("Reintento por repetición", ex); }
+            }
             Mem.Turns.Add(new ChatTurn { Role = "npc", Text = reply.Reply, Day = CampaignTime.Now.ToDays });
             UiNpc(reply.Reply);
             _lines++;
+            _answered++;
 
             List<string> effects = new List<string>();
             try { effects = ApplyConsequences(reply); }
@@ -393,21 +417,22 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>Deja constancia en el log si la respuesta es casi igual a una reciente del mismo personaje.</summary>
-        private void WarnIfRepeated(string reply)
+        private bool WarnIfRepeated(string reply)
         {
             try
             {
                 var now = Tokens(reply);
-                if (now.Count < 6) return;
+                if (now.Count < 6) return false;
                 foreach (var t in Mem.Turns.Where(x => x.Role == "npc").Reverse().Take(5))
                 {
                     var old = Tokens(t.Text);
                     if (old.Count < 6) continue;
                     double sim = now.Intersect(old).Count() / (double)now.Union(old).Count();
-                    if (sim >= 0.8) { Log.Warn($"{_s.Name} se repite: su respuesta se parece un {(int)(sim * 100)} % a una reciente"); return; }
+                    if (sim >= 0.8) { Log.Warn($"{_s.Name} se repite: su respuesta se parece un {(int)(sim * 100)} % a una reciente"); return true; }
                 }
             }
             catch { }
+            return false;
         }
 
         private static HashSet<string> Tokens(string text) =>
@@ -610,7 +635,7 @@ namespace AILegacy.Dialogue
             _win?.Close();
             _win = null;
 
-            if (_lines > 0)
+            if (_answered > 0)
             {
                 Mem.ConversationCount++;
                 Mem.LastConversationDay = CampaignTime.Now.ToDays;

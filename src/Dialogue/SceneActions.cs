@@ -181,6 +181,8 @@ namespace AILegacy.Dialogue
                         // A quien manda aquí no se le arresta en su propia casa
                         if (th == st.OwnerClan?.Leader || (st.MapFaction is TaleWorlds.CampaignSystem.Kingdom k3 && k3.Leader == th)) return false;
                         if (Jail.Any(j => j.who == th)) return false;
+                        var led = th.PartyBelongedTo;
+                        if (led != null && !led.IsMainParty && led.LeaderHero == th && led.MemberRoster.TotalManCount > 1) return false;
                         Jail.Add((th, st));
                         Leaving.Add((target, 7f));
                         SceneMove.GoTo(who, target);
