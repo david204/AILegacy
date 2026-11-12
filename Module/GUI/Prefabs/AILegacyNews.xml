@@ -1,0 +1,110 @@
+<Prefab>
+  <Window>
+    <!-- Noticias del mundo: una sola columna para leer de arriba abajo. Cada noticia: título, a quién toca, lo ocurrido, sus efectos, tipo y fecha. -->
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.7">
+      <Children>
+        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1180" SuggestedHeight="900" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="StdAssets\Popup\canvas" />
+
+            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="30" MarginRight="30" MarginTop="18" MarginBottom="20" StackLayout.LayoutMethod="VerticalTopToBottom">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="62" Brush="Popup.Title.Text" Brush.FontSize="40" Text="@Title" />
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginBottom="8" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
+
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="690">
+                  <Children>
+                    <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="20" AutoHideScrollBars="true" ClipRect="FeedClip" InnerPanel="FeedClip\FeedList" VerticalScrollbar="..\FeedBarHolder\FeedBar">
+                      <Children>
+                        <Widget Id="FeedClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                          <Children>
+                            <ListPanel Id="FeedList" DataSource="{Cards}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                              <ItemTemplate>
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="10" MarginRight="6" MarginTop="22" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <!-- Título -->
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="30" Brush.FontColor="#D8B98AFF" Brush.TextHorizontalAlignment="Center" Text="@Title" />
+                                    <!-- A quién toca -->
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="8" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Text="@Participants" IsVisible="@HasParticipants" />
+                                    <!-- Lo ocurrido -->
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" MarginRight="24" MarginTop="10" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" />
+                                    <!-- Efectos -->
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" MarginRight="24" MarginTop="14" Brush="Popup.Title.Text" Brush.FontSize="19" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Effects" IsVisible="@HasEffects" />
+                                    <!-- Tipo y fecha -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="14">
+                                      <Children>
+                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#4A3524FF" IsVisible="@IsLocal">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="17" Brush.FontColor="#FFFFFFFF" Text="@Tag" />
+                                          </Children>
+                                        </Widget>
+                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#2B3760FF" IsVisible="@IsPolitical">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="17" Brush.FontColor="#FFFFFFFF" Text="@Tag" />
+                                          </Children>
+                                        </Widget>
+                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#1F4A44FF" IsVisible="@IsOther">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="17" Brush.FontColor="#FFFFFFFF" Text="@Tag" />
+                                          </Children>
+                                        </Widget>
+                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Sprite="BlankWhiteSquare_9" Color="#3B3A4AFF">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#FFFFFFFF" Text="@When" />
+                                          </Children>
+                                        </Widget>
+                                      </Children>
+                                    </Widget>
+                                    <!-- Raya entre noticias -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" MarginTop="20" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.25" />
+                                  </Children>
+                                </ListPanel>
+                              </ItemTemplate>
+                            </ListPanel>
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </ScrollablePanel>
+                    <Widget Id="FeedBarHolder" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="16" HorizontalAlignment="Right">
+                      <Children>
+                        <ScrollbarWidget Id="FeedBar" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" AlignmentAxis="Vertical" Handle="FeedHandle" MaxValue="100" MinValue="0" MarginTop="4" MarginBottom="4">
+                          <Children>
+                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="3" HorizontalAlignment="Center" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
+                            <Widget Id="FeedHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="9" SuggestedHeight="40" MinHeight="20" HorizontalAlignment="Center" Sprite="BlankWhiteSquare_9" Color="#C9B48AFF" />
+                          </Children>
+                        </ScrollbarWidget>
+                      </Children>
+                    </Widget>
+                  </Children>
+                </Widget>
+
+                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginTop="14" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                  <Children>
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="290" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteAction" IsVisible="@HasAction">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@ActionText" />
+                      </Children>
+                    </ButtonWidget>
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="290" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteToggle">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@ToggleText" />
+                      </Children>
+                    </ButtonWidget>
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="251" SuggestedHeight="64" Brush="Popup.Cancel.Button" Command.Click="ExecuteClose">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@CloseText" />
+                      </Children>
+                    </ButtonWidget>
+                  </Children>
+                </ListPanel>
+              </Children>
+            </ListPanel>
+
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="StdAssets\Popup\canvas_gradient" IsEnabled="false" />
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="18" ExtendTop="18" ExtendRight="18" ExtendBottom="18" IsEnabled="false" />
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

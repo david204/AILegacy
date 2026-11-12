@@ -1,0 +1,50 @@
+[
+  {
+    "id": "roads_bandits",
+    "text": "The roads between towns are dangerous: looters, forest bandits and steppe raiders prey on lone travellers and small caravans.",
+    "chance": 90,
+    "who": ["all"]
+  },
+  {
+    "id": "grain_prices_war",
+    "text": "Whenever armies march nearby, grain and meat prices climb in the market and villagers hide their livestock.",
+    "chance": 70,
+    "who": ["townsfolk", "villagers", "merchants", "village_notables", "town_notables"]
+  },
+  {
+    "id": "arena_fame",
+    "text": "Winning tournaments in the town arenas is the quickest way for an unknown fighter to make a name and catch a lord's eye.",
+    "chance": 60,
+    "who": ["all"]
+  },
+  {
+    "id": "mercenary_pay",
+    "text": "Mercenary companies are paid by the realm they serve per day of service, and they leave as soon as the coin stops coming.",
+    "chance": 70,
+    "who": ["lords", "wanderers", "companions", "guards"]
+  },
+  {
+    "id": "council_votes",
+    "text": "In most realms the great clans vote in council on wars, peace and fiefs; the ruler's word is heavy, but not always final.",
+    "chance": 85,
+    "who": ["lords", "faction_leaders", "clan_leaders"]
+  },
+  {
+    "id": "gang_tribute",
+    "text": "Every town has its gangs, who take a cut from merchants and taverns; the guards look the other way for a few denars.",
+    "chance": 60,
+    "who": ["townsfolk", "gang_leaders", "merchants", "town_notables", "guards"]
+  },
+  {
+    "id": "village_raids",
+    "text": "When a war starts, the first to suffer are the villages: enemy lords burn fields and drive off herds to starve the towns.",
+    "chance": 80,
+    "who": ["villagers", "village_notables", "lords"]
+  },
+  {
+    "id": "ransom_brokers",
+    "text": "Captured nobles are usually ransomed for gold rather than killed; taverns host ransom brokers who buy common prisoners.",
+    "chance": 75,
+    "who": ["all"]
+  }
+]

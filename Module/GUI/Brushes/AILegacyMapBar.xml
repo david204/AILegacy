@@ -1,0 +1,13 @@
+<Brushes>
+  <!-- Fondo e icono del botón "Memorias" de la barra del mapa (la capa se llama como el StringId del elemento) -->
+  <Brush Name="AILegacy.MapBar.Left.Button.Backgrounds" OverrideBrush="MapBar.Left.Button.Backgrounds">
+    <Layers>
+      <BrushLayer Name="ailegacy_memories" Sprite="MapBar\bottom_left_button5_quest" />
+    </Layers>
+  </Brush>
+  <Brush Name="AILegacy.MapBar.Left.Icons" OverrideBrush="MapBar.Left.Icons">
+    <Layers>
+      <BrushLayer Name="ailegacy_memories" Sprite="MPLobby\Generic\edit_name_icon" YOffset="1" ExtendTop="-2" ExtendBottom="-2" ExtendLeft="-2" ExtendRight="-2" ImageFit.Type="Contain" ImageFit.VerticalAlignment="Center" ImageFit.HorizontalAlignment="Center" />
+    </Layers>
+  </Brush>
+</Brushes>

@@ -1,0 +1,19 @@
+# Build output
+obj/
+bin/
+*.pdb
+*.bak
+*.zip
+*.7z
+
+# Never commit keys, saves or logs
+config.json
+**/save_data/
+**/logs/
+**/userdata/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user

@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Legacy — Editor</title>
+<style>
+  :root { --bg:#16120d; --panel:#211a12; --panel2:#2a2117; --line:#4a3a24; --gold:#d9b25f; --text:#efe4cf; --muted:#a8977a; --red:#d77; --green:#8c8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 Georgia, "Times New Roman", serif; }
+  header { display:flex; align-items:center; gap:16px; padding:14px 22px; border-bottom:1px solid var(--line); background:#120e09; position:sticky; top:0; z-index:5; }
+  header h1 { margin:0; font-size:22px; letter-spacing:4px; color:var(--gold); font-weight:normal; text-transform:uppercase; }
+  header .camp { color:var(--muted); font-size:13px; border:1px solid var(--line); padding:2px 8px; }
+  nav { display:flex; gap:6px; margin-left:auto; }
+  nav button { background:none; border:none; color:var(--muted); font:inherit; font-size:16px; padding:6px 14px; cursor:pointer; border-bottom:2px solid transparent; }
+  nav button.on { color:var(--gold); border-bottom-color:var(--gold); }
+  main { padding:18px 22px; }
+  .tab { display:none; } .tab.on { display:block; }
+  .card { background:var(--panel); border:1px solid var(--line); padding:14px 16px; margin-bottom:16px; }
+  .card h2 { margin:0 0 6px; font-size:15px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; font-weight:normal; }
+  .hint { color:var(--muted); font-size:13px; margin:0 0 10px; }
+  textarea, input, select { width:100%; background:#120e09; color:var(--text); border:1px solid var(--line); padding:8px 10px; font:14px/1.4 Consolas, monospace; }
+  textarea { min-height:120px; resize:vertical; }
+  label { display:block; margin:10px 0 4px; color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:1px; }
+  button.btn { background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:7px 14px; cursor:pointer; font:inherit; }
+  button.btn:hover { border-color:var(--gold); }
+  button.main { background:#6b4e1d; border-color:var(--gold); }
+  button.danger { border-color:#7a3a3a; color:var(--red); }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .npcs { display:grid; grid-template-columns:300px 1fr; gap:16px; }
+  .list { max-height:75vh; overflow:auto; border:1px solid var(--line); background:var(--panel); }
+  .list div { padding:8px 12px; border-bottom:1px solid #2e2418; cursor:pointer; }
+  .list div:hover, .list div.on { background:var(--panel2); color:var(--gold); }
+  .list small { color:var(--muted); display:block; }
+  .turns { max-height:260px; overflow:auto; background:#120e09; border:1px solid var(--line); padding:8px 10px; font-size:14px; }
+  .turns p { margin:0 0 6px; } .turns b { color:var(--gold); }
+  .checks { display:flex; flex-wrap:wrap; gap:8px 18px; }
+  .checks label { display:flex; gap:6px; align-items:center; text-transform:none; letter-spacing:0; color:var(--text); margin:0; }
+  .checks input { width:auto; }
+  .news div { padding:8px 0; border-bottom:1px solid #2e2418; display:flex; gap:10px; }
+  .news span.t { color:var(--gold); min-width:110px; } .news .txt { flex:1; }
+  #toast { position:fixed; right:20px; bottom:20px; background:#2a2117; border:1px solid var(--gold); padding:10px 16px; display:none; z-index:9; }
+  @media (max-width:900px) { .grid2, .npcs { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>AI Legacy</h1><span class="camp" id="camp">…</span>
+  <nav>
+    <button data-t="world" class="on">Mundo</button>
+    <button data-t="npc">NPC</button>
+    <button data-t="events">Eventos</button>
+    <button data-t="files">Datos y plantillas</button>
+    <button data-t="items">Objetos</button>
+    <button data-t="service">Servicio</button>
+  </nav>
+</header>
+<main>
+  <!-- MUNDO -->
+  <section class="tab on" id="t-world">
+    <div class="card">
+      <h2>Descripción del mundo</h2>
+      <p class="hint">Va al principio de cada conversación. Escríbelo en inglés (las respuestas salen en tu idioma). Se aplica en la siguiente frase.</p>
+      <textarea id="world" style="min-height:260px"></textarea>
+      <div class="row"><button class="btn main" onclick="saveWorld()">Guardar</button></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Hechos públicos (info.json)</h2>
+        <p class="hint">Lista JSON: id, text, chance (0-100), who (all, lords, faction_leaders, clan_leaders, companions, wanderers, merchants, gang_leaders, town_notables, village_notables, townsfolk, villagers, guards, culture:id, kingdom:id o id de héroe).</p>
+        <textarea id="info" style="min-height:300px"></textarea>
+        <div class="row"><button class="btn main" onclick="saveJson('info')">Guardar</button></div>
+      </div>
+      <div class="card">
+        <h2>Secretos (secrets.json)</h2>
+        <p class="hint">Igual que los hechos, más "access": low / medium / high (cuánta confianza hace falta para contarlo).</p>
+        <textarea id="secrets" style="min-height:300px"></textarea>
+        <div class="row"><button class="btn main" onclick="saveJson('secrets')">Guardar</button></div>
+      </div>
+    </div>
+      <div class="card">
+      <h2>Secretos nacidos de la historia</h2>
+      <p class="hint">Los inventa la IA a partir de la gente real de cada reino y de los sucesos. Aparecen poco a poco (un reino por día de juego). Aquí ves de quién trata cada uno y quién lo sabe; puedes borrar los que no te gusten.</p>
+      <div class="list" id="storySecrets" style="max-height:420px"></div>
+    </div>
+  </section>
+
+  <!-- NPC -->
+  <section class="tab" id="t-npc">
+    <div class="npcs">
+      <div>
+        <input id="npcSearch" placeholder="Buscar en tus NPC…" oninput="renderNpcs()">
+        <div class="list" id="npcList"></div>
+        <div class="card" style="margin-top:12px">
+          <h2>Añadir personaje</h2>
+          <input id="heroSearch" placeholder="Buscar cualquier héroe…" oninput="searchHeroes()">
+          <div class="list" id="heroResults" style="max-height:200px"></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h2>Crear compañero</h2>
+          <p class="hint">Un personaje nuevo que entra en tu clan y tu partida (si te queda sitio de compañero). Luego puedes generarle la personalidad con IA desde su ficha.</p>
+          <input id="c_name" placeholder="Nombre">
+          <div class="grid2">
+            <div><label>Sexo</label><select id="c_female"><option value="0">Hombre</option><option value="1">Mujer</option></select></div>
+            <div><label>Edad</label><input id="c_age" type="number" min="18" max="70" value="25"></div>
+          </div>
+          <label>Cultura</label><select id="c_culture"></select>
+          <label>Pasado (opcional)</label><textarea id="c_backstory"></textarea>
+          <label>Personalidad (opcional)</label><textarea id="c_personality"></textarea>
+          <div class="row"><button class="btn main" onclick="createCompanion()">Crear</button></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <h2>Crear familiar</h2>
+          <p class="hint">Un pariente tuyo con el parentesco de verdad en el juego. Para un hermano hace falta tener antes padre o madre.</p>
+          <label>Parentesco</label><select id="fam_rel"><option value="child">Hijo o hija</option><option value="sibling">Hermano o hermana</option><option value="parent">Padre o madre</option><option value="spouse">Cónyuge</option></select>
+          <input id="fam_name" placeholder="Nombre" style="margin-top:8px">
+          <div class="grid2">
+            <div><label>Sexo</label><select id="fam_female"><option value="0">Hombre</option><option value="1">Mujer</option></select></div>
+            <div><label>Edad</label><input id="fam_age" type="number" min="0" max="90" value="20"></div>
+          </div>
+          <label>Cultura</label><select id="fam_culture"></select>
+          <label>Pasado (opcional)</label><textarea id="fam_backstory"></textarea>
+          <div class="row"><button class="btn main" onclick="createFamily()">Crear</button></div>
+        </div>
+      </div>
+      <div class="card" id="npcForm" style="display:none">
+        <h2 id="npcTitle"></h2>
+        <p class="hint" id="npcInfo"></p>
+        <label>Instrucciones tuyas (una por línea; mandan sobre todo lo demás)</label>
+        <textarea id="f_custom" style="min-height:90px"></textarea>
+        <div class="grid2">
+          <div><label>Personalidad</label><textarea id="f_personality"></textarea></div>
+          <div><label>Pasado</label><textarea id="f_backstory"></textarea></div>
+          <div><label>Forma de hablar</label><textarea id="f_speech_style"></textarea></div>
+          <div><label>Lo que busca</label><textarea id="f_goals"></textarea></div>
+          <div><label>Secreto</label><textarea id="f_secret"></textarea></div>
+          <div><label>Nombre propio (solo gente sin nombre)</label><input id="f_given_name"></div>
+          <div><label>Qué le mueve y qué teme</label><textarea id="f_drives"></textarea></div>
+          <div><label>Qué respeta y qué desprecia</label><textarea id="f_values"></textarea></div>
+          <div><label>Cómo trata a superiores, iguales, inferiores y extraños</label><textarea id="f_social_behavior"></textarea></div>
+          <div><label>Humor, cuánto miente, cómo decide, cuánto se fía</label><textarea id="f_cognitive_style"></textarea></div>
+          <div><label>Religión</label><textarea id="f_religion"></textarea></div>
+          <div><label>Qué se dice de él o ella</label><textarea id="f_reputation"></textarea></div>
+        </div>
+        <div class="card" style="margin:10px 0">
+          <h2>Personalidad con IA</h2>
+          <p class="hint">Escribe toda la ficha de arriba a partir de quién es en la partida (familia, clan, rasgos, molde de carácter), sin tener que hablar con el personaje en el juego. Pisa lo que haya. Es una petición a la IA.</p>
+          <input id="f_hint" placeholder="Opcional: algo que quieras que tenga (p. ej. «es cobarde pero lo disimula con bravatas»)">
+          <div class="row"><button class="btn" id="genBtn" onclick="generateNpc()">Generar personalidad</button></div>
+        </div>
+        <div class="grid2">
+          <div><label>Molde de carácter</label><select id="f_archetype"></select><p class="hint" id="f_archetype_text"></p></div>
+          <div><label>Tensión del momento (0 a 100)</label><input id="f_tension" type="number" min="0" max="100"></div>
+          <div><label>Moral (principled / pragmatic / ruthless…)</label><input id="f_morality"></div>
+          <div><label>Palabrotas (never / sometimes / often…)</label><input id="f_profanity"></div>
+          <div><label>Piedad (devout / lukewarm / cynical…)</label><input id="f_piety"></div>
+          <div><label>Memoria guardada</label><p class="hint" id="f_counts"></p></div>
+        </div>
+        <label>Resumen de lo vivido contigo</label>
+        <textarea id="f_summary"></textarea>
+        <label>Recuerdos (uno por línea)</label>
+        <textarea id="f_notes"></textarea>
+        <div class="grid2">
+          <div><label>Te conoce como (vacío = no sabe tu nombre)</label><input id="f_player_name"></div>
+          <div><label>Ánimo</label><input id="f_mood"></div>
+        </div>
+        <div class="grid2">
+          <div><label>Confianza (-100 a 100)</label><input id="f_trust" type="number" min="-100" max="100"></div>
+          <div><label>Romance (0 a 100)</label><input id="f_romance" type="number" min="0" max="100"></div>
+        </div>
+        <label>Últimas frases</label>
+        <div class="turns" id="turns"></div>
+        <div class="row">
+          <button class="btn main" onclick="saveNpc()">Guardar</button>
+          <button class="btn" onclick="clearHistory()">Borrar historial</button>
+          <button class="btn danger" onclick="deleteNpc()">Borrar toda su memoria</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENTOS -->
+  <section class="tab" id="t-events">
+    <div class="card">
+      <h2>Crear evento</h2>
+      <p class="hint">Se publica al momento como noticia: los NPC se enteran según la importancia (1 = el lugar, 2 = la corte, 3 = todo el reino, 4 = todo el mundo). Los implicados y su clan lo saben siempre.</p>
+      <div class="grid2">
+        <div><label>Tipo</label>
+          <select id="e_type"><option value="custom">Evento</option><option value="political">Político</option><option value="war">Militar</option><option value="economic">Económico</option><option value="social">Social</option><option value="rumor">Rumor</option><option value="mysterious">Misterioso</option></select></div>
+        <div><label>Importancia (1-4)</label><select id="e_imp"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></div>
+      </div>
+      <label>Descripción (lo que leerán los NPC; mejor en inglés, pero vale cualquier idioma)</label>
+      <textarea id="e_text"></textarea>
+      <label>Reinos implicados</label>
+      <div class="checks" id="e_kingdoms"></div>
+      <label>Personajes implicados</label>
+      <input id="e_heroSearch" placeholder="Buscar héroe para añadir…" oninput="searchEventHeroes()">
+      <div class="list" id="e_heroResults" style="max-height:160px"></div>
+      <p class="hint" id="e_heroes"></p>
+      <div class="checks" style="margin-top:8px"><label><input type="checkbox" id="e_player"> Estoy implicado</label></div>
+      <div class="row"><button class="btn main" onclick="publishEvent()">Publicar</button></div>
+    </div>
+    <div class="card">
+      <h2>Noticias y eventos actuales</h2>
+      <div class="news" id="newsList"></div>
+    </div>
+  </section>
+
+  <!-- DATOS Y PLANTILLAS -->
+  <section class="tab" id="t-files">
+    <div class="npcs">
+      <div>
+        <input id="fileSearch" placeholder="Buscar archivo…" oninput="renderFiles()">
+        <div class="list" id="fileList" style="max-height:70vh"></div>
+      </div>
+      <div class="card" id="fileForm" style="display:none">
+        <h2 id="fileTitle"></h2>
+        <p class="hint" id="fileHint"></p>
+        <textarea id="fileText" style="min-height:55vh;font-family:Consolas,monospace;font-size:13px" spellcheck="false"></textarea>
+        <div class="row">
+          <button class="btn main" onclick="saveFile()">Guardar</button>
+          <button class="btn danger" id="fileReset" onclick="resetFile()">Volver al texto de fábrica</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OBJETOS DE ROL -->
+  <section class="tab" id="t-items">
+    <div class="card">
+      <h2>Objetos de rol que llevas</h2>
+      <p class="hint">Cartas, sellos, contratos, prendas… No son objetos del juego: existen para la historia. Los personajes saben que los llevas si se los enseñas o entregas en una charla.</p>
+      <div class="list" id="itemList" style="max-height:260px"></div>
+    </div>
+    <div class="card">
+      <h2>Crear objeto</h2>
+      <label>Nombre</label><input id="i_name" placeholder="Carta sellada de Lucon">
+      <label>Qué es y qué dice</label><textarea id="i_desc" placeholder="Una carta con el sello imperial en la que…"></textarea>
+      <label>De quién viene (opcional)</label><input id="i_from">
+      <div class="row"><button class="btn main" onclick="addItem()">Crear</button></div>
+    </div>
+  </section>
+
+  <!-- SERVICIO -->
+  <section class="tab" id="t-service">
+    <div class="card">
+      <h2>Carpetas</h2>
+      <p class="hint">Se abren en el Explorador de Windows del equipo donde corre el juego.</p>
+      <div class="row">
+        <button class="btn" onclick="openDir('save')">Archivos de esta partida</button>
+        <button class="btn" onclick="openDir('world')">Datos del mundo</button>
+        <button class="btn" onclick="openDir('logs')">Registros (logs)</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Copia de seguridad</h2>
+      <p class="hint">Toda la memoria de AI Legacy de esta partida (NPC, noticias, cartas). Se guarda también dentro de la partida al guardar en el juego.</p>
+      <div class="row">
+        <button class="btn main" onclick="exportData()">Descargar copia (.json)</button>
+        <input type="file" id="importFile" accept=".json" style="width:auto">
+        <button class="btn danger" onclick="importData()">Restaurar desde archivo</button>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+let LANG = {};
+const T = s => LANG[s] || s;
+function trNode(n) {
+  if (!n) return;
+  if (n.nodeType === 3) {
+    const raw = n.nodeValue, key = raw.replace(/\s+/g, ' ').trim();
+    if (key && LANG[key]) n.nodeValue = raw.replace(raw.trim(), LANG[key]);
+    return;
+  }
+  if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.tagName)) return;
+  for (const a of ['placeholder', 'title']) { const v = n.getAttribute && n.getAttribute(a); if (v && LANG[v.trim()]) n.setAttribute(a, LANG[v.trim()]); }
+  n.childNodes.forEach(trNode);
+}
+async function loadLang() {
+  try { const r = await (await fetch('/api/lang')).json(); LANG = r.table || {}; document.documentElement.lang = r.code || 'en'; } catch { LANG = {}; }
+  trNode(document.body); document.title = T(document.title);
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(trNode))).observe(document.body, { childList:true, subtree:true });
+}
+
+let state = null, npcId = null, eventHeroes = [], files = [], curFile = null;
+const PKEYS = ['personality','backstory','speech_style','goals','secret','given_name','drives','values','social_behavior','cognitive_style','religion','reputation'];
+const $ = id => document.getElementById(id);
+const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(msg, bad) { const t = $('toast'); t.textContent = msg; t.style.borderColor = bad ? '#d77' : '#d9b25f'; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3500); }
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  const j = await r.json().catch(() => ({ error:T('Respuesta no válida') }));
+  if (!r.ok || j.error) { toast(j.error || (T('Error ') + r.status), true); throw new Error(j.error); }
+  return j;
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.id === 't-' + b.dataset.t));
+});
+
+async function load() {
+  if (!load.lang) { load.lang = true; await loadLang(); }
+  state = await api('/api/state');
+  $('camp').textContent = state.player + ' · ' + state.campaign;
+  $('world').value = state.world;
+  $('info').value = pretty(state.info);
+  $('secrets').value = pretty(state.secrets);
+  $('e_kingdoms').innerHTML = state.kingdoms.map(k => `<label><input type="checkbox" value="${esc(k.id)}"> ${esc(k.name)}</label>`).join('');
+  renderNpcs(); renderNews();
+  files = await api('/api/files'); renderFiles(); loadItems(); loadCultures(); loadStorySecrets();
+}
+
+// ---------- datos y plantillas
+function renderFiles() {
+  const q = $('fileSearch').value.toLowerCase();
+  $('fileList').innerHTML = files.filter(f => !q || f.name.toLowerCase().includes(q))
+    .map(f => `<div class="${curFile && curFile.name === f.name ? 'on' : ''}" onclick="openFile('${esc(f.kind)}','${esc(f.name)}')">${esc(f.name)}<small>${f.kind === 'world' ? T('datos del mundo') : T('plantilla') + (f.edited ? T(' · editada') : '')}</small></div>`).join('');
+}
+async function openFile(kind, name) {
+  const f = await api('/api/file?kind=' + kind + '&name=' + encodeURIComponent(name));
+  curFile = { kind, name, def: f.def }; renderFiles();
+  $('fileForm').style.display = 'block'; $('fileTitle').textContent = name;
+  $('fileText').value = kind === 'world' ? pretty(f.text) : f.text;
+  $('fileReset').style.display = kind === 'prompt' ? '' : 'none';
+  $('fileHint').textContent = kind === 'world'
+    ? T('Datos del mundo (JSON). Valen para todas las partidas. Al guardar se deja una copia .bak del anterior.')
+    : T('Plantilla de lo que se le dice a la IA, solo para esta partida. Lo que va entre {llaves} lo rellena el mod: no lo borres ni lo traduzcas. Se aplica al momento.');
+}
+async function saveFile() {
+  if (!curFile) return;
+  if (curFile.kind === 'world') { try { JSON.parse($('fileText').value); } catch (e) { toast(T('JSON no válido: ') + e.message, true); return; } }
+  await api('/api/file/save', { kind:curFile.kind, name:curFile.name, text:$('fileText').value });
+  toast(T('Guardado')); files = await api('/api/files'); renderFiles();
+}
+async function resetFile() {
+  if (!curFile || !confirm(T('¿Volver al texto de fábrica? Se pierde lo que hayas cambiado.'))) return;
+  await api('/api/file/save', { kind:curFile.kind, name:curFile.name, text:'', reset:true });
+  await openFile(curFile.kind, curFile.name); files = await api('/api/files'); renderFiles(); toast(T('Restaurada'));
+}
+
+// ---------- objetos de rol
+async function loadItems() {
+  const items = await api('/api/items');
+  $('itemList').innerHTML = items.map(i => `<div><span class="txt"><b>${esc(i.name)}</b>${i.from ? T(' · de ') + esc(i.from) : ''} — ${esc(i.desc)}</span> <button class="btn danger" onclick="delItem('${esc(i.name).replace(/'/g, '&#39;')}')">Quitar</button></div>`).join('') || '<div><small>No llevas ninguno.</small></div>';
+}
+async function addItem() {
+  await api('/api/item/add', { name:$('i_name').value, desc:$('i_desc').value, from:$('i_from').value });
+  $('i_name').value = ''; $('i_desc').value = ''; $('i_from').value = ''; loadItems(); toast(T('Objeto creado'));
+}
+async function delItem(name) { await api('/api/item/delete', { name }); loadItems(); }
+async function openDir(what) { await api('/api/open', { what }); toast(T('Carpeta abierta en el equipo del juego')); }
+
+// ---------- crear compañero
+async function loadCultures() { const c = await api('/api/cultures'); $('c_culture').innerHTML = $('fam_culture').innerHTML = c.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); }
+async function createCompanion() {
+  const r = await api('/api/companion/create', { name:$('c_name').value, female:$('c_female').value === '1', age:parseInt($('c_age').value || '25'), culture:$('c_culture').value, backstory:$('c_backstory').value, personality:$('c_personality').value });
+  toast(r.name + T(' se une a tu partida')); $('c_name').value = ''; $('c_backstory').value = ''; $('c_personality').value = '';
+  state = await api('/api/state'); renderNpcs(); openNpc(r.id);
+}
+
+// ---------- secretos de la historia
+async function loadStorySecrets() {
+  const s = await api('/api/storysecrets');
+  const lvl = { low:T('fácil de sonsacar'), medium:T('solo a quien se fía'), high:T('solo con mucha confianza') };
+  $('storySecrets').innerHTML = s.map(x => `<div><span class="txt">${esc(x.text)}<small> ${T('Trata de:')} ${esc((x.about || []).join(', ') || '—')} · ${T('Lo saben:')} ${esc((x.known_by || []).join(', '))} · ${lvl[x.access] || x.access} · ${x.source === 'event' ? T('nacido de un suceso') : T('de origen')} · ${x.days} ${T('día(s)')}</small></span> <button class="btn danger" onclick="delStorySecret('${esc(x.id)}')">Borrar</button></div>`).join('') || '<div><small>Todavía no hay ninguno: se van escribiendo con los días de juego.</small></div>';
+}
+async function delStorySecret(id) { await api('/api/storysecrets/delete', { id }); loadStorySecrets(); }
+
+async function createFamily() {
+  const r = await api('/api/family/create', { relation:$('fam_rel').value, name:$('fam_name').value, female:$('fam_female').value === '1', age:parseInt($('fam_age').value || '20'), culture:$('fam_culture').value, backstory:$('fam_backstory').value });
+  toast(r.name + T(' ya es de tu familia')); $('fam_name').value = ''; $('fam_backstory').value = '';
+  state = await api('/api/state'); renderNpcs(); openNpc(r.id);
+}
+
+// ---------- personalidad con IA
+async function generateNpc() {
+  if (!npcId || !confirm(T('¿Generar la personalidad con IA? Pisa la ficha actual.'))) return;
+  const id = npcId;
+  await api('/api/npc/generate', { id, hint:$('f_hint').value });
+  $('genBtn').disabled = true; $('genBtn').textContent = T('Generando…');
+  const tick = async () => {
+    const g = await api('/api/npc/generating?id=' + encodeURIComponent(id));
+    if (g.busy) { setTimeout(tick, 1500); return; }
+    $('genBtn').disabled = false; $('genBtn').textContent = T('Generar personalidad');
+    if (g.error) toast(T('No se pudo generar: ') + g.error, true);
+    else { toast(T('Personalidad generada')); if (npcId === id) openNpc(id); state = await api('/api/state'); renderNpcs(); }
+  };
+  setTimeout(tick, 1500);
+}
+function pretty(s) { try { return JSON.stringify(JSON.parse(s), null, 2); } catch { return s; } }
+
+async function saveWorld() { await api('/api/world', { text:$('world').value }); toast(T('Mundo guardado')); }
+async function saveJson(which) {
+  try { JSON.parse($(which).value); } catch (e) { toast(T('JSON no válido: ') + e.message, true); return; }
+  const r = await api('/api/' + which, { json:$(which).value }); toast(T('Guardado') + ' (' + r.count + ')');
+}
+
+function renderNpcs() {
+  const q = $('npcSearch').value.toLowerCase();
+  $('npcList').innerHTML = state.npcs.filter(n => !q || n.name.toLowerCase().includes(q))
+    .map(n => `<div class="${n.id === npcId ? 'on' : ''}" onclick="openNpc('${esc(n.id)}')">${esc(n.name)}<small>${n.talks} ${T('charla(s)')}${n.profile ? T(' · personalidad') : ''}</small></div>`).join('') || '<div><small>Aún no hay nadie.</small></div>';
+}
+async function openNpc(id) {
+  npcId = id; renderNpcs();
+  const n = await api('/api/npc?id=' + encodeURIComponent(id));
+  $('npcForm').style.display = 'block';
+  $('npcTitle').textContent = n.name; $('npcInfo').textContent = n.info + (n.imported ? T(' · importado de AIInfluence (') + n.imported + ')' : '');
+  for (const k of PKEYS) $('f_' + k).value = n.profile[k] || '';
+  $('f_archetype').innerHTML = '<option value="">' + T('(sin molde: se le asignará solo)') + '</option>' + (n.archetypes || []).map(a => `<option value="${esc(a.name)}" title="${esc(a.desc)}"${a.name === n.archetype ? ' selected' : ''}>${esc(a.name)}</option>`).join('');
+  $('f_archetype_text').textContent = n.archetype_text || '';
+  $('f_tension').value = n.tension || 0; $('f_morality').value = n.morality || ''; $('f_profanity').value = n.profanity || ''; $('f_piety').value = n.piety || '';
+  $('f_counts').textContent = `${(n.turns || []).length} ${T('frases recientes')} · ${n.archived} ${T('archivadas')} · ${n.pages} ${T('página(s) en su libro')}` + (n.in_game ? '' : T(' · ya no está en la partida'));
+  $('genBtn').style.display = n.in_game ? '' : 'none';
+  $('f_summary').value = n.summary || ''; $('f_notes').value = (n.notes || []).join('\n'); $('f_custom').value = (n.custom || []).join('\n');
+  $('f_player_name').value = n.player_name || ''; $('f_mood').value = n.mood || '';
+  $('f_trust').value = n.trust || 0; $('f_romance').value = n.romance || 0;
+  $('turns').innerHTML = (n.turns || []).map(t => `<p><b>${esc(t.who)}:</b> ${esc(t.text)}</p>`).join('') || '<p><small>Sin frases guardadas.</small></p>';
+}
+async function saveNpc() {
+  const profile = {}; for (const k of PKEYS) profile[k] = $('f_' + k).value;
+  await api('/api/npc/save', { id:npcId, profile, summary:$('f_summary').value, notes:$('f_notes').value, custom:$('f_custom').value, player_name:$('f_player_name').value, mood:$('f_mood').value, trust:String($('f_trust').value), romance:String($('f_romance').value),
+    tension:String($('f_tension').value), archetype:$('f_archetype').value, morality:$('f_morality').value, profanity:$('f_profanity').value, piety:$('f_piety').value });
+  toast(T('Guardado. Recuerda guardar la partida en el juego.')); state = await api('/api/state'); renderNpcs();
+}
+async function clearHistory() { if (!confirm(T('¿Borrar sus frases y resumen?'))) return; await api('/api/npc/clearhistory', { id:npcId }); openNpc(npcId); toast(T('Historial borrado')); }
+async function deleteNpc() { if (!confirm(T('¿Borrar TODA su memoria?'))) return; await api('/api/npc/delete', { id:npcId }); npcId = null; $('npcForm').style.display = 'none'; state = await api('/api/state'); renderNpcs(); toast(T('Memoria borrada')); }
+let heroTimer;
+function searchHeroes() { clearTimeout(heroTimer); heroTimer = setTimeout(async () => {
+  const q = $('heroSearch').value.trim(); if (q.length < 2) { $('heroResults').innerHTML = ''; return; }
+  const hs = await api('/api/heroes?q=' + encodeURIComponent(q));
+  $('heroResults').innerHTML = hs.map(h => `<div onclick="openNpc('${esc(h.id)}');setTimeout(load,300)">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
+}, 250); }
+
+function renderNews() {
+  $('newsList').innerHTML = state.news.map(n => `<div><span class="t">${n.days === 0 ? T('hoy') : n.days + ' ' + T('día(s)')} · imp ${n.Importance}</span><span class="txt">${esc(n.Text)}</span><button class="btn danger" onclick="delNews('${esc(n.Id)}')">Borrar</button></div>`).join('') || '<p class="hint">No hay noticias todavía.</p>';
+}
+async function delNews(id) { await api('/api/news/delete', { id }); state = await api('/api/state'); renderNews(); }
+let evTimer;
+function searchEventHeroes() { clearTimeout(evTimer); evTimer = setTimeout(async () => {
+  const q = $('e_heroSearch').value.trim(); if (q.length < 2) { $('e_heroResults').innerHTML = ''; return; }
+  const hs = await api('/api/heroes?q=' + encodeURIComponent(q));
+  $('e_heroResults').innerHTML = hs.map(h => `<div onclick="addEventHero('${esc(h.id)}','${esc(h.name).replace(/'/g,'')}')">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
+}, 250); }
+function addEventHero(id, name) { if (!eventHeroes.find(h => h.id === id)) eventHeroes.push({ id, name }); $('e_heroes').innerHTML = eventHeroes.map(h => esc(h.name)).join(', '); }
+async function publishEvent() {
+  const kingdoms = [...$('e_kingdoms').querySelectorAll('input:checked')].map(i => i.value);
+  await api('/api/news/add', { type:$('e_type').value, importance:+$('e_imp').value, text:$('e_text').value, kingdoms, heroes:eventHeroes.map(h => h.id), player:$('e_player').checked });
+  $('e_text').value = ''; eventHeroes = []; $('e_heroes').innerHTML = ''; state = await api('/api/state'); renderNews(); toast(T('Evento publicado'));
+}
+
+async function exportData() {
+  const data = await api('/api/export');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type:'application/json' }));
+  a.download = `ailegacy_${state.campaign}_${new Date().toISOString().slice(0,10)}.json`; a.click();
+}
+async function importData() {
+  const f = $('importFile').files[0]; if (!f) { toast(T('Elige un archivo'), true); return; }
+  if (!confirm(T('Esto SUSTITUYE toda la memoria actual de AI Legacy. ¿Seguro?'))) return;
+  const data = JSON.parse(await f.text()); const r = await api('/api/import', { data }); toast(T('Restaurado: ') + r.npcs + ' NPC'); load();
+}
+load().catch(e => toast(T('No se pudo conectar con el juego: ') + e.message, true));
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+Calradia is a land of feuding kingdoms that rose from the ruins of a great empire. The old Calradic Empire has split into three rival claimants (Northern, Western and Southern Empire), each sure it is the rightful heir. Around them stand Vlandia (heavy knights and crossbowmen, feudal and proud), Sturgia (cold northern forests, shield walls, boyars and longships), Battania (highland clans who cherish their ancient freedom and hate imperial rule), the Khuzait Khanate (steppe horse archers), and the Aserai Sultanate (desert merchant clans of the south). The Nords come from the sea in the north.
+
+Daily life: most people are peasants who fear war, bandits, hunger and tax collectors. Nobles hold towns, castles and villages as fiefs and owe service to their ruler. Coin is the denar. News travels slowly, by word of mouth, merchants and messengers; distant events are often rumour. Mercenary bands sell their swords to whoever pays. Honour, kin and reputation matter a great deal; an oath broken is not forgotten.
+
+There is no magic in Calradia. People are superstitious and pious in their own ways, but miracles and sorcery are only tales.
+
+(Edit this file freely to add your own lore. Write it in English. Changes apply on the next line of dialogue.)

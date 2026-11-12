@@ -1,0 +1,18 @@
+<Prefab>
+  <Window>
+    <!-- Texto sobre la cabeza de los personajes en una escena. No acepta clics: la escena sigue funcionando debajo. -->
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true">
+      <Children>
+        <Widget DataSource="{Bubbles}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true">
+          <ItemTemplate>
+            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="340" HorizontalAlignment="Left" VerticalAlignment="Top" ScaledPositionXOffset="@X" ScaledPositionYOffset="@Y" IsVisible="@IsVisible" DoNotAcceptEvents="true" Sprite="BlankWhiteSquare_9" Color="#000000B4">
+              <Children>
+                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="8" MarginRight="8" MarginTop="6" MarginBottom="6" Brush="Popup.Button.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Text="@Text" DoNotAcceptEvents="true" />
+              </Children>
+            </Widget>
+          </ItemTemplate>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>
