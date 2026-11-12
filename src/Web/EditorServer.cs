@@ -93,6 +93,7 @@ namespace AILegacy.Web
 
         public static void Stop()
         {
+            EditorWindow.Close();
             try { _http?.Stop(); _http?.Close(); } catch { }
             _http = null;
         }

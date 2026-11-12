@@ -14,6 +14,8 @@
   nav { display:flex; gap:6px; margin-left:auto; }
   nav button { background:none; border:none; color:var(--muted); font:inherit; font-size:16px; padding:6px 14px; cursor:pointer; border-bottom:2px solid transparent; }
   nav button.on { color:var(--gold); border-bottom-color:var(--gold); }
+  #closePanel { display:none; background:none; border:1px solid var(--line); color:var(--muted); font:inherit; font-size:18px; line-height:1; width:34px; height:34px; cursor:pointer; margin-left:10px; }
+  #closePanel:hover { color:var(--gold); border-color:var(--gold); }
   main { padding:18px 22px; }
   .tab { display:none; } .tab.on { display:block; }
   .card { background:var(--panel); border:1px solid var(--line); padding:14px 16px; margin-bottom:16px; }
@@ -55,6 +57,7 @@
     <button data-t="items">Objetos</button>
     <button data-t="service">Servicio</button>
   </nav>
+  <button id="closePanel" title="Esc">&#10005;</button>
 </header>
 <main>
   <!-- MUNDO -->
@@ -279,6 +282,21 @@ const AIL_TOKEN = '__AIL_TOKEN__';
 const authFetch = (path, opts = {}) => fetch(path, { ...opts, headers:{ ...(opts.headers || {}), 'X-AIL-Token':AIL_TOKEN } });
 let LANG = {};
 const T = s => LANG[s] || s;
+// Dentro del juego la página va en un panel sin marco: lleva su propia aspa, y Escape lo cierra
+// (si estás escribiendo en un campo, el primer Escape solo sale del campo).
+const HOST = window.chrome && window.chrome.webview;
+if (HOST) {
+  const closePanel = () => HOST.postMessage('close');
+  const cb = document.getElementById('closePanel');
+  cb.style.display = 'block';
+  cb.onclick = closePanel;
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) { a.blur(); return; }
+    closePanel();
+  });
+}
 function trNode(n) {
   if (!n) return;
   if (n.nodeType === 3) {
