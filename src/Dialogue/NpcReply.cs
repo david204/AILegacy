@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using AILegacy.Memory;
 using Newtonsoft.Json.Linq;
@@ -105,6 +106,7 @@ namespace AILegacy.Dialogue
             // JSON irrecuperable: al menos se rescata lo que dice (nunca se enseña el JSON en bruto al jugador)
             if (json != null)
             {
+                raw = EscapeInnerQuotes(json);      // así una comilla interna no corta el texto rescatado
                 var m = Regex.Match(raw, "\"(?:reply|response)\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"", RegexOptions.Singleline);
                 if (m.Success)
                 {
@@ -127,6 +129,8 @@ namespace AILegacy.Dialogue
         /// <summary>Arregla los fallos típicos de un modelo al escribir JSON.</summary>
         private static string Repair(string json)
         {
+            // comillas sin escapar dentro de un texto («dijo "vete"»)
+            json = EscapeInnerQuotes(json);
             // "clave": seguido de , } ] → null
             json = Regex.Replace(json, "(\"[A-Za-z_]+\"\\s*:)\\s*(?=[,}\\]])", "$1 null");
             // comas sobrantes antes de cerrar
@@ -146,6 +150,56 @@ namespace AILegacy.Dialogue
             while (brackets-- > 0) json += "]";
             while (braces-- > 0) json += "}";
             return json;
+        }
+
+        /// <summary>
+        /// Escapa las comillas internas de los textos: dentro de una cadena, una comilla solo cierra si le sigue
+        /// (con espacios opcionales) , } ] : o el final. Tras una coma tiene que venir algo que empiece un valor o una clave.
+        /// En JSON válido no cambia nada.
+        /// </summary>
+        internal static string EscapeInnerQuotes(string json)
+        {
+            if (string.IsNullOrEmpty(json) || json.IndexOf('"') < 0) return json;
+            var sb = new StringBuilder(json.Length + 16);
+            bool inStr = false;
+            for (int i = 0; i < json.Length; i++)
+            {
+                char c = json[i];
+                if (!inStr)
+                {
+                    sb.Append(c);
+                    if (c == '"') inStr = true;
+                    continue;
+                }
+                if (c == '\\')
+                {
+                    sb.Append(c);
+                    if (i + 1 < json.Length) sb.Append(json[++i]);
+                    continue;
+                }
+                if (c != '"') { sb.Append(c); continue; }
+                if (ClosesString(json, i)) { sb.Append(c); inStr = false; }
+                else sb.Append("\\\"");
+            }
+            return sb.ToString();
+        }
+
+        private static bool ClosesString(string s, int quote)
+        {
+            int k = quote + 1; bool newline = false;
+            while (k < s.Length && char.IsWhiteSpace(s[k])) { if (s[k] == '\n') newline = true; k++; }
+            if (k >= s.Length) return true;
+            char n = s[k];
+            if (n == '}' || n == ']' || n == ':') return true;
+            if (n == '"') return newline;       // falta la coma entre campos: mejor cerrar que escapar
+            if (n != ',') return false;
+            // tras la coma: otra clave, otro elemento o el cierre
+            k++;
+            while (k < s.Length && char.IsWhiteSpace(s[k])) k++;
+            if (k >= s.Length) return true;
+            n = s[k];
+            return n == '"' || n == '{' || n == '[' || n == '}' || n == ']' || n == '-' || char.IsDigit(n)
+                || string.CompareOrdinal(s, k, "true", 0, 4) == 0 || string.CompareOrdinal(s, k, "false", 0, 5) == 0 || string.CompareOrdinal(s, k, "null", 0, 4) == 0;
         }
 
         private static string Str(JToken t)

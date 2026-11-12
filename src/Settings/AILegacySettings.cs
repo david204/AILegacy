@@ -767,12 +767,12 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_3bdc9ea5}IA de táctica en batallas campales", Order = 0, RequireRestart = false,
             HintText = "{=AIL_39a19577}El jefe de cada bando que no mandas tú recibe cada cierto tiempo el estado de la batalla y da órdenes reales a sus formaciones, según su carácter y su pericia. Mientras decide, o si la IA falla, siguen las tácticas del juego. No actúa en asedios.")]
         [SettingPropertyGroup("{=AIL_46d0d1f8}E. Batallas", GroupOrder = 14)]
-        public bool EnableBattleAI { get; set; } = true;
+        public bool EnableBattleAI { get; set; } = false;
 
-        [SettingPropertyInteger("{=AIL_92a26c15}Segundos entre decisiones de cada jefe", 15, 180, Order = 1, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_92a26c15}Segundos entre decisiones de cada jefe", 30, 300, Order = 1, RequireRestart = false,
             HintText = "{=AIL_458e1b5a}Cada decisión es una petición a la IA por bando. Si un bando pierde de golpe mucha gente, decide antes.")]
         [SettingPropertyGroup("{=AIL_46d0d1f8}E. Batallas")]
-        public int BattleAIInterval { get; set; } = 40;
+        public int BattleAIInterval { get; set; } = 120;
 
         [SettingPropertyBool("{=AIL_df336f51}El enemigo manda con IA", Order = 2, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_46d0d1f8}E. Batallas")]
@@ -781,7 +781,7 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_b8b2988f}Tus aliados mandan con IA", Order = 3, RequireRestart = false,
             HintText = "{=AIL_7858cd57}El ejército aliado con jefe propio, y tu bando cuando no eres tú quien manda (las formaciones que llevas tú no se tocan).")]
         [SettingPropertyGroup("{=AIL_46d0d1f8}E. Batallas")]
-        public bool BattleAIAllies { get; set; } = true;
+        public bool BattleAIAllies { get; set; } = false;
 
         [SettingPropertyBool("{=AIL_7f5984a3}Órdenes con tus palabras (Alt+B)", Order = 4, RequireRestart = false,
             HintText = "{=AIL_04c41d7c}En batalla, Alt+B: escribes la orden como la dirías («la caballería por la izquierda contra sus arqueros») y la IA la convierte en órdenes a tus formaciones. El juego se para mientras escribes.")]
@@ -1346,7 +1346,7 @@ namespace AILegacy.Settings
 
         [SettingPropertyBool("{=AIL_7ff37c4e}Guardar petición/respuesta en logs", Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. IA")]
-        public bool DebugLogBodies { get; set; } = true;
+        public bool DebugLogBodies { get; set; } = false;
 
         // ------------------------------------------------------------ Importar
         [SettingPropertyButton("{=AIL_31311890}Importar memorias de AIInfluence", Content = "{=AIL_faa80647}Importar", Order = 0, RequireRestart = false,

@@ -142,18 +142,17 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
             {
                 var cfg = S.Get;
                 if (!cfg.StorySecrets || Campaign.Current == null || !WorldSim.CanCall) return;
-                var k = WorldSim.Kingdoms.FirstOrDefault(x => !WorldSim.State.SecretKingdoms.Contains(x.StringId) && x.Clans.Count(c => !c.IsEliminated) >= 2);
+                var k = WorldSim.Kingdoms.FirstOrDefault(x => !WorldSim.State.SecretKingdoms.Contains(x.StringId) && !WorldSim.IsReserved("secrets:" + x.StringId) && x.Clans.Count(c => !c.IsEliminated) >= 2);
                 if (k == null) return;
-                WorldSim.State.SecretKingdoms.Add(k.StringId);
+                // El reino se marca como hecho solo cuando llegan sus secretos (si la llamada falla, se reintenta otro día)
                 string prompt = TOrigin.Format("count", cfg.StorySecretsPerKingdom, "language", cfg.Language, "kingdom", k.Name, "data", Describe(k));
                 WorldSim.Ask($"secretos de {k.Name}", new List<ChatMessage> { new ChatMessage("user", prompt) }, 300 + cfg.StorySecretsPerKingdom * 220, j =>
                 {
                     int n = 0;
                     if (j["secrets"] is JArray arr) foreach (var x in arr.OfType<JObject>().Take(cfg.StorySecretsPerKingdom + 1)) if (Add(x, k, "origin") != null) n++;
                     Log.Info($"[secretos] {k.Name}: {n} secreto(s) nacidos de su gente");
-                    if (n == 0) WorldSim.State.SecretKingdoms.Remove(k.StringId);      // se reintenta otro día
-                    else Memory.SaveFiles.Flush();
-                });
+                    if (n > 0 && !WorldSim.State.SecretKingdoms.Contains(k.StringId)) { WorldSim.State.SecretKingdoms.Add(k.StringId); Memory.SaveFiles.Flush(); }
+                }, key: "secrets:" + k.StringId);
             }
             catch (Exception ex) { Log.Error("Secretos por historia", ex); }
         }

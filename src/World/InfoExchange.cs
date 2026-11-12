@@ -127,8 +127,7 @@ namespace AILegacy.World
                     var to = Hero.Find(m.ToId);
                     if (to == null || !to.IsAlive) continue;
                     var mem = MemoryStore.Get(to.StringId, to.Name.ToString());
-                    mem.Heard.Add(new HeardItem { FromName = m.FromName, Text = m.Text, Secrecy = m.Secrecy, Day = now });
-                    while (mem.Heard.Count > S.Get.MaxHeardPerHero) mem.Heard.RemoveAt(0);
+                    AddHeard(mem, new HeardItem { FromName = m.FromName, Text = m.Text, Secrecy = m.Secrecy, Day = now });
                     Log.Info($"Recado entregado a {to.Name} (de {m.FromName}): {m.Text}");
 
                     // Lo público corre de boca en boca
@@ -146,19 +145,36 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Recados entre NPC", ex); }
         }
 
+        /// <summary>Temas de charlas ambientales que guardaban partidas antiguas: no tratan del jugador.</summary>
+        public static bool IsAmbientTopic(HeardItem x) => x == null || string.IsNullOrWhiteSpace(x.Text) || x.Text.StartsWith("(talking together)", StringComparison.Ordinal);
+
+        /// <summary>Lo que sí trata del jugador (recados y lo oído de pasada).</summary>
+        public static IEnumerable<HeardItem> AboutPlayer(HeroMemory mem) => mem?.Heard == null ? Enumerable.Empty<HeardItem>() : mem.Heard.Where(x => !IsAmbientTopic(x));
+
+        /// <summary>Añade algo oído: antes limpia los temas ambientales viejos para que no echen a los recados reales.</summary>
+        public static void AddHeard(HeroMemory mem, HeardItem item)
+        {
+            if (mem == null || item == null) return;
+            if (mem.Heard == null) mem.Heard = new List<HeardItem>();
+            mem.Heard.RemoveAll(IsAmbientTopic);
+            mem.Heard.Add(item);
+            while (mem.Heard.Count > S.Get.MaxHeardPerHero) mem.Heard.RemoveAt(0);
+        }
+
         /// <summary>Para el prompt: lo que este NPC ha sabido del jugador por otros.</summary>
         public static string DescribeHeard(HeroMemory mem)
         {
-            if (mem.Heard == null || mem.Heard.Count == 0) return "";
+            var list = AboutPlayer(mem).ToList();
+            if (list.Count == 0) return "";
             double now = CampaignTime.Now.ToDays;
             var sb = new StringBuilder();
-            foreach (var x in mem.Heard.Skip(Math.Max(0, mem.Heard.Count - 6)))
+            foreach (var x in list.Skip(Math.Max(0, list.Count - 6)))
                 sb.AppendLine($"- {(int)(now - x.Day)} day(s) ago, from {x.FromName}" +
                               (x.Secrecy == "secret" ? " (told to you in confidence: do not reveal who told you)" : x.Secrecy == "private" ? " (in private)" : "") + $": {x.Text}");
             return sb.ToString().TrimEnd();
         }
 
-        public static bool HasFreshNews(HeroMemory mem) => mem.Heard != null && mem.Heard.Any(x => CampaignTime.Now.ToDays - x.Day <= 10);
+        public static bool HasFreshNews(HeroMemory mem) => AboutPlayer(mem).Any(x => CampaignTime.Now.ToDays - x.Day <= 10);
     }
 
     /// <summary>

@@ -121,8 +121,7 @@ namespace AILegacy.World
 
             if (candidates.Count == 0) return;
             var pick = candidates[Rng.Next(candidates.Count)];
-            if (pick.ev != null) pick.ev.Engagement.Remove(pick.k.StringId);   // ya ha hablado sobre esto
-            MakeStatement(pick.k, pick.ev);
+            MakeStatement(pick.k, pick.ev);     // la ocasión se gasta al aplicar la respuesta (ApplyStatement)
         }
 
         private static bool Ready(Kingdom k, double now, int minDays) =>
@@ -153,7 +152,7 @@ Actions you may take (each is an object in ""actions""; target_kingdom is always
 - grant_fief (settlement = a town or castle held by your own clan, clan = a vassal clan of yours): reward loyalty.
 - confiscate_fief (settlement = a town or castle of one of your vassal clans): take it for the crown; they will resent it.
 - set_tax (tax_percent from {tax_min} to {tax_max}; 0 removes it): an extra crown tax on your towns. More gold, but loyalty and prosperity suffer.
-- enact_law (law_name, law_text in {language}, law_effects = small daily changes in all your towns and castles: loyalty -1..1, prosperity -5..5, security -1..1, food -3..3): proclaim a law of your own. A law that gives with one hand takes with the other; at most {max_laws} laws at a time.
+- enact_law (law_name, law_text in {language}, law_effects = small daily changes in all your towns and castles: loyalty -1..1, prosperity -1.5..1.5, security -1..1, food -3..3): proclaim a law of your own. A law that gives with one hand takes with the other; at most {max_laws} laws at a time.
 - repeal_law (law_name): abolish one of your laws in force.
 - declare_war_on_clan / make_peace_with_clan (clan = an independent clan that belongs to no kingdom, such as one you expelled or that rebelled).
 - quarantine_settlement (settlement = a town, castle or village of yours where there is sickness, quarantine_days 5-60) / lift_quarantine (settlement): closing it stops the sickness from spreading but hurts trade and tempers.
@@ -246,9 +245,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 ? $"Speak out now about this development: {(string.IsNullOrWhiteSpace(about.SummaryEn) ? about.Title : about.SummaryEn)}"
                 : "Proposals are waiting for your answer. Issue your statement now.";
 
-            St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
             WorldSim.Ask(L.F("AIL_3b33d5b8", $"declaración de {ruler.Name}"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", task) }, 1100,
-                j => ApplyStatement(k, j, null));
+                j =>
+                {
+                    // Agenda consumida solo si la respuesta llega: si falla, el rey puede hablar otro día
+                    St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
+                    if (about != null) about.Engagement.Remove(k.StringId);   // ya ha hablado sobre esto
+                    ApplyStatement(k, j, null);
+                }, key: "statement:" + k.StringId);
         }
 
         // ============================================================ aplicar una declaración
@@ -532,7 +536,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     var law = new KingdomLaw
                     {
                         Id = WorldSim.NewId("law"), KingdomId = k.StringId, Name = name, Text = text, EnactedDay = CampaignTime.Now.ToDays, AuthorName = k.Leader.Name.ToString(),
-                        LoyaltyPerDay = F("loyalty", 1f), ProsperityPerDay = F("prosperity", 5f), SecurityPerDay = F("security", 1f), FoodPerDay = F("food", 3f),
+                        LoyaltyPerDay = F("loyalty", 1f), ProsperityPerDay = F("prosperity", 1.5f), SecurityPerDay = F("security", 1f), FoodPerDay = F("food", 3f),
                     };
                     St.Laws.Add(law);
                     var parts = new List<string>();
@@ -674,7 +678,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
         private static readonly Tpl TPlayerStatement = new Tpl("kingdom_statement/player_statement_analysis.txt",
 @"{ruler}, ruler of {kingdom} [id: {kingdom_id}], has issued the public statement below. You are the chancellor: turn the words into the actions they really contain, nothing more.
 - Use only what the statement clearly says. If it only speaks and decides nothing, return no actions.
-- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days, reparations, settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects { loyalty -1..1, prosperity -5..5, security -1..1, food -3..3 }), repeal_law (law_name), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
+- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days, reparations, settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects { loyalty -1..1, prosperity -1.5..1.5, security -1..1, food -3..3 }), repeal_law (law_name), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
 - target_kingdom must be a kingdom id from the data.
 Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }");
 
@@ -699,8 +703,9 @@ Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English s
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
                     sys.AppendLine(); sys.AppendLine("## Pending proposals directed at this realm"); sys.AppendLine(DescribeProposalsTo(k));
                     WorldSim.Say(L.T("AIL_ebf54145", "Tus heraldos llevan la declaración a todos los rincones…"), Colors.Cyan);
+                    // Importante: si hay otra petición en curso espera en cola (no se descarta) y se reintenta una vez si falla
                     WorldSim.Ask(L.T("AIL_100794a8", "declaración del jugador"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", text) }, 700,
-                        j => ApplyStatement(k, j, WorldSim.Clean(text, 1600)));
+                        j => ApplyStatement(k, j, WorldSim.Clean(text, 1600)), important: true);
                 }, null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t) && t.Trim().Length >= 10, L.T("AIL_49569563", "Escribe algo más"))), true);
         }
     }

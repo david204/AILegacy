@@ -253,7 +253,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                     if (h.Spouse == null && h.Age >= 18 && h.Age < 40) parts.Add("unmarried, and the family notices");
                     if (h.IsWounded) parts.Add("still recovering from a wound");
                     if (h.Age >= 55) parts.Add("feels the years");
-                    foreach (var hd in s.Memory.Heard.Skip(Math.Max(0, s.Memory.Heard.Count - 2)))
+                    var heardP = InfoExchange.AboutPlayer(s.Memory).ToList();
+                    foreach (var hd in heardP.Skip(Math.Max(0, heardP.Count - 2)))
                         if (!string.IsNullOrWhiteSpace(hd.Text)) parts.Add($"was told by {hd.FromName}: {hd.Text}");
                 }
                 else
@@ -570,7 +571,6 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                             if (!PairTopics.TryGetValue(pairKey, out var past)) PairTopics[pairKey] = past = new List<string>();
                             past.Add(topic);
                             while (past.Count > 6) past.RemoveAt(0);
-                            double day = CampaignTime.Now.ToDays;
                             // Cómo quedan entre ellos tras la charla: lo recuerdan los dos, cada uno a su manera
                             try
                             {
@@ -584,12 +584,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                                 Bonds.TouchOther(sb, sa, db * 4, topic);
                             }
                             catch { }
-                            foreach (var pair in new[] { (me: sa, other: sb), (me: sb, other: sa) })
-                            {
-                                if (!pair.me.IsHero) continue;
-                                pair.me.Memory.Heard.Add(new HeardItem { FromName = pair.other.Name, Text = "(talking together) " + topic, Secrecy = "private", Day = day });
-                                while (pair.me.Memory.Heard.Count > S.Get.MaxHeardPerHero) pair.me.Memory.Heard.RemoveAt(0);
-                            }
+                            // El tema ya queda en Others[...].Notes (TouchOther); no va a Heard, que es lo que saben del jugador
                         }
                         if (topic.Length > 5)
                         {
@@ -622,27 +617,38 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
         /// </summary>
         public static void Overhear(Speaker speaker, string playerSaid)
         {
+            if (speaker != null) Overhear(new[] { speaker }, playerSaid);
+        }
+
+        /// <summary>Lo mismo para una frase dicha a un corro: una sola entrada por oyente y nunca para los del corro.</summary>
+        public static void Overhear(IList<Speaker> addressed, string playerSaid)
+        {
             try
             {
                 var cfg = S.Get;
                 if (!cfg.EnableOverhearing || Mission.Current == null || Agent.Main == null || string.IsNullOrWhiteSpace(playerSaid) || playerSaid.Length < 15) return;
+                var to = (addressed ?? new Speaker[0]).Where(x => x != null).ToList();
+                if (to.Count == 0) return;
+                var inside = new HashSet<Hero>(to.Where(x => x.IsHero && x.Hero != null).Select(x => x.Hero));
+                string key = string.Join(",", to.Select(x => x.Key));
+                string names = to.Count == 1 ? to[0].Name : to.Count == 2 ? $"{to[0].Name} and {to[1].Name}" : $"the group ({string.Join(", ", to.Select(x => x.Name))})";
+                string said = playerSaid.Length > 220 ? playerSaid.Substring(0, 220) + "…" : playerSaid;
                 double now = CampaignTime.Now.ToDays;
                 foreach (var a in Mission.Current.Agents)
                 {
                     if (a == null || !a.IsHuman || !a.IsActive() || a == Agent.Main) continue;
                     var c = a.Character as CharacterObject;
                     var h = c != null && c.IsHero ? c.HeroObject : null;
-                    if (h == null || h == Hero.MainHero || (speaker.IsHero && h == speaker.Hero)) continue;
+                    if (h == null || h == Hero.MainHero || inside.Contains(h)) continue;
                     if (a.Position.Distance(Agent.Main.Position) > cfg.OverhearRadius) continue;
-                    if (!OverheardBy.Add(speaker.Key + "|" + h.StringId + "|" + (int)(now * 4))) continue;      // una vez por oyente y rato
+                    if (!OverheardBy.Add(key + "|" + h.StringId + "|" + (int)(now * 4))) continue;      // una vez por oyente y rato
                     var mem = MemoryStore.Get(h.StringId, h.Name.ToString());
-                    mem.Heard.Add(new HeardItem
+                    InfoExchange.AddHeard(mem, new HeardItem
                     {
                         FromName = "your own ears", Secrecy = "private", Day = now,
-                        Text = $"Standing nearby, you overheard them say to {speaker.Name}: «{(playerSaid.Length > 220 ? playerSaid.Substring(0, 220) + "…" : playerSaid)}»",
+                        Text = $"Standing nearby, you overheard them say to {names}: «{said}»",
                     });
-                    while (mem.Heard.Count > cfg.MaxHeardPerHero) mem.Heard.RemoveAt(0);
-                    Log.Info($"[escena] {h.Name} oye lo que le dices a {speaker.Name}");
+                    Log.Info($"[escena] {h.Name} oye lo que le dices a {names}");
                 }
                 if (OverheardBy.Count > 500) OverheardBy.Clear();
             }
