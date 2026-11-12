@@ -51,6 +51,7 @@ namespace AILegacy.Behaviors
             // Por eso la copia va comprimida y troceada en cadenas pequeñas (clave v2); la clave vieja se deja vacía.
             string legacy = null;
             List<string> chunks = null;
+            string stamp = null;
             try
             {
                 if (dataStore.IsSaving)
@@ -58,11 +59,16 @@ namespace AILegacy.Behaviors
                     legacy = "";
                     chunks = Pack(MemoryStore.Serialize());
                     SaveFiles.Save(Campaign.Current?.UniqueGameId, CampaignTime.Now.ToDays);
+                    stamp = SaveFiles.Stamp ?? "";   // sello de los archivos en este momento (para saber al cargar si son de otra rama)
                 }
                 dataStore.SyncData(SaveKey, ref legacy);
                 dataStore.SyncData(SaveKeyChunks, ref chunks);
+                dataStore.SyncData(SaveKeyStamp, ref stamp);
                 if (dataStore.IsLoading)
+                {
                     _inSaveCopy = chunks != null && chunks.Count > 0 ? Unpack(chunks) : legacy;
+                    _inSaveStamp = stamp;
+                }
             }
             catch (Exception ex)
             {
@@ -72,6 +78,8 @@ namespace AILegacy.Behaviors
 
         /// <summary>Copia que venía dentro de la partida; solo se usa si no existen los archivos de la campaña.</summary>
         private string _inSaveCopy;
+        /// <summary>Sello de los archivos en el momento de guardar esa partida (null en partidas de versiones anteriores).</summary>
+        private string _inSaveStamp;
 
         private void LoadCampaignData()
         {
@@ -82,24 +90,33 @@ namespace AILegacy.Behaviors
                 Prompt.PromptBuilder.Touch();
                 Prompt.Templates.UseCampaign(id);
                 bool hasCopy = !string.IsNullOrEmpty(_inSaveCopy);
+                bool adopt = false;
                 if (hasCopy && S.Get.MemoryFollowsSave)
                 {
                     // La memoria es la de ESTA partida guardada (sin recuerdos de otra rama).
                     // Lo que hayas editado a mano en los archivos se respeta.
                     var edited = SaveFiles.ManualEdits(id);
+                    // Si los archivos son de otra rama (seguiste jugando tras este guardado), se archivan antes de pisarlos
+                    SaveFiles.ArchiveIfDiverged(id, _inSaveStamp, CampaignTime.Now.ToDays);
                     MemoryStore.Deserialize(_inSaveCopy);
                     foreach (var m in edited) MemoryStore.Put(m);
+                    SaveFiles.AdoptStamp(id, _inSaveStamp);
+                    adopt = !string.IsNullOrEmpty(_inSaveStamp);
                     Log.Info($"Memoria restaurada de la partida guardada" + (edited.Count > 0 ? $" ({edited.Count} personajes editados a mano se conservan)" : ""));
                 }
                 else if (!SaveFiles.Load(id) && hasCopy)
                 {
                     MemoryStore.Deserialize(_inSaveCopy);
+                    SaveFiles.AdoptStamp(id, _inSaveStamp);
+                    adopt = !string.IsNullOrEmpty(_inSaveStamp);
                     Log.Info($"La campaña {id} no tenía archivos: memoria recuperada de la copia de la partida");
                 }
                 _inSaveCopy = null;
+                _inSaveStamp = null;
                 SeedCharacters();
                 GameJournal.Reconcile();
-                SaveFiles.Flush();
+                // Los archivos quedan como los de esta partida y con su sello: recargarla no se toma por otra rama
+                SaveFiles.Flush(keepStamp: adopt);
             }
             catch (Exception ex) { Log.Error("Error cargando los datos de la campaña", ex); }
         }
@@ -144,6 +161,7 @@ namespace AILegacy.Behaviors
         }
 
         private const string SaveKeyChunks = "AILegacy_Memory_v2";
+        private const string SaveKeyStamp = "AILegacy_FilesStamp";
         private const int ChunkSize = 12000;   // caracteres ASCII (base64) = bytes; muy por debajo del límite
 
         private static List<string> Pack(string json)
@@ -192,6 +210,15 @@ namespace AILegacy.Behaviors
                 () => MainThread.Post(() => ChatSession.Start(Speaker.FromHero(Hero.OneToOneConversationHero))),
                 priority: 110);
             starter.AddDialogLine("ailegacy_npc_listen", "ailegacy_npc_listen", "hero_main_options", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
+            // Héroes que llevas presos en tu partida: el juego no pasa por hero_main_options sino por su rama de presos
+            // (PrisonerRecruitCampaignBehavior: "start" → "prisoner_recruit_start_player", cuya única salida es la amenaza y cerrar)
+            starter.AddPlayerLine(
+                "ailegacy_talk_start_p", PrisonerOptions, "ailegacy_npc_listen_p",
+                L.T("AIL_d1c3cda0", "{=!}Quiero hablar contigo de algo. [Charla libre]"),
+                () => !S.Get.UseDialogStyle && CanTalkHero(),
+                () => MainThread.Post(() => ChatSession.Start(Speaker.FromHero(Hero.OneToOneConversationHero))),
+                priority: 110);
+            starter.AddDialogLine("ailegacy_npc_listen_p", "ailegacy_npc_listen_p", PrisonerOptions, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
             // --- Gente corriente de ciudades y aldeas
             starter.AddPlayerLine(
@@ -235,6 +262,16 @@ namespace AILegacy.Behaviors
                 () => S.Get.UseDialogStyle && CanTalkHero(),
                 () =>
                 {
+                    _fromPrisonerBranch = false;
+                    var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
+                    if (s != null) MainThread.Post(s.AskInput);
+                }, priority: 120);
+            // Lo mismo desde la rama de presos de tu partida; «Volver» regresa a esa rama (ailegacy_d_ret_p)
+            starter.AddPlayerLine("ailegacy_d_start_p", PrisonerOptions, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                () => S.Get.UseDialogStyle && CanTalkHero(),
+                () =>
+                {
+                    _fromPrisonerBranch = true;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
@@ -297,10 +334,30 @@ namespace AILegacy.Behaviors
                 }, null, priority: 120);
 
             // Volver a las opciones normales del juego
+            // (a la rama de presos si se entró por ella: allí está la salida del juego, «No hagas ninguna estupidez…» → cerrar)
+            starter.AddDialogLine("ailegacy_d_ret_p", "ailegacy_d_ret", PrisonerOptions, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
+                () => _fromPrisonerBranch && IsMainPartyPrisoner(), null, priority: 125);
             starter.AddDialogLine("ailegacy_d_ret_h", "ailegacy_d_ret", "hero_main_options", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => Hero.OneToOneConversationHero != null, null, priority: 120);
             starter.AddDialogLine("ailegacy_d_ret_r", "ailegacy_d_ret", "town_or_village_player", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => Hero.OneToOneConversationHero == null, null, priority: 110);
+        }
+
+        /// <summary>Opciones del jugador al hablar con un preso de su partida (TaleWorlds.CampaignSystem, PrisonerRecruitCampaignBehavior).</summary>
+        private const string PrisonerOptions = "prisoner_recruit_start_player";
+        /// <summary>La charla de AI Legacy en curso empezó desde la rama de presos.</summary>
+        private static bool _fromPrisonerBranch;
+
+        /// <summary>El héroe con el que hablas va preso en tu partida (la misma condición que usa el juego para su rama).</summary>
+        private static bool IsMainPartyPrisoner()
+        {
+            try
+            {
+                var c = CharacterObject.OneToOneConversationCharacter;
+                return c != null && c.IsHero && Hero.OneToOneConversationHero != null
+                       && TaleWorlds.CampaignSystem.Party.MobileParty.MainParty?.PrisonRoster?.Contains(c) == true;
+            }
+            catch { return false; }
         }
 
         private static bool CanTalkHero()

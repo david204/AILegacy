@@ -61,11 +61,29 @@ namespace AILegacy.Core
                     if (!_started)
                     {
                         _started = true;
-                        // Un log por sesión
+                        // Un log por sesión; se guardan las 3 últimas (ailegacy.log, ailegacy.1.log, ailegacy.2.log),
+                        // para que tras un cuelgue no se pierda el log de la sesión que falló
+                        Rotate(LogFile, 2);
                         File.WriteAllText(LogFile, $"=== AI Legacy log {DateTime.Now:yyyy-MM-dd HH:mm:ss} ==={Environment.NewLine}", Encoding.UTF8);
                     }
                     File.AppendAllText(LogFile, $"[{DateTime.Now:HH:mm:ss}] {level} {msg}{Environment.NewLine}", Encoding.UTF8);
                 }
+            }
+            catch { }
+        }
+
+        /// <summary>x.log → x.1.log → x.2.log… (se descarta el más viejo). Si algo falla, se sigue sin rotar.</summary>
+        private static void Rotate(string file, int keepOld)
+        {
+            try
+            {
+                if (!File.Exists(file)) return;
+                string dir = Path.GetDirectoryName(file), name = Path.GetFileNameWithoutExtension(file), ext = Path.GetExtension(file);
+                string Old(int i) => Path.Combine(dir, $"{name}.{i}{ext}");
+                if (File.Exists(Old(keepOld))) File.Delete(Old(keepOld));
+                for (int i = keepOld - 1; i >= 1; i--)
+                    if (File.Exists(Old(i))) File.Move(Old(i), Old(i + 1));
+                File.Move(file, Old(1));
             }
             catch { }
         }
