@@ -3,7 +3,7 @@
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/SubModule.xsd">
   <Name value="AI Legacy" />
   <Id value="AILegacy" />
-  <Version value="v0.36.0" />
+  <Version value="v0.37.0" />
   <Official value="false" />
   <DefaultModule value="false" />
   <SingleplayerModule value="true" />

@@ -1387,5 +1387,23 @@
     <string id="AIL_f4c8e2a4" text="Nicht jetzt" />
     <string id="AIL_a9c3e7f1" text="Weltereignisse" />
     <string id="AIL_a9c3e7f2" text="Gesetz: " />
+    <string id="AIL_b7d2f001" text="{0} steht wegen {1} unter Quarantäne. Die Wache hält die Tore geschlossen und lässt keinen Fremden hinein. Es bleiben etwa {2} Tage." />
+    <string id="AIL_b7d2f002" text="{=!}Die Torwache bestechen ({AIL_QBRIBE} Denare)" />
+    <string id="AIL_b7d2f003" text="So viel Gold hast du nicht dabei." />
+    <string id="AIL_b7d2f004" text="Die Wache sieht weg. Du betrittst {0} auf eigene Gefahr." />
+    <string id="AIL_b7d2f005" text="{=!}Umkehren" />
+    <string id="AIL_b7d2f010" text="Dein Clan ist aus {0} verbannt. Du kannst erst zurückkehren, wenn der Herrscher dich begnadigt." />
+    <string id="AIL_b7d2f011" text="{0} hat einen neuen Herrscher: Die Verbannung deines Clans gilt nicht mehr." />
+    <string id="AIL_b7d2f012" text="dieser Clan ist nicht verbannt" />
+    <string id="AIL_b7d2f013" text="{0} begnadigt den Clan {1}: Seine Verbannung ist aufgehoben." />
+    <string id="AIL_b7d2f014" text="{0} hebt die Verbannung deines Clans auf: Du darfst {1} wieder dienen." />
+    <string id="AIL_b7d2f020" text="Quarantäne schließt die Tore" />
+    <string id="AIL_b7d2f021" text="Solange eine Quarantäne gilt, bleiben Fürsten, Karawanen und Dorfbewohner fern, es wird kein Turnier ausgerufen, und die Wache hält dich am Tor auf. Besitzer und Kriegsgegner werden nicht aufgehalten." />
+    <string id="AIL_b7d2f022" text="Bestechung, um einen Ort unter Quarantäne zu betreten, pro Schweregrad (0 = kein Zutritt)" />
+    <string id="AIL_b7d2f023" text="Ein ausgestoßener Clan ist verbannt" />
+    <string id="AIL_b7d2f024" text="Ein aus einem Königreich ausgestoßener Clan kann ihm weder Treue schwören noch überlaufen noch als Söldner dienen, bis der Herrscher ihn begnadigt. Das gilt auch für dich." />
+    <string id="AIL_b7d2f025" text="Die Verbannung endet, wenn das Königreich den Herrscher wechselt" />
+    <string id="AIL_b7d2f026" text="Landlose Clans, die du kennst, am Leben lassen" />
+    <string id="AIL_b7d2f027" text="Das Spiel löst einen Clan ohne Königreich und ohne Land nach einiger Zeit auf und tötet seine Mitglieder. Ist dies aktiv, verschont es verbannte Clans und Clans mit Leuten, mit denen du gesprochen hast." />
   </strings>
 </base>

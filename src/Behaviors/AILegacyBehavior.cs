@@ -27,6 +27,10 @@ namespace AILegacy.Behaviors
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, QuestSystem.OnDailyTick);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, QuestObjectives.OnSettlementEntered);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, Diseases.OnSettlementEntered);
+            // Cuarentena que cierra de verdad: la IA del mapa no va, y a ti te paran en la puerta
+            CampaignEvents.AiHourlyTickEvent.AddNonSerializedListener(this, QuarantineRules.OnAiHourlyTick);
+            CampaignEvents.GameMenuOpened.AddNonSerializedListener(this, QuarantineRules.OnGameMenuOpened);
+            CampaignEvents.OnSettlementLeftEvent.AddNonSerializedListener(this, QuarantineRules.OnSettlementLeft);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, InfoExchange.OnHourlyTick);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MapInitiative.OnHourlyTick);
             // El mundo que se mueve solo: eventos, efectos económicos, cansancio de guerra y diplomacia de reyes
@@ -210,6 +214,7 @@ namespace AILegacy.Behaviors
             LoadCampaignData();
             World.NewsTracker.Live = true;       // a partir de aquí, lo que pase es noticia
             World.History.Snapshot();
+            QuarantineRules.NotePlayerInside();   // si cargas dentro de un sitio en cuarentena, no te echan
             AddDialogStyleLines(starter);
             LetterSystem.AddMenu(starter);
             Diseases.AddMenus(starter);

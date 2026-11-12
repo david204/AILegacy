@@ -1139,6 +1139,15 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases")]
         public bool DiseaseAffectsPlayerTroops { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_b7d2f020}Quarantine closes the gates", Order = 20, RequireRestart = false,
+            HintText = "{=AIL_b7d2f021}While a quarantine lasts, lords, caravans and villagers stay away, no tournament is called, and the guard stops you at the gate. Owners and enemies at war are not stopped.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases")]
+        public bool QuarantineClosesGates { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_b7d2f022}Bribe to enter a quarantined place, per severity level (0 = no way in)", 0, 5000, Order = 21, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases")]
+        public int QuarantineBribeGold { get; set; } = 300;
+
         [SettingPropertyInteger("{=AIL_1b8ccb46}Chance of falling ill per severity level (%)", 0, 30, Order = 9, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases")]
         public int DiseaseTroopChancePerSeverity { get; set; } = 8;
@@ -1388,6 +1397,20 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_cddce6e0}Kings can declare war on you if you rule", Order = 32, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]
         public bool AllowAiWarOnPlayer { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_b7d2f023}An expelled clan is banished", Order = 60, RequireRestart = false,
+            HintText = "{=AIL_b7d2f024}A clan cast out of a kingdom cannot swear to it, defect to it or serve it as mercenaries until its ruler pardons it. Applies to you too.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]
+        public bool BanishedClansCannotReturn { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_b7d2f025}Banishment ends when the kingdom changes ruler", Order = 61, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]
+        public bool BanishmentEndsWithRuler { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_b7d2f026}Keep landless clans you know alive", Order = 62, RequireRestart = false,
+            HintText = "{=AIL_b7d2f027}The game dissolves a clan with no kingdom and no land after a while, killing its members. With this on, it spares banished clans and clans with people you have talked to.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]
+        public bool KeepKnownClansAlive { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_76e631ee}Your king can expel you or confiscate a fief from you", Order = 33, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]

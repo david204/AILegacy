@@ -133,6 +133,7 @@ namespace AILegacy.World
         /// <summary>Postura de un rey hacia otro reino: "a|b" → -100..100.</summary>
         [JsonProperty("stance")] public Dictionary<string, int> Stance = new Dictionary<string, int>();
         [JsonProperty("outbreaks")] public List<Outbreak> Outbreaks = new List<Outbreak>();
+        [JsonProperty("banished")] public List<Banishment> Banished = new List<Banishment>();
         [JsonProperty("last_outbreak_day")] public double LastOutbreakDay = -1;
         [JsonProperty("laws")] public List<KingdomLaw> Laws = new List<KingdomLaw>();
         [JsonProperty("last_event_day")] public double LastEventGenerationDay = -1;
@@ -696,6 +697,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 ApplyTaxPressure();
                 Diseases.ApplyLaws();
                 Diseases.OnDailyTick();
+                Banished.OnDailyTick();
                 TickFatigue();
                 Diplomacy.OnDailyTick(now);
 

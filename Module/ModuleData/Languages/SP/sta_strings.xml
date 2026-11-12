@@ -1387,5 +1387,23 @@
     <string id="AIL_f4c8e2a4" text="Ahora no" />
     <string id="AIL_a9c3e7f1" text="Sucesos del mundo" />
     <string id="AIL_a9c3e7f2" text="Ley: " />
+    <string id="AIL_b7d2f001" text="{0} está en cuarentena por {1}. La guardia tiene las puertas cerradas y no deja pasar a nadie de fuera. Quedan unos {2} días." />
+    <string id="AIL_b7d2f002" text="{=!}Sobornar a la guardia de la puerta ({AIL_QBRIBE} denarios)" />
+    <string id="AIL_b7d2f003" text="No llevas tanto oro." />
+    <string id="AIL_b7d2f004" text="La guardia mira hacia otro lado. Entras en {0} por tu cuenta y riesgo." />
+    <string id="AIL_b7d2f005" text="{=!}Dar media vuelta" />
+    <string id="AIL_b7d2f010" text="Tu clan está desterrado de {0}. No puedes volver hasta que su soberano te perdone." />
+    <string id="AIL_b7d2f011" text="{0} tiene nuevo soberano: el destierro de tu clan queda sin efecto." />
+    <string id="AIL_b7d2f012" text="ese clan no está desterrado" />
+    <string id="AIL_b7d2f013" text="{0} perdona al clan {1}: su destierro queda levantado." />
+    <string id="AIL_b7d2f014" text="{0} levanta el destierro de tu clan: puedes volver a servir a {1}." />
+    <string id="AIL_b7d2f020" text="La cuarentena cierra las puertas" />
+    <string id="AIL_b7d2f021" text="Mientras dura una cuarentena, señores, caravanas y aldeanos no se acercan, no se convoca torneo y la guardia te para en la puerta. No se para a los dueños ni a los enemigos en guerra." />
+    <string id="AIL_b7d2f022" text="Soborno para entrar en un sitio en cuarentena, por nivel de gravedad (0 = no se puede entrar)" />
+    <string id="AIL_b7d2f023" text="Un clan expulsado queda desterrado" />
+    <string id="AIL_b7d2f024" text="Un clan echado de un reino no puede jurarle lealtad, pasarse a él ni servirle como mercenario hasta que su soberano lo perdone. También va por ti." />
+    <string id="AIL_b7d2f025" text="El destierro acaba cuando el reino cambia de soberano" />
+    <string id="AIL_b7d2f026" text="Conservar los clanes sin tierra que conoces" />
+    <string id="AIL_b7d2f027" text="El juego disuelve al cabo de un tiempo a un clan sin reino ni tierras, y mata a sus miembros. Con esto activado, respeta a los clanes desterrados y a los que tienen gente con la que has hablado." />
   </strings>
 </base>

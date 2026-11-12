@@ -203,11 +203,19 @@ namespace AILegacy.World
                 if (!Enabled || party == null || !party.IsMainParty) return;
                 var o = At(st);
                 if (o == null) return;
+                if (QuarantineRules.StopsPlayer(st)) return;      // te paran en la puerta: aún no has entrado
                 InformationManager.DisplayMessage(new InformationMessage(
                     L.F("AIL_e13e09e9", $"En {st.Name} hay {o.Name}") + (o.Quarantined ? L.T("AIL_5eccf2c1", ". Está en cuarentena: entras por tu cuenta y riesgo.") : "."), Colors.Red));
                 SickenPlayerTroops(o, st, o.Quarantined ? 1.3f : 1f);
             }
             catch (Exception ex) { Log.Error("[enfermedad] entrada", ex); }
+        }
+
+        /// <summary>Has entrado sobornando a la guardia en un sitio en cuarentena.</summary>
+        public static void SickenAtGate(Settlement st)
+        {
+            try { var o = At(st); if (Enabled && o != null) SickenPlayerTroops(o, st, 1.3f); }
+            catch (Exception ex) { Log.Error("[enfermedad] entrada con soborno", ex); }
         }
 
         /// <summary>Parte de tus soldados cae enferma (quedan como heridos y se recuperan con el tiempo).</summary>
@@ -239,6 +247,7 @@ namespace AILegacy.World
             if (o == null) return null;
             days = Math.Max(5, Math.Min(60, days <= 0 ? 15 : days));
             o.QuarantineUntilDay = CampaignTime.Now.ToDays + days;
+            try { if (Settlement.CurrentSettlement == st) QuarantineRules.NotePlayerInside(); } catch { }      // si estás dentro, no te echan
             return L.F("AIL_34a22788", $"{byWhom} decreta {days} días de cuarentena en {st.Name}.");
         }
 
@@ -394,6 +403,7 @@ namespace AILegacy.World
         public static void AddMenus(CampaignGameStarter starter)
         {
             try { AddHospital(starter); } catch (Exception ex) { Log.Error("Menú del hospital", ex); }
+            try { QuarantineRules.AddMenus(starter); } catch (Exception ex) { Log.Error("Menú de la puerta en cuarentena", ex); }
             foreach (var menu in new[] { "town", "castle", "village" })
             {
                 starter.AddGameMenuOption(menu, "ailegacy_quarantine_" + menu, L.T("AIL_b23dc670", "{=!}Decretar cuarentena (15 días)"),

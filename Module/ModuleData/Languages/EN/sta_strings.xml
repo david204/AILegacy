@@ -1387,5 +1387,23 @@
     <string id="AIL_f4c8e2a4" text="Not now" />
     <string id="AIL_a9c3e7f1" text="World events" />
     <string id="AIL_a9c3e7f2" text="Law: " />
+    <string id="AIL_b7d2f001" text="{0} is under quarantine because of {1}. The guard keeps the gates shut and lets no outsider through. About {2} days are left." />
+    <string id="AIL_b7d2f002" text="{=!}Bribe the gate guard ({AIL_QBRIBE} denars)" />
+    <string id="AIL_b7d2f003" text="You do not carry that much gold." />
+    <string id="AIL_b7d2f004" text="The guard looks the other way. You enter {0} at your own risk." />
+    <string id="AIL_b7d2f005" text="{=!}Turn back" />
+    <string id="AIL_b7d2f010" text="Your clan is banished from {0}. You cannot return until its ruler pardons you." />
+    <string id="AIL_b7d2f011" text="{0} has a new ruler: the banishment of your clan no longer stands." />
+    <string id="AIL_b7d2f012" text="that clan is not banished" />
+    <string id="AIL_b7d2f013" text="{0} pardons clan {1}: its banishment is lifted." />
+    <string id="AIL_b7d2f014" text="{0} lifts the banishment of your clan: you may serve {1} again." />
+    <string id="AIL_b7d2f020" text="Quarantine closes the gates" />
+    <string id="AIL_b7d2f021" text="While a quarantine lasts, lords, caravans and villagers stay away, no tournament is called, and the guard stops you at the gate. Owners and enemies at war are not stopped." />
+    <string id="AIL_b7d2f022" text="Bribe to enter a quarantined place, per severity level (0 = no way in)" />
+    <string id="AIL_b7d2f023" text="An expelled clan is banished" />
+    <string id="AIL_b7d2f024" text="A clan cast out of a kingdom cannot swear to it, defect to it or serve it as mercenaries until its ruler pardons it. Applies to you too." />
+    <string id="AIL_b7d2f025" text="Banishment ends when the kingdom changes ruler" />
+    <string id="AIL_b7d2f026" text="Keep landless clans you know alive" />
+    <string id="AIL_b7d2f027" text="The game dissolves a clan with no kingdom and no land after a while, killing its members. With this on, it spares banished clans and clans with people you have talked to." />
   </strings>
 </base>

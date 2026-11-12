@@ -1387,5 +1387,23 @@
     <string id="AIL_f4c8e2a4" text="Agora não" />
     <string id="AIL_a9c3e7f1" text="Eventos do mundo" />
     <string id="AIL_a9c3e7f2" text="Lei: " />
+    <string id="AIL_b7d2f001" text="{0} está em quarentena por causa de {1}. A guarda mantém os portões fechados e não deixa passar ninguém de fora. Faltam cerca de {2} dias." />
+    <string id="AIL_b7d2f002" text="{=!}Subornar a guarda do portão ({AIL_QBRIBE} denares)" />
+    <string id="AIL_b7d2f003" text="Você não carrega tanto ouro." />
+    <string id="AIL_b7d2f004" text="A guarda olha para o outro lado. Você entra em {0} por sua conta e risco." />
+    <string id="AIL_b7d2f005" text="{=!}Dar meia-volta" />
+    <string id="AIL_b7d2f010" text="Seu clã está banido de {0}. Você não pode voltar até que o soberano o perdoe." />
+    <string id="AIL_b7d2f011" text="{0} tem um novo soberano: o banimento do seu clã deixa de valer." />
+    <string id="AIL_b7d2f012" text="esse clã não está banido" />
+    <string id="AIL_b7d2f013" text="{0} perdoa o clã {1}: seu banimento foi levantado." />
+    <string id="AIL_b7d2f014" text="{0} levanta o banimento do seu clã: você pode voltar a servir {1}." />
+    <string id="AIL_b7d2f020" text="A quarentena fecha os portões" />
+    <string id="AIL_b7d2f021" text="Enquanto dura uma quarentena, senhores, caravanas e aldeões ficam longe, nenhum torneio é convocado e a guarda para você no portão. Donos e inimigos em guerra não são parados." />
+    <string id="AIL_b7d2f022" text="Suborno para entrar em um lugar em quarentena, por nível de gravidade (0 = não há como entrar)" />
+    <string id="AIL_b7d2f023" text="Um clã expulso fica banido" />
+    <string id="AIL_b7d2f024" text="Um clã expulso de um reino não pode jurar lealdade a ele, desertar para ele nem servi-lo como mercenário até que o soberano o perdoe. Vale para você também." />
+    <string id="AIL_b7d2f025" text="O banimento acaba quando o reino muda de soberano" />
+    <string id="AIL_b7d2f026" text="Manter vivos os clãs sem terra que você conhece" />
+    <string id="AIL_b7d2f027" text="Depois de um tempo o jogo dissolve um clã sem reino e sem terras e mata seus membros. Com isto ligado, ele poupa os clãs banidos e os que têm gente com quem você conversou." />
   </strings>
 </base>

@@ -1387,5 +1387,23 @@
     <string id="AIL_f4c8e2a4" text="现在不行" />
     <string id="AIL_a9c3e7f1" text="世界事件" />
     <string id="AIL_a9c3e7f2" text="法律：" />
+    <string id="AIL_b7d2f001" text="{0}因{1}正在隔离。卫兵紧闭城门，不放任何外人进去。大约还剩{2}天。" />
+    <string id="AIL_b7d2f002" text="{=!}贿赂城门卫兵（{AIL_QBRIBE}第纳尔）" />
+    <string id="AIL_b7d2f003" text="你身上没有这么多金币。" />
+    <string id="AIL_b7d2f004" text="卫兵转过头去。你自担风险进入{0}。" />
+    <string id="AIL_b7d2f005" text="{=!}掉头离开" />
+    <string id="AIL_b7d2f010" text="你的家族已被{0}放逐。在其君主赦免你之前，你不能回去。" />
+    <string id="AIL_b7d2f011" text="{0}换了新君主：你家族的放逐令不再有效。" />
+    <string id="AIL_b7d2f012" text="该家族并未被放逐" />
+    <string id="AIL_b7d2f013" text="{0}赦免了{1}家族：放逐令已解除。" />
+    <string id="AIL_b7d2f014" text="{0}解除了对你家族的放逐：你可以再次为{1}效力。" />
+    <string id="AIL_b7d2f020" text="隔离会关闭城门" />
+    <string id="AIL_b7d2f021" text="隔离期间，领主、商队和村民都不会前往，不会举办锦标赛，卫兵也会在城门口拦住你。领主本人和交战的敌人不受阻拦。" />
+    <string id="AIL_b7d2f022" text="进入隔离地点的贿赂金额，按严重等级计算（0 = 无法进入）" />
+    <string id="AIL_b7d2f023" text="被驱逐的家族即遭放逐" />
+    <string id="AIL_b7d2f024" text="被逐出王国的家族，在君主赦免之前不能向其宣誓效忠、投奔或作为雇佣兵为其效力。对你同样适用。" />
+    <string id="AIL_b7d2f025" text="王国更换君主时放逐结束" />
+    <string id="AIL_b7d2f026" text="保留你认识的无地家族" />
+    <string id="AIL_b7d2f027" text="一个既无王国又无领地的家族过一段时间会被游戏解散，其成员也会被杀。开启后，被放逐的家族和有你交谈过的人的家族不会被解散。" />
   </strings>
 </base>

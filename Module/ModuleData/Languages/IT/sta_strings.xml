@@ -1387,5 +1387,23 @@
     <string id="AIL_f4c8e2a4" text="Non ora" />
     <string id="AIL_a9c3e7f1" text="Eventi del mondo" />
     <string id="AIL_a9c3e7f2" text="Legge: " />
+    <string id="AIL_b7d2f001" text="{0} è in quarantena per {1}. La guardia tiene le porte chiuse e non lascia passare nessun forestiero. Mancano circa {2} giorni." />
+    <string id="AIL_b7d2f002" text="{=!}Corrompere la guardia della porta ({AIL_QBRIBE} denari)" />
+    <string id="AIL_b7d2f003" text="Non hai con te tanto oro." />
+    <string id="AIL_b7d2f004" text="La guardia guarda altrove. Entri a {0} a tuo rischio e pericolo." />
+    <string id="AIL_b7d2f005" text="{=!}Tornare indietro" />
+    <string id="AIL_b7d2f010" text="Il tuo clan è bandito da {0}. Non puoi tornare finché il suo sovrano non ti perdona." />
+    <string id="AIL_b7d2f011" text="{0} ha un nuovo sovrano: il bando del tuo clan non vale più." />
+    <string id="AIL_b7d2f012" text="quel clan non è bandito" />
+    <string id="AIL_b7d2f013" text="{0} perdona il clan {1}: il suo bando è revocato." />
+    <string id="AIL_b7d2f014" text="{0} revoca il bando del tuo clan: puoi tornare a servire {1}." />
+    <string id="AIL_b7d2f020" text="La quarantena chiude le porte" />
+    <string id="AIL_b7d2f021" text="Finché dura una quarantena, signori, carovane e paesani stanno alla larga, non si indice alcun torneo e la guardia ti ferma alla porta. I proprietari e i nemici in guerra non vengono fermati." />
+    <string id="AIL_b7d2f022" text="Mazzetta per entrare in un luogo in quarantena, per livello di gravità (0 = non si entra)" />
+    <string id="AIL_b7d2f023" text="Un clan espulso è bandito" />
+    <string id="AIL_b7d2f024" text="Un clan cacciato da un regno non può giurargli fedeltà, passare dalla sua parte né servirlo come mercenario finché il suo sovrano non lo perdona. Vale anche per te." />
+    <string id="AIL_b7d2f025" text="Il bando finisce quando il regno cambia sovrano" />
+    <string id="AIL_b7d2f026" text="Tenere in vita i clan senza terra che conosci" />
+    <string id="AIL_b7d2f027" text="Dopo un po' il gioco scioglie un clan senza regno e senza terre e ne uccide i membri. Con questa opzione risparmia i clan banditi e quelli con persone con cui hai parlato." />
   </strings>
 </base>

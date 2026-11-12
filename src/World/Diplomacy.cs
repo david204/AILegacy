@@ -148,7 +148,8 @@ Actions you may take (each is an object in ""actions""; target_kingdom is always
 - demand_tribute (target_kingdom, daily_tribute, tribute_days) / accept_tribute / reject_tribute / end_tribute: outside a peace treaty, a tribute is paid only by a realm that fears you.
 - demand_reparations (target_kingdom, reparations) / accept_reparations / reject_reparations: a single payment.
 - demand_territory (target_kingdom, settlement = a town or castle of theirs) / transfer_territory / reject_territory.
-- expel_clan (clan = a vassal clan of yours, never your own): cast it out of the realm for treason or defiance.
+- expel_clan (clan = a vassal clan of yours, never your own): cast it out of the realm for treason or defiance. A clan cast out is banished: it cannot return until you pardon it.
+- pardon_clan (clan = one of the clans you banished): lift its banishment, so it may swear to you again. Only if it has made amends or you need its swords.
 - grant_fief (settlement = a town or castle held by your own clan, clan = a vassal clan of yours): reward loyalty.
 - confiscate_fief (settlement = a town or castle of one of your vassal clans): take it for the crown; they will resent it.
 - set_tax (tax_percent from {tax_min} to {tax_max}; 0 removes it): an extra crown tax on your towns. More gold, but loyalty and prosperity suffer.
@@ -201,6 +202,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                               $"{(c == Clan.PlayerClan ? " — the clan of " + Hero.MainHero.Name : "")}: {(fiefs.Count > 0 ? string.Join(", ", fiefs) : "no fiefs")}" +
                               (c != k.RulingClan && c.Leader != null ? $"; relation with you {(int)c.Leader.GetRelation(k.Leader)}" : ""));
             }
+            var banished = Banished.DescribeForRuler(k);
+            if (banished.Length > 0) sb.AppendLine(banished);
             return sb.ToString().TrimEnd();
         }
 
@@ -503,7 +506,16 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (clan == null || clan == k.RulingClan || clan.IsUnderMercenaryService) return Bad(L.T("AIL_ae4ebcf0", "clan no válido"));
                     if (clan == Clan.PlayerClan && !cfg.AllowAiExpelPlayer) return Bad(L.T("AIL_007c510b", "expulsar al jugador desactivado"));
                     ChangeKingdomAction.ApplyByLeaveKingdom(clan);
+                    if (clan.Kingdom != k) Banished.Ban(clan, k);
                     return L.F("AIL_0d7f7775", $"{kn} expulsa del reino al clan {clan.Name}.");
+                }
+                case "pardon_clan":
+                {
+                    string cn = WorldSim.Norm((string)a["clan"]);
+                    var clan = cn.Length < 2 ? null : Clan.All.FirstOrDefault(c => !c.IsEliminated && Banished.Find(c, k) != null
+                                   && (c.StringId == (string)a["clan"] || WorldSim.Norm(c.Name.ToString()) == cn || WorldSim.Norm(c.Name.ToString()).Contains(cn) || cn.Contains(WorldSim.Norm(c.Name.ToString()))));
+                    if (clan == null || !Banished.Pardon(clan, k)) return Bad(L.T("AIL_b7d2f012", "ese clan no está desterrado"));
+                    return L.F("AIL_b7d2f013", $"{kn} perdona al clan {clan.Name}: su destierro queda levantado.");
                 }
                 case "grant_fief":
                 {

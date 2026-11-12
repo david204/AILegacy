@@ -400,6 +400,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var clan = s.Hero.Clan;
+                    AILegacy.World.Banished.Pardon(clan, PlayerKingdom);      // lo admites tú: queda perdonado
                     if (clan.Kingdom != null) ChangeKingdomAction.ApplyByJoinToKingdomByDefection(clan, clan.Kingdom, PlayerKingdom);
                     else ChangeKingdomAction.ApplyByJoinToKingdom(clan, PlayerKingdom);
                     return L.F("AIL_bdc30505", $"El clan {clan.Name} jura lealtad a {PlayerKingdom.Name}.");
@@ -413,6 +414,7 @@ namespace AILegacy.Dialogue
                                    && s.Hero.Clan.Kingdom == null && !s.Hero.Clan.IsBanditFaction && PlayerIsRuler,
                 Execute = (s, arg, ctx) =>
                 {
+                    AILegacy.World.Banished.Pardon(s.Hero.Clan, PlayerKingdom);
                     ChangeKingdomAction.ApplyByJoinFactionAsMercenary(s.Hero.Clan, PlayerKingdom);
                     return L.F("AIL_cdf9a5fc", $"El clan {s.Hero.Clan.Name} sirve ahora a {PlayerKingdom.Name} como mercenarios.");
                 }
@@ -1073,7 +1075,7 @@ namespace AILegacy.Dialogue
                 Description = "As ruler, you take the other person and their clan as sworn vassals of your kingdom, effective now. Only if they asked for it or accepted your offer, " +
                               "and you judge them worthy (name, deeds, how far you trust them).",
                 IsAvailable = s => S.Get.AllowFealty && NpcIsRuler(s) && PC != null && (PC.Kingdom == null || (PC.Kingdom == KingdomOf(s) && PlayerMercenary))
-                                   && !AtWarWithPlayer(s) && PC.Tier >= 2,
+                                   && !AtWarWithPlayer(s) && PC.Tier >= 2 && !AILegacy.World.Banished.IsBanned(PC, KingdomOf(s)),
                 Execute = (s, arg, ctx) =>
                 {
                     var k = KingdomOf(s);
@@ -1086,7 +1088,8 @@ namespace AILegacy.Dialogue
             {
                 Name = "hire_as_mercenary", Usage = "hire_as_mercenary",
                 Description = "As ruler, you take the other person's clan into your kingdom's service as paid mercenaries, effective now. Only if they offered their swords or accepted your offer.",
-                IsAvailable = s => S.Get.AllowFealty && NpcIsRuler(s) && PC != null && PC.Kingdom == null && !AtWarWithPlayer(s) && PC.Tier >= 1,
+                IsAvailable = s => S.Get.AllowFealty && NpcIsRuler(s) && PC != null && PC.Kingdom == null && !AtWarWithPlayer(s) && PC.Tier >= 1
+                                   && !AILegacy.World.Banished.IsBanned(PC, KingdomOf(s)),
                 Execute = (s, arg, ctx) =>
                 {
                     ChangeKingdomAction.ApplyByJoinFactionAsMercenary(PC, KingdomOf(s));
@@ -1095,15 +1098,28 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
+                Name = "pardon_banishment", Usage = "pardon_banishment",
+                Description = "As ruler, you lift the banishment you (or your predecessor) placed on the other person's clan, so that it may serve your kingdom again. " +
+                              "Only if they have truly made amends, paid for it, or you have real need of them. It does not take them back by itself: that is a separate decision.",
+                IsAvailable = s => S.Get.AllowFealty && NpcIsRuler(s) && PC != null && AILegacy.World.Banished.Find(PC, KingdomOf(s)) != null,
+                Execute = (s, arg, ctx) =>
+                {
+                    var k = KingdomOf(s);
+                    if (!AILegacy.World.Banished.Pardon(PC, k)) return Nope(null, "their clan is not banished from your realm");
+                    return L.F("AIL_b7d2f014", $"{s.Name} levanta el destierro de tu clan: puedes volver a servir a {k.Name}.");
+                }
+            },
+            new ActionDef
+            {
                 Name = "dismiss_from_kingdom", Usage = "dismiss_from_kingdom",
-                Description = "As ruler, you cast the other person's clan out of your kingdom (ending their vassalage or their mercenary contract), effective now. " +
+                Description = "As ruler, you cast the other person's clan out of your kingdom (ending their vassalage or their mercenary contract), effective now. A vassal clan cast out is banished and cannot return until you pardon it. " +
                               "Only for treason, grave insult, open defiance, or if they themselves ask to be released.",
                 IsAvailable = s => S.Get.AllowFealty && NpcIsRuler(s) && PC != null && PC.Kingdom == KingdomOf(s) && KingdomOf(s).RulingClan != PC,
                 Execute = (s, arg, ctx) =>
                 {
                     var k = KingdomOf(s);
                     if (PlayerMercenary) ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(PC);
-                    else ChangeKingdomAction.ApplyByLeaveKingdom(PC);
+                    else { ChangeKingdomAction.ApplyByLeaveKingdom(PC); if (PC.Kingdom != k) AILegacy.World.Banished.Ban(PC, k); }    // un vasallo echado queda desterrado
                     return L.F("AIL_5a577403", $"{s.Name} expulsa a tu clan de {k.Name}.");
                 }
             },

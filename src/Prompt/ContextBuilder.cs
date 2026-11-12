@@ -38,6 +38,8 @@ namespace AILegacy.Prompt
                 else if (npc.Clan.Leader != null) clanLine += $" — led by {npc.Clan.Leader.Name}";
                 if (npc.Clan.IsMinorFaction) clanLine += ", a minor faction";
                 if (npc.Clan.IsUnderMercenaryService) clanLine += ", serving as mercenaries";
+                var banned = AILegacy.World.Banished.DescribeForClan(npc.Clan);
+                if (banned.Length > 0) clanLine += ". Your clan is " + banned;
                 sb.AppendLine(clanLine);
             }
 
@@ -258,6 +260,8 @@ namespace AILegacy.Prompt
                     sb.AppendLine(pk.Leader == p ? $"Ruler of {pk.Name}" : $"Sworn to {pk.Name}{(clan != null && clan.IsUnderMercenaryService ? " as a mercenary" : "")}");
                 else
                     sb.AppendLine("Belongs to no kingdom");
+                var pBanned = AILegacy.World.Banished.DescribeForClan(clan);
+                if (pBanned.Length > 0) sb.AppendLine("Their clan is " + pBanned);
                 var fiefs = clan != null ? string.Join(", ", clan.Settlements.Where(x => x.IsTown || x.IsCastle).Take(6).Select(x => x.Name.ToString())) : "";
                 if (fiefs.Length > 0) sb.AppendLine("Holds: " + fiefs);
             }

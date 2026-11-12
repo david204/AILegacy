@@ -1387,5 +1387,23 @@
     <string id="AIL_f4c8e2a4" text="Pas maintenant" />
     <string id="AIL_a9c3e7f1" text="Événements du monde" />
     <string id="AIL_a9c3e7f2" text="Loi : " />
+    <string id="AIL_b7d2f001" text="{0} est en quarantaine à cause de {1}. La garde tient les portes fermées et ne laisse entrer aucun étranger. Il reste environ {2} jours." />
+    <string id="AIL_b7d2f002" text="{=!}Soudoyer la garde de la porte ({AIL_QBRIBE} deniers)" />
+    <string id="AIL_b7d2f003" text="Vous n'avez pas autant d'or sur vous." />
+    <string id="AIL_b7d2f004" text="La garde regarde ailleurs. Vous entrez dans {0} à vos risques et périls." />
+    <string id="AIL_b7d2f005" text="{=!}Faire demi-tour" />
+    <string id="AIL_b7d2f010" text="Votre clan est banni de {0}. Vous ne pouvez pas revenir tant que son souverain ne vous a pas pardonné." />
+    <string id="AIL_b7d2f011" text="{0} a un nouveau souverain : le bannissement de votre clan ne tient plus." />
+    <string id="AIL_b7d2f012" text="ce clan n'est pas banni" />
+    <string id="AIL_b7d2f013" text="{0} pardonne au clan {1} : son bannissement est levé." />
+    <string id="AIL_b7d2f014" text="{0} lève le bannissement de votre clan : vous pouvez de nouveau servir {1}." />
+    <string id="AIL_b7d2f020" text="La quarantaine ferme les portes" />
+    <string id="AIL_b7d2f021" text="Tant que dure une quarantaine, seigneurs, caravanes et villageois restent à l'écart, aucun tournoi n'est annoncé et la garde vous arrête à la porte. Les propriétaires et les ennemis en guerre ne sont pas arrêtés." />
+    <string id="AIL_b7d2f022" text="Pot-de-vin pour entrer dans un lieu en quarantaine, par niveau de gravité (0 = impossible d'entrer)" />
+    <string id="AIL_b7d2f023" text="Un clan expulsé est banni" />
+    <string id="AIL_b7d2f024" text="Un clan chassé d'un royaume ne peut ni lui prêter serment, ni le rejoindre par défection, ni le servir comme mercenaire tant que son souverain ne l'a pas pardonné. Cela vaut aussi pour vous." />
+    <string id="AIL_b7d2f025" text="Le bannissement prend fin quand le royaume change de souverain" />
+    <string id="AIL_b7d2f026" text="Garder en vie les clans sans terre que vous connaissez" />
+    <string id="AIL_b7d2f027" text="Le jeu dissout au bout d'un moment un clan sans royaume ni terre et tue ses membres. Avec cette option, il épargne les clans bannis et ceux où il y a des gens à qui vous avez parlé." />
   </strings>
 </base>
