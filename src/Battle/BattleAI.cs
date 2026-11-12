@@ -41,7 +41,7 @@ Your recent orders (oldest first): {history}
 
 Give orders for this moment, as this commander would, and think like a soldier: infantry holds the line and fixes the enemy; archers need a clear shot and someone between them and enemy horse; cavalry is for flanks, for enemy archers and for breaking men who are already engaged, not for charging fresh spearmen head-on; do not send formations in one by one; if you are much the stronger, close and finish it; if much the weaker, hold good ground and make them come to you. Do not change a sound order every moment: repeat it or leave that formation out. You may leave a formation to its captain's judgment by not listing it.
 For each formation you order:
-- ""move"": charge | advance | hold | fall_back | flank_left | flank_right | attack:<enemy formation name> | retreat   (flank = swing wide around that side of the enemy's main body; retreat = leave the field, only when all is lost)
+- ""move"": charge | advance | hold | fall_back | flank_left | flank_right | attack:<enemy formation name> | retreat   (flank = swing wide around that side of the enemy's main body; retreat = leave the field, only when all is lost: outnumbered about three to one)
 - ""shape"" (optional): line | shield_wall | loose | square | circle | scatter
 - ""fire"" (optional): at_will | hold
 ""shout"": what you bellow to your men right now (under 90 characters, in {language}), in your own voice. ""plan"": your intent in ONE short English sentence.
@@ -81,6 +81,10 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
         private static readonly List<Side> Sides = new List<Side>();
         private static int _requests;
         private static bool _playerWaiting;
+        /// <summary>Una orden que llega más tarde que esto (segundos de batalla) ya no vale: la situación ha cambiado.</summary>
+        private const float MaxLateSeconds = 20f;
+        /// <summary>Un jefe de la IA solo abandona el campo si le superan de verdad (sus hombres &lt; 35 % de los del enemigo).</summary>
+        private const float RetreatRatio = 0.35f;
 
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
 
@@ -174,6 +178,8 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             if (orders == null) return 0;
             var mine = team.FormationsIncludingEmpty.Where(f => f.CountOfUnits > 0).ToList();
             var theirs = EnemiesOf(team).SelectMany(t => t.FormationsIncludingEmpty).Where(f => f.CountOfUnits > 0).ToList();
+            // Retirarse del campo solo si todo está perdido; si no, se queda en replegarse (tus órdenes, Alt+B, no se tocan)
+            bool mayRetreat = playerOrder || Men(team) < RetreatRatio * EnemiesOf(team).Sum(Men);
             foreach (var o in orders.OfType<JObject>())
             {
                 string fname = ((string)o["formation"] ?? "").Trim();
@@ -182,6 +188,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 bool players = f.PlayerOwner != null && f.PlayerOwner == Agent.Main;
                 if (players != playerOrder && !(playerOrder && team.IsPlayerGeneral)) continue;      // cada cual manda en lo suyo
                 string move = ((string)o["move"] ?? "").Trim().ToLowerInvariant(), shape = ((string)o["shape"] ?? "").Trim().ToLowerInvariant(), fire = ((string)o["fire"] ?? "").Trim().ToLowerInvariant();
+                if (move == "retreat" && !mayRetreat) { Log.Info($"[batalla] retirada de {Name(f)} rechazada: no están en clara inferioridad"); move = "fall_back"; }
                 MovementOrder? mo = null;
                 string label = move;
                 if (move == "charge") mo = MovementOrder.MovementOrderCharge;
@@ -272,7 +279,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     {
                         if (Mission.Current != m || _mission != m || gen != s.Gen || !BattleOn(m)) return;
                         if (res == null || !res.Ok) { Log.Warn("[batalla] sin órdenes de la IA: " + res?.Error); return; }
-                        if (m.CurrentTime - now > cfg.BattleAIInterval * 1.5f) { Log.Info("[batalla] respuesta tardía, descartada"); return; }
+                        if (m.CurrentTime - now > MaxLateSeconds) { Log.Info($"[batalla] respuesta tardía ({(int)(m.CurrentTime - now)} s), descartada"); return; }
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a < 0 || b <= a) return;
                         var j = JObject.Parse(res.Text.Substring(a, b - a + 1));
@@ -349,7 +356,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             {
                 var cfg = S.Get;
                 var m = Mission.Current;
-                if (!cfg.EnableBattleAI || !BattleOn(m))
+                if (!(cfg.EnableBattleAI || cfg.BattleAITextOrders) || !BattleOn(m))
                 {
                     if (_mission != null) { _mission = null; Sides.Clear(); _requests = 0; _playerWaiting = false; }
                     return;
@@ -357,7 +364,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 if (_mission != m)
                 {
                     _mission = m; Sides.Clear(); _requests = 0; _playerWaiting = false;
-                    Log.Info("[batalla] empieza una batalla campal: IA de táctica activa");
+                    Log.Info(cfg.EnableBattleAI ? "[batalla] empieza una batalla campal: IA de táctica activa" : "[batalla] empieza una batalla campal: solo órdenes con tus palabras");
                 }
                 float now = m.CurrentTime;
 
@@ -365,6 +372,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 if (cfg.BattleAITextOrders && (Input.IsKeyDown(InputKey.LeftAlt) || Input.IsKeyDown(InputKey.RightAlt)) && Input.IsKeyPressed(InputKey.B) && Agent.Main.IsActive() && !_playerWaiting)
                     PlayerOrder();
 
+                if (!cfg.EnableBattleAI) return;        // la IA de los jefes, aparte
                 foreach (var team in m.Teams)
                 {
                     if (team == null || team.Side == BattleSideEnum.None || team.ActiveAgents.Count == 0) continue;
@@ -382,8 +390,8 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     if (men > s.StartMen) s.StartMen = men;      // refuerzos
                     if (men == 0) continue;
 
-                    // Si la IA lleva mucho sin dar órdenes válidas, las formaciones vuelven a las tácticas del juego
-                    if (s.Held.Count > 0 && s.LastOkAt >= 0f && now - s.LastOkAt > cfg.BattleAIInterval * 2.5f) { Release(s); Log.Info("[batalla] sin decisiones recientes: mando devuelto a las tácticas del juego"); }
+                    // Si la IA lleva mucho sin dar órdenes válidas, las formaciones vuelven a las tácticas del juego (con intervalos largos, no más de 45 s de margen)
+                    if (s.Held.Count > 0 && s.LastOkAt >= 0f && now - s.LastOkAt > Math.Min(cfg.BattleAIInterval * 2.5f, cfg.BattleAIInterval + 45f)) { Release(s); Log.Info("[batalla] sin decisiones recientes: mando devuelto a las tácticas del juego"); }
 
                     if (s.Waiting || _requests >= 2) continue;
                     bool heavyLosses = s.MenAtLastDecision > 0 && men < s.MenAtLastDecision * 0.82f && now >= s.NextAt - cfg.BattleAIInterval + 12f;

@@ -50,6 +50,9 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
             "(4) is any action, quest change or change in my feelings truly earned by THIS exchange, and is that action in my list?\"");
 
         private static readonly Tpl TJsonHeader = new Tpl("json_output/header.txt", "## Answer format\nAnswer ONLY with a JSON object, no text outside it:");
+        // Plantilla aparte para que llegue también a campañas con header.txt ya exportado
+        private static readonly Tpl TJsonQuotes = new Tpl("json_output/quotes.txt",
+            "Inside text values never use straight double quotes (\"): to quote someone's words use «» or single quotes ('...').");
         private static readonly Tpl TJsonReply = new Tpl("json_output/reply.txt", "\"reply\": \"what you say out loud (and optional *gestures*)\"");
         private static readonly Tpl TJsonMood = new Tpl("json_output/mood.txt",
             "\"mood\": \"one word for how you feel now (e.g. calm, amused, angry, afraid, proud, sad, suspicious, affectionate)\", \"mood_reason\": \"a few words why\"");
@@ -233,6 +236,7 @@ Answer ONLY with JSON: { ""summary"": ""the compact memory in English"", ""page_
 
             sys.AppendLine();
             sys.AppendLine(TJsonHeader.Text);
+            sys.AppendLine(TJsonQuotes.Text);
             sys.AppendLine("{");
             sys.AppendLine("  " + string.Join(",\n  ", fields.Select(f => f.Trim().TrimEnd(','))));
             sys.AppendLine("}");

@@ -282,7 +282,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 if (!string.IsNullOrWhiteSpace(xm.RecentTalk) && (DateTime.UtcNow - xm.RecentTalkAt).TotalMinutes < 30) recent += $" JUST NOW: {xm.RecentTalk}.";
                 var lastTurns = xm.Turns.Skip(Math.Max(0, xm.Turns.Count - 6)).Select(t => (t.Role == "npc" ? x.Who.Name : playerName) + ": " + (t.Text.Length > 160 ? t.Text.Substring(0, 160) + "…" : t.Text)).ToList();
                 if (lastTurns.Count > 0) recent += " Their latest words with them — " + string.Join(" / ", lastTurns) + ".";
-                var heard = xm.Heard.Skip(Math.Max(0, xm.Heard.Count - 2)).Where(h => !string.IsNullOrWhiteSpace(h.Text)).Select(h => $"{h.FromName}: {h.Text}").ToList();
+                var heardP = InfoExchange.AboutPlayer(xm).ToList();
+                var heard = heardP.Skip(Math.Max(0, heardP.Count - 2)).Where(h => !string.IsNullOrWhiteSpace(h.Text)).Select(h => $"{h.FromName}: {h.Text}").ToList();
                 if (heard.Count > 0) recent += " Lately heard from others — " + string.Join(" / ", heard) + ".";
                 // Lo que hay entre él y los demás presentes
                 string among = "";
@@ -326,7 +327,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 Transcript.Add($"{playerName}: {text}");
                 Bubbles.Show(Agent.Main, text, Math.Max(2.5f, Math.Min(7f, 1.5f + text.Length * 0.05f)));
                 if (whisper) Ambient.Overhear(addressed.Who, "");      // un susurro no lo oye nadie más
-                else foreach (var x in Circle) Ambient.Overhear(x.Who, text);
+                else Ambient.Overhear(Circle.Select(x => x.Who).ToList(), text);   // una vez por frase; los del corro no la oyen de pasada
             }
             _waiting = true;
             var circle = Circle.ToList();

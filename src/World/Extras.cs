@@ -155,14 +155,14 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
                 if (!cfg.EnableUniqueCharacters || Campaign.Current == null || !WorldSim.CanCall) return;
                 double now = CampaignTime.Now.ToDays;
                 if (st.NextUniqueDay < 0) { st.NextUniqueDay = now + cfg.UniqueCharacterDays * (0.5 + Rng.NextDouble() * 0.5); return; }
-                if (now < st.NextUniqueDay) return;
-                st.NextUniqueDay = now + cfg.UniqueCharacterDays * (0.7 + Rng.NextDouble() * 0.6);
+                if (now < st.NextUniqueDay || WorldSim.IsReserved("unique")) return;
+                double next = now + cfg.UniqueCharacterDays * (0.7 + Rng.NextDouble() * 0.6);
                 st.UniqueIds.RemoveAll(id => Hero.Find(id) == null || !Hero.Find(id).IsAlive);
-                if (st.UniqueIds.Count >= cfg.UniqueCharacterMax) return;
+                if (st.UniqueIds.Count >= cfg.UniqueCharacterMax) { st.NextUniqueDay = next; return; }
 
                 var here = MobileParty.MainParty.GetPosition2D;
                 var town = Settlement.All.Where(s => s.IsTown && !s.IsUnderSiege).OrderBy(s => s.GetPosition2D.Distance(here)).Take(4).OrderBy(_ => Rng.Next()).FirstOrDefault();
-                if (town == null) return;
+                if (town == null) { st.NextUniqueDay = next; return; }
                 string existing = st.UniqueIds.Count == 0 ? "(none yet)" : string.Join("; ", st.UniqueIds.Select(id => MemoryStore.Find(id)).Where(m => m != null).Select(m => m.HeroName + (string.IsNullOrWhiteSpace(m.Profile?.Reputation) ? "" : " — " + m.Profile.Reputation)).Take(8));
                 var sb = new StringBuilder();
                 sb.AppendLine($"- {town.Name}: {(town.Town.Prosperity < 2500 ? "poor" : town.Town.Prosperity > 5500 ? "thriving" : "ordinary")}, held by {town.OwnerClan?.Name}; {CampaignTime.Now.GetSeasonOfYear}.");
@@ -171,7 +171,9 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
                 if (wars.Count > 0) sb.AppendLine("- The realm is at war with: " + string.Join(", ", wars) + ".");
                 sb.AppendLine("- Lately: " + WorldSim.DescribeRecentNews(5));
                 string prompt = TUnique.Format("town", town.Name, "culture", town.Culture?.Name?.ToString() ?? "", "faction", town.MapFaction?.Name?.ToString() ?? "", "context", sb.ToString().TrimEnd(), "existing", existing, "language", cfg.Language);
-                WorldSim.Ask(L.T("AIL_58e1ca60", "personaje único"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 900, j => Create(town, j));
+                // La agenda se consume al llegar la respuesta: si falla, se intenta otro día
+                WorldSim.Ask(L.T("AIL_58e1ca60", "personaje único"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 900,
+                    j => { WorldSim.State.NextUniqueDay = next; Create(town, j); }, key: "unique");
             }
             catch (Exception ex) { Log.Error("Personajes únicos", ex); }
         }
@@ -257,6 +259,7 @@ Answer ONLY with JSON: { ""title"": ""3 to 7 words"", ""text"": ""the chronicle"
                 if (hist.Length == 0) hist.AppendLine("(they spoke a few times; nothing of note is recorded)");
                 string player = Hero.MainHero.Name.ToString(), name = victim.Name.ToString(), id = victim.StringId;
                 string prompt = TLife.Format("name", name, "player", player, "facts", sb.ToString().TrimEnd(), "death", death, "history", hist.ToString().TrimEnd(), "min_len", 300, "max_len", 900, "language", cfg.Language);
+                // Si hay otra petición en curso, espera en cola (antes se perdía)
                 WorldSim.Ask(L.T("AIL_8dc2db66", "crónica de una muerte"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 800, j =>
                 {
                     string title = WorldSim.Clean((string)j["title"], 80), text = WorldSim.Clean((string)j["text"], 1200);
@@ -266,7 +269,7 @@ Answer ONLY with JSON: { ""title"": ""3 to 7 words"", ""text"": ""the chronicle"
                     NewsStore.Add(new NewsItem { Type = "death", Importance = 2, Text = $"The chronicle of {name}, who has died, has been written.", TitleEs = title, TextEs = text, Heroes = new List<string> { id }, PlayerInvolved = true });
                     SaveFiles.Flush();
                     InformationManager.ShowInquiry(new InquiryData(title, text, true, false, L.T("AIL_e8438e2a", "Cerrar"), "", null, null), true);
-                });
+                }, key: "chronicle:" + id);
             }
             catch (Exception ex) { Log.Error("Crónica de una muerte", ex); }
         }

@@ -143,8 +143,24 @@ namespace AILegacy.World
 
         private static readonly Random Rng = new Random();
         private static readonly ConcurrentQueue<Action> Pending = new ConcurrentQueue<Action>();
-        private static bool _busy;
+        private static volatile bool _busy;
         private static DateTime _lastCall = DateTime.MinValue;
+
+        /// <summary>Petición del mundo en espera de turno (cola en memoria; no se guarda con la partida).</summary>
+        private class WorldRequest
+        {
+            public string What, Key, Camp;
+            public List<ChatMessage> Messages;
+            public int MaxTokens, Session, Attempts;
+            public Action<JObject> Apply;
+            public Action Failed;
+            public bool Important;
+        }
+        private static readonly List<WorldRequest> Queue = new List<WorldRequest>();
+        /// <summary>Claves en cola, en vuelo o esperando a aplicarse: evitan pedir lo mismo dos veces.</summary>
+        private static readonly HashSet<string> Reserved = new HashSet<string>();
+        private const int MaxQueued = 8;
+        private static int _reactRetries;
 
         public static bool Enabled => S.Get.EnableWorldEvents;
         private static string Lang => S.Get.Language;
@@ -188,7 +204,9 @@ namespace AILegacy.World
             _session++;
             lock (Triggers) Triggers.Clear();
             _urgent = false;
+            _reactRetries = 0;
             while (Pending.TryDequeue(out _)) { }
+            lock (Queue) { Queue.Clear(); Reserved.Clear(); }
             try { Dialogue.Combat.ResetSession(); } catch { }
             try { Dialogue.SceneActions.ResetSession(); } catch { }
             try { Dialogue.NpcActions.ResetSession(); } catch { }
@@ -199,41 +217,103 @@ namespace AILegacy.World
             Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
         }
 
-        public static bool CanCall => !_busy && (DateTime.UtcNow - _lastCall).TotalSeconds >= S.Get.WorldAiMinSecondsBetweenCalls;
+        /// <summary>Libre para lanzar ya: nada en vuelo y respetado el hueco mínimo entre llamadas.</summary>
+        private static bool Ready => !_busy && (DateTime.UtcNow - _lastCall).TotalSeconds >= S.Get.WorldAiMinSecondsBetweenCalls;
 
-        /// <summary>Lanza una petición del mundo; el resultado se aplica cuando el jugador está en el mapa.</summary>
-        public static void Ask(string what, List<ChatMessage> messages, int maxTokens, Action<JObject> apply)
+        /// <summary>Para lo opcional (tandas, secretos, personajes): solo si no hay nada en vuelo ni en cola.</summary>
+        public static bool CanCall { get { lock (Queue) return Ready && Queue.Count == 0; } }
+
+        /// <summary>¿Hay ya una petición con esta clave en cola, en vuelo o por aplicar?</summary>
+        public static bool IsReserved(string key) { if (key == null) return false; lock (Queue) return Reserved.Contains(key); }
+
+        /// <summary>
+        /// Lanza una petición del mundo; el resultado se aplica cuando el jugador está en el mapa. Si hay otra en curso, espera en cola
+        /// (con límite: si se llena, sale la más vieja que no sea importante). Con clave, no se pide dos veces lo mismo.
+        /// Quien pide debe consumir su agenda dentro de <paramref name="apply"/>, no antes. Devuelve false si ya estaba pedida.
+        /// </summary>
+        public static bool Ask(string what, List<ChatMessage> messages, int maxTokens, Action<JObject> apply, string key = null, Action failed = null, bool important = false)
         {
-            if (_busy) return;
+            var r = new WorldRequest
+            {
+                What = what, Key = key, Messages = messages, MaxTokens = maxTokens, Apply = apply, Failed = failed, Important = important,
+                Session = _session, Camp = Campaign.Current?.UniqueGameId,      // la respuesta solo vale para la partida que la pidió
+            };
+            WorldRequest dropped = null;
+            lock (Queue)
+            {
+                if (key != null && !Reserved.Add(key)) { Log.Info($"[mundo] {what}: ya estaba pedida"); return false; }
+                if (Ready && Queue.Count == 0) { Launch(r); return true; }
+                Queue.Add(r);
+                Log.Info($"[mundo] {what}: en cola ({Queue.Count})");
+                if (Queue.Count > MaxQueued)
+                {
+                    dropped = Queue.FirstOrDefault(x => !x.Important) ?? Queue[0];
+                    Queue.Remove(dropped);
+                    if (dropped.Key != null) Reserved.Remove(dropped.Key);
+                }
+            }
+            if (dropped != null)
+            {
+                Log.Warn($"[mundo] cola llena: se descarta «{dropped.What}»");
+                try { dropped.Failed?.Invoke(); } catch (Exception ex) { Log.Error("[mundo] descartando petición", ex); }
+            }
+            return true;
+        }
+
+        private static void Launch(WorldRequest r)
+        {
             _busy = true;
             _lastCall = DateTime.UtcNow;
-            // La respuesta solo vale para la partida que la pidió: si mientras tanto cargas otra, se tira
-            string camp = Campaign.Current?.UniqueGameId;
-            int session = _session;
-            Log.Info($"[mundo] petición: {what}");
-            LlmClient.CompleteAsync(messages, wantJson: true, maxTokensOverride: maxTokens, preferredProvider: S.Get.ProviderWorld).ContinueWith(t =>
+            r.Attempts++;
+            Log.Info($"[mundo] petición: {r.What}");
+            LlmClient.CompleteAsync(r.Messages, wantJson: true, maxTokensOverride: r.MaxTokens, preferredProvider: S.Get.ProviderWorld).ContinueWith(t =>
             {
                 _busy = false;
                 var res = t.IsFaulted ? null : t.Result;
-                if (res == null || !res.Ok) { Log.Warn($"[mundo] {what}: sin respuesta ({res?.Error})"); return; }
                 JObject j = null;
-                try
-                {
-                    int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
-                    if (a >= 0 && b > a) j = JObject.Parse(res.Text.Substring(a, b - a + 1));
-                }
-                catch (Exception ex) { Log.Warn($"[mundo] {what}: JSON ilegible ({ex.Message})"); }
-                if (j == null) return;
-                Pending.Enqueue(() =>
+                if (res == null || !res.Ok) Log.Warn($"[mundo] {r.What}: sin respuesta ({res?.Error})");
+                else
                 {
                     try
                     {
-                        if (session != _session || Campaign.Current == null || Campaign.Current.UniqueGameId != camp) { Log.Info($"[mundo] {what}: respuesta de otra partida, descartada"); return; }
-                        apply(j);
+                        int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
+                        if (a >= 0 && b > a) j = JObject.Parse(res.Text.Substring(a, b - a + 1));
                     }
-                    catch (Exception ex) { Log.Error($"[mundo] aplicando {what}", ex); }
+                    catch (Exception ex) { Log.Warn($"[mundo] {r.What}: JSON ilegible ({ex.Message})"); }
+                }
+                Pending.Enqueue(() =>
+                {
+                    // De otra partida: ResetSession ya soltó sus claves y vació la cola
+                    if (r.Session != _session || Campaign.Current == null || Campaign.Current.UniqueGameId != r.Camp) { Log.Info($"[mundo] {r.What}: respuesta de otra partida, descartada"); return; }
+                    if (j == null)
+                    {
+                        // Lo importante (la declaración del jugador) se reintenta una vez; lo demás devuelve su agenda
+                        if (r.Important && r.Attempts < 2) { lock (Queue) Queue.Insert(0, r); Log.Info($"[mundo] {r.What}: se reintenta"); return; }
+                        Release(r.Key);
+                        try { r.Failed?.Invoke(); } catch (Exception ex) { Log.Error($"[mundo] fallo de {r.What}", ex); }
+                        return;
+                    }
+                    Release(r.Key);
+                    try { r.Apply(j); }
+                    catch (Exception ex) { Log.Error($"[mundo] aplicando {r.What}", ex); }
                 });
             });
+        }
+
+        private static void Release(string key) { if (key != null) lock (Queue) Reserved.Remove(key); }
+
+        /// <summary>Saca la siguiente de la cola si toca.</summary>
+        private static bool LaunchQueued()
+        {
+            lock (Queue)
+            {
+                if (Queue.Count == 0 || !Ready) return false;
+                var r = Queue[0];
+                Queue.RemoveAt(0);
+                if (r.Session != _session) { if (r.Key != null) Reserved.Remove(r.Key); return true; }
+                Launch(r);
+                return true;
+            }
         }
 
         /// <summary>Llamar a menudo desde el hilo del juego.</summary>
@@ -242,6 +322,7 @@ namespace AILegacy.World
             if (Campaign.Current == null) { while (Pending.TryDequeue(out _)) { } return; }
             if (!OnMap()) return;
             if (Pending.TryDequeue(out var a)) { a(); Memory.SaveFiles.Flush(heroes: false); return; }
+            if (LaunchQueued()) return;
             if (CanCall) TryReact();
         }
 
@@ -403,12 +484,24 @@ Write ONE development that follows directly from it: how the people, the nobles,
             GenerateEvents(false, take);
         }
 
+        /// <summary>La reacción no salió: sus sucesos vuelven a la cola (como mucho dos veces seguidas).</summary>
+        private static void RequeueTriggers(List<string> take)
+        {
+            if (take == null || take.Count == 0 || ++_reactRetries > 2) return;
+            lock (Triggers)
+            {
+                foreach (var t in take.AsEnumerable().Reverse()) if (!Triggers.Contains(t)) Triggers.Insert(0, t);
+                while (Triggers.Count > 5) Triggers.RemoveAt(Triggers.Count - 1);
+            }
+        }
+
         public static void GenerateEvents(bool forced = false, List<string> reactTo = null)
         {
             var cfg = S.Get;
             if (!Enabled || Campaign.Current == null) return;
             if (!forced && !CanCall) return;
             bool reactive = reactTo != null && reactTo.Count > 0;
+            if (IsReserved(reactive ? "react" : "events")) return;     // ya pedida: falta que llegue o se aplique
             int count = reactive ? 1 : cfg.WorldEventsPerGeneration;
             var sys = new StringBuilder();
             sys.AppendLine(TEventGen.Format("count", count, "language", Lang, "min_len", cfg.WorldEventMinLength, "max_len", cfg.WorldEventMaxLength,
@@ -433,15 +526,21 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 sys.AppendLine();
                 sys.AppendLine(TReact.Format("triggers", string.Join("\n", reactTo.Select(x => "- " + x))));
             }
-            else
-            {
-                // La tanda «de fondo» no cae como un reloj: el siguiente plazo varía entre el 60 % y el 140 % del ajuste
-                State.LastEventGenerationDay = now.ToDays;
-                State.NextEventGenerationDay = now.ToDays + cfg.WorldEventsIntervalDays * (0.6 + Rng.NextDouble() * 0.8);
-            }
             Ask(reactive ? L.T("AIL_ce8115b0", "reacción a un suceso real") : "generar eventos",
                 new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", reactive ? "Write the development now." : "Write the events now.") },
-                count * 700 + 400, ApplyEvents);
+                count * 700 + 400, j =>
+                {
+                    if (reactive) _reactRetries = 0;
+                    else
+                    {
+                        // La agenda se consume al llegar la tanda. No cae como un reloj: el siguiente plazo varía entre el 60 % y el 140 % del ajuste
+                        double d = CampaignTime.Now.ToDays;
+                        State.LastEventGenerationDay = d;
+                        State.NextEventGenerationDay = d + S.Get.WorldEventsIntervalDays * (0.6 + Rng.NextDouble() * 0.8);
+                    }
+                    ApplyEvents(j);
+                },
+                key: reactive ? "react" : "events", failed: reactive ? (Action)(() => RequeueTriggers(reactTo)) : null);
         }
 
         private static void ApplyEvents(JObject j)
@@ -493,6 +592,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             while (State.Events.Count > 150) State.Events.RemoveAt(0);
             NewsStore.Add(new NewsItem
             {
+                Id = e.Id,      // los efectos guardan EventId = e.Id; Books los busca por el id de la noticia
                 Type = "event_" + e.Type, Importance = e.Importance, Text = string.IsNullOrWhiteSpace(e.SummaryEn) ? e.Title : e.SummaryEn,
                 TitleEs = e.Title, TextEs = e.Text, Kingdoms = e.Kingdoms.ToList(), SettlementId = e.Settlements.FirstOrDefault(),
             });

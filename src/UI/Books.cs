@@ -172,11 +172,19 @@ namespace AILegacy.UI
                 string tag = TagOf(n, out int kind);
                 string title = n.Type == "statement" && string.IsNullOrWhiteSpace(n.TitleEs) ? L.T("AIL_99bcbc8e", "Declaración de un soberano") : n.DisplayTitle;
                 vm.Cards.Add(new NewsCardVM(clean(title), who.Count > 0 ? (n.Type == "statement" ? "" : L.T("AIL_08cd64bc", "Participantes: ")) + clean(string.Join(", ", who)) : "",
-                    clean(n.DisplayText), clean(WorldSim.EffectsLineEs(n.Id, n.SettlementId, n.Type)), tag, when, kind));
+                    clean(n.DisplayText), clean(WorldSim.EffectsLineEs(EventIdOf(n), n.SettlementId, n.Type)), tag, when, kind));
             }
             if (vm.Cards.Count == 0)
                 vm.Cards.Add(new NewsCardVM(L.T("AIL_dd4380be", "Sin sucesos"), "", all ? L.T("AIL_6549b43d", "Todavía no ha pasado nada digno de contarse.") : L.T("AIL_cf032cac", "Todavía no hay ningún suceso de los que dan que hablar. Con «Ver todo» salen también las capturas, batallas y saqueos del día a día."), "", L.T("AIL_28b223a8", "Local"), L.T("AIL_564e2e23", "Hoy"), 0));
             vm.ToggleText = all ? L.T("AIL_f96ef1d1", "Solo sucesos") : L.T("AIL_ebad7b06", "Ver todo");
+        }
+
+        /// <summary>Id del evento de una noticia (las nuevas lo llevan; en partidas antiguas se busca por el título).</summary>
+        private static string EventIdOf(NewsItem n)
+        {
+            if (n == null || n.Type == null || !n.Type.StartsWith("event_")) return n?.Id;
+            if (WorldSim.State.Events.Any(e => e.Id == n.Id)) return n.Id;
+            return WorldSim.State.Events.LastOrDefault(e => !string.IsNullOrEmpty(n.TitleEs) && e.Title == n.TitleEs)?.Id ?? n.Id;
         }
 
         /// <summary>La ventana anterior (lista y detalle): queda de reserva si la nueva no se puede abrir.</summary>
