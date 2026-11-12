@@ -94,8 +94,10 @@ namespace AILegacy.World
                 Day = CampaignTime.Now.ToDays, ArriveDay = CampaignTime.Now.ToDays + hours / 24.0,
             });
             Log.Info($"Recado de {from.Name} para {to.Name} ({secrecy}, llega en {hours:0} h): {text}");
-            // El jugador solo lo ve si se lo dicen a la cara; lo secreto no se anuncia
-            return secrecy == "secret" ? null : L.F("AIL_c009f7dc", $"{from.Name} hará llegar noticia de esto a {to.Name}.");
+            // Lo que le cuenta a otro en privado o en secreto no se le anuncia al jugador: no tiene cómo saberlo, y además
+            // delataba a quién se lo contaba. Solo se avisa de lo que piensa ir contando abiertamente.
+            // (Cadena vacía = hecho, sin nada que enseñar; null = no se ha podido.)
+            return secrecy == "public" ? L.F("AIL_c009f7dc", $"{from.Name} hará llegar noticia de esto a {to.Name}.") : "";
         }
 
         private static double Hours(Hero a, Hero b)

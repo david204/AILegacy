@@ -1656,8 +1656,8 @@ namespace AILegacy.Dialogue
                     var msg = def.Execute(s, arg, ctx);
                     bool happened = msg != null && _why == null;
                     Log.Info($"Acción {cmd} de {s.Name}" + (msg != null ? ": " + msg : "") + (happened ? "" : _repeated ? " (repetida)" : " (no ha ocurrido" + (_why != null ? ": " + _why : "") + ")"));
-                    if (msg != null) messages.Add(msg);
-                    else if (def.Usage.Contains(":")) Log.Warn($"La acción {cmd} no se pudo cumplir (objetivo no encontrado o no válido)");
+                    if (!string.IsNullOrEmpty(msg)) messages.Add(msg);          // cadena vacía: ha ocurrido, pero no hay nada que enseñar
+                    else if (msg == null && def.Usage.Contains(":")) Log.Warn($"La acción {cmd} no se pudo cumplir (objetivo no encontrado o no válido)");
                     if (happened)
                     {
                         executed.Add(name);

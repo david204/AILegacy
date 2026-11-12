@@ -230,14 +230,23 @@ namespace AILegacy.Dialogue
                 _lastNpc = text;
                 HasUnreadReply = true;
                 // Aviso con sonido, y la respuesta aparece sola en el cuadro (sin tener que pulsar «Ver su respuesta»)
+                bool auto = S.Get.AutoShowReply;
                 try
                 {
-                    var note = new InformationMessage(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow);
-                    if (S.Get.ReplyReadySound) note.SoundEventPath = "event:/ui/notification/quest_update";
-                    InformationManager.DisplayMessage(note);
+                    if (auto)
+                    {
+                        // La respuesta va a salir sola en el cuadro: basta el sonido (el mensaje flotante se montaba sobre el texto)
+                        if (S.Get.ReplyReadySound) TaleWorlds.Engine.SoundEvent.PlaySound2D("event:/ui/notification/quest_update");
+                    }
+                    else
+                    {
+                        var note = new InformationMessage(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow);
+                        if (S.Get.ReplyReadySound) note.SoundEventPath = "event:/ui/notification/quest_update";
+                        InformationManager.DisplayMessage(note);
+                    }
                 }
-                catch { Notify(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow); }
-                if (S.Get.AutoShowReply) MainThread.Post(AutoShow);
+                catch { }
+                if (auto) MainThread.Post(AutoShow);
                 return;
             }
             if (UseWindow) _win.VM.AddLine(_s.Name, text, ChatVM.NpcColor);
@@ -526,7 +535,7 @@ namespace AILegacy.Dialogue
             var actx = new NpcActions.ActionContext();
             foreach (var msg in NpcActions.Execute(_s, reply.Actions, actx))
             {
-                Notify(msg, Colors.Yellow);
+                if (!_dialogMode) Notify(msg, Colors.Yellow);
                 shown.Add(msg);
             }
             if (actx.EndConversation) reply.EndConversation = true;
