@@ -769,8 +769,35 @@ namespace AILegacy.Dialogue
 
         // ============================================================ tick
 
+        private static float _playerSurrender;
+
+        /// <summary>El jugador se rinde a quien tiene delante en el mapa: se hace efectivo al cerrarse la charla.</summary>
+        public static void QueuePlayerSurrender() { KeepEncounter = true; _playerSurrender = 12f; }
+
+        private static void TickPlayerSurrender(float dt)
+        {
+            if (_playerSurrender <= 0f) return;
+            try
+            {
+                if ((_playerSurrender -= dt) <= 0f) { _playerSurrender = 0f; KeepEncounter = false; return; }
+                if (Campaign.Current?.ConversationManager?.IsConversationInProgress == true || Mission.Current != null) return;
+                if (PlayerEncounter.Current == null) { _playerSurrender = 0f; KeepEncounter = false; return; }
+                _playerSurrender = 0f; KeepEncounter = false;
+                var foe = PlayerEncounter.EncounteredMobileParty;
+                if (PlayerEncounter.InsideSettlement || foe == null || foe.MapFaction == null || Hero.MainHero.MapFaction == null
+                    || !(foe.MapFaction.IsBanditFaction || foe.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction)))
+                { Log.Warn("Rendición del jugador: el encuentro ya no es con un enemigo en el mapa; no se hace nada"); return; }
+                // Lo mismo que hace la opción «Rendirse» del menú del encuentro
+                PlayerEncounter.PlayerSurrender = true;
+                PlayerEncounter.Update();
+                Log.Info("El jugador se rinde: queda prisionero");
+            }
+            catch (Exception ex) { _playerSurrender = 0f; KeepEncounter = false; Log.Error("Rendición del jugador", ex); }
+        }
+
         public static void Tick(float dt)
         {
+            TickPlayerSurrender(dt);
             try
             {
                 if (Campaign.Current == null) { _fight = null; _surrender = null; _surrenderParty = null; ToKill.Clear(); KeepEncounter = false; _autoAttack = 0f; return; }

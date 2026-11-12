@@ -137,6 +137,18 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: torneo", ex); }
         }
 
+        /// <summary>Capturar a un noble: satisfacción durante 3 días (pausa de 14).</summary>
+        public static void OnPrisonerTaken(PartyBase captor, Hero prisoner)
+        {
+            try
+            {
+                var h = captor?.LeaderHero;
+                if (h == null || h == Hero.MainHero || prisoner == null || !prisoner.IsLord) return;
+                Add(h.StringId, "took_prisoner", +1, 1, 3, 14, $"You took {prisoner.Name} prisoner days ago: a prize, and you know it.");
+            }
+            catch (Exception ex) { Log.Error("Ánimo: prisionero", ex); }
+        }
+
         /// <summary>Salir del cautiverio: alivio durante 4 días.</summary>
         public static void OnPrisonerReleased(Hero h, PartyBase captor, IFaction faction, EndCaptivityDetail detail, bool show)
         {
@@ -257,6 +269,8 @@ namespace AILegacy.World
                         bool family = kinOf.Contains(d);
                         if (family)
                             list.Add(new Cause { Text = $"Your {Kin(h, d)} {d.Name} died {Ago(ago)}: you are in mourning.", Sign = -1, Strength = 3, Age = ago });
+                        else if (h.Clan != null && d.Clan == h.Clan && d.IsLord && ago <= 7 * Scale)
+                            list.Add(new Cause { Text = $"{d.Name}, of your own house, died {Ago(ago)}: the house is in mourning.", Sign = -1, Strength = 1, Age = ago });
                         else if (ago <= 10 * Scale)
                         {
                             int rel = CharacterRelationManager.GetHeroRelation(h, d);

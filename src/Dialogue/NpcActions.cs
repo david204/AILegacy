@@ -123,7 +123,8 @@ namespace AILegacy.Dialogue
         // De cada uno de estos grupos solo vale una acción por respuesta: pelear, rendirse, morir o soltar no van juntas
         private static readonly string[][] Exclusive =
         {
-            new[] { "brawl", "duel", "duel_to_death", "attack", "surrender", "die", "let_pass", "call_guards", "arrest", "let_go" },
+            new[] { "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "die", "let_pass", "call_guards", "arrest", "let_go" },
+            new[] { "propose_marriage", "accept_marriage" },
             new[] { "set_free", "die" },
             new[] { "declare_war", "make_peace" },
         };
@@ -433,8 +434,35 @@ namespace AILegacy.Dialogue
             // ----------------------------------------------------------- matrimonio y romance
             new ActionDef
             {
+                Name = "propose_marriage", Usage = "propose_marriage",
+                Description = "You ask the other person to marry you. Only if you truly want this union and the moment is right; they will answer yes or no themselves.",
+                IsAvailable = s => S.Get.AllowMarriage && s.IsHero && !s.Hero.IsPrisoner && Rel(s) >= S.Get.MinRelationForMarriage
+                                   && (!S.Get.EnableRomance || s.Memory.Romance >= S.Get.RomanceForMarriage)
+                                   && CanWed(s.Hero),
+                Execute = (s, arg, ctx) =>
+                {
+                    if (P.Spouse == s.Hero || s.Hero.Spouse == P) return null;
+                    if (Repeated(s, "propose_marriage", 1)) return null;
+                    LastDone[s.Key + "|propose_marriage"] = (1, DateTime.UtcNow);
+                    NoteOutcome(s, "[Pending: you have asked them to marry you. They have not answered yet: the wedding happens only if they say yes.]");
+                    Ask(L.F("AIL_b8f2e6a1", $"{s.Name} te pide matrimonio"),
+                        L.F("AIL_b8f2e6a2", $"Si aceptas, la boda se celebra ahora y es para siempre: {s.Name} pasará a ser de tu casa."),
+                        L.T("AIL_b8f2e6a3", "Aceptar"), L.T("AIL_b8f2e6a4", "Rechazar"),
+                        () => FinishWedding(s),
+                        () =>
+                        {
+                            NoteOutcome(s, "[Did not happen: they refused your marriage proposal. You are not married; it hurts your pride.]");
+                            try { Bonds.ChangeRomance(s, -10); ChangeRelationAction.ApplyPlayerRelation(s.Hero, -2, false, true); } catch { }
+                            Say(L.F("AIL_b8f2e6a5", $"Rechazas la propuesta de {s.Name}."));
+                            Memory.SaveFiles.Flush();
+                        });
+                    return L.F("AIL_b8f2e6a6", $"{s.Name} te pide matrimonio.");
+                }
+            },
+            new ActionDef
+            {
                 Name = "accept_marriage", Usage = "accept_marriage",
-                Description = "You accept the other person's marriage proposal and marry them right now. Only if they explicitly proposed and you truly love or want this union.",
+                Description = "You say yes to the other person's marriage proposal. Only if they explicitly proposed and you truly love or want this union. The wedding takes place if they confirm it.",
                 IsAvailable = s => S.Get.AllowMarriage && s.IsHero && !s.Hero.IsPrisoner && Rel(s) >= S.Get.MinRelationForMarriage
                                    && (!S.Get.EnableRomance || s.Memory.Romance >= S.Get.RomanceForMarriage)
                                    && CanWed(s.Hero),
@@ -442,6 +470,31 @@ namespace AILegacy.Dialogue
                 {
                     var h = s.Hero;
                     // Ya casados: nada que hacer (y antes de tocar ningún matrimonio)
+                    if (P.Spouse == h || h.Spouse == P) return null;
+                    if (Repeated(s, "accept_marriage", 1)) return null;
+                    LastDone[s.Key + "|accept_marriage"] = (1, DateTime.UtcNow);
+                    // Segundo paso: la boda solo se celebra con la palabra del jugador (una frase suelta no casa a nadie)
+                    NoteOutcome(s, "[Pending: you have said yes to marrying them. The wedding takes place only if they confirm it now.]");
+                    Ask(L.F("AIL_b8f2e6a7", $"{s.Name} acepta casarse contigo"),
+                        L.F("AIL_b8f2e6a2", $"Si aceptas, la boda se celebra ahora y es para siempre: {s.Name} pasará a ser de tu casa."),
+                        L.T("AIL_b8f2e6a8", "Casarse"), L.T("AIL_b8f2e6a9", "Todavía no"),
+                        () => FinishWedding(s),
+                        () =>
+                        {
+                            NoteOutcome(s, "[Did not happen: they drew back at the last moment and did not go through with the wedding. You are not married.]");
+                            Memory.SaveFiles.Flush();
+                        });
+                    return L.F("AIL_b8f2e6aa", $"{s.Name} acepta casarse contigo.");
+                }
+            },
+            new ActionDef
+            {
+                // Uso interno: no se ofrece a la IA. La boda en sí, cuando el jugador la confirma.
+                Name = "wed_now", Usage = "wed_now", Description = "(internal)",
+                IsAvailable = s => false,
+                Execute = (s, arg, ctx) =>
+                {
+                    var h = s.Hero;
                     if (P.Spouse == h || h.Spouse == P) return null;
                     try
                     {
@@ -1122,7 +1175,7 @@ namespace AILegacy.Dialogue
                 Description = "You fight the other person in a duel with weapons until one of you falls, as a matter of honour or sport, starting as soon as you stop talking. " +
                               "Only if they challenged you and you accept, or you challenge them and they have just agreed.",
                 IsAvailable = s => (Combat.CanFightHere() || MapFight(s)) && !(s.IsHero && s.Hero.IsPrisoner),
-                Execute = (s, arg, ctx) => { ctx.EndConversation = true; return Combat.CanFightHere() ? Combat.QueueFight(s, "duel") : StartMapFight(s, "duel"); }
+                Execute = (s, arg, ctx) => Challenge(s, "duel")
             },
             new ActionDef
             {
@@ -1130,7 +1183,7 @@ namespace AILegacy.Dialogue
                 Description = "A duel with weapons where the loser dies. Only for mortal insults, blood feuds or matters you would truly die for, and only when both of you clearly agreed to those terms. " +
                               "Cautious characters and those with much to lose refuse.",
                 IsAvailable = s => (Combat.CanFightHere() || MapFight(s)) && s.IsHero && !s.Hero.IsPrisoner,
-                Execute = (s, arg, ctx) => { ctx.EndConversation = true; return Combat.CanFightHere() ? Combat.QueueFight(s, "death") : StartMapFight(s, "death"); }
+                Execute = (s, arg, ctx) => Challenge(s, "death")
             },
             new ActionDef
             {
@@ -1169,12 +1222,38 @@ namespace AILegacy.Dialogue
                 Name = "let_pass", Usage = "let_pass",
                 Description = "You call your people off and let them go on their way unharmed: there will be no fight. Use it when you have decided not to fight them " +
                               "(they paid what you asked, they are too strong, they talked you round, or they are not worth the blood).",
-                IsAvailable = s => s.Band != null && Combat.EnemyOnMap(s),
+                IsAvailable = s => Combat.EnemyOnMap(s),
                 Execute = (s, arg, ctx) =>
                 {
                     ctx.LetPass = true; ctx.EndConversation = true;
                     Combat.KeepEncounter = false;
+                    // Palabra dada: durante un día nadie de los suyos (ni nadie) se echa encima del jugador
+                    try { if (s.IsHero) MobileParty.MainParty.IgnoreByOtherPartiesTill(CampaignTime.HoursFromNow(24)); } catch { }
                     return L.F("AIL_7a3f52c8", $"{s.Name} aparta a los suyos y os deja pasar.");
+                }
+            },
+            new ActionDef
+            {
+                Name = "accept_surrender", Usage = "accept_surrender",
+                Description = "You accept THEIR surrender: they and their whole party lay down arms and become your prisoners, without a battle. ONLY if in their last message they clearly said they yield or surrender to you.",
+                IsAvailable = s => Combat.EnemyOnMap(s),
+                Execute = (s, arg, ctx) =>
+                {
+                    if (Repeated(s, "accept_surrender", 1)) return null;
+                    LastDone[s.Key + "|accept_surrender"] = (1, DateTime.UtcNow);
+                    NoteOutcome(s, "[Pending: you are ready to take their surrender. It happens only if they go through with it now.]");
+                    Ask(L.F("AIL_b8f2e6ab", $"Rendirte a {s.Name}"),
+                        L.F("AIL_b8f2e6ac", $"Tú y todos tus hombres quedaréis prisioneros de {s.Name}. No hay vuelta atrás."),
+                        L.T("AIL_b8f2e6ad", "Rendirse"), L.T("AIL_b8f2e6ae", "No"),
+                        () =>
+                        {
+                            NoteOutcome(s, "[Done: they have surrendered to you. They and their men are your prisoners now.]");
+                            Memory.SaveFiles.Flush();
+                            Combat.QueuePlayerSurrender();
+                            ChatSession.EndFromOutside();
+                        },
+                        () => { NoteOutcome(s, "[Did not happen: they did not surrender after all.]"); Memory.SaveFiles.Flush(); });
+                    return L.F("AIL_b8f2e6af", $"{s.Name} está dispuesto a aceptar tu rendición.");
                 }
             },
             new ActionDef
@@ -1580,6 +1659,82 @@ namespace AILegacy.Dialogue
         }
 
         private static string Clip(string t, int max) => t == null ? "" : t.Length <= max ? t : t.Substring(0, max) + "…";
+
+        private static void Say(string msg) => TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage(msg, TaleWorlds.Library.Colors.Yellow));
+
+        /// <summary>Una decisión que solo vale con la palabra del jugador: ventana de sí o no, por encima del diálogo.</summary>
+        private static void Ask(string title, string text, string yes, string no, Action onYes, Action onNo)
+        {
+            int session = WorldSim.Session;
+            MainThread.Post(() =>
+            {
+                try
+                {
+                    TaleWorlds.Library.InformationManager.ShowInquiry(new TaleWorlds.Library.InquiryData(title, text, true, true, yes, no,
+                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onYes?.Invoke(); } catch (Exception ex) { Log.Error("Decisión del jugador", ex); } }),
+                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onNo?.Invoke(); } catch (Exception ex) { Log.Error("Decisión del jugador", ex); } })), true);
+                }
+                catch (Exception ex) { Log.Error("Ventana de decisión", ex); }
+            });
+        }
+
+        /// <summary>La boda, ya con el sí de los dos.</summary>
+        private static void FinishWedding(Speaker s)
+        {
+            try
+            {
+                // Entre el sí y la confirmación puede haber cambiado algo: se vuelve a mirar que la boda sigue siendo posible
+                if (!s.IsHero || !s.Hero.IsAlive || s.Hero.IsPrisoner || !CanWed(s.Hero))
+                {
+                    NoteOutcome(s, "[Did not happen: the wedding could not take place after all. You are not married.]");
+                    return;
+                }
+                var def = All.First(a => a.Name == "wed_now");
+                var msg = def.Execute(s, "", new ActionContext());
+                if (msg == null)
+                {
+                    NoteOutcome(s, "[Did not happen: the wedding could not take place after all. You are not married.]");
+                    return;
+                }
+                NoteOutcome(s, "[Done: the two of you are married now, husband and wife from this day.]");
+                Say(msg);
+                RecordAsNews(s, "accept_marriage");
+                Memory.SaveFiles.Flush();
+            }
+            catch (Exception ex) { Log.Error("Boda", ex); }
+        }
+
+        /// <summary>Un duelo con armas no empieza porque sí: el jugador lo acepta o se echa atrás.</summary>
+        private static string Challenge(Speaker s, string kind)
+        {
+            if (Repeated(s, "challenge|" + kind, 1)) return null;
+            LastDone[s.Key + "|challenge|" + kind] = (1, DateTime.UtcNow);
+            NoteOutcome(s, kind == "death" ? "[Pending: a duel to the death stands between you. It begins only if they take it up now.]"
+                                           : "[Pending: a duel stands between you. It begins only if they take it up now.]");
+            Ask(L.F("AIL_b8f2e6b0", $"Duelo con {s.Name}"),
+                kind == "death" ? L.T("AIL_b8f2e6b1", "A muerte: quien caiga no se levanta. ¿Aceptas?") : L.T("AIL_b8f2e6b2", "Con armas, hasta que uno caiga. Nadie muere. ¿Aceptas?"),
+                L.T("AIL_b8f2e6b3", "Luchar"), L.T("AIL_b8f2e6b4", "Echarse atrás"),
+                () =>
+                {
+                    // Se mira en el momento de aceptar: la charla tiene que seguir abierta con él y el sitio tiene que permitirlo
+                    string msg = null;
+                    var talk = ChatSession.Active;
+                    if (talk != null && talk.Who != null && talk.Who.Key == s.Key && !(s.IsHero && (!s.Hero.IsAlive || s.Hero.IsPrisoner)))
+                        msg = Combat.CanFightHere() ? Combat.QueueFight(s, kind) : MapFight(s) ? StartMapFight(s, kind) : null;
+                    if (msg == null) { NoteOutcome(s, "[Did not happen: the duel could not be fought after all.]"); Memory.SaveFiles.Flush(); return; }
+                    NoteOutcome(s, "[Done: they took up the duel; it is being fought now.]");
+                    Say(msg);
+                    ChatSession.EndFromOutside();
+                },
+                () =>
+                {
+                    NoteOutcome(s, "[Did not happen: they backed down from the duel in front of you. No fight took place.]");
+                    try { if (s.IsHero) Bonds.ChangeTension(s, -10); } catch { }
+                    Say(L.F("AIL_b8f2e6b5", $"Te echas atrás ante {s.Name}."));
+                    Memory.SaveFiles.Flush();
+                });
+            return L.F("AIL_b8f2e6b6", $"{s.Name} está dispuesto a batirse contigo.");
+        }
 
         // Guerra y paz decididas en una charla: entre una y otra con el mismo reino tienen que pasar unos días
         private const double WarPeaceCooldownDays = 7;

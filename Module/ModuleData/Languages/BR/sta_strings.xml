@@ -1336,5 +1336,27 @@
     <string id="AIL_a7e1d3c3" text="Som quando a resposta chega" />
     <string id="AIL_a7e1d3c4" text="Relação, confiança e romance sob cada resposta" />
     <string id="AIL_a7e1d3c5" text="Abaixo de cada resposta, uma linha com como você está agora com esse personagem: relação, confiança, tensão, romance e quantas vezes ele pegou você mentindo." />
+    <string id="AIL_b8f2e6a1" text="{0} pede você em casamento" />
+    <string id="AIL_b8f2e6a2" text="Se aceitar, o casamento acontece agora e é para sempre: {0} passará a ser da sua casa." />
+    <string id="AIL_b8f2e6a3" text="Aceitar" />
+    <string id="AIL_b8f2e6a4" text="Recusar" />
+    <string id="AIL_b8f2e6a5" text="Você recusa o pedido de {0}." />
+    <string id="AIL_b8f2e6a6" text="{0} pede você em casamento." />
+    <string id="AIL_b8f2e6a7" text="{0} aceita casar com você" />
+    <string id="AIL_b8f2e6a8" text="Casar" />
+    <string id="AIL_b8f2e6a9" text="Ainda não" />
+    <string id="AIL_b8f2e6aa" text="{0} aceita casar com você." />
+    <string id="AIL_b8f2e6ab" text="Render-se a {0}" />
+    <string id="AIL_b8f2e6ac" text="Você e todos os seus homens ficarão prisioneiros de {0}. Não há volta." />
+    <string id="AIL_b8f2e6ad" text="Render-se" />
+    <string id="AIL_b8f2e6ae" text="Não" />
+    <string id="AIL_b8f2e6af" text="{0} está disposto a aceitar a sua rendição." />
+    <string id="AIL_b8f2e6b0" text="Duelo com {0}" />
+    <string id="AIL_b8f2e6b1" text="Até a morte: quem cair não se levanta. Aceita?" />
+    <string id="AIL_b8f2e6b2" text="Com armas, até um cair. Ninguém morre. Aceita?" />
+    <string id="AIL_b8f2e6b3" text="Lutar" />
+    <string id="AIL_b8f2e6b4" text="Recuar" />
+    <string id="AIL_b8f2e6b5" text="Você recua diante de {0}." />
+    <string id="AIL_b8f2e6b6" text="{0} está disposto a duelar com você." />
   </strings>
 </base>

@@ -1336,5 +1336,27 @@
     <string id="AIL_a7e1d3c3" text="Sound when the reply arrives" />
     <string id="AIL_a7e1d3c4" text="Relation, trust and romance under each reply" />
     <string id="AIL_a7e1d3c5" text="Under each answer, one line with where you stand with that character right now: relation, trust, tension, romance, and how many times they have caught you lying." />
+    <string id="AIL_b8f2e6a1" text="{0} asks you to marry" />
+    <string id="AIL_b8f2e6a2" text="If you accept, the wedding takes place now and it is for good: {0} will join your house." />
+    <string id="AIL_b8f2e6a3" text="Accept" />
+    <string id="AIL_b8f2e6a4" text="Refuse" />
+    <string id="AIL_b8f2e6a5" text="You refuse {0}'s proposal." />
+    <string id="AIL_b8f2e6a6" text="{0} asks you to marry." />
+    <string id="AIL_b8f2e6a7" text="{0} agrees to marry you" />
+    <string id="AIL_b8f2e6a8" text="Marry" />
+    <string id="AIL_b8f2e6a9" text="Not yet" />
+    <string id="AIL_b8f2e6aa" text="{0} agrees to marry you." />
+    <string id="AIL_b8f2e6ab" text="Surrender to {0}" />
+    <string id="AIL_b8f2e6ac" text="You and all your men will become prisoners of {0}. There is no going back." />
+    <string id="AIL_b8f2e6ad" text="Surrender" />
+    <string id="AIL_b8f2e6ae" text="No" />
+    <string id="AIL_b8f2e6af" text="{0} is ready to accept your surrender." />
+    <string id="AIL_b8f2e6b0" text="Duel with {0}" />
+    <string id="AIL_b8f2e6b1" text="To the death: whoever falls does not get up. Do you accept?" />
+    <string id="AIL_b8f2e6b2" text="With weapons, until one of you falls. Nobody dies. Do you accept?" />
+    <string id="AIL_b8f2e6b3" text="Fight" />
+    <string id="AIL_b8f2e6b4" text="Back down" />
+    <string id="AIL_b8f2e6b5" text="You back down before {0}." />
+    <string id="AIL_b8f2e6b6" text="{0} is ready to fight you." />
   </strings>
 </base>

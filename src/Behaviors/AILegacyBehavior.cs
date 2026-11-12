@@ -44,6 +44,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, WorldSim.OnHeroKilled);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, WorldSim.OnPrisonerTaken);
+            CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, World.Mood.OnPrisonerTaken);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, WorldSim.OnSettlementOwnerChanged);
             CampaignEvents.MobilePartyDestroyed.AddNonSerializedListener(this, QuestObjectives.OnPartyDestroyed);
             NewsTracker.Register(this);

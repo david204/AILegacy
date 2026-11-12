@@ -1336,5 +1336,27 @@
     <string id="AIL_a7e1d3c3" text="回复到达时播放提示音" />
     <string id="AIL_a7e1d3c4" text="在每条回复下显示关系、信任和恋情" />
     <string id="AIL_a7e1d3c5" text="在每条回复下用一行显示你与该角色目前的状况：关系、信任、紧张、恋情，以及他识破你说谎的次数。" />
+    <string id="AIL_b8f2e6a1" text="{0}向你求婚" />
+    <string id="AIL_b8f2e6a2" text="如果你接受，婚礼现在就举行，而且是一辈子的事：{0}将加入你的家族。" />
+    <string id="AIL_b8f2e6a3" text="接受" />
+    <string id="AIL_b8f2e6a4" text="拒绝" />
+    <string id="AIL_b8f2e6a5" text="你拒绝了{0}的求婚。" />
+    <string id="AIL_b8f2e6a6" text="{0}向你求婚。" />
+    <string id="AIL_b8f2e6a7" text="{0}同意嫁娶" />
+    <string id="AIL_b8f2e6a8" text="成婚" />
+    <string id="AIL_b8f2e6a9" text="再等等" />
+    <string id="AIL_b8f2e6aa" text="{0}同意与你成婚。" />
+    <string id="AIL_b8f2e6ab" text="向{0}投降" />
+    <string id="AIL_b8f2e6ac" text="你和你所有的部下都将成为{0}的俘虏。无法反悔。" />
+    <string id="AIL_b8f2e6ad" text="投降" />
+    <string id="AIL_b8f2e6ae" text="不" />
+    <string id="AIL_b8f2e6af" text="{0}愿意接受你的投降。" />
+    <string id="AIL_b8f2e6b0" text="与{0}决斗" />
+    <string id="AIL_b8f2e6b1" text="生死决斗：倒下的人不会再站起来。你接受吗？" />
+    <string id="AIL_b8f2e6b2" text="持械决斗，直到一方倒下。不会有人死。你接受吗？" />
+    <string id="AIL_b8f2e6b3" text="战斗" />
+    <string id="AIL_b8f2e6b4" text="退缩" />
+    <string id="AIL_b8f2e6b5" text="你在{0}面前退缩了。" />
+    <string id="AIL_b8f2e6b6" text="{0}愿意与你一决高下。" />
   </strings>
 </base>

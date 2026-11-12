@@ -30,6 +30,8 @@ namespace AILegacy.Dialogue
         private int _relationChangedThisTalk;
         /// <summary>Cuánto se ha movido la relación en esta charla, sumando subidas y bajadas (el tope va sobre esto, no sobre el neto).</summary>
         private int _relationMovedThisTalk;
+        /// <summary>Confianza perdida en esta charla (si la hay, el trato no suma).</summary>
+        private int _trustLostThisTalk;
         private bool _waiting;
         private bool _closed;
         private bool _npcEnded;
@@ -553,6 +555,7 @@ namespace AILegacy.Dialogue
             {
                 int td = Math.Max(-cfg.MaxTrustChangePerReply, Math.Min(cfg.MaxTrustChangePerReply, reply.TrustChange)) + actx.TrustDelta;
                 td = td != 0 ? Bonds.ChangeTrust(_s, td) : 0;
+                if (td < 0) _trustLostThisTalk -= td;
                 if (td != 0)
                 {
                     Log.Info($"Confianza de {_s.Name}: {(td > 0 ? "+" : "")}{td} (ahora {Mem.Trust})");
@@ -690,6 +693,13 @@ namespace AILegacy.Dialogue
 
         // ============================================================ cierre
 
+        /// <summary>Termina la charla en curso como si el personaje la diera por acabada (tras aceptar un duelo, una rendición…).</summary>
+        public static void EndFromOutside()
+        {
+            try { var a = Active; if (a != null && !a._closed) { a._npcEnded = true; a.Close(true); } }
+            catch (Exception ex) { Log.Error("Cerrar la charla", ex); }
+        }
+
         private void Close(bool npcEnded)
         {
             if (_closed) return;
@@ -704,6 +714,13 @@ namespace AILegacy.Dialogue
                 Mem.LastConversationDay = CampaignTime.Now.ToDays;
                 if (_s.IsHero) QuestObjectives.OnTalked(_s.Hero);
                 Bonds.Touch(Mem);
+                // El trato hace el roce: una charla de verdad (no dos frases) en la que no has perdido su confianza la sube un punto,
+                // hasta un tope modesto. La confianza alta se gana con hechos, no con horas de conversación.
+                try
+                {
+                    if (S.Get.EnableTrust && _s.IsHero && _answered >= 3 && _trustLostThisTalk == 0 && Mem.Trust < 30) Bonds.ChangeTrust(_s, 1);
+                }
+                catch { }
             }
             Log.Info($"Conversación con {_s.Name} cerrada ({_lines} líneas, relación {(_relationChangedThisTalk >= 0 ? "+" : "")}{_relationChangedThisTalk})");
 

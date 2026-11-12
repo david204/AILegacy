@@ -1336,5 +1336,27 @@
     <string id="AIL_a7e1d3c3" text="Ton, wenn die Antwort eintrifft" />
     <string id="AIL_a7e1d3c4" text="Beziehung, Vertrauen und Romanze unter jeder Antwort" />
     <string id="AIL_a7e1d3c5" text="Unter jeder Antwort eine Zeile dazu, wie du gerade zu dieser Figur stehst: Beziehung, Vertrauen, Spannung, Romanze und wie oft sie dich beim Lügen ertappt hat." />
+    <string id="AIL_b8f2e6a1" text="{0} hält um deine Hand an" />
+    <string id="AIL_b8f2e6a2" text="Nimmst du an, findet die Hochzeit jetzt statt und gilt für immer: {0} tritt deinem Haus bei." />
+    <string id="AIL_b8f2e6a3" text="Annehmen" />
+    <string id="AIL_b8f2e6a4" text="Ablehnen" />
+    <string id="AIL_b8f2e6a5" text="Du lehnst den Antrag von {0} ab." />
+    <string id="AIL_b8f2e6a6" text="{0} hält um deine Hand an." />
+    <string id="AIL_b8f2e6a7" text="{0} willigt in die Heirat ein" />
+    <string id="AIL_b8f2e6a8" text="Heiraten" />
+    <string id="AIL_b8f2e6a9" text="Noch nicht" />
+    <string id="AIL_b8f2e6aa" text="{0} willigt ein, dich zu heiraten." />
+    <string id="AIL_b8f2e6ab" text="{0} ergeben" />
+    <string id="AIL_b8f2e6ac" text="Du und all deine Männer werdet Gefangene von {0}. Es gibt kein Zurück." />
+    <string id="AIL_b8f2e6ad" text="Ergeben" />
+    <string id="AIL_b8f2e6ae" text="Nein" />
+    <string id="AIL_b8f2e6af" text="{0} ist bereit, deine Kapitulation anzunehmen." />
+    <string id="AIL_b8f2e6b0" text="Duell mit {0}" />
+    <string id="AIL_b8f2e6b1" text="Auf Leben und Tod: Wer fällt, steht nicht wieder auf. Nimmst du an?" />
+    <string id="AIL_b8f2e6b2" text="Mit Waffen, bis einer fällt. Niemand stirbt. Nimmst du an?" />
+    <string id="AIL_b8f2e6b3" text="Kämpfen" />
+    <string id="AIL_b8f2e6b4" text="Zurückweichen" />
+    <string id="AIL_b8f2e6b5" text="Du weichst vor {0} zurück." />
+    <string id="AIL_b8f2e6b6" text="{0} ist bereit, gegen dich anzutreten." />
   </strings>
 </base>

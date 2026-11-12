@@ -1336,5 +1336,27 @@
     <string id="AIL_a7e1d3c3" text="Звук при получении ответа" />
     <string id="AIL_a7e1d3c4" text="Отношения, доверие и романтика под каждым ответом" />
     <string id="AIL_a7e1d3c5" text="Под каждым ответом строка о том, как вы сейчас ладите с этим персонажем: отношения, доверие, напряжение, романтика и сколько раз он ловил вас на лжи." />
+    <string id="AIL_b8f2e6a1" text="{0} просит вашей руки" />
+    <string id="AIL_b8f2e6a2" text="Если вы согласитесь, свадьба состоится сейчас и навсегда: {0} войдёт в ваш дом." />
+    <string id="AIL_b8f2e6a3" text="Согласиться" />
+    <string id="AIL_b8f2e6a4" text="Отказать" />
+    <string id="AIL_b8f2e6a5" text="Вы отвергаете предложение {0}." />
+    <string id="AIL_b8f2e6a6" text="{0} делает вам предложение." />
+    <string id="AIL_b8f2e6a7" text="{0} согласен на брак с вами" />
+    <string id="AIL_b8f2e6a8" text="Пожениться" />
+    <string id="AIL_b8f2e6a9" text="Пока нет" />
+    <string id="AIL_b8f2e6aa" text="{0} соглашается на брак с вами." />
+    <string id="AIL_b8f2e6ab" text="Сдаться {0}" />
+    <string id="AIL_b8f2e6ac" text="Вы и все ваши люди станете пленниками {0}. Пути назад нет." />
+    <string id="AIL_b8f2e6ad" text="Сдаться" />
+    <string id="AIL_b8f2e6ae" text="Нет" />
+    <string id="AIL_b8f2e6af" text="{0} готов принять вашу сдачу." />
+    <string id="AIL_b8f2e6b0" text="Дуэль с {0}" />
+    <string id="AIL_b8f2e6b1" text="Насмерть: кто упадёт, уже не встанет. Принимаете?" />
+    <string id="AIL_b8f2e6b2" text="С оружием, пока один не упадёт. Никто не умрёт. Принимаете?" />
+    <string id="AIL_b8f2e6b3" text="Драться" />
+    <string id="AIL_b8f2e6b4" text="Отступить" />
+    <string id="AIL_b8f2e6b5" text="Вы отступаете перед {0}." />
+    <string id="AIL_b8f2e6b6" text="{0} готов сразиться с вами." />
   </strings>
 </base>

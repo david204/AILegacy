@@ -151,6 +151,7 @@ namespace AILegacy.Dialogue
             var h = s.Hero;
             mem.LastIntimacyDay = CampaignTime.Now.ToDays;
             Touch(mem);
+            try { ChangeRomance(s, 8); } catch { }
             try
             {
                 if (h.Spouse == P && h.IsFemale != P.IsFemale)

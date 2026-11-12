@@ -19,7 +19,7 @@ namespace AILegacy.Memory
         /// </summary>
         [JsonIgnore]
         public bool IsNote => Role == "player" && Text != null && Text.Length > 2 && Text[0] == '['
-                              && (Text.StartsWith("[Done:") || Text.StartsWith("[Did not happen:") || Text.StartsWith("[Since you last spoke:"));
+                              && (Text.StartsWith("[Done:") || Text.StartsWith("[Did not happen:") || Text.StartsWith("[Since you last spoke:") || Text.StartsWith("[Pending:"));
     }
 
     /// <summary>Un tramo del resumen de vuestra historia, con los días de campaña que cubre (-1 = sin fecha, de antes de fechar los tramos).</summary>
