@@ -1304,5 +1304,15 @@
     <string id="AIL_c3a7f1f6" text="Cached" />
     <string id="AIL_c3a7f1f7" text="Output" />
     <string id="AIL_c3a7f1f8" text="Cost ($)" />
+    <string id="AIL_d4b8a2f1" text="Recall by meaning (RAG)" />
+    <string id="AIL_d4b8a2f2" text='Besides searching by words, your shared history is searched for moments that relate to what you say even if you use other words ("that promise" finds "I will help you take the fortress"). It uses the vectors of a provider you already have (Gemini gives them free; OpenAI charges cents). If none provides them, the word search carries on.' />
+    <string id="AIL_d4b8a2f3" text="History chunks retrieved" />
+    <string id="AIL_d4b8a2f4" text="Lines per chunk" />
+    <string id="AIL_d4b8a2f5" text="How many consecutive lines form one chunk of history when indexing it. If you change it, each character's index rebuilds itself." />
+    <string id="AIL_d4b8a2f6" text="Actions by topic" />
+    <string id="AIL_d4b8a2f7" text="Actions that depend on what is being discussed (orders, trade, realm) are only explained in full when relevant; the rest are named on one line and still work. Saves tokens on every line. Needs the vectors of recall by meaning." />
+    <string id="AIL_d4b8a2f8" text="Actions explained in full" />
+    <string id="AIL_d4b8a2f9" text="Vector model (empty = automatic)" />
+    <string id="AIL_d4b8a2fa" text="Empty: gemini-embedding-001 with Gemini, text-embedding-3-small with OpenAI, nomic-embed-text with Ollama. Type another only if your provider uses a different name." />
   </strings>
 </base>

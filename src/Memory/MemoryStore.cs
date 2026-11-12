@@ -173,6 +173,11 @@ namespace AILegacy.Memory
         [JsonProperty("pages")] public List<MemoryPage> Pages = new List<MemoryPage>();
         /// <summary>Frases antiguas que ya no están en el historial (se resumieron): se buscan en ellas los recuerdos relevantes.</summary>
         [JsonProperty("archive")] public List<ChatTurn> Archive = new List<ChatTurn>();
+        /// <summary>Cuántas frases se han archivado en total (el archivo tiene tope; el índice de recuerdos, no).</summary>
+        [JsonProperty("archived_total")] public int ArchivedTotal;
+        /// <summary>Vector de significado de lo último que ha dicho el jugador, para el prompt de este turno (no se guarda).</summary>
+        [JsonIgnore] public sbyte[] QueryVec;
+        [JsonIgnore] public string QueryText;
         /// <summary>Lo que hay entre este personaje y OTROS personajes (no contigo): cómo se llevan y de qué han tratado últimamente.</summary>
         [JsonProperty("others")] public Dictionary<string, OtherBond> Others = new Dictionary<string, OtherBond>();
 

@@ -113,6 +113,7 @@ namespace AILegacy.Memory
                     var folded = mem.Turns.Take(n).ToList();
                     Recall.Archive(mem, folded);
                     mem.Turns.RemoveRange(0, n);
+                    RagIndex.Schedule(s);          // lo recién archivado entra en el índice de recuerdos por significado
 
                     Sync(mem);
                     // Fundir los tramos viejos, si siguen siendo los mismos que se mandaron

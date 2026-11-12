@@ -1304,5 +1304,15 @@
     <string id="AIL_c3a7f1f6" text="En caché" />
     <string id="AIL_c3a7f1f7" text="Salida" />
     <string id="AIL_c3a7f1f8" text="Coste ($)" />
+    <string id="AIL_d4b8a2f1" text="Recuerdo por significado (RAG)" />
+    <string id="AIL_d4b8a2f2" text="Además de buscar por palabras, se buscan en vuestra historia los momentos que tienen que ver con lo que dices aunque uses otras palabras («aquella promesa» encuentra «te ayudaré a tomar la fortaleza»). Usa los vectores de un proveedor que ya tengas (Gemini los da gratis; OpenAI cobra céntimos). Si ninguno los da, sigue la búsqueda por palabras." />
+    <string id="AIL_d4b8a2f3" text="Trozos de historia recuperados" />
+    <string id="AIL_d4b8a2f4" text="Frases por trozo" />
+    <string id="AIL_d4b8a2f5" text="Cuántas frases seguidas forman un trozo de historia al indexarla. Si lo cambias, el índice de cada personaje se rehace solo." />
+    <string id="AIL_d4b8a2f6" text="Acciones según el tema" />
+    <string id="AIL_d4b8a2f7" text="Las acciones que dependen de lo que se habla (órdenes, comercio, reino) solo se explican enteras cuando vienen a cuento; las demás quedan nombradas en una línea y siguen valiendo. Ahorra tokens en cada frase. Necesita los vectores del recuerdo por significado." />
+    <string id="AIL_d4b8a2f8" text="Acciones explicadas enteras" />
+    <string id="AIL_d4b8a2f9" text="Modelo de vectores (vacío = automático)" />
+    <string id="AIL_d4b8a2fa" text="Vacío: gemini-embedding-001 con Gemini, text-embedding-3-small con OpenAI, nomic-embed-text con Ollama. Escribe otro solo si tu proveedor usa un nombre distinto." />
   </strings>
 </base>

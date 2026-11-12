@@ -553,6 +553,15 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             }
         }
 
+        /// <summary>¿Lo que trae la búsqueda por palabras ya está dentro de un trozo traído por significado?</summary>
+        private static bool Overlaps(string chunk, string hit)
+        {
+            int c = hit.IndexOf(": ", System.StringComparison.Ordinal);
+            string core = (c >= 0 ? hit.Substring(c + 2) : hit).Split('\n')[0].Trim();
+            if (core.Length > 60) core = core.Substring(0, 60);
+            return core.Length >= 12 && chunk.IndexOf(core, System.StringComparison.Ordinal) >= 0;
+        }
+
         /// <summary>Recuerdo relevante: intercambios antiguos que tienen que ver con lo que se está diciendo ahora.</summary>
         private static void AppendRecall(StringBuilder sys, Speaker s)
         {
@@ -570,9 +579,13 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                 var older = mem.Turns.Take(first).ToList();
                 var back = AILegacy.Memory.Recall.Find(mem, query, s.Name, ContextBuilder.PlayerNameFor(s) ?? "the stranger",
                     CampaignTime.Now.ToDays, S.Get.RecallCount, older);
-                if (back.Count == 0) return;
+                // Por significado (si hay vectores): trozos enteros de vuestra historia, aunque no compartan ni una palabra
+                var deep = RagIndex.Find(s, CampaignTime.Now.ToDays, S.Get.RagTopK);
+                if (deep.Count > 0) back = back.Where(b => !deep.Any(d => Overlaps(d, b))).ToList();
+                if (back.Count + deep.Count == 0) return;
                 sys.AppendLine();
                 sys.AppendLine(TRecall.Text);
+                foreach (var d in deep) sys.AppendLine(" - " + d.Replace("\n", "\n   "));
                 foreach (var b in back) sys.AppendLine(" - " + b);
             }
             catch (System.Exception ex) { AILegacy.Core.Log.Error("Recuerdo relevante", ex); }

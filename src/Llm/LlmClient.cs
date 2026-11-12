@@ -51,6 +51,8 @@ namespace AILegacy.Llm
     public static class LlmClient
     {
         private static readonly HttpClient Http;
+        /// <summary>El mismo cliente HTTP, para las peticiones de vectores.</summary>
+        internal static HttpClient HttpShared => Http;
 
         static LlmClient()
         {

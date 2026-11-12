@@ -653,6 +653,37 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria", GroupOrder = 4)]
         public int HistoryTurnsInPrompt { get; set; } = 16;
 
+        [SettingPropertyBool("{=AIL_d4b8a2f1}Recuerdo por significado (RAG)", Order = 21, RequireRestart = false,
+            HintText = "{=AIL_d4b8a2f2}Además de buscar por palabras, se buscan en vuestra historia los momentos que tienen que ver con lo que dices aunque uses otras palabras («aquella promesa» encuentra «te ayudaré a tomar la fortaleza»). Usa los vectores de un proveedor que ya tengas (Gemini los da gratis; OpenAI cobra céntimos). Si ninguno los da, sigue la búsqueda por palabras.")]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
+        public bool EnableRag { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_d4b8a2f3}Trozos de historia recuperados", 1, 10, Order = 22, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
+        public int RagTopK { get; set; } = 4;
+
+        [SettingPropertyInteger("{=AIL_d4b8a2f4}Frases por trozo", 2, 20, Order = 23, RequireRestart = false,
+            HintText = "{=AIL_d4b8a2f5}Cuántas frases seguidas forman un trozo de historia al indexarla. Si lo cambias, el índice de cada personaje se rehace solo.")]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
+        public int RagChunkSize { get; set; } = 6;
+
+        [SettingPropertyBool("{=AIL_d4b8a2f6}Acciones según el tema", Order = 24, RequireRestart = false,
+            HintText = "{=AIL_d4b8a2f7}Las acciones que dependen de lo que se habla (órdenes, comercio, reino) solo se explican enteras cuando vienen a cuento; las demás quedan nombradas en una línea y siguen valiendo. Ahorra tokens en cada frase. Necesita los vectores del recuerdo por significado.")]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
+        public bool EnableActionRag { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_d4b8a2f8}Acciones explicadas enteras", 1, 20, Order = 25, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
+        public int ActionRagTopK { get; set; } = 7;
+
+        [SettingPropertyText("{=AIL_d4b8a2f9}Modelo de vectores (vacío = automático)", Order = 26, RequireRestart = false,
+            HintText = "{=AIL_d4b8a2fa}Vacío: gemini-embedding-001 con Gemini, text-embedding-3-small con OpenAI, nomic-embed-text con Ollama. Escribe otro solo si tu proveedor usa un nombre distinto.")]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]
+        public string EmbeddingModel { get; set; } = "";
+
+        /// <summary>Trozos de historia que se conservan por personaje en el índice (los más viejos salen).</summary>
+        public int RagMaxChunks => 600;
+
         [SettingPropertyBool("{=AIL_c3a7f1e9}Datos de lo que se nombra", Order = 20, RequireRestart = false,
             HintText = "{=AIL_c3a7f1ea}Si en la charla se nombra un lugar, una casa, un reino, una persona o una mercancía, sus datos públicos entran en esa petición (dónde está, de quién es, cuánto vale), y en el mapa también las partidas que hay a la vista. El personaje sabe de qué le hablas sin cargar el mundo entero cada vez.")]
         [SettingPropertyGroup("{=AIL_370ba9dd}4. Memoria")]

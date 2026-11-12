@@ -277,13 +277,20 @@ namespace AILegacy.Memory
                 if (WriteIfChanged(dir, WorldFile, JsonConvert.SerializeObject(WorldSim.State, Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, QuestsFile, JsonConvert.SerializeObject(QuestSystem.Quests, Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, ItemsFile, JsonConvert.SerializeObject(Belongings.Items, Formatting.Indented))) written++;
+                // Solo se serializa a quien le ha cambiado algo desde el último volcado (con cientos de personajes, serializarlos
+                // todos tras cada respuesta daba tirones). Cada 12 volcados se repasan todos, por si la huella se deja algo.
+                if (_sigDir != dir) { _sigDir = dir; _sig.Clear(); _flushes = 0; }
+                bool all = _flushes++ % 12 == 0;
                 foreach (var m in heroes ? MemoryStore.AllHeroes.ToList() : new List<HeroMemory>())
                 {
                     if (string.IsNullOrEmpty(m.HeroId)) continue;
                     var name = HeroFileName(m);
                     keep.Add(name);
+                    long sig = 0;
+                    try { sig = Signature(m); } catch { all = true; }
+                    if (!all && _sig.TryGetValue(m.HeroId, out long old) && old == sig && _written.ContainsKey(name)) continue;
                     // Un personaje que no se pueda escribir no detiene a los demás
-                    try { if (WriteIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented))) written++; }
+                    try { if (WriteIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented))) written++; _sig[m.HeroId] = sig; }
                     catch (Exception ex) { Log.Warn($"Se salta el archivo de {m.HeroName} ({m.HeroId}): {ex.Message}"); }
                 }
                 if (WriteIfChanged(dir, NewsFile, JsonConvert.SerializeObject(NewsStore.All.ToList(), Formatting.Indented))) written++;
@@ -309,6 +316,40 @@ namespace AILegacy.Memory
                 }
             }
             catch (Exception ex) { Log.Error("No se pudieron escribir los archivos de la campaña", ex); }
+        }
+
+        private static readonly Dictionary<string, long> _sig = new Dictionary<string, long>();
+        private static string _sigDir;
+        private static int _flushes;
+
+        /// <summary>Algo se ha cambiado por fuera de lo habitual (el editor, una importación): el próximo volcado los repasa todos.</summary>
+        public static void Dirty() { _sig.Clear(); _flushes = 0; }
+
+        /// <summary>Huella barata de lo que cambia en la memoria de un personaje, para no serializarlo si sigue igual.</summary>
+        private static long Signature(HeroMemory m)
+        {
+            unchecked
+            {
+                long h = 1469598103934665603L;
+                void A(long v) { h = (h ^ v) * 1099511628211L; }
+                void T(string t) { A(t == null ? -1 : t.Length); A(t == null ? 0 : t.GetHashCode()); }
+                A(m.Turns.Count); if (m.Turns.Count > 0) { var l = m.Turns[m.Turns.Count - 1]; T(l.Text); A((long)(l.Day * 100)); }
+                T(m.Summary); A(m.Summaries?.Count ?? 0); A(m.Notes.Count); if (m.Notes.Count > 0) T(m.Notes[m.Notes.Count - 1]);
+                A(m.CustomInstructions.Count); if (m.CustomInstructions.Count > 0) T(m.CustomInstructions[m.CustomInstructions.Count - 1]);
+                A(m.Trust); A(m.TrustSet ? 1 : 0); A(m.Romance); A(m.Tension); A(m.LiesSuspected); A(m.ConversationCount); A(m.RelationChangedTotal);
+                A((long)(m.LastConversationDay * 100)); A((long)(m.MoodDay * 100)); T(m.Mood); T(m.MoodReason); T(m.KnownPlayerName); T(m.HeroName);
+                A(m.Pages.Count); if (m.Pages.Count > 0) T(m.Pages[m.Pages.Count - 1].Text);
+                A(m.Archive.Count); A(m.ArchivedTotal); A(m.Heard.Count);
+                // Las listas con tope cambian sin cambiar de tamaño (sale la más vieja y entra una nueva): cuenta también la última
+                if (m.Heard.Count > 0) { var hd = m.Heard[m.Heard.Count - 1]; T(hd.Text); T(hd.FromName); A((long)(hd.Day * 100)); } A(m.KnownSecretIds.Count); A(m.KnownInfoIds.Count); A(m.KnowledgeRolled ? 1 : 0);
+                A(m.Others.Count); foreach (var o in m.Others.Values) { A(o.Trust); A(o.Notes.Count); A((long)(o.Day * 100)); if (o.Notes.Count > 0) T(o.Notes[o.Notes.Count - 1]); }
+                A(m.ProfileRevision); A(m.Profile == null ? 0 : 1);
+                if (m.Profile != null) { T(m.Profile.Personality); T(m.Profile.Backstory); T(m.Profile.SpeechStyle); T(m.Profile.Goals); T(m.Profile.Secret); T(m.Profile.GivenName); T(m.Profile.Reputation); T(m.Profile.Religion); }
+                A(m.LettersSent); A(m.OwesReplyToPlayer ? 1 : 0); A((long)(m.LastLetterDay * 100)); A((long)(m.LastInitiativeDay * 100)); A((long)(m.LastRomanceDay * 100)); A((long)(m.LastIntimacyDay * 100));
+                A((long)(m.TensionDay * 100)); A((long)(m.LastDevelopmentDay * 100)); T(m.Archetype); T(m.Morality); T(m.Profanity); T(m.Piety); T(m.InitiativeReason); T(m.ImportedFrom); A(m.Seeded ? 1 : 0);
+                T(m.LastAiResponse);
+                return h;
+            }
         }
 
         // ============================================================ cargar

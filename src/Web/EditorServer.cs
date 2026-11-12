@@ -129,6 +129,7 @@ namespace AILegacy.Web
                     return;
                 }
                 // Toda la API exige la ficha de la sesión
+                if (path.StartsWith("/api/") && req.HttpMethod == "POST") Memory.SaveFiles.Dirty();
                 if (!path.StartsWith("/api/") || !TokenOk(req.Headers[TokenHeader]))
                 {
                     Reject($"(sin ficha válida) {req.HttpMethod} {path}");

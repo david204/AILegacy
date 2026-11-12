@@ -257,6 +257,25 @@ namespace AILegacy.Dialogue
             Ambient.Overhear(_s, text);
             _lines++;
 
+            _retriedRepeat = false;
+            bool deep = false;
+            try { deep = RagIndex.WantsQuery(_s); } catch { }
+            if (!deep) { BuildAndAsk(text); return; }
+
+            // Recuerdo y acciones por significado: primero el vector de lo que acabas de decir
+            _waiting = true;
+            UiWaiting(true);
+            int session = World.WorldSim.Session;
+            try { NpcActions.EnsureActionVectors(); } catch { }
+            RagIndex.PrepareQuery(_s, text).ContinueWith(_ => MainThread.Post(() =>
+            {
+                if (session != World.WorldSim.Session) { _waiting = false; _closed = true; return; }
+                BuildAndAsk(text);
+            }));
+        }
+
+        private void BuildAndAsk(string text)
+        {
             List<ChatMessage> messages;
             try
             {
@@ -265,12 +284,12 @@ namespace AILegacy.Dialogue
             catch (Exception ex)
             {
                 Log.Error("Error construyendo el prompt", ex);
+                _waiting = false;
+                UiWaiting(false);
                 RemoveLastPlayerTurn(text);
                 UiSystem(L.T("AIL_ccda8e3e", "Error interno construyendo el contexto: ") + ex.Message, true);
                 return;
             }
-
-            _retriedRepeat = false;
             Ask(messages, text);
         }
 
@@ -645,6 +664,7 @@ namespace AILegacy.Dialogue
             Log.Info($"Conversación con {_s.Name} cerrada ({_lines} líneas, relación {(_relationChangedThisTalk >= 0 ? "+" : "")}{_relationChangedThisTalk})");
 
             MemorySummarizer.MaybeSummarize(_s);
+            try { RagIndex.Schedule(_s); } catch { }
             SaveFiles.Flush();
 
             if (npcEnded)

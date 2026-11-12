@@ -128,6 +128,43 @@ namespace AILegacy.Dialogue
             new[] { "declare_war", "make_peace" },
         };
 
+        // RAG de acciones. Estas son las que dependen del tema (órdenes, economía, reino): con vectores disponibles solo se
+        // describen enteras las que tienen que ver con lo que se habla; las demás quedan nombradas en una línea, y siguen
+        // valiendo si el personaje las usa. Las básicas (dinero, trato, pelea, irse) van siempre enteras.
+        private static readonly HashSet<string> ByTopic = new HashSet<string>
+        {
+            "sell_goods", "buy_goods", "give_item", "take_item", "give_document", "take_document", "sell_workshop",
+            "follow_me", "meet_at", "go_to", "wait_here", "patrol", "attack_party", "besiege", "raid", "escort", "lead_party",
+            "join_army", "form_army", "leave_army", "give_troops", "take_troops", "give_prisoners", "take_prisoners",
+            "swear_fealty", "serve_as_mercenary", "declare_war", "make_peace", "grant_fief", "accept_fief", "accept_vassal",
+            "hire_as_mercenary", "dismiss_from_kingdom", "leave_kingdom", "abdicate", "accept_crown", "join_clan", "leave_clan",
+            "send_word", "be_remembered", "join_their_company",
+        };
+
+        private static readonly Dictionary<string, sbyte[]> ActionVecs = new Dictionary<string, sbyte[]>();
+        private static bool _actionVecsBusy;
+
+        /// <summary>Pide (una vez por sesión) el vector de cada acción que depende del tema. En el hilo principal.</summary>
+        public static void EnsureActionVectors()
+        {
+            if (_actionVecsBusy || ActionVecs.Count > 0 || !S.Get.EnableActionRag || !Llm.Embeddings.Available) return;
+            var list = All.Where(a => ByTopic.Contains(a.Name)).ToList();
+            if (list.Count == 0) return;
+            _actionVecsBusy = true;
+            var texts = list.Select(a => a.Name.Replace('_', ' ') + ": " + a.Description).ToList();
+            Llm.Embeddings.EmbedAsync(texts, "embed").ContinueWith(t =>
+            {
+                var v = t.IsFaulted ? null : t.Result;
+                MainThread.Post(() =>
+                {
+                    _actionVecsBusy = false;
+                    if (v == null || v.Length != list.Count) return;
+                    for (int i = 0; i < list.Count; i++) ActionVecs[list[i].Name] = v[i];
+                    Log.Info($"Acciones por tema: {list.Count} acciones con vector");
+                });
+            });
+        }
+
         // Acciones sin efecto que haya que recordar: no dejan nota de resultado
         private static readonly HashSet<string> NoNote = new HashSet<string> { "leave", "suspect_lie" };
 
@@ -1442,18 +1479,39 @@ namespace AILegacy.Dialogue
         public static string DescribeAvailable(Speaker s, bool viaLetter = false)
         {
             if (!S.Get.EnableActions) return "";
-            var sb = new StringBuilder();
+            var open = new List<ActionDef>();
             foreach (var a in All)
             {
                 if (viaLetter && !a.Letter) continue;
                 bool ok;
                 try { ok = a.IsAvailable(s); } catch { ok = false; }
-                if (!ok) continue;
+                if (ok) open.Add(a);
+            }
+            // Por tema: de las que dependen de lo que se habla, enteras solo las más cercanas; el resto, nombradas
+            var brief = new List<ActionDef>();
+            try
+            {
+                var q = s.Memory.QueryVec;
+                int top = Math.Max(1, S.Get.ActionRagTopK);
+                var topical = open.Where(a => ByTopic.Contains(a.Name) && ActionVecs.ContainsKey(a.Name)).ToList();
+                if (!viaLetter && S.Get.EnableActionRag && q != null && topical.Count > top)
+                {
+                    var keep = new HashSet<string>(topical.OrderByDescending(a => Llm.Embeddings.Cosine(q, ActionVecs[a.Name])).Take(top).Select(a => a.Name));
+                    brief = topical.Where(a => !keep.Contains(a.Name)).ToList();
+                }
+            }
+            catch { brief.Clear(); }
+            var sb = new StringBuilder();
+            foreach (var a in open)
+            {
+                if (brief.Contains(a)) continue;
                 string extra = "";
                 try { if (a.Extra != null) extra = " " + a.Extra(s); } catch { }
                 // La descripción sale de la plantilla editable prompts\actions\<acción>.txt
                 sb.AppendLine($"- {a.Usage}: {Prompt.Templates.GetOrAdd("actions/" + a.Name + ".txt", a.Description).Text}{extra}");
             }
+            if (brief.Count > 0)
+                sb.AppendLine("- Also open to you if the talk turns to them (same rules; written exactly like this): " + string.Join(" · ", brief.Select(a => a.Usage)));
             return sb.ToString().TrimEnd();
         }
 

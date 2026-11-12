@@ -1304,5 +1304,15 @@
     <string id="AIL_c3a7f1f6" text="En cache" />
     <string id="AIL_c3a7f1f7" text="Sortie" />
     <string id="AIL_c3a7f1f8" text="Coût ($)" />
+    <string id="AIL_d4b8a2f1" text="Souvenir par le sens (RAG)" />
+    <string id="AIL_d4b8a2f2" text="En plus de la recherche par mots, on cherche dans votre histoire commune les moments liés à ce que vous dites, même avec d'autres mots (« cette promesse » retrouve « je t'aiderai à prendre la forteresse »). Utilise les vecteurs d'un fournisseur que vous avez déjà (Gemini les donne gratuitement ; OpenAI facture quelques centimes). Si aucun n'en fournit, la recherche par mots continue." />
+    <string id="AIL_d4b8a2f3" text="Fragments d'histoire récupérés" />
+    <string id="AIL_d4b8a2f4" text="Répliques par fragment" />
+    <string id="AIL_d4b8a2f5" text="Combien de répliques consécutives forment un fragment d'histoire à l'indexation. Si vous changez la valeur, l'index de chaque personnage se reconstruit tout seul." />
+    <string id="AIL_d4b8a2f6" text="Actions selon le sujet" />
+    <string id="AIL_d4b8a2f7" text="Les actions qui dépendent du sujet (ordres, commerce, royaume) ne sont expliquées en entier que lorsqu'elles sont pertinentes ; les autres sont nommées sur une ligne et restent valables. Économise des tokens à chaque réplique. Nécessite les vecteurs du souvenir par le sens." />
+    <string id="AIL_d4b8a2f8" text="Actions expliquées en entier" />
+    <string id="AIL_d4b8a2f9" text="Modèle de vecteurs (vide = automatique)" />
+    <string id="AIL_d4b8a2fa" text="Vide : gemini-embedding-001 avec Gemini, text-embedding-3-small avec OpenAI, nomic-embed-text avec Ollama. N'en indiquez un autre que si votre fournisseur utilise un nom différent." />
   </strings>
 </base>

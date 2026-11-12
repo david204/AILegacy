@@ -53,6 +53,7 @@ namespace AILegacy.Memory
         public static void Archive(HeroMemory mem, IEnumerable<ChatTurn> removed)
         {
             if (mem == null || removed == null) return;
+            if (mem.ArchivedTotal < mem.Archive.Count) mem.ArchivedTotal = mem.Archive.Count;       // memorias de antes de llevar la cuenta
             foreach (var t in removed)
             {
                 if (t == null || string.IsNullOrWhiteSpace(t.Text)) continue;
@@ -64,6 +65,7 @@ namespace AILegacy.Memory
                 }
                 if (text.Length > 600) text = text.Substring(0, 600) + "…";
                 mem.Archive.Add(new ChatTurn { Role = t.Role, Text = text, Day = t.Day });
+                mem.ArchivedTotal++;
             }
             int max = Math.Max(20, S.Get.ArchiveTurns);
             if (mem.Archive.Count > max) mem.Archive.RemoveRange(0, mem.Archive.Count - max);

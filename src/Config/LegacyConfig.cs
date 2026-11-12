@@ -26,6 +26,8 @@ namespace AILegacy.Config
         [JsonProperty("price_out")] public double PriceOut = 0;
         /// <summary>¿Cuesta dinero? Sin poner, se deduce: tiene precio, o es un servicio que cobra siempre (OpenAI, DeepSeek, OpenRouter).</summary>
         [JsonProperty("paid")] public bool? Paid;
+        /// <summary>Modelo de vectores («embeddings») de este proveedor. Vacío = el habitual del servicio; «-» = no usarlo para vectores.</summary>
+        [JsonProperty("embedding_model")] public string EmbeddingModel = "";
 
         [JsonIgnore]
         public bool IsPaid

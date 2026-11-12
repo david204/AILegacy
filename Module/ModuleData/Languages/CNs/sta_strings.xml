@@ -1304,5 +1304,15 @@
     <string id="AIL_c3a7f1f6" text="已缓存" />
     <string id="AIL_c3a7f1f7" text="输出" />
     <string id="AIL_c3a7f1f8" text="费用（$）" />
+    <string id="AIL_d4b8a2f1" text="按含义回忆（RAG）" />
+    <string id="AIL_d4b8a2f2" text="除了按词语搜索，还会在你们的共同经历中查找与你所说内容相关的片段，即使用词不同（“那个承诺”能找到“我会帮你拿下那座要塞”）。使用你已有服务商的向量（Gemini 免费提供；OpenAI 只收几美分）。如果都不提供，仍使用按词语搜索。" />
+    <string id="AIL_d4b8a2f3" text="取回的经历片段数" />
+    <string id="AIL_d4b8a2f4" text="每个片段的句数" />
+    <string id="AIL_d4b8a2f5" text="建立索引时多少句连续的话组成一个经历片段。修改后，每个角色的索引会自动重建。" />
+    <string id="AIL_d4b8a2f6" text="按话题提供动作" />
+    <string id="AIL_d4b8a2f7" text="取决于话题的动作（命令、贸易、王国）只在相关时才完整说明；其余的只在一行里列出名称，仍然可用。每句话都能节省 token。需要“按含义回忆”的向量。" />
+    <string id="AIL_d4b8a2f8" text="完整说明的动作数" />
+    <string id="AIL_d4b8a2f9" text="向量模型（留空 = 自动）" />
+    <string id="AIL_d4b8a2fa" text="留空：Gemini 用 gemini-embedding-001，OpenAI 用 text-embedding-3-small，Ollama 用 nomic-embed-text。只有当你的服务商使用其他名称时才填写。" />
   </strings>
 </base>
