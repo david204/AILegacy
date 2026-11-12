@@ -1405,5 +1405,10 @@
     <string id="AIL_b7d2f025" text="Le bannissement prend fin quand le royaume change de souverain" />
     <string id="AIL_b7d2f026" text="Garder en vie les clans sans terre que vous connaissez" />
     <string id="AIL_b7d2f027" text="Le jeu dissout au bout d'un moment un clan sans royaume ni terre et tue ses membres. Avec cette option, il épargne les clans bannis et ceux où il y a des gens à qui vous avez parlé." />
+    <string id="AIL_c3e1a901" text="Rois pouvant se prononcer par jour" />
+    <string id="AIL_c3e1a902" text="Quand il se passe quelque chose d'important, plusieurs rois peuvent en parler. Ils parlent chacun leur tour, et chacun sait ce que les autres ont dit. Chaque déclaration est une requête à l'IA." />
+    <string id="AIL_c3e1a903" text="Heures de jeu entre la déclaration d'un roi et la suivante" />
+    <string id="AIL_c3e1a904" text="Groupe : les personnages nommés peuvent utiliser toutes les actions" />
+    <string id="AIL_c3e1a905" text="Dans une discussion de groupe, les seigneurs et autres personnages nommés peuvent faire ce qu'ils feraient seuls avec vous : donner de l'or, prêter serment, vous rejoindre, vous défier. Désactivé : seulement les actions de scène, comme avant. La requête du groupe est plus longue." />
   </strings>
 </base>

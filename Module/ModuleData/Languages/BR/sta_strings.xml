@@ -1405,5 +1405,10 @@
     <string id="AIL_b7d2f025" text="O banimento acaba quando o reino muda de soberano" />
     <string id="AIL_b7d2f026" text="Manter vivos os clãs sem terra que você conhece" />
     <string id="AIL_b7d2f027" text="Depois de um tempo o jogo dissolve um clã sem reino e sem terras e mata seus membros. Com isto ligado, ele poupa os clãs banidos e os que têm gente com quem você conversou." />
+    <string id="AIL_c3e1a901" text="Reis que podem se pronunciar por dia" />
+    <string id="AIL_c3e1a902" text="Quando acontece algo grande, vários reis podem falar sobre isso. Falam um de cada vez, e cada um sabe o que os outros disseram. Cada declaração é um pedido à IA." />
+    <string id="AIL_c3e1a903" text="Horas de jogo entre a declaração de um rei e a seguinte" />
+    <string id="AIL_c3e1a904" text="Grupo: personagens com nome podem usar todas as ações" />
+    <string id="AIL_c3e1a905" text="Em uma conversa em grupo, os senhores e outros personagens com nome podem fazer o que fariam a sós com você: dar ouro, jurar lealdade, juntar-se a você, desafiar você. Desligado: só ações de cena, como antes. Deixa o pedido do grupo mais longo." />
   </strings>
 </base>

@@ -318,7 +318,27 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                          "Only if there is one single person present (nobody else to talk to) may they say one short thing to {player} or simply go back to their business; if nobody would naturally speak, return an empty \"lines\" list.";
             }
             manner = manner.Replace("{player}", Hero.MainHero.Name.ToString());
-            string prompt = TGroup.Format("manner", manner, "bystanders", byText, "actions", cfg.SceneErrands ? SceneActions.Help.Replace("{player}", playerName) : "(nothing else)", "moods", Gestures.Moods,
+            // El catálogo completo, para los que tienen nombre: lo mismo que podrían hacer hablando a solas contigo
+            string deeds = "";
+            if (cfg.GroupFullActions && cfg.EnableActions)
+            {
+                var sbDeeds = new StringBuilder();
+                int listed = 0;
+                for (int i = 0; i < Circle.Count && listed < 4; i++)
+                {
+                    if (!Circle[i].Who.IsHero) continue;
+                    string brief = "";
+                    try { brief = NpcActions.DescribeBrief(Circle[i].Who, 30); } catch { }
+                    if (brief.Length == 0) continue;
+                    sbDeeds.AppendLine($"- Person {i + 1} ({Circle[i].Who.Name}): {brief}");
+                    listed++;
+                }
+                if (listed > 0)
+                    deeds = "\nDeeds with real consequences. Besides the above, these people can DO the following, exactly as they could in a private talk with " + playerName +
+                            ", and only when the talk truly calls for it and they would really decide it in front of the others. To do one, add \"do\": [\"action as written\"] to that person's line " +
+                            "(it takes effect in the world at once; never announce a deed in words without it):\n" + sbDeeds.ToString().TrimEnd();
+            }
+            string prompt = TGroup.Format("manner", manner, "bystanders", byText, "actions", (cfg.SceneErrands ? SceneActions.Help.Replace("{player}", playerName) : "(nothing else)") + deeds, "moods", Gestures.Moods,
                 "place", st?.Name?.ToString() ?? "the camp", "player", playerName, "members", members.ToString().TrimEnd(), "context", context, "elsewhere", elsewhere,
                 "transcript", transcript, "said", text.Replace("«", "\"").Replace("»", "\""), "max_lines", cfg.GroupMaxLines, "max_chars", cfg.GroupMaxChars, "language", cfg.Language);
 
@@ -395,6 +415,19 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 }
                                 else if (SceneActions.Apply(member.Agent, (l["action"] ?? "").ToString(), away, said))
                                     Circle.RemoveAll(x => x.Agent == member.Agent);
+                                // Hechos del catálogo completo (dar oro, jurar, unirse…), decididos delante de todos
+                                try
+                                {
+                                    if (cfg.GroupFullActions && member.Who.IsHero && l["do"] != null)
+                                    {
+                                        var cmds = l["do"] is JArray da ? da.Select(x => (x ?? "").ToString()).ToList() : new List<string> { l["do"].ToString() };
+                                        cmds = cmds.Where(c => !string.IsNullOrWhiteSpace(c)).Take(2).ToList();
+                                        if (cmds.Count > 0)
+                                            foreach (var shownMsg in NpcActions.Execute(member.Who, cmds, new NpcActions.ActionContext()))
+                                                Say(shownMsg, Colors.Yellow);
+                                    }
+                                }
+                                catch (Exception ex) { Log.Error("Corro: acción del catálogo", ex); }
                                 // Quien habla lo recuerda como parte de vuestra historia
                                 // (lo que dijiste se le apunta una sola vez por ronda, aunque él hable dos veces)
                                 if (!silent && heard.Add(member.Who.Key)) member.Who.Memory.Turns.Add(new ChatTurn { Role = "player", Text = "[Said to the group you were in] " + text, Day = CampaignTime.Now.ToDays });

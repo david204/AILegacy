@@ -100,28 +100,65 @@ namespace AILegacy.World
                     AskPlayer(p);
                 }
 
-            if (!WorldSim.CanCall) return;
+            // Quién va a hablar hoy. Varios reyes pueden pronunciarse sobre lo mismo: se ponen en cola y hablan de uno en uno,
+            // separados por unas horas de juego, y cada uno sabe lo que han dicho los anteriores (OnHourlyTick).
             var cfg = S.Get;
-            var candidates = new List<(Kingdom k, WorldEvent ev, bool mustAnswer)>();
+            var queue = St.StatementQueue;
+            queue.RemoveAll(q => now * 24 - q.DueHour > 48);       // turnos que se quedaron sin salir
+            var candidates = new List<(Kingdom k, WorldEvent ev, int weight)>();
 
-            // 1) Presión de respuesta: quien tiene una propuesta sin contestar
+            // 1) Presión de respuesta: quien tiene una propuesta sin contestar (van delante)
             foreach (var k in WorldSim.Kingdoms.Where(x => !PlayerRules(x)))
                 if (St.Proposals.Any(p => p.To == k.StringId) && Ready(k, now, 1) && Rng.Next(100) < cfg.ResponsePressurePercent)
-                    candidates.Add((k, null, true));
+                    candidates.Add((k, null, 1000));
 
-            // 2) Eventos que piden que un rey se pronuncie
-            if (candidates.Count == 0)
-                foreach (var ev in St.Events.Where(e => now - e.Day <= cfg.EngagementDays && e.Engagement.Count > 0).OrderByDescending(e => e.Importance))
-                    foreach (var kv in ev.Engagement.ToList())
-                    {
-                        var k = WorldSim.FindKingdom(kv.Key);
-                        if (k == null || PlayerRules(k) || !Ready(k, now, cfg.MinDaysBetweenStatements)) continue;
-                        if (Rng.Next(100) < kv.Value) candidates.Add((k, ev, false));
-                    }
+            // 2) Sucesos que piden que un rey se pronuncie
+            foreach (var ev in St.Events.Where(e => now - e.Day <= cfg.EngagementDays && e.Engagement.Count > 0).OrderByDescending(e => e.Importance))
+                foreach (var kv in ev.Engagement.ToList())
+                {
+                    var k = WorldSim.FindKingdom(kv.Key);
+                    if (k == null || PlayerRules(k) || !Ready(k, now, cfg.MinDaysBetweenStatements)) continue;
+                    if (Rng.Next(100) < kv.Value) candidates.Add((k, ev, ev.Importance * 100 + kv.Value));
+                }
 
-            if (candidates.Count == 0) return;
-            var pick = candidates[Rng.Next(candidates.Count)];
-            MakeStatement(pick.k, pick.ev);     // la ocasión se gasta al aplicar la respuesta (ApplyStatement)
+            int room = Math.Max(1, cfg.MaxStatementsPerDay) - queue.Count;
+            double due = Math.Max(now * 24 + 1, queue.Count == 0 ? 0 : queue.Max(q => q.DueHour) + cfg.HoursBetweenStatements);
+            foreach (var c in candidates.OrderByDescending(c => c.weight + Rng.Next(50)))
+            {
+                if (room <= 0) break;
+                if (queue.Any(q => q.KingdomId == c.k.StringId)) continue;       // un turno por rey
+                if (WorldSim.IsReserved("statement:" + c.k.StringId)) continue;  // su declaración anterior aún está en camino
+                queue.Add(new QueuedStatement { KingdomId = c.k.StringId, EventId = c.ev?.Id, DueHour = due });
+                due += Math.Max(1, cfg.HoursBetweenStatements);
+                room--;
+            }
+        }
+
+        /// <summary>Cada hora de juego: si a un rey le toca hablar y la cola de peticiones está libre, habla.</summary>
+        public static void OnHourlyTick()
+        {
+            try
+            {
+                if (Campaign.Current == null || St == null || St.StatementQueue.Count == 0) return;
+                if (!Enabled) { St.StatementQueue.Clear(); return; }
+                if (!WorldSim.CanCall) return;
+                double hour = CampaignTime.Now.ToHours, now = CampaignTime.Now.ToDays;
+                var next = St.StatementQueue.OrderBy(q => q.DueHour).First();
+                if (next.DueHour > hour) return;
+                if (WorldSim.IsReserved("statement:" + next.KingdomId)) return;   // aún no ha llegado la anterior: espera su turno
+                St.StatementQueue.Remove(next);
+                var k = WorldSim.FindKingdom(next.KingdomId);
+                if (k == null || k.IsEliminated || k.Leader == null || PlayerRules(k) || !Ready(k, now, 1)) return;
+                WorldEvent ev = null;
+                if (next.EventId != null)
+                {
+                    ev = St.Events.FirstOrDefault(e => e.Id == next.EventId);
+                    if (ev == null || !ev.Engagement.ContainsKey(k.StringId)) return;      // el suceso ya no está o ya habló de él
+                }
+                else if (!St.Proposals.Any(p => p.To == k.StringId)) return;               // ya no le espera nada
+                MakeStatement(k, ev);     // la ocasión se gasta al aplicar la respuesta (ApplyStatement)
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] turno de declaraciones", ex); }
         }
 
         private static bool Ready(Kingdom k, double now, int minDays) =>
@@ -243,6 +280,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             {
                 sys.AppendLine(); sys.AppendLine("## Your previous statements (do not repeat yourself)");
                 foreach (var s in prev) sys.AppendLine($"- {(int)(CampaignTime.Now.ToDays - s.Day)} day(s) ago: {s.SummaryEn}");
+            }
+            // Lo que otros reyes acaban de decir (sobre todo si hablan del mismo suceso): contesta, apoya o desmarcate
+            var others = St.Statements.Where(s => s.KingdomId != k.StringId && CampaignTime.Now.ToDays - s.Day <= 2 && !string.IsNullOrWhiteSpace(s.SummaryEn))
+                                      .OrderByDescending(s => s.Day).Take(4).ToList();
+            if (others.Count > 0)
+            {
+                sys.AppendLine(); sys.AppendLine("## What other rulers have said in the last two days (you have heard it: answer it, back it or set yourself apart, but do not echo it)");
+                foreach (var s in others) sys.AppendLine($"- {s.RulerName} of {WorldSim.FindKingdom(s.KingdomId)?.Name}: {s.SummaryEn}");
             }
             string task = about != null
                 ? $"Speak out now about this development: {(string.IsNullOrWhiteSpace(about.SummaryEn) ? about.Title : about.SummaryEn)}"

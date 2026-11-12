@@ -57,6 +57,14 @@ namespace AILegacy.World
         [JsonProperty("source")] public string Source = "world";      // world | statement | player
     }
 
+    /// <summary>Un rey que tiene turno para pronunciarse: sobre un suceso, o porque le espera una propuesta.</summary>
+    public class QueuedStatement
+    {
+        [JsonProperty("kingdom")] public string KingdomId;
+        [JsonProperty("event")] public string EventId;       // null: contesta propuestas
+        [JsonProperty("due")] public double DueHour;          // hora de campaña a partir de la cual habla
+    }
+
     public class RulerStatement
     {
         [JsonProperty("id")] public string Id;
@@ -134,6 +142,7 @@ namespace AILegacy.World
         [JsonProperty("stance")] public Dictionary<string, int> Stance = new Dictionary<string, int>();
         [JsonProperty("outbreaks")] public List<Outbreak> Outbreaks = new List<Outbreak>();
         [JsonProperty("banished")] public List<Banishment> Banished = new List<Banishment>();
+        [JsonProperty("statement_queue")] public List<QueuedStatement> StatementQueue = new List<QueuedStatement>();
         [JsonProperty("last_outbreak_day")] public double LastOutbreakDay = -1;
         [JsonProperty("laws")] public List<KingdomLaw> Laws = new List<KingdomLaw>();
         [JsonProperty("last_event_day")] public double LastEventGenerationDay = -1;

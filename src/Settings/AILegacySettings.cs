@@ -1075,6 +1075,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes")]
         public int GroupMaxParticipants { get; set; } = 6;
 
+        [SettingPropertyBool("{=AIL_c3e1a904}Group: named characters can use every action", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_c3e1a905}In a group talk, lords and other named characters can do what they could do alone with you: give gold, swear fealty, join you, challenge you. Off: only scene actions, as before. It makes the group request longer.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes")]
+        public bool GroupFullActions { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_3bcc8ae2}Group: maximum replies per turn", 1, 6, Order = 5, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes")]
         public int GroupMaxLines { get; set; } = 3;
@@ -1349,6 +1354,15 @@ namespace AILegacy.Settings
             HintText = "{=AIL_6c0f99f2}The game's clans stop proposing wars, peace, alliances and trade on their own. Kings decide them through public declarations. Requires world events to be enabled.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]
         public bool EnableDiplomacy { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_c3e1a901}Kings who may speak out per day", 1, 8, Order = 21, RequireRestart = false,
+            HintText = "{=AIL_c3e1a902}When something big happens, several kings can speak about it. They take turns, each one knowing what the others said. Every declaration is one AI request.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]
+        public int MaxStatementsPerDay { get; set; } = 3;
+
+        [SettingPropertyInteger("{=AIL_c3e1a903}Game hours between one king's declaration and the next", 1, 24, Order = 21, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]
+        public int HoursBetweenStatements { get; set; } = 4;
 
         [SettingPropertyInteger("{=AIL_4ae4ed78}Minimum days between declarations by the same king", 1, 60, Order = 21, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy")]

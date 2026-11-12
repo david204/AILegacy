@@ -1619,6 +1619,26 @@ namespace AILegacy.Dialogue
 
         internal static int UnregisterModActions(string prefix) => string.IsNullOrEmpty(prefix) || !prefix.StartsWith("mod_") ? 0 : All.RemoveAll(a => a.Name.StartsWith(prefix));
 
+        /// <summary>Las acciones abiertas a ese personaje, en corto (cómo se escribe y su primera frase): para los corros.</summary>
+        public static string DescribeBrief(Speaker s, int max)
+        {
+            if (!S.Get.EnableActions || s == null || !s.IsHero) return "";
+            var parts = new List<string>();
+            foreach (var a in All.ToList())
+            {
+                bool ok;
+                try { ok = a.IsAvailable(s); } catch { ok = false; }
+                if (!ok || NoNote.Contains(a.Name)) continue;          // las que no cambian nada (irse, sospechar) no hacen falta aquí
+                string d = Prompt.Templates.GetOrAdd("actions/" + a.Name + ".txt", a.Description).Text ?? "";
+                int dot = d.IndexOf(". ", StringComparison.Ordinal);
+                if (dot > 20) d = d.Substring(0, dot);
+                if (d.Length > 120) d = d.Substring(0, 120) + "…";
+                parts.Add(a.Usage + " (" + d.Trim().TrimEnd('.') + ")");
+                if (parts.Count >= max) break;
+            }
+            return string.Join("; ", parts);
+        }
+
         public static string DescribeAvailable(Speaker s, bool viaLetter = false)
         {
             if (!S.Get.EnableActions) return "";

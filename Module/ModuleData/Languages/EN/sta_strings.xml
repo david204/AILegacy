@@ -1405,5 +1405,10 @@
     <string id="AIL_b7d2f025" text="Banishment ends when the kingdom changes ruler" />
     <string id="AIL_b7d2f026" text="Keep landless clans you know alive" />
     <string id="AIL_b7d2f027" text="The game dissolves a clan with no kingdom and no land after a while, killing its members. With this on, it spares banished clans and clans with people you have talked to." />
+    <string id="AIL_c3e1a901" text="Kings who may speak out per day" />
+    <string id="AIL_c3e1a902" text="When something big happens, several kings can speak about it. They take turns, each one knowing what the others said. Every declaration is one AI request." />
+    <string id="AIL_c3e1a903" text="Game hours between one king's declaration and the next" />
+    <string id="AIL_c3e1a904" text="Group: named characters can use every action" />
+    <string id="AIL_c3e1a905" text="In a group talk, lords and other named characters can do what they could do alone with you: give gold, swear fealty, join you, challenge you. Off: only scene actions, as before. It makes the group request longer." />
   </strings>
 </base>

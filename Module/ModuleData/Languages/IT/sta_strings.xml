@@ -1405,5 +1405,10 @@
     <string id="AIL_b7d2f025" text="Il bando finisce quando il regno cambia sovrano" />
     <string id="AIL_b7d2f026" text="Tenere in vita i clan senza terra che conosci" />
     <string id="AIL_b7d2f027" text="Dopo un po' il gioco scioglie un clan senza regno e senza terre e ne uccide i membri. Con questa opzione risparmia i clan banditi e quelli con persone con cui hai parlato." />
+    <string id="AIL_c3e1a901" text="Re che possono pronunciarsi al giorno" />
+    <string id="AIL_c3e1a902" text="Quando succede qualcosa di grosso, più re possono parlarne. Parlano a turno e ognuno sa che cosa hanno detto gli altri. Ogni dichiarazione è una richiesta all'IA." />
+    <string id="AIL_c3e1a903" text="Ore di gioco tra la dichiarazione di un re e la successiva" />
+    <string id="AIL_c3e1a904" text="Gruppo: i personaggi con nome possono usare tutte le azioni" />
+    <string id="AIL_c3e1a905" text="In una conversazione di gruppo, i signori e gli altri personaggi con nome possono fare ciò che farebbero da soli con te: dare oro, giurare fedeltà, unirsi a te, sfidarti. Disattivato: solo azioni di scena, come prima. Allunga la richiesta del gruppo." />
   </strings>
 </base>

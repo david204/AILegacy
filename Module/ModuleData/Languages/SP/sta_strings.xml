@@ -1405,5 +1405,10 @@
     <string id="AIL_b7d2f025" text="El destierro acaba cuando el reino cambia de soberano" />
     <string id="AIL_b7d2f026" text="Conservar los clanes sin tierra que conoces" />
     <string id="AIL_b7d2f027" text="El juego disuelve al cabo de un tiempo a un clan sin reino ni tierras, y mata a sus miembros. Con esto activado, respeta a los clanes desterrados y a los que tienen gente con la que has hablado." />
+    <string id="AIL_c3e1a901" text="Reyes que pueden pronunciarse al día" />
+    <string id="AIL_c3e1a902" text="Cuando pasa algo gordo, varios reyes pueden hablar de ello. Lo hacen por turnos y cada uno sabe lo que han dicho los demás. Cada declaración es una petición a la IA." />
+    <string id="AIL_c3e1a903" text="Horas de juego entre la declaración de un rey y la siguiente" />
+    <string id="AIL_c3e1a904" text="Corro: los personajes con nombre pueden usar todas las acciones" />
+    <string id="AIL_c3e1a905" text="En una charla de grupo, los señores y demás personajes con nombre pueden hacer lo mismo que a solas contigo: dar oro, jurar lealtad, unirse a ti, retarte. Apagado: solo acciones de escena, como antes. Alarga la petición del corro." />
   </strings>
 </base>

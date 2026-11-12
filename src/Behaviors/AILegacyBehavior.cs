@@ -32,6 +32,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.GameMenuOpened.AddNonSerializedListener(this, QuarantineRules.OnGameMenuOpened);
             CampaignEvents.OnSettlementLeftEvent.AddNonSerializedListener(this, QuarantineRules.OnSettlementLeft);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, InfoExchange.OnHourlyTick);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, Diplomacy.OnHourlyTick);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MapInitiative.OnHourlyTick);
             // El mundo que se mueve solo: eventos, efectos económicos, cansancio de guerra y diplomacia de reyes
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, WorldSim.OnDailyTick);

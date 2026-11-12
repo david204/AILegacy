@@ -1405,5 +1405,10 @@
     <string id="AIL_b7d2f025" text="Die Verbannung endet, wenn das Königreich den Herrscher wechselt" />
     <string id="AIL_b7d2f026" text="Landlose Clans, die du kennst, am Leben lassen" />
     <string id="AIL_b7d2f027" text="Das Spiel löst einen Clan ohne Königreich und ohne Land nach einiger Zeit auf und tötet seine Mitglieder. Ist dies aktiv, verschont es verbannte Clans und Clans mit Leuten, mit denen du gesprochen hast." />
+    <string id="AIL_c3e1a901" text="Könige, die sich pro Tag äußern dürfen" />
+    <string id="AIL_c3e1a902" text="Wenn etwas Großes geschieht, können sich mehrere Könige dazu äußern. Sie sprechen nacheinander, und jeder weiß, was die anderen gesagt haben. Jede Erklärung ist eine KI-Anfrage." />
+    <string id="AIL_c3e1a903" text="Spielstunden zwischen der Erklärung eines Königs und der nächsten" />
+    <string id="AIL_c3e1a904" text="Gruppe: Benannte Charaktere können alle Aktionen nutzen" />
+    <string id="AIL_c3e1a905" text="In einem Gruppengespräch können Fürsten und andere benannte Charaktere dasselbe tun wie allein mit dir: Gold geben, Treue schwören, sich dir anschließen, dich herausfordern. Aus: nur Szenenaktionen, wie bisher. Die Gruppenanfrage wird dadurch länger." />
   </strings>
 </base>
