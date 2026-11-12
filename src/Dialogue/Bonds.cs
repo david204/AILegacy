@@ -157,7 +157,7 @@ namespace AILegacy.Dialogue
                 {
                     var mother = h.IsFemale ? h : P;
                     // El día del ciclo cuenta: casi imposible con la regla, el doble en los días fértiles
-                    if (!mother.IsPregnant && mother.Age < 46 && Rng.Next(1000) < S.Get.PregnancyChancePercent * 10 * World.Mood.FertilityFactor(mother))
+                    if (!mother.IsPregnant && mother.Age < 46 && Rng.Next(1000) < Math.Min(1000f, S.Get.PregnancyChancePercent * 10 * World.Mood.FertilityFactor(mother)))
                     {
                         MakePregnantAction.Apply(mother);
                         Log.Info($"Embarazo: {mother.Name}");

@@ -401,7 +401,7 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relación, confianza y romance")]
         public bool EnableFemaleCycle { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_a1c0e5d7}Días que dura el ciclo", 15, 40, Order = 23, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_a1c0e5d7}Días que dura el ciclo", 10, 40, Order = 23, RequireRestart = false,
             HintText = "{=AIL_a1c0e5d8}Días de campaña. Un año del juego tiene 84 días, así que 21 son cuatro ciclos al año.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relación, confianza y romance")]
         public int FemaleCycleDays { get; set; } = 21;

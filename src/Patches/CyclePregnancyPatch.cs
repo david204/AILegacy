@@ -19,8 +19,11 @@ namespace AILegacy.Patches
         {
             try
             {
-                if (hero == null || __result <= 0f || !hero.IsFemale || !S.Get.EnableFemaleCycle) return;
-                __result *= World.Mood.FertilityFactor(hero);
+                if (hero == null || __result <= 0f || !S.Get.EnableFemaleCycle) return;
+                // El juego puede preguntar por cualquiera de los dos: cuenta el ciclo de ella
+                var woman = hero.IsFemale ? hero : hero.Spouse;
+                if (woman == null || !woman.IsFemale) return;
+                __result = Math.Min(1f, __result * World.Mood.FertilityFactor(woman));
             }
             catch (Exception ex) { Log.Error("Ciclo y embarazo", ex); }
         }

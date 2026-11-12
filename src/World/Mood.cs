@@ -215,7 +215,7 @@ namespace AILegacy.World
                     {
                         int limit = p.Party.PartySizeLimit;
                         if (limit > 20 && p.MemberRoster.TotalManCount * 100 < limit * 35) Live("Your party is a shadow of what it should be: too few men, and you feel exposed.", -1, 1);
-                        if (p.MemberRoster.TotalManCount > 10 && p.MemberRoster.TotalWounded * 2 > p.MemberRoster.TotalManCount) Live("Half your men are wounded: you are worried for them.", -1, 1);
+                        if (p.MemberRoster.TotalManCount > 10 && p.MemberRoster.TotalWounded * 100 > p.MemberRoster.TotalManCount * 30) Live("Many of your men are wounded: you are worried for them.", -1, 1);
                     }
                     var home = h.CurrentSettlement;
                     if (home != null && home.IsUnderSiege) Live($"{home.Name} is under siege with you inside: fear and anger, and little sleep.", -1, 3);
@@ -331,74 +331,94 @@ namespace AILegacy.World
         private static string Ago(double days) => days < 1 ? "today" : days < 2 ? "yesterday" : $"{(int)days} days ago";
 
         // ============================================================ ciclo
+        // Mismo modelo que AIInfluence 7.0.1 (cinco fases; cada mujer tiene su duración, sus días de regla y cuánto le
+        // afecta, y salen de ella misma, sin guardar nada), escrito aquí de cero.
 
-        /// <summary>Día del ciclo (1..duración), o 0 si no tiene: fuera de edad, embarazada, recién parida o apagado en los ajustes.</summary>
-        public static int CycleDay(Speaker s, out int length)
+        public enum CyclePhase { Menstruation, Follicular, Fertile, Luteal, Premenstrual }
+
+        public class CycleState
         {
-            length = 0;
-            return s == null ? 0 : CycleDay(s.Key, s.IsFemale, s.Age, s.Hero, out length);
+            public CyclePhase Phase;
+            public int Length;            // días de su ciclo (la media de los ajustes, ±2)
+            public int Day;               // 1..Length
+            public int PeriodLength;      // días de regla
+            public int DaysUntilPeriod;
+            public int Severity;          // 0 casi no lo nota · 1 lo nota · 2 lo lleva mal
+            public float Fertility;       // por cuánto se multiplica la probabilidad de embarazo
         }
 
-        private static int CycleDay(string key, bool female, float age, Hero hero, out int length)
+        /// <summary>El ciclo de una mujer en un día dado. Depende solo de quién es y del día: no se guarda nada.</summary>
+        public static CycleState Compute(string id, double nowDays, int baseLength)
         {
-            length = Math.Max(15, Math.Min(40, S.Get.FemaleCycleDays));
+            uint h = Stable(id ?? "");
+            int length = Math.Max(8, baseLength + (int)(h % 5u) - 2);
+            int offset = (int)(h / 5u % (uint)length);
+            int day = (int)((((long)Math.Floor(nowDays) + offset) % length + length) % length);       // 0..length-1
+            int period = Math.Max(2, (int)Math.Round(length * 0.15)) + (int)(h / 100000u % 2u);
+            int pms = Math.Max(1, (int)Math.Round(length * 0.14));
+            int ovulation = length / 2;
+            int window = Math.Max(1, (int)Math.Round(length * 0.11));
+            uint roll = h / 7919u % 100u;
+            var st = new CycleState
+            {
+                Length = length, Day = day + 1, PeriodLength = period, DaysUntilPeriod = length - day,
+                Severity = roll < 20u ? 0 : roll < 60u ? 1 : 2,
+            };
+            if (day < period) { st.Phase = CyclePhase.Menstruation; st.Fertility = 0.05f; }
+            else if (day < ovulation - window) { st.Phase = CyclePhase.Follicular; st.Fertility = 0.5f; }
+            else if (day <= ovulation + 1) { st.Phase = CyclePhase.Fertile; st.Fertility = day == ovulation || day == ovulation - 1 ? 4.5f : 3f; }
+            else if (day < length - pms) { st.Phase = CyclePhase.Luteal; st.Fertility = 0.3f; }
+            else { st.Phase = CyclePhase.Premenstrual; st.Fertility = 0.1f; }
+            return st;
+        }
+
+        /// <summary>Su ciclo hoy, o null si no tiene: fuera de edad, embarazada, recién parida o apagado en los ajustes.</summary>
+        public static CycleState Cycle(string key, bool female, float age, Hero hero)
+        {
             try
             {
-                if (!S.Get.EnableFemaleCycle || key == null || !female || age < 13f || age > 47f) return 0;
+                if (!S.Get.EnableFemaleCycle || key == null || !female || age < 13f || age >= 47f) return null;
                 if (hero != null)
                 {
-                    if (hero.IsPregnant || !hero.IsAlive) return 0;
-                    double now = Now;
-                    if (St != null && St.MoodEvents.Any(e => e.Who == hero.StringId && e.Kind == "gave_birth" && now - e.Day < 40)) return 0;
+                    if (hero.IsPregnant || !hero.IsAlive) return null;
+                    // Tras el parto no hay ciclo durante un tiempo
+                    foreach (var c in hero.Children)
+                        if (c != null && c.Mother == hero && c.BirthDay.ElapsedDaysUntilNow < 12f) return null;
                 }
-                int offset = (int)(Stable(key) % (uint)length);
-                return (int)(((long)Math.Floor(Now) + offset) % length) + 1;
+                return Compute(key, Now, Math.Max(10, Math.Min(40, S.Get.FemaleCycleDays)));
             }
-            catch { return 0; }
+            catch { return null; }
         }
 
-        /// <summary>Cuánto se le nota: 0 casi nada … 3 mucho. Es de cada una y no cambia.</summary>
-        private static int CycleStrength(Speaker s) => (int)((Stable(s.Key + "|c") >> 8) % 4);
-
-        /// <summary>Tramo del ciclo: 0 regla, 1 después, 2 días fértiles, 3 antes de la regla.</summary>
-        private static int Phase(int day, int length)
-        {
-            double f = (day - 1) / (double)length;
-            return f < 0.20 ? 0 : f < 0.40 ? 1 : f < 0.62 ? 2 : f < 0.78 ? 1 : 3;
-        }
+        public static CycleState Cycle(Speaker s) => s == null ? null : Cycle(s.Key, s.IsFemale, s.Age, s.Hero);
 
         private static Cause CycleCause(Speaker s)
         {
-            int day = CycleDay(s, out int length);
-            if (day <= 0) return null;
-            int strength = CycleStrength(s);
-            int ph = Phase(day, length);
-            string phase = ph == 0 ? "You are bleeding these days: cramps, a heavy body, less patience than usual."
-                         : ph == 2 ? "These are your fertile days: you feel well, lively and more easily drawn to people."
-                         : ph == 3 ? "Your bleeding is a few days away: you feel swollen and tired, and small things irritate or sadden you more easily."
-                         : "You feel like yourself: steady, with energy to spare.";
-            string how = strength == 0 ? "hardly at all" : strength == 1 ? "a little" : strength == 2 ? "clearly" : "a great deal";
-            int sign = ph == 0 || ph == 3 ? -1 : ph == 2 ? +1 : 0;
-            int weight = ph == 1 ? 0 : strength >= 3 ? 2 : strength >= 1 ? 1 : 0;
-            return new Cause { Text = TCycle.Format("day", day, "length", length, "phase", phase, "strength", how), Sign = sign, Strength = weight, Age = 0 };
+            var c = Cycle(s);
+            if (c == null) return null;
+            string phase;
+            int sign, weight;
+            switch (c.Phase)
+            {
+                case CyclePhase.Menstruation:
+                    phase = "You are bleeding these days: cramps, a heavy body, less patience than usual."; sign = -1; weight = c.Severity; break;
+                case CyclePhase.Premenstrual:
+                    phase = $"Your bleeding is {(c.DaysUntilPeriod <= 1 ? "a day" : c.DaysUntilPeriod + " days")} away: you feel swollen and tired, and small things irritate or sadden you more easily."; sign = -1; weight = c.Severity; break;
+                case CyclePhase.Fertile:
+                    phase = "These are your fertile days: you feel well, lively and more easily drawn to people."; sign = +1; weight = c.Severity > 0 ? 1 : 0; break;
+                case CyclePhase.Follicular:
+                    phase = "Your bleeding is behind you: you feel light and like yourself, with energy to spare."; sign = +1; weight = 0; break;
+                default:
+                    phase = "You feel steady, a little slower than a week ago."; sign = 0; weight = 0; break;
+            }
+            string how = c.Severity == 0 ? "hardly at all" : c.Severity == 1 ? "clearly" : "a great deal";
+            return new Cause { Text = TCycle.Format("day", c.Day, "length", c.Length, "phase", phase, "strength", how), Sign = sign, Strength = weight, Age = 0 };
         }
 
         /// <summary>Por cuánto se multiplica la probabilidad de embarazo según el día del ciclo (1 si no tiene ciclo o está apagado).</summary>
         public static float FertilityFactor(Hero mother)
         {
-            try
-            {
-                if (mother == null || !S.Get.EnableFemaleCycle) return 1f;
-                int day = CycleDay(mother.StringId, mother.IsFemale, mother.Age, mother, out int length);
-                if (day <= 0) return 1f;
-                switch (Phase(day, length))
-                {
-                    case 0: return 0.1f;
-                    case 2: return 2.2f;
-                    case 3: return 0.4f;
-                    default: return 0.8f;
-                }
-            }
+            try { return mother == null ? 1f : Cycle(mother.StringId, mother.IsFemale, mother.Age, mother)?.Fertility ?? 1f; }
             catch { return 1f; }
         }
 
