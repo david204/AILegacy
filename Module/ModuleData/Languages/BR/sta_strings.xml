@@ -1331,5 +1331,10 @@
     <string id="AIL_f6d0c4b2" text="O mensageiro que a trouxe espera a sua resposta e a leva de volta sem cobrar. Levará {0} para chegar." />
     <string id="AIL_f6d0c4b3" text="Responder" />
     <string id="AIL_f6d0c4b4" text="Ciente" />
+    <string id="AIL_a7e1d3c1" text="Mostrar a resposta assim que chegar" />
+    <string id="AIL_a7e1d3c2" text="Quando a resposta chega, ela aparece sozinha na caixa de diálogo, sem apertar «Ver a resposta». Desligado: você mesmo aperta." />
+    <string id="AIL_a7e1d3c3" text="Som quando a resposta chega" />
+    <string id="AIL_a7e1d3c4" text="Relação, confiança e romance sob cada resposta" />
+    <string id="AIL_a7e1d3c5" text="Abaixo de cada resposta, uma linha com como você está agora com esse personagem: relação, confiança, tensão, romance e quantas vezes ele pegou você mentindo." />
   </strings>
 </base>

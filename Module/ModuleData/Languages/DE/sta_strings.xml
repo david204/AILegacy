@@ -1331,5 +1331,10 @@
     <string id="AIL_f6d0c4b2" text="Der Bote, der den Brief gebracht hat, wartet auf deine Antwort und bringt sie kostenlos zurück. Sie braucht {0}." />
     <string id="AIL_f6d0c4b3" text="Antworten" />
     <string id="AIL_f6d0c4b4" text="Zur Kenntnis nehmen" />
+    <string id="AIL_a7e1d3c1" text="Antwort sofort anzeigen, wenn sie eintrifft" />
+    <string id="AIL_a7e1d3c2" text="Trifft die Antwort ein, erscheint sie von selbst im Dialogfeld, ohne „Antwort ansehen“ zu drücken. Aus: Du drückst selbst." />
+    <string id="AIL_a7e1d3c3" text="Ton, wenn die Antwort eintrifft" />
+    <string id="AIL_a7e1d3c4" text="Beziehung, Vertrauen und Romanze unter jeder Antwort" />
+    <string id="AIL_a7e1d3c5" text="Unter jeder Antwort eine Zeile dazu, wie du gerade zu dieser Figur stehst: Beziehung, Vertrauen, Spannung, Romanze und wie oft sie dich beim Lügen ertappt hat." />
   </strings>
 </base>

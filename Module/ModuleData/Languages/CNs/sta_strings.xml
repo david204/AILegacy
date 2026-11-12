@@ -1331,5 +1331,10 @@
     <string id="AIL_f6d0c4b2" text="送信的信使在等你的回信，并会免费带回去。送达需要{0}。" />
     <string id="AIL_f6d0c4b3" text="回信" />
     <string id="AIL_f6d0c4b4" text="知道了" />
+    <string id="AIL_a7e1d3c1" text="回复一到就显示" />
+    <string id="AIL_a7e1d3c2" text="回复到达时会自动出现在对话框里，不必点击“查看回复”。关闭：由你自己点击。" />
+    <string id="AIL_a7e1d3c3" text="回复到达时播放提示音" />
+    <string id="AIL_a7e1d3c4" text="在每条回复下显示关系、信任和恋情" />
+    <string id="AIL_a7e1d3c5" text="在每条回复下用一行显示你与该角色目前的状况：关系、信任、紧张、恋情，以及他识破你说谎的次数。" />
   </strings>
 </base>

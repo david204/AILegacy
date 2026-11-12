@@ -250,6 +250,20 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
         public bool UseDialogStyle { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_a7e1d3c1}Show the reply as soon as it arrives", Order = 8, RequireRestart = false,
+            HintText = "{=AIL_a7e1d3c2}When the answer arrives it appears in the dialogue box by itself, without pressing \"See their reply\". Off: you press it yourself.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public bool AutoShowReply { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_a7e1d3c3}Sound when the reply arrives", Order = 8, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public bool ReplyReadySound { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_a7e1d3c4}Relation, trust and romance under each reply", Order = 8, RequireRestart = false,
+            HintText = "{=AIL_a7e1d3c5}Under each answer, one line with where you stand with that character right now: relation, trust, tension, romance, and how many times they have caught you lying.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
+        public bool ShowDialogStats { get; set; } = true;
+
         [SettingPropertyBool("{=AIL_25c835cb}Use asterisks for gestures", Order = 8, RequireRestart = false, HintText = "{=AIL_1586f13c}NPCs describe gestures between *asterisks*.")]
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General")]
         public bool UseAsterisks { get; set; } = true;

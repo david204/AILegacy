@@ -1331,5 +1331,10 @@
     <string id="AIL_f6d0c4b2" text="Il messaggero che l'ha portata aspetta la tua risposta e la riporta senza farsi pagare. Impiegherà {0} ad arrivare." />
     <string id="AIL_f6d0c4b3" text="Rispondi" />
     <string id="AIL_f6d0c4b4" text="Ricevuto" />
+    <string id="AIL_a7e1d3c1" text="Mostra la risposta appena arriva" />
+    <string id="AIL_a7e1d3c2" text="Quando arriva, la risposta compare da sola nel riquadro di dialogo, senza premere «Vedi la sua risposta». Disattivato: la premi tu." />
+    <string id="AIL_a7e1d3c3" text="Suono all'arrivo della risposta" />
+    <string id="AIL_a7e1d3c4" text="Relazione, fiducia e romanticismo sotto ogni risposta" />
+    <string id="AIL_a7e1d3c5" text="Sotto ogni risposta, una riga su come stai ora con quel personaggio: relazione, fiducia, tensione, romanticismo e quante volte ti ha colto a mentire." />
   </strings>
 </base>

@@ -150,7 +150,43 @@ namespace AILegacy.Dialogue
             if (_lastNpc.Length > 0) sb.Append(_lastNpc.StartsWith("(") ? "" : _s.Name + ": ").Append(_lastNpc);
             foreach (var n in _dialogNotes) sb.Append("{newline}» ").Append(n);
             _dialogNotes.Clear();
+            string stats = _lastNpc.Length > 0 ? StatsLine() : "";
+            if (stats.Length > 0) sb.Append("{newline}").Append(stats);
             return Sanitize(sb.ToString());
+        }
+
+        /// <summary>
+        /// La respuesta ya ha llegado: si el cuadro de diálogo está esperando con «Ver su respuesta», se pulsa solo.
+        /// Si el jugador está en otra cosa (otra rama del diálogo, una ventana abierta), no se toca nada.
+        /// </summary>
+        private void AutoShow()
+        {
+            try
+            {
+                if (_closed || !_dialogMode || !HasUnreadReply || Active != this) return;
+                var cm = Campaign.Current?.ConversationManager;
+                if (cm == null || !cm.IsConversationInProgress || cm.CurOptions == null) return;
+                if (!cm.CurOptions.Any(o => o.Id == "ailegacy_d_view")) return;
+                cm.DoOption("ailegacy_d_view");
+            }
+            catch (Exception ex) { Log.Error("Enseñar la respuesta sola", ex); }
+        }
+
+        /// <summary>Cómo estáis ahora mismo, en una línea: relación, confianza, tensión y romance.</summary>
+        private string StatsLine()
+        {
+            try
+            {
+                var cfg = S.Get;
+                if (!cfg.ShowDialogStats || !_s.IsHero) return "";
+                var parts = new List<string> { L.F("AIL_f3138943", $"Relación: {(int)_s.Hero.GetRelationWithPlayer():+0;-0;0}") };
+                if (cfg.EnableTrust) { Bonds.EnsureTrust(_s); parts.Add(L.F("AIL_2cb6f858", $"Confianza: {Mem.Trust}")); }
+                if (cfg.EnableTension && Bonds.Tension(Mem) > 0) parts.Add(L.F("AIL_55654690", $"Tensión: {Bonds.Tension(Mem)}"));
+                if (Bonds.RomancePossible(_s) && Mem.Romance > 0) parts.Add(L.F("AIL_bbb8296b", $"   ·   Romance: {Mem.Romance}").Trim(' ', '·'));
+                if (Mem.LiesSuspected > 0) parts.Add("⚠ " + Mem.LiesSuspected);
+                return "[ " + string.Join("  ·  ", parts) + " ]";
+            }
+            catch { return ""; }
         }
 
         public string WaitText => _waiting || _lastNpc.Length == 0 ? L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)") : Sanitize(_lastNpc);
@@ -191,7 +227,15 @@ namespace AILegacy.Dialogue
             {
                 _lastNpc = text;
                 HasUnreadReply = true;
-                Notify(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow);
+                // Aviso con sonido, y la respuesta aparece sola en el cuadro (sin tener que pulsar «Ver su respuesta»)
+                try
+                {
+                    var note = new InformationMessage(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow);
+                    if (S.Get.ReplyReadySound) note.SoundEventPath = "event:/ui/notification/quest_update";
+                    InformationManager.DisplayMessage(note);
+                }
+                catch { Notify(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow); }
+                if (S.Get.AutoShowReply) MainThread.Post(AutoShow);
                 return;
             }
             if (UseWindow) _win.VM.AddLine(_s.Name, text, ChatVM.NpcColor);
