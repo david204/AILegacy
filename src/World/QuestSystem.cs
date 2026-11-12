@@ -148,9 +148,10 @@ namespace AILegacy.World
                     if (r.Name.Length < 3 || (r.Description.Length < 10 && r.Brief.Length < 10)) { Log.Warn("Encargo sin nombre o descripción: ignorado"); break; }
                     int days = Math.Max(3, Math.Min(60, r.Days <= 0 ? 15 : r.Days));
                     int reward = Math.Max(0, Math.Min(r.Reward, Math.Min(cfg.MaxGoldPerAction, Math.Max(0, h.Gold))));
+                    EnsureHooks();
                     var q = new AiQuest
                     {
-                        Id = "q" + Rng.Next(1000, 9999),
+                        Id = NewId(),
                         GiverId = h.StringId, GiverName = s.Name,
                         Name = Clip(r.Name, 60), Description = Clip(r.Description.Length > 0 ? r.Description : r.Brief, 500), Brief = Clip(r.Brief, 400),
                         CreatedDay = now, DueDay = now + days, RewardGold = reward,
@@ -219,6 +220,20 @@ namespace AILegacy.World
             return shown;
         }
 
+        /// <summary>Id que no usa ningún encargo (ni activo ni del historial) ni ninguna misión del diario.</summary>
+        private static string NewId()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                string id = "q" + Rng.Next(100000, 1000000);
+                if (Quests.Any(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase))) continue;
+                try { if (GameJournal.Find(id) != null) continue; } catch { }
+                return id;
+            }
+            // Casi imposible: se recurre a la hora y a un contador
+            return "q" + DateTime.UtcNow.Ticks.ToString("x") + Quests.Count;
+        }
+
         private static AiQuest Find(Hero h, string id, bool allowTarget)
         {
             var mine = Quests.Where(q => q.Active && (q.GiverId == h.StringId || (allowTarget && q.Targets.Contains(h.StringId)))).ToList();
@@ -279,17 +294,95 @@ namespace AILegacy.World
             catch { }
         }
 
+        // ============================================================ muertes: el encargo se cierra al momento
+
+        // Se escucha la muerte de héroes del juego (sin esperar al tick diario): si muere quien lo dio, o la persona a la que
+        // había que ver o entregar algo, el encargo se cierra en el acto y su misión sale del diario (y del mapa).
+        private static readonly object HookOwner = new object();
+        private static WeakReference _hookedOn;
+
+        /// <summary>Engancha el aviso de muerte en la campaña actual (una sola vez por campaña).</summary>
+        public static void EnsureHooks()
+        {
+            try
+            {
+                if (Campaign.Current == null) return;
+                var ev = CampaignEvents.HeroKilledEvent;
+                if (ev == null || (_hookedOn != null && ReferenceEquals(_hookedOn.Target, ev))) return;
+                ev.AddNonSerializedListener(HookOwner, OnHeroKilled);
+                _hookedOn = new WeakReference(ev);
+                Log.Info("Encargos: escuchando las muertes de héroes");
+            }
+            catch (Exception ex) { Log.Error("Encargos: enganchar muertes", ex); }
+        }
+
+        private static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification)
+        {
+            try
+            {
+                if (victim == null) return;
+                CloseForDeath(victim.StringId);
+            }
+            catch (Exception ex) { Log.Error("Encargos: muerte de un héroe", ex); }
+        }
+
+        /// <summary>Cierra los encargos que ya no pueden seguir porque ha muerto quien los dio o su objetivo.</summary>
+        private static void CloseForDeath(string heroId)
+        {
+            foreach (var q in Quests.Where(x => x.Active).ToList())
+            {
+                if (q.GiverId == heroId)
+                {
+                    End(q, "failed", "the giver died");
+                    GameJournal.Close(q, "cancelled", L.F("AIL_cb1eb4c2", $"{q.GiverName} ha muerto."));
+                    continue;
+                }
+                bool objective = q.ObjTargetId == heroId && (q.ObjType == "talk_to" || q.ObjType == "deliver_item" || q.ObjType == "deliver_document");
+                if (objective && !QuestObjectives.Met(q))
+                {
+                    // Ya no se puede cumplir, y no es culpa del jugador: se cancela sin castigo
+                    End(q, "failed", $"{q.ObjTargetName}, whom the task concerned, died");
+                    GameJournal.Close(q, "cancelled", L.F("AIL_cb1eb4c2", $"{q.ObjTargetName} ha muerto."));
+                    continue;
+                }
+                // Sigue en pie (objetivo ya cumplido o solo era un implicado): deja de marcarse en el mapa
+                if (objective || q.Targets.Contains(heroId)) GameJournal.Untrack(q, heroId);
+            }
+        }
+
+        /// <summary>Al cargar: lo que haya muerto mientras tanto (o en una partida vieja) se cierra ya, antes de tocar el diario.</summary>
+        public static void CloseDeadOnLoad()
+        {
+            try
+            {
+                foreach (var q in Quests.Where(x => x.Active).ToList())
+                {
+                    if (!q.Active) continue;
+                    var giver = Hero.Find(q.GiverId);
+                    if (giver == null || giver.IsDead) { CloseForDeath(q.GiverId); continue; }
+                    if (!string.IsNullOrEmpty(q.ObjTargetId) && (q.ObjType == "talk_to" || q.ObjType == "deliver_item" || q.ObjType == "deliver_document"))
+                    {
+                        var t = Hero.Find(q.ObjTargetId);
+                        if (t == null || t.IsDead) CloseForDeath(q.ObjTargetId);
+                    }
+                }
+            }
+            catch (Exception ex) { Log.Error("Encargos: muertos al cargar", ex); }
+        }
+
         // ============================================================ tiempo
 
         public static void OnDailyTick()
         {
             try
             {
+                EnsureHooks();
                 double now = CampaignTime.Now.ToDays;
                 QuestObjectives.OnDailyTick();
                 foreach (var q in Quests.Where(x => x.Active).ToList())
                 {
                     var giver = Hero.Find(q.GiverId);
+                    // Red de seguridad por si el aviso de muerte no llegó
                     if (giver == null || giver.IsDead) { End(q, "failed", "the giver died"); GameJournal.Close(q, "cancelled", L.F("AIL_cb1eb4c2", $"{q.GiverName} ha muerto.")); continue; }
                     if (now >= q.DueDay)
                     {

@@ -58,37 +58,40 @@ namespace AILegacy.Dialogue
             catch { return null; }
         }
 
-        // Dinero: la IA a veces repite en la respuesta siguiente el cobro que ya hizo. El mismo importe, en el mismo sentido y
-        // con la misma persona no se cobra dos veces en pocos minutos.
-        private static readonly Dictionary<string, (int amount, DateTime at)> LastGold = new Dictionary<string, (int, DateTime)>();
+        // Antirrepetición: la IA a veces repite en la respuesta siguiente lo que ya hizo (cobrar, dar un objeto, ceder tropas…).
+        // La misma acción, sobre lo mismo, con la misma cantidad y la misma persona no se repite en pocos minutos.
+        // Vale para oro, objetos, tropas, prisioneros, comercio y documentos.
+        private static readonly Dictionary<string, (int amount, DateTime at)> LastDone = new Dictionary<string, (int, DateTime)>();
 
-        public static void ResetSession() => LastGold.Clear();
+        public static void ResetSession() => LastDone.Clear();
 
-        private static bool RepeatedGold(Speaker s, string dir, int amount)
+        private static bool Repeated(Speaker s, string what, int amount)
         {
-            if (LastGold.TryGetValue(s.Key + "|" + dir, out var last) && last.amount == amount && (DateTime.UtcNow - last.at).TotalSeconds < S.Get.GoldRepeatGuardSeconds)
+            if (LastDone.TryGetValue(s.Key + "|" + what, out var last) && last.amount == amount && (DateTime.UtcNow - last.at).TotalSeconds < S.Get.GoldRepeatGuardSeconds)
             {
-                Log.Warn($"Cobro repetido ignorado: {dir} {amount} con {s.Name} (ya se hizo hace {(int)(DateTime.UtcNow - last.at).TotalSeconds} s)");
+                Log.Warn($"Acción repetida ignorada: {what} x{amount} con {s.Name} (ya se hizo hace {(int)(DateTime.UtcNow - last.at).TotalSeconds} s)");
                 return true;
             }
             return false;
         }
 
-        private static void NoteGold(Speaker s, string dir, int amount)
+        /// <summary>Apunta lo hecho y se lo deja en su historial (en inglés, para el modelo), para que no lo repita ni lo pida otra vez.</summary>
+        private static void NoteDone(Speaker s, string what, int amount, string doneText)
         {
-            LastGold[s.Key + "|" + dir] = (amount, DateTime.UtcNow);
-            // Que lo vea en su historial: así no vuelve a pedirlo ni a cobrarlo
+            LastDone[s.Key + "|" + what] = (amount, DateTime.UtcNow);
+            if (string.IsNullOrEmpty(doneText)) return;
             try
             {
-                s.Memory.Turns.Add(new Memory.ChatTurn
-                {
-                    Role = "player", Day = CampaignTime.Now.ToDays,
-                    Text = dir == "take" ? $"[Done: they have handed you {amount} denars. It is paid in full — do not take or ask for it again.]"
-                                         : $"[Done: you have handed them {amount} denars. It is given — do not give it again.]"
-                });
+                s.Memory.Turns.Add(new Memory.ChatTurn { Role = "player", Day = CampaignTime.Now.ToDays, Text = "[Done: " + doneText + "]" });
             }
             catch { }
         }
+
+        private static bool RepeatedGold(Speaker s, string dir, int amount) => Repeated(s, "gold|" + dir, amount);
+
+        private static void NoteGold(Speaker s, string dir, int amount) =>
+            NoteDone(s, "gold|" + dir, amount, dir == "take" ? $"they have handed you {amount} denars. It is paid in full — do not take or ask for it again."
+                                                             : $"you have handed them {amount} denars. It is given — do not give it again.");
 
         // --- comercio con la gente del lugar
         private static Settlement Market()
@@ -211,11 +214,11 @@ namespace AILegacy.Dialogue
         {
             name = (arg ?? "").Trim(); days = 0;
             int c = name.LastIndexOf(':');
-            string tail = c >= 0 ? name.Substring(c + 1) : name;
-            var digits = new string(tail.Where(char.IsDigit).ToArray());
-            if (digits.Length > 0 && tail.Trim().All(ch => char.IsDigit(ch) || char.IsWhiteSpace(ch) || char.IsLetter(ch)) && tail.Trim().Length <= 8 && char.IsDigit(tail.Trim()[0]))
+            string tail = (c >= 0 ? name.Substring(c + 1) : name).Trim();
+            // Solo el primer número del final («1.000», «3 días»…), nunca todas las cifras juntas
+            if (tail.Length > 0 && tail.Length <= 10 && char.IsDigit(tail[0]) && tail.All(ch => char.IsLetterOrDigit(ch) || char.IsWhiteSpace(ch) || ch == '.' || ch == ','))
             {
-                double.TryParse(digits, out days);
+                days = ParseAmount(tail);
                 name = c >= 0 ? name.Substring(0, c).Trim() : "";
             }
         }
@@ -354,6 +357,8 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var h = s.Hero;
+                    // Ya casados: nada que hacer (y antes de tocar ningún matrimonio)
+                    if (P.Spouse == h || h.Spouse == P) return null;
                     try
                     {
                         // Quien no es noble (compañero, errante, notable sin casa) entra antes en tu casa como noble
@@ -369,8 +374,8 @@ namespace AILegacy.Dialogue
                         if (P.Spouse != null && P.Spouse != h) { var ex = P.Spouse; P.Spouse = null; if (ex.Spouse == P) ex.Spouse = null; }
                     }
                     catch (Exception ex) { Log.Error("Preparar la boda", ex); }
-                    if (P.Spouse == h) return null;
                     MarriageAction.Apply(P, h);
+                    if (P.Spouse != h) { Log.Warn($"La boda con {s.Name} no se ha podido celebrar"); return null; }
                     Bonds.ChangeRomance(s, 10);
                     return L.F("AIL_fd4aafcb", $"¡Te casas con {s.Name}!");
                 }
@@ -401,12 +406,15 @@ namespace AILegacy.Dialogue
                     string name = c > 0 ? arg.Substring(0, c) : arg; int qty = Math.Max(1, c > 0 ? ParseAmount(arg.Substring(c + 1)) : 1);
                     var item = FindInRoster(st.ItemRoster, name, out int have);
                     if (item == null || have <= 0) return null;
+                    string key = "sell_goods|" + item.StringId; int asked = qty;
+                    if (Repeated(s, key, asked)) return null;
                     qty = Math.Min(qty, have);
                     int cost = PriceOf(item, false) * qty;
                     if (P.Gold < cost) return L.F("AIL_3c14bb80", $"No te llega para {qty} de {item.Name} ({cost} denarios).");
                     GiveGoldAction.ApplyForCharacterToSettlement(P, st, cost, true);
                     st.ItemRoster.AddToCounts(item, -qty);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, qty);
+                    NoteDone(s, key, asked, $"you have sold them {qty} x {item.Name} for {cost} denars; they have paid and have the goods — do not sell it again.");
                     return L.F("AIL_b83bfea6", $"Compras {qty} de {item.Name} por {cost} denarios.");
                 }
             },
@@ -425,6 +433,8 @@ namespace AILegacy.Dialogue
                     string name = c > 0 ? arg.Substring(0, c) : arg; int qty = Math.Max(1, c > 0 ? ParseAmount(arg.Substring(c + 1)) : 1);
                     var item = FindInRoster(MobileParty.MainParty.ItemRoster, name, out int have);
                     if (item == null || have <= 0) return null;
+                    string key = "buy_goods|" + item.StringId; int asked = qty;
+                    if (Repeated(s, key, asked)) return null;
                     qty = Math.Min(qty, have);
                     int pay = PriceOf(item, true) * qty;
                     int purse = st.Town != null ? st.Town.Gold : pay;
@@ -433,6 +443,7 @@ namespace AILegacy.Dialogue
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -qty);
                     st.ItemRoster.AddToCounts(item, qty);
                     GiveGoldAction.ApplyForSettlementToCharacter(st, P, pay, true);
+                    NoteDone(s, key, asked, $"you have bought {qty} x {item.Name} from them for {pay} denars; it is paid and the goods are yours — do not buy it again.");
                     return L.F("AIL_fba371fc", $"Vendes {qty} de {item.Name} por {pay} denarios.");
                 }
             },
@@ -653,10 +664,14 @@ namespace AILegacy.Dialogue
                 {
                     var p = Led(s);
                     SplitTroops(arg, out int want, out string kind);
+                    string key = "give_troops|" + NormName(kind);
+                    if (Repeated(s, key, want)) return null;
                     int n = Math.Min(want, Math.Min(S.Get.MaxTroopsPerTransfer, p.MemberRoster.TotalRegulars / 3));
                     if (n <= 0) return null;
                     int moved = MoveTroops(p.MemberRoster, MobileParty.MainParty.MemberRoster, n, false, kind);
-                    return moved > 0 ? L.F("AIL_24ba54ab", $"{s.Name} te cede {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")}.") : null;
+                    if (moved <= 0) return null;
+                    NoteDone(s, key, want, $"you have handed {moved} of your soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to them. They are theirs now — do not give them again.");
+                    return L.F("AIL_24ba54ab", $"{s.Name} te cede {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")}.");
                 }
             },
             new ActionDef
@@ -667,10 +682,14 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     SplitTroops(arg, out int want, out string kind);
+                    string key = "take_troops|" + NormName(kind);
+                    if (Repeated(s, key, want)) return null;
                     int n = Math.Min(want, S.Get.MaxTroopsPerTransfer);
                     if (n <= 0) return null;
                     int moved = MoveTroops(MobileParty.MainParty.MemberRoster, Led(s).MemberRoster, n, false, kind);
-                    return moved > 0 ? L.F("AIL_bca1e090", $"Cedes {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")} a {s.Name}.") : null;
+                    if (moved <= 0) return null;
+                    NoteDone(s, key, want, $"they have handed {moved} soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to you. They are in your party now — do not take them again.");
+                    return L.F("AIL_bca1e090", $"Cedes {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")} a {s.Name}.");
                 }
             },
             new ActionDef
@@ -684,11 +703,21 @@ namespace AILegacy.Dialogue
                 {
                     var p = Led(s);
                     var noble = FindHeroPrisoner(p, arg);
-                    if (noble != null) { TransferPrisonerAction.Apply(noble, p.Party, MobileParty.MainParty.Party); return L.F("AIL_f378719a", $"{s.Name} te entrega a su prisionero {noble.Name}."); }
-                    int n = Math.Min(ParseAmount(arg), 500);
+                    if (noble != null)
+                    {
+                        if (Repeated(s, "give_prisoners|" + noble.StringId, 1)) return null;
+                        TransferPrisonerAction.Apply(noble, p.Party, MobileParty.MainParty.Party);
+                        NoteDone(s, "give_prisoners|" + noble.StringId, 1, $"you have handed your prisoner {noble.Name} over to them.");
+                        return L.F("AIL_f378719a", $"{s.Name} te entrega a su prisionero {noble.Name}.");
+                    }
+                    int want = ParseAmount(arg);
+                    if (Repeated(s, "give_prisoners|common", want)) return null;
+                    int n = Math.Min(want, 500);
                     if (n <= 0) return null;
                     int moved = MoveTroops(p.PrisonRoster, MobileParty.MainParty.PrisonRoster, n, true);
-                    return moved > 0 ? L.F("AIL_dec042f4", $"{s.Name} te entrega {moved} prisioneros.") : null;
+                    if (moved <= 0) return null;
+                    NoteDone(s, "give_prisoners|common", want, $"you have handed {moved} prisoners over to them — do not give them again.");
+                    return L.F("AIL_dec042f4", $"{s.Name} te entrega {moved} prisioneros.");
                 }
             },
             new ActionDef
@@ -703,13 +732,19 @@ namespace AILegacy.Dialogue
                     if (noble != null)
                     {
                         if (noble.HeroObject == s.Hero) return null;
+                        if (Repeated(s, "take_prisoners|" + noble.StringId, 1)) return null;
                         TransferPrisonerAction.Apply(noble, main.Party, Led(s).Party);
+                        NoteDone(s, "take_prisoners|" + noble.StringId, 1, $"they have handed their prisoner {noble.Name} over to you.");
                         return L.F("AIL_7ed3beae", $"Entregas a {s.Name} a tu prisionero {noble.Name}.");
                     }
-                    int n = Math.Min(ParseAmount(arg), 500);
+                    int want = ParseAmount(arg);
+                    if (Repeated(s, "take_prisoners|common", want)) return null;
+                    int n = Math.Min(want, 500);
                     if (n <= 0) return null;
                     int moved = MoveTroops(main.PrisonRoster, Led(s).PrisonRoster, n, true);
-                    return moved > 0 ? L.F("AIL_2d97f1db", $"Entregas {moved} prisioneros a {s.Name}.") : null;
+                    if (moved <= 0) return null;
+                    NoteDone(s, "take_prisoners|common", want, $"they have handed {moved} prisoners over to you — do not take them again.");
+                    return L.F("AIL_2d97f1db", $"Entregas {moved} prisioneros a {s.Name}.");
                 }
             },
 
@@ -719,23 +754,25 @@ namespace AILegacy.Dialogue
                 Name = "give_item", Usage = "give_item:<item name>:<amount>",
                 Description = "You hand the other person that many of an item you really have (goods, food, a weapon, a horse), for good. Only when you truly decided to: a gift, a payment in kind, " +
                               "a reward, or a sale they already paid for with take_gold. Never give more than you would plausibly part with.",
-                IsAvailable = s => S.Get.AllowItems && MobileParty.MainParty != null && !(s.IsHero && s.Hero.IsPrisoner),
-                Extra = s => Led(s) != null ? "What your party carries: " + ListItems(Led(s).ItemRoster, 12) + "."
-                                            : "You have no baggage train here: you can only hand over everyday goods a person like you would have at hand (food, cloth, tools, trade goods).",
+                IsAvailable = s => S.Get.AllowItems && MobileParty.MainParty != null && !(s.IsHero && s.Hero.IsPrisoner) && HasAny(GiveSource(s, out _)),
+                Extra = s => { var src = GiveSource(s, out var where); return $"What you can hand over ({where}): " + ListItems(src, 12) + ". Nothing else: you cannot give what is not listed."; },
                 Execute = (s, arg, ctx) =>
                 {
                     SplitArg(arg, out var name, out var amount);
-                    int n = Math.Max(1, (int)amount);
-                    var p = Led(s);
-                    ItemObject item; int have;
-                    if (p != null) item = FindInRoster(p.ItemRoster, name, out have);
-                    else { item = FindCommonGood(name); have = 20; }
-                    if (item == null) return null;
+                    int asked = Math.Max(1, (int)amount), n = asked;
+                    // Siempre de un inventario real: su partida o las existencias del lugar; si no lo tiene, no hay nada que dar
+                    var src = GiveSource(s, out _);
+                    if (src == null) return null;
+                    var item = FindInRoster(src, name, out int have);
+                    if (item == null || have <= 0) return null;
+                    string key = "give_item|" + item.StringId;
+                    if (Repeated(s, key, asked)) return null;
                     n = Math.Min(n, have);
                     if (item.Value > 0) n = Math.Min(n, Math.Max(1, S.Get.MaxItemValuePerAction / item.Value));
                     if (n <= 0) return null;
-                    if (p != null) p.ItemRoster.AddToCounts(item, -n);
+                    src.AddToCounts(item, -n);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, n);
+                    NoteDone(s, key, asked, $"you have handed them {n} x {item.Name}. It is given — do not give it again.");
                     return L.F("AIL_8fb29764", $"{s.Name} te da {n} × {item.Name}.");
                 }
             },
@@ -750,10 +787,14 @@ namespace AILegacy.Dialogue
                     SplitArg(arg, out var name, out var amount);
                     var item = FindInRoster(MobileParty.MainParty.ItemRoster, name, out int have);
                     if (item == null) return L.F("AIL_e00ce40a", $"No llevas «{name}» para dárselo a {s.Name}.");
-                    int n = Math.Min(Math.Max(1, (int)amount), have);
+                    int asked = Math.Max(1, (int)amount);
+                    string key = "take_item|" + item.StringId;
+                    if (Repeated(s, key, asked)) return null;
+                    int n = Math.Min(asked, have);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -n);
                     Led(s)?.ItemRoster.AddToCounts(item, n);
                     QuestObjectives.OnItemTaken(s, item, n);
+                    NoteDone(s, key, asked, $"they have handed you {n} x {item.Name}. You have it now — do not take or ask for it again.");
                     return L.F("AIL_a3c89c8a", $"Entregas {n} × {item.Name} a {s.Name}.");
                 }
             },
@@ -770,8 +811,11 @@ namespace AILegacy.Dialogue
                     if (name.Length < 2) return null;
                     if (name.Length > 60) name = name.Substring(0, 60);
                     if (desc.Length > 300) desc = desc.Substring(0, 300);
+                    string key = "give_document|" + Belongings.Norm(name);
+                    if (Repeated(s, key, 1)) return null;
                     Belongings.Items.RemoveAll(i => Belongings.Norm(i.Name) == Belongings.Norm(name));
                     Belongings.Items.Add(new RpItem { Name = name, Description = desc, FromId = s.Hero.StringId, FromName = s.Name, Day = CampaignTime.Now.ToDays });
+                    NoteDone(s, key, 1, $"you have handed them \"{name}\". They carry it now — do not give it again.");
                     return L.F("AIL_0fbba7b1", $"{s.Name} te entrega: {name}.");
                 }
             },
@@ -784,8 +828,11 @@ namespace AILegacy.Dialogue
                 {
                     var it = Belongings.Find(arg);
                     if (it == null) return null;
+                    string key = "take_document|" + Belongings.Norm(it.Name);
+                    if (Repeated(s, key, 1)) return null;
                     Belongings.Items.Remove(it);
                     QuestObjectives.OnDocumentTaken(s, it);
+                    NoteDone(s, key, 1, $"they have handed you \"{it.Name}\". You keep it now.");
                     return L.F("AIL_a15797e0", $"Entregas a {s.Name}: {it.Name}.");
                 }
             },
@@ -998,15 +1045,16 @@ namespace AILegacy.Dialogue
                 Name = "attack", Usage = "attack",
                 Description = "You end the parley and attack them with your party right now: there will be a battle. Use it when you have decided to fight (you are at war and see no reason to let them go).",
                 IsAvailable = s => Combat.EnemyOnMap(s),
-                Extra = s => $"Your party: {Combat.Men(Led(s))} fighting men. Theirs: {Combat.Men(MobileParty.MainParty)}.",
-                Execute = (s, arg, ctx) => { Combat.KeepEncounter = true; ctx.EndConversation = true; return L.F("AIL_53ea433d", $"{s.Name} da la charla por terminada y se lanza al ataque."); }
+                Extra = s => $"Your party: {Combat.Men(Combat.MapFoeParty(s))} fighting men. Theirs: {Combat.Men(MobileParty.MainParty)}.",
+                // La batalla empieza sola al cerrar la charla (con señores y con partidas sin señor)
+                Execute = (s, arg, ctx) => { Combat.QueueMapAttack(s); ctx.EndConversation = true; return L.F("AIL_53ea433d", $"{s.Name} da la charla por terminada y se lanza al ataque."); }
             },
             new ActionDef
             {
                 Name = "surrender", Usage = "surrender",
                 Description = "You yield: you and all your men lay down arms and become their prisoners, without a battle. Only when the fight is clearly hopeless or they gave you terms you accept; " +
                               "proud or brave characters would rather fight.",
-                IsAvailable = s => Combat.EnemyOnMap(s) && Combat.Men(Led(s)) * 2 <= Combat.Men(MobileParty.MainParty),
+                IsAvailable = s => Combat.EnemyOnMap(s) && Combat.Men(Combat.MapFoeParty(s)) * 2 <= Combat.Men(MobileParty.MainParty),
                 Execute = (s, arg, ctx) => { ctx.EndConversation = true; return Combat.QueueSurrender(s); }
             },
             new ActionDef
@@ -1151,6 +1199,8 @@ namespace AILegacy.Dialogue
         {
             try
             {
+                // Ya es tu cónyuge: no hay otra boda que celebrar
+                if (h == null || h == P || P.Spouse == h || h.Spouse == P) return false;
                 if (SafeSuitable(h)) return true;
                 var cfg = S.Get;
                 if (!cfg.MarryCommoners && !(h.IsLord)) return false;
@@ -1241,19 +1291,50 @@ namespace AILegacy.Dialogue
             return best;
         }
 
-        /// <summary>Bienes corrientes que cualquiera puede tener a mano aunque no lleve un grupo (comida, mercancía).</summary>
-        private static ItemObject FindCommonGood(string name)
+        /// <summary>
+        /// De dónde sale lo que da el NPC: siempre de un inventario real. Su partida (o la de su clan en la que viaja);
+        /// sin partida, las existencias del lugar donde está, si es suyo (su clan es el dueño, o es uno de sus notables)
+        /// o si vive de venderlas (mercader, artesano, aldeano…). Si no hay nada de eso, null: no puede dar nada.
+        /// </summary>
+        private static ItemRoster GiveSource(Speaker s, out string where)
         {
-            string n = NormName(name);
-            if (n.Length < 3) return null;
+            where = "nothing";
             try
             {
-                return TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObjectTypeList<ItemObject>()
-                    .Where(i => i != null && (i.IsFood || i.IsTradeGood))
-                    .OrderBy(i => i.Value)
-                    .FirstOrDefault(i => { string a = NormName(i.Name.ToString()); return a == n || a.Contains(n) || n.Contains(a) || NormName(i.StringId) == n; });
+                var p = Led(s);
+                if (p != null) { where = "your party's baggage"; return p.ItemRoster; }
+                if (s.IsHero)
+                {
+                    var bp = s.Hero.PartyBelongedTo;
+                    if (bp != null && !bp.IsMainParty && bp.ActualClan != null && bp.ActualClan == s.Hero.Clan && bp.ActualClan != Clan.PlayerClan)
+                    { where = "your clan's baggage"; return bp.ItemRoster; }
+                }
+                var st = s.Settlement;
+                if (st?.ItemRoster == null) return null;
+                bool own = s.IsHero && ((st.OwnerClan != null && s.Hero.Clan == st.OwnerClan) || st.Notables.Contains(s.Hero));
+                bool livesOffIt = !s.IsHero && s.ResidentSettlement == st && s.Character != null && LivesOffStock(s.Character.Occupation);
+                if (!own && !livesOffIt) return null;
+                where = $"the stores of {st.Name}";
+                return st.ItemRoster;
             }
             catch { return null; }
+        }
+
+        private static bool LivesOffStock(Occupation o)
+        {
+            switch (o)
+            {
+                case Occupation.Merchant: case Occupation.GoodsTrader: case Occupation.Artisan: case Occupation.ShopWorker: case Occupation.Tavernkeeper:
+                case Occupation.Villager: case Occupation.Blacksmith: case Occupation.HorseTrader:
+                    return true;
+            }
+            return false;
+        }
+
+        private static bool HasAny(ItemRoster r)
+        {
+            try { return r != null && r.Any(e => e.EquipmentElement.Item != null && e.Amount > 0); }
+            catch { return false; }
         }
 
         private static string ListItems(ItemRoster roster, int max)
@@ -1322,7 +1403,8 @@ namespace AILegacy.Dialogue
                     Log.Info($"Acción {cmd} de {s.Name}" + (msg != null ? ": " + msg : ""));
                     if (msg != null) messages.Add(msg);
                     else if (def.Usage.Contains(":")) Log.Warn($"La acción {cmd} no se pudo cumplir (objetivo no encontrado o no válido)");
-                    RecordAsNews(s, name);
+                    // Noticia solo si de verdad ha salido bien (si no, por ejemplo, una boda que no ha pasado)
+                    if (msg != null) RecordAsNews(s, name);
                 }
                 catch (Exception ex) { Log.Error($"Error ejecutando la acción {cmd}", ex); }
             }
@@ -1333,6 +1415,16 @@ namespace AILegacy.Dialogue
         private static void RecordAsNews(Speaker s, string action)
         {
             if (!s.IsHero) return;
+            // Comprobar en el mundo que ha pasado de verdad
+            try
+            {
+                bool happened = action == "join_party" ? s.Hero.CompanionOf == Clan.PlayerClan
+                              : action == "set_free" ? !s.Hero.IsPrisoner
+                              : action == "accept_marriage" ? P.Spouse == s.Hero
+                              : true;
+                if (!happened) { Log.Warn($"Noticia de {action} con {s.Name} descartada: no ha ocurrido"); return; }
+            }
+            catch { return; }
             string text = null, es = null, title = null; int imp = 1;
             switch (action)
             {
@@ -1350,10 +1442,40 @@ namespace AILegacy.Dialogue
             });
         }
 
-        private static int ParseAmount(string arg)
+        /// <summary>
+        /// Solo el PRIMER número del texto («100 ahora y 100 después» → 100; «200-300» → 200).
+        /// Acepta separador de miles («1.000», «1,000», «1 000» → 1000) y «5k» → 5000; los decimales se descartan («2.5» → 2).
+        /// </summary>
+        internal static int ParseAmount(string arg)
         {
-            var digits = new string((arg ?? "").Where(char.IsDigit).ToArray());
-            return int.TryParse(digits, out var v) ? v : 0;
+            var s = arg ?? "";
+            int i = 0;
+            while (i < s.Length && !char.IsDigit(s[i])) i++;
+            if (i >= s.Length) return 0;
+            long v = 0;
+            int j = i;
+            while (j < s.Length && char.IsDigit(s[j])) { v = v * 10 + (s[j] - '0'); j++; if (v > int.MaxValue) return int.MaxValue; }
+            // Grupos de miles: solo si el primer grupo tiene 1-3 cifras y cada grupo siguiente exactamente 3, con el mismo separador
+            if (j - i <= 3)
+            {
+                char sep = '\0';
+                // j es el separador; hacen falta s[j+1..j+3]
+                while (j + 3 < s.Length)
+                {
+                    char c = s[j];
+                    bool isSep = c == '.' || c == ',' || c == ' ' || c == ' ' || c == ' ' || c == '\'';
+                    if (!isSep || (sep != '\0' && c != sep)) break;
+                    if (!char.IsDigit(s[j + 1]) || !char.IsDigit(s[j + 2]) || !char.IsDigit(s[j + 3])) break;
+                    if (j + 4 < s.Length && char.IsDigit(s[j + 4])) break;              // cuatro o más cifras: no es un grupo de miles
+                    sep = c;
+                    v = v * 1000 + (s[j + 1] - '0') * 100 + (s[j + 2] - '0') * 10 + (s[j + 3] - '0');
+                    if (v > int.MaxValue) return int.MaxValue;
+                    j += 4;
+                }
+            }
+            // «5k» = 5000
+            if (j < s.Length && (s[j] == 'k' || s[j] == 'K') && (j + 1 >= s.Length || !char.IsLetter(s[j + 1]))) v *= 1000;
+            return v > int.MaxValue ? int.MaxValue : (int)v;
         }
     }
 }

@@ -73,6 +73,7 @@ namespace AILegacy.World
         {
             try
             {
+                QuestSystem.EnsureHooks();
                 if (!Ready || Find(q.Id) != null) return;
                 var giver = Hero.Find(q.GiverId);
                 if (giver == null || !giver.IsAlive) return;
@@ -100,6 +101,21 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Actualizar misión del diario", ex); }
         }
 
+        /// <summary>Deja de marcar en el mapa a un héroe (ha muerto) sin cerrar la misión.</summary>
+        public static void Untrack(AiQuest q, string heroId) => Untrack(q, Hero.Find(heroId));
+
+        /// <summary>Deja de marcar algo en el mapa (un héroe muerto, una banda destruida) sin cerrar la misión.</summary>
+        public static void Untrack(AiQuest q, ITrackableCampaignObject obj)
+        {
+            try
+            {
+                var gq = Find(q.Id);
+                if (gq == null || obj == null || ReferenceEquals(obj, gq.QuestGiver)) return;
+                if (gq.IsTracked(obj)) gq.RemoveTrackedObject(obj);
+            }
+            catch (Exception ex) { Log.Error("Quitar seguimiento de la misión", ex); }
+        }
+
         public static void Close(AiQuest q, string state, string text)
         {
             try
@@ -120,7 +136,10 @@ namespace AILegacy.World
         {
             try
             {
+                QuestSystem.EnsureHooks();
                 if (!Ready) return;
+                // Primero se cierran los encargos cuyo dador u objetivo ha muerto: no se crea en el diario nada con un muerto
+                QuestSystem.CloseDeadOnLoad();
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active).ToList())
                     if (Find(q.Id) == null) Create(q);
                 foreach (var gq in Campaign.Current.QuestManager.Quests.OfType<AILegacyQuest>().Where(x => x.IsOngoing).ToList())
