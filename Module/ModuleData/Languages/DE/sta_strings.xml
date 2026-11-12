@@ -1358,5 +1358,8 @@
     <string id="AIL_b8f2e6b4" text="Zurückweichen" />
     <string id="AIL_b8f2e6b5" text="Du weichst vor {0} zurück." />
     <string id="AIL_b8f2e6b6" text="{0} ist bereit, gegen dich anzutreten." />
+    <string id="AIL_c7a9d5e1" text="{0} kehrt wie vereinbart zu dir zurück." />
+    <string id="AIL_c7a9d5e2" text="{0} hat {1} erreicht und bleibt {2} Tag(e) dort." />
+    <string id="AIL_c7a9d5e3" text="{0} gibt {2} {1} Denare." />
   </strings>
 </base>

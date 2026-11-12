@@ -1358,5 +1358,8 @@
     <string id="AIL_b8f2e6b4" text="Tirati indietro" />
     <string id="AIL_b8f2e6b5" text="Ti tiri indietro davanti a {0}." />
     <string id="AIL_b8f2e6b6" text="{0} è pronto a battersi con te." />
+    <string id="AIL_c7a9d5e1" text="{0} torna da te, come d'accordo." />
+    <string id="AIL_c7a9d5e2" text="{0} è arrivato a {1} e vi resta {2} giorno/i." />
+    <string id="AIL_c7a9d5e3" text="{0} dà {1} denari a {2}." />
   </strings>
 </base>

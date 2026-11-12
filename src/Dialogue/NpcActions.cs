@@ -308,9 +308,10 @@ namespace AILegacy.Dialogue
             // ----------------------------------------------------------- dinero
             new ActionDef
             {
-                Name = "give_gold", Usage = "give_gold:<amount>",
+                Name = "give_gold", Usage = "give_gold:<amount>  or  give_gold:<amount>:<name of someone else who is here>",
                 Description = "You hand the other person that many denars from your own purse, right now. Only when you have truly decided to give or pay them " +
-                              "(a gift, a reward, a ransom you agreed to pay, payment for a deal you accepted). Never while still negotiating.",
+                              "(a gift, a reward, a ransom you agreed to pay, payment for a deal you accepted). Never while still negotiating. " +
+                              "With a name, the money goes to that other person instead, if they are here with you.",
                 IsAvailable = s => (s.IsHero && s.Hero.Gold > 0) || (s.Band != null && s.Band.PartyTradeGold > 0),
                 Extra = s => s.Band != null ? $"Your band's purse holds {s.Band.PartyTradeGold} denars." : "",
                 Execute = (s, arg, ctx) =>
@@ -318,6 +319,19 @@ namespace AILegacy.Dialogue
                     int purse = s.IsHero ? s.Hero.Gold : s.Band.PartyTradeGold;
                     int amount = Math.Min(ParseAmount(arg), Math.Min(purse, S.Get.MaxGoldPerAction));
                     if (amount <= 0) return Nope(null, "no valid amount was given, or your purse is empty");
+                    // ¿Para un tercero que está aquí? («give_gold:200:Nombre»)
+                    int sep = (arg ?? "").IndexOf(':');
+                    string toName = sep >= 0 ? arg.Substring(sep + 1).Trim() : "";
+                    if (toName.Length > 0 && s.IsHero && NormName(toName) != NormName(P.Name.ToString()) && NormName(toName) != NormName(P.FirstName?.ToString()))
+                    {
+                        var third = FindPresent(s, toName);
+                        if (third == null) return Nope(null, $"{toName} is not here with you: you can only hand coin to someone present");
+                        if (Repeated(s, "gold|give|" + third.StringId, amount)) return null;
+                        GiveGoldAction.ApplyBetweenCharacters(s.Hero, third, amount);
+                        NoteDone(s, "gold|give|" + third.StringId, amount, $"you have handed {amount} denars to {third.Name}. It is given — do not give it again.");
+                        try { Bonds.TouchOther(Speaker.FromHero(third), s, 4, $"{s.Name} handed them {amount} denars in front of {P.Name}"); } catch { }
+                        return L.F("AIL_c7a9d5e3", $"{s.Name} da {amount} denarios a {third.Name}.");
+                    }
                     if (RepeatedGold(s, "give", amount)) return null;
                     if (s.IsHero) GiveGoldAction.ApplyBetweenCharacters(s.Hero, P, amount);
                     else { s.Band.PartyTradeGold -= amount; P.ChangeHeroGold(amount); }
@@ -695,9 +709,9 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
-                Name = "go_to", Usage = "go_to:<town, castle or village>  or  go_to:<place>:return", Letter = true,
-                Description = "You take your party to that place and then go back to your own business. Add \":return\" if you agreed to come back to the other person " +
-                              "afterwards and ride with them again.",
+                Name = "go_to", Usage = "go_to:<town, castle or village>  or  go_to:<place>:<days to stay there>  or either with :return at the end", Letter = true,
+                Description = "You take your party to that place and then go back to your own business. Give a number of days if you agreed to stay there a while. " +
+                              "Add \":return\" at the end if you agreed to come back to the other person afterwards and ride with them again.",
                 IsAvailable = s => CanOrder(s),
                 Execute = (s, arg, ctx) =>
                 {
@@ -706,10 +720,10 @@ namespace AILegacy.Dialogue
                     foreach (var suffix in new[] { ":return", ":back", ":and return", ":then return" })
                         if (arg.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) { back = true; arg = arg.Substring(0, arg.Length - suffix.Length); break; }
                     if (back && AtWarWithPlayer(s)) back = false;
-                    SplitArg(arg, out var name, out _);
+                    SplitArg(arg, out var name, out var stay);
                     var st = OrderSystem.FindSettlement(name, x => !Hostile(s, x));
                     if (st == null) return null;
-                    if (!OrderSystem.Give(s.Hero, "goto", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays, back ? "follow" : null)) return null;
+                    if (!OrderSystem.Give(s.Hero, "goto", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays, back ? "follow" : null, stay)) return null;
                     return back ? L.F("AIL_9c4ee846", $"{s.Name} parte hacia {st.Name} y después volverá contigo.") : L.F("AIL_e70b1e8a", $"{s.Name} parte hacia {st.Name}.");
                 }
             },
@@ -727,58 +741,62 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
-                Name = "patrol", Usage = "patrol:<town, castle or village>:<days>", Letter = true,
+                Name = "patrol", Usage = "patrol:<town, castle or village>:<days>  (add :return to come back to them afterwards)", Letter = true,
                 Description = "You patrol with your party around that place for that many days, protecting it.",
                 IsAvailable = s => CanOrder(s),
                 Execute = (s, arg, ctx) =>
                 {
+                    bool back = TakeReturn(ref arg) && !AtWarWithPlayer(s);
                     SplitArg(arg, out var name, out var days);
                     var st = OrderSystem.FindSettlement(name);
                     if (st == null) return null;
-                    if (!OrderSystem.Give(s.Hero, "patrol", st.StringId, st.Name.ToString(), days)) return null;
+                    if (!OrderSystem.Give(s.Hero, "patrol", st.StringId, st.Name.ToString(), days, back ? "follow" : null)) return null;
                     return L.F("AIL_611c4786", $"{s.Name} patrullará los alrededores de {st.Name}.");
                 }
             },
             new ActionDef
             {
-                Name = "attack_party", Usage = "attack_party:<name of the enemy party>",
+                Name = "attack_party", Usage = "attack_party:<name of the enemy party>  (add :return to come back to them afterwards)",
                 Description = "You ride out with your party to hunt down and attack that enemy party. Only against parties you could plausibly beat or must stop.",
                 IsAvailable = s => CanOrder(s) && OrderSystem.HostilesNear(s.Hero, 1).Count > 0,
                 Extra = s => "Enemy parties near you right now: " + string.Join("; ", OrderSystem.HostilesNear(s.Hero).Select(p => $"{p.Name} ({p.MemberRoster.TotalManCount} men)")) +
                              $". Your own party has {OrderSystem.PartyLedBy(s.Hero)?.MemberRoster.TotalManCount} men.",
                 Execute = (s, arg, ctx) =>
                 {
+                    bool back = TakeReturn(ref arg) && !AtWarWithPlayer(s);
                     var target = OrderSystem.FindHostile(s.Hero, arg);
                     if (target == null) return null;
-                    if (!OrderSystem.Give(s.Hero, "attack", target.StringId, target.Name.ToString(), S.Get.OrderDefaultDays)) return null;
+                    if (!OrderSystem.Give(s.Hero, "attack", target.StringId, target.Name.ToString(), S.Get.OrderDefaultDays, back ? "follow" : null)) return null;
                     return L.F("AIL_1fb2c5a1", $"{s.Name} sale a dar caza a {target.Name}.");
                 }
             },
             new ActionDef
             {
-                Name = "besiege", Usage = "besiege:<enemy town or castle>", Letter = true,
+                Name = "besiege", Usage = "besiege:<enemy town or castle>  (add :return to come back to them afterwards)", Letter = true,
                 Description = "You march your party to lay siege to that town or castle of a realm you are at war with. A serious military commitment: only with enough men or as part of a real plan.",
                 IsAvailable = s => CanOrder(s) && HasWars(s),
                 Execute = (s, arg, ctx) =>
                 {
+                    bool back = TakeReturn(ref arg) && !AtWarWithPlayer(s);
                     SplitArg(arg, out var name, out _);
                     var st = OrderSystem.FindSettlement(name, x => x.IsFortification && Hostile(s, x));
                     if (st == null) return null;
-                    if (!OrderSystem.Give(s.Hero, "besiege", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays)) return null;
+                    if (!OrderSystem.Give(s.Hero, "besiege", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays, back ? "follow" : null)) return null;
                     return L.F("AIL_77e4bc34", $"{s.Name} marcha a asediar {st.Name}.");
                 }
             },
             new ActionDef
             {
-                Name = "raid", Usage = "raid:<enemy village>", Letter = true,
+                Name = "raid", Usage = "raid:<enemy village>  (add :return to come back to them afterwards)", Letter = true,
                 Description = "You take your party to raid and burn that village of a realm you are at war with. Merciful or honourable characters refuse to prey on peasants.",
                 IsAvailable = s => CanOrder(s) && HasWars(s),
                 Execute = (s, arg, ctx) =>
                 {
+                    bool back = TakeReturn(ref arg) && !AtWarWithPlayer(s);
                     SplitArg(arg, out var name, out _);
                     var st = OrderSystem.FindSettlement(name, x => x.IsVillage && Hostile(s, x) && !x.IsRaided);
                     if (st == null) return null;
-                    if (!OrderSystem.Give(s.Hero, "raid", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays)) return null;
+                    if (!OrderSystem.Give(s.Hero, "raid", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays, back ? "follow" : null)) return null;
                     return L.F("AIL_8279d8bb", $"{s.Name} parte a saquear {st.Name}.");
                 }
             },
@@ -1659,6 +1677,38 @@ namespace AILegacy.Dialogue
         }
 
         private static string Clip(string t, int max) => t == null ? "" : t.Length <= max ? t : t.Substring(0, max) + "…";
+
+        /// <summary>«…:return» al final: se acordó volver junto al jugador después. Lo quita del argumento.</summary>
+        private static bool TakeReturn(ref string arg)
+        {
+            arg = (arg ?? "").Trim();
+            foreach (var suffix in new[] { ":return", ":back", ":and return", ":then return", ",then:return" })
+                if (arg.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) { arg = arg.Substring(0, arg.Length - suffix.Length).Trim(); return true; }
+            return false;
+        }
+
+        /// <summary>Alguien con nombre que está aquí mismo: en el mismo sitio que el jugador, en su partida o en la del personaje.</summary>
+        private static Hero FindPresent(Speaker s, string name)
+        {
+            string n = NormName(name);
+            if (n.Length < 3) return null;
+            try
+            {
+                var here = Settlement.CurrentSettlement;
+                var mine = MobileParty.MainParty;
+                var theirs = s.IsHero ? s.Hero.PartyBelongedTo : null;
+                foreach (var h in Hero.AllAliveHeroes)
+                {
+                    if (h == null || h == P || (s.IsHero && h == s.Hero) || h.IsChild || h.IsPrisoner) continue;
+                    bool present = (here != null && h.CurrentSettlement == here) || (h.PartyBelongedTo != null && (h.PartyBelongedTo == mine || h.PartyBelongedTo == theirs));
+                    if (!present) continue;
+                    string hn = NormName(h.Name.ToString()), fn = NormName(h.FirstName?.ToString());
+                    if (hn == n || fn == n || (n.Length >= 4 && (hn.Contains(n) || n.Contains(fn) && fn.Length >= 4))) return h;
+                }
+            }
+            catch { }
+            return null;
+        }
 
         private static void Say(string msg) => TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage(msg, TaleWorlds.Library.Colors.Yellow));
 

@@ -1358,5 +1358,8 @@
     <string id="AIL_b8f2e6b4" text="Echarse atrás" />
     <string id="AIL_b8f2e6b5" text="Te echas atrás ante {0}." />
     <string id="AIL_b8f2e6b6" text="{0} está dispuesto a batirse contigo." />
+    <string id="AIL_c7a9d5e1" text="{0} vuelve contigo, como acordasteis." />
+    <string id="AIL_c7a9d5e2" text="{0} ha llegado a {1} y se queda allí {2} día(s)." />
+    <string id="AIL_c7a9d5e3" text="{0} da {1} denarios a {2}." />
   </strings>
 </base>

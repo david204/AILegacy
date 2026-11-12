@@ -1358,5 +1358,8 @@
     <string id="AIL_b8f2e6b4" text="Back down" />
     <string id="AIL_b8f2e6b5" text="You back down before {0}." />
     <string id="AIL_b8f2e6b6" text="{0} is ready to fight you." />
+    <string id="AIL_c7a9d5e1" text="{0} comes back to you, as agreed." />
+    <string id="AIL_c7a9d5e2" text="{0} has reached {1} and stays there for {2} day(s)." />
+    <string id="AIL_c7a9d5e3" text="{0} gives {1} denars to {2}." />
   </strings>
 </base>

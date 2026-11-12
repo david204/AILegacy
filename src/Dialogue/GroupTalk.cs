@@ -94,7 +94,7 @@ Other things a speaker can do:
 A line may carry ""goes_to"" or ""action"", never both.
 Each line also carries ""mood"": how the speaker looks while saying it, one of: {moods}.
 Rules: 1 to {max_lines} lines in total, each under {max_chars} characters, in {language}. Each line is spoken words only (a brief *gesture* is allowed). Nobody speaks for {player}. Nobody uses a name they have not been told or would not know. Stay in character; never mention games or AI.
-Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the list>, ""text"": ""..."", ""mood"": ""..."", ""goes_to"": """", ""returns"": false, ""action"": """" } ], ""summary"": ""what was said in this exchange, ONE English sentence"", ""between"": [ { ""from"": <number>, ""to"": <number>, ""change"": -2 to 2, ""why"": ""few English words"" } ] (only if in this exchange one person present was hurt, insulted, defended, shamed or won over by ANOTHER person present, not by {player}; usually empty), ""rumor_title"": ""a 3-6 word headline of that rumour in {language}, or empty"", ""rumor_local"": ""the rumour itself in {language}, or empty"", ""rumor"": ""almost always empty. Only if {player} has just told these people news of public weight that they will repeat to others whether they believe it or not (a death, a crime, a betrayal, a scandal touching named nobles or a crown), or if something happened here that the whole place will talk about: ONE neutral English sentence, worded as hearsay when it is only something they were told"" }");
+Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the list>, ""text"": ""..."", ""mood"": ""..."", ""goes_to"": """", ""returns"": false, ""action"": """" } ], ""summary"": ""what was said in this exchange, ONE English sentence"", ""between"": [ { ""from"": <number>, ""to"": <number>, ""change"": -2 to 2, ""why"": ""few English words"" } ] (only if in this exchange one person present was hurt, insulted, defended, shamed or won over by ANOTHER person present, not by {player}; usually empty), ""toward_player"": [ { ""who"": <number>, ""relation"": -2 to 2, ""trust"": -3 to 3 } ] (only for someone whose opinion of {player}, or trust in their word, truly moved because of what {player} just said or did; usually empty), ""rumor_title"": ""a 3-6 word headline of that rumour in {language}, or empty"", ""rumor_local"": ""the rumour itself in {language}, or empty"", ""rumor"": ""almost always empty. Only if {player} has just told these people news of public weight that they will repeat to others whether they believe it or not (a death, a crime, a betrayal, a scandal touching named nobles or a crown), or if something happened here that the whole place will talk about: ONE neutral English sentence, worded as hearsay when it is only something they were told"" }");
 
         public static void Touch() { var _ = TGroup.Key; }
 
@@ -419,6 +419,31 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 }
                         }
                         catch { }
+                        // Lo que cada uno pasa a pensar de TI por lo que acabas de decir o hacer delante de todos
+                        try
+                        {
+                            if (!silent && j["toward_player"] is JArray tp)
+                                foreach (var e in tp.OfType<JObject>().Take(4))
+                                {
+                                    int.TryParse(new string((e["who"]?.ToString() ?? "").Where(char.IsDigit).ToArray()), out int wi);
+                                    if (wi < 1 || wi > circle.Count) continue;
+                                    var who = circle[wi - 1].Who;
+                                    if (!who.IsHero) continue;
+                                    int.TryParse((e["relation"] ?? "0").ToString().Trim(), out int rel);
+                                    int.TryParse((e["trust"] ?? "0").ToString().Trim(), out int tr);
+                                    rel = Math.Max(-2, Math.Min(2, rel)); tr = Math.Max(-3, Math.Min(3, tr));
+                                    if (rel != 0) TaleWorlds.CampaignSystem.Actions.ChangeRelationAction.ApplyPlayerRelation(who.Hero, rel, false, true);
+                                    if (tr != 0 && cfg.EnableTrust) tr = Bonds.ChangeTrust(who, tr); else tr = 0;
+                                    if (rel != 0 || tr != 0)
+                                    {
+                                        var bits = new List<string>();
+                                        if (rel != 0) bits.Add(L.F("AIL_a190aec6", $"Relación {(rel > 0 ? "+" : "")}{rel}"));
+                                        if (tr != 0) bits.Add(L.F("AIL_c78d48c5", $"Confianza {(tr > 0 ? "+" : "")}{tr}"));
+                                        Say($"{who.Name}: " + string.Join(", ", bits), Colors.Gray);
+                                    }
+                                }
+                        }
+                        catch (Exception ex) { Log.Error("Grupo: opinión sobre el jugador", ex); }
                         string rumor = ((string)j["rumor"] ?? "").Trim();
                         if (cfg.EnableRumors && rumor.Length > 20 && (DateTime.UtcNow - _lastRumor).TotalSeconds > 120)
                         {

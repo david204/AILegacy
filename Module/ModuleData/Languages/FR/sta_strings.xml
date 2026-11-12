@@ -1358,5 +1358,8 @@
     <string id="AIL_b8f2e6b4" text="Reculer" />
     <string id="AIL_b8f2e6b5" text="Vous reculez devant {0}." />
     <string id="AIL_b8f2e6b6" text="{0} est prêt à se battre avec vous." />
+    <string id="AIL_c7a9d5e1" text="{0} revient vers vous, comme convenu." />
+    <string id="AIL_c7a9d5e2" text="{0} est arrivé à {1} et y reste {2} jour(s)." />
+    <string id="AIL_c7a9d5e3" text="{0} donne {1} deniers à {2}." />
   </strings>
 </base>

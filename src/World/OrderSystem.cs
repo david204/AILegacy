@@ -27,6 +27,8 @@ namespace AILegacy.World
         [JsonProperty("stay")] public double StayDays;
         /// <summary>Qué hacer al cumplirla: "follow" = volver junto al jugador.</summary>
         [JsonProperty("then")] public string Then;
+        /// <summary>Días que se queda en el sitio al llegar, antes de dar la orden por cumplida («ve a X y espera dos días»).</summary>
+        [JsonProperty("wait")] public double WaitDays;
     }
 
     /// <summary>
@@ -69,7 +71,7 @@ namespace AILegacy.World
             switch (o.Type)
             {
                 case "follow": return o.Arrived ? $"you agreed to ride with {who}'s party and follow them ({left})" : $"you are on your way to join {who}'s party, as agreed";
-                case "goto": return $"you agreed with {who} to travel to {o.TargetName}" + (o.Then == "follow" ? " and then come back to them" : "");
+                case "goto": return $"you agreed with {who} to travel to {o.TargetName}" + (o.WaitDays > 0 ? $", stay there {o.WaitDays:0.#} day(s)" : "") + (o.Then == "follow" ? " and then come back to them" : "");
                 case "meet": return o.Arrived ? $"you are waiting at {o.TargetName} to meet {who}, as agreed ({left})" : $"you are travelling to {o.TargetName} to meet {who} there, as agreed";
                 case "wait": return $"you agreed with {who} to hold your position and wait ({left})";
                 case "approach": return $"you are riding over to {who}'s party to speak with them";
@@ -146,14 +148,14 @@ namespace AILegacy.World
             catch { return null; }
         }
 
-        public static bool Give(Hero h, string type, string targetId, string targetName, double days, string then = null)
+        public static bool Give(Hero h, string type, string targetId, string targetName, double days, string then = null, double waitDays = 0)
         {
             if (!CanTakeOrders(h)) return false;
             var cfg = S.Get;
             if (days <= 0) days = cfg.OrderDefaultDays;
             days = Math.Max(0.5, Math.Min(cfg.OrderMaxDays, days));
             Cancel(h, silent: true);
-            var o = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, UntilDay = CampaignTime.Now.ToDays + days, StayDays = days, Then = then };
+            var o = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, UntilDay = CampaignTime.Now.ToDays + days, StayDays = days, Then = then, WaitDays = Math.Max(0, Math.Min(S.Get.OrderMaxDays, waitDays)) };
             // Para acudir a tu lado o a una cita primero hay que llegar: el plazo de verdad empieza al llegar
             if (type == "follow") o.UntilDay = CampaignTime.Now.ToDays + Math.Max(days, cfg.OrderMaxDays);
             if (type == "meet") o.StayDays = cfg.OrderDefaultDays;
@@ -249,7 +251,7 @@ namespace AILegacy.World
                     if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction != Hero.MainHero.MapFaction
                         && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction) && (o.Type == "follow" || o.Type == "meet"))
                     { Release(o, h, L.F("AIL_35617af2", $"{h.Name} ya no acude a tu llamada: ahora sois enemigos.")); continue; }
-                    if (now >= o.UntilDay) { Release(o, h, EndText(o, h)); continue; }
+                    if (now >= o.UntilDay) { Done(o, h, EndText(o, h)); continue; }
                     if (p.MapEvent != null) continue;                                                     // en plena batalla
                     Apply(o, h, p);
                     if (Orders.Contains(o)) Trace(o, h, p);
@@ -268,6 +270,21 @@ namespace AILegacy.World
                 mem.Turns.Add(new Memory.ChatTurn { Role = "player", Day = CampaignTime.Now.ToDays, Text = "[Since you last spoke: " + what + ".]" });
             }
             catch { }
+        }
+
+        /// <summary>La orden termina por las buenas (plazo cumplido, objetivo alcanzado o perdido). Si se acordó volver después, vuelve.</summary>
+        private static void Done(PartyOrder o, Hero h, string message)
+        {
+            bool back = o.Then == "follow" && o.Type != "follow";
+            Release(o, h, message);
+            try
+            {
+                if (!back || h == null || h.IsPrisoner || !h.IsAlive) return;
+                var mine = Hero.MainHero.MapFaction;
+                if (h.MapFaction != null && mine != null && h.MapFaction != mine && h.MapFaction.IsAtWarWith(mine)) return;
+                if (Give(h, "follow", null, Hero.MainHero.Name.ToString(), 0)) Say(L.F("AIL_c7a9d5e1", $"{h.Name} vuelve contigo, como acordasteis."));
+            }
+            catch (Exception ex) { Log.Error("Órdenes: volver", ex); }
         }
 
         private static string EndText(PartyOrder o, Hero h)
@@ -332,6 +349,12 @@ namespace AILegacy.World
                                 o.UntilDay = CampaignTime.Now.ToDays + Math.Max(0.5, o.StayDays);
                                 Say(L.F("AIL_7d054e89", $"{h.Name} ha llegado a {st.Name} y te espera allí."));
                             }
+                            else if (o.WaitDays > 0)
+                            {
+                                // «Ve y espera N días»: se queda allí y el plazo cuenta desde que llega
+                                o.UntilDay = CampaignTime.Now.ToDays + o.WaitDays;
+                                Say(L.F("AIL_c7a9d5e2", $"{h.Name} ha llegado a {st.Name} y se queda allí {o.WaitDays:0.#} día(s)."));
+                            }
                             else
                             {
                                 bool back = o.Then == "follow";
@@ -357,9 +380,9 @@ namespace AILegacy.World
                 {
                     var target = MobileParty.All.FirstOrDefault(x => x != null && x.StringId == o.TargetId);
                     if (target == null || !target.IsActive || target.MemberRoster.TotalManCount == 0)
-                    { Release(o, h, L.F("AIL_9480373b", $"{h.Name} ya no tiene a quién perseguir ({o.TargetName}).")); return; }
+                    { Done(o, h, L.F("AIL_9480373b", $"{h.Name} ya no tiene a quién perseguir ({o.TargetName}).")); return; }
                     if (target.MapFaction == null || !target.MapFaction.IsAtWarWith(p.MapFaction) || target.CurrentSettlement != null)
-                    { Release(o, h, L.F("AIL_6f87960d", $"{h.Name} abandona la persecución de {o.TargetName}.")); return; }
+                    { Done(o, h, L.F("AIL_6f87960d", $"{h.Name} abandona la persecución de {o.TargetName}.")); return; }
                     if (p.DefaultBehavior != AiBehavior.EngageParty || p.TargetParty != target)
                         p.SetMoveEngageParty(target, nav);
                     break;
@@ -368,7 +391,7 @@ namespace AILegacy.World
                 case "besiege":
                     if (st == null || !st.IsFortification) { Release(o, h, null); return; }
                     if (st.MapFaction == null || !st.MapFaction.IsAtWarWith(p.MapFaction))
-                    { Release(o, h, st.MapFaction == p.MapFaction ? L.F("AIL_dd1a051b", $"{st.Name} ha caído. {h.Name} da el asedio por terminado.") : L.F("AIL_4eae4e56", $"{h.Name} levanta el asedio de {st.Name}.")); return; }
+                    { Done(o, h, st.MapFaction == p.MapFaction ? L.F("AIL_dd1a051b", $"{st.Name} ha caído. {h.Name} da el asedio por terminado.") : L.F("AIL_4eae4e56", $"{h.Name} levanta el asedio de {st.Name}.")); return; }
                     if (p.DefaultBehavior != AiBehavior.BesiegeSettlement || p.TargetSettlement != st)
                         p.SetMoveBesiegeSettlement(st, nav);
                     break;
@@ -376,9 +399,9 @@ namespace AILegacy.World
                 case "raid":
                     if (st == null || !st.IsVillage) { Release(o, h, null); return; }
                     if (st.Village.VillageState == Village.VillageStates.Looted || st.IsRaided)
-                    { Release(o, h, L.F("AIL_399e0d5f", $"{st.Name} ha sido saqueada. {h.Name} vuelve a sus asuntos.")); return; }
+                    { Done(o, h, L.F("AIL_399e0d5f", $"{st.Name} ha sido saqueada. {h.Name} vuelve a sus asuntos.")); return; }
                     if (st.MapFaction == null || !st.MapFaction.IsAtWarWith(p.MapFaction))
-                    { Release(o, h, L.F("AIL_c351bc8a", $"{h.Name} renuncia a saquear {st.Name}.")); return; }
+                    { Done(o, h, L.F("AIL_c351bc8a", $"{h.Name} renuncia a saquear {st.Name}.")); return; }
                     if (p.DefaultBehavior != AiBehavior.RaidSettlement || p.TargetSettlement != st)
                         p.SetMoveRaidSettlement(st, nav, false);
                     break;

@@ -1358,5 +1358,8 @@
     <string id="AIL_b8f2e6b4" text="Recuar" />
     <string id="AIL_b8f2e6b5" text="Você recua diante de {0}." />
     <string id="AIL_b8f2e6b6" text="{0} está disposto a duelar com você." />
+    <string id="AIL_c7a9d5e1" text="{0} volta para você, como combinado." />
+    <string id="AIL_c7a9d5e2" text="{0} chegou a {1} e fica lá por {2} dia(s)." />
+    <string id="AIL_c7a9d5e3" text="{0} dá {1} denários a {2}." />
   </strings>
 </base>

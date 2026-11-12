@@ -1358,5 +1358,8 @@
     <string id="AIL_b8f2e6b4" text="Отступить" />
     <string id="AIL_b8f2e6b5" text="Вы отступаете перед {0}." />
     <string id="AIL_b8f2e6b6" text="{0} готов сразиться с вами." />
+    <string id="AIL_c7a9d5e1" text="{0} возвращается к вам, как договаривались." />
+    <string id="AIL_c7a9d5e2" text="{0} прибыл в {1} и останется там на {2} дн." />
+    <string id="AIL_c7a9d5e3" text="{0} отдаёт {1} динаров: {2}." />
   </strings>
 </base>
