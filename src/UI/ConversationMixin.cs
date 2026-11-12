@@ -35,6 +35,7 @@ namespace AILegacy.UI
         private static WeakReference<ConversationMixin> _current;
         private static float _since;
 
+        private bool _cardVisible;
         private bool _statsVisible, _trustVisible, _romanceVisible, _warnVisible, _historyAvailable, _historyVisible;
         private string _relationText = "", _trustText = "", _romanceText = "", _warnText = "", _historyLabel = "";
         private int _relationFill, _trustFill, _romanceFill, _scrollVersion;
@@ -121,6 +122,7 @@ namespace AILegacy.UI
             // ---- historial
             bool can = h != null && cfg.ShowDialogHistory && mem != null && mem.Turns.Any(t => !t.IsNote);
             AilHistoryAvailable = can;
+            AilCardVisible = stats || can;
             if (!can) { AilHistoryVisible = false; return; }
             AilHistoryLabel = AilHistoryVisible ? L.T("AIL_d5a0e004", "Cerrar historial") : L.T("AIL_d5a0e003", "Historial");
             if (!AilHistoryVisible) return;
@@ -150,6 +152,7 @@ namespace AILegacy.UI
             catch (Exception ex) { Log.Error("Conversación: historial", ex); }
         }
 
+        [DataSourceProperty] public bool AilCardVisible { get => _cardVisible; set { if (value != _cardVisible) { _cardVisible = value; OnPropertyChangedWithValue(value, nameof(AilCardVisible)); } } }
         [DataSourceProperty] public bool AilStatsVisible { get => _statsVisible; set { if (value != _statsVisible) { _statsVisible = value; OnPropertyChangedWithValue(value, nameof(AilStatsVisible)); } } }
         [DataSourceProperty] public bool AilTrustVisible { get => _trustVisible; set { if (value != _trustVisible) { _trustVisible = value; OnPropertyChangedWithValue(value, nameof(AilTrustVisible)); } } }
         [DataSourceProperty] public bool AilRomanceVisible { get => _romanceVisible; set { if (value != _romanceVisible) { _romanceVisible = value; OnPropertyChangedWithValue(value, nameof(AilRomanceVisible)); } } }
@@ -168,61 +171,87 @@ namespace AILegacy.UI
         [DataSourceProperty] public MBBindingList<AilHistoryLineVM> AilHistory { get => _history; set { if (value != _history) { _history = value; OnPropertyChangedWithValue(value, nameof(AilHistory)); } } }
     }
 
-    /// <summary>Junto al nombre, a la derecha de su franja: las barras, el aviso y el botón del historial.</summary>
-    [PrefabExtension("SPConversation", "descendant::ButtonWidget[@Id='CharacterNameIdParent']")]
+    /// <summary>
+    /// Una tarjeta propia justo encima de la franja del nombre: fondo oscuro con filete dorado, las barras, el aviso y el
+    /// botón del historial. Se coloca igual que la franja del nombre del juego (copia la altura del cuadro de diálogo), así
+    /// sube y baja con él y no pisa el nombre ni el estandarte.
+    /// </summary>
+    [PrefabExtension("SPConversation", "descendant::ListPanel[@Id='VerticalContainer']")]
     internal sealed class ConversationStatsPrefab : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Append;
 
         private static string Gauge(string text, string fill, string visible, string color) =>
-            "<ListPanel WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" VerticalAlignment=\"Center\" MarginLeft=\"14\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\"" +
+            "<ListPanel WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" VerticalAlignment=\"Center\" MarginRight=\"18\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\"" +
             (visible == null ? "" : " IsVisible=\"@" + visible + "\"") + ">" +
             "<Children>" +
-            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"118\" SuggestedHeight=\"22\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"16\" Brush.FontColor=\"#E8DCC0FF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@" + text + "\" />" +
-            "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"118\" SuggestedHeight=\"7\" MarginTop=\"2\" Sprite=\"BlankWhiteSquare_9\" Color=\"#000000FF\" AlphaFactor=\"0.7\" FillWidget=\"FillWidget\" InitialAmount=\"@" + fill + "\" MaxAmount=\"100\" IsEnabled=\"false\">" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@" + text + "\" />" +
+            "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@" + fill + "\" MaxAmount=\"100\" IsEnabled=\"false\">" +
             "<Children>" +
-            "<Widget Id=\"FillWidget\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"118\" SuggestedHeight=\"7\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Center\" ClipContents=\"true\">" +
-            "<Children><Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"118\" SuggestedHeight=\"7\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"" + color + "\" /></Children>" +
+            "<Widget Id=\"FillWidget\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Center\" ClipContents=\"true\">" +
+            "<Children><Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"" + color + "\" /></Children>" +
             "</Widget>" +
             "</Children>" +
             "</FillBarWidget>" +
             "</Children>" +
             "</ListPanel>";
 
+        // Altura de la tarjeta 64; la franja del nombre del juego usa 55 de margen: 55 + 8 de hueco + 64
         [PrefabExtensionText]
         public string Xml =>
-            "<ListPanel Id=\"AilStatsRow\" WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" MarginRight=\"18\" DoNotAcceptEvents=\"true\">" +
+            "<DimensionSyncWidget Id=\"AilStatsSync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"680\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginRight=\"700\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"127\">" +
             "<Children>" +
-            "<TextWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"30\" VerticalAlignment=\"Center\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"16\" Brush.FontColor=\"#E0A040FF\" Text=\"@AilWarnText\" IsVisible=\"@AilWarnVisible\" />" +
+            "<Widget Id=\"AilStatsCard\" WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"64\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" MarginLeft=\"40\" IsVisible=\"@AilCardVisible\">" +
+            "<Children>" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#0D0A07FF\" AlphaFactor=\"0.86\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"2\" VerticalAlignment=\"Top\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"2\" VerticalAlignment=\"Bottom\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"2\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"2\" HorizontalAlignment=\"Right\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<ListPanel WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" VerticalAlignment=\"Center\" MarginLeft=\"18\" MarginRight=\"14\">" +
+            "<Children>" +
             "<ListPanel WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" VerticalAlignment=\"Center\" IsVisible=\"@AilStatsVisible\" DoNotAcceptEvents=\"true\">" +
             "<Children>" +
-            Gauge("AilRelationText", "AilRelationFill", null, "#C9B48AFF") +
-            Gauge("AilTrustText", "AilTrustFill", "AilTrustVisible", "#7FA8C9FF") +
-            Gauge("AilRomanceText", "AilRomanceFill", "AilRomanceVisible", "#C97F9AFF") +
+            Gauge("AilRelationText", "AilRelationFill", null, "#D9BF86FF") +
+            Gauge("AilTrustText", "AilTrustFill", "AilTrustVisible", "#7FB0D9FF") +
+            Gauge("AilRomanceText", "AilRomanceFill", "AilRomanceVisible", "#D97F9FFF") +
             "</Children>" +
             "</ListPanel>" +
-            "<ButtonWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"34\" VerticalAlignment=\"Center\" MarginLeft=\"18\" Command.Click=\"ExecuteAilToggleHistory\" IsVisible=\"@AilHistoryAvailable\" UpdateChildrenStates=\"true\">" +
+            "<TextWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"30\" VerticalAlignment=\"Center\" MarginRight=\"18\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#F0A040FF\" Text=\"@AilWarnText\" IsVisible=\"@AilWarnVisible\" />" +
+            "<ButtonWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"36\" VerticalAlignment=\"Center\" Command.Click=\"ExecuteAilToggleHistory\" IsVisible=\"@AilHistoryAvailable\" UpdateChildrenStates=\"true\">" +
             "<Children>" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#000000FF\" AlphaFactor=\"0.45\" DoNotAcceptEvents=\"true\" />" +
-            "<TextWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"StretchToParent\" MarginLeft=\"10\" MarginRight=\"10\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#C9B48AFF\" Text=\"@AilHistoryLabel\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#3A2C16FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"1\" VerticalAlignment=\"Bottom\" Sprite=\"BlankWhiteSquare_9\" Color=\"#C9B48AFF\" DoNotAcceptEvents=\"true\" />" +
+            "<TextWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"StretchToParent\" MarginLeft=\"14\" MarginRight=\"14\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Text=\"@AilHistoryLabel\" DoNotAcceptEvents=\"true\" />" +
             "</Children>" +
             "</ButtonWidget>" +
             "</Children>" +
-            "</ListPanel>";
+            "</ListPanel>" +
+            "</Children>" +
+            "</Widget>" +
+            "</Children>" +
+            "</DimensionSyncWidget>";
     }
 
-    /// <summary>Sobre el cuadro de diálogo: lo hablado con ese personaje, con scroll.</summary>
+    /// <summary>Encima de la tarjeta: lo hablado con ese personaje, con scroll. Sube y baja con el cuadro de diálogo.</summary>
     [PrefabExtension("SPConversation", "descendant::ListPanel[@Id='VerticalContainer']")]
     internal sealed class ConversationHistoryPrefab : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Append;
 
+        // 127 de la tarjeta + 8 de hueco + 430 del panel
         [PrefabExtensionText]
         public string Xml =>
-            "<Widget Id=\"AilHistoryPanel\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"720\" SuggestedHeight=\"430\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Bottom\" MarginRight=\"740\" MarginBottom=\"330\" IsVisible=\"@AilHistoryVisible\">" +
+            "<DimensionSyncWidget Id=\"AilHistorySync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"680\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginRight=\"700\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"565\">" +
             "<Children>" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#0B0906FF\" AlphaFactor=\"0.9\" />" +
-            "<ScrollablePanel Id=\"AilHistoryScroll\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" MarginRight=\"22\" MarginTop=\"8\" MarginBottom=\"8\" AutoHideScrollBars=\"true\" ClipRect=\"AilHistoryClip\" InnerPanel=\"AilHistoryClip\\AilHistoryLines\" VerticalScrollbar=\"..\\AilHistoryScrollbarHolder\\AilHistoryScrollbar\">" +
+            "<Widget Id=\"AilHistoryPanel\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"640\" SuggestedHeight=\"430\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" MarginLeft=\"40\" IsVisible=\"@AilHistoryVisible\">" +
+            "<Children>" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#0D0A07FF\" AlphaFactor=\"0.92\" />" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"2\" VerticalAlignment=\"Top\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"2\" VerticalAlignment=\"Bottom\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"2\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"2\" HorizontalAlignment=\"Right\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<ScrollablePanel Id=\"AilHistoryScroll\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" MarginLeft=\"4\" MarginRight=\"24\" MarginTop=\"8\" MarginBottom=\"8\" AutoHideScrollBars=\"true\" ClipRect=\"AilHistoryClip\" InnerPanel=\"AilHistoryClip\\AilHistoryLines\" VerticalScrollbar=\"..\\AilHistoryScrollbarHolder\\AilHistoryScrollbar\">" +
             "<Children>" +
             "<Widget Id=\"AilHistoryClip\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" ClipContents=\"true\">" +
             "<Children>" +
@@ -230,8 +259,8 @@ namespace AILegacy.UI
             "<ItemTemplate>" +
             "<ListPanel WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"CoverChildren\" MarginLeft=\"16\" MarginRight=\"12\" MarginTop=\"8\" StackLayout.LayoutMethod=\"VerticalTopToBottom\">" +
             "<Children>" +
-            "<TextWidget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"CoverChildren\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#C9B48AFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@Speaker\" IsVisible=\"@IsNpc\" />" +
-            "<TextWidget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"CoverChildren\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#8FB0C9FF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@Speaker\" IsVisible=\"@IsPlayer\" />" +
+            "<TextWidget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"CoverChildren\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#D9BF86FF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@Speaker\" IsVisible=\"@IsNpc\" />" +
+            "<TextWidget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"CoverChildren\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#8FB8D9FF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@Speaker\" IsVisible=\"@IsPlayer\" />" +
             "<TextWidget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"CoverChildren\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"20\" Brush.FontColor=\"#F0E8D8FF\" Brush.TextHorizontalAlignment=\"Left\" Brush.TextVerticalAlignment=\"Top\" Text=\"@Text\" />" +
             "</Children>" +
             "</ListPanel>" +
@@ -241,9 +270,9 @@ namespace AILegacy.UI
             "</Widget>" +
             "</Children>" +
             "</ScrollablePanel>" +
-            "<Widget Id=\"AilHistoryScrollbarHolder\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"20\" HorizontalAlignment=\"Right\">" +
+            "<Widget Id=\"AilHistoryScrollbarHolder\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"20\" HorizontalAlignment=\"Right\" MarginRight=\"3\">" +
             "<Children>" +
-            "<AILegacyScrollbarWidget Id=\"AilHistoryScrollbar\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" AlignmentAxis=\"Vertical\" Handle=\"AilHistoryHandle\" MaxValue=\"100\" MinValue=\"0\" MarginTop=\"6\" MarginBottom=\"6\" ScrollVersion=\"@AilScrollVersion\">" +
+            "<AILegacyScrollbarWidget Id=\"AilHistoryScrollbar\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" AlignmentAxis=\"Vertical\" Handle=\"AilHistoryHandle\" MaxValue=\"100\" MinValue=\"0\" MarginTop=\"8\" MarginBottom=\"8\" ScrollVersion=\"@AilScrollVersion\">" +
             "<Children>" +
             "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"3\" HorizontalAlignment=\"Center\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" AlphaFactor=\"0.6\" />" +
             "<Widget Id=\"AilHistoryHandle\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"10\" SuggestedHeight=\"40\" MinHeight=\"20\" HorizontalAlignment=\"Center\" Sprite=\"BlankWhiteSquare_9\" Color=\"#C9B48AFF\" />" +
@@ -252,6 +281,8 @@ namespace AILegacy.UI
             "</Children>" +
             "</Widget>" +
             "</Children>" +
-            "</Widget>";
+            "</Widget>" +
+            "</Children>" +
+            "</DimensionSyncWidget>";
     }
 }

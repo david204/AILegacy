@@ -236,6 +236,7 @@ namespace AILegacy.Letters
                         }
                     }
                     catch { }
+                    letter = (letter ?? "").Replace("\\r\\n", "\n").Replace("\\n", "\n").Replace("\\r", "").Trim();
                     if (string.IsNullOrWhiteSpace(letter)) return;
 
                     var mem = s.Memory;
@@ -275,6 +276,7 @@ namespace AILegacy.Letters
             if (ChatSession.IsBusy) return;
 
             var (hero, text) = ToShow.Dequeue();
+            text = (text ?? "").Replace("\\r\\n", "\n").Replace("\\n", "\n");      // cartas guardadas con el salto escrito
             _showing = true;
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
             // Contestar ahí mismo (el mensajero espera) o darse por enterado
