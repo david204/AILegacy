@@ -41,7 +41,7 @@ namespace AILegacy.Web
                 Application.EnableVisualStyles();
                 var form = new Form
                 {
-                    Text = L.T("AI Legacy — Editor"),
+                    Text = L.T("AIL_a9672a5d", "AI Legacy — Editor"),
                     StartPosition = FormStartPosition.CenterScreen,
                     Size = new Size(1600, 940),
                     MinimumSize = new Size(1000, 600),
@@ -66,7 +66,7 @@ namespace AILegacy.Web
                     catch (Exception ex)
                     {
                         Log.Error("WebView2 no pudo arrancar", ex);
-                        MessageBox.Show(form, L.T("No se pudo cargar el editor dentro del juego (WebView2).\n\nÁbrelo en el navegador: ") + url + "\n\n" + ex.Message,
+                        MessageBox.Show(form, L.T("AIL_c774d780", "No se pudo cargar el editor dentro del juego (WebView2).\n\nÁbrelo en el navegador: ") + url + "\n\n" + ex.Message,
                             "AI Legacy", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 };

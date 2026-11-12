@@ -32,7 +32,7 @@ namespace AILegacy.UI
         private readonly Action<string> _onSend;
         private readonly Action _onClose;
 
-        private string _title = "", _subtitle = "", _inputText = "", _waitingText = "", _sendText = L.T("Decir"), _closeText = "Terminar";
+        private string _title = "", _subtitle = "", _inputText = "", _waitingText = "", _sendText = L.T("AIL_aa23f794", "Decir"), _closeText = "Terminar";
         private bool _isWaiting, _canType = true;
         private int _scrollVersion;
         private MBBindingList<ChatLineVM> _lines = new MBBindingList<ChatLineVM>();

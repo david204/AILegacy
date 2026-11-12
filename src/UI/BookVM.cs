@@ -25,7 +25,7 @@ namespace AILegacy.UI
     /// <summary>Ventana de "libro": lista a la izquierda, detalle a la derecha (Noticias, Memorias).</summary>
     public class BookVM : ViewModel
     {
-        private string _title = "", _detailTitle = "", _detailText = "", _actionText = "", _closeText = L.T("Cerrar");
+        private string _title = "", _detailTitle = "", _detailText = "", _actionText = "", _closeText = L.T("AIL_e8438e2a", "Cerrar");
         private bool _hasAction;
         private MBBindingList<BookEntryVM> _entries = new MBBindingList<BookEntryVM>();
         public Action OnClose;

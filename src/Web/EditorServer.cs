@@ -33,7 +33,7 @@ namespace AILegacy.Web
         {
             MainThread.Post(() =>
             {
-                if (Campaign.Current == null) { Info(L.T("Carga una partida para usar el editor.")); return; }
+                if (Campaign.Current == null) { Info(L.T("AIL_9713e4ab", "Carga una partida para usar el editor.")); return; }
                 if (!EnsureStarted()) return;
                 EditorWindow.Show(Url);
             });
@@ -58,7 +58,7 @@ namespace AILegacy.Web
             catch (Exception ex)
             {
                 Log.Error("No se pudo arrancar el editor web", ex);
-                Info(L.F($"No se pudo abrir el puerto {port}. Cambia el puerto en MCM → AI Legacy → Editor.\n{ex.Message}"));
+                Info(L.F("AIL_4f6f8296", $"No se pudo abrir el puerto {port}. Cambia el puerto en MCM → AI Legacy → Editor.\n{ex.Message}"));
                 _http = null;
                 return false;
             }
@@ -122,7 +122,7 @@ namespace AILegacy.Web
 
         private static object Api(string path, System.Collections.Specialized.NameValueCollection q, JObject d)
         {
-            if (Campaign.Current == null) throw new Exception(L.T("No hay ninguna partida cargada."));
+            if (Campaign.Current == null) throw new Exception(L.T("AIL_9189b76c", "No hay ninguna partida cargada."));
             string wd = Path.Combine(Paths.ModuleDir, "world_data");
             switch (path)
             {
@@ -170,7 +170,7 @@ namespace AILegacy.Web
                     return new
                     {
                         id = m.HeroId, name = m.HeroName,
-                        info = hero == null ? "" : L.F($"{hero.Clan?.Name} · {(hero.MapFaction?.Name?.ToString() ?? "")} · relación {(int)hero.GetRelationWithPlayer()}"),
+                        info = hero == null ? "" : L.F("AIL_622157b0", $"{hero.Clan?.Name} · {(hero.MapFaction?.Name?.ToString() ?? "")} · relación {(int)hero.GetRelationWithPlayer()}"),
                         profile = m.Profile ?? new CharacterProfile(),
                         summary = m.Summary, notes = m.Notes, custom = m.CustomInstructions,
                         player_name = m.KnownPlayerName, mood = m.Mood, mood_reason = m.MoodReason,
@@ -179,7 +179,7 @@ namespace AILegacy.Web
                         archetype = m.Archetype ?? "", archetype_text = m.ArchetypeText ?? "", morality = m.Morality ?? "", profanity = m.Profanity ?? "", piety = m.Piety ?? "",
                         archetypes = World.Lore.ArchetypeList().Select(a => new { name = a.Key, desc = a.Value }),
                         archived = m.Archive.Count, pages = m.Pages.Count, in_game = hero != null,
-                        turns = m.Turns.Select(t => new { who = t.Role == "player" ? L.T("Tú") : m.HeroName, t.Text }),
+                        turns = m.Turns.Select(t => new { who = t.Role == "player" ? L.T("AIL_4c6b494e", "Tú") : m.HeroName, t.Text }),
                     };
                 }
 
@@ -236,13 +236,13 @@ namespace AILegacy.Web
                         Heroes = (d["heroes"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>(),
                         SettlementId = ((string)d["settlement"] ?? "").Trim(),
                     };
-                    if (n.Text.Length < 5) throw new Exception(L.T("Escribe el texto del evento."));
+                    if (n.Text.Length < 5) throw new Exception(L.T("AIL_bf60207b", "Escribe el texto del evento."));
                     n.TitleEs = ((string)d["title"] ?? "").Trim();
                     if (n.TitleEs.Length == 0) n.TitleEs = n.Text.Length > 60 ? n.Text.Substring(0, 60) + "…" : n.Text;
                     n.TextEs = n.Text;
                     if ((bool?)d["player"] == true && !n.Heroes.Contains(Hero.MainHero.StringId)) n.Heroes.Add(Hero.MainHero.StringId);
                     NewsStore.Add(n);
-                    InformationManager.DisplayMessage(new InformationMessage(L.T("Nuevo evento: ") + n.Text, Colors.Yellow));
+                    InformationManager.DisplayMessage(new InformationMessage(L.T("AIL_8c51b5cf", "Nuevo evento: ") + n.Text, Colors.Yellow));
                     return new { ok = true, id = n.Id };
                 }
 
@@ -283,7 +283,7 @@ namespace AILegacy.Web
                         return new { ok = true };
                     }
                     var t = Prompt.Templates.Get(name) ?? throw new Exception("No existe esa plantilla.");
-                    var p = Prompt.Templates.PathFor(t.Key) ?? throw new Exception(L.T("No hay carpeta de plantillas para esta partida."));
+                    var p = Prompt.Templates.PathFor(t.Key) ?? throw new Exception(L.T("AIL_8871d6a5", "No hay carpeta de plantillas para esta partida."));
                     Directory.CreateDirectory(Path.GetDirectoryName(p));
                     WriteText(p, (bool?)d["reset"] == true ? t.Default : text);
                     Log.Info("Editor: plantilla " + ((bool?)d["reset"] == true ? "restaurada " : "guardada ") + t.Key);
@@ -294,7 +294,7 @@ namespace AILegacy.Web
                 case "/api/npc/generate":
                 {
                     var id = (string)d["id"];
-                    var hero = Hero.Find(id) ?? throw new Exception(L.T("Ese personaje ya no existe en la partida."));
+                    var hero = Hero.Find(id) ?? throw new Exception(L.T("AIL_10f114fb", "Ese personaje ya no existe en la partida."));
                     if (Generating.Contains(id)) return new { ok = true, started = false };
                     var sp = Dialogue.Speaker.FromHero(hero);
                     World.Lore.EnsureArchetype(sp);
@@ -321,11 +321,11 @@ namespace AILegacy.Web
                             Generating.Remove(id);
                             try
                             {
-                                if (res == null || !res.Ok) { GenerateError[id] = res?.Error ?? L.T("la IA no ha respondido"); return; }
+                                if (res == null || !res.Ok) { GenerateError[id] = res?.Error ?? L.T("AIL_ea76bfc7", "la IA no ha respondido"); return; }
                                 int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                                 if (a < 0 || b <= a) { GenerateError[id] = "respuesta ilegible"; return; }
                                 var p = JObject.Parse(res.Text.Substring(a, b - a + 1)).ToObject<CharacterProfile>();
-                                if (p == null || p.IsEmpty) { GenerateError[id] = L.T("respuesta vacía"); return; }
+                                if (p == null || p.IsEmpty) { GenerateError[id] = L.T("AIL_e514530a", "respuesta vacía"); return; }
                                 if (m.Profile != null && !string.IsNullOrWhiteSpace(m.Profile.GivenName)) p.GivenName = m.Profile.GivenName;
                                 m.Profile = p; m.ProfileRevision++;
                                 GenerateError.Remove(id);
@@ -372,7 +372,7 @@ namespace AILegacy.Web
                         m.Profile.Backstory = story; m.Profile.Personality = pers;
                     }
                     SaveFiles.Flush();
-                    InformationManager.DisplayMessage(new InformationMessage(L.F($"{h.Name} se une a tu partida como compañero."), Colors.Yellow));
+                    InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_858c74a8", $"{h.Name} se une a tu partida como compañero."), Colors.Yellow));
                     return new { ok = true, id = h.StringId, name = h.Name.ToString() };
                 }
 
@@ -384,7 +384,7 @@ namespace AILegacy.Web
                     string story = ((string)d["backstory"] ?? "").Trim(), pers = ((string)d["personality"] ?? "").Trim();
                     if (story.Length > 0 || pers.Length > 0) { if (m.Profile == null) m.Profile = new CharacterProfile(); m.Profile.Backstory = story; m.Profile.Personality = pers; }
                     SaveFiles.Flush();
-                    InformationManager.DisplayMessage(new InformationMessage(L.F($"{h.Name} ya es de tu familia."), Colors.Yellow));
+                    InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_254648d0", $"{h.Name} ya es de tu familia."), Colors.Yellow));
                     return new { ok = true, id = h.StringId, name = h.Name.ToString() };
                 }
 
@@ -401,11 +401,11 @@ namespace AILegacy.Web
                 case "/api/item/add":
                 {
                     string name = ((string)d["name"] ?? "").Trim(), desc = ((string)d["desc"] ?? "").Trim();
-                    if (name.Length < 2) throw new Exception(L.T("Ponle nombre al objeto."));
+                    if (name.Length < 2) throw new Exception(L.T("AIL_7f675e5a", "Ponle nombre al objeto."));
                     World.Belongings.Items.RemoveAll(i => string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase));
                     World.Belongings.Items.Add(new World.RpItem { Name = name, Description = desc, FromName = ((string)d["from"] ?? "").Trim(), Day = CampaignTime.Now.ToDays });
                     SaveFiles.Flush();
-                    InformationManager.DisplayMessage(new InformationMessage(L.T("Ahora llevas: ") + name, Colors.Yellow));
+                    InformationManager.DisplayMessage(new InformationMessage(L.T("AIL_a33c4ead", "Ahora llevas: ") + name, Colors.Yellow));
                     return new { ok = true };
                 }
 
@@ -432,7 +432,7 @@ namespace AILegacy.Web
                     return new { ok = true, npcs = MemoryStore.Count };
 
                 default:
-                    throw new Exception(L.T("Ruta desconocida: ") + path);
+                    throw new Exception(L.T("AIL_eb19bc3f", "Ruta desconocida: ") + path);
             }
         }
 
@@ -463,7 +463,7 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
         private static string WorldFile(string wd, string name)
         {
             name = Path.GetFileName(name ?? "");
-            if (name.Length == 0 || !name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) throw new Exception(L.T("Archivo no válido."));
+            if (name.Length == 0 || !name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
             return Path.Combine(wd, name);
         }
 
@@ -479,6 +479,6 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
         }
 
         private static void Info(string text) =>
-            InformationManager.ShowInquiry(new InquiryData(L.T("AI Legacy — Editor"), text, true, false, L.T("Vale"), "", null, null), true);
+            InformationManager.ShowInquiry(new InquiryData(L.T("AIL_a9672a5d", "AI Legacy — Editor"), text, true, false, L.T("AIL_d36c447b", "Vale"), "", null, null), true);
     }
 }

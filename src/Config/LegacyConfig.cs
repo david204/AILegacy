@@ -77,7 +77,7 @@ namespace AILegacy.Config
                                 { Log.Warn($"Proveedor repetido en config.json, se ignora: {n}"); continue; }
                                 merged.Providers.Add(p);
                             }
-                            if (!hasFile) LastLoadError = fromMcm > 0 ? null : L.T("No hay ninguna clave: ponla en Opciones, Mod Options, AI Legacy, 0. Claves de IA.");
+                            if (!hasFile) LastLoadError = fromMcm > 0 ? null : L.T("AIL_bb646884", "No hay ninguna clave: ponla en Opciones, Mod Options, AI Legacy, 0. Claves de IA.");
                             if (sig != _mcmSig || _current == null)
                                 Log.Info($"Proveedores de IA: {fromMcm} utilizable(s) desde MCM, {file.Providers.FindAll(p => p.IsUsable).Count} desde config.json");
                             _current = merged;
@@ -107,7 +107,7 @@ namespace AILegacy.Config
             }
             catch (Exception ex)
             {
-                LastLoadError = L.T("config.json tiene un error de formato: ") + ex.Message;
+                LastLoadError = L.T("AIL_7fc31420", "config.json tiene un error de formato: ") + ex.Message;
                 Log.Error(LastLoadError);
                 return _current ?? new LegacyConfig();
             }

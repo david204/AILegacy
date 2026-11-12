@@ -164,7 +164,7 @@ namespace AILegacy.Dialogue
                 }
             }
             catch (Exception ex) { Log.Error("Intimidad: embarazo", ex); }
-            return L.F($"Pasas un rato a solas con {s.Name}.");
+            return L.F("AIL_8c0a210d", $"Pasas un rato a solas con {s.Name}.");
         }
 
         // ============================================================ tensión y amenaza

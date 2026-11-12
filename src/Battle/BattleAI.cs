@@ -303,7 +303,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
         {
             var cfg = S.Get;
             if (!Config.LegacyConfig.Current.Providers.Any(p => p.IsUsable)) { Say("AI Legacy: no hay ninguna api_key configurada.", Colors.Red); return; }
-            InformationManager.ShowTextInquiry(new TextInquiryData(L.T("Órdenes a tus tropas"), L.T("Escríbelas con tus palabras: «infantería en muro de escudos y aguantad», «la caballería por la izquierda contra sus arqueros», «todos a la carga»…"),
+            InformationManager.ShowTextInquiry(new TextInquiryData(L.T("AIL_56a85a72", "Órdenes a tus tropas"), L.T("AIL_33dbf353", "Escríbelas con tus palabras: «infantería en muro de escudos y aguantad», «la caballería por la izquierda contra sus arqueros», «todos a la carga»…"),
                 true, true, "Ordenar", "Cancelar", text =>
                 {
                     text = (text ?? "").Trim();
@@ -313,7 +313,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     Snapshot(team, null, out string own, out string foe, out _, out _, out _);
                     string prompt = TPlayerOrder.Format("own", own, "foe", foe, "said", text.Replace("«", "\"").Replace("»", "\""), "language", cfg.Language);
                     _playerWaiting = true;
-                    Say(L.F($"Ordenas: «{text}»"), new Color(0.55f, 0.9f, 0.55f));
+                    Say(L.F("AIL_2bd4d43b", $"Ordenas: «{text}»"), new Color(0.55f, 0.9f, 0.55f));
                     try { Bubbles.Show(Agent.Main, text, 4f); } catch { }
                     LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 400, preferredProvider: cfg.ProviderBattle).ContinueWith(t =>
                     {
@@ -324,7 +324,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                             try
                             {
                                 if (Mission.Current != m || !BattleOn(m)) return;
-                                if (res == null || !res.Ok) { Say(L.T("Tus hombres no han entendido la orden (la IA no ha respondido)."), Colors.Red); return; }
+                                if (res == null || !res.Ok) { Say(L.T("AIL_ab14812d", "Tus hombres no han entendido la orden (la IA no ha respondido)."), Colors.Red); return; }
                                 int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                                 if (a < 0 || b <= a) return;
                                 var j = JObject.Parse(res.Text.Substring(a, b - a + 1));
@@ -332,13 +332,13 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                                 var shown = new StringBuilder();
                                 int done = Apply(team, null, j["orders"] as JArray, c2, f2, me2, true, shown);
                                 string understood = ((string)j["understood"] ?? "").Trim();
-                                Say(done > 0 ? L.F($"Tus capitanes: {(understood.Length > 2 ? understood : shown.ToString())}") : L.T("Tus capitanes no saben qué hacer con esa orden."), done > 0 ? new Color(0.55f, 0.9f, 0.55f) : Colors.Gray);
+                                Say(done > 0 ? L.F("AIL_6c53dc0f", $"Tus capitanes: {(understood.Length > 2 ? understood : shown.ToString())}") : L.T("AIL_7237f719", "Tus capitanes no saben qué hacer con esa orden."), done > 0 ? new Color(0.55f, 0.9f, 0.55f) : Colors.Gray);
                                 Log.Info($"[batalla] orden del jugador «{text}» → {shown}");
                             }
                             catch (Exception ex) { Log.Error("Orden del jugador en batalla", ex); }
                         });
                     });
-                }, null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("Escribe una orden"))), true);
+                }, null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_ca0dcdf4", "Escribe una orden"))), true);
         }
 
         // ============================================================ tick

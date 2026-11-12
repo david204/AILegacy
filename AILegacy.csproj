@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.26.0</Version>
+    <Version>0.26.1</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -60,13 +60,13 @@
   </ItemGroup>
 
   <!-- Copia SubModule.xml y, solo si no existe, la config de ejemplo -->
-  <ItemGroup><LangFiles Include="Module\lang\*.json" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /></ItemGroup>
+  <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /></ItemGroup>
   <Target Name="CopyModuleFiles" AfterTargets="Build">
     <Copy SourceFiles="Module\SubModule.xml" DestinationFolder="$(ModuleDir)" />
     <Copy SourceFiles="@(GuiPrefabs)" DestinationFolder="$(ModuleDir)\GUI\Prefabs" />
     <Copy SourceFiles="@(GuiBrushes)" DestinationFolder="$(ModuleDir)\GUI\Brushes" />
     <Copy SourceFiles="Module\web\editor.html" DestinationFolder="$(ModuleDir)\web" />
-    <Copy SourceFiles="@(LangFiles)" DestinationFolder="$(ModuleDir)\lang" />
+    <Copy SourceFiles="@(LangFiles)" DestinationFiles="@(LangFiles->'$(ModuleDir)\ModuleData\Languages\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="libs\webview2\WebView2Loader.dll" DestinationFolder="$(OutputPath)" />
     <Copy SourceFiles="libs\webview2\runtimes\win-x64\native\WebView2Loader.dll" DestinationFolder="$(OutputPath)runtimes\win-x64\native" />
     <Copy SourceFiles="Module\config.example.json" DestinationFolder="$(ModuleDir)" />

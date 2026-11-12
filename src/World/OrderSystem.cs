@@ -172,7 +172,7 @@ namespace AILegacy.World
         {
             var o = Find(h);
             if (o == null) return false;
-            Release(o, h, silent ? null : L.F($"{h.Name} vuelve a sus asuntos."));
+            Release(o, h, silent ? null : L.F("AIL_7cd9f263", $"{h.Name} vuelve a sus asuntos."));
             return true;
         }
 
@@ -211,7 +211,7 @@ namespace AILegacy.World
         {
             try
             {
-                string state = L.F($"{o.Type} {o.TargetName} | en={p.CurrentSettlement?.Name?.ToString() ?? "-"} def={p.DefaultBehavior} corto={p.ShortTermBehavior} obj={p.TargetSettlement?.Name?.ToString() ?? p.TargetParty?.Name?.ToString() ?? "-"} llegó={o.Arrived} batalla={p.MapEvent != null}");
+                string state = L.F("AIL_d7c17160", $"{o.Type} {o.TargetName} | en={p.CurrentSettlement?.Name?.ToString() ?? "-"} def={p.DefaultBehavior} corto={p.ShortTermBehavior} obj={p.TargetSettlement?.Name?.ToString() ?? p.TargetParty?.Name?.ToString() ?? "-"} llegó={o.Arrived} batalla={p.MapEvent != null}");
                 if (LastState.TryGetValue(o.HeroId, out var old) && old == state) return;
                 LastState[o.HeroId] = state;
                 Log.Info($"[orden] {h.Name}: {state}");
@@ -234,7 +234,7 @@ namespace AILegacy.World
                     if (p.Army != null && p.Army.LeaderParty != p && p.Army.LeaderParty != MobileParty.MainParty) { Release(o, h, null); continue; }
                     if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction != Hero.MainHero.MapFaction
                         && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction) && (o.Type == "follow" || o.Type == "meet"))
-                    { Release(o, h, L.F($"{h.Name} ya no acude a tu llamada: ahora sois enemigos.")); continue; }
+                    { Release(o, h, L.F("AIL_35617af2", $"{h.Name} ya no acude a tu llamada: ahora sois enemigos.")); continue; }
                     if (now >= o.UntilDay) { Release(o, h, EndText(o, h)); continue; }
                     if (p.MapEvent != null) continue;                                                     // en plena batalla
                     Apply(o, h, p);
@@ -248,12 +248,12 @@ namespace AILegacy.World
         {
             switch (o.Type)
             {
-                case "follow": return o.Arrived ? L.F($"{h.Name} deja de seguirte y vuelve a sus asuntos.") : L.F($"{h.Name} no ha conseguido alcanzarte y vuelve a sus asuntos.");
-                case "meet": return o.Arrived ? L.F($"{h.Name} se cansa de esperarte en {o.TargetName} y se marcha.") : L.F($"{h.Name} no ha podido llegar a {o.TargetName} y lo deja.");
-                case "wait": return L.F($"{h.Name} deja de esperar y vuelve a sus asuntos.");
-                case "patrol": return L.F($"{h.Name} termina su patrulla en {o.TargetName}.");
+                case "follow": return o.Arrived ? L.F("AIL_0a0689c9", $"{h.Name} deja de seguirte y vuelve a sus asuntos.") : L.F("AIL_23bfd455", $"{h.Name} no ha conseguido alcanzarte y vuelve a sus asuntos.");
+                case "meet": return o.Arrived ? L.F("AIL_b0a43892", $"{h.Name} se cansa de esperarte en {o.TargetName} y se marcha.") : L.F("AIL_5c3efc53", $"{h.Name} no ha podido llegar a {o.TargetName} y lo deja.");
+                case "wait": return L.F("AIL_645733f1", $"{h.Name} deja de esperar y vuelve a sus asuntos.");
+                case "patrol": return L.F("AIL_55479028", $"{h.Name} termina su patrulla en {o.TargetName}.");
                 case "approach": return null;      // no te alcanzó: lo deja sin más
-                default: return L.F($"{h.Name} vuelve a sus asuntos.");
+                default: return L.F("AIL_7cd9f263", $"{h.Name} vuelve a sus asuntos.");
             }
         }
 
@@ -273,7 +273,7 @@ namespace AILegacy.World
                     {
                         o.Arrived = true;
                         o.UntilDay = CampaignTime.Now.ToDays + Math.Max(0.5, o.StayDays);
-                        Say(L.F($"{h.Name} se une a tu marcha con {p.MemberRoster.TotalManCount} hombres."));
+                        Say(L.F("AIL_85e6e5d4", $"{h.Name} se une a tu marcha con {p.MemberRoster.TotalManCount} hombres."));
                     }
                     break;
 
@@ -285,7 +285,7 @@ namespace AILegacy.World
                 {
                     // Escoltar a OTRA partida (una caravana, unos aldeanos, un pariente): cabalga a su lado
                     var ward = MobileParty.All.FirstOrDefault(x => x != null && x.StringId == o.TargetId);
-                    if (ward == null || !ward.IsActive || ward.MapEvent != null && ward.MapEvent.HasWinner) { Release(o, h, L.F($"{h.Name} ya no tiene a quién escoltar y vuelve a sus asuntos.")); return; }
+                    if (ward == null || !ward.IsActive || ward.MapEvent != null && ward.MapEvent.HasWinner) { Release(o, h, L.F("AIL_49b6ffff", $"{h.Name} ya no tiene a quién escoltar y vuelve a sus asuntos.")); return; }
                     if (p.DefaultBehavior != AiBehavior.EscortParty || p.TargetParty != ward) p.SetMoveEscortParty(ward, nav, false);
                     break;
                 }
@@ -304,12 +304,12 @@ namespace AILegacy.World
                             {
                                 // empieza a contar la espera desde que llega
                                 o.UntilDay = CampaignTime.Now.ToDays + Math.Max(0.5, o.StayDays);
-                                Say(L.F($"{h.Name} ha llegado a {st.Name} y te espera allí."));
+                                Say(L.F("AIL_7d054e89", $"{h.Name} ha llegado a {st.Name} y te espera allí."));
                             }
                             else
                             {
                                 bool back = o.Then == "follow";
-                                Release(o, h, back ? L.F($"{h.Name} ha llegado a {st.Name} y emprende el regreso hacia ti.") : L.F($"{h.Name} ha llegado a {st.Name}."));
+                                Release(o, h, back ? L.F("AIL_d65def98", $"{h.Name} ha llegado a {st.Name} y emprende el regreso hacia ti.") : L.F("AIL_518def5c", $"{h.Name} ha llegado a {st.Name}."));
                                 if (back) Give(h, "follow", null, Hero.MainHero.Name.ToString(), 0);
                                 return;
                             }
@@ -331,9 +331,9 @@ namespace AILegacy.World
                 {
                     var target = MobileParty.All.FirstOrDefault(x => x != null && x.StringId == o.TargetId);
                     if (target == null || !target.IsActive || target.MemberRoster.TotalManCount == 0)
-                    { Release(o, h, L.F($"{h.Name} ya no tiene a quién perseguir ({o.TargetName}).")); return; }
+                    { Release(o, h, L.F("AIL_9480373b", $"{h.Name} ya no tiene a quién perseguir ({o.TargetName}).")); return; }
                     if (target.MapFaction == null || !target.MapFaction.IsAtWarWith(p.MapFaction) || target.CurrentSettlement != null)
-                    { Release(o, h, L.F($"{h.Name} abandona la persecución de {o.TargetName}.")); return; }
+                    { Release(o, h, L.F("AIL_6f87960d", $"{h.Name} abandona la persecución de {o.TargetName}.")); return; }
                     if (p.DefaultBehavior != AiBehavior.EngageParty || p.TargetParty != target)
                         p.SetMoveEngageParty(target, nav);
                     break;
@@ -342,7 +342,7 @@ namespace AILegacy.World
                 case "besiege":
                     if (st == null || !st.IsFortification) { Release(o, h, null); return; }
                     if (st.MapFaction == null || !st.MapFaction.IsAtWarWith(p.MapFaction))
-                    { Release(o, h, st.MapFaction == p.MapFaction ? L.F($"{st.Name} ha caído. {h.Name} da el asedio por terminado.") : L.F($"{h.Name} levanta el asedio de {st.Name}.")); return; }
+                    { Release(o, h, st.MapFaction == p.MapFaction ? L.F("AIL_dd1a051b", $"{st.Name} ha caído. {h.Name} da el asedio por terminado.") : L.F("AIL_4eae4e56", $"{h.Name} levanta el asedio de {st.Name}.")); return; }
                     if (p.DefaultBehavior != AiBehavior.BesiegeSettlement || p.TargetSettlement != st)
                         p.SetMoveBesiegeSettlement(st, nav);
                     break;
@@ -350,9 +350,9 @@ namespace AILegacy.World
                 case "raid":
                     if (st == null || !st.IsVillage) { Release(o, h, null); return; }
                     if (st.Village.VillageState == Village.VillageStates.Looted || st.IsRaided)
-                    { Release(o, h, L.F($"{st.Name} ha sido saqueada. {h.Name} vuelve a sus asuntos.")); return; }
+                    { Release(o, h, L.F("AIL_399e0d5f", $"{st.Name} ha sido saqueada. {h.Name} vuelve a sus asuntos.")); return; }
                     if (st.MapFaction == null || !st.MapFaction.IsAtWarWith(p.MapFaction))
-                    { Release(o, h, L.F($"{h.Name} renuncia a saquear {st.Name}.")); return; }
+                    { Release(o, h, L.F("AIL_c351bc8a", $"{h.Name} renuncia a saquear {st.Name}.")); return; }
                     if (p.DefaultBehavior != AiBehavior.RaidSettlement || p.TargetSettlement != st)
                         p.SetMoveRaidSettlement(st, nav, false);
                     break;
@@ -397,7 +397,7 @@ namespace AILegacy.World
             }
             p.Army = main.Army;
             p.SetMoveEscortParty(main, p.IsCurrentlyAtSea ? p.NavigationCapability : MobileParty.NavigationType.Default, false);
-            return L.F($"{h.Name} se une a tu ejército con {p.MemberRoster.TotalManCount} hombres.");
+            return L.F("AIL_675de4ca", $"{h.Name} se une a tu ejército con {p.MemberRoster.TotalManCount} hombres.");
         }
 
         /// <summary>El NPC reúne su propio ejército (la IA del juego lo dirige después).</summary>
@@ -411,17 +411,17 @@ namespace AILegacy.World
                 : (target != null ? Army.ArmyTypes.Defender : Army.ArmyTypes.Patrolling);
             k.CreateArmy(h, target, type);
             if (p.Army == null) return null;
-            return L.F($"{h.Name} reúne un ejército") + (target != null ? L.F($" con la vista puesta en {target.Name}.") : ".");
+            return L.F("AIL_55cee6ef", $"{h.Name} reúne un ejército") + (target != null ? L.F("AIL_927a75ae", $" con la vista puesta en {target.Name}.") : ".");
         }
 
         public static string LeaveArmy(Hero h)
         {
             var p = PartyLedBy(h);
             if (p?.Army == null) return null;
-            if (p.Army.LeaderParty == p) { DisbandArmyAction.ApplyByUnknownReason(p.Army); return L.F($"{h.Name} disuelve su ejército."); }
+            if (p.Army.LeaderParty == p) { DisbandArmyAction.ApplyByUnknownReason(p.Army); return L.F("AIL_ae49ce20", $"{h.Name} disuelve su ejército."); }
             p.Army = null;
             p.Ai.SetDoNotMakeNewDecisions(false);
-            return L.F($"{h.Name} abandona el ejército con sus hombres.");
+            return L.F("AIL_a7d1636b", $"{h.Name} abandona el ejército con sus hombres.");
         }
     }
 }

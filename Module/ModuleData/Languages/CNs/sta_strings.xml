@@ -1,0 +1,1267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/ModuleLanguage.xsd" type="string">
+  <tags>
+    <tag language="简体中文" />
+  </tags>
+  <strings>
+    <string id="AIL_0042ce81" text="{=!}返回" />
+    <string id="AIL_004eae62" text="如果出了血或你对他不敬，守卫可以把罚款提高到此值的至多五倍。" />
+    <string id="AIL_007c510b" text="驱逐玩家已禁用" />
+    <string id="AIL_00d8d85f" text="文件夹已在游戏电脑上打开" />
+    <string id="AIL_00ec5af6" text="已死亡" />
+    <string id="AIL_0107d6be" text="{0} 将护送 {1}。" />
+    <string id="AIL_011ed64e" text="面对敌方领主时，你也可以下马面对面交谈。回到地图后，遭遇仍保持原状（攻击、投降、让你离开），除非谈话中已经解决。" />
+    <string id="AIL_015c810d" text="国王颁布的法律" />
+    <string id="AIL_016ea49e" text="你：{0}" />
+    <string id="AIL_01ad2df2" text="{0} 认定任务已完成。" />
+    <string id="AIL_01e11e81" text="{0}：{1}（还剩 {2} 天）" />
+    <string id="AIL_020f810a" text="附近能听到你对群里所说内容的人，如果与自己有关，可以走过来加入谈话。不消耗额外请求。" />
+    <string id="AIL_025a42fd" text="一个加入你的家族和存档的新角色（如果还有同伴空位）。之后你可以在其资料页用AI生成其性格。" />
+    <string id="AIL_02982857" text="添加角色" />
+    <string id="AIL_02e730b3" text="当一次谈话明显让两个角色关系变好或变坏时，他们在游戏中的关系会上升或下降一点。" />
+    <string id="AIL_030c9961" text="历史已清除" />
+    <string id="AIL_031d614f" text="他的书中的一页" />
+    <string id="AIL_0361e655" text="每个严重程度每日损失的繁荣度" />
+    <string id="AIL_03bb5d20" text="一场拳斗" />
+    <string id="AIL_03bc7447" text="   ·   情绪：{0}" />
+    <string id="AIL_03be4040" text="你支付了 {0} 第纳尔，重获自由。" />
+    <string id="AIL_043426f0" text="事件" />
+    <string id="AIL_0482ecfa" text="秘密" />
+    <string id="AIL_04c41d7c" text="战斗中按 Alt+B：用你平时说话的方式写下命令（“骑兵从左路冲击他们的弓箭手”），AI会把它转换成对你编队的命令。你输入时游戏暂停。" />
+    <string id="AIL_04d419f6" text="紧张度随辱骂和威胁上升，并随时间下降。紧张度高时，NPC可能诉诸暴力或呼叫守卫。他也会评估你是否令他害怕（你的部队对比他的部队）。" />
+    <string id="AIL_0504fb72" text="填写其一：gemini、openai、groq、deepseek、openrouter、ollama（本地，无需密钥）或 other（此时请填写地址）。" />
+    <string id="AIL_05112fe7" text="{0} 的守卫在一场争执后盘问了 {1}，随后放他离开。" />
+    <string id="AIL_0529fe40" text="1 天前" />
+    <string id="AIL_053cbde7" text="{1} 爆发了{0}。据说是{2}。" />
+    <string id="AIL_05883eac" text="认识你的人路过时会对你说话" />
+    <string id="AIL_0681e274" text="委托“{0}”： " />
+    <string id="AIL_0696ca62" text="最大影响：每日粮食" />
+    <string id="AIL_06b1b9ba" text="搜索任意英雄……" />
+    <string id="AIL_06be773b" text="。它此前属于 {0}{1}。" />
+    <string id="AIL_06c4b9a6" text="Modules\AILegacy\config.json 中没有配置任何 api_key" />
+    <string id="AIL_072e561a" text="事件的最小长度（字符数）" />
+    <string id="AIL_07bd9260" text="{0} 对其城镇征收 {1} % 的特别税。" />
+    <string id="AIL_07cfa3c4" text="被刺伤" />
+    <string id="AIL_07d92c66" text="这将清除 {0} 关于你的全部记忆。确认请输入：/forget confirmar" />
+    <string id="AIL_07e9f3c5" text="（发送你的消息并等待回应）" />
+    <string id="AIL_080a0e95" text="{0} 把你当作死人丢下。你侥幸活了下来。" />
+    <string id="AIL_08285b4c" text="一项贸易协定" />
+    <string id="AIL_0872713a" text="空" />
+    <string id="AIL_089c5db1" text="适用于本战役的 AI Legacy 指令模板。&#13;&#10;&#13;&#10;" />
+    <string id="AIL_08ae4ed8" text="记忆已清除" />
+    <string id="AIL_08b5bd20" text="{0} 离开了你的家族。" />
+    <string id="AIL_08baf922" text="记忆随存档保存" />
+    <string id="AIL_08cd64bc" text="参与者： " />
+    <string id="AIL_08d1b4a4" text="{0} 已收到 {1}/{2} × {3}" />
+    <string id="AIL_08fb0c3a" text=" 加入了你的队伍" />
+    <string id="AIL_095b55a1" text="文件 · 来自 {0}" />
+    <string id="AIL_09c1508e" text="你自由了。" />
+    <string id="AIL_09d60746" text="同性之间的浪漫关系" />
+    <string id="AIL_0a0689c9" text="{0} 不再跟随你，回去忙自己的事了。" />
+    <string id="AIL_0a072878" text="每个NPC记住的口信数" />
+    <string id="AIL_0a156f01" text="未知行动" />
+    <string id="AIL_0a44192c" text="{=!}治疗你的同伴（{AIL_H_COMP}{GOLD_ICON}）" />
+    <string id="AIL_0aaea1bc" text="无目击者的袭击" />
+    <string id="AIL_0b2f92c7" text="基础" />
+    <string id="AIL_0b583a3b" text="{0} 拒绝向 {1} 支付赔款。" />
+    <string id="AIL_0b611224" text="{0} 被俘" />
+    <string id="AIL_0b677944" text="路过：对你说话的距离（米）" />
+    <string id="AIL_0b9bdfcf" text="医生们目前没有听说卡拉迪亚有任何疾病。" />
+    <string id="AIL_0bc1afa9" text="{=!}你很健康。" />
+    <string id="AIL_0be30312" text="放在每次对话的开头。请用英文书写（回应会以你的语言输出）。下一句话起生效。" />
+    <string id="AIL_0bfa167c" text="NPC一次给出的物品的最大价值" />
+    <string id="AIL_0ca5ee01" text="角色之间一次交谈的最多句数" />
+    <string id="AIL_0cd6f2e1" text="{0}：已停用或没有 api_key" />
+    <string id="AIL_0d2bb14b" text="经济" />
+    <string id="AIL_0d2e0018" text="{0} 拒绝向 {1} 割让领土。" />
+    <string id="AIL_0d7f7775" text="{0} 把 {1} 家族逐出王国。" />
+    <string id="AIL_0d81b407" text="每次回应调取的相关记忆数" />
+    <string id="AIL_0d832ced" text="温度（x100）" />
+    <string id="AIL_0d849eb1" text="每次声明对各王室之间态度的最大变化" />
+    <string id="AIL_0db9b33c" text="决斗" />
+    <string id="AIL_0ddba7d9" text="&#10;对你的称呼：{0}" />
+    <string id="AIL_0e382db2" text="&#10;&#10;— {0}（{1} 天前）—&#10;" />
+    <string id="AIL_0e578525" text="战争疲惫：每失去一座城镇或城堡" />
+    <string id="AIL_0e7aa239" text="每日回应提议的概率（%）" />
+    <string id="AIL_0ea1a4c8" text="亲密" />
+    <string id="AIL_0ebbc439" text="地图上每单位距离的第纳尔数。信件从酒馆区发出。" />
+    <string id="AIL_0ede5f95" text="· 记得： " />
+    <string id="AIL_0fbba7b1" text="{0} 交给你：{1}。" />
+    <string id="AIL_100794a8" text="玩家声明" />
+    <string id="AIL_1057a530" text="提示词中的历史轮数" />
+    <string id="AIL_1068028c" text="你在该服务的密钥。它在此界面以明文显示：截图时不要暴露。" />
+    <string id="AIL_109be563" text="角色扮演式死亡" />
+    <string id="AIL_10e460d5" text="神秘" />
+    <string id="AIL_10f114fb" text="该角色在存档中已不存在。" />
+    <string id="AIL_114e50bb" text="{1} 的 {0} 现在属于 {2}{3}" />
+    <string id="AIL_11783c51" text="俘虏" />
+    <string id="AIL_1191e28d" text="（这项任务提到了世界中不存在的人或物：无法自动核实，将由委托人来评判。）" />
+    <string id="AIL_11a9a28f" text="竞技场：每名士兵的基础经验" />
+    <string id="AIL_122eb7e1" text="一名持械的外乡人袭击了 {0}{1}。有人看见了行凶者，但没人知道他是谁。" />
+    <string id="AIL_1230749f" text="{0} 遭劫掠" />
+    <string id="AIL_129b4432" text="本战役中没有导入的记忆。" />
+    <string id="AIL_12efd9a7" text="命令的最长持续时间（天）" />
+    <string id="AIL_131719b8" text="想说话的人会走过来" />
+    <string id="AIL_13527f3f" text="大括号之间的内容，如 {npc_name} 或 {language}，由模组填充：不要翻译也不要删除。&#13;&#10;" />
+    <string id="AIL_13afe103" text="战争" />
+    <string id="AIL_14250983" text="如果你也是国王，国王可以向你宣战或与你议和。" />
+    <string id="AIL_1425de35" text="每次谈话的最大关系变化" />
+    <string id="AIL_148d1995" text="守卫能听到呼叫的距离（米）" />
+    <string id="AIL_14d6bbb7" text="群聊：周围的人可以插话" />
+    <string id="AIL_14ed1b61" text="家族" />
+    <string id="AIL_156ada7f" text="众人陷入沉默。" />
+    <string id="AIL_15853344" text="他尊重什么、鄙视什么" />
+    <string id="AIL_1586f13c" text="NPC会用 *星号* 描述动作。" />
+    <string id="AIL_15eec8c6" text="斗殴时的台词" />
+    <string id="AIL_160a2e2f" text="同时存活的独特角色最大数" />
+    <string id="AIL_161727d1" text="{0} 的胜利" />
+    <string id="AIL_162d77c2" text="{0} 与 {1} 的婚礼" />
+    <string id="AIL_16443f4c" text="你王国的贵族认得你" />
+    <string id="AIL_164cfae0" text="街头斗殴中你的士兵最大人数" />
+    <string id="AIL_16a1a48b" text="亲属关系" />
+    <string id="AIL_170fa0ef" text="与已婚者的浪漫关系" />
+    <string id="AIL_175eb081" text="{=!}这项任务已不再有效。" />
+    <string id="AIL_17a3df8d" text="战斗使用的服务商" />
+    <string id="AIL_17ca3c0a" text="每个有名字的角色都会记录自己与其他角色相处如何，以及他们之间最近发生的事（他们的谈话、一次口信、当着你面的一次冷遇、一次逮捕）。他们在互相交谈、群聊以及与你交谈时会用到这些。保存在其文件的“others”中。" />
+    <string id="AIL_1834d79b" text="旧对话" />
+    <string id="AIL_18b82bcb" text="背景事件：每隔多少天（约）" />
+    <string id="AIL_18d97adb" text="没有已保存的句子。" />
+    <string id="AIL_18fd1956" text="模型的准确名称。留空时按服务分别为：gemini-3.5-flash-lite、gpt-5.6-luna、llama-3.3-70b-versatile、deepseek-chat 或 llama3.1。" />
+    <string id="AIL_18fe8281" text="回忆之书" />
+    <string id="AIL_1a8ef2ad" text="{0} 已忘记了一切。" />
+    <string id="AIL_1b467603" text="它是什么、写了什么" />
+    <string id="AIL_1b485942" text="定居点没有疾病或不属于其所有" />
+    <string id="AIL_1b520886" text="世界" />
+    <string id="AIL_1b8ccb46" text="每个严重程度的生病概率（%）" />
+    <string id="AIL_1b9a1bfb" text="NPC来信" />
+    <string id="AIL_1c381bc9" text="为被攻击者出头的最多人数" />
+    <string id="AIL_1c42ff4a" text="{0} 流传着消息：{1}（{2}）已经到来。" />
+    <string id="AIL_1c6f47d4" text="一位男邻居" />
+    <string id="AIL_1cb10851" text="打开 AI Legacy 编辑器" />
+    <string id="AIL_1d0a19e2" text="目前无法结盟" />
+    <string id="AIL_1d2a25e7" text="已恢复： " />
+    <string id="AIL_1d38423b" text="9. 编辑器" />
+    <string id="AIL_1d3c2297" text="{0} 王国覆灭" />
+    <string id="AIL_1d84efed" text="朝廷" />
+    <string id="AIL_1df7d173" text="返回" />
+    <string id="AIL_1e4baeec" text="透露秘密所需的信任" />
+    <string id="AIL_1e684c40" text="姓名" />
+    <string id="AIL_1e733cef" text="上次交谈：{0}。" />
+    <string id="AIL_1e8da0b8" text="服务商 3" />
+    <string id="AIL_1ee0d3b1" text="{0} 收起武器。" />
+    <string id="AIL_1ee35da7" text="你攻击了 {0}！" />
+    <string id="AIL_1f1faf3a" text="如果关闭，NPC只会说话：不会给钱、不会加入等等。" />
+    <string id="AIL_1f2a27ea" text="当前的新闻与事件" />
+    <string id="AIL_1f8da24b" text="服务商 2" />
+    <string id="AIL_1fb2c5a1" text="{0} 出发追捕 {1}。" />
+    <string id="AIL_2003bc66" text="约 {0} 天" />
+    <string id="AIL_203a7d74" text="{0} 颁布法律“{1}”" />
+    <string id="AIL_208da3de" text="服务商 1" />
+    <string id="AIL_20b8ba96" text="地图场景：也包含敌人（谈判）" />
+    <string id="AIL_20cbe084" text="你没有 {0} 第纳尔来购买 {1} 的工坊。" />
+    <string id="AIL_20e63156" text="从本战役中移除来自 AIInfluence 的记忆（例如，如果你导入了另一个存档的记忆）。文件会被移到子文件夹，不会被删除。" />
+    <string id="AIL_2118a039" text="事件" />
+    <string id="AIL_2215a755" text="{0} 加入了谈话。" />
+    <string id="AIL_2259555a" text="情绪：{0}（{1}）" />
+    <string id="AIL_226baec1" text=" （另一个战役）" />
+    <string id="AIL_226c9a7f" text="&#10;&#10;你很健康。" />
+    <string id="AIL_2287fa82" text="在场景中，角色之间的对话或他们路过时对你的喊话会显示在他们头顶。" />
+    <string id="AIL_22932a37" text="无新闻" />
+    <string id="AIL_22b0d9b9" text="亲密所需的浪漫度" />
+    <string id="AIL_22c76d52" text="创建同伴" />
+    <string id="AIL_23b67cad" text="紧张 {0}{1}" />
+    <string id="AIL_23bfd455" text="{0} 没能追上你，回去忙自己的事了。" />
+    <string id="AIL_23d64abe" text="{0} 的守卫因一场争执对 {1} 罚款 {2} 第纳尔。" />
+    <string id="AIL_24ba54ab" text="{0} 交给你 {1} 名士兵{2}。" />
+    <string id="AIL_24d3d112" text="医生们让你恢复如初。" />
+    <string id="AIL_24fc64b9" text="{0} 已是你认识的人：你可以在 {1} 再次找到他。" />
+    <string id="AIL_2504fc22" text="每个王国的起源秘密" />
+    <string id="AIL_254648d0" text="{0} 已经是你的家人。" />
+    <string id="AIL_256e88f0" text="每次行动的最大金额" />
+    <string id="AIL_258dabbd" text="服务商 4" />
+    <string id="AIL_25c835cb" text="用星号表示动作" />
+    <string id="AIL_2603bf41" text="你已经结婚了。" />
+    <string id="AIL_263bf6a9" text="{0}/{1}：正常，用时 {2:0.0} 秒" />
+    <string id="AIL_265409ff" text="明白了" />
+    <string id="AIL_266f75ee" text="{0} 家族易帜" />
+    <string id="AIL_26906366" text="听到你的人：{0}。{1}{2}" />
+    <string id="AIL_2691821b" text="&#10;&#10;城中没有任何疾病。" />
+    <string id="AIL_26b70a49" text="每位首领对部下的吼叫会显示在日志中（如果离得近，也显示在他头顶）。" />
+    <string id="AIL_26e90847" text="在你什么都不说的情况下，他们最多可以连续继续交谈多少次。你一开口，计数就重新开始。" />
+    <string id="AIL_26eb718e" text="婚姻" />
+    <string id="AIL_270778c1" text="{0} 终止了与 {1} 的贸易协定。" />
+    <string id="AIL_270c2dbd" text="1 = 每句话一次请求（最贵）。2 = 请求数减半。" />
+    <string id="AIL_276e2745" text="与同伴、流浪者和显要人物成婚" />
+    <string id="AIL_27a8d342" text="给 {0} 的信" />
+    <string id="AIL_27bd042f" text="一项同盟" />
+    <string id="AIL_2808c06c" text="场景中角色之间的交谈" />
+    <string id="AIL_2839a892" text="开启：你的关系是与此人本身的。关闭（与游戏原版一致）：对于贵族，你的关系即其家族首领的关系。" />
+    <string id="AIL_28b223a8" text="本地" />
+    <string id="AIL_28e8e86e" text="文件夹" />
+    <string id="AIL_291705dd" text="保存" />
+    <string id="AIL_292485a4" text="背景事件（没有发生任何事时）" />
+    <string id="AIL_2924e794" text="为了在你快速推进时间时不浪费额度。" />
+    <string id="AIL_297f659a" text="每方有多少人出现在其首领身后（先是英雄，再是最精锐的部队）。" />
+    <string id="AIL_298b35b9" text="场景中的拳斗和决斗、地图上敌人的攻击与投降，以及呼叫守卫。" />
+    <string id="AIL_298da7f9" text="知情者：" />
+    <string id="AIL_29902717" text="最近的句子" />
+    <string id="AIL_29a99738" text="{=!}我们下马面对面谈吧。[AI Legacy：场景]" />
+    <string id="AIL_29e73294" text="一个事件对某市场物价的最大影响（%）" />
+    <string id="AIL_29f8c9a1" text="信件、印章、合同、衣物……它们不是游戏中的物品：只为故事而存在。如果你在交谈中出示或交给他们，角色就知道你带着这些东西。" />
+    <string id="AIL_2a6395bc" text="{1} 的 {0} 在围攻后落入 {2}{3} 之手" />
+    <string id="AIL_2a891567" text="可选：你希望他具备的特点（例如“他很胆小，却用大话来掩饰”）" />
+    <string id="AIL_2b8dd572" text="{=!}你健康的部下会获得经验（新兵更多）。有人可能会受伤。在你自己的城镇更便宜。" />
+    <string id="AIL_2bd4d43b" text="你下令：“{0}”" />
+    <string id="AIL_2bd6ef00" text="新任务：“{0}”（{1} 天" />
+    <string id="AIL_2bf0193d" text="你没有改动过的文件，会在模组新版本改进文本时自动更新。&#13;&#10;" />
+    <string id="AIL_2c243fac" text="如果要交谈的两人不在一起，其中一人会先走向另一人再开始（如果有路，也可跨楼层）。" />
+    <string id="AIL_2cb6f858" text="信任：{0}" />
+    <string id="AIL_2d23d9be" text=" 就在 {0} 附近。" />
+    <string id="AIL_2d487a5a" text="{0} 接受了生死决斗。谈话一结束就开始。" />
+    <string id="AIL_2d5ee223" text="一笔贡金" />
+    <string id="AIL_2d66ff9e" text="{0} 在等你开口。" />
+    <string id="AIL_2d756f08" text="你没有 {0} 第纳尔来支付给 {1}。" />
+    <string id="AIL_2d97f1db" text="你将 {0} 名俘虏交给 {1}。" />
+    <string id="AIL_2da177ae" text="士兵和守卫也会交谈（低声）" />
+    <string id="AIL_2da21a68" text="生死决斗真的会致死" />
+    <string id="AIL_2dbeb3e1" text="创建物品" />
+    <string id="AIL_2e04a874" text="{=!}在竞技场训练你的部队，8 小时（{AIL_TRAIN_COST}{GOLD_ICON}）" />
+    <string id="AIL_2ef46d51" text="展示一句话" />
+    <string id="AIL_2eff340e" text="群聊：有人离开的距离（米）" />
+    <string id="AIL_2f7a736d" text="{0} 的警钟响起：全体守卫出动！" />
+    <string id="AIL_2fb56a84" text="在发生对他有重大影响的事件（背叛、死亡、誓言、坠入爱河）后，AI会稍微调整他的性格并记入其过往。" />
+    <string id="AIL_2fc52b1a" text="编辑器端口" />
+    <string id="AIL_2fd476bb" text="一个事件可以在持续期间使某座城镇或村庄的整个市场物价上涨或下跌（短缺、恐慌、富足）。0 = 事件不影响物价。" />
+    <string id="AIL_30214b10" text="*{0} 还在思考……*" />
+    <string id="AIL_303700aa" text="1 = 任何本地事件，2 = 朝廷事务，3 = 震动一个王国的事，4 = 只有震动世界的事。" />
+    <string id="AIL_309ea6a0" text="{0} 释放了 {1}。" />
+    <string id="AIL_30aa9ee2" text="{0} 向 {1} 家族宣战。" />
+    <string id="AIL_30c8d104" text="战争、和平、战斗、围城、死亡……NPC会根据重要性和距离得知这些消息。" />
+    <string id="AIL_31311890" text="导入 AIInfluence 的记忆" />
+    <string id="AIL_315af7c1" text=" · 来自 " />
+    <string id="AIL_3225c875" text="附近有人每小时走近的概率（%）" />
+    <string id="AIL_32aaabb0" text="说话时的动作与表情" />
+    <string id="AIL_32bdb403" text="任务" />
+    <string id="AIL_33265d9a" text="每个文件都是发送给AI的内容的一部分。游戏运行时也可以编辑：会自动重新读取。&#13;&#10;" />
+    <string id="AIL_336cdc8f" text="我也牵涉其中" />
+    <string id="AIL_33dbf353" text="用你自己的话写下命令：“步兵结盾墙，死守阵地”、“骑兵从左路冲击他们的弓箭手”、“全军冲锋”……" />
+    <string id="AIL_344592e1" text="NPC在说话前会私下思考（知道什么、想要什么、某项行动是否合理）。回应更好，但稍慢。" />
+    <string id="AIL_34a22788" text="{0} 下令在 {2} 隔离 {1} 天。" />
+    <string id="AIL_34f22b4a" text="每个角色记住多少个角色" />
+    <string id="AIL_35049c49" text="每次回应的最大紧张变化" />
+    <string id="AIL_3515a1a2" text="角色头顶的文字" />
+    <string id="AIL_35404728" text="{=!}药物、烧开的水和干净的衣物：在这些天里，你的部下进入有疾病的地方时生病几率降低到四分之一。" />
+    <string id="AIL_35617af2" text="{0} 不再响应你的召唤：你们现在是敌人了。" />
+    <string id="AIL_35ac229c" text="已移除 {0} 名角色的导入记忆。&#10;备份位于：&#10;{1}&#10;&#10;请保存存档以使其生效。" />
+    <string id="AIL_35c15083" text="&#10;王国： " />
+    <string id="AIL_35cd4d87" text="群聊：加入的距离（米）" />
+    <string id="AIL_35d98005" text="粗口（never / sometimes / often…）" />
+    <string id="AIL_35e216d6" text="在地图上，NPC能看到、并可在你请求时前去攻击的敌人的距离。" />
+    <string id="AIL_3677d2a1" text="{0} 家族离开了 {1}。" />
+    <string id="AIL_36b9fe81" text="最大严重程度" />
+    <string id="AIL_370ba9dd" text="4. 记忆" />
+    <string id="AIL_3732e7fc" text="在城镇或城堡的群聊中，如果有重大理由（例如你当面出示证据指控某人犯罪），守卫或当地掌权者可以逮捕在场的另一名角色。他会真的被关押，并对你怀恨在心。" />
+    <string id="AIL_376f0803" text="撤销导入" />
+    <string id="AIL_378f2647" text="你还没有去过 {0}" />
+    <string id="AIL_37ac8589" text="政治" />
+    <string id="AIL_3865f0c2" text="英雄使用的服务商" />
+    <string id="AIL_387fb206" text="{0} 摆脱了疾病" />
+    <string id="AIL_38907a94" text="队伍中无人回答（AI没有响应）。" />
+    <string id="AIL_38eddd03" text="错误 " />
+    <string id="AIL_390cb390" text="“{0}”尚未完成：{1}" />
+    <string id="AIL_3958d81a" text="要求你" />
+    <string id="AIL_397b4d4e" text="{0} 与 {1} 之间的和平" />
+    <string id="AIL_399e0d5f" text="{0} 已遭劫掠。{1} 回去处理自己的事务了。" />
+    <string id="AIL_39a19577" text="不由你指挥的每一方的首领会定期收到战况，并根据其性格和能力向其编队下达真实命令。在他决策期间，或AI失败时，游戏原有的战术继续生效。围城战中不起作用。" />
+    <string id="AIL_39a88b5b" text="你在某个NPC面前所说或所做的事，可能传到他的领主、家人或朋友那里，根据距离会有延迟。传到的是他们的版本，而非事实。" />
+    <string id="AIL_3a0a45fd" text="从交谈转入战斗" />
+    <string id="AIL_3a0aca3f" text="如果失败或超过期限，你会损失一半。" />
+    <string id="AIL_3a41f7a5" text="D. 场景" />
+    <string id="AIL_3a52fd31" text="&#10;状态：{0}" />
+    <string id="AIL_3a88a804" text="如果你在群聊中所说的话给了他理由，角色可以采取行动：去和另一个人谈然后回来告诉你、陪你走、留下、带你去找某人、叫某人过来，或者离开。" />
+    <string id="AIL_3ae61921" text="{=!}寄一封信" />
+    <string id="AIL_3b33d5b8" text="{0} 的声明" />
+    <string id="AIL_3b47ba61" text="虔诚度（devout / lukewarm / cynical…）" />
+    <string id="AIL_3b64d032" text="{0} 授予你 {1}。" />
+    <string id="AIL_3ba48d61" text="守卫能看到斗殴的距离（米）" />
+    <string id="AIL_3bcc8ae2" text="群聊：每轮最多回应数" />
+    <string id="AIL_3bdc9ea5" text="大规模战斗中的战术AI" />
+    <string id="AIL_3be1eaff" text="{0} 家族：收入 {1}{2:0} %（还剩 {3} 天）。{4}" />
+    <string id="AIL_3bea3dfe" text="无效的响应" />
+    <string id="AIL_3c14bb80" text="你的钱不够购买 {1} 的 {0}（{2} 第纳尔）。" />
+    <string id="AIL_3c35b946" text="贵族轮流交谈（请求更多）" />
+    <string id="AIL_3c407add" text="{=!}为你的队伍预防， " />
+    <string id="AIL_3cb61993" text="性格变化之间的最少天数" />
+    <string id="AIL_3cc9d40f" text="{0} 把你带到了 {1}。" />
+    <string id="AIL_3cdfd85b" text="道德观（principled / pragmatic / ruthless…）" />
+    <string id="AIL_3cfa625f" text="{0} 要求 {1} 交出 {2}。" />
+    <string id="AIL_3d1f0c15" text="{0} 从 {2} 家族手中没收了 {1}。" />
+    <string id="AIL_3dad18db" text="{=!}回忆之书（AI Legacy）" />
+    <string id="AIL_3dce3fe1" text="{0} 退位：你的家族开始统治 {1}。" />
+    <string id="AIL_3e132ba1" text="群聊：你沉默多少秒后他们继续（0 = 从不）" />
+    <string id="AIL_3e1af9d4" text="幽默感、说谎程度、决策方式、信任程度" />
+    <string id="AIL_3e251e73" text="{0} 动身与你会合。" />
+    <string id="AIL_3e5e7332" text="对你的称呼（留空 = 不知道你的名字）" />
+    <string id="AIL_3e887326" text="{0} 陷落" />
+    <string id="AIL_3e8e1ac7" text="游戏没有响应（是否正在加载或已最小化？）" />
+    <string id="AIL_3f0d143a" text="请用英文书写（模型对英文的遵循效果更好）；NPC会用设置中的语言回答。&#13;&#10;&#13;&#10;" />
+    <string id="AIL_3f29f263" text="你携带的角色扮演物品" />
+    <string id="AIL_3f2c88e6" text="{0} 对 {1} 的回应" />
+    <string id="AIL_3f44d794" text="{0} 的医院&#10;&#10;医生等级：{1}。" />
+    <string id="AIL_3f4f693a" text="守卫放你走了。" />
+    <string id="AIL_3fbb045d" text="每单位距离的旅行小时数（x10）" />
+    <string id="AIL_3ff4d651" text="用法：/note &lt;指令&gt;   例：/note 她是我的妻子，正怀着身孕；她从不对我唠叨危险的事。" />
+    <string id="AIL_401f90b1" text="地图场景：每方随从" />
+    <string id="AIL_4073a6cc" text="没有收到任何AI的回应。点击“说话”重试。&#10;" />
+    <string id="AIL_40a03089" text="&#10;（你牵涉其中）" />
+    <string id="AIL_4114935f" text="{=!}解除隔离" />
+    <string id="AIL_411fbc76" text="{0} 接管了家族的一支独立队伍。" />
+    <string id="AIL_41386273" text="性格会演变" />
+    <string id="AIL_413e791f" text="，并且处于隔离中" />
+    <string id="AIL_41ac9547" text="政治" />
+    <string id="AIL_41b3740a" text="&#10;&#10;承诺的报酬：{0} 第纳尔。" />
+    <string id="AIL_41e43789" text="{=!}离开" />
+    <string id="AIL_41faa86d" text="目击者：达到多少家族等级后所有人都认得你" />
+    <string id="AIL_4232f06e" text="已导入：{0}&#10;在 AI Legacy 中已有记忆（未改动）：{1}&#10;无有用数据或本存档中不存在：{2}&#10;出错：{3}" />
+    <string id="AIL_42716849" text="你已经有父亲了。" />
+    <string id="AIL_42b37383" text="（{0} 结束了这次谈话）" />
+    <string id="AIL_42b92c67" text="{=!}正在举行锦标赛：竞技场被占用。" />
+    <string id="AIL_436c99a9" text="只在高度信任时" />
+    <string id="AIL_44011913" text="致命的" />
+    <string id="AIL_44600a27" text="一个事件可以在一段时间内每天改变某个真实定居点的繁荣度、粮食、治安和忠诚。" />
+    <string id="AIL_44dd0aa7" text="这是王室的最后一块封地" />
+    <string id="AIL_44de911b" text="社会" />
+    <string id="AIL_4514967a" text="，所属家族： " />
+    <string id="AIL_454cbf99" text="{0} 投降了：{1} 名士兵成为你的俘虏。" />
+    <string id="AIL_454f39f4" text="服务商按顺序（1、2、3、4）依次尝试：如果第一个失败或额度用尽，就换下一个。密钥保存在“文档”中的 Mount and Blade II Bannerlord / Configs / ModSettings，而不是模组文件夹。" />
+    <string id="AIL_458e1b5a" text="每次决策是对每一方向AI发出的一次请求。如果一方突然损失大量人手，会提前决策。" />
+    <string id="AIL_45d4f33e" text="每批守卫数" />
+    <string id="AIL_463eb3a3" text="无标题" />
+    <string id="AIL_46407e9d" text="提议在无人回应时持续的天数" />
+    <string id="AIL_466f3751" text="清除其全部记忆" />
+    <string id="AIL_4695e872" text="每日来信概率（%）" />
+    <string id="AIL_46d0d1f8" text="E. 战斗" />
+    <string id="AIL_46df902b" text="搜索文件……" />
+    <string id="AIL_46e19d91" text="封地或家族无效" />
+    <string id="AIL_479941aa" text="你交出王冠：{0} 家族开始统治 {1}。" />
+    <string id="AIL_47c0f5a2" text="{0} 与 {1} 缔结同盟。" />
+    <string id="AIL_47dd15e0" text="被俘的贵族算三分之一。" />
+    <string id="AIL_48173f1f" text="{=!}中断训练（不退钱）" />
+    <string id="AIL_481ef0fe" text="最近的话语" />
+    <string id="AIL_4868da9a" text="密钥（API key）" />
+    <string id="AIL_4873d730" text="无法连接到游戏： " />
+    <string id="AIL_48a27848" text="本存档的全部 AI Legacy 记忆（NPC、新闻、信件）。在游戏中存档时也会保存在存档内。" />
+    <string id="AIL_48d043af" text=" 天（{AIL_H_PREV}{GOLD_ICON}）" />
+    <string id="AIL_48f76bf1" text="sobre entre desde hasta hacia contra segun según mismo misma otro otra otros otras mucho mucha poco poca usted vuestro vuestra nuestro nuestra señor señora " />
+    <string id="AIL_48fe3e55" text="已保存。记得在游戏中存档。" />
+    <string id="AIL_493c4907" text="会在运行游戏的电脑上的 Windows 资源管理器中打开。" />
+    <string id="AIL_49569563" text="再写点什么" />
+    <string id="AIL_49588f47" text="浪漫度高时，NPC可能答应与你共度一夜（绝不会描写具体过程）。夫妻之间可能因此怀孕。" />
+    <string id="AIL_49b6ffff" text="{0} 已经没有要护送的对象，回去处理自己的事务了。" />
+    <string id="AIL_4a37fd4a" text="商人、工匠、酒馆老板和村民可以在交谈中向你买卖货物，依据该地市场的真实库存和价格：货物和金钱真的易手。" />
+    <string id="AIL_4a84320d" text="你没有 {0} 第纳尔来支付信使。" />
+    <string id="AIL_4ae4ed78" text="同一位国王两次声明之间的最少天数" />
+    <string id="AIL_4b08b3e0" text=" 于 " />
+    <string id="AIL_4b3f2067" text="{0} 的疾病" />
+    <string id="AIL_4b487b93" text="他的故事到此结束" />
+    <string id="AIL_4b77b3ae" text="{0} 在等你开口。 （输入 /help 查看命令）" />
+    <string id="AIL_4b7ed15a" text="镇上居民使用的服务商" />
+    <string id="AIL_4bb74331" text="6. 信件" />
+    <string id="AIL_4bf3e0c5" text="{0} 给了你 {1} 第纳尔。" />
+    <string id="AIL_4c08be8b" text="此地" />
+    <string id="AIL_4c5ed9ad" text="任务完成" />
+    <string id="AIL_4c63a92c" text="{0} 接受你成为 {1} 的封臣。" />
+    <string id="AIL_4c6b494e" text="你" />
+    <string id="AIL_4ce0146b" text="封臣与雇佣兵" />
+    <string id="AIL_4cef6d19" text="每次回应的最大信任变化" />
+    <string id="AIL_4d649e87" text="源于历史的秘密" />
+    <string id="AIL_4d99daae" text="{0} {1}{2:0.##} 每天" />
+    <string id="AIL_4df26a61" text="他们说的话也显示在日志中" />
+    <string id="AIL_4e260c5a" text="从 AIInfluence 导入： " />
+    <string id="AIL_4e5e61ea" text="{0} 与 {1} 签订了为期 {2} 年的贸易协定。" />
+    <string id="AIL_4e6c313c" text="偶尔，你附近的两个角色会谈论正在发生的事：新闻、短缺、疾病、他们的领主。每次向AI发出一次简短请求。" />
+    <string id="AIL_4eae4e56" text="{0} 解除了对 {1} 的围攻。" />
+    <string id="AIL_4eaee384" text="{0} 走近。" />
+    <string id="AIL_4eb0fc2d" text="发表声明（如果你称王）" />
+    <string id="AIL_4f0d9e02" text="路人可以成为角色" />
+    <string id="AIL_4f107a7c" text="在大厅里贵族们彼此分开：数值太小时，他们永远找不到交谈对象。" />
+    <string id="AIL_4f47d62d" text="你给 {0} 的消息" />
+    <string id="AIL_4f56a00c" text="性格已生成" />
+    <string id="AIL_4f6f8296" text="无法打开端口 {0}。请在 MCM → AI Legacy → 编辑器 中更改端口。&#10;{1}" />
+    <string id="AIL_4faa8fb4" text="交谈间隔秒数（约）" />
+    <string id="AIL_500ac9b1" text="留空：与界面语言相同。如需其他语言，请用英文写出其名称。例如：Spanish (Spain)、English、Catalan、Italian。" />
+    <string id="AIL_506e56c2" text="战斗命令优先使用的 config.json 服务商名称（留空 = 常规）。建议选用速度快的。" />
+    <string id="AIL_508eddc4" text="每句话的最大长度（字符数）" />
+    <string id="AIL_50ac9cd1" text="{1} 家族的 {0} 现在统治 {2}。" />
+    <string id="AIL_513640bb" text="C. 疾病" />
+    <string id="AIL_513c1858" text="清除历史" />
+    <string id="AIL_5179ad99" text="整个王国" />
+    <string id="AIL_518def5c" text="{0} 已抵达 {1}。" />
+    <string id="AIL_51f2c203" text="{0} 通缉的匪帮" />
+    <string id="AIL_52769c73" text="每个角色归档的旧句数" />
+    <string id="AIL_5283e9ce" text="角色之间会记住各自的事" />
+    <string id="AIL_52a68aba" text="无王国" />
+    <string id="AIL_52b80370" text="目标：将 {0} × {1} 交给 {2}（已在地图上标记），然后带着 {3} 返回。" />
+    <string id="AIL_52b8aa60" text="世界事件" />
+    <string id="AIL_52fe29a9" text="你的同伴已痊愈。" />
+    <string id="AIL_5336141e" text="又来了 {0} 名守卫。" />
+    <string id="AIL_53647ac2" text="还没有发生值得一提的事。战争、和平、围城、战斗和传闻都会出现在这里。" />
+    <string id="AIL_53a2324c" text="同伴始终认得你" />
+    <string id="AIL_53ab6227" text="一位女邻居" />
+    <string id="AIL_53ea433d" text="{0} 结束谈话并发起攻击。" />
+    <string id="AIL_5418db17" text="事件" />
+    <string id="AIL_5454e867" text="物品、文件与工坊" />
+    <string id="AIL_54adf525" text="数据与模板" />
+    <string id="AIL_552be781" text=" 结束了这次谈话）" />
+    <string id="AIL_55479028" text="{0} 在 {1} 结束了巡逻。" />
+    <string id="AIL_555e7801" text="{0} 第纳尔的赔款" />
+    <string id="AIL_55654690" text="紧张：{0}" />
+    <string id="AIL_55bf58d3" text="已归档" />
+    <string id="AIL_55cee6ef" text="{0} 集结了一支军队" />
+    <string id="AIL_564e2e23" text="今天" />
+    <string id="AIL_566b6114" text="你把 {0} 交给了 {1} 家族。" />
+    <string id="AIL_5689cbfa" text="每批间隔秒数" />
+    <string id="AIL_56a8023e" text="你已服满刑期：你被从 {0} 的地牢中释放。" />
+    <string id="AIL_56a85a72" text="对部下下令" />
+    <string id="AIL_56bb73a9" text="{0} 家族已离开 {1}，现为 {2} 效力" />
+    <string id="AIL_56f0d4a1" text="{0} 退出了谈话。" />
+    <string id="AIL_57011337" text="生成性格" />
+    <string id="AIL_570feb77" text="&#10;&#10;记忆&#10;" />
+    <string id="AIL_5794d85d" text="服务" />
+    <string id="AIL_580cc0e5" text="1 = 全部，4 = 只有震动世界的，5 = 从不。" />
+    <string id="AIL_586abbc0" text="两次反应之间的最少游戏小时数" />
+    <string id="AIL_586fb7ef" text="{=!}你没有受伤或生病的士兵。" />
+    <string id="AIL_58a5a0a4" text="昨天" />
+    <string id="AIL_58ce073f" text="{=!}（发送你的消息并等待回应）" />
+    <string id="AIL_58e1ca60" text="独特角色" />
+    <string id="AIL_58f9d028" text="一场生死决斗" />
+    <string id="AIL_592eb989" text="次" />
+    <string id="AIL_59559c9d" text="{0} 废除了法律“{1}”。" />
+    <string id="AIL_5983def9" text="委托人：{0}   ·   {1} 天前" />
+    <string id="AIL_5a216c13" text="打开" />
+    <string id="AIL_5a4bda4c" text="世界数据" />
+    <string id="AIL_5a577403" text="{0} 把你的家族逐出 {1}。" />
+    <string id="AIL_5a62c49f" text="{0} 名部下加入了战斗。" />
+    <string id="AIL_5a6d8aee" text="默认关闭。开启：该文件中写的通用秘密也会被随机分配（你可以在那里加入自己的）。" />
+    <string id="AIL_5a9ce79b" text="已逾期" />
+    <string id="AIL_5abeb44e" text="家族叛乱" />
+    <string id="AIL_5affe75c" text="你的部下不能进到这里面：只能在街上。" />
+    <string id="AIL_5b102155" text="如果守卫把你关在你的封地和王国之外，当地领主会作出判决（释放、罚款或地牢刑期），改变你在那里的名声和他对你的看法，判决还会作为新闻公布。前提是那里的人知道你是谁。" />
+    <string id="AIL_5b4803a4" text="{0} 家族加入 {1}" />
+    <string id="AIL_5b79eb8c" text="事件的最大长度（字符数）" />
+    <string id="AIL_5b7a333a" text=" （此前属于 {0}）。" />
+    <string id="AIL_5b8786aa" text="在街头或村庄的斗殴中，Ctrl+X 召来十名你的士兵，Ctrl+Alt+X 召来尽可能多的士兵。室内不能进入。倒下的人在你的存档中会受伤或死亡。" />
+    <string id="AIL_5c19273c" text="关闭：只有有名字的人（领主、贵妇、显要、流浪者）之间会交谈。开启：邻居、酒馆老板等也会，但只有两三句短话。" />
+    <string id="AIL_5c31ae7f" text="性格原型" />
+    <string id="AIL_5c3efc53" text="{0} 未能抵达 {1}，放弃了。" />
+    <string id="AIL_5c924813" text="交出 {0}" />
+    <string id="AIL_5c92a18a" text="每个角色的最大页数" />
+    <string id="AIL_5cc4dc1c" text="&#10;&#10;遗言&#10;" />
+    <string id="AIL_5d49c1d7" text="这将替换当前全部的 AI Legacy 记忆。确定吗？" />
+    <string id="AIL_5d51e858" text="死于难产" />
+    <string id="AIL_5d5538b0" text="{=!}拜访医院" />
+    <string id="AIL_5d9bde16" text="AI会在一半到此数字之间书写，视话题而定。无论长短都只是一次请求。" />
+    <string id="AIL_5da6bc58" text="军队（加入你的军队、召集自己的军队、离开）" />
+    <string id="AIL_5dca951d" text="描述（NPC将会读到的内容；最好用英文，但任何语言都可以）" />
+    <string id="AIL_5de8b992" text="&#10;相关人物： " />
+    <string id="AIL_5e0df453" text="与OpenAI兼容的基础地址，例如 https://mi-servidor/v1。已知服务会自动填写。" />
+    <string id="AIL_5e2efb51" text="从文件恢复" />
+    <string id="AIL_5e479046" text="情绪： " />
+    <string id="AIL_5e55369d" text="同时爆发的最大数量" />
+    <string id="AIL_5eccf2c1" text="。已被隔离：进入后果自负。" />
+    <string id="AIL_5eeedbdf" text="{0} 尚未收到“{1}”" />
+    <string id="AIL_5f595733" text="{0} 带你前往 {1}。跟上他。" />
+    <string id="AIL_5f9b05e1" text="用AI生成性格？这会覆盖当前资料。" />
+    <string id="AIL_5fcbf671" text="来信使用的服务商" />
+    <string id="AIL_5fd22751" text="治安" />
+    <string id="AIL_5fd4967b" text="AI Legacy 的菜单、提示和窗口所用语言。“Auto”使用游戏语言。要以新语言查看此菜单，请退出选项后重新进入。" />
+    <string id="AIL_5ff5abe9" text="{0} 讲述的内容" />
+    <string id="AIL_5ffce42d" text="{0} 家族已起兵反叛 {1}。" />
+    <string id="AIL_600f93a3" text="还没有任何人。" />
+    <string id="AIL_60575e78" text="{0} 已向 {1} 宣战。双方军队正在备战。" />
+    <string id="AIL_611c4786" text="{0} 将在 {1} 周边巡逻。" />
+    <string id="AIL_613c43b2" text="除了反应之外，AI还会定期写出其自行酝酿的事：阴谋、短缺、预兆、不安。" />
+    <string id="AIL_61468823" text="&#10;&#10;{0} 在 {1} 天前交给你的。你可以在与任何人交谈时出示或提及它。" />
+    <string id="AIL_61578f1c" text="已保存" />
+    <string id="AIL_6184689e" text="放守卫鸽子的罪名" />
+    <string id="AIL_61be9174" text="文件无效。" />
+    <string id="AIL_61e5c401" text="公开事实（info.json）" />
+    <string id="AIL_622157b0" text="{0} · {1} · 关系 {2}" />
+    <string id="AIL_62522e49" text="性格（可选）" />
+    <string id="AIL_6252c331" text="删除" />
+    <string id="AIL_629058ab" text="寄一封信" />
+    <string id="AIL_62c99c8c" text="春季（风险中等）" />
+    <string id="AIL_62e94015" text="回应前的内心思考" />
+    <string id="AIL_635ff613" text="浪漫关系冷却所需的未见面天数" />
+    <string id="AIL_63621315" text="生成" />
+    <string id="AIL_637830f6" text="你能听到交谈的距离（米）" />
+    <string id="AIL_63b5c8dc" text="&#10;&#10;进入有病人的地方可能会让你的部分部下染病。隔离能阻止传染给邻近地区，但会重创贸易。" />
+    <string id="AIL_63e55204" text="{0} 将其城镇的税收下调了 {1} %。" />
+    <string id="AIL_63ea9af4" text="你： " />
+    <string id="AIL_6447d2ba" text="（无模板：将自动分配）" />
+    <string id="AIL_645733f1" text="{0} 不再等待，回去忙自己的事了。" />
+    <string id="AIL_6458f7e4" text="{0} 拒绝向 {1} 进贡。" />
+    <string id="AIL_648fc689" text="{0} 家族叛乱！" />
+    <string id="AIL_64b1d2d4" text="{0} 与 {1} 签订和约" />
+    <string id="AIL_6535de60" text="模板" />
+    <string id="AIL_6549b43d" text="还没有发生值得一提的事。" />
+    <string id="AIL_65ab580e" text="统领队伍的NPC可以同意跟随你、前往某地、等待、巡逻、攻击、围攻、劫掠或加入你的军队。也可以通过信件。" />
+    <string id="AIL_65ad4195" text="{0} 死亡" />
+    <string id="AIL_65f35dd2" text="世界数据（JSON）。适用于所有存档。保存时会保留之前版本的 .bak 副本。" />
+    <string id="AIL_66a677f0" text="NPC" />
+    <string id="AIL_66fb1576" text="，{0} 人受伤。" />
+    <string id="AIL_6744d3b1" text="本名（仅限无名者）" />
+    <string id="AIL_6746c998" text="部队与俘虏的移交" />
+    <string id="AIL_675de4ca" text="{0} 带着 {1} 名部下加入了你的军队。" />
+    <string id="AIL_6764c714" text=" · 已不在存档中" />
+    <string id="AIL_67c8cba8" text="{0} 去坐下。" />
+    <string id="AIL_67d30a9a" text="已载入存档时：立即请求一批事件（回到地图时出现）。" />
+    <string id="AIL_68a7d597" text="测试模式：NPC百依百顺" />
+    <string id="AIL_68edf522" text="（包括之后你与他们谈过的内容）。他们的文件会被移到战役的子文件夹中，不会被删除。&#10;&#10;要继续吗？" />
+    <string id="AIL_68f3dc4c" text="开启：载入存档时，NPC会记得你存档时他们所知道的事。关闭：他们始终记得最新的内容，即使你载入的是更早的存档。" />
+    <string id="AIL_68f76b26" text="疾病" />
+    <string id="AIL_695a2835" text="和平" />
+    <string id="AIL_69c192a8" text="每个角色的最大记忆数" />
+    <string id="AIL_69ffe8b4" text="起源" />
+    <string id="AIL_6a025b78" text="立即生成事件" />
+    <string id="AIL_6a0ec00a" text="季节性或由事件引发的疫情：损害定居点，传染给邻近地区，你进入时会让你的部队生病，并可通过隔离遏制。" />
+    <string id="AIL_6a2934ef" text="如果连续发生几件事，它们会合并成一次反应。" />
+    <string id="AIL_6a695bcb" text="{0}，已获释" />
+    <string id="AIL_6a69d3fd" text="{0} 会前往 {1} 并在那里等你。" />
+    <string id="AIL_6a6bf769" text="此外，NPC一次绝不会交出超过其队伍三分之一的人。" />
+    <string id="AIL_6ac2e619" text="仅限夫妻之间（游戏需要一个已知的父亲）。" />
+    <string id="AIL_6b1ca542" text="怀孕概率（%）" />
+    <string id="AIL_6b587fde" text="{0} 的新统治者" />
+    <string id="AIL_6b899a92" text="分页的回忆之书" />
+    <string id="AIL_6c0ce598" text="失踪，被认为已经死亡" />
+    <string id="AIL_6c0f99f2" text="游戏中的家族不再自行提议战争、和平、同盟和贸易。由国王通过公开声明决定。需要启用世界事件。" />
+    <string id="AIL_6c1f353e" text="{0} 已收到 {2} × {3} 中的 {1}。" />
+    <string id="AIL_6c33ff94" text="{0} 的判决" />
+    <string id="AIL_6c53dc0f" text="你的队长们：{0}" />
+    <string id="AIL_6c7f2b62" text="0. AI密钥" />
+    <string id="AIL_6cf8197b" text="8. 导入" />
+    <string id="AIL_6d2b9329" text="在不属于你的定居点发生斗殴或决斗后，如果附近有守卫，他会走过来向你问责，并决定：放你走、罚款或把你关起来。" />
+    <string id="AIL_6d3c2db8" text="你对大家说话" />
+    <string id="AIL_6d44c3f5" text="&#10;你有 {0} 名士兵受伤或生病。" />
+    <string id="AIL_6d808299" text="你身上没有 {0} 第纳尔来付罚款。" />
+    <string id="AIL_6dfb3368" text="没有适用于本战役（{0}）的 AIInfluence 数据。&#10;&#10;你可以导入另一个战役：只会使用在本存档中存在的NPC " />
+    <string id="AIL_6e09fc5c" text="{0} 向 {1} 提议一份为期 {2} 年的贸易协定。" />
+    <string id="AIL_6e224a81" text="搜索你的NPC……" />
+    <string id="AIL_6e275f0e" text="物品已创建" />
+    <string id="AIL_6e4f31b1" text="角色之间可以互相逮捕" />
+    <string id="AIL_6e64a84e" text="他的动力与恐惧" />
+    <string id="AIL_6e6f1630" text="你说的话会被听到" />
+    <string id="AIL_6e7730a9" text="你与 {0} 交谈" />
+    <string id="AIL_6ee119bd" text="目前无法贸易" />
+    <string id="AIL_6f600589" text="{0} 与 {1} 签订了和约。眼下，两国之间烽烟暂息。" />
+    <string id="AIL_6f87960d" text="{0} 放弃追击 {1}。" />
+    <string id="AIL_6fed9f7e" text="在场景交谈中，说话者会做出表达其感受的表情和动作（点头、摇头、犹豫、发怒……）。坐着、忙碌或正在走动的人只改变表情。" />
+    <string id="AIL_6ffaa6ff" text="{=!}打听流行的疾病" />
+    <string id="AIL_7074bda0" text="你的 {0} 名士兵在 {2} 染上了{1}。" />
+    <string id="AIL_70a3a006" text="子女" />
+    <string id="AIL_70a6b6c9" text="为了能够回忆，每个角色保存的旧句数。越多 = 长期记忆越好，文件也稍大。" />
+    <string id="AIL_70ab64bf" text="· 你的指令： " />
+    <string id="AIL_70c30ed9" text="{0} 家族已离开 {1}" />
+    <string id="AIL_70eda317" text="与 {0} 的生死决斗！" />
+    <string id="AIL_71329b44" text="信任（独立于关系）" />
+    <string id="AIL_717f4a1a" text="被打得鼻青脸肿" />
+    <string id="AIL_71b565dc" text="{0} 米之内没有可以交谈的人。" />
+    <string id="AIL_7237f719" text="你的队长们不知道该如何执行这个命令。" />
+    <string id="AIL_723bcca4" text="已经不在了" />
+    <string id="AIL_7245c3fc" text="场景中的邻居或你的某名士兵可以同意作为同伴加入你（如果还有空位），或成为一个有名字、可再次找到的人。他保留面貌、年龄和与你的谈话内容。" />
+    <string id="AIL_7278010d" text="一天" />
+    <string id="AIL_7282058a" text="，{0} 家族的族长，" />
+    <string id="AIL_731669e9" text="加入你的镇上居民" />
+    <string id="AIL_7319097c" text="夏季（风险低）" />
+    <string id="AIL_73468258" text="创建" />
+    <string id="AIL_734fab9c" text="{0}关系 {1:+0;-0;0} · {2} 次交谈" />
+    <string id="AIL_735ebb21" text="如果你在生死决斗中战胜英雄，他会死亡。你则绝不会死：只会身受重伤。" />
+    <string id="AIL_73786ab4" text="恢复出厂文本" />
+    <string id="AIL_73936b3a" text="{=!}你没有钱支付给武术教官。" />
+    <string id="AIL_73afba9b" text="&#10;&#10;他在寻求什么&#10;" />
+    <string id="AIL_73b83666" text="如果你在城镇中持械攻击某人，附近的守卫每隔几秒就会陆续加入。多人倒下后会拉响警报，全体守卫出动。" />
+    <string id="AIL_73c1647d" text="{=!}喂，有空吗？[自由交谈]" />
+    <string id="AIL_7450a805" text="群聊（Alt+T）" />
+    <string id="AIL_745a654d" text="NPC可以委托你做事、记录你的进度、判定完成（并给予报酬）或失败。它们会出现在游戏的任务日志中。注意：带有委托的存档需要 AI Legacy 才能载入。" />
+    <string id="AIL_74ca054c" text="世界与外交使用的服务商" />
+    <string id="AIL_74ddb46b" text="守卫罚款" />
+    <string id="AIL_74de2d20" text="与你经历的概要" />
+    <string id="AIL_74efb871" text="默认关闭：他们正在执勤。如果你主动对他们说话，他们仍会回应。" />
+    <string id="AIL_750e804a" text="你在街头的攻击、死亡、逮捕，或你在谈话中放出的重大传闻，都会变成带有新闻的世界事件（如果见了血，还会对当地产生影响）。只叙述目击者可能知道的内容。每个事件向AI发出一次请求。" />
+    <string id="AIL_7576bfa9" text="你在 {0} 的地牢里等待 {1} 决定如何处置你……" />
+    <string id="AIL_7584960c" text="对你的记忆概要" />
+    <string id="AIL_758ef766" text="在游戏对话框内交谈" />
+    <string id="AIL_75b4abfe" text="{0} 向 {1} 宣战。" />
+    <string id="AIL_75ea110b" text="与事实相同，另加 &quot;access&quot;：low / medium / high（需要多少信任才会说出）。" />
+    <string id="AIL_7611f3a8" text="发表声明" />
+    <string id="AIL_7623bdb7" text="交谈" />
+    <string id="AIL_76c8cc5d" text="指挥官的呼喊" />
+    <string id="AIL_76ca0cb9" text="持械斗殴：守卫分批赶到" />
+    <string id="AIL_76df6ddb" text="你交出了 {0} × {1}。" />
+    <string id="AIL_76e00257" text="{=!}你的部下在武术教官指导下于竞技场训练。木剑的碰撞声和教官的呼喝声此起彼伏。" />
+    <string id="AIL_76e631ee" text="你的国王可以驱逐你或没收你的封地" />
+    <string id="AIL_76f7a56d" text="只有统治者才能发表声明。" />
+    <string id="AIL_76fdb1de" text="在城镇、村庄或城堡中，如果你面前恰好有人而你出手，就会与他开始斗殴，无需先交谈：空手则是拳斗，拔出武器则是真打。他的亲属会出手相助，如果有兵刃，守卫也会出动。他会记仇，你的恶名上升，随后守卫赶到。" />
+    <string id="AIL_77262a54" text="提示词中的最多朋友数" />
+    <string id="AIL_77401496" text="次交谈" />
+    <string id="AIL_7765746a" text="{0} 离开 {1} 家族，加入了你的家族。" />
+    <string id="AIL_77793b62" text="城镇中的医院" />
+    <string id="AIL_7791a970" text="备份" />
+    <string id="AIL_77ca23b7" text="新疫情之间的最少天数" />
+    <string id="AIL_77e4bc34" text="{0} 出发围攻 {1}。" />
+    <string id="AIL_77ec28e0" text="你释放了 {0}。" />
+    <string id="AIL_782deaf5" text=" （其城镇和城堡的法令已更新：{0}）" />
+    <string id="AIL_7858cd57" text="拥有自己首领的盟军，以及你不是指挥者时你所在的一方（你亲自率领的编队不受影响）。" />
+    <string id="AIL_78680a96" text="{0} 留在这里。" />
+    <string id="AIL_78abe94b" text="军事" />
+    <string id="AIL_78b1e8da" text="只对信任的人" />
+    <string id="AIL_78f99860" text="AI Legacy：命令已执行。点击“查看回应”。" />
+    <string id="AIL_7948ed38" text="战争疲惫：每日每场公开战争（x10）" />
+    <string id="AIL_795b98cd" text="，你获得 {0} 第纳尔" />
+    <string id="AIL_795d4279" text="用AI生成性格" />
+    <string id="AIL_7a1b2cf4" text="他们会路过时对你说话" />
+    <string id="AIL_7a47d6e7" text="清除他的全部记忆？" />
+    <string id="AIL_7a6f04b2" text="紧张与威胁" />
+    <string id="AIL_7aad4a7d" text="在场景中的斗殴和决斗里，你的对手会根据战况说话，围观者会喝彩。斗殴开始时只向AI发出一次请求。" />
+    <string id="AIL_7bd9a098" text="群聊：每条回应的最大长度" />
+    <string id="AIL_7c146680" text="你正面对着 {0}。按 F 与其交谈，Alt+T 与附近的人交谈，Tab 离开。" />
+    <string id="AIL_7c23f3b8" text="战争疲惫：每死一名贵族" />
+    <string id="AIL_7c7093eb" text="使用此服务商" />
+    <string id="AIL_7c907518" text="被人杀害" />
+    <string id="AIL_7cd9f263" text="{0} 回去处理自己的事务了。" />
+    <string id="AIL_7d054e89" text="{0} 已抵达 {1}，在那里等你。" />
+    <string id="AIL_7d3d5b34" text="与每个NPC的浪漫度：随追求上升，不见面则冷却，并影响婚姻。" />
+    <string id="AIL_7d9b4b55" text="{0} 家族离开 {1}" />
+    <string id="AIL_7dd76d95" text="群聊：围成一圈站在你周围" />
+    <string id="AIL_7def1f8e" text="{0} 与 {1} 签订和约。" />
+    <string id="AIL_7e5382b7" text="死亡" />
+    <string id="AIL_7ed3beae" text="你把你的俘虏 {1} 交给了 {0}。" />
+    <string id="AIL_7f30bf34" text="与你有过往的角色会主动给你写信。" />
+    <string id="AIL_7f35f286" text="经济" />
+    <string id="AIL_7f5984a3" text="用你的话下令（Alt+B）" />
+    <string id="AIL_7f675e5a" text="请给物品命名。" />
+    <string id="AIL_7f71ac3a" text="{0} 呼叫 {1}。" />
+    <string id="AIL_7f897c38" text="常规罚款：最高" />
+    <string id="AIL_7fc31420" text="config.json 格式有误： " />
+    <string id="AIL_7fce90d0" text="无法生成： " />
+    <string id="AIL_7fd0d7e5" text="在战斗中阵亡" />
+    <string id="AIL_7ff37c4e" text="将请求/响应保存到日志" />
+    <string id="AIL_7ff96949" text="进行中的命令：{0} {1}（至第 {2:0} 天）" />
+    <string id="AIL_800a1324" text="你向 {1} 支付了 {0} 第纳尔。" />
+    <string id="AIL_800f61d9" text="AI有时会在下一次回应中重复一次已经发生过的收款或付款。在这段时间内，同一金额、同一方向、同一个人的款项不会再次生效。0 = 不保护。" />
+    <string id="AIL_805db527" text="{0} 击败了你。" />
+    <string id="AIL_807992a5" text="{0} 放下了武器。" />
+    <string id="AIL_80912930" text="守卫介入" />
+    <string id="AIL_81b3cd7d" text="一块领土" />
+    <string id="AIL_8201313c" text="为村民、城镇居民和酒馆里的人加入自由交谈（不含英雄）。" />
+    <string id="AIL_8244ba20" text="兄弟或姐妹" />
+    <string id="AIL_8279d8bb" text="{0} 出发劫掠 {1}。" />
+    <string id="AIL_8281a6ef" text="{0} 已收到“{1}”。回去找 {2}。" />
+    <string id="AIL_8322c30f" text="{0} 下马：生死决斗，就在此时此地。" />
+    <string id="AIL_837460d0" text=" · 已编辑" />
+    <string id="AIL_83ce96ea" text="{0} 与 {1} 家族议和。" />
+    <string id="AIL_8441426c" text="{0} 撤销了王室的特别税。" />
+    <string id="AIL_84e6eeec" text=" （其雇佣兵合同已到期）。" />
+    <string id="AIL_84e9a594" text="已为 {0} 保存指令。" />
+    <string id="AIL_84f97df8" text="战争疲惫：和平时每日恢复（x10）" />
+    <string id="AIL_8525c8a9" text="在你之前，别人已经消灭了 {0} 的匪帮。回去找 {1}。" />
+    <string id="AIL_8529201a" text="路过：句子用完时额外的批次数" />
+    <string id="AIL_854c39ee" text="已经是有名字的角色" />
+    <string id="AIL_858c74a8" text="{0} 作为同伴加入了你的队伍。" />
+    <string id="AIL_858daf8f" text="还没有新闻。" />
+    <string id="AIL_85a42b1a" text="{0} 作为同伴加入了你的队伍。" />
+    <string id="AIL_85c6e155" text="卡拉迪亚新闻" />
+    <string id="AIL_85e6e5d4" text="{0} 带着 {1} 名部下加入了你的行军。" />
+    <string id="AIL_85ee2964" text="{=!}治疗自己（{AIL_H_SELF}{GOLD_ICON}）" />
+    <string id="AIL_86941211" text="性格模板" />
+    <string id="AIL_86ee0cb9" text="每次移交的最大部队数" />
+    <string id="AIL_871af31c" text="完成任务后获得的关系" />
+    <string id="AIL_8740b99c" text="在与 {0} 的战斗中阵亡" />
+    <string id="AIL_875d42da" text="NPC之间会互相传话" />
+    <string id="AIL_88476cb6" text="quiero quieres quiere muy mas más menos todo toda todos todas nada algo alguien nadie bien mal aqui aquí alli allí ahora luego antes despues después siempre nunca tambien también " />
+    <string id="AIL_884d0de2" text="B. 主动性与口信" />
+    <string id="AIL_8871d6a5" text="此存档没有模板文件夹。" />
+    <string id="AIL_897d3e43" text="他所追求的" />
+    <string id="AIL_89a46e62" text="游戏中没有该性别的模板。" />
+    <string id="AIL_89bc1b1d" text="委托完成：“{0}”" />
+    <string id="AIL_8a207caf" text="目标王国无效" />
+    <string id="AIL_8a30751a" text="次" />
+    <string id="AIL_8a331c41" text="{0} 接受了决斗。谈话一结束就开始。" />
+    <string id="AIL_8a3f11e5" text="生效的法律过多" />
+    <string id="AIL_8a4cc812" text="由AI生成的世界事件" />
+    <string id="AIL_8aab03a7" text="目击者：可视距离（米）" />
+    <string id="AIL_8b7f2016" text="提示词中的最多新闻数" />
+    <string id="AIL_8c0a210d" text="你和 {0} 独处了一会儿。" />
+    <string id="AIL_8c51b5cf" text="新事件： " />
+    <string id="AIL_8c561331" text="本存档的文件" />
+    <string id="AIL_8dbd7cfb" text="源于一个事件" />
+    <string id="AIL_8dc2db66" text="一场死亡的纪事" />
+    <string id="AIL_8e8232dd" text="{0} 卷起袖子：谈话一结束就要拳脚相向。" />
+    <string id="AIL_8e88da8b" text="测试每个服务商（“0. AI密钥”中的，以及存在的话 config.json 中的），并在游戏日志中显示结果。" />
+    <string id="AIL_8f3749ae" text="&#10;&#10;你受伤了（{0}/{1}）。" />
+    <string id="AIL_8f57f4c0" text="{0} 已包围 {1}。" />
+    <string id="AIL_8fb29764" text="{0} 给了你 {1} × {2}。" />
+    <string id="AIL_8fdf1238" text="秋季（风险中等）" />
+    <string id="AIL_8ff3713b" text="外交（国王之间的战争 / 和平）" />
+    <string id="AIL_9003236d" text="信任（-100 到 100）" />
+    <string id="AIL_901ece79" text="新君主" />
+    <string id="AIL_90212ba8" text="立即作为新闻发布：NPC根据重要性得知（1 = 此地，2 = 朝廷，3 = 整个王国，4 = 全世界）。相关人员及其家族始终知情。" />
+    <string id="AIL_904a67c2" text="在没有另行约定的情况下，他们跟随、等待或巡逻的时间。也包括约好在某地见面时他们等你的时间。" />
+    <string id="AIL_904fdecc" text="&#10;&#10;（输入 /help 查看命令）" />
+    <string id="AIL_90722e01" text="一次交谈后的静默时间（秒）" />
+    <string id="AIL_90796905" text="与镇上居民自由交谈" />
+    <string id="AIL_90bb89d1" text="路过：两句话之间的间隔秒数" />
+    <string id="AIL_911ad5bc" text="退位与交出王冠" />
+    <string id="AIL_914cbfeb" text="，{0} 的君主，" />
+    <string id="AIL_9189b76c" text="没有载入任何存档。" />
+    <string id="AIL_91b295b0" text="来自谁（可选）" />
+    <string id="AIL_91d66f05" text="每次回应的最少句数" />
+    <string id="AIL_91d8da81" text="开启：打开 Alt+T 窗口时场景继续，以慢动作进行。关闭：你输入时游戏暂停。" />
+    <string id="AIL_923a5224" text="被 {0} 处决" />
+    <string id="AIL_923ff81c" text="生成中……" />
+    <string id="AIL_9271ee6c" text="给它起个名字。" />
+    <string id="AIL_927a75ae" text=" ，目标是 {0}。" />
+    <string id="AIL_92a26c15" text="每位指挥官两次决策之间的秒数" />
+    <string id="AIL_92d095e7" text="群聊中，他们可以去找人" />
+    <string id="AIL_92de31ad" text="{0} 加入 {1}" />
+    <string id="AIL_92eb34bb" text="{=!}再说点什么" />
+    <string id="AIL_93c01ba7" text="被处决" />
+    <string id="AIL_94517b9a" text="家族名称（世界事件）" />
+    <string id="AIL_946c5eaa" text="{0} 易主" />
+    <string id="AIL_9480373b" text="{0} 已经没有可追击的对象（{1}）。" />
+    <string id="AIL_949e7526" text="&#10;&#10;原型&#10;" />
+    <string id="AIL_94ae59ca" text="游戏只允许贵族之间结婚。开启后，被你打动的同伴、流浪者或显要人物也可以答应：他会先以贵族身份进入你的家族，不再占用同伴名额。" />
+    <string id="AIL_94c1e5dd" text="由AI创建的独特角色" />
+    <string id="AIL_94c21a0a" text="你编辑过的文件永远不会被改动。&#13;&#10;" />
+    <string id="AIL_953a8770" text="5. 新闻与传闻" />
+    <string id="AIL_95594522" text="{0} 呼叫守卫：投降、说服他或者反抗吧。" />
+    <string id="AIL_95b516ae" text="{=!}你没有受伤的同伴。" />
+    <string id="AIL_95c582ef" text="秘密（secrets.json）" />
+    <string id="AIL_95f8de9b" text="10 = 每单位距离 1 小时。越远 = 送达越慢（回信也越慢）。" />
+    <string id="AIL_96004d45" text="每个角色都出自一个模板（world_data\archetypes.json），决定其道德观、说话方式和信仰程度。可编辑。" />
+    <string id="AIL_96136d3a" text="{0} 的声明（{1}）" />
+    <string id="AIL_96226daa" text="你的言行会引起议论" />
+    <string id="AIL_965719f1" text="医生们所知道的" />
+    <string id="AIL_967570b4" text="在地图上遇到与你没有交战的领主时，会出现“我们下马面对面谈吧”选项：会打开一个地形场景，双方徒步，各自的人马在身后。按 Tab 返回地图。" />
+    <string id="AIL_967c929e" text="（没有 config.json 中的“extra”：请检查该部分）" />
+    <string id="AIL_96933cf3" text="每多一批就是该次到访多一次请求。0 = 只有第一批。" />
+    <string id="AIL_96a911e0" text="亲属关系无效。" />
+    <string id="AIL_96bb78de" text="{0} 认出了你。" />
+    <string id="AIL_96bdc93c" text="你和 {0} 拳斗起来了！" />
+    <string id="AIL_96e9202d" text="{=!}你没有可训练的健康士兵。" />
+    <string id="AIL_96ea6365" text="已清除 {0} 的指令。" />
+    <string id="AIL_9701c185" text="{0} 撕毁了与 {1} 的同盟。" />
+    <string id="AIL_9713e4ab" text="请先载入存档再使用编辑器。" />
+    <string id="AIL_97e2efc7" text="一名信使给你带来了 {0} 的一封信。" />
+    <string id="AIL_980877af" text="你的部下完成了训练：{0} 人获得了经验" />
+    <string id="AIL_986efa13" text="已故 · " />
+    <string id="AIL_98823032" text="{=!}查看回应" />
+    <string id="AIL_98b07be9" text="你认识的人去世时撰写纪事" />
+    <string id="AIL_98b23f3f" text="{0} 现在无法移动" />
+    <string id="AIL_98dfb3c6" text="目标：前往 {0}，然后返回。" />
+    <string id="AIL_990436d2" text="家族变更（加入你的家族、离开）" />
+    <string id="AIL_992e899d" text="{0} 认出了你：人们会知道是你干的。" />
+    <string id="AIL_99316d74" text="（未知）" />
+    <string id="AIL_99bcbc8e" text="君主的声明" />
+    <string id="AIL_9a8d90d8" text="{=!}交谈 [AI Legacy]" />
+    <string id="AIL_9ad50a3b" text="已恢复" />
+    <string id="AIL_9b15365c" text="{0} 把 {1} 授予 {2} 家族。" />
+    <string id="AIL_9b65eab4" text="定居点无效" />
+    <string id="AIL_9b770e1c" text="当你在场景中与某人并肩而行（守卫、邻居、商人、不认识你的贵族）时，他会随口说点什么。每次到访一个地点只消耗一次请求：一次请求一批句子，然后依次使用。如果不想要这个开销，请关闭。" />
+    <string id="AIL_9b8bd5de" text="AI根据每个王国的真实人物（他们的家族、婚礼、债务、仇怨）和不断发生的事件来编造秘密。每个秘密涉及具体的人，只有少数人知道，且只在信任时才会透露。每个王国消耗一次请求，在存档开始时按每个游戏日一个来分配。" />
+    <string id="AIL_9b9b3ffb" text="已过期限" />
+    <string id="AIL_9ba9f600" text="声明的最大长度" />
+    <string id="AIL_9bd88abd" text="没收玩家财产已禁用" />
+    <string id="AIL_9bf3e70c" text="&#10;&#10;他对你们的记忆&#10;" />
+    <string id="AIL_9c4ee846" text="{0} 动身前往 {1}，之后会回到你身边。" />
+    <string id="AIL_9ca95173" text="发布" />
+    <string id="AIL_9ccbdf55" text="{0} 出手保护 {1}。" />
+    <string id="AIL_9d30d4f1" text="信使每单位距离的费用" />
+    <string id="AIL_9d381c5c" text="市场物价 {0}{1:0} %" />
+    <string id="AIL_9dedec74" text="你只能给认识的人写信。★ = 你已交谈过的人。费用和时间取决于距离。" />
+    <string id="AIL_9e12b7ca" text="一位在游戏中具有真实亲属关系的亲人。要创建兄弟姐妹，需要先有父亲或母亲。" />
+    <string id="AIL_9e2fda6f" text="事件会影响家族" />
+    <string id="AIL_9e5a3fd7" text="关闭：已婚者（或已婚的你）不会接受另一场婚礼。开启：可以接受，原有的婚姻随之终止。" />
+    <string id="AIL_9ef83fd5" text="{=!}治疗你的俘虏（{AIL_H_PRIS}{GOLD_ICON}）" />
+    <string id="AIL_9f068a43" text="守卫听到了打斗声，正向你扑来。" />
+    <string id="AIL_9f48ba90" text="普通人交谈时的最多句数" />
+    <string id="AIL_9ff27d57" text="王室税：最高（%）" />
+    <string id="AIL_a013a921" text="新闻持续天数" />
+    <string id="AIL_a046df12" text="涉及：" />
+    <string id="AIL_a0a85eed" text="{0}{1} 劫掠了 {2} 村。农民们损失了庄稼和牲畜。" />
+    <string id="AIL_a0af06ce" text="委托失败：“{0}”" />
+    <string id="AIL_a0bc9158" text="围城" />
+    <string id="AIL_a0bdbcf2" text="拳斗" />
+    <string id="AIL_a0d2d00d" text="浪漫（0 到 100）" />
+    <string id="AIL_a12b008e" text="游戏中没有该性别的流浪者模板。" />
+    <string id="AIL_a12df7a9" text="每个王国生效的法律数" />
+    <string id="AIL_a15797e0" text="你交给 {0}：{1}。" />
+    <string id="AIL_a190aec6" text="关系 {0}{1}" />
+    <string id="AIL_a2104812" text="一支敌军" />
+    <string id="AIL_a25b9c8e" text="人群散开了。" />
+    <string id="AIL_a29fcb55" text="群聊：最多参与者数" />
+    <string id="AIL_a2e05b46" text="他们之间发生的事会改变游戏中的关系" />
+    <string id="AIL_a305fa83" text="并未处于战争状态" />
+    <string id="AIL_a30867c0" text="如果你是国王，家族首领可以向你宣誓效忠或作为雇佣兵为你效力。" />
+    <string id="AIL_a33c4ead" text="你现在携带： " />
+    <string id="AIL_a33f15bf" text="群聊：你的声音能传多远（米）" />
+    <string id="AIL_a35a41bd" text="文化" />
+    <string id="AIL_a3c89c8a" text="你将 {0} × {1} 交给 {2}。" />
+    <string id="AIL_a3cd73e3" text="达到此家族等级后，任何NPC都知道你是谁，无需自我介绍。" />
+    <string id="AIL_a430f8e9" text="你的指令（每行一条；优先于其他一切）" />
+    <string id="AIL_a4403b32" text="浪漫" />
+    <string id="AIL_a4990140" text="，{0} 家族的，" />
+    <string id="AIL_a4b23033" text="世界请求之间的最少真实秒数" />
+    <string id="AIL_a54a9d45" text="还没有人委托你任何事。当有人请你帮忙而你接受后，会连同期限和报酬显示在这里。别人交给你的文件也会出现在这里。" />
+    <string id="AIL_a58c5f5d" text="有人看见了你（{0} 名目击者），但没人知道你是谁：他们在找一名持械的外乡人。" />
+    <string id="AIL_a5da1c9c" text="{=!}*侧耳倾听*" />
+    <string id="AIL_a5eee76f" text="对你的称呼：{0}   ·   交谈次数：{1}   ·   被识破的谎言：{2}" />
+    <string id="AIL_a615d39e" text="你已与 {0} 交谈过。回去找 {1}。" />
+    <string id="AIL_a63c51e2" text="• {0}：{1}，{2}；还剩约 {3} 天" />
+    <string id="AIL_a643593e" text="超过这些天没有交谈或通信后，浪漫度每天下降 1 点（与配偶的浪漫度不会低于 40）。" />
+    <string id="AIL_a65a644d" text="一场决斗" />
+    <string id="AIL_a6a88727" text="{0} 拔出武器。" />
+    <string id="AIL_a7a5c567" text="{0} 与 {1} 之间的贡金到此结束。" />
+    <string id="AIL_a7c4d3a0" text="一次谈话中发生的事可能口耳相传。" />
+    <string id="AIL_a7d1636b" text="{0} 带着部下离开了军队。" />
+    <string id="AIL_a815af23" text="NPC在地图上走近你" />
+    <string id="AIL_a858eb42" text="请先载入一个存档。" />
+    <string id="AIL_a898353a" text="涉及的王国" />
+    <string id="AIL_a8b856d9" text="事件已发布" />
+    <string id="AIL_a8cfe43b" text="能听到你的距离（米）" />
+    <string id="AIL_a91252d2" text="&#10;进度：{0}/{1} {2}" />
+    <string id="AIL_a9262a10" text="轮流：每次请求的句数" />
+    <string id="AIL_a92c1422" text="{0} 身受重伤倒地不起：你赢得了决斗。" />
+    <string id="AIL_a9628091" text="能容纳的人手已经全在场内了。" />
+    <string id="AIL_a9672a5d" text="AI Legacy — 编辑器" />
+    <string id="AIL_a96fe2c6" text="7. AI" />
+    <string id="AIL_a9a55bc8" text="关于他或她的传言" />
+    <string id="AIL_a9aa8409" text="服务商名称：你在“0. AI密钥”中填写的服务（gemini、openai；第 2、3 或 4 位的带有编号：openai2）或 config.json 中的某一个。留空 = 常规链路。如果失败，则使用其余的。" />
+    <string id="AIL_a9b74d1b" text="从角色列表中移除“交谈”" />
+    <string id="AIL_a9d11dfa" text="已完成" />
+    <string id="AIL_a9fce24e" text="谈话结束后，{0} 会陪着你。" />
+    <string id="AIL_aa23f794" text="说" />
+    <string id="AIL_aa2c0935" text="网络错误： " />
+    <string id="AIL_aa38cc8d" text="{0} 同意向 {1} 每天支付 {2} 第纳尔，持续 {3} 天。" />
+    <string id="AIL_aa4dc800" text="&#10;&#10;他的记忆页" />
+    <string id="AIL_aad18359" text="{0} 认出了你。你们已经交谈过 {1} {2}。 （输入 /help 查看命令）" />
+    <string id="AIL_ab129b00" text="{0} {1} {2}{3}。&#10;&#10;如果你现在不回复，该提议将继续有效 {4} 天，你可以用一份声明来回应。" />
+    <string id="AIL_ab14812d" text="你的部下没有听懂命令（AI没有响应）。" />
+    <string id="AIL_ab26e5e4" text="每当总结你们历史中的一段时，AI会写一页带标题的内容：可在回忆之书中阅读。" />
+    <string id="AIL_ab45cede" text="声明的最小长度" />
+    <string id="AIL_ab464755" text="每天降低的紧张度" />
+    <string id="AIL_ab845913" text="你没有可以写信的人。先去和人们聊聊吧。" />
+    <string id="AIL_ab8aaa3e" text="在浏览器中打开编辑器：世界、秘密、NPC（性格、记忆、指令）、事件和备份。需要已载入存档。" />
+    <string id="AIL_abc764de" text="男" />
+    <string id="AIL_abcab881" text="父亲或母亲" />
+    <string id="AIL_abd77d03" text="事件可引发声明的天数" />
+    <string id="AIL_abf0a3ef" text="凭名望被认识所需的家族等级" />
+    <string id="AIL_ac30aa7a" text="最长刑期（地牢天数）" />
+    <string id="AIL_ac508642" text="可加入之前需要说过的最少句数" />
+    <string id="AIL_ac7ff171" text="攻击敌方队伍的半径" />
+    <string id="AIL_acbbf598" text="{0} 的声明" />
+    <string id="AIL_acfa98a8" text="已经处于战争状态" />
+    <string id="AIL_ad1d7e50" text="{0} 下马并接受决斗，就在此时此地。" />
+    <string id="AIL_ad44fa7d" text="来自旧谈话的相关记忆" />
+    <string id="AIL_ad9e9552" text="模型（留空 = 推荐模型）" />
+    <string id="AIL_adc42c0a" text="{0} 下马卷起袖子：你们就在这里用拳头解决。" />
+    <string id="AIL_adfeb4cc" text="&#10;&#10;要结束此任务，请与 {0} 交谈并告诉他你做了什么：由他决定是否完成。" />
+    <string id="AIL_ae28cb4d" text=" · 从 AIInfluence 导入（" />
+    <string id="AIL_ae49ce20" text="{0} 解散了他的军队。" />
+    <string id="AIL_ae4ebcf0" text="家族无效" />
+    <string id="AIL_ae73db8a" text="{0} 向 {1} 宣战！" />
+    <string id="AIL_af107b28" text="容易套出" />
+    <string id="AIL_af35e867" text="你没有医院所要求的 {0} 第纳尔。" />
+    <string id="AIL_af3d096e" text="除了头顶之外，角色之间交谈的句子还会出现在消息日志中（左下角）。" />
+    <string id="AIL_affcf5d2" text="测试与各AI的连接" />
+    <string id="AIL_b057228e" text="AI会定期根据世界的真实状态（政治、战争、经济、社会、神秘事件）写出新的事件。它们出现在新闻中，NPC也知道。" />
+    <string id="AIL_b06a4975" text="你付不起 {0} 第纳尔的罚款：你将在地牢里待 {1} 天。" />
+    <string id="AIL_b0a1e3a6" text="需要目击者" />
+    <string id="AIL_b0a43892" text="{0} 在 {1} 等你等得厌倦，离开了。" />
+    <string id="AIL_b14d8a23" text="{0} 的任务还剩 2 天：{1}" />
+    <string id="AIL_b1624bd9" text="要将某个文件恢复为出厂文本：删除它（或清空内容）并载入存档。&#13;&#10;" />
+    <string id="AIL_b23dc670" text="{=!}下令隔离（15 天）" />
+    <string id="AIL_b2b050b8" text="{0} 天前" />
+    <string id="AIL_b2d8f675" text="游戏中没有用于创建该角色的流浪者模板" />
+    <string id="AIL_b2e0ea9d" text="目标：消灭在 {0} 附近出没的匪帮（已在地图上标记），然后返回。" />
+    <string id="AIL_b32fb45c" text="达到该重要性时在屏幕上提示" />
+    <string id="AIL_b3384056" text="（游戏中的领主在所有存档里的ID都相同）。注意：他们会记得那个存档里的事情。" />
+    <string id="AIL_b3ac06a3" text="在每座城镇的竞技场，“训练你的部队”：你付费，过去 8 小时，你健康的士兵获得经验（新兵更多）。有人可能会受伤。每个竞技场需要几天才能再次接纳你们。" />
+    <string id="AIL_b3ce76cf" text="{0} 与 {1} 之间爆发战争！" />
+    <string id="AIL_b3d0b991" text="季节性疫情的每日概率（千分比）" />
+    <string id="AIL_b40b4b3a" text="不重复相同支付的间隔（秒）" />
+    <string id="AIL_b430b5cf" text="来自谈话的传闻" />
+    <string id="AIL_b4431c37" text="{0}{1} 在战斗中击败了 {2}{3}" />
+    <string id="AIL_b4fc9c6e" text="群聊：没有你时连续继续的次数" />
+    <string id="AIL_b57ad932" text="每日最大贡金" />
+    <string id="AIL_b59cea89" text="与每个NPC的个人关系" />
+    <string id="AIL_b6af22fa" text="config.json 中没有任何带 api_key 的服务商" />
+    <string id="AIL_b6d441ce" text="{0}{1}，已骑马来到你的队伍旁，请求与你交谈。" />
+    <string id="AIL_b700fc3c" text="最大影响：每日忠诚" />
+    <string id="AIL_b70bd667" text="对AI所说内容的模板，仅用于本存档。{llaves}中的内容由模组填充：不要删除也不要翻译。立即生效。" />
+    <string id="AIL_b720cde3" text="市场没有足够的钱来收购你的货物。" />
+    <string id="AIL_b74fa9dd" text="{0} 秒内无响应" />
+    <string id="AIL_b7c8efe0" text="在场景中按 Alt+T：你对身边所有人说话，由AI决定谁来回答。他们的回应显示在头顶和日志中。再按一次 Alt+T 继续交谈。" />
+    <string id="AIL_b7d8f762" text="战争疲惫：每场战败（x10）" />
+    <string id="AIL_b7df35c1" text="各文化的宗教与习俗" />
+    <string id="AIL_b80262c3" text="从 AIInfluence 导入" />
+    <string id="AIL_b809052a" text="对玩家宣战已禁用" />
+    <string id="AIL_b83bfea6" text="你以 {2} 第纳尔购买了 {1} 的 {0}。" />
+    <string id="AIL_b8411e1a" text="一封带有帝国印章的信，其中……" />
+    <string id="AIL_b85090ef" text="地图上的命令" />
+    <string id="AIL_b86021cd" text="肺热病" />
+    <string id="AIL_b8b2988f" text="你的盟友由AI指挥" />
+    <string id="AIL_b8d972a1" text="最大影响：每日治安" />
+    <string id="AIL_b8f58f0d" text="{0} 的守卫在一场争执后逮捕了 {1}。" />
+    <string id="AIL_b8f9f7be" text="沉默" />
+    <string id="AIL_b93602c9" text="你还没有和任何人交谈过。你交谈过的每个人都会出现在这里，并显示他们对你的记忆。" />
+    <string id="AIL_b9583293" text="该城堡" />
+    <string id="AIL_b9c116de" text="继续" />
+    <string id="AIL_b9de175d" text="日志" />
+    <string id="AIL_ba098098" text="总结后保留的原文轮数" />
+    <string id="AIL_ba28fc00" text=" · 性格" />
+    <string id="AIL_ba299376" text="通过交谈给予和接收物品、角色扮演文件（介绍信、合同、通行证）以及购买工坊。" />
+    <string id="AIL_ba80efa7" text="{0} 拒绝了 {1} 提出的结盟。" />
+    <string id="AIL_bb646884" text="没有任何密钥：请在选项、Mod Options、AI Legacy、0. AI密钥 中设置。" />
+    <string id="AIL_bbb8296b" text="   ·   恋情：{0}" />
+    <string id="AIL_bc041dfb" text="总结时从历史中移出的句子会被归档。交谈时，会检索与你现在所说内容（名字、地点、具体事物）相关的句子，角色会一字不差地记起。不消耗请求。" />
+    <string id="AIL_bc5de8fe" text="{0}{1}{2} — {3} 第纳尔，{4}" />
+    <string id="AIL_bc9212fd" text="物品" />
+    <string id="AIL_bca1e090" text="你把 {0} 名士兵{1}交给了 {2}。" />
+    <string id="AIL_bcd82606" text="触发暴力所需的紧张度" />
+    <string id="AIL_bce32dcd" text="提示词中的最多敌人数" />
+    <string id="AIL_bd15ad6c" text="world_data\religion.json 和 cultural_traditions.json：其族群的信仰和习俗（求爱、待客、誓言）。可编辑。" />
+    <string id="AIL_bd386578" text="打开群聊时，参与者会走到你面前围成半圆并看着你。坐着或忙碌的人留在原地。" />
+    <string id="AIL_bd58c13d" text="写信" />
+    <string id="AIL_bd7a44d0" text="当游戏中发生轰动的事（战争、和平、城镇被攻占、重要人物的死亡或被俘、由你的谈话传出的大传闻）时，AI会立即写出世界对此的反应。" />
+    <string id="AIL_bd7dfc75" text="{0}（{1}）发表了一份声明" />
+    <string id="AIL_bdc30505" text="{0} 家族向 {1} 宣誓效忠。" />
+    <string id="AIL_bdd858a5" text="移除" />
+    <string id="AIL_bdf82f15" text="与你的浪漫度达到此等级后，游戏不会擅自把该角色嫁娶给别人。" />
+    <string id="AIL_be07e5b5" text="向你提议" />
+    <string id="AIL_be7cce2e" text="传闻" />
+    <string id="AIL_be8758dd" text="你受伤和生病的士兵重新归队。" />
+    <string id="AIL_beb1508e" text="交谈双方之间的最大距离（米）" />
+    <string id="AIL_beccbd63" text="{0} · {1} · 重要性 {2}" />
+    <string id="AIL_bf60207b" text="请输入事件文本。" />
+    <string id="AIL_bfc4f22d" text="宗教" />
+    <string id="AIL_c009f7dc" text="{0} 会把此事的消息传给 {1}。" />
+    <string id="AIL_c05b0270" text="和平" />
+    <string id="AIL_c0668e57" text="带着队伍的NPC可以把士兵或俘虏交给你，或接受你提供的。" />
+    <string id="AIL_c0d9e15c" text="每批事件数" />
+    <string id="AIL_c0e5f1de" text="超过此值后，他可以自行攻击你或呼叫守卫。约定好的决斗和斗殴则不需要。" />
+    <string id="AIL_c1183e43" text=" （隔离中）" />
+    <string id="AIL_c1353aff" text="{0} 回复了你。" />
+    <string id="AIL_c140427d" text="{0} 在 {2} 击败了 {1}" />
+    <string id="AIL_c1c7d32a" text="{0} 家族已加入 {1}" />
+    <string id="AIL_c1de8329" text="{0} 拒绝了 {1} 提出的和平。" />
+    <string id="AIL_c268feb6" text="对真实发生之事的反应" />
+    <string id="AIL_c271386a" text=" 已经是你的家人" />
+    <string id="AIL_c27c3eed" text="信使动身前往 {0}。将在 {1} 后抵达。" />
+    <string id="AIL_c2daf469" text="年龄" />
+    <string id="AIL_c327ea4f" text="&#10;&#10;城中有 {0}（{1}）{2}。" />
+    <string id="AIL_c351bc8a" text="{0} 放弃劫掠 {1}。" />
+    <string id="AIL_c3a1387b" text="神秘" />
+    <string id="AIL_c3a3b332" text="抵达 {0}：{1}" />
+    <string id="AIL_c40dd572" text="清除他的句子和概要？" />
+    <string id="AIL_c43fad42" text="一次交谈结束后，没有新交谈的时间。同样的两个人要隔两倍时间才会再次交谈。" />
+    <string id="AIL_c4dbb3ad" text="文字可见的最大距离（米）" />
+    <string id="AIL_c4f81902" text="你可以召唤部下：Ctrl+X（十人）或 Ctrl+Alt+X（尽可能多的人）。仅限街上。" />
+    <string id="AIL_c509c21c" text="接受婚姻所需的最低关系" />
+    <string id="AIL_c52373ae" text="领地" />
+    <string id="AIL_c53c096c" text="任务已失败。" />
+    <string id="AIL_c54dc4b5" text="事件可能带来疾病" />
+    <string id="AIL_c573f4b8" text="{0} 交给你：{1}（给 {2}）。" />
+    <string id="AIL_c5c07b9e" text="{0} 被捕" />
+    <string id="AIL_c5ca3b43" text="每次回应的最大浪漫变化" />
+    <string id="AIL_c5d6d5d7" text="记忆总结使用的服务商" />
+    <string id="AIL_c61991e6" text="持械斗殴：可以召唤你的部队（Ctrl+X）" />
+    <string id="AIL_c61b5727" text="{0} 要求 {1} 每天支付 {2} 第纳尔贡金，持续 {3} 天。" />
+    <string id="AIL_c6442751" text=" 被 {0}{1}。" />
+    <string id="AIL_c65afb5d" text="{0} 想和你谈谈" />
+    <string id="AIL_c69c977f" text="事件的经济影响" />
+    <string id="AIL_c6dc6d42" text="进入或停留在有疾病的地方时，你的部分士兵可能染病（视同受伤）。" />
+    <string id="AIL_c704d473" text="{0}{1} 被俘虏" />
+    <string id="AIL_c70d2ac3" text="你以 {2} 第纳尔从 {0} 手中购买了工坊“{1}”。" />
+    <string id="AIL_c774d780" text="无法在游戏内加载编辑器（WebView2）。&#10;&#10;请在浏览器中打开： " />
+    <string id="AIL_c78d48c5" text="信任 {0}{1}" />
+    <string id="AIL_c79b58e9" text="关闭（推荐）：仅限你的俘虏和伤者。开启：只要场景需要，AI可以决定任何角色的死亡，包括你家族的人。" />
+    <string id="AIL_c7acc8b1" text="声明" />
+    <string id="AIL_c7da69a7" text="重要性（1-4）" />
+    <string id="AIL_c7fbb570" text="{0} 王国已被摧毁。它不复存在了。" />
+    <string id="AIL_c81ffc1c" text="你的家族有所察觉：收入 {0:+0;-0} %，持续期间（{1}）。" />
+    <string id="AIL_c829a044" text="在日志中显示每位首领向每个编队下达了什么命令。" />
+    <string id="AIL_c8741a3a" text="{0} 大声呼叫守卫。" />
+    <string id="AIL_c8ad772b" text="此地" />
+    <string id="AIL_c949ab1f" text="角色扮演式死亡：任何情况下" />
+    <string id="AIL_c9d542c8" text="AI Legacy：正在测试 {0} 个提供商……" />
+    <string id="AIL_ca0dcdf4" text="输入一条命令" />
+    <string id="AIL_ca1dd233" text="守卫放他通行" />
+    <string id="AIL_cab1eaa4" text="{0} 向 {1} 提议和平{2}。" />
+    <string id="AIL_cae619f6" text="任务（由AI创建的委托）" />
+    <string id="AIL_cb1eb4c2" text="{0} 已死亡。" />
+    <string id="AIL_cb234369" text="{0} 要求 {1} 支付 {2} 第纳尔的赔款。" />
+    <string id="AIL_cb272b11" text="执行命令期间，他们不会过正常生活（不买粮食、不招募），所以不宜拖得太久。" />
+    <string id="AIL_cb889c97" text="将从本战役中移除 {0} 名来自 AIInfluence 的角色的记忆 " />
+    <string id="AIL_cb8abbac" text="目标：与 {0} 交谈，然后返回。" />
+    <string id="AIL_cbd20bc6" text="一个事件可以使一个封臣家族起兵反抗其王室（绝不会是你的家族或统治家族），前提是他与国王确实关系不好。" />
+    <string id="AIL_cbe9f6a8" text="&#10;&#10;最近的内容：&#10;" />
+    <string id="AIL_cc079ac8" text="已经认识你且路过附近的贵族，如果有理由（一项未完成的委托、听到的关于你的事、好感或怨恨），可以骑马来找你交谈。他会问你是否愿意接见。" />
+    <string id="AIL_cc456770" text="卢孔的封印信" />
+    <string id="AIL_cc47eaca" text="{0} 将带着他的队伍跟随你。" />
+    <string id="AIL_ccda8e3e" text="构建上下文时出现内部错误： " />
+    <string id="AIL_cd6bc920" text="路过：每句话的最大长度" />
+    <string id="AIL_cd6fe758" text="被识破谎言时损失的信任" />
+    <string id="AIL_cd7a8ef0" text="角色可能作为一次交谈的结局而死亡：如果他是你的俘虏而你明确说出处决他，如果他自尽，或者他正因伤濒死。他在存档中真的会死。" />
+    <string id="AIL_cddce6e0" text="如果你称王，国王们可以向你宣战" />
+    <string id="AIL_cdf7046b" text="{=!}回顾谈话内容" />
+    <string id="AIL_cdf9a5fc" text="{0} 家族现在作为雇佣兵为 {1} 效力。" />
+    <string id="AIL_ce1a0814" text="人们发现 {0} {1}{2}。没人看见是谁干的。" />
+    <string id="AIL_ce8115b0" text="对真实事件的反应" />
+    <string id="AIL_ce8ae4a7" text="每隔一段时间，会有AI为本存档创造的新人来到附近的城镇（逃亡的医生、雇佣兵女队长、传教士……），有名字、职业、性格和动机。他像流浪者一样生活：你可以找到他并招入麾下。每个角色一次请求。" />
+    <string id="AIL_ce9503db" text=" ，身份是雇佣兵。" />
+    <string id="AIL_ceb6c4a4" text="{0} 句已归档" />
+    <string id="AIL_ced9d43e" text="如果你在没有任何活人看见的情况下打人或杀人，没人知道是你干的：没有恶名、没有守卫，新闻里也没有你的名字。如果有人看见你但不知道你是谁，人们会找“一名持械的外乡人”，恶名减半。只有当某位目击者认识你或你已声名远扬时，才会指名道姓地指认你。" />
+    <string id="AIL_cef46abb" text="创建亲属" />
+    <string id="AIL_cefb1dfd" text="在城镇、城堡或酒馆的角色列表中只保留“拜访”。你必须走到那个人面前，在场景中与其交谈。" />
+    <string id="AIL_cf032cac" text="还没有值得议论的事件。选择“查看全部”还能看到日常的俘虏、战斗和劫掠。" />
+    <string id="AIL_cf0af550" text="独特角色之间的天数" />
+    <string id="AIL_cf0db558" text="{0} 的匪帮已不复存在。回去找 {1}。" />
+    <string id="AIL_cf4c4fba" text="征服" />
+    <string id="AIL_d02abd4c" text="对家族收入的最大影响（%）" />
+    <string id="AIL_d02be029" text="（无JSON模式）" />
+    <string id="AIL_d0722260" text="外人能听到对话的距离。喊叫（!）传到两倍远；低语（*）只传给你注视的人。" />
+    <string id="AIL_d09068cf" text="恋情 {0}{1}" />
+    <string id="AIL_d0cb85ca" text="你在场景中与某人交谈时，几步之内的有名字的角色会听到你说的话，并记住。" />
+    <string id="AIL_d1c3cda0" text="{=!}我想和你谈点事。[自由交谈]" />
+    <string id="AIL_d225285a" text="目前还没有：它们会随着游戏天数逐渐写出。" />
+    <string id="AIL_d22a5c23" text="每次回应的最多句数" />
+    <string id="AIL_d279f208" text="开启：在游戏对话框中交谈（输入 → 等待 → 查看回应）。关闭：使用独立的聊天窗口。" />
+    <string id="AIL_d2c3f48b" text="包含NPC的朋友和敌人" />
+    <string id="AIL_d36c447b" text="好的" />
+    <string id="AIL_d37eb730" text="最大影响：每日繁荣度" />
+    <string id="AIL_d4237d66" text="AI Legacy" />
+    <string id="AIL_d43bd671" text="它不像时钟那样准时：实际间隔在此值的 60 % 到 140 % 之间浮动。" />
+    <string id="AIL_d49df131" text="当你多次交谈过的角色死亡时，AI会写下他的纪事（他是谁、你们之间发生过什么、如何结束）。它显示在屏幕上，并保留在新闻中。每篇纪事一次请求。" />
+    <string id="AIL_d4db6271" text="已载入存档时：从 AIInfluence 导入本战役中NPC的记忆、性格、回忆和指令。不会覆盖在 AI Legacy 中已有记忆的人。" />
+    <string id="AIL_d53be13f" text="引发反应的最低重要性" />
+    <string id="AIL_d582953e" text="接受婚姻所需的浪漫度" />
+    <string id="AIL_d594c7d1" text="打任何人都会引发斗殴" />
+    <string id="AIL_d5d6b599" text="&#10;&#10;请保存存档以保留更改。" />
+    <string id="AIL_d63eaabc" text=" 于 {0}。" />
+    <string id="AIL_d655636d" text="世界描述" />
+    <string id="AIL_d65def98" text="{0} 已抵达 {1}，正在返回你身边。" />
+    <string id="AIL_d69db9ac" text="涉及的角色" />
+    <string id="AIL_d6f2ec0b" text="竞技场训练" />
+    <string id="AIL_d6fd303c" text="{0} 家族起兵反叛 {1}。" />
+    <string id="AIL_d770d7bc" text="2. 关系、信任与浪漫" />
+    <string id="AIL_d77a8668" text="竞技场：每名士兵受伤概率（%）" />
+    <string id="AIL_d79898d4" text="地牢刑期 {0} 天。" />
+    <string id="AIL_d79a206d" text="群聊：你输入时慢动作" />
+    <string id="AIL_d7c17160" text="{0} {1} | en={2} def={3} corto={4} obj={5} llegó={6} batalla={7}" />
+    <string id="AIL_d83e63f4" text="你消灭了 {0} 的匪帮。回去找 {1}。" />
+    <string id="AIL_d8412138" text="沼泽间日疟" />
+    <string id="AIL_d86408df" text="由AI主导的国王外交（取代游戏自带的外交）" />
+    <string id="AIL_d88f9ba0" text="暂时没有。" />
+    <string id="AIL_d8f59858" text="{0} 已收到 {1} × {2}。回去找 {3}。" />
+    <string id="AIL_d93015a6" text="粮食" />
+    <string id="AIL_d943da10" text="来信之间的最少天数" />
+    <string id="AIL_d9727a35" text="&#10;&#10;性格&#10;" />
+    <string id="AIL_d9b2a7c5" text="{{=!}}这个竞技场在 {0} 小时内不再接纳你们。" />
+    <string id="AIL_d9d80e9f" text="类型" />
+    <string id="AIL_da3c0b6b" text="你没有携带任何东西。" />
+    <string id="AIL_da6122fe" text="*默默地看着你*" />
+    <string id="AIL_da62d72b" text="存档中同时存在的最大秘密数" />
+    <string id="AIL_da76131c" text="女" />
+    <string id="AIL_da8482bd" text="授予与接受封地" />
+    <string id="AIL_da85936f" text="{0} 的来信" />
+    <string id="AIL_dace2712" text="{0} 拒绝了 {1} 的贸易协定。" />
+    <string id="AIL_daf17754" text="补全不完整的角色资料" />
+    <string id="AIL_db05ba43" text="页（在其书中）" />
+    <string id="AIL_db4aebed" text="创建事件" />
+    <string id="AIL_db9bfa6a" text="叛乱时与其国王的最大关系" />
+    <string id="AIL_db9c0e6a" text="（最小）" />
+    <string id="AIL_dba7a77b" text="过往（可选）" />
+    <string id="AIL_dbbb1038" text="性别" />
+    <string id="AIL_dc14749e" text="目标：将“{0}”交给 {1}，然后返回。" />
+    <string id="AIL_dc40699f" text="恢复出厂文本？你所做的更改将会丢失。" />
+    <string id="AIL_dc5f5110" text="你支付了 {0} 第纳尔的罚款。" />
+    <string id="AIL_dcc9bf83" text="每次回应的最大token数" />
+    <string id="AIL_dcd92686" text="信使收费 {0} 第纳尔，需要 {1} 才能送达。&#10;如果对方回信，回信也需要同样长的时间。" />
+    <string id="AIL_dd02342f" text="&#10;&#10;（以 * 开头只对你注视的人低语，以 ! 开头则是大喊。Alt+G 结束谈话。）" />
+    <string id="AIL_dd1a051b" text="{0} 已陷落。{1} 结束了围攻。" />
+    <string id="AIL_dd2f52c0" text="{0} 陪着你。" />
+    <string id="AIL_dd4380be" text="无事件" />
+    <string id="AIL_dd6592dc" text="你已经没有空位容纳更多同伴了。" />
+    <string id="AIL_dd736c20" text="事件保持“悬而未决”的天数" />
+    <string id="AIL_dd76aabc" text="命令：  /note &lt;文本&gt;（长期指令）  ·  /clearnotes  ·  /memory（记得什么）  ·  /forget  ·  /help" />
+    <string id="AIL_dda0e8ca" text="1. 常规" />
+    <string id="AIL_de098566" text="，{0} 第纳尔" />
+    <string id="AIL_de5d5b50" text="你已经有母亲了。" />
+    <string id="AIL_de705baa" text="根据其在存档中的身份（家族、家族关系、特质、性格模板）写出上面的整张资料，无需在游戏中与该角色交谈。会覆盖现有内容。这是一次向AI的请求。" />
+    <string id="AIL_dec042f4" text="{0} 把 {1} 名俘虏交给了你。" />
+    <string id="AIL_df1f7dd9" text="{0} 将带着他的队伍在这里等候。" />
+    <string id="AIL_df336f51" text="敌人由AI指挥" />
+    <string id="AIL_df85af91" text="角色交谈时记得的秘密数" />
+    <string id="AIL_e00ce40a" text="你身上没有“{0}”可以交给 {1}。" />
+    <string id="AIL_e00fb19f" text="每个严重程度每日传染给邻近地区的概率（千分比）" />
+    <string id="AIL_e07caced" text="写点什么" />
+    <string id="AIL_e0a76c57" text="{0} 的匪帮依然存在" />
+    <string id="AIL_e0d57f33" text="你还没有与 {0} 交谈" />
+    <string id="AIL_e102e90e" text="{0} 的最后一条消息：&#10;{1}" />
+    <string id="AIL_e10a40d5" text="{0} 倒在了决斗中。" />
+    <string id="AIL_e13e09e9" text="{0} 有 {1}" />
+    <string id="AIL_e147d85d" text="本次谈话及最近的几次" />
+    <string id="AIL_e14ea467" text="声明" />
+    <string id="AIL_e1661a3b" text="旧的或从 AIInfluence 导入的角色资料只有性格、过往和说话方式。开启后，在下次与该角色交谈时，AI会补写缺少的部分（追求、秘密、动机、价值观、宗教、名声、示例台词），不改动原有内容。" />
+    <string id="AIL_e1d05f2f" text="还剩 {0} 天" />
+    <string id="AIL_e2132343" text="config.json 中某个服务商的名称。留空 = 常规链路。" />
+    <string id="AIL_e250598b" text="界面语言（Interface language）" />
+    <string id="AIL_e28e2ffe" text="命令的常规持续时间（天）" />
+    <string id="AIL_e2b9be42" text="请选择一个文件" />
+    <string id="AIL_e37afdcd" text="普通人也会交谈（低声）" />
+    <string id="AIL_e37fa365" text="冬季（疾病风险高）" />
+    <string id="AIL_e3a1d50c" text="纪事：与逝者的最少交谈次数" />
+    <string id="AIL_e3aa1cab" text="回忆（每行一条）" />
+    <string id="AIL_e3b035c2" text="该城镇" />
+    <string id="AIL_e3c37efa" text="另外，内置秘密（world_data\secrets.json）" />
+    <string id="AIL_e3e82b77" text="你的俘虏已痊愈。" />
+    <string id="AIL_e3f5b714" text="忠诚" />
+    <string id="AIL_e405f75e" text="NPC回应所用语言" />
+    <string id="AIL_e424c129" text="世界新闻" />
+    <string id="AIL_e4267ade" text="仅用于测试。NPC几乎会接受任何合理的请求（跟随你、任务、礼物、部队），无需你先赢得他们的信任。正式游玩时请关闭。" />
+    <string id="AIL_e43ca0c4" text="你太年轻，不能生孩子。" />
+    <string id="AIL_e45c3132" text="一场瘟疫" />
+    <string id="AIL_e47fec25" text="创造力。80 = 0.8。有些模型（GPT-5）会忽略它。" />
+    <string id="AIL_e4a9f3a0" text="繁荣度" />
+    <string id="AIL_e4f26c59" text="3. 行动" />
+    <string id="AIL_e50ca8f9" text="{0} 将 {1} 交给 {2}。" />
+    <string id="AIL_e514530a" text="响应为空" />
+    <string id="AIL_e5df30fb" text="&#10;&#10;过往&#10;" />
+    <string id="AIL_e644c872" text="撤销导入" />
+    <string id="AIL_e6c89e51" text="{0} 正在思考……" />
+    <string id="AIL_e6d0eecf" text="当前紧张度（0 到 100）" />
+    <string id="AIL_e70b1e8a" text="{0} 动身前往 {1}。" />
+    <string id="AIL_e778fb02" text="{0} 句" />
+    <string id="AIL_e7c1ccde" text="你的队伍将在 {0} 天内受到保护。" />
+    <string id="AIL_e8438e2a" text="关闭" />
+    <string id="AIL_e9023c1f" text="{0} 去找 {1}。" />
+    <string id="AIL_e904786b" text="已不再处于战争状态" />
+    <string id="AIL_e911ba7b" text="{0} 在 {1} 被捕并押入地牢，被当众指控犯有 {2}。" />
+    <string id="AIL_e912d419" text="由AI根据每个王国的真实人物和事件编造。它们会逐渐出现（每个游戏日一个王国）。在这里你可以看到每个秘密涉及谁、谁知道；可以删除你不喜欢的。" />
+    <string id="AIL_e9459925" text="&#10;你的部下还将受到保护 {0} 天。" />
+    <string id="AIL_e94ae63e" text="{=!}治疗你的部队（{AIL_H_TROOPS}{GOLD_ICON}）" />
+    <string id="AIL_e95b93ac" text="{0}（{1}）已抵达 {2}。" />
+    <string id="AIL_e97439d8" text="与 {0} 的决斗！" />
+    <string id="AIL_e99f2367" text="一次可变化的字段数" />
+    <string id="AIL_e9d88202" text="最大赔款" />
+    <string id="AIL_e9f35fb7" text="{0} 呼叫守卫：你在 {1} 面前的名声变坏了。" />
+    <string id="AIL_e9f870fb" text="一个事件可以玷污或抬高某个家族（也包括你的）的名声：其收入在数天内按一定百分比下降或上升。可在家族收入明细和新闻中看到。" />
+    <string id="AIL_ea10db3c" text="搜索要添加的英雄……" />
+    <string id="AIL_ea76bfc7" text="AI没有响应" />
+    <string id="AIL_eacf656a" text="&#10;期限：还剩 {0} 天" />
+    <string id="AIL_eade4433" text="你的部队可能生病" />
+    <string id="AIL_eb19bc3f" text="未知路径： " />
+    <string id="AIL_eb1b8e7a" text="一场斗殴中守卫和保护者的最大人数" />
+    <string id="AIL_eb66dabe" text="战斗" />
+    <string id="AIL_ebad7b06" text="查看全部" />
+    <string id="AIL_ebb02c23" text="世界已保存" />
+    <string id="AIL_ebf54145" text="你的传令官正把声明传到每个角落……" />
+    <string id="AIL_ec31e35b" text="劫掠" />
+    <string id="AIL_eccf1cc9" text="地址（仅当服务为“other”时）" />
+    <string id="AIL_ed904e98" text="{0} 加入了 {1} 的队伍。" />
+    <string id="AIL_ed9f27d0" text="JSON 列表：id、text、chance（0-100）、who（all、lords、faction_leaders、clan_leaders、companions、wanderers、merchants、gang_leaders、town_notables、village_notables、townsfolk、villagers、guards、culture:id、kingdom:id 或英雄的 id）。" />
+    <string id="AIL_edd26e08" text="每次回应的最大关系变化" />
+    <string id="AIL_ee278059" text="卡拉迪亚流传着：{0}" />
+    <string id="AIL_ee39700e" text="疾病" />
+    <string id="AIL_ef0295b5" text="围攻 {0}" />
+    <string id="AIL_ef08b937" text="无家族" />
+    <string id="AIL_ef1030cb" text="没人看见：没人会知道是你干的。" />
+    <string id="AIL_ef8b7c72" text="国王可以创建一条自己的法律，在其所有城镇和城堡中产生每日的小幅影响（忠诚、繁荣、治安、粮食），并可废除它。" />
+    <string id="AIL_efa2c194" text="被守卫逮捕" />
+    <string id="AIL_effea661" text="从第 N 轮起进行总结" />
+    <string id="AIL_f00983f3" text="写下你要向卡拉迪亚宣告的内容。你明确决定的事项（战争、和平、同盟、贡金、税收、封地……）将会执行；其余的只作为言论。" />
+    <string id="AIL_f039f8c1" text="同时进行的任务数" />
+    <string id="AIL_f054b3ad" text="&#10;季节：{0}。" />
+    <string id="AIL_f08739d1" text="如果你在这段时间内什么都不说，AI会决定群里是否有人继续交谈（追问你，或他们自己聊起来）。每次是一次请求。" />
+    <string id="AIL_f0a2c329" text="{0} 完成了 {1} 的一项任务：{2}。" />
+    <string id="AIL_f0c471e9" text="阻止游戏将其嫁娶他人的浪漫度（0 = 不阻止）" />
+    <string id="AIL_f106aea0" text="下载备份（.json）" />
+    <string id="AIL_f12fa594" text="{0} 向 {1} 支付了 {2} 第纳尔的赔款。" />
+    <string id="AIL_f1406603" text="你已交付 {0}，携带 {1}/{2} × {3}" />
+    <string id="AIL_f1ae2294" text="{0} 向 {1} 提议结盟。" />
+    <string id="AIL_f2440a00" text="守卫逮捕了你：你将被关进 {0} 的地牢。" />
+    <string id="AIL_f257824f" text="他如何对待上级、平级、下级和陌生人" />
+    <string id="AIL_f25e35cc" text="情绪" />
+    <string id="AIL_f264e0b3" text="与当地人真实交易" />
+    <string id="AIL_f2caa92d" text="A. 世界与外交" />
+    <string id="AIL_f30c7e23" text="过往" />
+    <string id="AIL_f3138943" text="关系：{0:+0;-0;0}" />
+    <string id="AIL_f313a714" text="配偶" />
+    <string id="AIL_f362d5cb" text="{0} 雇用你的家族作为 {1} 的雇佣兵。" />
+    <string id="AIL_f378719a" text="{0} 把他的俘虏 {1} 交给了你。" />
+    <string id="AIL_f39268ed" text="性格" />
+    <string id="AIL_f3c39683" text="今天" />
+    <string id="AIL_f42f2a6a" text="走近之间的最少天数" />
+    <string id="AIL_f43bef55" text="对其他每个角色保留的记忆数" />
+    <string id="AIL_f43d7a3d" text="测试" />
+    <string id="AIL_f45ab3e9" text="已失败" />
+    <string id="AIL_f48c59a0" text="法律没有名称" />
+    <string id="AIL_f4d11fd9" text="para pero porque como cuando donde quien quién cual esto esta este esos esas estos estas aquel aquella tiene tengo tienes tenemos hacer hace hago haces puede puedo puedes " />
+    <string id="AIL_f4f38e0c" text="{1} 已经没有{0}患者了。" />
+    <string id="AIL_f533587d" text="响应为空（finish_reason=" />
+    <string id="AIL_f636277a" text="你已经没有空位容纳更多同伴了" />
+    <string id="AIL_f65463d8" text="{0} 抛下自己的生活，加入了你的队伍。" />
+    <string id="AIL_f683eca5" text="在每座城镇的菜单中，“拜访医院”：他们会告知流行的疾病，治疗你、你的同伴、你受伤或生病的部队以及你的俘虏（需付费；繁荣的城镇更便宜），并出售预防措施，让你的部下在数天内更不易生病。" />
+    <string id="AIL_f6cbdca6" text="群聊：沉默多少秒后解散" />
+    <string id="AIL_f71c6f6e" text="你已经没有可召唤的健康部下了。" />
+    <string id="AIL_f7528310" text="已保存的记忆" />
+    <string id="AIL_f7d8e495" text="外乡人行凶" />
+    <string id="AIL_f8007f6a" text="每个NPC都记录着对你有多信任。信任不足时，他不会透露秘密或敏感信息。" />
+    <string id="AIL_f85f4507" text="来自 {0}（{1}）的消息" />
+    <string id="AIL_f8647bfd" text="类型：{0}   ·   {1} 天前   ·   重要性 {2}（{3}）" />
+    <string id="AIL_f8823100" text="显示AI的命令" />
+    <string id="AIL_f8ac2cac" text="{0} 的纪事" />
+    <string id="AIL_f8db9623" text="地图上的按钮（新闻 / 回忆）" />
+    <string id="AIL_f8fff764" text="与你真正交谈过的邻居可以抛下自己的生活，加入你的队伍：他会成为一名永久角色，拥有自己的名字、性格和记忆。其外貌会变为新角色的外貌。" />
+    <string id="AIL_f90050f2" text="社会" />
+    <string id="AIL_f92abc25" text="无任务" />
+    <string id="AIL_f96ef1d1" text="仅事件" />
+    <string id="AIL_f991b6e7" text="期限已到。" />
+    <string id="AIL_fa2d5313" text="{0} 解除了 {1} 的隔离。" />
+    <string id="AIL_fa46e0da" text="斑疹热" />
+    <string id="AIL_faa80647" text="导入" />
+    <string id="AIL_fab5d985" text="说话方式" />
+    <string id="AIL_fb003d1c" text="无效的 JSON： " />
+    <string id="AIL_fb600910" text="要有兄弟姐妹，首先需要有父亲或母亲：请先创建一位长辈。" />
+    <string id="AIL_fb96809a" text="{=!}还有事吗？" />
+    <string id="AIL_fba371fc" text="你以 {2} 第纳尔卖出了 {1} 的 {0}。" />
+    <string id="AIL_fbf8b45d" text="每天 {0} 第纳尔的贡金，持续 {1} 天" />
+    <string id="AIL_fc0a69e3" text="王国覆灭" />
+    <string id="AIL_fc7ff1ee" text="最大影响：持续时间（天）" />
+    <string id="AIL_fcce1e3f" text="同一个NPC走近之间的最少天数" />
+    <string id="AIL_fd19d606" text="持续 {0} 年" />
+    <string id="AIL_fd36d8df" text="与 {0} 的谈话" />
+    <string id="AIL_fd3f245a" text="启用的行动" />
+    <string id="AIL_fd4aafcb" text="你与 {0} 结婚了！" />
+    <string id="AIL_fd4ffbec" text="世界数据" />
+    <string id="AIL_fd5decd8" text="竞技场：费用（占正常价格的 %）" />
+    <string id="AIL_fd8ad9a8" text="&#10;承诺的报酬：{0} 第纳尔" />
+    <string id="AIL_fd979159" text="AIInfluence 导入" />
+    <string id="AIL_fde1c2b2" text="竞技场：在同一竞技场可再次训练前的小时数" />
+    <string id="AIL_fde6aa22" text="常规罚款：最低" />
+    <string id="AIL_fe057bc7" text="你不等守卫把话说完就走了：你在这里的恶名更大了。" />
+    <string id="AIL_fe2134ff" text="所有人" />
+    <string id="AIL_fe5df831" text="{0} 与 {1} 结婚了。" />
+    <string id="AIL_fe9e2f63" text="从地图进入场景中交谈" />
+    <string id="AIL_feb8d02f" text="寿终而逝" />
+    <string id="AIL_fec92cb7" text="王室声明" />
+    <string id="AIL_fedffd7f" text="当地领主审判你" />
+    <string id="AIL_fefe856a" text="天" />
+    <string id="AIL_ff0ad962" text="{0} 逮捕了 {1}：她被带往 {2} 的地牢。" />
+    <string id="AIL_ff3da657" text="关闭：角色之间的每次交谈在一次请求中整段写完。开启：按轮次请求，每一批都知道之前说过的话；他们可以互相打断，如果你插话，交谈会自行结束。每次交谈消耗多次请求。" />
+    <string id="AIL_ff5c778e" text="你已抵达 {0}。回去找 {1}。" />
+    <string id="AIL_ff6e4415" text="{0} 走向你。" />
+    <string id="AIL_ffcd4d39" text="王室税：最低（%）" />
+  </strings>
+</base>

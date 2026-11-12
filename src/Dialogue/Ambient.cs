@@ -111,10 +111,10 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
         private static void BeginErrand(Settlement st)
         {
             var e = _errand; var cfg = S.Get;
-            if (e.Who == null || !e.Who.IsActive() || e.Target == null || !e.Target.IsActive()) { DropErrand(L.T("ya no están")); return; }
+            if (e.Who == null || !e.Who.IsActive() || e.Target == null || !e.Target.IsActive()) { DropErrand(L.T("AIL_723bcca4", "ya no están")); return; }
             string da = Describe(e.Who, out var sa), db = Describe(e.Target, out var sb);
             StartWalk(e.Who, e.Target, 120f);
-            if (_walker == null) { DropErrand(L.F($"{sa.Name} no puede moverse ahora")); return; }
+            if (_walker == null) { DropErrand(L.F("AIL_98b23f3f", $"{sa.Name} no puede moverse ahora")); return; }
             e.Stage = 1;
             string pairKey = string.CompareOrdinal(sa.Key, sb.Key) < 0 ? sa.Key + "|" + sb.Key : sb.Key + "|" + sa.Key;
             string player = ContextBuilder.PlayerNameFor(sa) ?? "a traveller they do not know";

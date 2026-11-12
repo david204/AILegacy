@@ -80,7 +80,7 @@ namespace AILegacy.World
                 var gq = new AILegacyQuest("ailegacy_" + q.Id + "_" + (int)(q.CreatedDay * 100), giver, CampaignTime.DaysFromNow((float)daysLeft), q.RewardGold, q.Name, q.Id);
                 gq.StartQuest();
                 string goal = QuestObjectives.GoalEs(q);
-                gq.Note(q.Description + (goal.Length > 0 ? "\n\n" + goal : "") + (q.RewardGold > 0 ? L.F($"\n\nRecompensa prometida: {q.RewardGold} denarios.") : ""));
+                gq.Note(q.Description + (goal.Length > 0 ? "\n\n" + goal : "") + (q.RewardGold > 0 ? L.F("AIL_41b3740a", $"\n\nRecompensa prometida: {q.RewardGold} denarios.") : ""));
                 foreach (var obj in QuestObjectives.Trackables(q)) { try { gq.AddTrackedObject(obj); } catch { } }
                 if (q.ProgressTarget > 0) gq.SetProgress(q.ProgressLabel, q.Progress, q.ProgressTarget);
                 Log.Info($"Misión añadida al diario: {q.Name} [{q.Id}]");
@@ -125,7 +125,7 @@ namespace AILegacy.World
                     if (Find(q.Id) == null) Create(q);
                 foreach (var gq in Campaign.Current.QuestManager.Quests.OfType<AILegacyQuest>().Where(x => x.IsOngoing).ToList())
                     if (!QuestSystem.Quests.Any(x => x.Active && x.Id == gq.AiQuestId))
-                        gq.CompleteQuestWithCancel(new TextObject(L.T("{=!}Este encargo ya no está en pie.")));
+                        gq.CompleteQuestWithCancel(new TextObject(L.T("AIL_175eb081", "{=!}Este encargo ya no está en pie.")));
             }
             catch (Exception ex) { Log.Error("Sincronizando el diario de misiones", ex); }
         }

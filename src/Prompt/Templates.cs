@@ -143,13 +143,13 @@ namespace AILegacy.Prompt
                 var readme = Path.Combine(dir, "LEEME.txt");
                 if (!File.Exists(readme))
                     File.WriteAllText(readme,
-                        L.T("Plantillas de instrucciones de AI Legacy para ESTA campaña.\r\n\r\n") +
-                        L.T("Cada archivo es un trozo de lo que se le manda a la IA. Puedes editarlos con el juego abierto: se releen solos.\r\n") +
-                        L.T("Lo que va entre llaves, como {npc_name} o {language}, lo rellena el mod: no lo traduzcas ni lo borres.\r\n") +
-                        L.T("Escríbelos en inglés (los modelos lo siguen mejor); los NPC contestan en el idioma de los ajustes.\r\n\r\n") +
-                        L.T("Para volver al texto de fábrica de un archivo: bórralo (o déjalo vacío) y carga la partida.\r\n") +
-                        L.T("Los archivos que no hayas tocado se actualizan solos cuando una versión nueva del mod mejora el texto.\r\n") +
-                        L.T("Los que hayas editado no se tocan nunca.\r\n"), new UTF8Encoding(false));
+                        L.T("AIL_089c5db1", "Plantillas de instrucciones de AI Legacy para ESTA campaña.\r\n\r\n") +
+                        L.T("AIL_33265d9a", "Cada archivo es un trozo de lo que se le manda a la IA. Puedes editarlos con el juego abierto: se releen solos.\r\n") +
+                        L.T("AIL_13527f3f", "Lo que va entre llaves, como {npc_name} o {language}, lo rellena el mod: no lo traduzcas ni lo borres.\r\n") +
+                        L.T("AIL_3f0d143a", "Escríbelos en inglés (los modelos lo siguen mejor); los NPC contestan en el idioma de los ajustes.\r\n\r\n") +
+                        L.T("AIL_b1624bd9", "Para volver al texto de fábrica de un archivo: bórralo (o déjalo vacío) y carga la partida.\r\n") +
+                        L.T("AIL_2bf0193d", "Los archivos que no hayas tocado se actualizan solos cuando una versión nueva del mod mejora el texto.\r\n") +
+                        L.T("AIL_94c21a0a", "Los que hayas editado no se tocan nunca.\r\n"), new UTF8Encoding(false));
 
                 _campaignDir = dir;
                 Log.Info($"Plantillas: {all.Count} en {dir} ({created} creadas, {updated} actualizadas, {custom} editadas por ti)");

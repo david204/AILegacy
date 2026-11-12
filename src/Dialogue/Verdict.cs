@@ -87,7 +87,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
 
                 _busy = true;
                 int session = WorldSim.Session;
-                Say(L.F($"Esperas en los calabozos de {st.Name} a que {lord.Name} decida qué hacer contigo…"), Colors.Gray);
+                Say(L.F("AIL_7576bfa9", $"Esperas en los calabozos de {st.Name} a que {lord.Name} decida qué hacer contigo…"), Colors.Gray);
                 LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
                 {
                     var res = t.IsFaulted ? null : t.Result;
@@ -138,25 +138,25 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 {
                     GiveGoldAction.ApplyForCharacterToSettlement(P, st, fine);
                     if (held) PlayerCaptivity.EndCaptivity();
-                    outcome = L.F($"Pagas {fine} denarios y quedas libre.");
+                    outcome = L.F("AIL_03be4040", $"Pagas {fine} denarios y quedas libre.");
                 }
                 else
                 {
                     days = Math.Max(1, Math.Min(cfg.VerdictMaxDays, 2 + fine / 500));
                     _in = st; _releaseDay = CampaignTime.Now.ToDays + days;
-                    outcome = L.F($"No puedes pagar los {fine} denarios de multa: te quedas {days} día(s) en la mazmorra.");
+                    outcome = L.F("AIL_b06a4975", $"No puedes pagar los {fine} denarios de multa: te quedas {days} día(s) en la mazmorra.");
                 }
             }
             else if (sentence.StartsWith("release"))
             {
                 if (held) PlayerCaptivity.EndCaptivity();
-                outcome = L.T("Quedas libre.");
+                outcome = L.T("AIL_09c1508e", "Quedas libre.");
             }
             else
             {
                 days = Math.Max(1, days);
                 _in = st; _releaseDay = CampaignTime.Now.ToDays + days;
-                outcome = L.F($"{days} día(s) de mazmorra.");
+                outcome = L.F("AIL_d79898d4", $"{days} día(s) de mazmorra.");
             }
 
             // Tu fama allí: nunca tanto como para que te declaren enemigo solo por la sentencia
@@ -179,12 +179,12 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
             NewsStore.Add(new NewsItem
             {
                 Type = "decree", Importance = 2, Text = $"{lord.Name}, lord of {st.Name}, passed judgment on {player}: {decreeEn}", PlayerInvolved = true,
-                TitleEs = L.F($"Sentencia de {lord.Name}"), TextEs = decree, SettlementId = st.StringId,
+                TitleEs = L.F("AIL_6c33ff94", $"Sentencia de {lord.Name}"), TextEs = decree, SettlementId = st.StringId,
                 Kingdoms = st.MapFaction != null ? new List<string> { st.MapFaction.StringId } : new List<string>(), Heroes = new List<string> { lord.StringId, P.StringId },
             });
             SaveFiles.Flush();
             Log.Info($"[juicio] {lord.Name} en {st.Name}: {sentence} (multa {fine}, días {days}, fama {crime:+0;-0}, relación {rel:+0;-0})");
-            InformationManager.ShowInquiry(new InquiryData(L.F($"Sentencia de {lord.Name}"), $"«{decree}»\n\n{outcome}", true, false, L.T("Entendido"), null, null, null), true);
+            InformationManager.ShowInquiry(new InquiryData(L.F("AIL_6c33ff94", $"Sentencia de {lord.Name}"), $"«{decree}»\n\n{outcome}", true, false, L.T("AIL_265409ff", "Entendido"), null, null, null), true);
         }
 
         /// <summary>Cumplida la condena, te sueltan (si no te has escapado antes).</summary>
@@ -197,7 +197,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 if (CampaignTime.Now.ToDays < _releaseDay) return;
                 var st = _in; _releaseDay = -1; _in = null;
                 PlayerCaptivity.EndCaptivity();
-                Say(L.F($"Has cumplido tu condena: te sueltan de la mazmorra de {st.Name}."), Colors.Yellow);
+                Say(L.F("AIL_56a8023e", $"Has cumplido tu condena: te sueltan de la mazmorra de {st.Name}."), Colors.Yellow);
             }
             catch (Exception ex) { Log.Error("Fin de condena", ex); _releaseDay = -1; _in = null; }
         }

@@ -24,7 +24,7 @@ namespace AILegacy.Patches
         protected override NavigationPermissionItem GetPermission() =>
             MapNavigationHelper.IsNavigationBarEnabled(_handler) ? new NavigationPermissionItem(true, null) : new NavigationPermissionItem(false, null);
 
-        protected override TextObject GetTooltip() => new TextObject(L.T("{=!}Libro de memorias (AI Legacy)"));
+        protected override TextObject GetTooltip() => new TextObject(L.T("AIL_3dad18db", "{=!}Libro de memorias (AI Legacy)"));
         protected override TextObject GetAlertTooltip() => TextObject.GetEmpty();
 
         public override void OpenView() => MainThread.Post(UI.Books.OpenMemories);

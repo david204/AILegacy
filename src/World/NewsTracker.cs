@@ -47,8 +47,8 @@ namespace AILegacy.World
             {
                 Type = "war", Importance = (f1.IsKingdomFaction && f2.IsKingdomFaction) ? 3 : 2,
                 Text = $"{f1.Name} has declared war on {f2.Name}.",
-                TitleEs = L.F($"¡Guerra entre {f1.Name} y {f2.Name}!"),
-                TextEs = L.F($"{f1.Name} ha declarado la guerra a {f2.Name}. Los ejércitos de ambos bandos se preparan para la campaña."),
+                TitleEs = L.F("AIL_b3ce76cf", $"¡Guerra entre {f1.Name} y {f2.Name}!"),
+                TextEs = L.F("AIL_60575e78", $"{f1.Name} ha declarado la guerra a {f2.Name}. Los ejércitos de ambos bandos se preparan para la campaña."),
                 Kingdoms = Ids(f1, f2), Heroes = HeroIds(f1.Leader, f2.Leader),
             });
         });
@@ -60,8 +60,8 @@ namespace AILegacy.World
             {
                 Type = "peace", Importance = 3,
                 Text = $"{f1.Name} and {f2.Name} have made peace.",
-                TitleEs = L.F($"Paz entre {f1.Name} y {f2.Name}"),
-                TextEs = L.F($"{f1.Name} y {f2.Name} han firmado la paz. Por ahora, las armas callan entre ambos reinos."),
+                TitleEs = L.F("AIL_397b4d4e", $"Paz entre {f1.Name} y {f2.Name}"),
+                TextEs = L.F("AIL_6f600589", $"{f1.Name} y {f2.Name} han firmado la paz. Por ahora, las armas callan entre ambos reinos."),
                 Kingdoms = Ids(f1, f2), Heroes = HeroIds(f1.Leader, f2.Leader),
             });
         });
@@ -71,7 +71,7 @@ namespace AILegacy.World
         {
             if (s == null || s.IsVillage) return;
             string kind = s.IsTown ? "town" : "castle";
-            string kindEs = s.IsTown ? L.T("la ciudad") : L.T("el castillo");
+            string kindEs = s.IsTown ? L.T("AIL_e3b035c2", "la ciudad") : L.T("AIL_b9583293", "el castillo");
             bool siege = detail.ToString().IndexOf("Siege", StringComparison.OrdinalIgnoreCase) >= 0;
             var n = new NewsItem
             {
@@ -85,18 +85,18 @@ namespace AILegacy.World
                 n.Type = "capture"; n.Importance = 3;
                 n.Text = $"The {kind} of {s.Name} has fallen to {who?.Name}{FactionOf(who)} after a siege" +
                          (oldOwner != null ? $"; it belonged to {oldOwner.Name}{FactionOf(oldOwner)}." : ".");
-                n.TitleEs = L.F($"Cae {s.Name}");
-                n.TextEs = L.F($"{Cap(kindEs)} de {s.Name} ha caído tras un asedio en manos de {who?.Name}{DeEs(who)}") +
-                           (oldOwner != null ? L.F($". Antes pertenecía a {oldOwner.Name}{DeEs(oldOwner)}.") : ".");
+                n.TitleEs = L.F("AIL_3e887326", $"Cae {s.Name}");
+                n.TextEs = L.F("AIL_2a6395bc", $"{Cap(kindEs)} de {s.Name} ha caído tras un asedio en manos de {who?.Name}{DeEs(who)}") +
+                           (oldOwner != null ? L.F("AIL_06be773b", $". Antes pertenecía a {oldOwner.Name}{DeEs(oldOwner)}.") : ".");
             }
             else
             {
                 n.Type = "fief"; n.Importance = 2;
                 n.Text = $"The {kind} of {s.Name} now belongs to {newOwner?.Name}{FactionOf(newOwner)}" +
                          (oldOwner != null && oldOwner != newOwner ? $" (before, {oldOwner.Name})." : ".");
-                n.TitleEs = L.F($"{s.Name} cambia de señor");
-                n.TextEs = L.F($"{Cap(kindEs)} de {s.Name} pertenece ahora a {newOwner?.Name}{DeEs(newOwner)}") +
-                           (oldOwner != null && oldOwner != newOwner ? L.F($" (antes era de {oldOwner.Name}).") : ".");
+                n.TitleEs = L.F("AIL_946c5eaa", $"{s.Name} cambia de señor");
+                n.TextEs = L.F("AIL_114e50bb", $"{Cap(kindEs)} de {s.Name} pertenece ahora a {newOwner?.Name}{DeEs(newOwner)}") +
+                           (oldOwner != null && oldOwner != newOwner ? L.F("AIL_5b7a333a", $" (antes era de {oldOwner.Name}).") : ".");
             }
             NewsStore.Add(n);
         });
@@ -107,24 +107,24 @@ namespace AILegacy.World
             string how, howEs;
             switch (detail.ToString())
             {
-                case "DiedOfOldAge": how = "died of old age"; howEs = L.T("ha muerto de vejez"); break;
-                case "DiedInLabor": how = "died in childbirth"; howEs = L.T("ha muerto en el parto"); break;
+                case "DiedOfOldAge": how = "died of old age"; howEs = L.T("AIL_feb8d02f", "ha muerto de vejez"); break;
+                case "DiedInLabor": how = "died in childbirth"; howEs = L.T("AIL_5d51e858", "ha muerto en el parto"); break;
                 case "DiedInBattle":
                     how = killer != null ? $"fell in battle against {killer.Name}" : "fell in battle";
-                    howEs = killer != null ? L.F($"ha caído en combate contra {killer.Name}") : L.T("ha caído en combate"); break;
+                    howEs = killer != null ? L.F("AIL_8740b99c", $"ha caído en combate contra {killer.Name}") : L.T("AIL_7fd0d7e5", "ha caído en combate"); break;
                 case "Executed":
                     how = killer != null ? $"was executed by {killer.Name}" : "was executed";
-                    howEs = killer != null ? L.F($"ha sido ejecutado por {killer.Name}") : L.T("ha sido ejecutado"); break;
-                case "Murdered": how = "was murdered"; howEs = L.T("ha sido asesinado"); break;
-                case "Lost": how = "has disappeared and is presumed dead"; howEs = L.T("ha desaparecido y se le da por muerto"); break;
-                default: how = "has died"; howEs = L.T("ha muerto"); break;
+                    howEs = killer != null ? L.F("AIL_923a5224", $"ha sido ejecutado por {killer.Name}") : L.T("AIL_93c01ba7", "ha sido ejecutado"); break;
+                case "Murdered": how = "was murdered"; howEs = L.T("AIL_7c907518", "ha sido asesinado"); break;
+                case "Lost": how = "has disappeared and is presumed dead"; howEs = L.T("AIL_6c0ce598", "ha desaparecido y se le da por muerto"); break;
+                default: how = "has died"; howEs = L.T("AIL_00ec5af6", "ha muerto"); break;
             }
             int imp = victim.IsKingdomLeader ? 4 : victim.IsClanLeader ? 3 : victim.IsLord ? 2 : 1;
             NewsStore.Add(new NewsItem
             {
                 Type = "death", Importance = imp,
                 Text = $"{victim.Name}{TitleOf(victim)} {how}.",
-                TitleEs = L.F($"Muere {victim.Name}"),
+                TitleEs = L.F("AIL_65ad4195", $"Muere {victim.Name}"),
                 TextEs = $"{victim.Name}{TitleOfEs(victim)} {howEs}.",
                 Kingdoms = Ids(victim.MapFaction), Heroes = HeroIds(victim, killer),
                 SettlementId = (victim.CurrentSettlement ?? victim.HomeSettlement)?.StringId,
@@ -151,8 +151,8 @@ namespace AILegacy.World
                 var raider = e.AttackerSide == winner ? wl : ll;
                 n.Type = "raid"; n.Importance = 2;
                 n.Text = $"{raider.Name}{FactionOf(raider)} raided the village of {place.Name}.";
-                n.TitleEs = L.F($"Saquean {place.Name}");
-                n.TextEs = L.F($"{raider.Name}{DeEs(raider)} ha saqueado la aldea de {place.Name}. Los campesinos han perdido cosechas y ganado.");
+                n.TitleEs = L.F("AIL_1230749f", $"Saquean {place.Name}");
+                n.TextEs = L.F("AIL_a0a85eed", $"{raider.Name}{DeEs(raider)} ha saqueado la aldea de {place.Name}. Los campesinos han perdido cosechas y ganado.");
             }
             else if (e.IsSiegeAssault && place != null)
             {
@@ -162,8 +162,8 @@ namespace AILegacy.World
             {
                 n.Type = "battle"; n.Importance = (wl.IsKingdomLeader || ll.IsKingdomLeader) ? 3 : 2;
                 n.Text = $"{wl.Name}{FactionOf(wl)} defeated {ll.Name}{FactionOf(ll)} in battle" + (place != null ? $" near {place.Name}." : ".");
-                n.TitleEs = L.F($"Victoria de {wl.Name}");
-                n.TextEs = L.F($"{wl.Name}{DeEs(wl)} ha derrotado en batalla a {ll.Name}{DeEs(ll)}") + (place != null ? L.F($" cerca de {place.Name}.") : ".");
+                n.TitleEs = L.F("AIL_161727d1", $"Victoria de {wl.Name}");
+                n.TextEs = L.F("AIL_b4431c37", $"{wl.Name}{DeEs(wl)} ha derrotado en batalla a {ll.Name}{DeEs(ll)}") + (place != null ? L.F("AIL_2d23d9be", $" cerca de {place.Name}.") : ".");
             }
             if (player) { n.PlayerInvolved = true; if (!n.Heroes.Contains(Hero.MainHero.StringId)) n.Heroes.Add(Hero.MainHero.StringId); }
             NewsStore.Add(n);
@@ -175,7 +175,7 @@ namespace AILegacy.World
             {
                 Type = "kingdom", Importance = 4, Kingdoms = Ids(k),
                 Text = $"The realm of {k.Name} has been destroyed; it is no more.",
-                TitleEs = L.F($"Cae el reino de {k.Name}"), TextEs = L.F($"El reino de {k.Name} ha sido destruido. Ya no existe."),
+                TitleEs = L.F("AIL_1d3c2297", $"Cae el reino de {k.Name}"), TextEs = L.F("AIL_c7fbb570", $"El reino de {k.Name} ha sido destruido. Ya no existe."),
             });
         });
 
@@ -189,20 +189,20 @@ namespace AILegacy.World
             if (newK != null && oldK != null)
             {
                 text = $"Clan {clan.Name} has left {oldK.Name} and sworn to {newK.Name}" + (merc ? " as mercenaries." : ".");
-                title = L.F($"El clan {clan.Name} cambia de bando");
-                es = L.F($"El clan {clan.Name} ha abandonado {oldK.Name} y ahora sirve a {newK.Name}") + (merc ? L.T(" como mercenarios.") : ".");
+                title = L.F("AIL_266f75ee", $"El clan {clan.Name} cambia de bando");
+                es = L.F("AIL_56bb73a9", $"El clan {clan.Name} ha abandonado {oldK.Name} y ahora sirve a {newK.Name}") + (merc ? L.T("AIL_ce9503db", " como mercenarios.") : ".");
             }
             else if (newK != null)
             {
                 text = $"Clan {clan.Name} has joined {newK.Name}" + (merc ? " as mercenaries." : ".");
-                title = L.F($"El clan {clan.Name} se une a {newK.Name}");
-                es = L.F($"El clan {clan.Name} se ha unido a {newK.Name}") + (merc ? L.T(" como mercenarios.") : ".");
+                title = L.F("AIL_5b4803a4", $"El clan {clan.Name} se une a {newK.Name}");
+                es = L.F("AIL_c1c7d32a", $"El clan {clan.Name} se ha unido a {newK.Name}") + (merc ? L.T("AIL_ce9503db", " como mercenarios.") : ".");
             }
             else if (oldK != null)
             {
                 text = rebel ? $"Clan {clan.Name} has rebelled against {oldK.Name}!" : $"Clan {clan.Name} has left {oldK.Name}" + (merc ? " (their mercenary contract ended)." : ".");
-                title = rebel ? L.F($"¡Rebelión del clan {clan.Name}!") : L.F($"El clan {clan.Name} abandona {oldK.Name}");
-                es = rebel ? L.F($"El clan {clan.Name} se ha rebelado contra {oldK.Name}.") : L.F($"El clan {clan.Name} ha abandonado {oldK.Name}") + (merc ? L.T(" (terminó su contrato de mercenarios).") : ".");
+                title = rebel ? L.F("AIL_648fc689", $"¡Rebelión del clan {clan.Name}!") : L.F("AIL_7d9b4b55", $"El clan {clan.Name} abandona {oldK.Name}");
+                es = rebel ? L.F("AIL_5ffce42d", $"El clan {clan.Name} se ha rebelado contra {oldK.Name}.") : L.F("AIL_70c30ed9", $"El clan {clan.Name} ha abandonado {oldK.Name}") + (merc ? L.T("AIL_84e6eeec", " (terminó su contrato de mercenarios).") : ".");
             }
             else return;
             NewsStore.Add(new NewsItem
@@ -219,8 +219,8 @@ namespace AILegacy.World
             {
                 Type = "ruler", Importance = 4, Kingdoms = Ids(k), Heroes = HeroIds(c.Leader),
                 Text = $"{c.Leader.Name} of clan {c.Name} is now the ruler of {k.Name}.",
-                TitleEs = L.F($"Nuevo soberano en {k.Name}"),
-                TextEs = L.F($"{c.Leader.Name}, del clan {c.Name}, es ahora quien gobierna {k.Name}."),
+                TitleEs = L.F("AIL_6b587fde", $"Nuevo soberano en {k.Name}"),
+                TextEs = L.F("AIL_50ac9cd1", $"{c.Leader.Name}, del clan {c.Name}, es ahora quien gobierna {k.Name}."),
             });
         });
 
@@ -232,8 +232,8 @@ namespace AILegacy.World
             {
                 Type = "prisoner", Importance = prisoner.IsKingdomLeader ? 4 : prisoner.IsClanLeader ? 3 : 2,
                 Text = $"{prisoner.Name}{TitleOf(prisoner)} has been taken prisoner" + (by != null ? $" by {by.Name}{FactionOf(by)}." : "."),
-                TitleEs = L.F($"{prisoner.Name}, capturado"),
-                TextEs = L.F($"{prisoner.Name}{TitleOfEs(prisoner)} ha sido hecho prisionero") + (by != null ? L.F($" por {by.Name}{DeEs(by)}.") : "."),
+                TitleEs = L.F("AIL_0b611224", $"{prisoner.Name}, capturado"),
+                TextEs = L.F("AIL_c704d473", $"{prisoner.Name}{TitleOfEs(prisoner)} ha sido hecho prisionero") + (by != null ? L.F("AIL_c6442751", $" por {by.Name}{DeEs(by)}.") : "."),
                 Kingdoms = Ids(prisoner.MapFaction, captor?.MapFaction), Heroes = HeroIds(prisoner, by),
             });
         });
@@ -247,8 +247,8 @@ namespace AILegacy.World
             {
                 Type = "siege", Importance = 2,
                 Text = $"{(leader != null ? leader.Name + FactionOf(leader) : "An enemy army")} has laid siege to {s.Name}.",
-                TitleEs = L.F($"Asedio a {s.Name}"),
-                TextEs = L.F($"{(leader != null ? leader.Name + DeEs(leader) : L.T("Un ejército enemigo"))} ha puesto sitio a {s.Name}."),
+                TitleEs = L.F("AIL_ef0295b5", $"Asedio a {s.Name}"),
+                TextEs = L.F("AIL_8f57f4c0", $"{(leader != null ? leader.Name + DeEs(leader) : L.T("AIL_a2104812", "Un ejército enemigo"))} ha puesto sitio a {s.Name}."),
                 SettlementId = s.StringId, Kingdoms = Ids(s.MapFaction, leader?.MapFaction), Heroes = HeroIds(leader, s.OwnerClan?.Leader),
             });
         });
@@ -273,9 +273,9 @@ namespace AILegacy.World
         private static string TitleOfEs(Hero h)
         {
             if (h == null) return "";
-            if (h.IsKingdomLeader && h.MapFaction != null) return L.F($", soberano de {h.MapFaction.Name},");
-            if (h.IsClanLeader && h.Clan != null) return L.F($", jefe del clan {h.Clan.Name},");
-            return h.Clan != null && h.IsLord ? L.F($", del clan {h.Clan.Name},") : "";
+            if (h.IsKingdomLeader && h.MapFaction != null) return L.F("AIL_914cbfeb", $", soberano de {h.MapFaction.Name},");
+            if (h.IsClanLeader && h.Clan != null) return L.F("AIL_7282058a", $", jefe del clan {h.Clan.Name},");
+            return h.Clan != null && h.IsLord ? L.F("AIL_a4990140", $", del clan {h.Clan.Name},") : "";
         }
     }
 }

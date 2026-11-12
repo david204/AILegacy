@@ -36,7 +36,7 @@ namespace AILegacy.Letters
 
         public static void AddMenu(CampaignGameStarter starter)
         {
-            starter.AddGameMenuOption("town_backstreet", "ailegacy_send_letter", L.T("{=!}Enviar una carta"),
+            starter.AddGameMenuOption("town_backstreet", "ailegacy_send_letter", L.T("AIL_3ae61921", "{=!}Enviar una carta"),
                 args =>
                 {
                     args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
@@ -57,7 +57,7 @@ namespace AILegacy.Letters
                 .Take(300).ToList();
             if (heroes.Count == 0)
             {
-                InformationManager.ShowInquiry(new InquiryData(L.T("Enviar una carta"), L.T("No conoces a nadie a quien escribir. Habla antes con la gente."), true, false, L.T("Vale"), "", null, null), true);
+                InformationManager.ShowInquiry(new InquiryData(L.T("AIL_629058ab", "Enviar una carta"), L.T("AIL_ab845913", "No conoces a nadie a quien escribir. Habla antes con la gente."), true, false, L.T("AIL_d36c447b", "Vale"), "", null, null), true);
                 return;
             }
 
@@ -65,11 +65,11 @@ namespace AILegacy.Letters
             {
                 var (cost, hours) = Quote(x.h);
                 string tag = x.known != null && x.known.ConversationCount > 0 ? "★ " : "";
-                return new InquiryElement(x.h, L.F($"{tag}{x.h.Name}{(x.h.Clan != null ? " (" + x.h.Clan.Name + ")" : "")} — {cost} denarios, {TravelText(hours)}"), null);
+                return new InquiryElement(x.h, L.F("AIL_bc5de8fe", $"{tag}{x.h.Name}{(x.h.Clan != null ? " (" + x.h.Clan.Name + ")" : "")} — {cost} denarios, {TravelText(hours)}"), null);
             }).ToList();
 
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
-                L.T("Enviar una carta"), L.T("Solo puedes escribir a quien conoces. ★ = alguien con quien ya has hablado. El coste y el tiempo dependen de la distancia."),
+                L.T("AIL_629058ab", "Enviar una carta"), L.T("AIL_9dedec74", "Solo puedes escribir a quien conoces. ★ = alguien con quien ya has hablado. El coste y el tiempo dependen de la distancia."),
                 items, true, 1, 1, "Escribir", "Cancelar",
                 sel => { if (sel?.Count > 0) MainThread.Post(() => Compose((Hero)sel[0].Identifier)); }, null, "", true), true);
         }
@@ -78,8 +78,8 @@ namespace AILegacy.Letters
         {
             var (cost, hours) = Quote(hero);
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                L.F($"Carta para {hero.Name}"),
-                L.F($"El mensajero cobra {cost} denarios y tardará {TravelText(hours)} en llegar.\nSi te contesta, la respuesta tardará lo mismo en volver."),
+                L.F("AIL_27a8d342", $"Carta para {hero.Name}"),
+                L.F("AIL_dcd92686", $"El mensajero cobra {cost} denarios y tardará {TravelText(hours)} en llegar.\nSi te contesta, la respuesta tardará lo mismo en volver."),
                 true, true, "Enviar", "Cancelar",
                 text =>
                 {
@@ -87,16 +87,16 @@ namespace AILegacy.Letters
                     if (text.Length == 0) return;
                     if (Hero.MainHero.Gold < cost)
                     {
-                        InformationManager.DisplayMessage(new InformationMessage(L.F($"No tienes {cost} denarios para pagar al mensajero."), Colors.Red));
+                        InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_4a84320d", $"No tienes {cost} denarios para pagar al mensajero."), Colors.Red));
                         return;
                     }
                     if (cost > 0) Hero.MainHero.ChangeHeroGold(-cost);
                     MemoryStore.Letters.Add(new PendingLetter { HeroId = hero.StringId, Text = text, FromPlayer = true, ArriveDay = CampaignTime.Now.ToDays + hours / 24.0 });
-                    InformationManager.DisplayMessage(new InformationMessage(L.F($"El mensajero parte hacia {hero.Name}. Llegará en {TravelText(hours)}."), Colors.Yellow));
+                    InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_c27c3eed", $"El mensajero parte hacia {hero.Name}. Llegará en {TravelText(hours)}."), Colors.Yellow));
                     Log.Info($"Carta para {hero.Name} ({cost} denarios, {hours:0} h)");
                     SaveFiles.Flush();
                 },
-                null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("Escribe algo"))), true);
+                null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
 
         // ============================================================ distancia, coste y tiempo
@@ -128,7 +128,7 @@ namespace AILegacy.Letters
         {
             if (hours < 24) return $"unas {Math.Max(1, (int)Math.Round(hours))} horas";
             double days = hours / 24.0;
-            return days < 1.5 ? L.T("un día") : L.F($"unos {(int)Math.Round(days)} días");
+            return days < 1.5 ? L.T("AIL_7278010d", "un día") : L.F("AIL_2003bc66", $"unos {(int)Math.Round(days)} días");
         }
 
         // ============================================================ tiempo de juego
@@ -272,9 +272,9 @@ namespace AILegacy.Letters
 
             var (hero, text) = ToShow.Dequeue();
             _showing = true;
-            InformationManager.DisplayMessage(new InformationMessage(L.F($"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
+            InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
             InformationManager.ShowInquiry(new InquiryData(
-                L.F($"Carta de {hero.Name}"), text, true, false, "Guardar", "",
+                L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, false, "Guardar", "",
                 () => { _showing = false; }, null), true);
         }
     }

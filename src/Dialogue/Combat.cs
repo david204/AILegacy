@@ -74,9 +74,9 @@ namespace AILegacy.Dialogue
             Log.Info($"Pelea pendiente con {s.Name}: {kind}");
             switch (kind)
             {
-                case "brawl": return L.F($"{s.Name} se remanga: habrá pelea a puñetazos en cuanto termine la charla.");
-                case "death": return L.F($"{s.Name} acepta un duelo a muerte. Empieza en cuanto termine la charla.");
-                default: return L.F($"{s.Name} acepta el duelo. Empieza en cuanto termine la charla.");
+                case "brawl": return L.F("AIL_8e8232dd", $"{s.Name} se remanga: habrá pelea a puñetazos en cuanto termine la charla.");
+                case "death": return L.F("AIL_2d487a5a", $"{s.Name} acepta un duelo a muerte. Empieza en cuanto termine la charla.");
+                default: return L.F("AIL_8a331c41", $"{s.Name} acepta el duelo. Empieza en cuanto termine la charla.");
             }
         }
 
@@ -112,7 +112,7 @@ namespace AILegacy.Dialogue
                 _active = f; _wave = 6f; _waves = 0; _alarm = false;
                 ActiveFoes.Clear(); ActiveFoes.AddRange(foes); _unleash = 0f;
                 Unleash();
-                Say(f.Unprovoked ? L.F($"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F($"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F($"¡Duelo a muerte con {f.Who.Name}!") : L.F($"¡Duelo con {f.Who.Name}!"), Colors.Red);
+                Say(f.Unprovoked ? L.F("AIL_1ee35da7", $"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F("AIL_96bdc93c", $"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F("AIL_70eda317", $"¡Duelo a muerte con {f.Who.Name}!") : L.F("AIL_e97439d8", $"¡Duelo con {f.Who.Name}!"), Colors.Red);
                 Log.Info($"Pelea empezada con {f.Who.Name}: {f.Kind}");
                 FightBanter.Begin(f.Who, f.Opponent, f.Kind);
             }
@@ -216,14 +216,14 @@ namespace AILegacy.Dialogue
             if (!_alarm && (down >= 3 || (down >= 1 && _waves >= 2)))
             {
                 _alarm = true;
-                Say(L.F($"¡Suena la campana de alarma en {Settlement.CurrentSettlement?.Name}: acude toda la guardia!"), Colors.Red);
+                Say(L.F("AIL_2f7a736d", $"¡Suena la campana de alarma en {Settlement.CurrentSettlement?.Name}: acude toda la guardia!"), Colors.Red);
             }
             if (come.Count == 0) return;
             int joined = come.Count(a => JoinFight(fh, a, false));
             if (joined > 0)
             {
                 _waves++;
-                Say(_waves == 1 ? L.T("La guardia ha oído la pelea y viene a por ti.") : L.F($"Llegan {joined} guardias más."), Colors.Red);
+                Say(_waves == 1 ? L.T("AIL_9f068a43", "La guardia ha oído la pelea y viene a por ti.") : L.F("AIL_5336141e", $"Llegan {joined} guardias más."), Colors.Red);
                 Unleash();
             }
         }
@@ -237,10 +237,10 @@ namespace AILegacy.Dialogue
                 var m = Mission.Current;
                 string loc = "";
                 try { loc = CampaignMission.Current?.Location?.StringId ?? ""; } catch { }
-                if (loc != "center" && loc != "village_center") { Say(L.T("Aquí dentro no pueden entrar tus hombres: solo en la calle."), Colors.Gray); return; }
+                if (loc != "center" && loc != "village_center") { Say(L.T("AIL_5affe75c", "Aquí dentro no pueden entrar tus hombres: solo en la calle."), Colors.Gray); return; }
                 int room = cfg.StreetMaxOwnTroops - Summoned.Count(a => a != null && a.IsActive());
                 want = Math.Min(want, room);
-                if (want <= 0) { Say(L.T("Ya tienes dentro a todos los hombres que caben."), Colors.Gray); return; }
+                if (want <= 0) { Say(L.T("AIL_a9628091", "Ya tienes dentro a todos los hombres que caben."), Colors.Gray); return; }
                 var me = Agent.Main;
                 var back = -me.LookDirection.AsVec2;
                 if (back.Length < 0.01f) back = new Vec2(0f, -1f);
@@ -268,7 +268,7 @@ namespace AILegacy.Dialogue
                     }
                     if (done >= want) break;
                 }
-                Say(done > 0 ? L.F($"{done} de tus hombres entran en la pelea.") : L.T("No te quedan hombres sanos a los que llamar."), done > 0 ? Colors.Green : Colors.Gray);
+                Say(done > 0 ? L.F("AIL_5a62c49f", $"{done} de tus hombres entran en la pelea.") : L.T("AIL_f71c6f6e", "No te quedan hombres sanos a los que llamar."), done > 0 ? Colors.Green : Colors.Gray);
                 if (done > 0) Log.Info($"[escena] el jugador mete {done} soldados en la pelea");
             }
             catch (Exception ex) { Log.Error("Llamar a tus tropas", ex); }
@@ -367,10 +367,10 @@ namespace AILegacy.Dialogue
                     bool guard = armed && dist <= 20f && (c.Occupation == Occupation.Guard || c.Occupation == Occupation.Soldier || c.Occupation == Occupation.PrisonGuard);
                     if (!kin && !guard) continue;
                     f.Helpers.Add(a);
-                    Say(L.F($"{a.Name} sale en defensa de {sp.Name}."), Colors.Red);
+                    Say(L.F("AIL_9ccbdf55", $"{a.Name} sale en defensa de {sp.Name}."), Colors.Red);
                 }
                 Log.Info($"[escena] el jugador golpea a {sp.Name} sin mediar palabra ({f.Kind}; {f.Helpers.Count} en su defensa)");
-                if (armed && cfg.StreetSummonTroops) Say(L.T("Puedes llamar a tus hombres: Ctrl+X (diez) o Ctrl+Alt+X (todos los que quepan). Solo en la calle."), Colors.Gray);
+                if (armed && cfg.StreetSummonTroops) Say(L.T("AIL_c4f81902", "Puedes llamar a tus hombres: Ctrl+X (diez) o Ctrl+Alt+X (todos los que quepan). Solo en la calle."), Colors.Gray);
                 _fight = f;
                 StartFight();
             }
@@ -446,9 +446,9 @@ namespace AILegacy.Dialogue
                     mem.Trust = Math.Max(-100, mem.Trust - 25);
                     float crime = (f.Kind == "brawl" ? 5f : 15f) * (seen.Level == 2 ? 1f : seen.Level == 1 ? 0.5f : 0f);
                     try { var stf = Settlement.CurrentSettlement?.MapFaction; if (crime > 0f && stf != null && stf != P.MapFaction) ChangeCrimeRatingAction.Apply(stf, crime, true); } catch { }
-                    Say(seen.Level == 0 ? L.T("Nadie lo ha visto: nadie sabrá que has sido tú.")
-                      : seen.Level == 1 ? L.F($"Te han visto ({seen.Count} testigo(s)), pero nadie sabe quién eres: buscan a un forastero armado.")
-                      : L.F($"{seen.ByWhom} te ha reconocido: se sabrá que has sido tú."), seen.Level == 0 ? Colors.Green : seen.Level == 1 ? Colors.Yellow : Colors.Red);
+                    Say(seen.Level == 0 ? L.T("AIL_ef1030cb", "Nadie lo ha visto: nadie sabrá que has sido tú.")
+                      : seen.Level == 1 ? L.F("AIL_a58c5f5d", $"Te han visto ({seen.Count} testigo(s)), pero nadie sabe quién eres: buscan a un forastero armado.")
+                      : L.F("AIL_992e899d", $"{seen.ByWhom} te ha reconocido: se sabrá que has sido tú."), seen.Level == 0 ? Colors.Green : seen.Level == 1 ? Colors.Yellow : Colors.Red);
                 }
                 ChatSession.AddNote(mem, playerWon ? $"{you} beat me in {what}." : $"I beat {you} in {what}.", S.Get.MaxNotesPerHero, s.Name);
                 mem.Tension = Math.Max(0, mem.Tension - 40);
@@ -465,17 +465,17 @@ namespace AILegacy.Dialogue
                 {
                     if (playerWon)
                     {
-                        if (s.IsHero && S.Get.AllowDuelDeath) { ToKill.Add(s.Hero); Say(L.F($"{s.Name} cae en el duelo."), Colors.Red); }
-                        else Say(L.F($"{s.Name} queda tendido y malherido: has ganado el duelo."), Colors.Yellow);
+                        if (s.IsHero && S.Get.AllowDuelDeath) { ToKill.Add(s.Hero); Say(L.F("AIL_e10a40d5", $"{s.Name} cae en el duelo."), Colors.Red); }
+                        else Say(L.F("AIL_a92c1422", $"{s.Name} queda tendido y malherido: has ganado el duelo."), Colors.Yellow);
                     }
                     else
                     {
                         // El jugador no muere (se acabaría la partida): queda malherido
                         try { P.HitPoints = 1; } catch { }
-                        Say(L.F($"{s.Name} te deja por muerto. Sobrevives de milagro."), Colors.Red);
+                        Say(L.F("AIL_080a0e95", $"{s.Name} te deja por muerto. Sobrevives de milagro."), Colors.Red);
                     }
                 }
-                else Say(playerWon ? $"Has vencido a {s.Name}." : L.F($"{s.Name} te ha vencido."), Colors.Yellow);
+                else Say(playerWon ? $"Has vencido a {s.Name}." : L.F("AIL_805db527", $"{s.Name} te ha vencido."), Colors.Yellow);
 
                 // El mundo lo cuenta a su manera: lo que se sabe depende de quién lo vio
                 if (f.Unprovoked && seen != null && (f.Kind != "brawl" || s.IsHero))
@@ -499,16 +499,16 @@ namespace AILegacy.Dialogue
                     // Sin tu nombre: se cuenta lo ocurrido, no quién lo hizo
                     if (s.IsHero || f.Kind != "brawl")
                     {
-                        string victimName = s.IsHero ? s.Name : (s.IsFemale ? "a local woman" : "a local man"), victimEs = s.IsHero ? s.Name : (s.IsFemale ? L.T("una vecina") : L.T("un vecino"));
+                        string victimName = s.IsHero ? s.Name : (s.IsFemale ? "a local woman" : "a local man"), victimEs = s.IsHero ? s.Name : (s.IsFemale ? L.T("AIL_53ab6227", "una vecina") : L.T("AIL_1c6f47d4", "un vecino"));
                         bool anyone = seen.Level == 1;
                         NewsStore.Add(new NewsItem
                         {
                             Type = "rumor", Importance = s.IsHero ? 2 : 1,
                             Text = anyone ? $"An armed stranger attacked {victimName}{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Witnesses saw the attacker but nobody knows who it was."
                                           : $"{victimName} was found {(f.Kind == "brawl" ? "beaten" : "cut down")}{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Nobody saw who did it.",
-                            TitleEs = anyone ? L.T("Agresión de un forastero") : L.T("Agresión sin testigos"),
-                            TextEs = anyone ? L.F($"Un forastero armado atacó a {victimEs}{(s.Settlement != null ? L.T(" en ") + s.Settlement.Name : "")}. Hay quien vio al agresor, pero nadie sabe quién era.")
-                                            : L.F($"Han encontrado a {victimEs} {(f.Kind == "brawl" ? L.T("apaleado") : L.T("acuchillado"))}{(s.Settlement != null ? L.T(" en ") + s.Settlement.Name : "")}. Nadie vio quién lo hizo."),
+                            TitleEs = anyone ? L.T("AIL_f7d8e495", "Agresión de un forastero") : L.T("AIL_0aaea1bc", "Agresión sin testigos"),
+                            TextEs = anyone ? L.F("AIL_122eb7e1", $"Un forastero armado atacó a {victimEs}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Hay quien vio al agresor, pero nadie sabe quién era.")
+                                            : L.F("AIL_ce1a0814", $"Han encontrado a {victimEs} {(f.Kind == "brawl" ? L.T("AIL_717f4a1a", "apaleado") : L.T("AIL_07cfa3c4", "acuchillado"))}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Nadie vio quién lo hizo."),
                             SettlementId = s.Settlement?.StringId,
                             Kingdoms = s.Faction != null ? new List<string> { s.Faction.StringId } : new List<string>(),
                             Heroes = s.IsHero ? new List<string> { s.Hero.StringId } : new List<string>(),
@@ -518,13 +518,13 @@ namespace AILegacy.Dialogue
                 else if (s.IsHero || f.Kind != "brawl")
                 {
                     string winner = playerWon ? P.Name.ToString() : s.Name, loser = playerWon ? s.Name : P.Name.ToString();
-                    string whatEs = f.Kind == "brawl" ? L.T("una pelea a puñetazos") : f.Kind == "death" ? L.T("un duelo a muerte") : L.T("un duelo");
+                    string whatEs = f.Kind == "brawl" ? L.T("AIL_03bb5d20", "una pelea a puñetazos") : f.Kind == "death" ? L.T("AIL_58f9d028", "un duelo a muerte") : L.T("AIL_a65a644d", "un duelo");
                     NewsStore.Add(new NewsItem
                     {
                         Type = "rumor", Importance = f.Kind == "death" && s.IsHero ? 3 : 2,
                         Text = $"{winner} defeated {loser} in {what}" + (s.Settlement != null ? $" at {s.Settlement.Name}." : "."),
-                        TitleEs = f.Kind == "brawl" ? L.T("Pelea a puñetazos") : L.T("Duelo"),
-                        TextEs = L.F($"{winner} venció a {loser} en {whatEs}") + (s.Settlement != null ? L.F($" en {s.Settlement.Name}.") : "."),
+                        TitleEs = f.Kind == "brawl" ? L.T("AIL_a0bdbcf2", "Pelea a puñetazos") : L.T("AIL_0db9b33c", "Duelo"),
+                        TextEs = L.F("AIL_c140427d", $"{winner} venció a {loser} en {whatEs}") + (s.Settlement != null ? L.F("AIL_d63eaabc", $" en {s.Settlement.Name}.") : "."),
                         SettlementId = s.Settlement?.StringId,
                         Kingdoms = s.Faction != null ? new List<string> { s.Faction.StringId } : new List<string>(),
                         Heroes = s.IsHero ? new List<string> { s.Hero.StringId, P.StringId } : new List<string> { P.StringId },
@@ -552,7 +552,7 @@ namespace AILegacy.Dialogue
         public static string QueueSurrender(Speaker s)
         {
             _surrender = s;
-            return L.F($"{s.Name} rinde las armas.");
+            return L.F("AIL_807992a5", $"{s.Name} rinde las armas.");
         }
 
         private static void DoSurrender()
@@ -590,7 +590,7 @@ namespace AILegacy.Dialogue
                     .Select(e => e.Character.HeroObject).ToList();
                 foreach (var x in heroes) TakePrisonerAction.Apply(main.Party, x);
                 if (party.IsActive) DestroyPartyAction.Apply(main.Party, party);
-                Say(L.F($"{s.Name} se rinde: {taken} hombres pasan a ser tus prisioneros."), Colors.Green);
+                Say(L.F("AIL_454cbf99", $"{s.Name} se rinde: {taken} hombres pasan a ser tus prisioneros."), Colors.Green);
                 Log.Info($"Rendición de {s.Name}: {taken} prisioneros");
             }
             catch (Exception ex) { Log.Error("Rendición", ex); }

@@ -95,7 +95,7 @@ namespace AILegacy.Patches
                 if (clan == null || WorldSim.State.Effects.Count == 0) return;
                 float f = WorldSim.ClanIncomeFactor(clan, out string reason);
                 if (Math.Abs(f) < 0.005f) return;
-                __result.AddFactor(f, new TaleWorlds.Localization.TextObject("{=!}" + (string.IsNullOrWhiteSpace(reason) ? L.T("El nombre del clan (sucesos del mundo)") : reason)));
+                __result.AddFactor(f, new TaleWorlds.Localization.TextObject("{=!}" + (string.IsNullOrWhiteSpace(reason) ? L.T("AIL_94517b9a", "El nombre del clan (sucesos del mundo)") : reason)));
             }
             catch (Exception ex) { Log.Error("Ingresos del clan por sucesos", ex); }
         }

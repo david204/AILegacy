@@ -202,22 +202,22 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 string desc = Ambient.Describe(a, out var sp);
                 Circle.Add(new Member { Agent = a, Who = sp, Desc = desc });
             }
-            if (Circle.Count == 0) { Say(L.F($"No hay nadie a menos de {cfg.GroupRadius} metros a quien hablar."), Colors.Gray); return; }
+            if (Circle.Count == 0) { Say(L.F("AIL_71b565dc", $"No hay nadie a menos de {cfg.GroupRadius} metros a quien hablar."), Colors.Gray); return; }
             // Se ponen a tu alrededor y te miran: los que están algo apartados se acercan (quien está sentado u ocupado, se queda)
             SceneActions.Arrange(Circle.Select(x => x.Agent).ToList());
             if (_mission != m) { Transcript.Clear(); _mission = m; }
             _idle = 0f;
 
             string names = string.Join(", ", Circle.Select(x => x.Who.Name));
-            string last = Transcript.Count == 0 ? "" : L.T("\n\nLo último:\n") + string.Join("\n", Transcript.Skip(Math.Max(0, Transcript.Count - 4)));
+            string last = Transcript.Count == 0 ? "" : L.T("AIL_cbe9f6a8", "\n\nLo último:\n") + string.Join("\n", Transcript.Skip(Math.Max(0, Transcript.Count - 4)));
             var looked = _addressed != null ? Circle.FirstOrDefault(x => x.Agent == _addressed) : null;
-            string title = looked != null ? L.F($"Hablas a {looked.Who.Name}") : L.T("Hablas al grupo");
-            string how = L.T("\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)");
+            string title = looked != null ? L.F("AIL_6e7730a9", $"Hablas a {looked.Who.Name}") : L.T("AIL_6d3c2db8", "Hablas al grupo");
+            string how = L.T("AIL_dd02342f", "\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)");
             // Mientras escribes el mundo no se para: va a cámara lenta
             bool slow = cfg.GroupSlowMotion;
             if (slow) { try { m.AddTimeSpeedRequest(new Mission.TimeSpeedRequest(0.2f, SlowId)); _slowed = m; } catch { slow = false; } }
-            InformationManager.ShowTextInquiry(new TextInquiryData(title, L.F($"Te oyen: {names}.{last}{how}"), true, true, L.T("Decir"), L.T("Callar"),
-                t => { Unslow(); OnSaid(t); }, Unslow, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("Escribe algo"))), !slow);
+            InformationManager.ShowTextInquiry(new TextInquiryData(title, L.F("AIL_26906366", $"Te oyen: {names}.{last}{how}"), true, true, L.T("AIL_aa23f794", "Decir"), L.T("AIL_b8f9f7be", "Callar"),
+                t => { Unslow(); OnSaid(t); }, Unslow, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), !slow);
         }
 
         private static void OnSaid(string text)
@@ -339,7 +339,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     _waiting = false;
                     try
                     {
-                        if (res == null || !res.Ok) { if (!silent) Say(L.T("Nadie del grupo contesta (la IA no ha respondido)."), Colors.Red); Log.Warn("Grupo: sin respuesta: " + res?.Error); return; }
+                        if (res == null || !res.Ok) { if (!silent) Say(L.T("AIL_38907a94", "Nadie del grupo contesta (la IA no ha respondido)."), Colors.Red); Log.Warn("Grupo: sin respuesta: " + res?.Error); return; }
                         if (Mission.Current != m) return;
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a < 0 || b <= a) return;
@@ -364,7 +364,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                     member = Circle.FirstOrDefault(x => x.Agent == ba);
                                     if (member == null) continue;
                                     SceneActions.Summon(ba);
-                                    Say(L.F($"{member.Who.Name} se mete en la conversación."), Colors.Gray);
+                                    Say(L.F("AIL_2215a755", $"{member.Who.Name} se mete en la conversación."), Colors.Gray);
                                 }
                                 else
                                 {
@@ -388,7 +388,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                         bool back = l["returns"] != null && l["returns"].Type == JTokenType.Boolean && (bool)l["returns"];
                                         Ambient.SendTo(member.Agent, target, text, back);
                                         Circle.RemoveAll(x => x.Agent == member.Agent);
-                                        Say(L.F($"{member.Who.Name} va a buscar a {target.Name}."), Colors.Gray);
+                                        Say(L.F("AIL_e9023c1f", $"{member.Who.Name} va a buscar a {target.Name}."), Colors.Gray);
                                     }
                                 }
                                 else if (SceneActions.Apply(member.Agent, (l["action"] ?? "").ToString(), away, said))
@@ -397,7 +397,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 if (!silent) member.Who.Memory.Turns.Add(new ChatTurn { Role = "player", Text = "[Said to the group you were in] " + text, Day = CampaignTime.Now.ToDays });
                                 member.Who.Memory.Turns.Add(new ChatTurn { Role = "npc", Text = said, Day = CampaignTime.Now.ToDays });
                             }
-                        if (lines.Count == 0) { if (!silent) Say(L.T("El grupo se queda callado."), Colors.Gray); return; }
+                        if (lines.Count == 0) { if (!silent) Say(L.T("AIL_156ada7f", "El grupo se queda callado."), Colors.Gray); return; }
                         Ambient.Enqueue(m, lines);
                         string summary = ((string)j["summary"] ?? "").Trim();
                         // Lo que ha pasado ENTRE ellos en esta ronda queda entre ellos
@@ -451,7 +451,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             // Lo hablado se conserva mientras sigas en la misma escena: si vuelves a juntarlos, se acuerdan
             Circle.Clear();
             _idle = 0f; _waiting = false;
-            if (announce) Say(L.T("El grupo se deshace."), Colors.Gray);
+            if (announce) Say(L.T("AIL_a25b9c8e", "El grupo se deshace."), Colors.Gray);
         }
     }
 }

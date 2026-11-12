@@ -37,7 +37,7 @@ The interface is available in English, Spanish, German, French, Italian, Brazili
 
 You can change it in `Options → Mod Options → AI Legacy → 1. General → Interface language`. *Auto* uses the game's language. NPCs reply in the interface language unless you type a different one in the setting below it (any language your model can write).
 
-Translations are in `Module/lang/<code>.json`, as plain `"Spanish source text": "translation"` pairs. To add a language, copy `en.json`, translate the values and add the code and name to `Codes` and `Names` in `src/Core/L.cs`. Missing entries fall back to English. Most translations were machine-assisted, so corrections are very welcome.
+Translations use the usual Bannerlord layout: `Module/ModuleData/Languages/<LANG>/sta_strings.xml` with a `language_data.xml` next to it. To add a language, copy the `EN` folder, translate the `text` attributes and set the game's language id in `language_data.xml`. To make it selectable in MCM as well, add it to `Codes`, `Names` and `Folder` in `src/Core/L.cs`. Missing strings fall back to English. Most translations were machine-assisted, so corrections are very welcome.
 
 ## Requirements
 

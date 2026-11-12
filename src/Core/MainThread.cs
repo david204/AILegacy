@@ -21,7 +21,7 @@ namespace AILegacy.Core
         {
             var tcs = new System.Threading.Tasks.TaskCompletionSource<T>();
             Post(() => { try { tcs.SetResult(f()); } catch (Exception ex) { tcs.SetException(ex); } });
-            if (!tcs.Task.Wait(timeoutMs)) throw new TimeoutException(L.T("El juego no respondió (¿está cargando o minimizado?)"));
+            if (!tcs.Task.Wait(timeoutMs)) throw new TimeoutException(L.T("AIL_3e8e1ac7", "El juego no respondió (¿está cargando o minimizado?)"));
             return tcs.Task.Result;
         }
 

@@ -2,29 +2,44 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
+using System.Xml;
 using HarmonyLib;
-using Newtonsoft.Json;
 using TaleWorlds.Localization;
 
 namespace AILegacy.Core
 {
     /// <summary>
-    /// Idiomas de la interfaz de AI Legacy. El texto de origen del código está en español; cada idioma es un archivo
-    /// lang\&lt;código&gt;.json con «texto en español» → «traducción». Lo que no esté traducido cae al inglés y, si tampoco,
-    /// se enseña en español. El idioma se elige en MCM (o «Auto»: el del juego).
-    ///   L.T("texto fijo")            — texto sin huecos
-    ///   L.F($"texto con {huecos}")   — texto con huecos: se traduce la plantilla y luego se rellenan
+    /// Idiomas de la interfaz. Los textos van con un identificador y un texto por defecto (en español):
+    ///   L.T("AIL_1a2b3c4d", "Texto fijo")
+    ///   L.F("AIL_1a2b3c4d", $"Texto con {huecos}")   — la traducción lleva {0}, {1}… en el orden de los huecos
+    /// Las traducciones están en el formato normal de Bannerlord: ModuleData\Languages\&lt;CARPETA&gt;\sta_strings.xml
+    /// (&lt;string id="…" text="…"/&gt;) con su language_data.xml. El juego las carga solo; además aquí se leen para poder
+    /// elegir el idioma en MCM sin cambiar el del juego. Lo que falte en un idioma sale en inglés y, si tampoco, el texto por defecto.
     /// </summary>
     public static class L
     {
         public static readonly string[] Codes = { "auto", "es", "en", "de", "fr", "it", "pt", "ru", "zh" };
         public static readonly string[] Names = { "Auto (game language)", "Español", "English", "Deutsch", "Français", "Italiano", "Português (Brasil)", "Русский", "简体中文" };
 
+        /// <summary>Carpeta de ModuleData\Languages de cada idioma (las mismas siglas que usa el juego).</summary>
+        private static string Folder(string code)
+        {
+            switch (code)
+            {
+                case "es": return "SP";
+                case "de": return "DE";
+                case "fr": return "FR";
+                case "it": return "IT";
+                case "pt": return "BR";
+                case "ru": return "RU";
+                case "zh": return "CNs";
+                default: return "EN";
+            }
+        }
+
         private static readonly object Gate = new object();
         private static readonly object CacheGate = new object();
         private static readonly Dictionary<string, Dictionary<string, string>> Tables = new Dictionary<string, Dictionary<string, string>>();
-        private static readonly Dictionary<string, Dictionary<string, string>> ById = new Dictionary<string, Dictionary<string, string>>();
         private static string _cached;
         private static DateTime _cachedAt = DateTime.MinValue;
 
@@ -79,89 +94,72 @@ namespace AILegacy.Core
             return "en";
         }
 
-        /// <summary>El mismo resumen que usa el generador de identificadores: FNV-1a de 32 bits sobre UTF-8.</summary>
-        public static string Id(string spanish)
-        {
-            unchecked
-            {
-                uint h = 2166136261;
-                foreach (byte b in Encoding.UTF8.GetBytes(spanish ?? "")) { h ^= b; h *= 16777619; }
-                return "AIL_" + h.ToString("x8");
-            }
-        }
-
+        /// <summary>Tabla id → texto de un idioma, leída de su sta_strings.xml (una vez).</summary>
         private static Dictionary<string, string> Table(string code)
         {
             lock (Gate)
             {
                 if (Tables.TryGetValue(code, out var t)) return t;
                 t = new Dictionary<string, string>();
+                string path = Path.Combine(Paths.ModuleDir, "ModuleData", "Languages", Folder(code), "sta_strings.xml");
                 try
                 {
-                    var path = Path.Combine(Paths.ModuleDir, "lang", code + ".json");
                     if (File.Exists(path))
-                        t = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(path, Encoding.UTF8)) ?? t;
+                    {
+                        var doc = new XmlDocument();
+                        doc.Load(path);
+                        foreach (XmlNode n in doc.GetElementsByTagName("string"))
+                        {
+                            string id = n.Attributes?["id"]?.Value, text = n.Attributes?["text"]?.Value;
+                            if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(text)) t[id] = text;
+                        }
+                    }
                 }
-                catch (Exception ex) { Log.Warn($"lang\\{code}.json no se pudo leer: {ex.Message}"); }
+                catch (Exception ex) { Log.Warn($"No se pudo leer {path}: {ex.Message}"); }
                 Tables[code] = t;
-                var ids = new Dictionary<string, string>();
-                foreach (var kv in t) if (!string.IsNullOrEmpty(kv.Value)) ids[Id(kv.Key)] = kv.Value;
-                ById[code] = ids;
                 return t;
             }
         }
 
-        private static string Find(string spanish)
+        /// <summary>Traducción del identificador en el idioma en uso (o en inglés), o null.</summary>
+        private static string Find(string id)
         {
+            if (string.IsNullOrEmpty(id)) return null;
             string code = Code;
-            if (code == "es" || string.IsNullOrEmpty(spanish)) return null;
-            if (Table(code).TryGetValue(spanish, out var v) && !string.IsNullOrEmpty(v)) return v;
-            if (code != "en" && Table("en").TryGetValue(spanish, out v) && !string.IsNullOrEmpty(v)) return v;
+            if (Table(code).TryGetValue(id, out var v)) return v;
+            if (code != "en" && code != "es" && Table("en").TryGetValue(id, out v)) return v;
             return null;
         }
 
         /// <summary>Texto fijo.</summary>
-        public static string T(string spanish) => Find(spanish) ?? spanish;
+        public static string T(string id, string fallback) => Find(id) ?? fallback;
 
         /// <summary>Texto con huecos: se traduce la plantilla («Pagas {0} denarios a {1}.») y después se rellenan.</summary>
-        public static string F(FormattableString text)
+        public static string F(string id, FormattableString text)
         {
             if (text == null) return "";
             try
             {
-                string tr = Find(text.Format);
+                string tr = Find(id);
                 if (tr == null) return text.ToString();
                 return string.Format(CultureInfo.CurrentCulture, tr, text.GetArguments());
             }
             catch { return text.ToString(); }
         }
 
-        /// <summary>Para los textos «{=AIL_xxxx}…» (menú de MCM): traducción por identificador, o null para dejar el texto de origen.</summary>
-        internal static string ById_(string id)
-        {
-            string code = Code;
-            if (code == "es") return null;
-            Table(code);
-            lock (Gate)
-            {
-                if (ById.TryGetValue(code, out var d) && d.TryGetValue(id, out var v)) return v;
-            }
-            if (code != "en")
-            {
-                Table("en");
-                lock (Gate) { if (ById.TryGetValue("en", out var d) && d.TryGetValue(id, out var v)) return v; }
-            }
-            return null;
-        }
+        /// <summary>Para los textos «{=AIL_xxxx}…» del menú de MCM: traducción en el idioma elegido, o null para dejar el texto de origen.</summary>
+        internal static string ById_(string id) => Find(id);
 
-        /// <summary>Todo el diccionario del idioma en uso (para el editor web).</summary>
+        /// <summary>Texto en español → texto en el idioma en uso (para el editor web, que busca por el texto que enseña).</summary>
         public static Dictionary<string, string> Current()
         {
-            string code = Code;
             var res = new Dictionary<string, string>();
-            if (code == "es") return res;
-            if (code != "en") foreach (var kv in Table("en")) res[kv.Key] = kv.Value;
-            foreach (var kv in Table(code)) if (!string.IsNullOrEmpty(kv.Value)) res[kv.Key] = kv.Value;
+            if (Code == "es") return res;
+            foreach (var kv in Table("es"))
+            {
+                string tr = Find(kv.Key);
+                if (tr != null) res[kv.Value] = tr;
+            }
             return res;
         }
     }

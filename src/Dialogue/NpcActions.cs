@@ -130,7 +130,7 @@ namespace AILegacy.Dialogue
         private static string StartMapFight(Speaker s, string kind)
         {
             Scenes.MapTalk.Queue(s.Hero, kind);
-            return kind == "brawl" ? L.F($"{s.Name} desmonta y se remanga: lo arregláis a puñetazos ahí mismo.") : kind == "death" ? L.F($"{s.Name} desmonta: duelo a muerte, aquí y ahora.") : L.F($"{s.Name} desmonta y acepta el duelo, aquí y ahora.");
+            return kind == "brawl" ? L.F("AIL_adc42c0a", $"{s.Name} desmonta y se remanga: lo arregláis a puñetazos ahí mismo.") : kind == "death" ? L.F("AIL_8322c30f", $"{s.Name} desmonta: duelo a muerte, aquí y ahora.") : L.F("AIL_ad1d7e50", $"{s.Name} desmonta y acepta el duelo, aquí y ahora.");
         }
 
         private static Kingdom PlayerKingdom => P.MapFaction as Kingdom;
@@ -236,7 +236,7 @@ namespace AILegacy.Dialogue
                     if (RepeatedGold(s, "give", amount)) return null;
                     GiveGoldAction.ApplyBetweenCharacters(s.Hero, P, amount);
                     NoteGold(s, "give", amount);
-                    return L.F($"{s.Name} te da {amount} denarios.");
+                    return L.F("AIL_4bf3e0c5", $"{s.Name} te da {amount} denarios.");
                 }
             },
             new ActionDef
@@ -250,11 +250,11 @@ namespace AILegacy.Dialogue
                     int amount = Math.Min(ParseAmount(arg), S.Get.MaxGoldPerAction);
                     if (amount <= 0) return null;
                     if (RepeatedGold(s, "take", amount)) return null;
-                    if (P.Gold < amount) return L.F($"No tienes {amount} denarios para pagar a {s.Name}.");
+                    if (P.Gold < amount) return L.F("AIL_2d756f08", $"No tienes {amount} denarios para pagar a {s.Name}.");
                     if (s.IsHero) GiveGoldAction.ApplyBetweenCharacters(P, s.Hero, amount);
                     else P.ChangeHeroGold(-amount);
                     NoteGold(s, "take", amount);
-                    return L.F($"Pagas {amount} denarios a {s.Name}.");
+                    return L.F("AIL_800a1324", $"Pagas {amount} denarios a {s.Name}.");
                 }
             },
 
@@ -270,7 +270,7 @@ namespace AILegacy.Dialogue
                 {
                     AddCompanionAction.Apply(Clan.PlayerClan, s.Hero);
                     AddHeroToPartyAction.Apply(s.Hero, MobileParty.MainParty);
-                    return L.F($"{s.Name} se une a tu grupo como compañero.");
+                    return L.F("AIL_85a42b1a", $"{s.Name} se une a tu grupo como compañero.");
                 }
             },
 
@@ -285,7 +285,7 @@ namespace AILegacy.Dialogue
                 {
                     EndCaptivityAction.ApplyByReleasedByChoice(s.Hero, P);
                     ctx.EndConversation = true;
-                    return L.F($"Liberas a {s.Name}.");
+                    return L.F("AIL_77ec28e0", $"Liberas a {s.Name}.");
                 }
             },
 
@@ -302,7 +302,7 @@ namespace AILegacy.Dialogue
                     var clan = s.Hero.Clan;
                     if (clan.Kingdom != null) ChangeKingdomAction.ApplyByJoinToKingdomByDefection(clan, clan.Kingdom, PlayerKingdom);
                     else ChangeKingdomAction.ApplyByJoinToKingdom(clan, PlayerKingdom);
-                    return L.F($"El clan {clan.Name} jura lealtad a {PlayerKingdom.Name}.");
+                    return L.F("AIL_bdc30505", $"El clan {clan.Name} jura lealtad a {PlayerKingdom.Name}.");
                 }
             },
             new ActionDef
@@ -314,7 +314,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     ChangeKingdomAction.ApplyByJoinFactionAsMercenary(s.Hero.Clan, PlayerKingdom);
-                    return L.F($"El clan {s.Hero.Clan.Name} sirve ahora a {PlayerKingdom.Name} como mercenarios.");
+                    return L.F("AIL_cdf9a5fc", $"El clan {s.Hero.Clan.Name} sirve ahora a {PlayerKingdom.Name} como mercenarios.");
                 }
             },
             new ActionDef
@@ -327,7 +327,7 @@ namespace AILegacy.Dialogue
                 {
                     DeclareWarAction.ApplyByDefault(s.Hero.MapFaction, PlayerKingdom);
                     ctx.EndConversation = true;
-                    return L.F($"¡{s.Hero.MapFaction.Name} declara la guerra a {PlayerKingdom.Name}!");
+                    return L.F("AIL_ae73db8a", $"¡{s.Hero.MapFaction.Name} declara la guerra a {PlayerKingdom.Name}!");
                 }
             },
             new ActionDef
@@ -339,7 +339,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     MakePeaceAction.Apply(s.Hero.MapFaction, PlayerKingdom);
-                    return L.F($"{s.Hero.MapFaction.Name} y {PlayerKingdom.Name} firman la paz.");
+                    return L.F("AIL_7def1f8e", $"{s.Hero.MapFaction.Name} y {PlayerKingdom.Name} firman la paz.");
                 }
             },
 
@@ -372,7 +372,7 @@ namespace AILegacy.Dialogue
                     if (P.Spouse == h) return null;
                     MarriageAction.Apply(P, h);
                     Bonds.ChangeRomance(s, 10);
-                    return L.F($"¡Te casas con {s.Name}!");
+                    return L.F("AIL_fd4aafcb", $"¡Te casas con {s.Name}!");
                 }
             },
             new ActionDef
@@ -403,11 +403,11 @@ namespace AILegacy.Dialogue
                     if (item == null || have <= 0) return null;
                     qty = Math.Min(qty, have);
                     int cost = PriceOf(item, false) * qty;
-                    if (P.Gold < cost) return L.F($"No te llega para {qty} de {item.Name} ({cost} denarios).");
+                    if (P.Gold < cost) return L.F("AIL_3c14bb80", $"No te llega para {qty} de {item.Name} ({cost} denarios).");
                     GiveGoldAction.ApplyForCharacterToSettlement(P, st, cost, true);
                     st.ItemRoster.AddToCounts(item, -qty);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, qty);
-                    return L.F($"Compras {qty} de {item.Name} por {cost} denarios.");
+                    return L.F("AIL_b83bfea6", $"Compras {qty} de {item.Name} por {cost} denarios.");
                 }
             },
             new ActionDef
@@ -429,11 +429,11 @@ namespace AILegacy.Dialogue
                     int pay = PriceOf(item, true) * qty;
                     int purse = st.Town != null ? st.Town.Gold : pay;
                     if (purse < pay) { qty = Math.Max(0, purse / Math.Max(1, PriceOf(item, true))); pay = PriceOf(item, true) * qty; }
-                    if (qty <= 0) return L.T("El mercado no tiene dinero para comprártelo.");
+                    if (qty <= 0) return L.T("AIL_b720cde3", "El mercado no tiene dinero para comprártelo.");
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -qty);
                     st.ItemRoster.AddToCounts(item, qty);
                     GiveGoldAction.ApplyForSettlementToCharacter(st, P, pay, true);
-                    return L.F($"Vendes {qty} de {item.Name} por {pay} denarios.");
+                    return L.F("AIL_fba371fc", $"Vendes {qty} de {item.Name} por {pay} denarios.");
                 }
             },
 
@@ -448,7 +448,7 @@ namespace AILegacy.Dialogue
                 {
                     var h = World.People.Promote(s, SceneAgent(), false, out string err);
                     if (h == null) { Log.Warn("No se pudo convertir en personaje: " + err); return null; }
-                    return L.F($"{h.Name} ya es alguien que conoces: podrás volver a encontrarle en {s.ResidentSettlement.Name}.");
+                    return L.F("AIL_24fc64b9", $"{h.Name} ya es alguien que conoces: podrás volver a encontrarle en {s.ResidentSettlement.Name}.");
                 }
             },
 
@@ -464,7 +464,7 @@ namespace AILegacy.Dialogue
                     var a = SceneAgent();
                     if (a == null) return null;
                     SceneActions.Apply(a, "follow", new List<TaleWorlds.MountAndBlade.Agent>());
-                    return SceneActions.Busy(a) ? L.F($"{s.Name} te acompañará cuando termines de hablar.") : null;
+                    return SceneActions.Busy(a) ? L.F("AIL_a9fce24e", $"{s.Name} te acompañará cuando termines de hablar.") : null;
                 }
             },
             new ActionDef
@@ -477,7 +477,7 @@ namespace AILegacy.Dialogue
                     var a = SceneAgent();
                     if (a == null) return null;
                     SceneActions.Apply(a, "stay", new List<TaleWorlds.MountAndBlade.Agent>());
-                    return L.F($"{s.Name} se queda aquí.");
+                    return L.F("AIL_78680a96", $"{s.Name} se queda aquí.");
                 }
             },
 
@@ -494,7 +494,7 @@ namespace AILegacy.Dialogue
                     var target = OrderSystem.FindFriendlyParty(s.Hero, who);
                     if (target == null) return null;
                     if (!OrderSystem.Give(s.Hero, "escort", target.StringId, target.Name.ToString(), days)) return null;
-                    return L.F($"{s.Name} irá escoltando a {target.Name}.");
+                    return L.F("AIL_0107d6be", $"{s.Name} irá escoltando a {target.Name}.");
                 }
             },
             new ActionDef
@@ -510,7 +510,7 @@ namespace AILegacy.Dialogue
                         var party = Helpers.MobilePartyHelper.CreateNewClanMobileParty(s.Hero, Clan.PlayerClan);
                         if (party == null) return null;
                         ctx.EndConversation = true;
-                        return L.F($"{s.Name} toma el mando de una partida propia del clan.");
+                        return L.F("AIL_411fbc76", $"{s.Name} toma el mando de una partida propia del clan.");
                     }
                     catch (Exception ex) { Log.Error("Crear partida del clan", ex); return null; }
                 }
@@ -525,7 +525,7 @@ namespace AILegacy.Dialogue
                 {
                     SplitArg(arg, out _, out var days);
                     if (!OrderSystem.Give(s.Hero, "follow", null, P.Name.ToString(), days)) return null;
-                    return ctx.ViaLetter ? L.F($"{s.Name} se pone en camino para reunirse contigo.") : L.F($"{s.Name} te seguirá con su grupo.");
+                    return ctx.ViaLetter ? L.F("AIL_3e251e73", $"{s.Name} se pone en camino para reunirse contigo.") : L.F("AIL_cc47eaca", $"{s.Name} te seguirá con su grupo.");
                 }
             },
             new ActionDef
@@ -540,7 +540,7 @@ namespace AILegacy.Dialogue
                     if (st == null) return null;
                     // tiempo de sobra para llegar; la espera empieza a contar al llegar
                     if (!OrderSystem.Give(s.Hero, "meet", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays)) return null;
-                    return L.F($"{s.Name} irá a {st.Name} y te esperará allí.");
+                    return L.F("AIL_6a69d3fd", $"{s.Name} irá a {st.Name} y te esperará allí.");
                 }
             },
             new ActionDef
@@ -560,7 +560,7 @@ namespace AILegacy.Dialogue
                     var st = OrderSystem.FindSettlement(name, x => !Hostile(s, x));
                     if (st == null) return null;
                     if (!OrderSystem.Give(s.Hero, "goto", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays, back ? "follow" : null)) return null;
-                    return back ? L.F($"{s.Name} parte hacia {st.Name} y después volverá contigo.") : L.F($"{s.Name} parte hacia {st.Name}.");
+                    return back ? L.F("AIL_9c4ee846", $"{s.Name} parte hacia {st.Name} y después volverá contigo.") : L.F("AIL_e70b1e8a", $"{s.Name} parte hacia {st.Name}.");
                 }
             },
             new ActionDef
@@ -572,7 +572,7 @@ namespace AILegacy.Dialogue
                 {
                     SplitArg(arg, out _, out var days);
                     if (!OrderSystem.Give(s.Hero, "wait", null, "", days)) return null;
-                    return L.F($"{s.Name} esperará aquí con su grupo.");
+                    return L.F("AIL_df1f7dd9", $"{s.Name} esperará aquí con su grupo.");
                 }
             },
             new ActionDef
@@ -586,7 +586,7 @@ namespace AILegacy.Dialogue
                     var st = OrderSystem.FindSettlement(name);
                     if (st == null) return null;
                     if (!OrderSystem.Give(s.Hero, "patrol", st.StringId, st.Name.ToString(), days)) return null;
-                    return L.F($"{s.Name} patrullará los alrededores de {st.Name}.");
+                    return L.F("AIL_611c4786", $"{s.Name} patrullará los alrededores de {st.Name}.");
                 }
             },
             new ActionDef
@@ -601,7 +601,7 @@ namespace AILegacy.Dialogue
                     var target = OrderSystem.FindHostile(s.Hero, arg);
                     if (target == null) return null;
                     if (!OrderSystem.Give(s.Hero, "attack", target.StringId, target.Name.ToString(), S.Get.OrderDefaultDays)) return null;
-                    return L.F($"{s.Name} sale a dar caza a {target.Name}.");
+                    return L.F("AIL_1fb2c5a1", $"{s.Name} sale a dar caza a {target.Name}.");
                 }
             },
             new ActionDef
@@ -615,7 +615,7 @@ namespace AILegacy.Dialogue
                     var st = OrderSystem.FindSettlement(name, x => x.IsFortification && Hostile(s, x));
                     if (st == null) return null;
                     if (!OrderSystem.Give(s.Hero, "besiege", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays)) return null;
-                    return L.F($"{s.Name} marcha a asediar {st.Name}.");
+                    return L.F("AIL_77e4bc34", $"{s.Name} marcha a asediar {st.Name}.");
                 }
             },
             new ActionDef
@@ -629,7 +629,7 @@ namespace AILegacy.Dialogue
                     var st = OrderSystem.FindSettlement(name, x => x.IsVillage && Hostile(s, x) && !x.IsRaided);
                     if (st == null) return null;
                     if (!OrderSystem.Give(s.Hero, "raid", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays)) return null;
-                    return L.F($"{s.Name} parte a saquear {st.Name}.");
+                    return L.F("AIL_8279d8bb", $"{s.Name} parte a saquear {st.Name}.");
                 }
             },
             new ActionDef
@@ -638,7 +638,7 @@ namespace AILegacy.Dialogue
                 Description = "You stop doing what you had agreed with them (following, waiting, patrolling, marching...) and go back to your own business.",
                 IsAvailable = s => s.IsHero && OrderSystem.Find(s.Hero) != null,
                 Extra = s => $"Right now: {OrderSystem.Describe(s.Hero)}. While that stands you can take no other order with your party: if they want something else, use resume_duties now and agree the new thing in your next reply.",
-                Execute = (s, arg, ctx) => OrderSystem.Cancel(s.Hero, silent: true) ? L.F($"{s.Name} vuelve a sus asuntos.") : null
+                Execute = (s, arg, ctx) => OrderSystem.Cancel(s.Hero, silent: true) ? L.F("AIL_7cd9f263", $"{s.Name} vuelve a sus asuntos.") : null
             },
 
             // ----------------------------------------------------------- traspaso de tropas y prisioneros
@@ -656,7 +656,7 @@ namespace AILegacy.Dialogue
                     int n = Math.Min(want, Math.Min(S.Get.MaxTroopsPerTransfer, p.MemberRoster.TotalRegulars / 3));
                     if (n <= 0) return null;
                     int moved = MoveTroops(p.MemberRoster, MobileParty.MainParty.MemberRoster, n, false, kind);
-                    return moved > 0 ? L.F($"{s.Name} te cede {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")}.") : null;
+                    return moved > 0 ? L.F("AIL_24ba54ab", $"{s.Name} te cede {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")}.") : null;
                 }
             },
             new ActionDef
@@ -670,7 +670,7 @@ namespace AILegacy.Dialogue
                     int n = Math.Min(want, S.Get.MaxTroopsPerTransfer);
                     if (n <= 0) return null;
                     int moved = MoveTroops(MobileParty.MainParty.MemberRoster, Led(s).MemberRoster, n, false, kind);
-                    return moved > 0 ? L.F($"Cedes {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")} a {s.Name}.") : null;
+                    return moved > 0 ? L.F("AIL_bca1e090", $"Cedes {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")} a {s.Name}.") : null;
                 }
             },
             new ActionDef
@@ -684,11 +684,11 @@ namespace AILegacy.Dialogue
                 {
                     var p = Led(s);
                     var noble = FindHeroPrisoner(p, arg);
-                    if (noble != null) { TransferPrisonerAction.Apply(noble, p.Party, MobileParty.MainParty.Party); return L.F($"{s.Name} te entrega a su prisionero {noble.Name}."); }
+                    if (noble != null) { TransferPrisonerAction.Apply(noble, p.Party, MobileParty.MainParty.Party); return L.F("AIL_f378719a", $"{s.Name} te entrega a su prisionero {noble.Name}."); }
                     int n = Math.Min(ParseAmount(arg), 500);
                     if (n <= 0) return null;
                     int moved = MoveTroops(p.PrisonRoster, MobileParty.MainParty.PrisonRoster, n, true);
-                    return moved > 0 ? L.F($"{s.Name} te entrega {moved} prisioneros.") : null;
+                    return moved > 0 ? L.F("AIL_dec042f4", $"{s.Name} te entrega {moved} prisioneros.") : null;
                 }
             },
             new ActionDef
@@ -704,12 +704,12 @@ namespace AILegacy.Dialogue
                     {
                         if (noble.HeroObject == s.Hero) return null;
                         TransferPrisonerAction.Apply(noble, main.Party, Led(s).Party);
-                        return L.F($"Entregas a {s.Name} a tu prisionero {noble.Name}.");
+                        return L.F("AIL_7ed3beae", $"Entregas a {s.Name} a tu prisionero {noble.Name}.");
                     }
                     int n = Math.Min(ParseAmount(arg), 500);
                     if (n <= 0) return null;
                     int moved = MoveTroops(main.PrisonRoster, Led(s).PrisonRoster, n, true);
-                    return moved > 0 ? L.F($"Entregas {moved} prisioneros a {s.Name}.") : null;
+                    return moved > 0 ? L.F("AIL_2d97f1db", $"Entregas {moved} prisioneros a {s.Name}.") : null;
                 }
             },
 
@@ -736,7 +736,7 @@ namespace AILegacy.Dialogue
                     if (n <= 0) return null;
                     if (p != null) p.ItemRoster.AddToCounts(item, -n);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, n);
-                    return L.F($"{s.Name} te da {n} × {item.Name}.");
+                    return L.F("AIL_8fb29764", $"{s.Name} te da {n} × {item.Name}.");
                 }
             },
             new ActionDef
@@ -749,12 +749,12 @@ namespace AILegacy.Dialogue
                 {
                     SplitArg(arg, out var name, out var amount);
                     var item = FindInRoster(MobileParty.MainParty.ItemRoster, name, out int have);
-                    if (item == null) return L.F($"No llevas «{name}» para dárselo a {s.Name}.");
+                    if (item == null) return L.F("AIL_e00ce40a", $"No llevas «{name}» para dárselo a {s.Name}.");
                     int n = Math.Min(Math.Max(1, (int)amount), have);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -n);
                     Led(s)?.ItemRoster.AddToCounts(item, n);
                     QuestObjectives.OnItemTaken(s, item, n);
-                    return L.F($"Entregas {n} × {item.Name} a {s.Name}.");
+                    return L.F("AIL_a3c89c8a", $"Entregas {n} × {item.Name} a {s.Name}.");
                 }
             },
             new ActionDef
@@ -772,7 +772,7 @@ namespace AILegacy.Dialogue
                     if (desc.Length > 300) desc = desc.Substring(0, 300);
                     Belongings.Items.RemoveAll(i => Belongings.Norm(i.Name) == Belongings.Norm(name));
                     Belongings.Items.Add(new RpItem { Name = name, Description = desc, FromId = s.Hero.StringId, FromName = s.Name, Day = CampaignTime.Now.ToDays });
-                    return L.F($"{s.Name} te entrega: {name}.");
+                    return L.F("AIL_0fbba7b1", $"{s.Name} te entrega: {name}.");
                 }
             },
             new ActionDef
@@ -786,7 +786,7 @@ namespace AILegacy.Dialogue
                     if (it == null) return null;
                     Belongings.Items.Remove(it);
                     QuestObjectives.OnDocumentTaken(s, it);
-                    return L.F($"Entregas a {s.Name}: {it.Name}.");
+                    return L.F("AIL_a15797e0", $"Entregas a {s.Name}: {it.Name}.");
                 }
             },
             new ActionDef
@@ -806,11 +806,11 @@ namespace AILegacy.Dialogue
                     var mine = s.Hero.OwnedWorkshops.Where(w => w.Settlement == s.Settlement).ToList();
                     var ws = mine.FirstOrDefault(w => NormName(w.Name.ToString()).Contains(NormName(name)) || NormName(name).Contains(NormName(w.Name.ToString()))) ?? mine.FirstOrDefault();
                     if (ws == null || price <= 0) return null;
-                    if (P.Gold < price) return L.F($"No tienes {price} denarios para comprar el taller de {s.Name}.");
+                    if (P.Gold < price) return L.F("AIL_20cbe084", $"No tienes {price} denarios para comprar el taller de {s.Name}.");
                     string wname = ws.Name.ToString();
                     GiveGoldAction.ApplyBetweenCharacters(P, s.Hero, price);
                     ChangeOwnerOfWorkshopAction.ApplyByWar(ws, P, ws.WorkshopType);
-                    return L.F($"Compras a {s.Name} el taller «{wname}» por {price} denarios.");
+                    return L.F("AIL_c70d2ac3", $"Compras a {s.Name} el taller «{wname}» por {price} denarios.");
                 }
             },
 
@@ -828,7 +828,7 @@ namespace AILegacy.Dialogue
                     var st = OrderSystem.FindSettlement(arg, x => (x.IsTown || x.IsCastle) && x.OwnerClan == s.Hero.Clan && !x.IsUnderSiege);
                     if (st == null) return null;
                     ChangeOwnerOfSettlementAction.ApplyByGift(st, P);
-                    return L.F($"{s.Name} te concede {st.Name}.");
+                    return L.F("AIL_3b64d032", $"{s.Name} te concede {st.Name}.");
                 }
             },
             new ActionDef
@@ -842,7 +842,7 @@ namespace AILegacy.Dialogue
                     var st = OrderSystem.FindSettlement(arg, x => (x.IsTown || x.IsCastle) && x.OwnerClan == PC && !x.IsUnderSiege);
                     if (st == null) return null;
                     ChangeOwnerOfSettlementAction.ApplyByGift(st, s.Hero.Clan.Leader);
-                    return L.F($"Entregas {st.Name} al clan {s.Hero.Clan.Name}.");
+                    return L.F("AIL_566b6114", $"Entregas {st.Name} al clan {s.Hero.Clan.Name}.");
                 }
             },
             new ActionDef
@@ -857,7 +857,7 @@ namespace AILegacy.Dialogue
                     var k = KingdomOf(s);
                     if (PC.Kingdom == k && PlayerMercenary) ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(PC, false);
                     ChangeKingdomAction.ApplyByJoinToKingdom(PC, k);
-                    return L.F($"{s.Name} te acepta como vasallo de {k.Name}.");
+                    return L.F("AIL_4c63a92c", $"{s.Name} te acepta como vasallo de {k.Name}.");
                 }
             },
             new ActionDef
@@ -868,7 +868,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     ChangeKingdomAction.ApplyByJoinFactionAsMercenary(PC, KingdomOf(s));
-                    return L.F($"{s.Name} contrata a tu clan como mercenarios de {KingdomOf(s).Name}.");
+                    return L.F("AIL_f362d5cb", $"{s.Name} contrata a tu clan como mercenarios de {KingdomOf(s).Name}.");
                 }
             },
             new ActionDef
@@ -882,7 +882,7 @@ namespace AILegacy.Dialogue
                     var k = KingdomOf(s);
                     if (PlayerMercenary) ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(PC);
                     else ChangeKingdomAction.ApplyByLeaveKingdom(PC);
-                    return L.F($"{s.Name} expulsa a tu clan de {k.Name}.");
+                    return L.F("AIL_5a577403", $"{s.Name} expulsa a tu clan de {k.Name}.");
                 }
             },
             new ActionDef
@@ -897,7 +897,7 @@ namespace AILegacy.Dialogue
                     var k = KingdomOf(s); var c = s.Hero.Clan;
                     if (c.IsUnderMercenaryService) ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(c);
                     else ChangeKingdomAction.ApplyByLeaveKingdom(c);
-                    return L.F($"El clan {c.Name} abandona {k.Name}.");
+                    return L.F("AIL_3677d2a1", $"El clan {c.Name} abandona {k.Name}.");
                 }
             },
             new ActionDef
@@ -910,7 +910,7 @@ namespace AILegacy.Dialogue
                 {
                     var k = KingdomOf(s);
                     ChangeRulingClanAction.Apply(k, PC);
-                    return L.F($"{s.Name} abdica: tu clan pasa a reinar en {k.Name}.");
+                    return L.F("AIL_3dce3fe1", $"{s.Name} abdica: tu clan pasa a reinar en {k.Name}.");
                 }
             },
             new ActionDef
@@ -923,7 +923,7 @@ namespace AILegacy.Dialogue
                 {
                     var k = PlayerKingdom;
                     ChangeRulingClanAction.Apply(k, s.Hero.Clan);
-                    return L.F($"Cedes la corona: el clan {s.Hero.Clan.Name} pasa a reinar en {k.Name}.");
+                    return L.F("AIL_479941aa", $"Cedes la corona: el clan {s.Hero.Clan.Name} pasa a reinar en {k.Name}.");
                 }
             },
             new ActionDef
@@ -937,7 +937,7 @@ namespace AILegacy.Dialogue
                 {
                     var old = s.Hero.Clan;
                     s.Hero.Clan = PC;
-                    return L.F($"{s.Name} deja el clan {old.Name} y se une al tuyo.");
+                    return L.F("AIL_7765746a", $"{s.Name} deja el clan {old.Name} y se une al tuyo.");
                 }
             },
             new ActionDef
@@ -949,7 +949,7 @@ namespace AILegacy.Dialogue
                 {
                     RemoveCompanionAction.ApplyByFire(PC, s.Hero);
                     ctx.EndConversation = true;
-                    return L.F($"{s.Name} abandona tu clan.");
+                    return L.F("AIL_08b5bd20", $"{s.Name} abandona tu clan.");
                 }
             },
 
@@ -990,7 +990,7 @@ namespace AILegacy.Dialogue
                 {
                     ctx.EndConversation = true;
                     Combat.QueueDeath(s.Hero, HeldByPlayer(s), arg);
-                    return $"{s.Name} muere: {(string.IsNullOrWhiteSpace(arg) ? L.T("aquí acaba su historia") : arg.Trim())}.";
+                    return $"{s.Name} muere: {(string.IsNullOrWhiteSpace(arg) ? L.T("AIL_4b487b93", "aquí acaba su historia") : arg.Trim())}.";
                 }
             },
             new ActionDef
@@ -999,7 +999,7 @@ namespace AILegacy.Dialogue
                 Description = "You end the parley and attack them with your party right now: there will be a battle. Use it when you have decided to fight (you are at war and see no reason to let them go).",
                 IsAvailable = s => Combat.EnemyOnMap(s),
                 Extra = s => $"Your party: {Combat.Men(Led(s))} fighting men. Theirs: {Combat.Men(MobileParty.MainParty)}.",
-                Execute = (s, arg, ctx) => { Combat.KeepEncounter = true; ctx.EndConversation = true; return L.F($"{s.Name} da la charla por terminada y se lanza al ataque."); }
+                Execute = (s, arg, ctx) => { Combat.KeepEncounter = true; ctx.EndConversation = true; return L.F("AIL_53ea433d", $"{s.Name} da la charla por terminada y se lanza al ataque."); }
             },
             new ActionDef
             {
@@ -1021,9 +1021,9 @@ namespace AILegacy.Dialogue
                     ctx.RelationDelta -= 3; ctx.TrustDelta -= 10; ctx.EndConversation = true;
                     // Si hay un guardia que pueda oírlo, acude y decide él; si no, queda la denuncia
                     bool came = Justice.Summon($"Moments ago {(s.IsHero ? s.Name : "a local")} shouted for the guard, accusing the armed person in front of you of threatening them.", null, true);
-                    if (came) return L.F($"{s.Name} llama a gritos a la guardia.");
+                    if (came) return L.F("AIL_c8741a3a", $"{s.Name} llama a gritos a la guardia.");
                     ChangeCrimeRatingAction.Apply(s.Settlement.MapFaction, 15f, true);
-                    return L.F($"{s.Name} llama a la guardia: te has ganado mala fama ante {s.Settlement.MapFaction.Name}.");
+                    return L.F("AIL_e9f35fb7", $"{s.Name} llama a la guardia: te has ganado mala fama ante {s.Settlement.MapFaction.Name}.");
                 }
             },
 
@@ -1042,7 +1042,7 @@ namespace AILegacy.Dialogue
                     if (hero == null) return null;
                     ctx.EndConversation = true;
                     try { if (agent != null) Combat.FadeAfterTalk(agent); } catch { }
-                    return L.F($"{hero.Name} deja su vida aquí y se une a tu compañía.");
+                    return L.F("AIL_f65463d8", $"{hero.Name} deja su vida aquí y se une a tu compañía.");
                 }
             },
 
@@ -1336,9 +1336,9 @@ namespace AILegacy.Dialogue
             string text = null, es = null, title = null; int imp = 1;
             switch (action)
             {
-                case "join_party": text = $"{s.Name} has joined the band of {P.Name} as a companion."; es = L.F($"{s.Name} se ha unido a la compañía de {P.Name}."); title = L.F($"{s.Name} se une a {P.Name}"); imp = 1; break;
-                case "set_free": text = $"{P.Name} has released {s.Name} from captivity."; es = L.F($"{P.Name} ha liberado a {s.Name}."); title = L.F($"{s.Name}, liberado"); imp = 2; break;
-                case "accept_marriage": text = $"{s.Name} and {P.Name} have married."; es = L.F($"{s.Name} y {P.Name} se han casado."); title = L.F($"Boda de {s.Name} y {P.Name}"); imp = 3; break;
+                case "join_party": text = $"{s.Name} has joined the band of {P.Name} as a companion."; es = L.F("AIL_ed904e98", $"{s.Name} se ha unido a la compañía de {P.Name}."); title = L.F("AIL_92de31ad", $"{s.Name} se une a {P.Name}"); imp = 1; break;
+                case "set_free": text = $"{P.Name} has released {s.Name} from captivity."; es = L.F("AIL_309ea6a0", $"{P.Name} ha liberado a {s.Name}."); title = L.F("AIL_6a695bcb", $"{s.Name}, liberado"); imp = 2; break;
+                case "accept_marriage": text = $"{s.Name} and {P.Name} have married."; es = L.F("AIL_fe5df831", $"{s.Name} y {P.Name} se han casado."); title = L.F("AIL_162d77c2", $"Boda de {s.Name} y {P.Name}"); imp = 3; break;
             }
             if (text == null) return;
             NewsStore.Add(new NewsItem

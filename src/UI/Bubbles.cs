@@ -60,7 +60,7 @@ namespace AILegacy.UI
                 _vm.Bubbles.Add(vm);
                 Items.Add(new Item { Agent = agent, VM = vm, Left = seconds });
             }
-            catch (Exception ex) { Fail(L.T("enseñando una frase"), ex); }
+            catch (Exception ex) { Fail(L.T("AIL_2ef46d51", "enseñando una frase"), ex); }
         }
 
         private static bool Attach()

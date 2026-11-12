@@ -1,0 +1,1267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/ModuleLanguage.xsd" type="string">
+  <tags>
+    <tag language="English" />
+  </tags>
+  <strings>
+    <string id="AIL_0042ce81" text="{=!}Back" />
+    <string id="AIL_004eae62" text="The guard can go up to five times over this value if there was blood or you disrespect them." />
+    <string id="AIL_007c510b" text="expelling the player is disabled" />
+    <string id="AIL_00d8d85f" text="Folder opened on the game computer" />
+    <string id="AIL_00ec5af6" text="has died" />
+    <string id="AIL_0107d6be" text="{0} will escort {1}." />
+    <string id="AIL_011ed64e" text="With an enemy lord you can also dismount and talk face to face. When you return to the map, the encounter continues where it was (attack, surrender, let you go), unless it was resolved in the chat." />
+    <string id="AIL_015c810d" text="Laws proclaimed by kings" />
+    <string id="AIL_016ea49e" text="You: {0}" />
+    <string id="AIL_01ad2df2" text="{0} considers the task fulfilled." />
+    <string id="AIL_01e11e81" text="{0}: {1} ({2} days left)" />
+    <string id="AIL_020f810a" text="Anyone nearby who hears what you say to the group can walk over and join the conversation if they have a stake in it. Doesn't use extra requests." />
+    <string id="AIL_025a42fd" text="A new character who joins your clan and your party (if you have a companion slot). You can then generate their personality with AI from their sheet." />
+    <string id="AIL_02982857" text="Add character" />
+    <string id="AIL_02e730b3" text="When a chat leaves two characters clearly better or worse off, their in-game relation goes up or down by one point." />
+    <string id="AIL_030c9961" text="History cleared" />
+    <string id="AIL_031d614f" text="Page of their book" />
+    <string id="AIL_0361e655" text="Prosperity lost per day per severity level" />
+    <string id="AIL_03bb5d20" text="a fistfight" />
+    <string id="AIL_03bc7447" text="   ·   Mood: {0}" />
+    <string id="AIL_03be4040" text="You pay {0} denars and go free." />
+    <string id="AIL_043426f0" text="Event" />
+    <string id="AIL_0482ecfa" text="Secret" />
+    <string id="AIL_04c41d7c" text="In battle, Alt+B: you write the order as you would say it (&quot;cavalry on the left against their archers&quot;) and the AI turns it into orders for your formations. The game pauses while you type." />
+    <string id="AIL_04d419f6" text="Tension rises with insults and threats and drops with the days. With high tension the NPC can turn to violence or call the guard. They also gauge whether you frighten them (your troops against theirs)." />
+    <string id="AIL_0504fb72" text="Type one: gemini, openai, groq, deepseek, openrouter, ollama (local, no key) or other (then fill in the address)." />
+    <string id="AIL_05112fe7" text="The guard of {0} questioned {1} after a scuffle and let them go." />
+    <string id="AIL_0529fe40" text="1 day ago" />
+    <string id="AIL_053cbde7" text="{0} has broken out in {1}. They say it is {2}." />
+    <string id="AIL_05883eac" text="Those who know you say something in passing" />
+    <string id="AIL_0681e274" text="Task &quot;{0}&quot;: " />
+    <string id="AIL_0696ca62" text="Maximum effect: food per day" />
+    <string id="AIL_06b1b9ba" text="Search any hero…" />
+    <string id="AIL_06be773b" text=". It used to belong to {0}{1}." />
+    <string id="AIL_06c4b9a6" text="no api_key is set in Modules\AILegacy\config.json" />
+    <string id="AIL_072e561a" text="Minimum length of an event (characters)" />
+    <string id="AIL_07bd9260" text="{0} imposes an extraordinary tax of {1} % in their towns." />
+    <string id="AIL_07cfa3c4" text="stabbed" />
+    <string id="AIL_07d92c66" text="This erases ALL of {0}'s memory of you. To do it, type: /forget confirm" />
+    <string id="AIL_07e9f3c5" text="(Send your message and wait for their reply)" />
+    <string id="AIL_080a0e95" text="{0} leaves you for dead. You barely survive." />
+    <string id="AIL_08285b4c" text="a trade agreement" />
+    <string id="AIL_0872713a" text="Empty" />
+    <string id="AIL_089c5db1" text="AI Legacy instruction templates for THIS campaign.&#13;&#10;&#13;&#10;" />
+    <string id="AIL_08ae4ed8" text="Memory erased" />
+    <string id="AIL_08b5bd20" text="{0} leaves your clan." />
+    <string id="AIL_08baf922" text="Memory goes with the saved game" />
+    <string id="AIL_08cd64bc" text="Participants: " />
+    <string id="AIL_08d1b4a4" text="{0} has received {1} of {2} × {3}" />
+    <string id="AIL_08fb0c3a" text=" joins your party" />
+    <string id="AIL_095b55a1" text="Document · from {0}" />
+    <string id="AIL_09c1508e" text="You are free to go." />
+    <string id="AIL_09d60746" text="Romance between people of the same sex" />
+    <string id="AIL_0a0689c9" text="{0} stops following you and goes back to their own business." />
+    <string id="AIL_0a072878" text="Errands each NPC remembers" />
+    <string id="AIL_0a156f01" text="unknown action" />
+    <string id="AIL_0a44192c" text="{=!}Treat your companions ({AIL_H_COMP}{GOLD_ICON})" />
+    <string id="AIL_0aaea1bc" text="Assault without witnesses" />
+    <string id="AIL_0b2f92c7" text="Basic" />
+    <string id="AIL_0b583a3b" text="{0} refuses to pay reparations to {1}." />
+    <string id="AIL_0b611224" text="{0}, captured" />
+    <string id="AIL_0b677944" text="In passing: distance at which they speak to you (meters)" />
+    <string id="AIL_0b9bdfcf" text="The physicians have no news of any disease in Calradia right now." />
+    <string id="AIL_0bc1afa9" text="{=!}You are healthy." />
+    <string id="AIL_0be30312" text="It goes at the start of every conversation. Write it in English (replies come out in your language). It applies from the next sentence." />
+    <string id="AIL_0bfa167c" text="Maximum value of the items an NPC gives at once" />
+    <string id="AIL_0ca5ee01" text="Maximum sentences in a chat between characters" />
+    <string id="AIL_0cd6f2e1" text="{0}: disabled or no api_key" />
+    <string id="AIL_0d2bb14b" text="Economy" />
+    <string id="AIL_0d2e0018" text="{0} refuses to cede territory to {1}." />
+    <string id="AIL_0d7f7775" text="{0} expels clan {1} from the kingdom." />
+    <string id="AIL_0d81b407" text="Relevant memories brought into each reply" />
+    <string id="AIL_0d832ced" text="Temperature (x100)" />
+    <string id="AIL_0d849eb1" text="Maximum shift in stance between crowns per declaration" />
+    <string id="AIL_0db9b33c" text="Duel" />
+    <string id="AIL_0ddba7d9" text="&#10;Knows you as: {0}" />
+    <string id="AIL_0e382db2" text="&#10;&#10;— {0} ({1} days ago) —&#10;" />
+    <string id="AIL_0e578525" text="War weariness: per lost town or castle" />
+    <string id="AIL_0e7aa239" text="Daily chance of answering a proposal (%)" />
+    <string id="AIL_0ea1a4c8" text="Intimacy" />
+    <string id="AIL_0ebbc439" text="Denars per distance unit on the map. Letters are sent from the tavern district." />
+    <string id="AIL_0ede5f95" text="· Remembers: " />
+    <string id="AIL_0fbba7b1" text="{0} hands you: {1}." />
+    <string id="AIL_100794a8" text="player's declaration" />
+    <string id="AIL_1057a530" text="History turns in the prompt" />
+    <string id="AIL_1068028c" text="Your key for that service. It is shown in plain text on this screen: don't show it in screenshots." />
+    <string id="AIL_109be563" text="Roleplay death" />
+    <string id="AIL_10e460d5" text="Mysterious" />
+    <string id="AIL_10f114fb" text="That character no longer exists in the saved game." />
+    <string id="AIL_114e50bb" text="{0} of {1} now belongs to {2}{3}" />
+    <string id="AIL_11783c51" text="Prisoner" />
+    <string id="AIL_1191e28d" text="(This task names someone or something that does not exist in the world: it cannot be checked automatically and will be judged by whoever gave it to you.)" />
+    <string id="AIL_11a9a28f" text="Arena: base experience per soldier" />
+    <string id="AIL_122eb7e1" text="An armed stranger attacked {0}{1}. Some saw the attacker, but nobody knows who it was." />
+    <string id="AIL_1230749f" text="{0} is plundered" />
+    <string id="AIL_129b4432" text="There are no imported memories in this campaign." />
+    <string id="AIL_12efd9a7" text="Maximum duration of an order (days)" />
+    <string id="AIL_131719b8" text="Whoever wants to talk walks over" />
+    <string id="AIL_13527f3f" text="Whatever is between braces, like {npc_name} or {language}, is filled in by the mod: do not translate or delete it.&#13;&#10;" />
+    <string id="AIL_13afe103" text="War" />
+    <string id="AIL_14250983" text="A king can declare war on you or make peace with you if you are also a king." />
+    <string id="AIL_1425de35" text="Maximum relation change per conversation" />
+    <string id="AIL_148d1995" text="Distance at which a guard hears a call (meters)" />
+    <string id="AIL_14d6bbb7" text="Group: bystanders can chime in" />
+    <string id="AIL_14ed1b61" text="Clans" />
+    <string id="AIL_156ada7f" text="The group falls silent." />
+    <string id="AIL_15853344" text="What they respect and what they despise" />
+    <string id="AIL_1586f13c" text="NPCs describe gestures between *asterisks*." />
+    <string id="AIL_15eec8c6" text="Lines during fights" />
+    <string id="AIL_160a2e2f" text="Maximum living unique characters" />
+    <string id="AIL_161727d1" text="Victory for {0}" />
+    <string id="AIL_162d77c2" text="Wedding of {0} and {1}" />
+    <string id="AIL_16443f4c" text="The nobles of your kingdom recognize you" />
+    <string id="AIL_164cfae0" text="Maximum of your soldiers in a street fight" />
+    <string id="AIL_16a1a48b" text="Kinship" />
+    <string id="AIL_170fa0ef" text="Romance with married people" />
+    <string id="AIL_175eb081" text="{=!}This task is no longer active." />
+    <string id="AIL_17a3df8d" text="Provider for battles" />
+    <string id="AIL_17ca3c0a" text="Each named character keeps track of how they get along with other characters and the latest thing that happened between them (their chats, an errand, a snub in front of you, an arrest). They use it when they talk to each other, in groups and with you. It is stored in their file, under &quot;others&quot;." />
+    <string id="AIL_1834d79b" text="Old conversations" />
+    <string id="AIL_18b82bcb" text="Background events: every how many days (approx.)" />
+    <string id="AIL_18d97adb" text="No saved sentences." />
+    <string id="AIL_18fd1956" text="Exact name of the model. Empty: gemini-3.5-flash-lite, gpt-5.6-luna, llama-3.3-70b-versatile, deepseek-chat or llama3.1 depending on the service." />
+    <string id="AIL_18fe8281" text="Book of memories" />
+    <string id="AIL_1a8ef2ad" text="{0} has forgotten everything." />
+    <string id="AIL_1b467603" text="What it is and what it says" />
+    <string id="AIL_1b485942" text="settlement without disease or not theirs" />
+    <string id="AIL_1b520886" text="World" />
+    <string id="AIL_1b8ccb46" text="Chance of falling ill per severity level (%)" />
+    <string id="AIL_1b9a1bfb" text="Letters from NPCs" />
+    <string id="AIL_1c381bc9" text="How many come to the defense of the attacked person, at most" />
+    <string id="AIL_1c42ff4a" text="The word around {0} is that {1}, {2}, has arrived." />
+    <string id="AIL_1c6f47d4" text="a neighbor" />
+    <string id="AIL_1cb10851" text="Open the AI Legacy editor" />
+    <string id="AIL_1d0a19e2" text="alliance impossible right now" />
+    <string id="AIL_1d2a25e7" text="Restored: " />
+    <string id="AIL_1d38423b" text="9. Editor" />
+    <string id="AIL_1d3c2297" text="The kingdom of {0} falls" />
+    <string id="AIL_1d84efed" text="the court" />
+    <string id="AIL_1df7d173" text="Back" />
+    <string id="AIL_1e4baeec" text="Trust needed to share secrets" />
+    <string id="AIL_1e684c40" text="Name" />
+    <string id="AIL_1e733cef" text="Last time you spoke: {0}." />
+    <string id="AIL_1e8da0b8" text="Provider 3" />
+    <string id="AIL_1ee0d3b1" text="{0} sheathes their weapon." />
+    <string id="AIL_1ee35da7" text="You attack {0}!" />
+    <string id="AIL_1f1faf3a" text="If turned off, NPCs only talk: they don't give gold, don't join you, etc." />
+    <string id="AIL_1f2a27ea" text="Current news and events" />
+    <string id="AIL_1f8da24b" text="Provider 2" />
+    <string id="AIL_1fb2c5a1" text="{0} sets out to hunt down {1}." />
+    <string id="AIL_2003bc66" text="about {0} days" />
+    <string id="AIL_203a7d74" text="{0} enacts the law &quot;{1}&quot;" />
+    <string id="AIL_208da3de" text="Provider 1" />
+    <string id="AIL_20b8ba96" text="Map scene: also with enemies (parley)" />
+    <string id="AIL_20cbe084" text="You don't have {0} denars to buy the workshop in {1}." />
+    <string id="AIL_20e63156" text="Removes from this campaign the memories that came from AIInfluence (for example, if you imported those of another saved game). The files are moved to a subfolder, not deleted." />
+    <string id="AIL_2118a039" text="Events" />
+    <string id="AIL_2215a755" text="{0} joins the conversation." />
+    <string id="AIL_2259555a" text="Mood: {0} ({1})" />
+    <string id="AIL_226baec1" text=" (another campaign)" />
+    <string id="AIL_226c9a7f" text="&#10;&#10;You are healthy." />
+    <string id="AIL_2287fa82" text="In scenes, what characters say to each other or shout at you in passing appears written above their heads." />
+    <string id="AIL_22932a37" text="No news" />
+    <string id="AIL_22b0d9b9" text="Romance needed for intimacy" />
+    <string id="AIL_22c76d52" text="Create companion" />
+    <string id="AIL_23b67cad" text="Tension {0}{1}" />
+    <string id="AIL_23bfd455" text="{0} failed to catch up with you and goes back to their own business." />
+    <string id="AIL_23d64abe" text="The guard of {0} fined {1} {2} denars for a scuffle." />
+    <string id="AIL_24ba54ab" text="{0} gives you {1} soldiers{2}." />
+    <string id="AIL_24d3d112" text="The physicians leave you as good as new." />
+    <string id="AIL_24fc64b9" text="{0} is now someone you know: you will be able to find them again in {1}." />
+    <string id="AIL_2504fc22" text="Origin secrets per kingdom" />
+    <string id="AIL_254648d0" text="{0} is already part of your family." />
+    <string id="AIL_256e88f0" text="Maximum gold per action" />
+    <string id="AIL_258dabbd" text="Provider 4" />
+    <string id="AIL_25c835cb" text="Use asterisks for gestures" />
+    <string id="AIL_2603bf41" text="You are already married." />
+    <string id="AIL_263bf6a9" text="{0}/{1}: OK in {2:0.0}s" />
+    <string id="AIL_265409ff" text="Understood" />
+    <string id="AIL_266f75ee" text="Clan {0} switches sides" />
+    <string id="AIL_26906366" text="They hear you: {0}.{1}{2}" />
+    <string id="AIL_2691821b" text="&#10;&#10;There is no disease in the town." />
+    <string id="AIL_26b70a49" text="What each leader bellows at their men appears in the log (and above their head if they are near)." />
+    <string id="AIL_26e90847" text="How many times in a row they can continue the conversation without you saying anything. When you speak, the count starts over." />
+    <string id="AIL_26eb718e" text="Marriage" />
+    <string id="AIL_270778c1" text="{0} terminates their trade agreement with {1}." />
+    <string id="AIL_270c2dbd" text="1 = one request per sentence (the most expensive). 2 = half the requests." />
+    <string id="AIL_276e2745" text="Wedding with companions, wanderers and notables" />
+    <string id="AIL_27a8d342" text="Letter for {0}" />
+    <string id="AIL_27bd042f" text="an alliance" />
+    <string id="AIL_2808c06c" text="Chats between characters in the scenes" />
+    <string id="AIL_2839a892" text="On: your relation is with that person. Off (like the game): with a noble, your relation is that of the head of their clan." />
+    <string id="AIL_28b223a8" text="Local" />
+    <string id="AIL_28e8e86e" text="Folders" />
+    <string id="AIL_291705dd" text="Save" />
+    <string id="AIL_292485a4" text="Background events (when nothing has happened)" />
+    <string id="AIL_2924e794" text="So as not to spend quota when you advance time quickly." />
+    <string id="AIL_297f659a" text="How many from each party appear behind their leader (first their heroes, then their best troops)." />
+    <string id="AIL_298b35b9" text="Fistfights and duels in scenes, enemies attacking and surrendering on the map, and calling the guard." />
+    <string id="AIL_298da7f9" text="Known by:" />
+    <string id="AIL_29902717" text="recent sentences" />
+    <string id="AIL_29a99738" text="{=!}Let's dismount and talk face to face. [AI Legacy: scene]" />
+    <string id="AIL_29e73294" text="Maximum effect of an event on a market's prices (%)" />
+    <string id="AIL_29f8c9a1" text="Letters, seals, contracts, garments… They are not game items: they exist for the story. Characters know you carry them if you show or hand them over in a chat." />
+    <string id="AIL_2a6395bc" text="{0} of {1} has fallen to {2} after a siege{3}" />
+    <string id="AIL_2a891567" text="Optional: something you want them to have (e.g. &quot;is a coward but hides it with bravado&quot;)" />
+    <string id="AIL_2b8dd572" text="{=!}Your healthy men gain experience (more for the novices). Some may get injured. Cheaper in your own towns." />
+    <string id="AIL_2bd4d43b" text="You order: &quot;{0}&quot;" />
+    <string id="AIL_2bd6ef00" text="New task: &quot;{0}&quot; ({1} days" />
+    <string id="AIL_2bf0193d" text="Files you haven't touched are updated automatically when a new version of the mod improves the text.&#13;&#10;" />
+    <string id="AIL_2c243fac" text="If the two who are going to chat are not together, one walks over to the other before starting (also between floors, if there is a path)." />
+    <string id="AIL_2cb6f858" text="Trust: {0}" />
+    <string id="AIL_2d23d9be" text=" near {0}." />
+    <string id="AIL_2d487a5a" text="{0} accepts a duel to the death. It starts as soon as the talk ends." />
+    <string id="AIL_2d5ee223" text="a tribute" />
+    <string id="AIL_2d66ff9e" text="{0} is waiting for you to speak." />
+    <string id="AIL_2d756f08" text="You don't have {0} denars to pay {1}." />
+    <string id="AIL_2d97f1db" text="You hand over {0} prisoners to {1}." />
+    <string id="AIL_2da177ae" text="Soldiers and guards also chat (briefly)" />
+    <string id="AIL_2da21a68" text="Duels to the death really kill" />
+    <string id="AIL_2dbeb3e1" text="Create item" />
+    <string id="AIL_2e04a874" text="{=!}Train your troops in the arena, 8 hours ({AIL_TRAIN_COST}{GOLD_ICON})" />
+    <string id="AIL_2ef46d51" text="showing a phrase" />
+    <string id="AIL_2eff340e" text="Group: distance at which someone leaves (meters)" />
+    <string id="AIL_2f7a736d" text="The alarm bell rings in {0}: the whole guard is coming!" />
+    <string id="AIL_2fb56a84" text="After an event that marks them (a betrayal, a death, a vow, falling in love), the AI slightly adjusts their personality and notes it in their past." />
+    <string id="AIL_2fc52b1a" text="Editor port" />
+    <string id="AIL_2fd476bb" text="An event can raise or lower the prices of an entire town or village market while it lasts (shortage, panic, abundance). 0 = events don't touch prices." />
+    <string id="AIL_30214b10" text="*{0} is still thinking…*" />
+    <string id="AIL_303700aa" text="1 = any local event, 2 = court matters, 3 = what shakes a kingdom, 4 = only what shakes the world." />
+    <string id="AIL_309ea6a0" text="{0} has freed {1}." />
+    <string id="AIL_30aa9ee2" text="{0} declares war on clan {1}." />
+    <string id="AIL_30c8d104" text="Wars, peace treaties, battles, sieges, deaths... NPCs find out depending on importance and proximity." />
+    <string id="AIL_31311890" text="Import memories from AIInfluence" />
+    <string id="AIL_315af7c1" text=" · from " />
+    <string id="AIL_3225c875" text="Hourly chance that someone nearby approaches (%)" />
+    <string id="AIL_32aaabb0" text="Gestures and faces while talking" />
+    <string id="AIL_32bdb403" text="Tasks" />
+    <string id="AIL_33265d9a" text="Each file is a piece of what is sent to the AI. You can edit them while the game is open: they are reloaded automatically.&#13;&#10;" />
+    <string id="AIL_336cdc8f" text="I am involved" />
+    <string id="AIL_33dbf353" text="Write them in your own words: &quot;shield wall infantry, hold the line&quot;, &quot;cavalry on the left against their archers&quot;, &quot;everyone charge&quot;…" />
+    <string id="AIL_344592e1" text="The NPC reasons in private (what they know, what they want, whether an action makes sense) before speaking. Better replies, slightly slower." />
+    <string id="AIL_34a22788" text="{0} decrees {1} days of quarantine in {2}." />
+    <string id="AIL_34f22b4a" text="How many characters each one keeps memories of" />
+    <string id="AIL_35049c49" text="Maximum tension change per reply" />
+    <string id="AIL_3515a1a2" text="Text above characters' heads" />
+    <string id="AIL_35404728" text="{=!}Remedies, boiled water and clean clothes: during those days your men fall ill four times less when entering places with disease." />
+    <string id="AIL_35617af2" text="{0} no longer answers your call: you are now enemies." />
+    <string id="AIL_35ac229c" text="Removed the imported memories of {0} characters.&#10;Copy in:&#10;{1}&#10;&#10;Save the game so it stays that way." />
+    <string id="AIL_35c15083" text="&#10;Kingdoms: " />
+    <string id="AIL_35cd4d87" text="Group: distance to join (meters)" />
+    <string id="AIL_35d98005" text="Swearing (never / sometimes / often…)" />
+    <string id="AIL_35e216d6" text="Distance on the map at which an NPC sees enemies they can go and attack if you ask them to." />
+    <string id="AIL_3677d2a1" text="Clan {0} leaves {1}." />
+    <string id="AIL_36b9fe81" text="Maximum severity" />
+    <string id="AIL_370ba9dd" text="4. Memory" />
+    <string id="AIL_3732e7fc" text="In a group conversation in a town or castle, a guard or whoever is in charge there can take another character present into custody if there is a serious reason (e.g. you accuse them of a crime with evidence in plain sight). They are really imprisoned, and they hold it against you." />
+    <string id="AIL_376f0803" text="Undo the import" />
+    <string id="AIL_378f2647" text="you have not yet gone to {0}" />
+    <string id="AIL_37ac8589" text="Political" />
+    <string id="AIL_3865f0c2" text="Provider for heroes" />
+    <string id="AIL_387fb206" text="{0} is rid of the disease" />
+    <string id="AIL_38907a94" text="Nobody in the group replies (the AI did not respond)." />
+    <string id="AIL_38eddd03" text="Error " />
+    <string id="AIL_390cb390" text="&quot;{0}&quot; is not fulfilled yet: {1}" />
+    <string id="AIL_3958d81a" text="demands of you" />
+    <string id="AIL_397b4d4e" text="Peace between {0} and {1}" />
+    <string id="AIL_399e0d5f" text="{0} has been plundered. {1} goes back to their own affairs." />
+    <string id="AIL_39a19577" text="The leader of each side you don't command periodically receives the state of the battle and gives real orders to their formations, according to their personality and skill. While they decide, or if the AI fails, the game's own tactics continue. It doesn't act in sieges." />
+    <string id="AIL_39a88b5b" text="What you say or do in front of an NPC can reach their lord, their family or their friends, delayed according to distance. What arrives is their version, not a fact." />
+    <string id="AIL_3a0a45fd" text="Combat from the chat" />
+    <string id="AIL_3a0aca3f" text="If you fail or the deadline passes, you lose half." />
+    <string id="AIL_3a41f7a5" text="D. Scenes" />
+    <string id="AIL_3a52fd31" text="&#10;Status: {0}" />
+    <string id="AIL_3a88a804" text="If what you say in a group conversation gives them reason to, the character can act: go talk to someone else and come back to tell you, accompany you, stay, guide you to someone, call someone over, or leave." />
+    <string id="AIL_3ae61921" text="{=!}Send a letter" />
+    <string id="AIL_3b33d5b8" text="declaration by {0}" />
+    <string id="AIL_3b47ba61" text="Piety (devout / lukewarm / cynical…)" />
+    <string id="AIL_3b64d032" text="{0} grants you {1}." />
+    <string id="AIL_3ba48d61" text="Distance at which a guard sees a fight (meters)" />
+    <string id="AIL_3bcc8ae2" text="Group: maximum replies per turn" />
+    <string id="AIL_3bdc9ea5" text="Battle tactics AI in field battles" />
+    <string id="AIL_3be1eaff" text="Clan {0}: income {1}{2:0} % ({3} days left). {4}" />
+    <string id="AIL_3bea3dfe" text="Invalid response" />
+    <string id="AIL_3c14bb80" text="You can't afford {0} of {1} ({2} denars)." />
+    <string id="AIL_3c35b946" text="Turn-based chats between nobles (more requests)" />
+    <string id="AIL_3c407add" text="{=!}Prevention for your party, " />
+    <string id="AIL_3cb61993" text="Minimum days between personality changes" />
+    <string id="AIL_3cc9d40f" text="{0} has brought you to {1}." />
+    <string id="AIL_3cdfd85b" text="Moral (principled / pragmatic / ruthless…)" />
+    <string id="AIL_3cfa625f" text="{0} demands the surrender of {2} from {1}." />
+    <string id="AIL_3d1f0c15" text="{0} confiscates {1} from clan {2}." />
+    <string id="AIL_3dad18db" text="{=!}Book of memories (AI Legacy)" />
+    <string id="AIL_3dce3fe1" text="{0} abdicates: your clan now rules {1}." />
+    <string id="AIL_3e132ba1" text="Group: seconds of your silence before they continue (0 = never)" />
+    <string id="AIL_3e1af9d4" text="Humor, how much they lie, how they decide, how much they trust" />
+    <string id="AIL_3e251e73" text="{0} sets off to meet you." />
+    <string id="AIL_3e5e7332" text="Knows you as (empty = doesn't know your name)" />
+    <string id="AIL_3e887326" text="{0} falls" />
+    <string id="AIL_3e8e1ac7" text="The game did not respond (is it loading or minimized?)" />
+    <string id="AIL_3f0d143a" text="Write them in English (models follow it better); NPCs answer in the language set in the settings.&#13;&#10;&#13;&#10;" />
+    <string id="AIL_3f29f263" text="Roleplay items you carry" />
+    <string id="AIL_3f2c88e6" text="Reply from {0} to {1}" />
+    <string id="AIL_3f44d794" text="Hospital of {0}&#10;&#10;Level of its physicians: {1}." />
+    <string id="AIL_3f4f693a" text="The guard lets you go." />
+    <string id="AIL_3fbb045d" text="Travel hours per distance unit (x10)" />
+    <string id="AIL_3ff4d651" text="Usage: /note &lt;instruction&gt;   E.g.: /note She is my wife and is pregnant; she never lectures me about danger." />
+    <string id="AIL_401f90b1" text="Map scene: companions per side" />
+    <string id="AIL_4073a6cc" text="No reply arrived from any AI. Press Say to try again.&#10;" />
+    <string id="AIL_40a03089" text="&#10;(You are involved)" />
+    <string id="AIL_4114935f" text="{=!}Lift the quarantine" />
+    <string id="AIL_411fbc76" text="{0} takes command of a clan party of their own." />
+    <string id="AIL_41386273" text="Personality evolves" />
+    <string id="AIL_413e791f" text=", and it is under quarantine" />
+    <string id="AIL_41ac9547" text="Politics" />
+    <string id="AIL_41b3740a" text="&#10;&#10;Promised reward: {0} denars." />
+    <string id="AIL_41e43789" text="{=!}Leave" />
+    <string id="AIL_41faa86d" text="Witnesses: clan tier from which everyone recognizes you" />
+    <string id="AIL_4232f06e" text="Imported: {0}&#10;Already had memory in AI Legacy (untouched): {1}&#10;No useful data or not present in this saved game: {2}&#10;With error: {3}" />
+    <string id="AIL_42716849" text="You already have a father." />
+    <string id="AIL_42b37383" text="({0} ends the conversation)" />
+    <string id="AIL_42b92c67" text="{=!}There is a tournament: the arena is occupied." />
+    <string id="AIL_436c99a9" text="only with great trust" />
+    <string id="AIL_44011913" text="deadly" />
+    <string id="AIL_44600a27" text="An event can change, each day for a while, the prosperity, food, security and loyalty of a real settlement." />
+    <string id="AIL_44dd0aa7" text="it is the last fief of the crown" />
+    <string id="AIL_44de911b" text="Society" />
+    <string id="AIL_4514967a" text=", of clan " />
+    <string id="AIL_454cbf99" text="{0} surrenders: {1} men become your prisoners." />
+    <string id="AIL_454f39f4" text="Providers are tried in order (1, 2, 3, 4): if the first one fails or runs out of quota, the next one is used. Keys are saved in Documents, in Mount and Blade II Bannerlord / Configs / ModSettings, not in the mod folder." />
+    <string id="AIL_458e1b5a" text="Each decision is one request to the AI per side. If a side suddenly loses many people, it decides sooner." />
+    <string id="AIL_45d4f33e" text="Guards per wave" />
+    <string id="AIL_463eb3a3" text="Untitled" />
+    <string id="AIL_46407e9d" text="Days an unanswered proposal lasts" />
+    <string id="AIL_466f3751" text="Erase all their memory" />
+    <string id="AIL_4695e872" text="Daily chance of a letter (%)" />
+    <string id="AIL_46d0d1f8" text="E. Battles" />
+    <string id="AIL_46df902b" text="Search file…" />
+    <string id="AIL_46e19d91" text="invalid fief or clan" />
+    <string id="AIL_479941aa" text="You hand over the crown: clan {0} now rules {1}." />
+    <string id="AIL_47c0f5a2" text="{0} and {1} seal an alliance." />
+    <string id="AIL_47dd15e0" text="A captured noble counts as a third." />
+    <string id="AIL_48173f1f" text="{=!}Interrupt the training (the money is not refunded)" />
+    <string id="AIL_481ef0fe" text="Latest sentences" />
+    <string id="AIL_4868da9a" text="Key (API key)" />
+    <string id="AIL_4873d730" text="Could not connect to the game: " />
+    <string id="AIL_48a27848" text="All of AI Legacy's memory for this saved game (NPCs, news, letters). It is also stored inside the saved game when you save in the game." />
+    <string id="AIL_48d043af" text=" days ({AIL_H_PREV}{GOLD_ICON})" />
+    <string id="AIL_48f76bf1" text="about between from until toward against according same other another many much little few you your our lord lady " />
+    <string id="AIL_48fe3e55" text="Saved. Remember to save the game in the game." />
+    <string id="AIL_493c4907" text="They open in the Windows Explorer of the computer where the game runs." />
+    <string id="AIL_49569563" text="Write something else" />
+    <string id="AIL_49588f47" text="With high romance, the NPC may agree to spend the night with you (never described). Between spouses it can end in pregnancy." />
+    <string id="AIL_49b6ffff" text="{0} has nobody left to escort and goes back to their own affairs." />
+    <string id="AIL_4a37fd4a" text="Merchants, craftsmen, innkeepers and villagers can sell to you and buy from you goods in a chat, against the real stock and prices of that place's market: goods and money really change hands." />
+    <string id="AIL_4a84320d" text="You don't have {0} denars to pay the messenger." />
+    <string id="AIL_4ae4ed78" text="Minimum days between declarations by the same king" />
+    <string id="AIL_4b08b3e0" text=" in " />
+    <string id="AIL_4b3f2067" text="Disease in {0}" />
+    <string id="AIL_4b487b93" text="their story ends here" />
+    <string id="AIL_4b77b3ae" text="{0} is waiting for you to speak.  (Type /help to see the commands)" />
+    <string id="AIL_4b7ed15a" text="Provider for townsfolk" />
+    <string id="AIL_4bb74331" text="6. Letters" />
+    <string id="AIL_4bf3e0c5" text="{0} gives you {1} denars." />
+    <string id="AIL_4c08be8b" text="the place" />
+    <string id="AIL_4c5ed9ad" text="Task fulfilled" />
+    <string id="AIL_4c63a92c" text="{0} accepts you as a vassal of {1}." />
+    <string id="AIL_4c6b494e" text="You" />
+    <string id="AIL_4ce0146b" text="Vassalage and mercenaries" />
+    <string id="AIL_4cef6d19" text="Maximum trust change per reply" />
+    <string id="AIL_4d649e87" text="Secrets born from history" />
+    <string id="AIL_4d99daae" text="{0} {1}{2:0.##} per day" />
+    <string id="AIL_4df26a61" text="What they say also appears in the log" />
+    <string id="AIL_4e260c5a" text="Imported from AIInfluence: " />
+    <string id="AIL_4e5e61ea" text="{0} and {1} sign a trade agreement of {2} year(s)." />
+    <string id="AIL_4e6c313c" text="From time to time, two characters near you talk about what is going on: news, shortages, disease, their lord. Uses one short request to the AI each time." />
+    <string id="AIL_4eae4e56" text="{0} lifts the siege of {1}." />
+    <string id="AIL_4eaee384" text="{0} approaches." />
+    <string id="AIL_4eb0fc2d" text="Make a declaration (if you rule)" />
+    <string id="AIL_4f0d9e02" text="Extras can become characters" />
+    <string id="AIL_4f107a7c" text="In a hall the nobles are spread apart: with a low value they never find anyone to talk to." />
+    <string id="AIL_4f47d62d" text="Your message to {0}" />
+    <string id="AIL_4f56a00c" text="Personality generated" />
+    <string id="AIL_4f6f8296" text="Could not open port {0}. Change the port in MCM → AI Legacy → Editor.&#10;{1}" />
+    <string id="AIL_4faa8fb4" text="Seconds between chats (approx.)" />
+    <string id="AIL_500ac9b1" text="Empty: the same language as the interface. If you want another one, type its name in English. E.g.: Spanish (Spain), English, Catalan, Italian." />
+    <string id="AIL_506e56c2" text="Name of the config.json provider preferred for battle orders (empty = the normal one). A fast one is best." />
+    <string id="AIL_508eddc4" text="Maximum length of each sentence (characters)" />
+    <string id="AIL_50ac9cd1" text="{0}, of clan {1}, is now the ruler of {2}." />
+    <string id="AIL_513640bb" text="C. Diseases" />
+    <string id="AIL_513c1858" text="Clear history" />
+    <string id="AIL_5179ad99" text="the whole kingdom" />
+    <string id="AIL_518def5c" text="{0} has arrived in {1}." />
+    <string id="AIL_51f2c203" text="Gang wanted by {0}" />
+    <string id="AIL_52769c73" text="Old sentences archived per character" />
+    <string id="AIL_5283e9ce" text="Characters remember their own dealings with each other" />
+    <string id="AIL_52a68aba" text="no kingdom" />
+    <string id="AIL_52b80370" text="Objective: deliver {0} × {1} to {2} (marked on the map) and return with {3}." />
+    <string id="AIL_52b8aa60" text="World events" />
+    <string id="AIL_52fe29a9" text="Your companions are healed." />
+    <string id="AIL_5336141e" text="{0} more guards arrive." />
+    <string id="AIL_53647ac2" text="Nothing worth telling has happened yet. Wars, peace treaties, sieges, battles and rumors will appear here." />
+    <string id="AIL_53a2324c" text="Companions always recognize you" />
+    <string id="AIL_53ab6227" text="a neighbor" />
+    <string id="AIL_53ea433d" text="{0} ends the talk and attacks." />
+    <string id="AIL_5418db17" text="Event" />
+    <string id="AIL_5454e867" text="Items, documents and workshops" />
+    <string id="AIL_54adf525" text="Data and templates" />
+    <string id="AIL_552be781" text=" ends the conversation)" />
+    <string id="AIL_55479028" text="{0} ends their patrol in {1}." />
+    <string id="AIL_555e7801" text="{0} denars in reparations" />
+    <string id="AIL_55654690" text="Tension: {0}" />
+    <string id="AIL_55bf58d3" text="archived" />
+    <string id="AIL_55cee6ef" text="{0} gathers an army" />
+    <string id="AIL_564e2e23" text="Today" />
+    <string id="AIL_566b6114" text="You hand over {0} to clan {1}." />
+    <string id="AIL_5689cbfa" text="Seconds between waves" />
+    <string id="AIL_56a8023e" text="You have served your sentence: you are released from the dungeon of {0}." />
+    <string id="AIL_56a85a72" text="Orders to your troops" />
+    <string id="AIL_56bb73a9" text="Clan {0} has left {1} and now serves {2}" />
+    <string id="AIL_56f0d4a1" text="{0} steps away from the conversation." />
+    <string id="AIL_57011337" text="Generate personality" />
+    <string id="AIL_570feb77" text="&#10;&#10;MEMORIES&#10;" />
+    <string id="AIL_5794d85d" text="Service" />
+    <string id="AIL_580cc0e5" text="1 = all, 4 = only those that shake the world, 5 = never." />
+    <string id="AIL_586abbc0" text="Minimum game hours between reactions" />
+    <string id="AIL_586fb7ef" text="{=!}You have no wounded or sick soldiers." />
+    <string id="AIL_58a5a0a4" text="Yesterday" />
+    <string id="AIL_58ce073f" text="{=!}(Send your message and wait for their reply)" />
+    <string id="AIL_58e1ca60" text="unique character" />
+    <string id="AIL_58f9d028" text="a duel to the death" />
+    <string id="AIL_592eb989" text="times" />
+    <string id="AIL_59559c9d" text="{0} repeals the law &quot;{1}&quot;." />
+    <string id="AIL_5983def9" text="Assigned by: {0}   ·   {1} day(s) ago" />
+    <string id="AIL_5a216c13" text="Open" />
+    <string id="AIL_5a4bda4c" text="world data" />
+    <string id="AIL_5a577403" text="{0} expels your clan from {1}." />
+    <string id="AIL_5a62c49f" text="{0} of your men join the fight." />
+    <string id="AIL_5a6d8aee" text="Off by default. On: the generic secrets written in that file are also handed out at random (you can put your own there)." />
+    <string id="AIL_5a9ce79b" text="Deadline passed" />
+    <string id="AIL_5abeb44e" text="Clan rebellions" />
+    <string id="AIL_5affe75c" text="Your men can't come in here: only in the street." />
+    <string id="AIL_5b102155" text="If the guard locks you up outside your fief and your kingdom, the lord of the place passes sentence (release, fine or days in the dungeon), changes your reputation there and what they think of you, and their sentence is announced as news. They need to know who you are there." />
+    <string id="AIL_5b4803a4" text="Clan {0} joins {1}" />
+    <string id="AIL_5b79eb8c" text="Maximum length of an event (characters)" />
+    <string id="AIL_5b7a333a" text=" (it used to be {0}'s)." />
+    <string id="AIL_5b8786aa" text="During a fight in the street or in a village, Ctrl+X brings in ten of your soldiers and Ctrl+Alt+X as many as fit. They don't enter indoors. Those who fall are left wounded or dead in your party." />
+    <string id="AIL_5c19273c" text="Off: only named characters (lords, ladies, notables, wanderers) chat among themselves. On: villagers, innkeepers and others too, but just two or three short sentences." />
+    <string id="AIL_5c31ae7f" text="Personality archetypes" />
+    <string id="AIL_5c3efc53" text="{0} could not reach {1} and gives up." />
+    <string id="AIL_5c924813" text="the surrender of {0}" />
+    <string id="AIL_5c92a18a" text="Maximum pages per character" />
+    <string id="AIL_5cc4dc1c" text="&#10;&#10;LAST WORDS&#10;" />
+    <string id="AIL_5d49c1d7" text="This REPLACES all of AI Legacy's current memory. Are you sure?" />
+    <string id="AIL_5d51e858" text="has died in childbirth" />
+    <string id="AIL_5d5538b0" text="{=!}Visit the hospital" />
+    <string id="AIL_5d9bde16" text="The AI writes between half of this number and this number, depending on what the topic allows. It is a single request, long or short." />
+    <string id="AIL_5da6bc58" text="Armies (join yours, gather their own, leave it)" />
+    <string id="AIL_5dca951d" text="Description (what NPCs will read; better in English, but any language works)" />
+    <string id="AIL_5de8b992" text="&#10;Involved: " />
+    <string id="AIL_5e0df453" text="OpenAI-compatible base address, e.g. https://my-server/v1. For the known services it is filled in automatically." />
+    <string id="AIL_5e2efb51" text="Restore from file" />
+    <string id="AIL_5e479046" text="Mood: " />
+    <string id="AIL_5e55369d" text="Maximum simultaneous outbreaks" />
+    <string id="AIL_5eccf2c1" text=". It is under quarantine: you enter at your own risk." />
+    <string id="AIL_5eeedbdf" text="{0} has not yet received &quot;{1}&quot;" />
+    <string id="AIL_5f595733" text="{0} leads you to {1}. Follow them." />
+    <string id="AIL_5f9b05e1" text="Generate the personality with AI? It overwrites the current sheet." />
+    <string id="AIL_5fcbf671" text="Provider for letters" />
+    <string id="AIL_5fd22751" text="security" />
+    <string id="AIL_5fd4967b" text="Language of AI Legacy's menus, notices and windows. &quot;Auto&quot; uses the game's language. To see this menu in the new language, leave the options and come back in." />
+    <string id="AIL_5ff5abe9" text="What {0} tells" />
+    <string id="AIL_5ffce42d" text="Clan {0} has rebelled against {1}." />
+    <string id="AIL_600f93a3" text="There is nobody yet." />
+    <string id="AIL_60575e78" text="{0} has declared war on {1}. The armies of both sides prepare for the campaign." />
+    <string id="AIL_611c4786" text="{0} will patrol the surroundings of {1}." />
+    <string id="AIL_613c43b2" text="Besides reactions, from time to time the AI writes what is brewing on its own: intrigues, shortages, omens, unrest." />
+    <string id="AIL_61468823" text="&#10;&#10;{0} handed it to you {1} day(s) ago. You can show it or mention it when talking to anyone." />
+    <string id="AIL_61578f1c" text="Saved" />
+    <string id="AIL_6184689e" text="Crime for walking out on a guard" />
+    <string id="AIL_61be9174" text="Invalid file." />
+    <string id="AIL_61e5c401" text="Public facts (info.json)" />
+    <string id="AIL_622157b0" text="{0} · {1} · relation {2}" />
+    <string id="AIL_62522e49" text="Personality (optional)" />
+    <string id="AIL_6252c331" text="Delete" />
+    <string id="AIL_629058ab" text="Send a letter" />
+    <string id="AIL_62c99c8c" text="spring (medium risk)" />
+    <string id="AIL_62e94015" text="Inner thought before replying" />
+    <string id="AIL_635ff613" text="Days without seeing each other before romance cools" />
+    <string id="AIL_63621315" text="Generate" />
+    <string id="AIL_637830f6" text="Distance at which you hear a chat (meters)" />
+    <string id="AIL_63b5c8dc" text="&#10;&#10;Entering a place with sick people can make some of your men fall ill. Quarantine stops the spread to neighbors, but ruins trade." />
+    <string id="AIL_63e55204" text="{0} lowers the taxes in their towns by {1} %." />
+    <string id="AIL_63ea9af4" text="You: " />
+    <string id="AIL_6447d2ba" text="(no mold: one will be assigned automatically)" />
+    <string id="AIL_645733f1" text="{0} stops waiting and goes back to their own business." />
+    <string id="AIL_6458f7e4" text="{0} refuses to pay tribute to {1}." />
+    <string id="AIL_648fc689" text="Rebellion of clan {0}!" />
+    <string id="AIL_64b1d2d4" text="{0} and {1} sign peace" />
+    <string id="AIL_6535de60" text="template" />
+    <string id="AIL_6549b43d" text="Nothing worth telling has happened yet." />
+    <string id="AIL_65ab580e" text="NPCs who lead a party can agree to follow you, go somewhere, wait, patrol, attack, besiege, raid or join your army. Also by letter." />
+    <string id="AIL_65ad4195" text="{0} dies" />
+    <string id="AIL_65f35dd2" text="World data (JSON). It applies to all saved games. When saving, a .bak copy of the previous one is kept." />
+    <string id="AIL_66a677f0" text="NPCs" />
+    <string id="AIL_66fb1576" text=", {0} were injured." />
+    <string id="AIL_6744d3b1" text="Given name (only for nameless people)" />
+    <string id="AIL_6746c998" text="Handing over troops and prisoners" />
+    <string id="AIL_675de4ca" text="{0} joins your army with {1} men." />
+    <string id="AIL_6764c714" text=" · no longer in the saved game" />
+    <string id="AIL_67c8cba8" text="{0} goes to sit down." />
+    <string id="AIL_67d30a9a" text="With a saved game loaded: requests a batch of events right now (they appear when you return to the map)." />
+    <string id="AIL_68a7d597" text="Test mode: compliant NPCs" />
+    <string id="AIL_68edf522" text="(including what you have talked about with them since). Their files are moved to a subfolder of the campaign, not deleted.&#10;&#10;Continue?" />
+    <string id="AIL_68f3dc4c" text="On: when you load a saved game, NPCs remember what they knew when you saved it. Off: they always remember the latest, even if you load an earlier saved game." />
+    <string id="AIL_68f76b26" text="Diseases" />
+    <string id="AIL_695a2835" text="peace" />
+    <string id="AIL_69c192a8" text="Maximum memories per character" />
+    <string id="AIL_69ffe8b4" text="original" />
+    <string id="AIL_6a025b78" text="Generate events now" />
+    <string id="AIL_6a0ec00a" text="Outbreaks by season or from an event: they damage the settlement, spread to neighbors, sicken your troops if you enter, and are slowed by quarantines." />
+    <string id="AIL_6a2934ef" text="If several things happen in a row, they are combined into a single reaction." />
+    <string id="AIL_6a695bcb" text="{0}, freed" />
+    <string id="AIL_6a69d3fd" text="{0} will go to {1} and wait for you there." />
+    <string id="AIL_6a6bf769" text="Besides, an NPC never gives up more than a third of their party at once." />
+    <string id="AIL_6ac2e619" text="Only between spouses (the game needs a known father)." />
+    <string id="AIL_6b1ca542" text="Pregnancy chance (%)" />
+    <string id="AIL_6b587fde" text="New sovereign in {0}" />
+    <string id="AIL_6b899a92" text="Book of memories by pages" />
+    <string id="AIL_6c0ce598" text="has disappeared and is presumed dead" />
+    <string id="AIL_6c0f99f2" text="The game's clans stop proposing wars, peace, alliances and trade on their own. Kings decide them through public declarations. Requires world events to be enabled." />
+    <string id="AIL_6c1f353e" text="{0} has received {1} of {2} × {3}." />
+    <string id="AIL_6c33ff94" text="Sentence of {0}" />
+    <string id="AIL_6c53dc0f" text="Your captains: {0}" />
+    <string id="AIL_6c7f2b62" text="0. AI Keys" />
+    <string id="AIL_6cf8197b" text="8. Import" />
+    <string id="AIL_6d2b9329" text="After a fight or duel in a settlement that is not yours, if a guard is nearby they come over to call you to account and decide: let you go, fine you or lock you up." />
+    <string id="AIL_6d3c2db8" text="You speak to the group" />
+    <string id="AIL_6d44c3f5" text="&#10;You have {0} wounded or sick soldier(s)." />
+    <string id="AIL_6d808299" text="You don't have {0} denars to pay the fine." />
+    <string id="AIL_6dfb3368" text="There is no AIInfluence data for THIS campaign ({0}).&#10;&#10;You can import another campaign: only the NPCs that exist in this saved game will be used " />
+    <string id="AIL_6e09fc5c" text="{0} proposes to {1} a trade agreement of {2} year(s)." />
+    <string id="AIL_6e224a81" text="Search your NPCs…" />
+    <string id="AIL_6e275f0e" text="Item created" />
+    <string id="AIL_6e4f31b1" text="Characters can arrest each other" />
+    <string id="AIL_6e64a84e" text="What drives them and what they fear" />
+    <string id="AIL_6e6f1630" text="What you say is overheard" />
+    <string id="AIL_6e7730a9" text="You speak to {0}" />
+    <string id="AIL_6ee119bd" text="trade impossible right now" />
+    <string id="AIL_6f600589" text="{0} and {1} have signed peace. For now, the weapons fall silent between both kingdoms." />
+    <string id="AIL_6f87960d" text="{0} gives up the pursuit of {1}." />
+    <string id="AIL_6fed9f7e" text="In scene chats, whoever speaks makes the face and gesture of what they feel (nodding, denying, doubting, getting angry…). Anyone seated, busy or walking only changes their face." />
+    <string id="AIL_6ffaa6ff" text="{=!}Ask about the diseases going around" />
+    <string id="AIL_7074bda0" text="{0} of your soldiers fall ill with {1} in {2}." />
+    <string id="AIL_70a3a006" text="Son or daughter" />
+    <string id="AIL_70a6b6c9" text="How many old sentences are kept for each character so they can be recalled. More = better long-term memory and somewhat larger files." />
+    <string id="AIL_70ab64bf" text="· Your instruction: " />
+    <string id="AIL_70c30ed9" text="Clan {0} has left {1}" />
+    <string id="AIL_70eda317" text="Duel to the death with {0}!" />
+    <string id="AIL_71329b44" text="Trust (separate from relation)" />
+    <string id="AIL_717f4a1a" text="beaten up" />
+    <string id="AIL_71b565dc" text="There is nobody within {0} meters to talk to." />
+    <string id="AIL_7237f719" text="Your captains don't know what to do with that order." />
+    <string id="AIL_723bcca4" text="they are no longer there" />
+    <string id="AIL_7245c3fc" text="A villager in a scene, or one of your soldiers, can agree to enter your service as a companion (if you have room) or remain as a named person you can find again. They keep their face, age and what you have talked about." />
+    <string id="AIL_7278010d" text="a day" />
+    <string id="AIL_7282058a" text=", head of clan {0}," />
+    <string id="AIL_731669e9" text="Townsfolk who join you" />
+    <string id="AIL_7319097c" text="summer (low risk)" />
+    <string id="AIL_73468258" text="Create" />
+    <string id="AIL_734fab9c" text="{0}Relation {1:+0;-0;0} · {2} chat(s)" />
+    <string id="AIL_735ebb21" text="If you win a duel to the death against a hero, they die. You never die: you are left badly wounded." />
+    <string id="AIL_73786ab4" text="Restore factory text" />
+    <string id="AIL_73936b3a" text="{=!}You don't have the money to pay the weapon masters." />
+    <string id="AIL_73afba9b" text="&#10;&#10;WHAT THEY SEEK&#10;" />
+    <string id="AIL_73b83666" text="If you attack someone with a weapon in a town, nearby guards join in every few seconds. With several down, the alarm sounds and the whole guard comes." />
+    <string id="AIL_73c1647d" text="{=!}Hey, do you have a moment? [Free chat]" />
+    <string id="AIL_7450a805" text="Group conversation (Alt+T)" />
+    <string id="AIL_745a654d" text="NPCs can give you tasks, note your progress, and mark them fulfilled (with reward) or failed. They appear in the game's quest log. Careful: a saved game with tasks needs AI Legacy to load." />
+    <string id="AIL_74ca054c" text="Provider for the world and diplomacy" />
+    <string id="AIL_74ddb46b" text="Fine from the guard" />
+    <string id="AIL_74de2d20" text="Summary of what you have been through together" />
+    <string id="AIL_74efb871" text="Off by default: they are on duty. They still answer if you talk to them." />
+    <string id="AIL_750e804a" text="An aggression by you in the street, a death, an arrest, or a weighty rumor you set rolling in a chat, becomes a world event with its news (and with effects on the place if there was blood). It only tells what the witnesses could have known. It is one request to the AI per event." />
+    <string id="AIL_7576bfa9" text="You wait in the dungeons of {0} for {1} to decide what to do with you…" />
+    <string id="AIL_7584960c" text="What they remember about you, in short" />
+    <string id="AIL_758ef766" text="Conversation inside the game's dialogue" />
+    <string id="AIL_75b4abfe" text="{0} declares war on {1}." />
+    <string id="AIL_75ea110b" text="Same as the facts, plus &quot;access&quot;: low / medium / high (how much trust is needed to tell it)." />
+    <string id="AIL_7611f3a8" text="Make a declaration" />
+    <string id="AIL_7623bdb7" text="Talk" />
+    <string id="AIL_76c8cc5d" text="Leaders' shouts" />
+    <string id="AIL_76ca0cb9" text="Armed fight: the guard arrives in waves" />
+    <string id="AIL_76df6ddb" text="You hand over {0} × {1}." />
+    <string id="AIL_76e00257" text="{=!}Your men train in the arena under the weapon masters. You hear the blows of wooden swords and the shouts of the instructors." />
+    <string id="AIL_76e631ee" text="Your king can expel you or confiscate a fief from you" />
+    <string id="AIL_76f7a56d" text="Only the ruler can make a declaration." />
+    <string id="AIL_76fdb1de" text="In a town, village or castle, if you throw a punch at someone right in front of you, the fight with them starts without you having to talk to them: with fists if you are empty-handed, for real if you have your weapon drawn. Their relatives come to their defense and, if steel is drawn, so does the guard. They hold it against you, your bad reputation rises, and then the guard comes." />
+    <string id="AIL_77262a54" text="Maximum friends in the prompt" />
+    <string id="AIL_77401496" text="chat(s)" />
+    <string id="AIL_7765746a" text="{0} leaves clan {1} and joins yours." />
+    <string id="AIL_77793b62" text="Hospital in the towns" />
+    <string id="AIL_7791a970" text="Backup" />
+    <string id="AIL_77ca23b7" text="Minimum days between new outbreaks" />
+    <string id="AIL_77e4bc34" text="{0} marches to besiege {1}." />
+    <string id="AIL_77ec28e0" text="You free {0}." />
+    <string id="AIL_782deaf5" text=" (up to date in their towns and castles: {0})" />
+    <string id="AIL_7858cd57" text="The allied army with its own leader, and your side when you are not the one in command (the formations you lead are not touched)." />
+    <string id="AIL_78680a96" text="{0} stays here." />
+    <string id="AIL_78abe94b" text="Military" />
+    <string id="AIL_78b1e8da" text="only to someone who trusts" />
+    <string id="AIL_78f99860" text="AI Legacy: command applied. Press &quot;See their reply&quot;." />
+    <string id="AIL_7948ed38" text="War weariness: per day and open war (x10)" />
+    <string id="AIL_795b98cd" text=", you receive {0} denars" />
+    <string id="AIL_795d4279" text="Personality with AI" />
+    <string id="AIL_7a1b2cf4" text="They say things to you in passing" />
+    <string id="AIL_7a47d6e7" text="Erase ALL their memory?" />
+    <string id="AIL_7a6f04b2" text="Tension and threat" />
+    <string id="AIL_7aad4a7d" text="In fights and duels within a scene, your opponent says lines depending on how it's going, and onlookers shout. Just one request to the AI when the fight starts." />
+    <string id="AIL_7bd9a098" text="Group: maximum length of each reply" />
+    <string id="AIL_7c146680" text="You are facing {0}. F to speak to them, Alt+T to talk to those nearby, Tab to leave." />
+    <string id="AIL_7c23f3b8" text="War weariness: per dead noble" />
+    <string id="AIL_7c7093eb" text="Use this provider" />
+    <string id="AIL_7c907518" text="has been murdered" />
+    <string id="AIL_7cd9f263" text="{0} goes back to their own affairs." />
+    <string id="AIL_7d054e89" text="{0} has arrived in {1} and is waiting for you there." />
+    <string id="AIL_7d3d5b34" text="Romance level with each NPC: it rises with courtship, cools if you don't see each other, and counts toward marriage." />
+    <string id="AIL_7d9b4b55" text="Clan {0} leaves {1}" />
+    <string id="AIL_7dd76d95" text="Group: they form a circle around you" />
+    <string id="AIL_7def1f8e" text="{0} and {1} sign peace." />
+    <string id="AIL_7e5382b7" text="Death" />
+    <string id="AIL_7ed3beae" text="You hand over your prisoner {1} to {0}." />
+    <string id="AIL_7f30bf34" text="Characters you have history with write to you on their own." />
+    <string id="AIL_7f35f286" text="Economic" />
+    <string id="AIL_7f5984a3" text="Orders in your own words (Alt+B)" />
+    <string id="AIL_7f675e5a" text="Give the item a name." />
+    <string id="AIL_7f71ac3a" text="{0} calls {1}." />
+    <string id="AIL_7f897c38" text="Usual fine: maximum" />
+    <string id="AIL_7fc31420" text="config.json has a formatting error: " />
+    <string id="AIL_7fce90d0" text="Could not generate: " />
+    <string id="AIL_7fd0d7e5" text="has fallen in combat" />
+    <string id="AIL_7ff37c4e" text="Save request/response in logs" />
+    <string id="AIL_7ff96949" text="Ongoing order: {0} {1} (until day {2:0})" />
+    <string id="AIL_800a1324" text="You pay {0} denars to {1}." />
+    <string id="AIL_800f61d9" text="Sometimes the AI repeats a charge or payment that was already made in its next reply. The same amount, in the same direction and with the same person is not applied again within this time. 0 = no protection." />
+    <string id="AIL_805db527" text="{0} has defeated you." />
+    <string id="AIL_807992a5" text="{0} lays down their arms." />
+    <string id="AIL_80912930" text="The guard steps in" />
+    <string id="AIL_81b3cd7d" text="a territory" />
+    <string id="AIL_8201313c" text="Adds free chat to villagers, townspeople and tavern folk (not heroes)." />
+    <string id="AIL_8244ba20" text="Brother or sister" />
+    <string id="AIL_8279d8bb" text="{0} sets out to raid {1}." />
+    <string id="AIL_8281a6ef" text="{0} has received &quot;{1}&quot;. Return to {2}." />
+    <string id="AIL_8322c30f" text="{0} dismounts: duel to the death, here and now." />
+    <string id="AIL_837460d0" text=" · edited" />
+    <string id="AIL_83ce96ea" text="{0} makes peace with clan {1}." />
+    <string id="AIL_8441426c" text="{0} withdraws the crown's extraordinary tax." />
+    <string id="AIL_84e6eeec" text=" (their mercenary contract ended)." />
+    <string id="AIL_84e9a594" text="Instruction saved for {0}." />
+    <string id="AIL_84f97df8" text="War weariness: recovery per day at peace (x10)" />
+    <string id="AIL_8525c8a9" text="Others have wiped out the gang of {0} before you. Return to {1}." />
+    <string id="AIL_8529201a" text="In passing: extra batches when sentences run out" />
+    <string id="AIL_854c39ee" text="is already a named character" />
+    <string id="AIL_858c74a8" text="{0} joins your party as a companion." />
+    <string id="AIL_858daf8f" text="No news yet." />
+    <string id="AIL_85a42b1a" text="{0} joins your party as a companion." />
+    <string id="AIL_85c6e155" text="News from Calradia" />
+    <string id="AIL_85e6e5d4" text="{0} joins your march with {1} men." />
+    <string id="AIL_85ee2964" text="{=!}Get treated ({AIL_H_SELF}{GOLD_ICON})" />
+    <string id="AIL_86941211" text="Personality mold" />
+    <string id="AIL_86ee0cb9" text="Maximum troops per handover" />
+    <string id="AIL_871af31c" text="Relation gained when completing a task" />
+    <string id="AIL_8740b99c" text="has fallen in combat against {0}" />
+    <string id="AIL_875d42da" text="NPCs tell each other things" />
+    <string id="AIL_88476cb6" text="want wants very more less all every none nothing something someone anyone nobody well badly here there now later before after always never also too " />
+    <string id="AIL_884d0de2" text="B. Initiative and errands" />
+    <string id="AIL_8871d6a5" text="There is no templates folder for this saved game." />
+    <string id="AIL_897d3e43" text="What they seek" />
+    <string id="AIL_89a46e62" text="The game has no template for that sex." />
+    <string id="AIL_89bc1b1d" text="Task completed: &quot;{0}&quot;" />
+    <string id="AIL_8a207caf" text="invalid target kingdom" />
+    <string id="AIL_8a30751a" text="time" />
+    <string id="AIL_8a331c41" text="{0} accepts the duel. It starts as soon as the chat ends." />
+    <string id="AIL_8a3f11e5" text="too many laws in force" />
+    <string id="AIL_8a4cc812" text="AI world events" />
+    <string id="AIL_8aab03a7" text="Witnesses: how far they can see (meters)" />
+    <string id="AIL_8b7f2016" text="Maximum news in the prompt" />
+    <string id="AIL_8c0a210d" text="You spend a while alone with {0}." />
+    <string id="AIL_8c51b5cf" text="New event: " />
+    <string id="AIL_8c561331" text="Files of this saved game" />
+    <string id="AIL_8dbd7cfb" text="born from an event" />
+    <string id="AIL_8dc2db66" text="chronicle of a death" />
+    <string id="AIL_8e8232dd" text="{0} rolls up their sleeves: there will be a fistfight as soon as the talk ends." />
+    <string id="AIL_8e88da8b" text="Tests each provider (those in &quot;0. AI Keys&quot; and, if present, those in config.json) and shows the result in the game's log." />
+    <string id="AIL_8f3749ae" text="&#10;&#10;You are wounded ({0} of {1})." />
+    <string id="AIL_8f57f4c0" text="{0} has laid siege to {1}." />
+    <string id="AIL_8fb29764" text="{0} gives you {1} × {2}." />
+    <string id="AIL_8fdf1238" text="autumn (medium risk)" />
+    <string id="AIL_8ff3713b" text="Diplomacy (war / peace between kings)" />
+    <string id="AIL_9003236d" text="Trust (-100 to 100)" />
+    <string id="AIL_901ece79" text="New ruler" />
+    <string id="AIL_90212ba8" text="It is published immediately as news: NPCs find out depending on importance (1 = the place, 2 = the court, 3 = the whole kingdom, 4 = the whole world). Those involved and their clan always know." />
+    <string id="AIL_904a67c2" text="How long they follow you, wait or patrol if nothing else is agreed. Also how long they wait for you somewhere when you arrange to meet." />
+    <string id="AIL_904fdecc" text="&#10;&#10;(/help to see the commands)" />
+    <string id="AIL_90722e01" text="Silence after a chat (seconds)" />
+    <string id="AIL_90796905" text="Free chat with townsfolk" />
+    <string id="AIL_90bb89d1" text="In passing: seconds between one sentence and the next" />
+    <string id="AIL_911ad5bc" text="Abdicate and hand over the crown" />
+    <string id="AIL_914cbfeb" text=", ruler of {0}," />
+    <string id="AIL_9189b76c" text="No saved game is loaded." />
+    <string id="AIL_91b295b0" text="Who it comes from (optional)" />
+    <string id="AIL_91d66f05" text="Minimum sentences per reply" />
+    <string id="AIL_91d8da81" text="On: when you open the Alt+T window the scene goes on, in slow motion. Off: the game pauses while you type." />
+    <string id="AIL_923a5224" text="has been executed by {0}" />
+    <string id="AIL_923ff81c" text="Generating…" />
+    <string id="AIL_9271ee6c" text="Give it a name." />
+    <string id="AIL_927a75ae" text=" with eyes set on {0}." />
+    <string id="AIL_92a26c15" text="Seconds between each leader's decisions" />
+    <string id="AIL_92d095e7" text="In the group, they can go and fetch someone" />
+    <string id="AIL_92de31ad" text="{0} joins {1}" />
+    <string id="AIL_92eb34bb" text="{=!}Say something else" />
+    <string id="AIL_93c01ba7" text="has been executed" />
+    <string id="AIL_94517b9a" text="The clan's name (world events)" />
+    <string id="AIL_946c5eaa" text="{0} changes lord" />
+    <string id="AIL_9480373b" text="{0} has nobody left to chase ({1})." />
+    <string id="AIL_949e7526" text="&#10;&#10;ARCHETYPE&#10;" />
+    <string id="AIL_94ae59ca" text="The game only allows marriage between nobles. With this on, a companion, wanderer or notable you have won over can accept: they first join your household as a noble and stop taking up a companion slot." />
+    <string id="AIL_94c1e5dd" text="Unique characters created by the AI" />
+    <string id="AIL_94c21a0a" text="Those you have edited are never touched.&#13;&#10;" />
+    <string id="AIL_953a8770" text="5. News and rumors" />
+    <string id="AIL_95594522" text="{0} calls the guard: surrender, convince them, or resist." />
+    <string id="AIL_95b516ae" text="{=!}You have no wounded companions." />
+    <string id="AIL_95c582ef" text="Secrets (secrets.json)" />
+    <string id="AIL_95f8de9b" text="10 = 1 hour per distance unit. Farther = takes longer to arrive (and for the reply to come back)." />
+    <string id="AIL_96004d45" text="Each character is born from a mold (world_data\archetypes.json) that sets their morals, how they speak and how much they believe. Editable." />
+    <string id="AIL_96136d3a" text="Declaration by {0} ({1})" />
+    <string id="AIL_96226daa" text="What you do and say gets people talking" />
+    <string id="AIL_965719f1" text="What the physicians know" />
+    <string id="AIL_967570b4" text="When you meet a lord on the map you are not at war with, the option &quot;Let's dismount and talk face to face&quot; appears: a scene of the terrain opens with the two of you on foot and your people behind you. Tab to return to the map." />
+    <string id="AIL_967c929e" text="(without the &quot;extra&quot; entries from config.json: check that block)" />
+    <string id="AIL_96933cf3" text="Each extra batch is one more request on that visit. 0 = only the first." />
+    <string id="AIL_96a911e0" text="Invalid kinship." />
+    <string id="AIL_96bb78de" text="{0} recognizes you." />
+    <string id="AIL_96bdc93c" text="Fistfight with {0}!" />
+    <string id="AIL_96e9202d" text="{=!}You have no healthy soldiers to train." />
+    <string id="AIL_96ea6365" text="Instructions for {0} deleted." />
+    <string id="AIL_9701c185" text="{0} breaks their alliance with {1}." />
+    <string id="AIL_9713e4ab" text="Load a saved game to use the editor." />
+    <string id="AIL_97e2efc7" text="A messenger brings you a letter from {0}." />
+    <string id="AIL_980877af" text="Your men finish the training: {0} have gained experience" />
+    <string id="AIL_986efa13" text="Deceased · " />
+    <string id="AIL_98823032" text="{=!}See their reply" />
+    <string id="AIL_98b07be9" text="Chronicle when someone you knew dies" />
+    <string id="AIL_98b23f3f" text="{0} can't move right now" />
+    <string id="AIL_98dfb3c6" text="Objective: go to {0} and return." />
+    <string id="AIL_990436d2" text="Clan changes (join yours, leave it)" />
+    <string id="AIL_992e899d" text="{0} recognized you: it will be known that it was you." />
+    <string id="AIL_99316d74" text="(unknown)" />
+    <string id="AIL_99bcbc8e" text="Declaration by a sovereign" />
+    <string id="AIL_9a8d90d8" text="{=!}Talk [AI Legacy]" />
+    <string id="AIL_9ad50a3b" text="Restored" />
+    <string id="AIL_9b15365c" text="{0} grants {1} to clan {2}." />
+    <string id="AIL_9b65eab4" text="invalid settlement" />
+    <string id="AIL_9b770e1c" text="When you walk next to someone in a scene (guards, villagers, merchants, nobles who don't know you), they say something in passing. Uses ONE request per visit to each place: a batch of sentences is requested and used up gradually. Turn it off if you don't want that cost." />
+    <string id="AIL_9b8bd5de" text="The AI invents the secrets from the real people of each kingdom (their houses, weddings, debts, grudges) and from the events as they happen. Each one concerns specific people and is known by a few, who only let it out with trust. Uses one request per kingdom, spread one per game day at the start of the saved game." />
+    <string id="AIL_9b9b3ffb" text="deadline expired" />
+    <string id="AIL_9ba9f600" text="Maximum length of a declaration" />
+    <string id="AIL_9bd88abd" text="confiscating from the player is disabled" />
+    <string id="AIL_9bf3e70c" text="&#10;&#10;WHAT THEY REMEMBER ABOUT YOU&#10;" />
+    <string id="AIL_9c4ee846" text="{0} leaves for {1} and will return to you afterwards." />
+    <string id="AIL_9ca95173" text="Publish" />
+    <string id="AIL_9ccbdf55" text="{0} comes to the defense of {1}." />
+    <string id="AIL_9d30d4f1" text="Messenger cost per distance unit" />
+    <string id="AIL_9d381c5c" text="market prices {0}{1:0} %" />
+    <string id="AIL_9dedec74" text="You can only write to people you know. ★ = someone you have already talked to. The cost and time depend on the distance." />
+    <string id="AIL_9e12b7ca" text="A relative of yours with real kinship in the game. For a sibling you must first have a father or mother." />
+    <string id="AIL_9e2fda6f" text="Events affect clans" />
+    <string id="AIL_9e5a3fd7" text="Off: someone who is married (or you, if you are) doesn't accept another wedding. On: they can accept it, and the previous marriage ends." />
+    <string id="AIL_9ef83fd5" text="{=!}Treat your prisoners ({AIL_H_PRIS}{GOLD_ICON})" />
+    <string id="AIL_9f068a43" text="The guard heard the fight and is coming for you." />
+    <string id="AIL_9f48ba90" text="Maximum sentences when ordinary people chat" />
+    <string id="AIL_9ff27d57" text="Crown tax: maximum (%)" />
+    <string id="AIL_a013a921" text="Days a piece of news lasts" />
+    <string id="AIL_a046df12" text="About:" />
+    <string id="AIL_a0a85eed" text="{0}{1} has plundered the village of {2}. The peasants have lost crops and livestock." />
+    <string id="AIL_a0af06ce" text="Task failed: &quot;{0}&quot;" />
+    <string id="AIL_a0bc9158" text="Siege" />
+    <string id="AIL_a0bdbcf2" text="Fistfight" />
+    <string id="AIL_a0d2d00d" text="Romance (0 to 100)" />
+    <string id="AIL_a12b008e" text="The game has no wanderer template for that sex." />
+    <string id="AIL_a12df7a9" text="Laws in force per kingdom" />
+    <string id="AIL_a15797e0" text="You hand over to {0}: {1}." />
+    <string id="AIL_a190aec6" text="Relation {0}{1}" />
+    <string id="AIL_a2104812" text="An enemy army" />
+    <string id="AIL_a25b9c8e" text="The group breaks up." />
+    <string id="AIL_a29fcb55" text="Group: maximum participants" />
+    <string id="AIL_a2e05b46" text="What happens between them changes their relation in the game" />
+    <string id="AIL_a305fa83" text="they are not at war" />
+    <string id="AIL_a30867c0" text="A clan leader can swear fealty to you or serve you as a mercenary if you are a king." />
+    <string id="AIL_a33c4ead" text="You are now carrying: " />
+    <string id="AIL_a33f15bf" text="Group: how far you can be heard (meters)" />
+    <string id="AIL_a35a41bd" text="Culture" />
+    <string id="AIL_a3c89c8a" text="You hand over {0} × {1} to {2}." />
+    <string id="AIL_a3cd73e3" text="From this clan tier on, any NPC knows who you are without an introduction." />
+    <string id="AIL_a430f8e9" text="Your instructions (one per line; they override everything else)" />
+    <string id="AIL_a4403b32" text="Romance" />
+    <string id="AIL_a4990140" text=", of clan {0}," />
+    <string id="AIL_a4b23033" text="Minimum real seconds between world requests" />
+    <string id="AIL_a54a9d45" text="Nobody has given you any task yet. When someone asks you for a favor and you accept, it will appear here with its deadline and reward. You will also see here the documents you are handed." />
+    <string id="AIL_a58c5f5d" text="You were seen ({0} witness(es)), but nobody knows who you are: they are looking for an armed stranger." />
+    <string id="AIL_a5da1c9c" text="{=!}*listens to you*" />
+    <string id="AIL_a5eee76f" text="Knows you as: {0}   ·   Conversations: {1}   ·   Lies caught: {2}" />
+    <string id="AIL_a615d39e" text="You have talked to {0}. Return to {1}." />
+    <string id="AIL_a63c51e2" text="• {0}: {1}, {2}; about {3} days left" />
+    <string id="AIL_a643593e" text="After this many days without talking or writing to each other, romance drops 1 point per day (with your spouse it doesn't drop below 40)." />
+    <string id="AIL_a65a644d" text="a duel" />
+    <string id="AIL_a6a88727" text="{0} draws their weapon." />
+    <string id="AIL_a7a5c567" text="The tribute between {0} and {1} ends." />
+    <string id="AIL_a7c4d3a0" text="What happens in a chat can spread by word of mouth." />
+    <string id="AIL_a7d1636b" text="{0} leaves the army with their men." />
+    <string id="AIL_a815af23" text="NPCs approach you on the map" />
+    <string id="AIL_a858eb42" text="Load a saved game first." />
+    <string id="AIL_a898353a" text="Kingdoms involved" />
+    <string id="AIL_a8b856d9" text="Event published" />
+    <string id="AIL_a8cfe43b" text="Distance at which they hear you (meters)" />
+    <string id="AIL_a91252d2" text="&#10;Progress: {0}/{1} {2}" />
+    <string id="AIL_a9262a10" text="Turn-based: sentences per request" />
+    <string id="AIL_a92c1422" text="{0} lies on the ground badly wounded: you have won the duel." />
+    <string id="AIL_a9628091" text="You already have as many men inside as will fit." />
+    <string id="AIL_a9672a5d" text="AI Legacy — Editor" />
+    <string id="AIL_a96fe2c6" text="7. AI" />
+    <string id="AIL_a9a55bc8" text="What is said about them" />
+    <string id="AIL_a9aa8409" text="Name of a provider: the service you typed in &quot;0. AI Keys&quot; (gemini, openai; the one in slot 2, 3 or 4 carries its number: openai2) or one from config.json. Empty = the normal chain. If it fails, the rest are used." />
+    <string id="AIL_a9b74d1b" text="Remove &quot;Talk&quot; from the character list" />
+    <string id="AIL_a9d11dfa" text="fulfilled" />
+    <string id="AIL_a9fce24e" text="{0} will accompany you when you finish talking." />
+    <string id="AIL_aa23f794" text="Say" />
+    <string id="AIL_aa2c0935" text="network error: " />
+    <string id="AIL_aa38cc8d" text="{0} agrees to pay {1} {2} denars per day for {3} days." />
+    <string id="AIL_aa4dc800" text="&#10;&#10;PAGES OF THEIR MEMORY" />
+    <string id="AIL_aad18359" text="{0} recognizes you. You have talked {1} {2} before.  (Type /help to see the commands)" />
+    <string id="AIL_ab129b00" text="{0} {1} {2}{3}.&#10;&#10;If you don't reply now, the proposal stands for {4} days and you can respond with a declaration." />
+    <string id="AIL_ab14812d" text="Your men didn't understand the order (the AI did not respond)." />
+    <string id="AIL_ab26e5e4" text="Each time a stretch of your shared story is summarized, the AI writes a titled page: it can be read in the Book of memories." />
+    <string id="AIL_ab45cede" text="Minimum length of a declaration" />
+    <string id="AIL_ab464755" text="Tension that drops each day" />
+    <string id="AIL_ab845913" text="You don't know anyone to write to. Talk to people first." />
+    <string id="AIL_ab8aaa3e" text="Opens the editor in your browser: world, secrets, NPCs (personality, memory, instructions), events and backups. Requires a saved game to be loaded." />
+    <string id="AIL_abc764de" text="Male" />
+    <string id="AIL_abcab881" text="Father or mother" />
+    <string id="AIL_abd77d03" text="Days during which an event can provoke declarations" />
+    <string id="AIL_abf0a3ef" text="Clan tier at which people know you by reputation" />
+    <string id="AIL_ac30aa7a" text="Maximum sentence (days in the dungeon)" />
+    <string id="AIL_ac508642" text="Minimum sentences spoken before they can join" />
+    <string id="AIL_ac7ff171" text="Radius for attacking enemy parties" />
+    <string id="AIL_acbbf598" text="Declaration by {0}" />
+    <string id="AIL_acfa98a8" text="they are already at war" />
+    <string id="AIL_ad1d7e50" text="{0} dismounts and accepts the duel, here and now." />
+    <string id="AIL_ad44fa7d" text="Relevant recall of old conversations" />
+    <string id="AIL_ad9e9552" text="Model (empty = the recommended one)" />
+    <string id="AIL_adc42c0a" text="{0} dismounts and rolls up their sleeves: you settle it with fists right there." />
+    <string id="AIL_adfeb4cc" text="&#10;&#10;To close it, talk to {0} and tell them what you have done: they decide whether it is fulfilled." />
+    <string id="AIL_ae28cb4d" text=" · imported from AIInfluence (" />
+    <string id="AIL_ae49ce20" text="{0} disbands their army." />
+    <string id="AIL_ae4ebcf0" text="invalid clan" />
+    <string id="AIL_ae73db8a" text="{0} declares war on {1}!" />
+    <string id="AIL_af107b28" text="easy to coax out" />
+    <string id="AIL_af35e867" text="You don't have the {0} denars the hospital asks for." />
+    <string id="AIL_af3d096e" text="Besides above their heads, the sentences characters exchange appear in the message log (bottom left)." />
+    <string id="AIL_affcf5d2" text="Test connection to the AIs" />
+    <string id="AIL_b057228e" text="From time to time the AI writes new events based on the real state of the world (politics, war, economy, society, mysteries). They appear in News and NPCs know about them." />
+    <string id="AIL_b06a4975" text="You can't pay the fine of {0} denars: you stay {1} day(s) in the dungeon." />
+    <string id="AIL_b0a1e3a6" text="Witnesses are required" />
+    <string id="AIL_b0a43892" text="{0} grows tired of waiting for you in {1} and leaves." />
+    <string id="AIL_b14d8a23" text="2 days left for the task from {0}: {1}" />
+    <string id="AIL_b1624bd9" text="To go back to a file's factory text: delete it (or leave it empty) and load the saved game.&#13;&#10;" />
+    <string id="AIL_b23dc670" text="{=!}Decree quarantine (15 days)" />
+    <string id="AIL_b2b050b8" text="{0} days ago" />
+    <string id="AIL_b2d8f675" text="the game has no wanderer template to create the character" />
+    <string id="AIL_b2e0ea9d" text="Objective: wipe out the band prowling around {0} (marked on the map) and return." />
+    <string id="AIL_b32fb45c" text="Notify on screen from importance" />
+    <string id="AIL_b3384056" text="(the game's lords have the same id in all of them). Careful: they will remember things from that other saved game." />
+    <string id="AIL_b3ac06a3" text="In each town's arena, &quot;Train your troops&quot;: you pay, 8 hours pass and your healthy soldiers gain experience (more for novices). Some may get injured. Each arena takes a few days to admit you again." />
+    <string id="AIL_b3ce76cf" text="War between {0} and {1}!" />
+    <string id="AIL_b3d0b991" text="Daily chance of a seasonal outbreak (per thousand)" />
+    <string id="AIL_b40b4b3a" text="Don't repeat the same payment within (seconds)" />
+    <string id="AIL_b430b5cf" text="Rumors from conversations" />
+    <string id="AIL_b4431c37" text="{0}{1} has defeated {2}{3} in battle" />
+    <string id="AIL_b4fc9c6e" text="Group: consecutive times they continue without you" />
+    <string id="AIL_b57ad932" text="Maximum daily tribute" />
+    <string id="AIL_b59cea89" text="Personal relation with each NPC" />
+    <string id="AIL_b6af22fa" text="There is no provider with an api_key in config.json" />
+    <string id="AIL_b6d441ce" text="{0}{1}, has ridden up to your party and asks to speak with you." />
+    <string id="AIL_b700fc3c" text="Maximum effect: loyalty per day" />
+    <string id="AIL_b70bd667" text="Template of what is said to the AI, for this saved game only. What goes between {llaves} is filled in by the mod: do not delete or translate it. It applies immediately." />
+    <string id="AIL_b720cde3" text="The market doesn't have the money to buy it from you." />
+    <string id="AIL_b74fa9dd" text="no response in {0}s" />
+    <string id="AIL_b7c8efe0" text="In a scene, Alt+T: you talk to everyone near you and the AI decides who answers. Their replies appear above their heads and in the log. Press Alt+T again to keep talking." />
+    <string id="AIL_b7d8f762" text="War weariness: per lost battle (x10)" />
+    <string id="AIL_b7df35c1" text="Religion and customs of each culture" />
+    <string id="AIL_b80262c3" text="Import from AIInfluence" />
+    <string id="AIL_b809052a" text="war against the player is disabled" />
+    <string id="AIL_b83bfea6" text="You buy {0} of {1} for {2} denars." />
+    <string id="AIL_b8411e1a" text="A letter with the imperial seal in which…" />
+    <string id="AIL_b85090ef" text="Orders on the map" />
+    <string id="AIL_b86021cd" text="lung fever" />
+    <string id="AIL_b8b2988f" text="Your allies command with AI" />
+    <string id="AIL_b8d972a1" text="Maximum effect: security per day" />
+    <string id="AIL_b8f58f0d" text="The guard of {0} arrested {1} after a scuffle." />
+    <string id="AIL_b8f9f7be" text="Stay silent" />
+    <string id="AIL_b93602c9" text="You haven't talked to anyone yet. Everyone you talk to will appear here with what they remember about you." />
+    <string id="AIL_b9583293" text="the castle" />
+    <string id="AIL_b9c116de" text="Continue" />
+    <string id="AIL_b9de175d" text="Logs" />
+    <string id="AIL_ba098098" text="Verbatim turns kept after summarizing" />
+    <string id="AIL_ba28fc00" text=" · personality" />
+    <string id="AIL_ba299376" text="Giving and receiving items, roleplay documents (letters of introduction, contracts, safe-conducts) and buying workshops by talking." />
+    <string id="AIL_ba80efa7" text="{0} rejects the alliance that {1} was proposing." />
+    <string id="AIL_bb646884" text="There is no key: set it in Options, Mod Options, AI Legacy, 0. AI Keys." />
+    <string id="AIL_bbb8296b" text="   ·   Romance: {0}" />
+    <string id="AIL_bc041dfb" text="Sentences that leave the history when summarizing are archived. When you talk, the ones related to what you are saying now (names, places, specific things) are looked up and the character remembers them word for word. It doesn't use extra requests." />
+    <string id="AIL_bc5de8fe" text="{0}{1}{2} — {3} denars, {4}" />
+    <string id="AIL_bc9212fd" text="Items" />
+    <string id="AIL_bca1e090" text="You give {0} soldiers{1} to {2}." />
+    <string id="AIL_bcd82606" text="Tension needed for violence" />
+    <string id="AIL_bce32dcd" text="Maximum enemies in the prompt" />
+    <string id="AIL_bd15ad6c" text="world_data\religion.json and cultural_traditions.json: the faith and customs (courtship, hospitality, oaths) of their people. Editable." />
+    <string id="AIL_bd386578" text="When opening a group conversation, the participants walk until they form a semicircle in front of you and look at you. Anyone seated or busy stays where they are." />
+    <string id="AIL_bd58c13d" text="Write letter" />
+    <string id="AIL_bd7a44d0" text="When something big happens in the game (a war, a peace, a captured town, the death or capture of someone important, a big rumor from your chats), the AI immediately writes how the world takes it." />
+    <string id="AIL_bd7dfc75" text="{0}, of {1}, has made a declaration" />
+    <string id="AIL_bdc30505" text="Clan {0} swears fealty to {1}." />
+    <string id="AIL_bdd858a5" text="Remove" />
+    <string id="AIL_bdf82f15" text="From this level of romance with you, the game does not marry that character off to someone else on its own." />
+    <string id="AIL_be07e5b5" text="proposes to you" />
+    <string id="AIL_be7cce2e" text="Rumor" />
+    <string id="AIL_be8758dd" text="Your wounded and sick soldiers return to the ranks." />
+    <string id="AIL_beb1508e" text="Maximum distance between the two chatting (meters)" />
+    <string id="AIL_beccbd63" text="{0} · {1} · importance {2}" />
+    <string id="AIL_bf60207b" text="Write the event text." />
+    <string id="AIL_bfc4f22d" text="Religion" />
+    <string id="AIL_c009f7dc" text="{0} will pass word of this to {1}." />
+    <string id="AIL_c05b0270" text="Peace" />
+    <string id="AIL_c0668e57" text="An NPC with a party can give you soldiers or prisoners, or accept the ones you offer." />
+    <string id="AIL_c0d9e15c" text="Events per batch" />
+    <string id="AIL_c0e5f1de" text="From here on they can attack you on their own or call the guard. Agreed duels and fights don't need it." />
+    <string id="AIL_c1183e43" text=" (under quarantine)" />
+    <string id="AIL_c1353aff" text="{0} replies to you." />
+    <string id="AIL_c140427d" text="{0} defeated {1} in {2}" />
+    <string id="AIL_c1c7d32a" text="Clan {0} has joined {1}" />
+    <string id="AIL_c1de8329" text="{0} rejects the peace that {1} was offering." />
+    <string id="AIL_c268feb6" text="Reactions to what really happens" />
+    <string id="AIL_c271386a" text=" is already part of your family" />
+    <string id="AIL_c27c3eed" text="The messenger sets off for {0}. They will arrive in {1}." />
+    <string id="AIL_c2daf469" text="Age" />
+    <string id="AIL_c327ea4f" text="&#10;&#10;In the town there is {0} ({1}){2}." />
+    <string id="AIL_c351bc8a" text="{0} gives up raiding {1}." />
+    <string id="AIL_c3a1387b" text="Mystery" />
+    <string id="AIL_c3a3b332" text="Arrives in {0}: {1}" />
+    <string id="AIL_c40dd572" text="Delete their sentences and summary?" />
+    <string id="AIL_c43fad42" text="Time without new chats after one ends. The same two take twice as long to talk again." />
+    <string id="AIL_c4dbb3ad" text="Maximum distance at which the text is visible (meters)" />
+    <string id="AIL_c4f81902" text="You can call your men: Ctrl+X (ten) or Ctrl+Alt+X (as many as fit). Only in the street." />
+    <string id="AIL_c509c21c" text="Minimum relation to accept marriage" />
+    <string id="AIL_c52373ae" text="Fief" />
+    <string id="AIL_c53c096c" text="The task has failed." />
+    <string id="AIL_c54dc4b5" text="Events can bring diseases" />
+    <string id="AIL_c573f4b8" text="{0} hands you: {1} (for {2})." />
+    <string id="AIL_c5c07b9e" text="Arrest of {0}" />
+    <string id="AIL_c5ca3b43" text="Maximum romance change per reply" />
+    <string id="AIL_c5d6d5d7" text="Provider for memory summaries" />
+    <string id="AIL_c61991e6" text="Armed fight: you can call your troops (Ctrl+X)" />
+    <string id="AIL_c61b5727" text="{0} demands from {1} a tribute of {2} denars per day for {3} days." />
+    <string id="AIL_c6442751" text=" by {0}{1}." />
+    <string id="AIL_c65afb5d" text="{0} wants to talk to you" />
+    <string id="AIL_c69c977f" text="Economic effects of events" />
+    <string id="AIL_c6dc6d42" text="When entering or staying in a place with disease, some of your soldiers may fall ill (they are left as wounded)." />
+    <string id="AIL_c704d473" text="{0}{1} has been taken prisoner" />
+    <string id="AIL_c70d2ac3" text="You buy the workshop &quot;{1}&quot; from {0} for {2} denars." />
+    <string id="AIL_c774d780" text="The editor could not be loaded inside the game (WebView2).&#10;&#10;Open it in the browser: " />
+    <string id="AIL_c78d48c5" text="Trust {0}{1}" />
+    <string id="AIL_c79b58e9" text="Off (recommended): only your prisoners and the wounded. On: the AI can decide the death of any character if the scene calls for it, including those of your clan." />
+    <string id="AIL_c7acc8b1" text="Declare" />
+    <string id="AIL_c7da69a7" text="Importance (1-4)" />
+    <string id="AIL_c7fbb570" text="The kingdom of {0} has been destroyed. It no longer exists." />
+    <string id="AIL_c81ffc1c" text="Your clan feels it: income {0:+0;-0} % while it lasts ({1})." />
+    <string id="AIL_c829a044" text="Shows in the log what each leader has ordered each formation." />
+    <string id="AIL_c8741a3a" text="{0} shouts for the guard." />
+    <string id="AIL_c8ad772b" text="The place" />
+    <string id="AIL_c949ab1f" text="Roleplay death: in any situation" />
+    <string id="AIL_c9d542c8" text="AI Legacy: testing {0} provider(s)..." />
+    <string id="AIL_ca0dcdf4" text="Write an order" />
+    <string id="AIL_ca1dd233" text="The guard lets them pass" />
+    <string id="AIL_cab1eaa4" text="{0} proposes peace to {1}{2}." />
+    <string id="AIL_cae619f6" text="Tasks (quests created by the AI)" />
+    <string id="AIL_cb1eb4c2" text="{0} has died." />
+    <string id="AIL_cb234369" text="{0} demands {2} denars in reparations from {1}." />
+    <string id="AIL_cb272b11" text="While carrying out an order they don't go about their normal life (they don't buy food or recruit), so it is best not to drag it out." />
+    <string id="AIL_cb889c97" text="The memories of {0} characters that came from AIInfluence will be removed from this campaign " />
+    <string id="AIL_cb8abbac" text="Objective: talk to {0} and return." />
+    <string id="AIL_cbd20bc6" text="An event can make a vassal clan rise against its crown (never yours nor the ruling clan), if it truly gets along badly with its king." />
+    <string id="AIL_cbe9f6a8" text="&#10;&#10;Latest:&#10;" />
+    <string id="AIL_cc079ac8" text="A noble who already knows you and passes nearby may ride up to you to talk, if they have a reason: an open task, something they heard about you, affection or resentment. They ask whether you will receive them." />
+    <string id="AIL_cc456770" text="Sealed letter from Lucon" />
+    <string id="AIL_cc47eaca" text="{0} will follow you with their party." />
+    <string id="AIL_ccda8e3e" text="Internal error building the context: " />
+    <string id="AIL_cd6bc920" text="In passing: maximum length of each sentence" />
+    <string id="AIL_cd6fe758" text="Trust you lose if caught in a lie" />
+    <string id="AIL_cd7a8ef0" text="A character can die as the outcome of a chat: if they are your prisoner and you execute them by saying so clearly, if they take their own life, or if they are dying of their wounds. They really die in the saved game." />
+    <string id="AIL_cddce6e0" text="Kings can declare war on you if you rule" />
+    <string id="AIL_cdf7046b" text="{=!}Review what was said" />
+    <string id="AIL_cdf9a5fc" text="Clan {0} now serves {1} as mercenaries." />
+    <string id="AIL_ce1a0814" text="{0} {1} was found{2}. Nobody saw who did it." />
+    <string id="AIL_ce8115b0" text="reaction to a real event" />
+    <string id="AIL_ce8ae4a7" text="From time to time someone new, invented by the AI for this saved game, arrives in a nearby town (a fugitive physician, a mercenary captain, a preacher…), with name, trade, personality and motive. They live like a wanderer: you can look for them and take them into your service. One request per character." />
+    <string id="AIL_ce9503db" text=" as mercenaries." />
+    <string id="AIL_ceb6c4a4" text="{0} sentence(s) archived" />
+    <string id="AIL_ced9d43e" text="If you hit or kill someone without anyone alive seeing it, nobody knows it was you: no bad reputation, no guard, no name in the news. If they see you but don't know who you are, they look for &quot;an armed stranger&quot; and the bad reputation is halved. They only name you if a witness knows you or if you are already famous." />
+    <string id="AIL_cef46abb" text="Create relative" />
+    <string id="AIL_cefb1dfd" text="In the character list of a town, castle or tavern only &quot;Visit&quot; remains. You have to go to the person and talk to them in the scene." />
+    <string id="AIL_cf032cac" text="There are no events worth talking about yet. With &quot;See all&quot; you also get the day-to-day captures, battles and raids." />
+    <string id="AIL_cf0af550" text="Days between unique characters" />
+    <string id="AIL_cf0db558" text="The gang of {0} no longer exists. Return to {1}." />
+    <string id="AIL_cf4c4fba" text="Conquest" />
+    <string id="AIL_d02abd4c" text="Maximum effect on a clan's income (%)" />
+    <string id="AIL_d02be029" text="(no JSON mode)" />
+    <string id="AIL_d0722260" text="Distance at which someone outside hears the conversation. A shout (!) reaches twice as far; a whisper (*), only whoever you are looking at." />
+    <string id="AIL_d09068cf" text="Romance {0}{1}" />
+    <string id="AIL_d0cb85ca" text="Named characters who are a few steps away when you talk to someone in a scene overhear what you say, and remember it." />
+    <string id="AIL_d1c3cda0" text="{=!}I want to talk to you about something. [Free chat]" />
+    <string id="AIL_d225285a" text="There are none yet: they are written as game days pass." />
+    <string id="AIL_d22a5c23" text="Maximum sentences per reply" />
+    <string id="AIL_d279f208" text="On: you talk from the game's dialogue box (type → wait → see reply). Off: separate chat window." />
+    <string id="AIL_d2c3f48b" text="Include the NPC's friends and enemies" />
+    <string id="AIL_d36c447b" text="OK" />
+    <string id="AIL_d37eb730" text="Maximum effect: prosperity per day" />
+    <string id="AIL_d4237d66" text="AI Legacy" />
+    <string id="AIL_d43bd671" text="It doesn't fall like clockwork: the actual interval varies between 60 % and 140 % of this value." />
+    <string id="AIL_d49df131" text="When a character you have talked to several times dies, the AI writes their chronicle (who they were, what there was between you, how it ended). It appears on screen and stays in News. One request per chronicle." />
+    <string id="AIL_d4db6271" text="With a saved game loaded: brings in from AIInfluence the memory, personality, memories and instructions of the NPCs of THIS campaign. It doesn't overwrite anyone who already has memory in AI Legacy." />
+    <string id="AIL_d53be13f" text="Minimum importance to provoke a reaction" />
+    <string id="AIL_d582953e" text="Romance needed to accept marriage" />
+    <string id="AIL_d594c7d1" text="Hitting anyone starts a fight" />
+    <string id="AIL_d5d6b599" text="&#10;&#10;Save the game to keep it." />
+    <string id="AIL_d63eaabc" text=" in {0}." />
+    <string id="AIL_d655636d" text="World description" />
+    <string id="AIL_d65def98" text="{0} has arrived in {1} and heads back toward you." />
+    <string id="AIL_d69db9ac" text="Characters involved" />
+    <string id="AIL_d6f2ec0b" text="Training in the arena" />
+    <string id="AIL_d6fd303c" text="Clan {0} rises in rebellion against {1}." />
+    <string id="AIL_d770d7bc" text="2. Relation, trust and romance" />
+    <string id="AIL_d77a8668" text="Arena: injury chance per soldier (%)" />
+    <string id="AIL_d79898d4" text="{0} day(s) in the dungeon." />
+    <string id="AIL_d79a206d" text="Group: slow motion while you type" />
+    <string id="AIL_d7c17160" text="{0} {1} | in={2} def={3} short={4} obj={5} arrived={6} battle={7}" />
+    <string id="AIL_d83e63f4" text="You have wiped out the gang of {0}. Return to {1}." />
+    <string id="AIL_d8412138" text="marsh ague" />
+    <string id="AIL_d86408df" text="AI diplomacy of kings (replaces the game's own)" />
+    <string id="AIL_d88f9ba0" text="Nothing yet." />
+    <string id="AIL_d8f59858" text="{0} has received {1} × {2}. Return to {3}." />
+    <string id="AIL_d93015a6" text="food" />
+    <string id="AIL_d943da10" text="Minimum days between letters" />
+    <string id="AIL_d9727a35" text="&#10;&#10;PERSONALITY&#10;" />
+    <string id="AIL_d9b2a7c5" text="{{=!}}This arena will not admit you again for {0} hours." />
+    <string id="AIL_d9d80e9f" text="Type" />
+    <string id="AIL_da3c0b6b" text="You carry none." />
+    <string id="AIL_da6122fe" text="*looks at you in silence*" />
+    <string id="AIL_da62d72b" text="Maximum living secrets in the saved game" />
+    <string id="AIL_da76131c" text="Female" />
+    <string id="AIL_da8482bd" text="Grant and accept fiefs" />
+    <string id="AIL_da85936f" text="Letter from {0}" />
+    <string id="AIL_dace2712" text="{0} rejects the trade agreement from {1}." />
+    <string id="AIL_daf17754" text="Complete half-filled character sheets" />
+    <string id="AIL_db05ba43" text="page(s) in their book" />
+    <string id="AIL_db4aebed" text="Create event" />
+    <string id="AIL_db9bfa6a" text="Maximum relation with their king to rebel" />
+    <string id="AIL_db9c0e6a" text="(minimum)" />
+    <string id="AIL_dba7a77b" text="Past (optional)" />
+    <string id="AIL_dbbb1038" text="Sex" />
+    <string id="AIL_dc14749e" text="Objective: deliver &quot;{0}&quot; to {1} and return." />
+    <string id="AIL_dc40699f" text="Restore the factory text? What you have changed will be lost." />
+    <string id="AIL_dc5f5110" text="You pay a fine of {0} denars." />
+    <string id="AIL_dcc9bf83" text="Maximum tokens per reply" />
+    <string id="AIL_dcd92686" text="The messenger charges {0} denars and will take {1} to arrive.&#10;If they reply, the reply will take just as long to come back." />
+    <string id="AIL_dd02342f" text="&#10;&#10;(Start with * to whisper it only to whoever you are looking at, or with ! to shout it. Alt+G ends the conversation.)" />
+    <string id="AIL_dd1a051b" text="{0} has fallen. {1} considers the siege over." />
+    <string id="AIL_dd2f52c0" text="{0} accompanies you." />
+    <string id="AIL_dd4380be" text="No events" />
+    <string id="AIL_dd6592dc" text="You have no room left for more companions." />
+    <string id="AIL_dd736c20" text="Days an event stays &quot;up in the air&quot;" />
+    <string id="AIL_dd76aabc" text="Commands:  /note &lt;text&gt; (permanent instruction)  ·  /clearnotes  ·  /memory (what they remember)  ·  /forget  ·  /help" />
+    <string id="AIL_dda0e8ca" text="1. General" />
+    <string id="AIL_de098566" text=", {0} denars" />
+    <string id="AIL_de5d5b50" text="You already have a mother." />
+    <string id="AIL_de705baa" text="Writes the whole sheet above from who they are in the saved game (family, clan, traits, personality mold), without you having to talk to the character in the game. Overwrites what is there. It is one request to the AI." />
+    <string id="AIL_dec042f4" text="{0} hands over {1} prisoners to you." />
+    <string id="AIL_df1f7dd9" text="{0} will wait here with their party." />
+    <string id="AIL_df336f51" text="The enemy commands with AI" />
+    <string id="AIL_df85af91" text="Secrets a character has in mind when talking" />
+    <string id="AIL_e00ce40a" text="You don't have &quot;{0}&quot; to give to {1}." />
+    <string id="AIL_e00fb19f" text="Daily spread to a neighbor per severity level (per thousand)" />
+    <string id="AIL_e07caced" text="Write something" />
+    <string id="AIL_e0a76c57" text="the band of {0} is still standing" />
+    <string id="AIL_e0d57f33" text="you have not yet spoken to {0}" />
+    <string id="AIL_e102e90e" text="Last message from {0}:&#10;{1}" />
+    <string id="AIL_e10a40d5" text="{0} falls in the duel." />
+    <string id="AIL_e13e09e9" text="In {0} there is {1}" />
+    <string id="AIL_e147d85d" text="This conversation and the latest ones" />
+    <string id="AIL_e14ea467" text="Declaration" />
+    <string id="AIL_e1661a3b" text="Old character sheets, or ones imported from AIInfluence, only come with personality, past and way of speaking. With this on, in the next chat with that character the AI writes what is missing (what they seek, their secret, what drives them, values, religion, reputation, example phrases) without touching what was already there." />
+    <string id="AIL_e1d05f2f" text="{0} days left" />
+    <string id="AIL_e2132343" text="Name of a config.json provider. Empty = the normal chain." />
+    <string id="AIL_e250598b" text="Interface language" />
+    <string id="AIL_e28e2ffe" text="Normal duration of an order (days)" />
+    <string id="AIL_e2b9be42" text="Choose a file" />
+    <string id="AIL_e37afdcd" text="Ordinary people also chat (briefly)" />
+    <string id="AIL_e37fa365" text="winter (high risk of disease)" />
+    <string id="AIL_e3a1d50c" text="Chronicle: minimum chats with the deceased" />
+    <string id="AIL_e3aa1cab" text="Memories (one per line)" />
+    <string id="AIL_e3b035c2" text="the town" />
+    <string id="AIL_e3c37efa" text="Plus factory secrets (world_data\secrets.json)" />
+    <string id="AIL_e3e82b77" text="Your prisoners are healed." />
+    <string id="AIL_e3f5b714" text="loyalty" />
+    <string id="AIL_e405f75e" text="Language of NPC replies" />
+    <string id="AIL_e424c129" text="World news" />
+    <string id="AIL_e4267ade" text="FOR TESTING ONLY. NPCs accept almost any reasonable request (following you, tasks, gifts, troops) without you having to earn their trust first. Turn it off to play." />
+    <string id="AIL_e43ca0c4" text="You are too young to have children." />
+    <string id="AIL_e45c3132" text="a plague" />
+    <string id="AIL_e47fec25" text="Creativity. 80 = 0.8. Some models (GPT-5) ignore it." />
+    <string id="AIL_e4a9f3a0" text="prosperity" />
+    <string id="AIL_e4f26c59" text="3. Actions" />
+    <string id="AIL_e50ca8f9" text="{0} hands over {1} to {2}." />
+    <string id="AIL_e514530a" text="empty response" />
+    <string id="AIL_e5df30fb" text="&#10;&#10;PAST&#10;" />
+    <string id="AIL_e644c872" text="Undo import" />
+    <string id="AIL_e6c89e51" text="{0} is thinking..." />
+    <string id="AIL_e6d0eecf" text="Tension at the moment (0 to 100)" />
+    <string id="AIL_e70b1e8a" text="{0} leaves for {1}." />
+    <string id="AIL_e778fb02" text="{0} sentence(s)" />
+    <string id="AIL_e7c1ccde" text="Your party is protected for {0} days." />
+    <string id="AIL_e8438e2a" text="Close" />
+    <string id="AIL_e9023c1f" text="{0} goes to find {1}." />
+    <string id="AIL_e904786b" text="they are no longer at war" />
+    <string id="AIL_e911ba7b" text="{0} has been arrested in {1} and taken to the dungeons, accused before witnesses by {2}." />
+    <string id="AIL_e912d419" text="The AI invents them from the real people of each kingdom and from events. They appear gradually (one kingdom per game day). Here you can see who each one is about and who knows it; you can delete the ones you don't like." />
+    <string id="AIL_e9459925" text="&#10;Your men are protected for {0} more day(s)." />
+    <string id="AIL_e94ae63e" text="{=!}Treat your troops ({AIL_H_TROOPS}{GOLD_ICON})" />
+    <string id="AIL_e95b93ac" text="{0}, {1}, has arrived in {2}." />
+    <string id="AIL_e97439d8" text="Duel with {0}!" />
+    <string id="AIL_e99f2367" text="Fields that can change at once" />
+    <string id="AIL_e9d88202" text="Maximum reparations" />
+    <string id="AIL_e9f35fb7" text="{0} calls the guard: you have earned a bad reputation with {1}." />
+    <string id="AIL_e9f870fb" text="An event can stain or exalt the name of a specific clan (yours too): its income drops or rises by a percentage for a few days. It shows in the clan's income breakdown and in News." />
+    <string id="AIL_ea10db3c" text="Search hero to add…" />
+    <string id="AIL_ea76bfc7" text="the AI did not respond" />
+    <string id="AIL_eacf656a" text="&#10;Deadline: {0} day(s) left" />
+    <string id="AIL_eade4433" text="Your troops can fall ill" />
+    <string id="AIL_eb19bc3f" text="Unknown route: " />
+    <string id="AIL_eb1b8e7a" text="Maximum guards and defenders in a fight" />
+    <string id="AIL_eb66dabe" text="Battle" />
+    <string id="AIL_ebad7b06" text="See all" />
+    <string id="AIL_ebb02c23" text="World saved" />
+    <string id="AIL_ebf54145" text="Your heralds carry the declaration to every corner…" />
+    <string id="AIL_ec31e35b" text="Raid" />
+    <string id="AIL_eccf1cc9" text="Address (only if the service is &quot;other&quot;)" />
+    <string id="AIL_ed904e98" text="{0} has joined the company of {1}." />
+    <string id="AIL_ed9f27d0" text="JSON list: id, text, chance (0-100), who (all, lords, faction_leaders, clan_leaders, companions, wanderers, merchants, gang_leaders, town_notables, village_notables, townsfolk, villagers, guards, culture:id, kingdom:id or hero id)." />
+    <string id="AIL_edd26e08" text="Maximum relation change per reply" />
+    <string id="AIL_ee278059" text="The word across Calradia is: {0}" />
+    <string id="AIL_ee39700e" text="Disease" />
+    <string id="AIL_ef0295b5" text="Siege of {0}" />
+    <string id="AIL_ef08b937" text="no clan" />
+    <string id="AIL_ef1030cb" text="Nobody saw it: nobody will know it was you." />
+    <string id="AIL_ef8b7c72" text="A king can create a law of their own with small daily effects in all their towns and castles (loyalty, prosperity, security, food), and repeal it." />
+    <string id="AIL_efa2c194" text="Arrested by the guard" />
+    <string id="AIL_effea661" text="Summarize after N turns" />
+    <string id="AIL_f00983f3" text="Write what you proclaim before Calradia. Whatever you decide clearly (war, peace, alliance, tribute, taxes, fiefs…) will be carried out; the rest will remain just words." />
+    <string id="AIL_f039f8c1" text="Active tasks at once" />
+    <string id="AIL_f054b3ad" text="&#10;Time of year: {0}." />
+    <string id="AIL_f08739d1" text="If you say nothing during this time, the AI decides whether someone in the group continues the conversation (pushes you, or they start talking among themselves). Each time is one request." />
+    <string id="AIL_f0a2c329" text="{0} has fulfilled a task from {1}: {2}." />
+    <string id="AIL_f0c471e9" text="Romance that stops the game from marrying them to someone else (0 = don't stop)" />
+    <string id="AIL_f106aea0" text="Download copy (.json)" />
+    <string id="AIL_f12fa594" text="{0} pays {1} {2} denars in reparations." />
+    <string id="AIL_f1406603" text="you have delivered {0} and carry {1} of {2} × {3}" />
+    <string id="AIL_f1ae2294" text="{0} proposes an alliance to {1}." />
+    <string id="AIL_f2440a00" text="The guard arrests you: you are going to the dungeons of {0}." />
+    <string id="AIL_f257824f" text="How they treat superiors, equals, inferiors and strangers" />
+    <string id="AIL_f25e35cc" text="Mood" />
+    <string id="AIL_f264e0b3" text="Real trade with the people of the place" />
+    <string id="AIL_f2caa92d" text="A. World and diplomacy" />
+    <string id="AIL_f30c7e23" text="Past" />
+    <string id="AIL_f3138943" text="Relation: {0:+0;-0;0}" />
+    <string id="AIL_f313a714" text="Spouse" />
+    <string id="AIL_f362d5cb" text="{0} hires your clan as mercenaries for {1}." />
+    <string id="AIL_f378719a" text="{0} hands over their prisoner {1} to you." />
+    <string id="AIL_f39268ed" text="Personality" />
+    <string id="AIL_f3c39683" text="today" />
+    <string id="AIL_f42f2a6a" text="Minimum days between approaches" />
+    <string id="AIL_f43bef55" text="Memories kept of each other character" />
+    <string id="AIL_f43d7a3d" text="Test" />
+    <string id="AIL_f45ab3e9" text="failed" />
+    <string id="AIL_f48c59a0" text="unnamed law" />
+    <string id="AIL_f4d11fd9" text="the and but because as when where who whom which this that these those is are was were have has had do does did can could will would should " />
+    <string id="AIL_f4f38e0c" text="There are no more {0} patients in {1}." />
+    <string id="AIL_f533587d" text="empty response (finish_reason=" />
+    <string id="AIL_f636277a" text="you have no room left for more companions" />
+    <string id="AIL_f65463d8" text="{0} gives up their life here and joins your company." />
+    <string id="AIL_f683eca5" text="In each town's menu, &quot;Visit the hospital&quot;: they tell you about the diseases going around, treat you, your companions, your wounded or sick troops and your prisoners (for a fee; cheaper in prosperous towns), and sell prevention so your men fall ill less for a few days." />
+    <string id="AIL_f6cbdca6" text="Group: seconds without talking before it breaks up" />
+    <string id="AIL_f71c6f6e" text="You have no healthy men left to call." />
+    <string id="AIL_f7528310" text="Saved memory" />
+    <string id="AIL_f7d8e495" text="Assault by a stranger" />
+    <string id="AIL_f8007f6a" text="Each NPC keeps track of how much they trust you. Without enough trust they don't share secrets or sensitive information." />
+    <string id="AIL_f85f4507" text="Message from {0}, of {1}" />
+    <string id="AIL_f8647bfd" text="Type: {0}   ·   {1} day(s) ago   ·   Importance {2} ({3})" />
+    <string id="AIL_f8823100" text="Show the AI's orders" />
+    <string id="AIL_f8ac2cac" text="Chronicle of {0}" />
+    <string id="AIL_f8db9623" text="Buttons on the map (News / Memories)" />
+    <string id="AIL_f8fff764" text="A villager you have really talked to can give up their life and join your company: they become a permanent character, with their own name, personality and memory. Their appearance changes to that of the new character." />
+    <string id="AIL_f90050f2" text="Social" />
+    <string id="AIL_f92abc25" text="No tasks" />
+    <string id="AIL_f96ef1d1" text="Events only" />
+    <string id="AIL_f991b6e7" text="The deadline has passed." />
+    <string id="AIL_fa2d5313" text="{0} lifts the quarantine of {1}." />
+    <string id="AIL_fa46e0da" text="spotted fever" />
+    <string id="AIL_faa80647" text="Import" />
+    <string id="AIL_fab5d985" text="Way of speaking" />
+    <string id="AIL_fb003d1c" text="Invalid JSON: " />
+    <string id="AIL_fb600910" text="To have siblings you first need a father or a mother: create a parent first." />
+    <string id="AIL_fb96809a" text="{=!}Anything else?" />
+    <string id="AIL_fba371fc" text="You sell {0} of {1} for {2} denars." />
+    <string id="AIL_fbf8b45d" text="a tribute of {0} denars per day for {1} days" />
+    <string id="AIL_fc0a69e3" text="Fall of a kingdom" />
+    <string id="AIL_fc7ff1ee" text="Maximum effect: duration (days)" />
+    <string id="AIL_fcce1e3f" text="Minimum days between approaches by the same NPC" />
+    <string id="AIL_fd19d606" text="for {0} year(s)" />
+    <string id="AIL_fd36d8df" text="What was said with {0}" />
+    <string id="AIL_fd3f245a" text="Enabled actions" />
+    <string id="AIL_fd4aafcb" text="You marry {0}!" />
+    <string id="AIL_fd4ffbec" text="World data" />
+    <string id="AIL_fd5decd8" text="Arena: cost (% of the normal price)" />
+    <string id="AIL_fd8ad9a8" text="&#10;Promised reward: {0} denars" />
+    <string id="AIL_fd979159" text="AIInfluence import" />
+    <string id="AIL_fde1c2b2" text="Arena: hours until you can repeat in the same one" />
+    <string id="AIL_fde6aa22" text="Usual fine: minimum" />
+    <string id="AIL_fe057bc7" text="You leave the guard talking to thin air: your bad reputation here grows." />
+    <string id="AIL_fe2134ff" text="everyone" />
+    <string id="AIL_fe5df831" text="{0} and {1} have married." />
+    <string id="AIL_fe9e2f63" text="Talk in the scene from the map" />
+    <string id="AIL_feb8d02f" text="has died of old age" />
+    <string id="AIL_fec92cb7" text="Declaration of the crown" />
+    <string id="AIL_fedffd7f" text="The lord of the place judges you" />
+    <string id="AIL_fefe856a" text="day(s)" />
+    <string id="AIL_ff0ad962" text="{0} arrests {1}: they are taken to the dungeons of {2}." />
+    <string id="AIL_ff3da657" text="Off: each chat between characters is written whole in one request. On: it is requested in turns and each round knows what was said before; they can interrupt each other and the chat ends on its own if you step in. Uses several requests per chat." />
+    <string id="AIL_ff5c778e" text="You have arrived in {0}. Return to {1}." />
+    <string id="AIL_ff6e4415" text="{0} approaches you." />
+    <string id="AIL_ffcd4d39" text="Crown tax: minimum (%)" />
+  </strings>
+</base>

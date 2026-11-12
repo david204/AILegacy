@@ -64,7 +64,7 @@ namespace AILegacy.World
                 }
                 var st = Settlement.CurrentSettlement;
                 if (st != null) LastAt[st.StringId] = CampaignTime.Now.ToHours;
-                InformationManager.DisplayMessage(new InformationMessage(L.F($"Tus hombres terminan el entrenamiento: {trained} han ganado experiencia") + (hurt > 0 ? L.F($", {hurt} se han lesionado.") : "."), Colors.Green));
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_980877af", $"Tus hombres terminan el entrenamiento: {trained} han ganado experiencia") + (hurt > 0 ? L.F("AIL_66fb1576", $", {hurt} se han lesionado.") : "."), Colors.Green));
                 Log.Info($"[arena] entrenamiento terminado: {trained} entrenados, {hurt} lesionados");
             }
             catch (Exception ex) { Log.Error("Fin del entrenamiento", ex); }
@@ -74,7 +74,7 @@ namespace AILegacy.World
 
         public static void AddMenus(CampaignGameStarter starter)
         {
-            starter.AddGameMenuOption("town_arena", "ailegacy_arena_train", L.T("{=!}Entrenar a tus tropas en la arena, 8 horas ({AIL_TRAIN_COST}{GOLD_ICON})"),
+            starter.AddGameMenuOption("town_arena", "ailegacy_arena_train", L.T("AIL_2e04a874", "{=!}Entrenar a tus tropas en la arena, 8 horas ({AIL_TRAIN_COST}{GOLD_ICON})"),
                 args =>
                 {
                     args.optionLeaveType = GameMenuOption.LeaveType.Wait;
@@ -83,12 +83,12 @@ namespace AILegacy.World
                     if (!cfg.EnableArenaTraining || st == null || !st.IsTown) return false;
                     int cost = Cost();
                     MBTextManager.SetTextVariable("AIL_TRAIN_COST", cost);
-                    if (Fit() < 1) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("{=!}No tienes soldados sanos que entrenar.")); }
-                    else if (st.Town.HasTournament) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("{=!}Hay torneo: la arena está ocupada.")); }
+                    if (Fit() < 1) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_96e9202d", "{=!}No tienes soldados sanos que entrenar.")); }
+                    else if (st.Town.HasTournament) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_42b92c67", "{=!}Hay torneo: la arena está ocupada.")); }
                     else if (LastAt.TryGetValue(st.StringId, out double at) && CampaignTime.Now.ToHours - at < cfg.ArenaTrainingCooldownHours)
-                    { args.IsEnabled = false; args.Tooltip = new TextObject(L.F($"{{=!}}Esta arena no os admite de nuevo hasta dentro de {(int)Math.Ceiling(cfg.ArenaTrainingCooldownHours - (CampaignTime.Now.ToHours - at))} horas.")); }
-                    else if (Hero.MainHero.Gold < cost) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("{=!}No tienes dinero para pagar a los maestros de armas.")); }
-                    else args.Tooltip = new TextObject(L.T("{=!}Tus hombres sanos ganan experiencia (más los novatos). Alguno puede lesionarse. Más barato en tus propias ciudades."));
+                    { args.IsEnabled = false; args.Tooltip = new TextObject(L.F("AIL_d9b2a7c5", $"{{=!}}Esta arena no os admite de nuevo hasta dentro de {(int)Math.Ceiling(cfg.ArenaTrainingCooldownHours - (CampaignTime.Now.ToHours - at))} horas.")); }
+                    else if (Hero.MainHero.Gold < cost) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_73936b3a", "{=!}No tienes dinero para pagar a los maestros de armas.")); }
+                    else args.Tooltip = new TextObject(L.T("AIL_2b8dd572", "{=!}Tus hombres sanos ganan experiencia (más los novatos). Alguno puede lesionarse. Más barato en tus propias ciudades."));
                     return true;
                 },
                 args =>
@@ -101,7 +101,7 @@ namespace AILegacy.World
                     GameMenu.SwitchToMenu("ailegacy_arena_training");
                 }, false, 2);
 
-            starter.AddWaitGameMenu("ailegacy_arena_training", L.T("{=!}Tus hombres se entrenan en la arena bajo los maestros de armas. Se oyen los golpes de las espadas de madera y los gritos de los instructores."),
+            starter.AddWaitGameMenu("ailegacy_arena_training", L.T("AIL_76e00257", "{=!}Tus hombres se entrenan en la arena bajo los maestros de armas. Se oyen los golpes de las espadas de madera y los gritos de los instructores."),
                 args => { try { if (PlayerEncounter.Current != null) PlayerEncounter.Current.IsPlayerWaiting = true; } catch { } },
                 args => { args.MenuContext.GameMenu.SetTargetedWaitingTimeAndInitialProgress(Hours, _progress / Hours); return true; },
                 args => Finish(),
@@ -113,7 +113,7 @@ namespace AILegacy.World
                 },
                 GameMenu.MenuAndOptionType.WaitMenuShowOnlyProgressOption, GameMenu.MenuOverlayType.None, Hours);
 
-            starter.AddGameMenuOption("ailegacy_arena_training", "ailegacy_arena_stop", L.T("{=!}Interrumpir el entrenamiento (no te devuelven el dinero)"),
+            starter.AddGameMenuOption("ailegacy_arena_training", "ailegacy_arena_stop", L.T("AIL_48173f1f", "{=!}Interrumpir el entrenamiento (no te devuelven el dinero)"),
                 args => { args.optionLeaveType = GameMenuOption.LeaveType.Leave; return true; },
                 args =>
                 {
@@ -171,7 +171,7 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
                 if (wars.Count > 0) sb.AppendLine("- The realm is at war with: " + string.Join(", ", wars) + ".");
                 sb.AppendLine("- Lately: " + WorldSim.DescribeRecentNews(5));
                 string prompt = TUnique.Format("town", town.Name, "culture", town.Culture?.Name?.ToString() ?? "", "faction", town.MapFaction?.Name?.ToString() ?? "", "context", sb.ToString().TrimEnd(), "existing", existing, "language", cfg.Language);
-                WorldSim.Ask(L.T("personaje único"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 900, j => Create(town, j));
+                WorldSim.Ask(L.T("AIL_58e1ca60", "personaje único"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 900, j => Create(town, j));
             }
             catch (Exception ex) { Log.Error("Personajes únicos", ex); }
         }
@@ -207,10 +207,10 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
                 NewsStore.Add(new NewsItem
                 {
                     Type = "rumor", Importance = 1, Text = $"A newcomer has arrived in {town.Name}: {name}, {(roleEn.Length > 2 ? roleEn : role)}.",
-                    TitleEs = L.F($"Llega a {town.Name}: {name}"), TextEs = arrival.Length > 10 ? arrival : L.F($"{name}, {role}, ha llegado a {town.Name}."), SettlementId = town.StringId,
+                    TitleEs = L.F("AIL_c3a3b332", $"Llega a {town.Name}: {name}"), TextEs = arrival.Length > 10 ? arrival : L.F("AIL_e95b93ac", $"{name}, {role}, ha llegado a {town.Name}."), SettlementId = town.StringId,
                     Kingdoms = town.MapFaction != null ? new List<string> { town.MapFaction.StringId } : new List<string>(), Heroes = new List<string> { hero.StringId },
                 });
-                InformationManager.DisplayMessage(new InformationMessage(L.F($"Se cuenta por {town.Name}: ha llegado {name}, {role}."), new Color(0.4f, 0.9f, 0.95f)));
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_1c42ff4a", $"Se cuenta por {town.Name}: ha llegado {name}, {role}."), new Color(0.4f, 0.9f, 0.95f)));
                 SaveFiles.Flush();
                 Log.Info($"[únicos] {name} ({role}) llega a {town.Name} [{hero.StringId}]");
             }
@@ -257,15 +257,15 @@ Answer ONLY with JSON: { ""title"": ""3 to 7 words"", ""text"": ""the chronicle"
                 if (hist.Length == 0) hist.AppendLine("(they spoke a few times; nothing of note is recorded)");
                 string player = Hero.MainHero.Name.ToString(), name = victim.Name.ToString(), id = victim.StringId;
                 string prompt = TLife.Format("name", name, "player", player, "facts", sb.ToString().TrimEnd(), "death", death, "history", hist.ToString().TrimEnd(), "min_len", 300, "max_len", 900, "language", cfg.Language);
-                WorldSim.Ask(L.T("crónica de una muerte"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 800, j =>
+                WorldSim.Ask(L.T("AIL_8dc2db66", "crónica de una muerte"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 800, j =>
                 {
                     string title = WorldSim.Clean((string)j["title"], 80), text = WorldSim.Clean((string)j["text"], 1200);
                     if (text.Length < 40) return;
-                    if (title.Length < 3) title = L.F($"Crónica de {name}");
+                    if (title.Length < 3) title = L.F("AIL_f8ac2cac", $"Crónica de {name}");
                     m.Pages.Add(new MemoryPage { Title = title, Text = text, Day = CampaignTime.Now.ToDays });
                     NewsStore.Add(new NewsItem { Type = "death", Importance = 2, Text = $"The chronicle of {name}, who has died, has been written.", TitleEs = title, TextEs = text, Heroes = new List<string> { id }, PlayerInvolved = true });
                     SaveFiles.Flush();
-                    InformationManager.ShowInquiry(new InquiryData(title, text, true, false, L.T("Cerrar"), "", null, null), true);
+                    InformationManager.ShowInquiry(new InquiryData(title, text, true, false, L.T("AIL_e8438e2a", "Cerrar"), "", null, null), true);
                 });
             }
             catch (Exception ex) { Log.Error("Crónica de una muerte", ex); }

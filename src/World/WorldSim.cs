@@ -439,7 +439,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 State.LastEventGenerationDay = now.ToDays;
                 State.NextEventGenerationDay = now.ToDays + cfg.WorldEventsIntervalDays * (0.6 + Rng.NextDouble() * 0.8);
             }
-            Ask(reactive ? L.T("reacción a un suceso real") : "generar eventos",
+            Ask(reactive ? L.T("AIL_ce8115b0", "reacción a un suceso real") : "generar eventos",
                 new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", reactive ? "Write the development now." : "Write the events now.") },
                 count * 700 + 400, ApplyEvents);
         }
@@ -497,7 +497,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 TitleEs = e.Title, TextEs = e.Text, Kingdoms = e.Kingdoms.ToList(), SettlementId = e.Settlements.FirstOrDefault(),
             });
             Log.Info($"[mundo] evento [{e.Type}, imp {e.Importance}]: {e.Title}");
-            if (e.Importance >= S.Get.WorldEventNotifyImportance) Say(L.F($"Se cuenta por Calradia: {e.Title}"), Colors.Cyan);
+            if (e.Importance >= S.Get.WorldEventNotifyImportance) Say(L.F("AIL_ee278059", $"Se cuenta por Calradia: {e.Title}"), Colors.Cyan);
         }
 
         private static void AddClanEffect(WorldEvent e, JObject f)
@@ -518,7 +518,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 UntilDay = CampaignTime.Now.ToDays + Math.Max(1, Math.Min(cfg.EffectMaxDays, (int?)f["duration_days"] ?? 14)),
             });
             Log.Info($"[mundo] efecto en el clan {clan.Name}: ingresos {pct:+0;-0}% ");
-            if (clan == Clan.PlayerClan) Say(L.F($"Tu clan lo nota: ingresos {pct:+0;-0} % mientras dure ({Clean((string)f["reason"], 120)})."), pct < 0 ? Colors.Red : Colors.Green);
+            if (clan == Clan.PlayerClan) Say(L.F("AIL_c81ffc1c", $"Tu clan lo nota: ingresos {pct:+0;-0} % mientras dure ({Clean((string)f["reason"], 120)})."), pct < 0 ? Colors.Red : Colors.Green);
         }
 
         /// <summary>Cuánto suben o bajan ahora los precios del mercado de ese lugar por los sucesos en curso (0,25 = +25 %).</summary>
@@ -637,16 +637,16 @@ Write ONE development that follows directly from it: how the people, the nobles,
                     if (!string.IsNullOrEmpty(f.ClanId))
                     {
                         var cl = Clan.All.FirstOrDefault(c => c.StringId == f.ClanId);
-                        parts.Add(L.F($"Clan {cl?.Name?.ToString() ?? "?"}: ingresos {(f.IncomePercent > 0 ? "+" : "−")}{Math.Abs(f.IncomePercent):0} % (quedan {Math.Max(1, (int)Math.Ceiling(f.UntilDay - now))} días). {f.Reason}").TrimEnd());
+                        parts.Add(L.F("AIL_3be1eaff", $"Clan {cl?.Name?.ToString() ?? "?"}: ingresos {(f.IncomePercent > 0 ? "+" : "−")}{Math.Abs(f.IncomePercent):0} % (quedan {Math.Max(1, (int)Math.Ceiling(f.UntilDay - now))} días). {f.Reason}").TrimEnd());
                         continue;
                     }
                     var st = Settlement.Find(f.SettlementId);
                     var bits = new List<string>();
-                    void Add(string name, float v) { if (Math.Abs(v) >= 0.01f) bits.Add(L.F($"{name} {(v > 0 ? "+" : "−")}{Math.Abs(v):0.##} al día")); }
-                    Add(L.T("prosperidad"), f.ProsperityPerDay); Add(L.T("comida"), f.FoodPerDay); Add(L.T("seguridad"), f.SecurityPerDay); Add(L.T("lealtad"), f.LoyaltyPerDay);
-                    if (Math.Abs(f.PricePercent) >= 1f) bits.Add(L.F($"precios del mercado {(f.PricePercent > 0 ? "+" : "−")}{Math.Abs(f.PricePercent):0} %"));
+                    void Add(string name, float v) { if (Math.Abs(v) >= 0.01f) bits.Add(L.F("AIL_4d99daae", $"{name} {(v > 0 ? "+" : "−")}{Math.Abs(v):0.##} al día")); }
+                    Add(L.T("AIL_e4a9f3a0", "prosperidad"), f.ProsperityPerDay); Add(L.T("AIL_d93015a6", "comida"), f.FoodPerDay); Add(L.T("AIL_5fd22751", "seguridad"), f.SecurityPerDay); Add(L.T("AIL_e3f5b714", "lealtad"), f.LoyaltyPerDay);
+                    if (Math.Abs(f.PricePercent) >= 1f) bits.Add(L.F("AIL_9d381c5c", $"precios del mercado {(f.PricePercent > 0 ? "+" : "−")}{Math.Abs(f.PricePercent):0} %"));
                     if (bits.Count == 0) continue;
-                    parts.Add(L.F($"{st?.Name?.ToString() ?? L.T("El lugar")}: {string.Join(", ", bits)} (quedan {Math.Max(1, (int)Math.Ceiling(f.UntilDay - now))} días)"));
+                    parts.Add(L.F("AIL_01e11e81", $"{st?.Name?.ToString() ?? L.T("AIL_c8ad772b", "El lugar")}: {string.Join(", ", bits)} (quedan {Math.Max(1, (int)Math.Ceiling(f.UntilDay - now))} días)"));
                 }
                 return string.Join("\n", parts);
             }

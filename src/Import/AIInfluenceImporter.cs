@@ -31,7 +31,7 @@ namespace AILegacy.Import
             {
                 try
                 {
-                    if (Campaign.Current == null) { Show("AI Legacy", L.T("Carga primero una partida.")); return; }
+                    if (Campaign.Current == null) { Show("AI Legacy", L.T("AIL_a858eb42", "Carga primero una partida.")); return; }
                     var id = Campaign.Current.UniqueGameId;
                     var dir = SaveDataRoots().Select(r => Path.Combine(r, id)).FirstOrDefault(Directory.Exists);
                     if (dir != null) { Import(dir, true); return; }
@@ -49,9 +49,9 @@ namespace AILegacy.Import
                     if (options.Count == 0) { Show("AI Legacy", "No he encontrado datos de AIInfluence."); return; }
 
                     MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
-                        L.T("Importar de AIInfluence"),
-                        L.F($"No hay datos de AIInfluence para ESTA campaña ({id}).\n\nPuedes importar otra campaña: solo se usarán los NPC que existan en esta partida ") +
-                        L.T("(los lores del juego tienen el mismo id en todas). Ojo: recordarán cosas de aquella partida."),
+                        L.T("AIL_b80262c3", "Importar de AIInfluence"),
+                        L.F("AIL_6dfb3368", $"No hay datos de AIInfluence para ESTA campaña ({id}).\n\nPuedes importar otra campaña: solo se usarán los NPC que existan en esta partida ") +
+                        L.T("AIL_b3384056", "(los lores del juego tienen el mismo id en todas). Ojo: recordarán cosas de aquella partida."),
                         options, true, 1, 1, "Importar", "Cancelar",
                         sel => { if (sel?.Count > 0) MainThread.Post(() => Import((string)sel[0].Identifier, false)); }, null), true);
                 }
@@ -66,19 +66,19 @@ namespace AILegacy.Import
             {
                 try
                 {
-                    if (Campaign.Current == null) { Show("AI Legacy", L.T("Carga primero una partida.")); return; }
+                    if (Campaign.Current == null) { Show("AI Legacy", L.T("AIL_a858eb42", "Carga primero una partida.")); return; }
                     var imported = MemoryStore.AllHeroes.Where(m => m.ImportedFrom != null).ToList();
-                    if (imported.Count == 0) { Show("AI Legacy", L.T("En esta campaña no hay memorias importadas.")); return; }
-                    InformationManager.ShowInquiry(new InquiryData(L.T("Deshacer importación"),
-                        L.F($"Se van a quitar de esta campaña las memorias de {imported.Count} personajes que vinieron de AIInfluence ") +
-                        L.T("(incluido lo que hayas hablado con ellos después). Sus archivos se apartan a una subcarpeta de la campaña, no se borran.\n\n¿Seguir?"),
+                    if (imported.Count == 0) { Show("AI Legacy", L.T("AIL_129b4432", "En esta campaña no hay memorias importadas.")); return; }
+                    InformationManager.ShowInquiry(new InquiryData(L.T("AIL_e644c872", "Deshacer importación"),
+                        L.F("AIL_cb889c97", $"Se van a quitar de esta campaña las memorias de {imported.Count} personajes que vinieron de AIInfluence ") +
+                        L.T("AIL_68edf522", "(incluido lo que hayas hablado con ellos después). Sus archivos se apartan a una subcarpeta de la campaña, no se borran.\n\n¿Seguir?"),
                         true, true, "Quitar", "Cancelar", () =>
                         {
                             var dest = SaveFiles.BackupHeroFiles(Campaign.Current.UniqueGameId, imported, "importados");
                             foreach (var m in imported) MemoryStore.Remove(m.HeroId);
                             SaveFiles.Flush();
                             Log.Info($"Importación deshecha: {imported.Count} personajes apartados a {dest}");
-                            Show("AI Legacy", L.F($"Quitadas las memorias importadas de {imported.Count} personajes.\nCopia en:\n{dest}\n\nGuarda la partida para que quede así."));
+                            Show("AI Legacy", L.F("AIL_35ac229c", $"Quitadas las memorias importadas de {imported.Count} personajes.\nCopia en:\n{dest}\n\nGuarda la partida para que quede así."));
                         }, null), true);
                 }
                 catch (Exception ex) { Log.Error("Deshacer importación", ex); Show("AI Legacy", "Error: " + ex.Message); }
@@ -103,7 +103,7 @@ namespace AILegacy.Import
 
                     var m = Convert(j, hero);
                     if (m == null) { missing++; continue; }
-                    m.ImportedFrom = Path.GetFileName(dir) + (sameCampaign ? "" : L.T(" (otra campaña)"));
+                    m.ImportedFrom = Path.GetFileName(dir) + (sameCampaign ? "" : L.T("AIL_226baec1", " (otra campaña)"));
                     MemoryStore.Put(m);
                     imported++;
                     if (names.Count < 12) names.Add(hero.Name.ToString());
@@ -111,10 +111,10 @@ namespace AILegacy.Import
                 catch (Exception ex) { failed++; Log.Error("Importando " + Path.GetFileName(file), ex); }
             }
             Log.Info($"Importación de {dir}: {imported} importados, {skipped} ya tenían memoria, {missing} sin héroe/datos, {failed} con error");
-            Show(L.T("Importación de AIInfluence"),
-                L.F($"Importados: {imported}\nYa tenían memoria en AI Legacy (no tocados): {skipped}\nSin datos útiles o no existen en esta partida: {missing}\nCon error: {failed}") +
+            Show(L.T("AIL_fd979159", "Importación de AIInfluence"),
+                L.F("AIL_4232f06e", $"Importados: {imported}\nYa tenían memoria en AI Legacy (no tocados): {skipped}\nSin datos útiles o no existen en esta partida: {missing}\nCon error: {failed}") +
                 (names.Count > 0 ? "\n\n" + string.Join(", ", names) + (imported > names.Count ? "…" : "") : "") +
-                L.T("\n\nGuarda la partida para conservarlo."));
+                L.T("AIL_d5d6b599", "\n\nGuarda la partida para conservarlo."));
         }
 
         private static HeroMemory Convert(JObject j, Hero hero)
@@ -214,6 +214,6 @@ namespace AILegacy.Import
         private static string Join(params string[] parts) => string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
 
         private static void Show(string title, string text) =>
-            InformationManager.ShowInquiry(new InquiryData(title, text, true, false, L.T("Vale"), "", null, null), true);
+            InformationManager.ShowInquiry(new InquiryData(title, text, true, false, L.T("AIL_d36c447b", "Vale"), "", null, null), true);
     }
 }

@@ -46,7 +46,7 @@ namespace AILegacy.Dialogue
 
             if (!LegacyConfig.Current.Providers.Any(p => p.IsUsable))
             {
-                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("no hay ninguna api_key configurada en Modules\\AILegacy\\config.json")), Colors.Red);
+                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("AIL_06c4b9a6", "no hay ninguna api_key configurada en Modules\\AILegacy\\config.json")), Colors.Red);
                 return;
             }
 
@@ -59,10 +59,10 @@ namespace AILegacy.Dialogue
             if (session._win != null)
             {
                 session.RefreshSubtitle();
-                vm.WaitingText = L.F($"{s.Name} está pensando...");
+                vm.WaitingText = L.F("AIL_e6c89e51", $"{s.Name} está pensando...");
                 vm.AddSystem(session.Mem.ConversationCount > 0
-                    ? L.F($"{s.Name} te reconoce. Ya habéis hablado {session.Mem.ConversationCount} {(session.Mem.ConversationCount == 1 ? L.T("vez") : L.T("veces"))}.  (Escribe /ayuda para ver los comandos)")
-                    : L.F($"{s.Name} espera a que hables.  (Escribe /ayuda para ver los comandos)"));
+                    ? L.F("AIL_aad18359", $"{s.Name} te reconoce. Ya habéis hablado {session.Mem.ConversationCount} {(session.Mem.ConversationCount == 1 ? L.T("AIL_8a30751a", "vez") : L.T("AIL_592eb989", "veces"))}.  (Escribe /ayuda para ver los comandos)")
+                    : L.F("AIL_4b77b3ae", $"{s.Name} espera a que hables.  (Escribe /ayuda para ver los comandos)"));
             }
             else
             {
@@ -103,7 +103,7 @@ namespace AILegacy.Dialogue
 
             if (!LegacyConfig.Current.Providers.Any(p => p.IsUsable))
             {
-                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("no hay ninguna api_key configurada en Modules\\AILegacy\\config.json")), Colors.Red);
+                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("AIL_06c4b9a6", "no hay ninguna api_key configurada en Modules\\AILegacy\\config.json")), Colors.Red);
                 return null;
             }
             var session = new ChatSession(s) { _dialogMode = true };
@@ -119,34 +119,34 @@ namespace AILegacy.Dialogue
         {
             if (_closed || _waiting || _npcEnded) return;
             string last = Mem.LastConversationDay < 0 ? "Nunca"
-                : (int)(CampaignTime.Now.ToDays - Mem.LastConversationDay) <= 0 ? L.T("Hoy")
-                : L.F($"Hace {(int)(CampaignTime.Now.ToDays - Mem.LastConversationDay)} días");
+                : (int)(CampaignTime.Now.ToDays - Mem.LastConversationDay) <= 0 ? L.T("AIL_564e2e23", "Hoy")
+                : L.F("AIL_b2b050b8", $"Hace {(int)(CampaignTime.Now.ToDays - Mem.LastConversationDay)} días");
             var lastNpc = Mem.Turns.LastOrDefault(t => t.Role == "npc")?.Text;
             string body = string.IsNullOrWhiteSpace(lastNpc)
-                ? L.F($"Última vez que hablasteis: {last}.")
-                : L.F($"Último mensaje de {_s.Name}:\n{(lastNpc.Length > 700 ? lastNpc.Substring(0, 700) + "…" : lastNpc)}");
+                ? L.F("AIL_1e733cef", $"Última vez que hablasteis: {last}.")
+                : L.F("AIL_e102e90e", $"Último mensaje de {_s.Name}:\n{(lastNpc.Length > 700 ? lastNpc.Substring(0, 700) + "…" : lastNpc)}");
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                L.F($"Tu mensaje para {_s.Name}"), body + L.T("\n\n(/ayuda para ver los comandos)"),
+                L.F("AIL_4f47d62d", $"Tu mensaje para {_s.Name}"), body + L.T("AIL_904fdecc", "\n\n(/ayuda para ver los comandos)"),
                 true, true, "Confirmar", "Cancelar",
                 t => OnPlayerSaid(t), null, false,
-                t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("Escribe algo"))), true);
+                t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
 
         /// <summary>Texto que enseña el cuadro de diálogo del NPC ahora mismo (marca la respuesta como leída).</summary>
         public string ConsumeDialogText()
         {
-            if (_waiting) return L.F($"*{_s.Name} todavía está pensando…*");
-            if (!HasUnreadReply && _lastNpc.Length == 0 && _dialogNotes.Count == 0) return L.T("(Envía tu mensaje y espera su respuesta)");
+            if (_waiting) return L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*");
+            if (!HasUnreadReply && _lastNpc.Length == 0 && _dialogNotes.Count == 0) return L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)");
             HasUnreadReply = false;
             var sb = new StringBuilder();
-            if (_lastPlayer.Length > 0) sb.Append(L.T("Tú: ")).Append(_lastPlayer).Append("{newline}{newline}");
+            if (_lastPlayer.Length > 0) sb.Append(L.T("AIL_63ea9af4", "Tú: ")).Append(_lastPlayer).Append("{newline}{newline}");
             if (_lastNpc.Length > 0) sb.Append(_lastNpc.StartsWith("(") ? "" : _s.Name + ": ").Append(_lastNpc);
             foreach (var n in _dialogNotes) sb.Append("{newline}» ").Append(n);
             _dialogNotes.Clear();
             return Sanitize(sb.ToString());
         }
 
-        public string WaitText => _waiting || _lastNpc.Length == 0 ? L.T("(Envía tu mensaje y espera su respuesta)") : Sanitize(_lastNpc);
+        public string WaitText => _waiting || _lastNpc.Length == 0 ? L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)") : Sanitize(_lastNpc);
 
         private static string Sanitize(string s) =>
             (s ?? "").Replace("{newline}", "\u0001").Replace("{", "(").Replace("}", ")").Replace("\u0001", "{newline}").Replace("\r", "").Replace("\n", "{newline}");
@@ -162,11 +162,11 @@ namespace AILegacy.Dialogue
             if (_s.IsHero)
             {
                 int rel = (int)_s.Hero.GetRelationWithPlayer();
-                parts.Add(L.F($"Relación: {rel:+0;-0;0}"));
+                parts.Add(L.F("AIL_f3138943", $"Relación: {rel:+0;-0;0}"));
                 if (_s.Hero.Clan != null) parts.Add(_s.Hero.Clan.Name.ToString());
             }
             else if (_s.Settlement != null) parts.Add(_s.Settlement.Name.ToString());
-            if (!string.IsNullOrWhiteSpace(Mem.Mood)) parts.Add(L.T("Ánimo: ") + Mem.Mood);
+            if (!string.IsNullOrWhiteSpace(Mem.Mood)) parts.Add(L.T("AIL_5e479046", "Ánimo: ") + Mem.Mood);
             _win.VM.Subtitle = string.Join("   ·   ", parts);
             _win.VM.Title = _s.Name;
         }
@@ -174,8 +174,8 @@ namespace AILegacy.Dialogue
         private void UiPlayer(string text)
         {
             if (_dialogMode) { _lastPlayer = text; _lastNpc = ""; return; }
-            if (UseWindow) _win.VM.AddLine(L.T("Tú"), text, ChatVM.PlayerColor);
-            else _transcript.Add(L.F($"Tú: {text}"));
+            if (UseWindow) _win.VM.AddLine(L.T("AIL_4c6b494e", "Tú"), text, ChatVM.PlayerColor);
+            else _transcript.Add(L.F("AIL_016ea49e", $"Tú: {text}"));
         }
 
         private void UiNpc(string text)
@@ -184,7 +184,7 @@ namespace AILegacy.Dialogue
             {
                 _lastNpc = text;
                 HasUnreadReply = true;
-                Notify(L.F($"{_s.Name} te contesta."), Colors.Yellow);
+                Notify(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow);
                 return;
             }
             if (UseWindow) _win.VM.AddLine(_s.Name, text, ChatVM.NpcColor);
@@ -196,18 +196,18 @@ namespace AILegacy.Dialogue
             if (_dialogMode)
             {
                 if (error) { _lastNpc = "(" + text + ")"; HasUnreadReply = true; Notify(text.Split('\n')[0], Colors.Red); }
-                else { _dialogNotes.Add(text); HasUnreadReply = true; Notify(L.T("AI Legacy: comando aplicado. Pulsa «Ver su respuesta»."), Colors.Gray); }
+                else { _dialogNotes.Add(text); HasUnreadReply = true; Notify(L.T("AIL_78f99860", "AI Legacy: comando aplicado. Pulsa «Ver su respuesta»."), Colors.Gray); }
                 return;
             }
             if (UseWindow) { if (error) _win.VM.AddError(text); else _win.VM.AddSystem(text); }
-            else InformationManager.ShowInquiry(new InquiryData(error ? "AI Legacy" : _s.Name, text, true, false, L.T("Volver"), "", () => MainThread.Post(ShowLegacyInput), null), true);
+            else InformationManager.ShowInquiry(new InquiryData(error ? "AI Legacy" : _s.Name, text, true, false, L.T("AIL_1df7d173", "Volver"), "", () => MainThread.Post(ShowLegacyInput), null), true);
         }
 
         private void UiWaiting(bool waiting)
         {
             if (_dialogMode) return;
             if (UseWindow) _win.VM.IsWaiting = waiting;
-            else if (waiting) Notify(L.F($"{_s.Name} está pensando..."), Colors.Gray);
+            else if (waiting) Notify(L.F("AIL_e6c89e51", $"{_s.Name} está pensando..."), Colors.Gray);
         }
 
         private void UiReady()
@@ -224,15 +224,15 @@ namespace AILegacy.Dialogue
             if (_closed) return;
             var body = new StringBuilder();
             if (_transcript.Count == 0)
-                body.Append(Mem.ConversationCount > 0 ? L.F($"{_s.Name} te reconoce.") : L.F($"{_s.Name} espera a que hables."));
+                body.Append(Mem.ConversationCount > 0 ? L.F("AIL_96bb78de", $"{_s.Name} te reconoce.") : L.F("AIL_2d66ff9e", $"{_s.Name} espera a que hables."));
             else
                 foreach (var line in _transcript.Skip(Math.Max(0, _transcript.Count - 2)))
                     body.AppendLine(line.Length > 600 ? line.Substring(0, 600) + "…" : line).AppendLine();
 
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                _s.Name, body.ToString().TrimEnd(), true, true, L.T("Decir"), "Terminar",
+                _s.Name, body.ToString().TrimEnd(), true, true, L.T("AIL_aa23f794", "Decir"), "Terminar",
                 OnPlayerSaid, () => Close(_npcEnded), false,
-                t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("Escribe algo"))), true);
+                t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
 
         // ============================================================ lógica
@@ -259,7 +259,7 @@ namespace AILegacy.Dialogue
             {
                 Log.Error("Error construyendo el prompt", ex);
                 RemoveLastPlayerTurn(text);
-                UiSystem(L.T("Error interno construyendo el contexto: ") + ex.Message, true);
+                UiSystem(L.T("AIL_ccda8e3e", "Error interno construyendo el contexto: ") + ex.Message, true);
                 return;
             }
 
@@ -300,14 +300,14 @@ namespace AILegacy.Dialogue
             {
                 RemoveLastPlayerTurn(playerText);
                 Log.Error("Sin respuesta: " + res.Error);
-                UiSystem(L.T("No ha llegado respuesta de ninguna IA. Pulsa Decir para reintentar.\n") + res.Error, true);
+                UiSystem(L.T("AIL_4073a6cc", "No ha llegado respuesta de ninguna IA. Pulsa Decir para reintentar.\n") + res.Error, true);
                 return;
             }
 
             var reply = NpcReply.Parse(res.Text);
             Mem.LastAiResponse = res.Text != null && res.Text.Length > 4000 ? res.Text.Substring(0, 4000) : res.Text;
             if (_s.IsHero) Mem.Snapshot = ContextBuilder.Snapshot(_s.Hero);
-            if (string.IsNullOrWhiteSpace(reply.Reply)) reply.Reply = L.T("*te mira en silencio*");
+            if (string.IsNullOrWhiteSpace(reply.Reply)) reply.Reply = L.T("AIL_da6122fe", "*te mira en silencio*");
 
             if (reply.Profile != null && Mem.Profile != null && !Mem.Profile.IsEmpty && Mem.Profile.IsIncomplete)
             {
@@ -337,19 +337,19 @@ namespace AILegacy.Dialogue
                 Log.Info($"{_s.Name} termina la conversación");
                 if (UseWindow)
                 {
-                    _win.VM.AddSystem(L.F($"({_s.Name} da la conversación por terminada)"));
+                    _win.VM.AddSystem(L.F("AIL_42b37383", $"({_s.Name} da la conversación por terminada)"));
                     _win.VM.CanType = false;
-                    _win.VM.CloseText = L.T("Continuar");
+                    _win.VM.CloseText = L.T("AIL_b9c116de", "Continuar");
                     RefreshSubtitle();
                 }
                 else if (_dialogMode)
                 {
-                    _dialogNotes.Add(L.F($"({_s.Name} da la conversación por terminada)"));
+                    _dialogNotes.Add(L.F("AIL_42b37383", $"({_s.Name} da la conversación por terminada)"));
                 }
                 else
                 {
-                    InformationManager.ShowInquiry(new InquiryData(_s.Name, reply.Reply + "\n\n(" + _s.Name + L.T(" da la conversación por terminada)"),
-                        true, false, L.T("Continuar"), "", () => Close(true), null), true);
+                    InformationManager.ShowInquiry(new InquiryData(_s.Name, reply.Reply + "\n\n(" + _s.Name + L.T("AIL_552be781", " da la conversación por terminada)"),
+                        true, false, L.T("AIL_b9c116de", "Continuar"), "", () => Close(true), null), true);
                 }
                 return;
             }
@@ -399,7 +399,7 @@ namespace AILegacy.Dialogue
                 if (td != 0)
                 {
                     Log.Info($"Confianza de {_s.Name}: {(td > 0 ? "+" : "")}{td} (ahora {Mem.Trust})");
-                    shown.Add(L.F($"Confianza {(td > 0 ? "+" : "")}{td}"));
+                    shown.Add(L.F("AIL_c78d48c5", $"Confianza {(td > 0 ? "+" : "")}{td}"));
                 }
             }
             if (cfg.EnableTension)
@@ -409,7 +409,7 @@ namespace AILegacy.Dialogue
                 if (xd != 0)
                 {
                     Log.Info($"Tensión con {_s.Name}: {(xd > 0 ? "+" : "")}{xd} (ahora {Mem.Tension})");
-                    shown.Add(L.F($"Tensión {(xd > 0 ? "+" : "")}{xd}"));
+                    shown.Add(L.F("AIL_23b67cad", $"Tensión {(xd > 0 ? "+" : "")}{xd}"));
                 }
             }
             if (Bonds.RomancePossible(_s))
@@ -419,7 +419,7 @@ namespace AILegacy.Dialogue
                 if (rd != 0)
                 {
                     Log.Info($"Romance con {_s.Name}: {(rd > 0 ? "+" : "")}{rd} (ahora {Mem.Romance})");
-                    shown.Add(L.F($"Romance {(rd > 0 ? "+" : "")}{rd}"));
+                    shown.Add(L.F("AIL_d09068cf", $"Romance {(rd > 0 ? "+" : "")}{rd}"));
                 }
             }
 
@@ -434,7 +434,7 @@ namespace AILegacy.Dialogue
                     _relationChangedThisTalk += delta;
                     Mem.RelationChangedTotal += delta;
                     Log.Info($"Relación con {_s.Name}: {(delta > 0 ? "+" : "")}{delta}");
-                    shown.Add(L.F($"Relación {(delta > 0 ? "+" : "")}{delta}"));
+                    shown.Add(L.F("AIL_a190aec6", $"Relación {(delta > 0 ? "+" : "")}{delta}"));
                 }
             }
 
@@ -472,32 +472,32 @@ namespace AILegacy.Dialogue
             {
                 case "/nota": case "/note":
                 case "/instruccion": case "/instruction":
-                    if (arg.Length == 0) { UiSystem(L.T("Uso: /nota <instrucción>   Ej: /nota Es mi esposa y está embarazada; nunca me sermonea sobre el peligro.")); return; }
+                    if (arg.Length == 0) { UiSystem(L.T("AIL_3ff4d651", "Uso: /nota <instrucción>   Ej: /nota Es mi esposa y está embarazada; nunca me sermonea sobre el peligro.")); return; }
                     Mem.CustomInstructions.Add(arg.Length > 600 ? arg.Substring(0, 600) : arg);
                     Log.Info($"Instrucción para {_s.Name}: {arg}");
                     SaveFiles.Flush();
-                    UiSystem(L.F($"Instrucción guardada para {_s.Name}."));
+                    UiSystem(L.F("AIL_84e9a594", $"Instrucción guardada para {_s.Name}."));
                     return;
 
                 case "/borrarnotas": case "/clearnotes":
                     Mem.CustomInstructions.Clear();
                     SaveFiles.Flush();
-                    UiSystem(L.F($"Instrucciones de {_s.Name} borradas."));
+                    UiSystem(L.F("AIL_96ea6365", $"Instrucciones de {_s.Name} borradas."));
                     return;
 
                 case "/memoria": case "/memory":
                 {
                     var b = new StringBuilder();
-                    b.AppendLine(L.F($"Te conoce como: {ContextBuilder.PlayerNameFor(_s) ?? L.T("(desconocido)")}   ·   Conversaciones: {Mem.ConversationCount}   ·   Mentiras pilladas: {Mem.LiesSuspected}"));
-                    if (!string.IsNullOrWhiteSpace(Mem.Mood)) b.AppendLine(L.F($"Ánimo: {Mem.Mood} ({Mem.MoodReason})"));
-                    if (S.Get.EnableTension) b.AppendLine(L.F($"Tensión: {Bonds.Tension(Mem)}"));
-                    if (S.Get.EnableTrust) { Bonds.EnsureTrust(_s); b.AppendLine(L.F($"Confianza: {Mem.Trust}") + (Bonds.RomancePossible(_s) ? L.F($"   ·   Romance: {Mem.Romance}") : "")); }
-                    if (_s.IsHero && OrderSystem.Find(_s.Hero) is PartyOrder po) b.AppendLine(L.F($"Orden en curso: {po.Type} {po.TargetName} (hasta el día {po.UntilDay:0})"));
+                    b.AppendLine(L.F("AIL_a5eee76f", $"Te conoce como: {ContextBuilder.PlayerNameFor(_s) ?? L.T("AIL_99316d74", "(desconocido)")}   ·   Conversaciones: {Mem.ConversationCount}   ·   Mentiras pilladas: {Mem.LiesSuspected}"));
+                    if (!string.IsNullOrWhiteSpace(Mem.Mood)) b.AppendLine(L.F("AIL_2259555a", $"Ánimo: {Mem.Mood} ({Mem.MoodReason})"));
+                    if (S.Get.EnableTension) b.AppendLine(L.F("AIL_55654690", $"Tensión: {Bonds.Tension(Mem)}"));
+                    if (S.Get.EnableTrust) { Bonds.EnsureTrust(_s); b.AppendLine(L.F("AIL_2cb6f858", $"Confianza: {Mem.Trust}") + (Bonds.RomancePossible(_s) ? L.F("AIL_bbb8296b", $"   ·   Romance: {Mem.Romance}") : "")); }
+                    if (_s.IsHero && OrderSystem.Find(_s.Hero) is PartyOrder po) b.AppendLine(L.F("AIL_7ff96949", $"Orden en curso: {po.Type} {po.TargetName} (hasta el día {po.UntilDay:0})"));
                     if (Mem.Profile != null && !Mem.Profile.IsEmpty) b.AppendLine("Personalidad: " + Mem.Profile.Personality).AppendLine("Secreto: " + Mem.Profile.Secret);
                     if (!string.IsNullOrWhiteSpace(Mem.Summary)) b.AppendLine("Resumen: " + Mem.Summary);
-                    foreach (var n in Mem.Notes) b.AppendLine(L.T("· Recuerda: ") + n);
-                    foreach (var n in Mem.CustomInstructions) b.AppendLine(L.T("· Tu instrucción: ") + n);
-                    if (Mem.ImportedFrom != null) b.AppendLine(L.T("Importado de AIInfluence: ") + Mem.ImportedFrom);
+                    foreach (var n in Mem.Notes) b.AppendLine(L.T("AIL_0ede5f95", "· Recuerda: ") + n);
+                    foreach (var n in Mem.CustomInstructions) b.AppendLine(L.T("AIL_70ab64bf", "· Tu instrucción: ") + n);
+                    if (Mem.ImportedFrom != null) b.AppendLine(L.T("AIL_4e260c5a", "Importado de AIInfluence: ") + Mem.ImportedFrom);
                     UiSystem(b.ToString().TrimEnd());
                     return;
                 }
@@ -505,16 +505,16 @@ namespace AILegacy.Dialogue
                 case "/olvidar": case "/forget":
                     if (!string.Equals(arg, "confirmar", StringComparison.OrdinalIgnoreCase))
                     {
-                        UiSystem(L.F($"Esto borra TODA la memoria de {_s.Name} sobre ti. Para hacerlo escribe: /olvidar confirmar"));
+                        UiSystem(L.F("AIL_07d92c66", $"Esto borra TODA la memoria de {_s.Name} sobre ti. Para hacerlo escribe: /olvidar confirmar"));
                         return;
                     }
                     MemoryStore.Remove(_s.Key);
-                    Notify(L.F($"{_s.Name} lo ha olvidado todo."), Colors.Green);
+                    Notify(L.F("AIL_1a8ef2ad", $"{_s.Name} lo ha olvidado todo."), Colors.Green);
                     Close(false);
                     return;
 
                 default:
-                    UiSystem(L.T("Comandos:  /nota <texto> (instrucción permanente)  ·  /borrarnotas  ·  /memoria (qué recuerda)  ·  /olvidar  ·  /ayuda"));
+                    UiSystem(L.T("AIL_dd76aabc", "Comandos:  /nota <texto> (instrucción permanente)  ·  /borrarnotas  ·  /memoria (qué recuerda)  ·  /olvidar  ·  /ayuda"));
                     return;
             }
         }

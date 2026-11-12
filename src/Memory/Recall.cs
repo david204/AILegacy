@@ -17,9 +17,9 @@ namespace AILegacy.Memory
     internal static class Recall
     {
         private static readonly HashSet<string> Stop = new HashSet<string>(
-            (L.T("para pero porque como cuando donde quien quién cual esto esta este esos esas estos estas aquel aquella tiene tengo tienes tenemos hacer hace hago haces puede puedo puedes ") +
-             L.T("quiero quieres quiere muy mas más menos todo toda todos todas nada algo alguien nadie bien mal aqui aquí alli allí ahora luego antes despues después siempre nunca tambien también ") +
-             L.T("sobre entre desde hasta hacia contra segun según mismo misma otro otra otros otras mucho mucha poco poca usted vuestro vuestra nuestro nuestra señor señora ") +
+            (L.T("AIL_f4d11fd9", "para pero porque como cuando donde quien quién cual esto esta este esos esas estos estas aquel aquella tiene tengo tienes tenemos hacer hace hago haces puede puedo puedes ") +
+             L.T("AIL_88476cb6", "quiero quieres quiere muy mas más menos todo toda todos todas nada algo alguien nadie bien mal aqui aquí alli allí ahora luego antes despues después siempre nunca tambien también ") +
+             L.T("AIL_48f76bf1", "sobre entre desde hasta hacia contra segun según mismo misma otro otra otros otras mucho mucha poco poca usted vuestro vuestra nuestro nuestra señor señora ") +
              "that this with from have what when where which there their they them then than your yours will would could should about been were into some more most very just also " +
              "said told know think want need like well here because while after before again never always something nothing someone").Split(' '));
 

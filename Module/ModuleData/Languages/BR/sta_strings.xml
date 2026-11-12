@@ -1,0 +1,1267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/BUTR/Bannerlord.XmlSchemas/master/ModuleLanguage.xsd" type="string">
+  <tags>
+    <tag language="Português (BR)" />
+  </tags>
+  <strings>
+    <string id="AIL_0042ce81" text="{=!}Voltar" />
+    <string id="AIL_004eae62" text="O guarda pode passar até cinco vezes deste valor se houve sangue ou se você o desrespeitar." />
+    <string id="AIL_007c510b" text="expulsar o jogador desativado" />
+    <string id="AIL_00d8d85f" text="Pasta aberta no computador do jogo" />
+    <string id="AIL_00ec5af6" text="morreu" />
+    <string id="AIL_0107d6be" text="{0} escoltará {1}." />
+    <string id="AIL_011ed64e" text="Com um senhor inimigo você também pode desmontar e conversar cara a cara. Ao voltar ao mapa, o encontro continua onde estava (atacar, se render, deixar você ir), a menos que na conversa tenha ficado resolvido." />
+    <string id="AIL_015c810d" text="Leis proclamadas pelos reis" />
+    <string id="AIL_016ea49e" text="Você: {0}" />
+    <string id="AIL_01ad2df2" text="{0} dá a tarefa por cumprida." />
+    <string id="AIL_01e11e81" text="{0}: {1} (restam {2} dias)" />
+    <string id="AIL_020f810a" text="Quem está perto e ouve o que você diz ao grupo pode se aproximar e entrar na conversa se tiver interesse nela. Não gasta requisições a mais." />
+    <string id="AIL_025a42fd" text="Um personagem novo que entra no seu clã e na sua partida (se houver vaga de companheiro). Depois você pode gerar a personalidade dele com IA a partir da ficha." />
+    <string id="AIL_02982857" text="Adicionar personagem" />
+    <string id="AIL_02e730b3" text="Quando uma conversa deixa dois personagens claramente melhor ou pior, a relação deles no jogo sobe ou desce um ponto." />
+    <string id="AIL_030c9961" text="Histórico apagado" />
+    <string id="AIL_031d614f" text="Página do seu livro" />
+    <string id="AIL_0361e655" text="Prosperidade perdida por dia por nível de gravidade" />
+    <string id="AIL_03bb5d20" text="uma briga de socos" />
+    <string id="AIL_03bc7447" text="   ·   Humor: {0}" />
+    <string id="AIL_03be4040" text="Você paga {0} denares e fica livre." />
+    <string id="AIL_043426f0" text="Evento" />
+    <string id="AIL_0482ecfa" text="Segredo" />
+    <string id="AIL_04c41d7c" text="Em batalha, Alt+B: você escreve a ordem como a diria («a cavalaria pela esquerda contra os arqueiros deles») e a IA a converte em ordens às suas formações. O jogo pausa enquanto você escreve." />
+    <string id="AIL_04d419f6" text="A tensão sobe com insultos e ameaças e diminui com os dias. Com tensão alta, o NPC pode partir para a violência ou chamar a guarda. Ele também avalia se você o assusta (suas tropas contra as dele)." />
+    <string id="AIL_0504fb72" text="Escreva um: gemini, openai, groq, deepseek, openrouter, ollama (local, sem chave) ou outro (então preencha o endereço)." />
+    <string id="AIL_05112fe7" text="A guarda de {0} interrogou {1} após uma confusão e o deixou ir." />
+    <string id="AIL_0529fe40" text="Há 1 dia" />
+    <string id="AIL_053cbde7" text="Foi declarada {0} em {1}. Dizem que é {2}." />
+    <string id="AIL_05883eac" text="Quem conhece você diz algo ao passar" />
+    <string id="AIL_0681e274" text="Encomenda «{0}»: " />
+    <string id="AIL_0696ca62" text="Efeito máximo: comida por dia" />
+    <string id="AIL_06b1b9ba" text="Buscar qualquer herói…" />
+    <string id="AIL_06be773b" text=". Antes pertencia a {0}{1}." />
+    <string id="AIL_06c4b9a6" text="nenhuma api_key configurada em Modules\AILegacy\config.json" />
+    <string id="AIL_072e561a" text="Tamanho mínimo de um evento (caracteres)" />
+    <string id="AIL_07bd9260" text="{0} impõe um imposto extraordinário de {1} % em suas cidades." />
+    <string id="AIL_07cfa3c4" text="esfaqueado" />
+    <string id="AIL_07d92c66" text="Isto apaga TODA a memória de {0} sobre você. Para confirmar, digite: /forget confirmar" />
+    <string id="AIL_07e9f3c5" text="(Envie sua mensagem e espere a resposta)" />
+    <string id="AIL_080a0e95" text="{0} deixa você para morto. Você sobrevive por milagre." />
+    <string id="AIL_08285b4c" text="um acordo comercial" />
+    <string id="AIL_0872713a" text="Vazio" />
+    <string id="AIL_089c5db1" text="Modelos de instruções do AI Legacy para ESTA campanha.&#13;&#10;&#13;&#10;" />
+    <string id="AIL_08ae4ed8" text="Memória apagada" />
+    <string id="AIL_08b5bd20" text="{0} abandona seu clã." />
+    <string id="AIL_08baf922" text="A memória acompanha a partida salva" />
+    <string id="AIL_08cd64bc" text="Participantes: " />
+    <string id="AIL_08d1b4a4" text="{0} recebeu {1} de {2} × {3}" />
+    <string id="AIL_08fb0c3a" text=" se junta à sua partida" />
+    <string id="AIL_095b55a1" text="Documento · de {0}" />
+    <string id="AIL_09c1508e" text="Você está livre." />
+    <string id="AIL_09d60746" text="Romance entre pessoas do mesmo sexo" />
+    <string id="AIL_0a0689c9" text="{0} deixa de seguir você e volta aos seus assuntos." />
+    <string id="AIL_0a072878" text="Recados que cada NPC lembra" />
+    <string id="AIL_0a156f01" text="ação desconhecida" />
+    <string id="AIL_0a44192c" text="{=!}Curar seus companheiros ({AIL_H_COMP}{GOLD_ICON})" />
+    <string id="AIL_0aaea1bc" text="Agressão sem testemunhas" />
+    <string id="AIL_0b2f92c7" text="Básico" />
+    <string id="AIL_0b583a3b" text="{0} se recusa a pagar reparações a {1}." />
+    <string id="AIL_0b611224" text="{0}, capturado" />
+    <string id="AIL_0b677944" text="Ao passar: distância a que falam com você (metros)" />
+    <string id="AIL_0b9bdfcf" text="Os médicos não têm notícia de nenhuma doença em Calradia no momento." />
+    <string id="AIL_0bc1afa9" text="{=!}Você está saudável." />
+    <string id="AIL_0be30312" text="Vai no começo de cada conversa. Escreva em inglês (as respostas saem no seu idioma). É aplicado na frase seguinte." />
+    <string id="AIL_0bfa167c" text="Valor máximo dos objetos que um NPC dá de uma vez" />
+    <string id="AIL_0ca5ee01" text="Máximo de frases numa conversa entre personagens" />
+    <string id="AIL_0cd6f2e1" text="{0}: desativado ou sem api_key" />
+    <string id="AIL_0d2bb14b" text="Economia" />
+    <string id="AIL_0d2e0018" text="{0} se recusa a ceder território a {1}." />
+    <string id="AIL_0d7f7775" text="{0} expulsa do reino o clã {1}." />
+    <string id="AIL_0d81b407" text="Lembranças relevantes trazidas a cada resposta" />
+    <string id="AIL_0d832ced" text="Temperatura (x100)" />
+    <string id="AIL_0d849eb1" text="Mudança máxima de postura entre coroas por declaração" />
+    <string id="AIL_0db9b33c" text="Duelo" />
+    <string id="AIL_0ddba7d9" text="&#10;Conhece você como: {0}" />
+    <string id="AIL_0e382db2" text="&#10;&#10;— {0} (há {1} dias) —&#10;" />
+    <string id="AIL_0e578525" text="Cansaço de guerra: por cidade ou castelo perdido" />
+    <string id="AIL_0e7aa239" text="Probabilidade diária de responder a uma proposta (%)" />
+    <string id="AIL_0ea1a4c8" text="Intimidade" />
+    <string id="AIL_0ebbc439" text="Denares por unidade de distância no mapa. As cartas são enviadas do distrito das tavernas." />
+    <string id="AIL_0ede5f95" text="· Lembra: " />
+    <string id="AIL_0fbba7b1" text="{0} entrega a você: {1}." />
+    <string id="AIL_100794a8" text="declaração do jogador" />
+    <string id="AIL_1057a530" text="Turnos de histórico no prompt" />
+    <string id="AIL_1068028c" text="Sua chave desse serviço. Ela aparece em texto claro nesta tela: não a mostre em capturas de tela." />
+    <string id="AIL_109be563" text="Morte por interpretação" />
+    <string id="AIL_10e460d5" text="Misterioso" />
+    <string id="AIL_10f114fb" text="Esse personagem não existe mais na partida." />
+    <string id="AIL_114e50bb" text="{0} de {1} pertence agora a {2}{3}" />
+    <string id="AIL_11783c51" text="Prisioneiro" />
+    <string id="AIL_1191e28d" text="(Esta tarefa menciona alguém ou algo que não existe no mundo: não dá para verificar sozinha e será julgada por quem a passou a você.)" />
+    <string id="AIL_11a9a28f" text="Arena: experiência base por soldado" />
+    <string id="AIL_122eb7e1" text="Um forasteiro armado atacou {0}{1}. Alguém viu o agressor, mas ninguém sabe quem era." />
+    <string id="AIL_1230749f" text="Saqueiam {0}" />
+    <string id="AIL_129b4432" text="Esta campanha não tem memórias importadas." />
+    <string id="AIL_12efd9a7" text="Duração máxima de uma ordem (dias)" />
+    <string id="AIL_131719b8" text="Quem quer falar se aproxima andando" />
+    <string id="AIL_13527f3f" text="O que vai entre chaves, como {npc_name} ou {language}, é preenchido pelo mod: não traduza nem apague.&#13;&#10;" />
+    <string id="AIL_13afe103" text="Guerra" />
+    <string id="AIL_14250983" text="Um rei pode declarar guerra a você ou assinar a paz com você se você também for rei." />
+    <string id="AIL_1425de35" text="Mudança máxima de relação por conversa" />
+    <string id="AIL_148d1995" text="Distância a que um guarda ouve que o chamam (metros)" />
+    <string id="AIL_14d6bbb7" text="Grupo: os que estão ao redor podem entrar na conversa" />
+    <string id="AIL_14ed1b61" text="Clãs" />
+    <string id="AIL_156ada7f" text="O grupo fica em silêncio." />
+    <string id="AIL_15853344" text="O que respeita e o que despreza" />
+    <string id="AIL_1586f13c" text="Os NPCs descrevem gestos entre *asteriscos*." />
+    <string id="AIL_15eec8c6" text="Frases durante as brigas" />
+    <string id="AIL_160a2e2f" text="Máximo de personagens únicos vivos" />
+    <string id="AIL_161727d1" text="Vitória de {0}" />
+    <string id="AIL_162d77c2" text="Casamento de {0} e {1}" />
+    <string id="AIL_16443f4c" text="Os nobres do seu reino reconhecem você" />
+    <string id="AIL_164cfae0" text="Máximo de soldados seus numa briga de rua" />
+    <string id="AIL_16a1a48b" text="Parentesco" />
+    <string id="AIL_170fa0ef" text="Romance com pessoas casadas" />
+    <string id="AIL_175eb081" text="{=!}Esta tarefa não está mais de pé." />
+    <string id="AIL_17a3df8d" text="Provedor para as batalhas" />
+    <string id="AIL_17ca3c0a" text="Cada personagem com nome guarda como se dá com outros personagens e o último que aconteceu entre eles (as conversas, um recado, um desprezo na sua frente, uma prisão). Eles usam isso quando conversam entre si, em grupo e com você. É guardado no arquivo dele, em «others»." />
+    <string id="AIL_1834d79b" text="Conversas antigas" />
+    <string id="AIL_18b82bcb" text="Eventos de fundo: a cada quantos dias (aprox.)" />
+    <string id="AIL_18d97adb" text="Sem frases guardadas." />
+    <string id="AIL_18fd1956" text="Nome exato do modelo. Vazio: gemini-3.5-flash-lite, gpt-5.6-luna, llama-3.3-70b-versatile, deepseek-chat ou llama3.1, conforme o serviço." />
+    <string id="AIL_18fe8281" text="Livro de memórias" />
+    <string id="AIL_1a8ef2ad" text="{0} esqueceu tudo." />
+    <string id="AIL_1b467603" text="O que é e o que diz" />
+    <string id="AIL_1b485942" text="assentamento sem doença ou alheio" />
+    <string id="AIL_1b520886" text="Mundo" />
+    <string id="AIL_1b8ccb46" text="Probabilidade de adoecerem por nível de gravidade (%)" />
+    <string id="AIL_1b9a1bfb" text="Cartas dos NPCs" />
+    <string id="AIL_1c381bc9" text="Quantos saem em defesa do agredido, no máximo" />
+    <string id="AIL_1c42ff4a" text="Corre a notícia por {0}: chegou {1}, {2}." />
+    <string id="AIL_1c6f47d4" text="um vizinho" />
+    <string id="AIL_1cb10851" text="Abrir o editor do AI Legacy" />
+    <string id="AIL_1d0a19e2" text="aliança impossível agora" />
+    <string id="AIL_1d2a25e7" text="Restaurado: " />
+    <string id="AIL_1d38423b" text="9. Editor" />
+    <string id="AIL_1d3c2297" text="Cai o reino de {0}" />
+    <string id="AIL_1d84efed" text="a corte" />
+    <string id="AIL_1df7d173" text="Voltar" />
+    <string id="AIL_1e4baeec" text="Confiança necessária para contar segredos" />
+    <string id="AIL_1e684c40" text="Nome" />
+    <string id="AIL_1e733cef" text="Última vez que vocês conversaram: {0}." />
+    <string id="AIL_1e8da0b8" text="Provedor 3" />
+    <string id="AIL_1ee0d3b1" text="{0} embainha a arma." />
+    <string id="AIL_1ee35da7" text="Você ataca {0}!" />
+    <string id="AIL_1f1faf3a" text="Se desativado, os NPCs só falam: não dão ouro, não se juntam a você, etc." />
+    <string id="AIL_1f2a27ea" text="Notícias e eventos atuais" />
+    <string id="AIL_1f8da24b" text="Provedor 2" />
+    <string id="AIL_1fb2c5a1" text="{0} sai para caçar {1}." />
+    <string id="AIL_2003bc66" text="uns {0} dias" />
+    <string id="AIL_203a7d74" text="{0} promulga a lei «{1}»" />
+    <string id="AIL_208da3de" text="Provedor 1" />
+    <string id="AIL_20b8ba96" text="Cena do mapa: também com inimigos (parlamento)" />
+    <string id="AIL_20cbe084" text="Você não tem {0} denares para comprar a oficina de {1}." />
+    <string id="AIL_20e63156" text="Remove desta campanha as memórias que vieram do AIInfluence (por exemplo, se você importou as de outra partida). Os arquivos são movidos para uma subpasta, não são apagados." />
+    <string id="AIL_2118a039" text="Eventos" />
+    <string id="AIL_2215a755" text="{0} entra na conversa." />
+    <string id="AIL_2259555a" text="Humor: {0} ({1})" />
+    <string id="AIL_226baec1" text=" (outra campanha)" />
+    <string id="AIL_226c9a7f" text="&#10;&#10;Você está saudável." />
+    <string id="AIL_2287fa82" text="Nas cenas, o que os personagens dizem entre si ou o que gritam para você ao passar aparece escrito sobre a cabeça deles." />
+    <string id="AIL_22932a37" text="Sem notícias" />
+    <string id="AIL_22b0d9b9" text="Romance necessário para a intimidade" />
+    <string id="AIL_22c76d52" text="Criar companheiro" />
+    <string id="AIL_23b67cad" text="Tensão {0}{1}" />
+    <string id="AIL_23bfd455" text="{0} não conseguiu alcançar você e volta aos seus assuntos." />
+    <string id="AIL_23d64abe" text="A guarda de {0} multou {1} em {2} denares por uma confusão." />
+    <string id="AIL_24ba54ab" text="{0} cede {1} soldados{2} a você." />
+    <string id="AIL_24d3d112" text="Os médicos deixam você como novo." />
+    <string id="AIL_24fc64b9" text="{0} agora é alguém que você conhece: você poderá encontrá-lo de novo em {1}." />
+    <string id="AIL_2504fc22" text="Segredos de origem por reino" />
+    <string id="AIL_254648d0" text="{0} agora é da sua família." />
+    <string id="AIL_256e88f0" text="Ouro máximo por ação" />
+    <string id="AIL_258dabbd" text="Provedor 4" />
+    <string id="AIL_25c835cb" text="Usar asteriscos para gestos" />
+    <string id="AIL_2603bf41" text="Você já é casado." />
+    <string id="AIL_263bf6a9" text="{0}/{1}: OK em {2:0.0}s" />
+    <string id="AIL_265409ff" text="Entendido" />
+    <string id="AIL_266f75ee" text="O clã {0} muda de lado" />
+    <string id="AIL_26906366" text="Ouvem você: {0}.{1}{2}" />
+    <string id="AIL_2691821b" text="&#10;&#10;Não há nenhuma doença na cidade." />
+    <string id="AIL_26b70a49" text="O que cada chefe brada aos seus aparece no registro (e sobre a cabeça dele, se estiver perto)." />
+    <string id="AIL_26e90847" text="Quantas vezes seguidas podem continuar a conversa sem que você diga nada. Quando você fala, a contagem recomeça." />
+    <string id="AIL_26eb718e" text="Casamento" />
+    <string id="AIL_270778c1" text="{0} dá por encerrado seu acordo comercial com {1}." />
+    <string id="AIL_270c2dbd" text="1 = uma requisição por frase (o mais caro). 2 = metade das requisições." />
+    <string id="AIL_276e2745" text="Casamento com companheiros, andarilhos e notáveis" />
+    <string id="AIL_27a8d342" text="Carta para {0}" />
+    <string id="AIL_27bd042f" text="uma aliança" />
+    <string id="AIL_2808c06c" text="Conversas entre personagens nas cenas" />
+    <string id="AIL_2839a892" text="Ativado: sua relação é com essa pessoa. Desativado (como no jogo): com um nobre, sua relação é a do chefe do clã dele." />
+    <string id="AIL_28b223a8" text="Local" />
+    <string id="AIL_28e8e86e" text="Pastas" />
+    <string id="AIL_291705dd" text="Salvar" />
+    <string id="AIL_292485a4" text="Eventos de fundo (sem que tenha acontecido nada)" />
+    <string id="AIL_2924e794" text="Para não gastar cota quando você avança o tempo depressa." />
+    <string id="AIL_297f659a" text="Quantos de cada tropa aparecem atrás do seu chefe (primeiro seus heróis, depois suas melhores tropas)." />
+    <string id="AIL_298b35b9" text="Brigas de socos e duelos nas cenas, ataque e rendição de inimigos no mapa, e chamar a guarda." />
+    <string id="AIL_298da7f9" text="Sabem disso:" />
+    <string id="AIL_29902717" text="frases recentes" />
+    <string id="AIL_29a99738" text="{=!}Vamos desmontar e conversar cara a cara. [AI Legacy: cena]" />
+    <string id="AIL_29e73294" text="Efeito máximo de um evento sobre os preços de um mercado (%)" />
+    <string id="AIL_29f8c9a1" text="Cartas, selos, contratos, peças de roupa… Não são objetos do jogo: existem para a história. Os personagens sabem que você os carrega se você os mostrar ou entregar numa conversa." />
+    <string id="AIL_2a6395bc" text="{0} de {1} caiu após um cerco nas mãos de {2}{3}" />
+    <string id="AIL_2a891567" text="Opcional: algo que você queira que ele tenha (p. ex. «é covarde, mas disfarça com bravatas»)" />
+    <string id="AIL_2b8dd572" text="{=!}Seus homens saudáveis ganham experiência (mais os novatos). Alguém pode se machucar. Mais barato nas suas próprias cidades." />
+    <string id="AIL_2bd4d43b" text="Você ordena: «{0}»" />
+    <string id="AIL_2bd6ef00" text="Nova tarefa: «{0}» ({1} dias" />
+    <string id="AIL_2bf0193d" text="Os arquivos que você não tocou são atualizados sozinhos quando uma nova versão do mod melhora o texto.&#13;&#10;" />
+    <string id="AIL_2c243fac" text="Se os dois que vão conversar não estão juntos, um caminha até o outro antes de começar (também entre andares, se houver caminho)." />
+    <string id="AIL_2cb6f858" text="Confiança: {0}" />
+    <string id="AIL_2d23d9be" text=" perto de {0}." />
+    <string id="AIL_2d487a5a" text="{0} aceita um duelo até a morte. Começa assim que a conversa terminar." />
+    <string id="AIL_2d5ee223" text="um tributo" />
+    <string id="AIL_2d66ff9e" text="{0} está esperando você falar." />
+    <string id="AIL_2d756f08" text="Você não tem {0} denares para pagar a {1}." />
+    <string id="AIL_2d97f1db" text="Você entrega {0} prisioneiros a {1}." />
+    <string id="AIL_2da177ae" text="Os soldados e guardas também conversam (em voz baixa)" />
+    <string id="AIL_2da21a68" text="Os duelos até a morte matam de verdade" />
+    <string id="AIL_2dbeb3e1" text="Criar objeto" />
+    <string id="AIL_2e04a874" text="{=!}Treinar suas tropas na arena, 8 horas ({AIL_TRAIN_COST}{GOLD_ICON})" />
+    <string id="AIL_2ef46d51" text="mostrando uma frase" />
+    <string id="AIL_2eff340e" text="Grupo: distância a que alguém sai (metros)" />
+    <string id="AIL_2f7a736d" text="O sino de alarme toca em {0}: toda a guarda está acorrendo!" />
+    <string id="AIL_2fb56a84" text="Depois de um evento que o marca (uma traição, uma morte, um voto, apaixonar-se), a IA retoca um pouco a personalidade dele e anota isso no passado." />
+    <string id="AIL_2fc52b1a" text="Porta do editor" />
+    <string id="AIL_2fd476bb" text="Um evento pode encarecer ou baratear todo o mercado de uma cidade ou aldeia enquanto durar (escassez, pânico, abundância). 0 = os eventos não mexem nos preços." />
+    <string id="AIL_30214b10" text="*{0} ainda está pensando…*" />
+    <string id="AIL_303700aa" text="1 = qualquer evento local, 2 = assuntos da corte, 3 = o que abala um reino, 4 = só o que abala o mundo." />
+    <string id="AIL_309ea6a0" text="{0} libertou {1}." />
+    <string id="AIL_30aa9ee2" text="{0} declara guerra ao clã {1}." />
+    <string id="AIL_30c8d104" text="Guerras, pazes, batalhas, cercos, mortes... Os NPCs ficam sabendo conforme a importância e a proximidade." />
+    <string id="AIL_31311890" text="Importar memórias do AIInfluence" />
+    <string id="AIL_315af7c1" text=" · de " />
+    <string id="AIL_3225c875" text="Probabilidade por hora de alguém próximo se aproximar (%)" />
+    <string id="AIL_32aaabb0" text="Gestos e expressões ao falar" />
+    <string id="AIL_32bdb403" text="Tarefas" />
+    <string id="AIL_33265d9a" text="Cada arquivo é um pedaço do que é enviado à IA. Você pode editá-los com o jogo aberto: eles são relidos sozinhos.&#13;&#10;" />
+    <string id="AIL_336cdc8f" text="Estou envolvido" />
+    <string id="AIL_33dbf353" text="Escreva com suas próprias palavras: «infantaria em muralha de escudos e resistam», «a cavalaria pela esquerda contra os arqueiros deles», «todos à carga»…" />
+    <string id="AIL_344592e1" text="O NPC raciocina em privado (o que sabe, o que quer, se uma ação faz sentido) antes de falar. Respostas melhores, um pouco mais lento." />
+    <string id="AIL_34a22788" text="{0} decreta {1} dias de quarentena em {2}." />
+    <string id="AIL_34f22b4a" text="De quantos personagens cada um guarda lembrança" />
+    <string id="AIL_35049c49" text="Mudança máxima de tensão por resposta" />
+    <string id="AIL_3515a1a2" text="Texto sobre a cabeça dos personagens" />
+    <string id="AIL_35404728" text="{=!}Remédios, água fervida e roupa limpa: durante esses dias seus homens adoecem quatro vezes menos ao entrar em lugares com doença." />
+    <string id="AIL_35617af2" text="{0} não atende mais ao seu chamado: agora vocês são inimigos." />
+    <string id="AIL_35ac229c" text="Removidas as memórias importadas de {0} personagens.&#10;Cópia em:&#10;{1}&#10;&#10;Salve a partida para que fique assim." />
+    <string id="AIL_35c15083" text="&#10;Reinos: " />
+    <string id="AIL_35cd4d87" text="Grupo: distância para entrar (metros)" />
+    <string id="AIL_35d98005" text="Palavrões (never / sometimes / often…)" />
+    <string id="AIL_35e216d6" text="Distância no mapa a que um NPC enxerga inimigos que pode atacar se você pedir." />
+    <string id="AIL_3677d2a1" text="O clã {0} abandona {1}." />
+    <string id="AIL_36b9fe81" text="Gravidade máxima" />
+    <string id="AIL_370ba9dd" text="4. Memória" />
+    <string id="AIL_3732e7fc" text="Numa conversa em grupo numa cidade ou castelo, um guarda ou quem manda ali pode prender outro personagem presente se houver motivo de peso (p. ex., você o acusa de um crime com provas à vista). Ele fica preso de verdade, e guarda rancor de você." />
+    <string id="AIL_376f0803" text="Desfazer a importação" />
+    <string id="AIL_378f2647" text="você ainda não foi a {0}" />
+    <string id="AIL_37ac8589" text="Político" />
+    <string id="AIL_3865f0c2" text="Provedor para heróis" />
+    <string id="AIL_387fb206" text="{0} se livra da doença" />
+    <string id="AIL_38907a94" text="Ninguém do grupo responde (a IA não respondeu)." />
+    <string id="AIL_38eddd03" text="Erro " />
+    <string id="AIL_390cb390" text="«{0}» ainda não foi cumprida: {1}" />
+    <string id="AIL_3958d81a" text="exige de você" />
+    <string id="AIL_397b4d4e" text="Paz entre {0} e {1}" />
+    <string id="AIL_399e0d5f" text="{0} foi saqueada. {1} volta aos seus afazeres." />
+    <string id="AIL_39a19577" text="O chefe de cada lado que não é comandado por você recebe de tempos em tempos o estado da batalha e dá ordens reais às suas formações, segundo sua personalidade e perícia. Enquanto decide, ou se a IA falhar, seguem as táticas do jogo. Não atua em cercos." />
+    <string id="AIL_39a88b5b" text="O que você diz ou faz diante de um NPC pode chegar ao senhor dele, à família ou aos amigos, com atraso conforme a distância. O que chega é a versão dele, não um fato." />
+    <string id="AIL_3a0a45fd" text="Combate a partir da conversa" />
+    <string id="AIL_3a0aca3f" text="Se fracassar ou o prazo estourar, você perde metade." />
+    <string id="AIL_3a41f7a5" text="D. Cenas" />
+    <string id="AIL_3a52fd31" text="&#10;Estado: {0}" />
+    <string id="AIL_3a88a804" text="Se o que você diz numa conversa em grupo der motivo a ele, o personagem pode agir: ir falar com outro e voltar para contar a você, acompanhar você, ficar, guiar você até alguém, chamar alguém para vir, ou ir embora." />
+    <string id="AIL_3ae61921" text="{=!}Enviar uma carta" />
+    <string id="AIL_3b33d5b8" text="declaração de {0}" />
+    <string id="AIL_3b47ba61" text="Piedade (devout / lukewarm / cynical…)" />
+    <string id="AIL_3b64d032" text="{0} concede {1} a você." />
+    <string id="AIL_3ba48d61" text="Distância a que um guarda vê uma briga (metros)" />
+    <string id="AIL_3bcc8ae2" text="Grupo: máximo de respostas por turno" />
+    <string id="AIL_3bdc9ea5" text="IA de tática em batalhas campais" />
+    <string id="AIL_3be1eaff" text="Clã {0}: renda {1}{2:0} % (restam {3} dias). {4}" />
+    <string id="AIL_3bea3dfe" text="Resposta inválida" />
+    <string id="AIL_3c14bb80" text="Você não tem o suficiente para {0} de {1} ({2} denares)." />
+    <string id="AIL_3c35b946" text="Conversas entre nobres por turnos (mais requisições)" />
+    <string id="AIL_3c407add" text="{=!}Prevenção para sua tropa, " />
+    <string id="AIL_3cb61993" text="Dias mínimos entre mudanças de personalidade" />
+    <string id="AIL_3cc9d40f" text="{0} trouxe você até {1}." />
+    <string id="AIL_3cdfd85b" text="Moral (principled / pragmatic / ruthless…)" />
+    <string id="AIL_3cfa625f" text="{0} exige de {1} a entrega de {2}." />
+    <string id="AIL_3d1f0c15" text="{0} confisca {1} do clã {2}." />
+    <string id="AIL_3dad18db" text="{=!}Livro de memórias (AI Legacy)" />
+    <string id="AIL_3dce3fe1" text="{0} abdica: seu clã passa a reinar em {1}." />
+    <string id="AIL_3e132ba1" text="Grupo: segundos de silêncio seu para que eles continuem (0 = nunca)" />
+    <string id="AIL_3e1af9d4" text="Humor, quanto mente, como decide, quanto confia" />
+    <string id="AIL_3e251e73" text="{0} se põe a caminho para se reunir com você." />
+    <string id="AIL_3e5e7332" text="Conhece você como (vazio = não sabe seu nome)" />
+    <string id="AIL_3e887326" text="Cai {0}" />
+    <string id="AIL_3e8e1ac7" text="O jogo não respondeu (está carregando ou minimizado?)" />
+    <string id="AIL_3f0d143a" text="Escreva-os em inglês (os modelos seguem melhor); os NPCs respondem no idioma das configurações.&#13;&#10;&#13;&#10;" />
+    <string id="AIL_3f29f263" text="Objetos de interpretação que você carrega" />
+    <string id="AIL_3f2c88e6" text="Resposta de {0} a {1}" />
+    <string id="AIL_3f44d794" text="Hospital de {0}&#10;&#10;Nível dos médicos: {1}." />
+    <string id="AIL_3f4f693a" text="O guarda deixa você ir." />
+    <string id="AIL_3fbb045d" text="Horas de viagem por unidade de distância (x10)" />
+    <string id="AIL_3ff4d651" text="Uso: /note &lt;instrução&gt;   Ex.: /note É minha esposa e está grávida; nunca me dá sermão sobre o perigo." />
+    <string id="AIL_401f90b1" text="Cena do mapa: acompanhantes por lado" />
+    <string id="AIL_4073a6cc" text="Nenhuma IA respondeu. Clique em Dizer para tentar de novo.&#10;" />
+    <string id="AIL_40a03089" text="&#10;(Você está envolvido)" />
+    <string id="AIL_4114935f" text="{=!}Suspender a quarentena" />
+    <string id="AIL_411fbc76" text="{0} assume o comando de uma tropa própria do clã." />
+    <string id="AIL_41386273" text="A personalidade evolui" />
+    <string id="AIL_413e791f" text=", e está em quarentena" />
+    <string id="AIL_41ac9547" text="Política" />
+    <string id="AIL_41b3740a" text="&#10;&#10;Recompensa prometida: {0} denares." />
+    <string id="AIL_41e43789" text="{=!}Ir embora" />
+    <string id="AIL_41faa86d" text="Testemunhas: nível de clã a partir do qual todos reconhecem você" />
+    <string id="AIL_4232f06e" text="Importados: {0}&#10;Já tinham memória no AI Legacy (não alterados): {1}&#10;Sem dados úteis ou não existem nesta partida: {2}&#10;Com erro: {3}" />
+    <string id="AIL_42716849" text="Você já tem pai." />
+    <string id="AIL_42b37383" text="({0} dá a conversa por encerrada)" />
+    <string id="AIL_42b92c67" text="{=!}Há torneio: a arena está ocupada." />
+    <string id="AIL_436c99a9" text="só com muita confiança" />
+    <string id="AIL_44011913" text="mortal" />
+    <string id="AIL_44600a27" text="Um evento pode mudar a cada dia, durante um tempo, a prosperidade, a comida, a segurança e a lealdade de um assentamento real." />
+    <string id="AIL_44dd0aa7" text="é o último feudo da coroa" />
+    <string id="AIL_44de911b" text="Sociedade" />
+    <string id="AIL_4514967a" text=", do clã " />
+    <string id="AIL_454cbf99" text="{0} se rende: {1} homens se tornam seus prisioneiros." />
+    <string id="AIL_454f39f4" text="Os provedores são testados em ordem (1, 2, 3, 4): se o primeiro falhar ou ficar sem cota, passa-se ao seguinte. As chaves são guardadas em Documentos, em Mount and Blade II Bannerlord / Configs / ModSettings, não na pasta do mod." />
+    <string id="AIL_458e1b5a" text="Cada decisão é uma requisição à IA por lado. Se um lado perde de repente muita gente, decide antes." />
+    <string id="AIL_45d4f33e" text="Guardas por onda" />
+    <string id="AIL_463eb3a3" text="Sem título" />
+    <string id="AIL_46407e9d" text="Dias que uma proposta dura sem resposta" />
+    <string id="AIL_466f3751" text="Apagar toda a memória dele" />
+    <string id="AIL_4695e872" text="Probabilidade diária de carta (%)" />
+    <string id="AIL_46d0d1f8" text="E. Batalhas" />
+    <string id="AIL_46df902b" text="Buscar arquivo…" />
+    <string id="AIL_46e19d91" text="feudo ou clã inválidos" />
+    <string id="AIL_479941aa" text="Você cede a coroa: o clã {0} passa a reinar em {1}." />
+    <string id="AIL_47c0f5a2" text="{0} e {1} selam uma aliança." />
+    <string id="AIL_47dd15e0" text="Um nobre capturado conta um terço." />
+    <string id="AIL_48173f1f" text="{=!}Interromper o treino (o dinheiro não é devolvido)" />
+    <string id="AIL_481ef0fe" text="Últimas frases" />
+    <string id="AIL_4868da9a" text="Chave (API key)" />
+    <string id="AIL_4873d730" text="Não foi possível conectar ao jogo: " />
+    <string id="AIL_48a27848" text="Toda a memória do AI Legacy desta partida (NPCs, notícias, cartas). É guardada também dentro da partida ao salvar no jogo." />
+    <string id="AIL_48d043af" text=" dias ({AIL_H_PREV}{GOLD_ICON})" />
+    <string id="AIL_48f76bf1" text="sobre entre desde hasta hacia contra segun según mismo misma otro otra otros otras mucho mucha poco poca usted vuestro vuestra nuestro nuestra señor señora " />
+    <string id="AIL_48fe3e55" text="Salvo. Lembre-se de salvar a partida no jogo." />
+    <string id="AIL_493c4907" text="Abrem-se no Explorador de Arquivos do Windows do computador onde o jogo roda." />
+    <string id="AIL_49569563" text="Escreva algo mais" />
+    <string id="AIL_49588f47" text="Com romance alto, o NPC pode aceitar passar a noite com você (nunca é descrito). Entre cônjuges pode acabar em gravidez." />
+    <string id="AIL_49b6ffff" text="{0} não tem mais quem escoltar e volta aos seus afazeres." />
+    <string id="AIL_4a37fd4a" text="Mercadores, artesãos, taverneiros e aldeões podem vender e comprar mercadorias de você numa conversa, de acordo com o estoque e os preços reais do mercado daquele lugar: mercadorias e dinheiro mudam de mãos." />
+    <string id="AIL_4a84320d" text="Você não tem {0} denares para pagar o mensageiro." />
+    <string id="AIL_4ae4ed78" text="Dias mínimos entre declarações de um mesmo rei" />
+    <string id="AIL_4b08b3e0" text=" em " />
+    <string id="AIL_4b3f2067" text="Doença em {0}" />
+    <string id="AIL_4b487b93" text="aqui termina sua história" />
+    <string id="AIL_4b77b3ae" text="{0} está esperando você falar.  (Digite /help para ver os comandos)" />
+    <string id="AIL_4b7ed15a" text="Provedor para gente da cidade" />
+    <string id="AIL_4bb74331" text="6. Cartas" />
+    <string id="AIL_4bf3e0c5" text="{0} dá {1} denares a você." />
+    <string id="AIL_4c08be8b" text="o lugar" />
+    <string id="AIL_4c5ed9ad" text="Tarefa cumprida" />
+    <string id="AIL_4c63a92c" text="{0} aceita você como vassalo de {1}." />
+    <string id="AIL_4c6b494e" text="Você" />
+    <string id="AIL_4ce0146b" text="Vassalagem e mercenários" />
+    <string id="AIL_4cef6d19" text="Mudança máxima de confiança por resposta" />
+    <string id="AIL_4d649e87" text="Segredos nascidos da história" />
+    <string id="AIL_4d99daae" text="{0} {1}{2:0.##} por dia" />
+    <string id="AIL_4df26a61" text="O que dizem também aparece no registro" />
+    <string id="AIL_4e260c5a" text="Importado do AIInfluence: " />
+    <string id="AIL_4e5e61ea" text="{0} e {1} assinam um acordo comercial de {2} ano(s)." />
+    <string id="AIL_4e6c313c" text="De vez em quando, dois personagens que estão perto de você falam sobre o que está acontecendo: notícias, escassez, doença, seu senhor. Gasta uma requisição curta à IA cada vez." />
+    <string id="AIL_4eae4e56" text="{0} levanta o cerco de {1}." />
+    <string id="AIL_4eaee384" text="{0} se aproxima." />
+    <string id="AIL_4eb0fc2d" text="Fazer uma declaração (se você reina)" />
+    <string id="AIL_4f0d9e02" text="Os figurantes podem virar personagens" />
+    <string id="AIL_4f107a7c" text="Num salão os nobres ficam separados: com pouco, nunca encontram com quem falar." />
+    <string id="AIL_4f47d62d" text="Sua mensagem para {0}" />
+    <string id="AIL_4f56a00c" text="Personalidade gerada" />
+    <string id="AIL_4f6f8296" text="Não foi possível abrir a porta {0}. Mude a porta em MCM → AI Legacy → Editor.&#10;{1}" />
+    <string id="AIL_4faa8fb4" text="Segundos entre conversas (aprox.)" />
+    <string id="AIL_500ac9b1" text="Vazio: o mesmo idioma da interface. Se quiser outro, escreva o nome dele em inglês. Ex.: Spanish (Spain), English, Catalan, Italian." />
+    <string id="AIL_506e56c2" text="Nome do provedor de config.json preferido para as ordens de batalha (vazio = o normal). Convém um rápido." />
+    <string id="AIL_508eddc4" text="Tamanho máximo de cada frase (caracteres)" />
+    <string id="AIL_50ac9cd1" text="{0}, do clã {1}, é agora quem governa {2}." />
+    <string id="AIL_513640bb" text="C. Doenças" />
+    <string id="AIL_513c1858" text="Apagar histórico" />
+    <string id="AIL_5179ad99" text="todo o reino" />
+    <string id="AIL_518def5c" text="{0} chegou a {1}." />
+    <string id="AIL_51f2c203" text="Bando procurado por {0}" />
+    <string id="AIL_52769c73" text="Frases antigas arquivadas por personagem" />
+    <string id="AIL_5283e9ce" text="Os personagens lembram do que é deles entre si" />
+    <string id="AIL_52a68aba" text="sem reino" />
+    <string id="AIL_52b80370" text="Objetivo: entregar {0} × {1} a {2} (marcado no mapa) e voltar com {3}." />
+    <string id="AIL_52b8aa60" text="Eventos do mundo" />
+    <string id="AIL_52fe29a9" text="Seus companheiros são curados." />
+    <string id="AIL_5336141e" text="Mais {0} guardas chegam." />
+    <string id="AIL_53647ac2" text="Ainda não aconteceu nada digno de nota. As guerras, pazes, cercos, batalhas e boatos aparecerão aqui." />
+    <string id="AIL_53a2324c" text="Os companheiros sempre reconhecem você" />
+    <string id="AIL_53ab6227" text="uma vizinha" />
+    <string id="AIL_53ea433d" text="{0} dá a conversa por encerrada e parte para o ataque." />
+    <string id="AIL_5418db17" text="Acontecimento" />
+    <string id="AIL_5454e867" text="Objetos, documentos e oficinas" />
+    <string id="AIL_54adf525" text="Dados e modelos" />
+    <string id="AIL_552be781" text=" dá a conversa por encerrada)" />
+    <string id="AIL_55479028" text="{0} termina a patrulha em {1}." />
+    <string id="AIL_555e7801" text="{0} denares em reparações" />
+    <string id="AIL_55654690" text="Tensão: {0}" />
+    <string id="AIL_55bf58d3" text="arquivadas" />
+    <string id="AIL_55cee6ef" text="{0} reúne um exército" />
+    <string id="AIL_564e2e23" text="Hoje" />
+    <string id="AIL_566b6114" text="Você entrega {0} ao clã {1}." />
+    <string id="AIL_5689cbfa" text="Segundos entre ondas" />
+    <string id="AIL_56a8023e" text="Você cumpriu sua pena: soltam você da masmorra de {0}." />
+    <string id="AIL_56a85a72" text="Ordens às suas tropas" />
+    <string id="AIL_56bb73a9" text="O clã {0} abandonou {1} e agora serve a {2}" />
+    <string id="AIL_56f0d4a1" text="{0} se afasta da conversa." />
+    <string id="AIL_57011337" text="Gerar personalidade" />
+    <string id="AIL_570feb77" text="&#10;&#10;LEMBRANÇAS&#10;" />
+    <string id="AIL_5794d85d" text="Serviço" />
+    <string id="AIL_580cc0e5" text="1 = todos, 4 = só os que abalam o mundo, 5 = nunca." />
+    <string id="AIL_586abbc0" text="Horas de jogo mínimas entre reações" />
+    <string id="AIL_586fb7ef" text="{=!}Você não tem soldados feridos nem doentes." />
+    <string id="AIL_58a5a0a4" text="Ontem" />
+    <string id="AIL_58ce073f" text="{=!}(Envie sua mensagem e espere a resposta)" />
+    <string id="AIL_58e1ca60" text="personagem único" />
+    <string id="AIL_58f9d028" text="um duelo até a morte" />
+    <string id="AIL_592eb989" text="vezes" />
+    <string id="AIL_59559c9d" text="{0} revoga a lei «{1}»." />
+    <string id="AIL_5983def9" text="Pedido por: {0}   ·   há {1} dia(s)" />
+    <string id="AIL_5a216c13" text="Abrir" />
+    <string id="AIL_5a4bda4c" text="dados do mundo" />
+    <string id="AIL_5a577403" text="{0} expulsa seu clã de {1}." />
+    <string id="AIL_5a62c49f" text="{0} dos seus homens entram na briga." />
+    <string id="AIL_5a6d8aee" text="Desligado por padrão. Ligado: também são distribuídos aleatoriamente os segredos genéricos escritos nesse arquivo (você pode colocar ali os seus)." />
+    <string id="AIL_5a9ce79b" text="Prazo vencido" />
+    <string id="AIL_5abeb44e" text="Rebeliões de clãs" />
+    <string id="AIL_5affe75c" text="Seus homens não podem entrar aqui: só na rua." />
+    <string id="AIL_5b102155" text="Se a guarda prender você fora do seu feudo e do seu reino, o senhor do lugar dá a sentença (soltar, multa ou dias de masmorra), muda sua fama ali e o que ele pensa de você, e a sentença é anunciada como notícia. É preciso que ali saibam quem você é." />
+    <string id="AIL_5b4803a4" text="O clã {0} se junta a {1}" />
+    <string id="AIL_5b79eb8c" text="Tamanho máximo de um evento (caracteres)" />
+    <string id="AIL_5b7a333a" text=" (antes era de {0})." />
+    <string id="AIL_5b8786aa" text="Durante uma briga na rua ou numa aldeia, Ctrl+X coloca dez dos seus soldados e Ctrl+Alt+X todos os que couberem. Em ambientes fechados eles não entram. Os que caírem ficam feridos ou mortos na sua partida." />
+    <string id="AIL_5c19273c" text="Desligado: só conversam entre si os que têm nome (senhores, damas, notáveis, andarilhos). Ligado: moradores, taverneiros e os demais também, mas duas ou três frases curtas." />
+    <string id="AIL_5c31ae7f" text="Arquétipos de personalidade" />
+    <string id="AIL_5c3efc53" text="{0} não conseguiu chegar a {1} e desiste." />
+    <string id="AIL_5c924813" text="a entrega de {0}" />
+    <string id="AIL_5c92a18a" text="Máximo de páginas por personagem" />
+    <string id="AIL_5cc4dc1c" text="&#10;&#10;ÚLTIMAS PALAVRAS&#10;" />
+    <string id="AIL_5d49c1d7" text="Isto SUBSTITUI toda a memória atual do AI Legacy. Tem certeza?" />
+    <string id="AIL_5d51e858" text="morreu no parto" />
+    <string id="AIL_5d5538b0" text="{=!}Visitar o hospital" />
+    <string id="AIL_5d9bde16" text="A IA escreve entre a metade e este número, conforme o assunto render. É uma única requisição, seja longa ou curta." />
+    <string id="AIL_5da6bc58" text="Exércitos (juntar-se ao seu, reunir o próprio, deixá-lo)" />
+    <string id="AIL_5dca951d" text="Descrição (o que os NPCs lerão; melhor em inglês, mas qualquer idioma serve)" />
+    <string id="AIL_5de8b992" text="&#10;Envolvidos: " />
+    <string id="AIL_5e0df453" text="Endereço base compatível com OpenAI, p. ex. https://mi-servidor/v1. Para os serviços conhecidos, é preenchido sozinho." />
+    <string id="AIL_5e2efb51" text="Restaurar a partir de arquivo" />
+    <string id="AIL_5e479046" text="Humor: " />
+    <string id="AIL_5e55369d" text="Máximo de surtos ao mesmo tempo" />
+    <string id="AIL_5eccf2c1" text=". Está em quarentena: você entra por sua conta e risco." />
+    <string id="AIL_5eeedbdf" text="{0} ainda não recebeu «{1}»" />
+    <string id="AIL_5f595733" text="{0} leva você até {1}. Siga-o." />
+    <string id="AIL_5f9b05e1" text="Gerar a personalidade com IA? Sobrescreve a ficha atual." />
+    <string id="AIL_5fcbf671" text="Provedor para cartas" />
+    <string id="AIL_5fd22751" text="segurança" />
+    <string id="AIL_5fd4967b" text="Idioma dos menus, avisos e janelas do AI Legacy. «Auto» usa o idioma do jogo. Para ver este menu no novo idioma, saia das opções e entre de novo." />
+    <string id="AIL_5ff5abe9" text="O que conta {0}" />
+    <string id="AIL_5ffce42d" text="O clã {0} se rebelou contra {1}." />
+    <string id="AIL_600f93a3" text="Ainda não há ninguém." />
+    <string id="AIL_60575e78" text="{0} declarou guerra a {1}. Os exércitos de ambos os lados se preparam para a campanha." />
+    <string id="AIL_611c4786" text="{0} patrulhará os arredores de {1}." />
+    <string id="AIL_613c43b2" text="Além das reações, de tempos em tempos a IA escreve o que está se cozinhando por conta própria: intrigas, escassez, presságios, mal-estar." />
+    <string id="AIL_61468823" text="&#10;&#10;{0} entregou a você há {1} dia(s). Você pode mostrá-lo ou mencioná-lo ao falar com qualquer pessoa." />
+    <string id="AIL_61578f1c" text="Salvo" />
+    <string id="AIL_6184689e" text="Crime por deixar um guarda falando sozinho" />
+    <string id="AIL_61be9174" text="Arquivo inválido." />
+    <string id="AIL_61e5c401" text="Fatos públicos (info.json)" />
+    <string id="AIL_622157b0" text="{0} · {1} · relação {2}" />
+    <string id="AIL_62522e49" text="Personalidade (opcional)" />
+    <string id="AIL_6252c331" text="Apagar" />
+    <string id="AIL_629058ab" text="Enviar uma carta" />
+    <string id="AIL_62c99c8c" text="primavera (risco médio)" />
+    <string id="AIL_62e94015" text="Pensamento interno antes de responder" />
+    <string id="AIL_635ff613" text="Dias sem se verem para o romance esfriar" />
+    <string id="AIL_63621315" text="Gerar" />
+    <string id="AIL_637830f6" text="Distância a que você ouve uma conversa (metros)" />
+    <string id="AIL_63b5c8dc" text="&#10;&#10;Entrar num lugar com doentes pode fazer parte dos seus homens adoecer. A quarentena corta o contágio para os vizinhos, mas arruína o comércio." />
+    <string id="AIL_63e55204" text="{0} reduz os impostos de suas cidades em {1} %." />
+    <string id="AIL_63ea9af4" text="Você: " />
+    <string id="AIL_6447d2ba" text="(sem molde: será atribuído sozinho)" />
+    <string id="AIL_645733f1" text="{0} deixa de esperar e volta aos seus assuntos." />
+    <string id="AIL_6458f7e4" text="{0} se recusa a pagar tributo a {1}." />
+    <string id="AIL_648fc689" text="Rebelião do clã {0}!" />
+    <string id="AIL_64b1d2d4" text="{0} e {1} assinam a paz" />
+    <string id="AIL_6535de60" text="modelo" />
+    <string id="AIL_6549b43d" text="Ainda não aconteceu nada digno de nota." />
+    <string id="AIL_65ab580e" text="Os NPCs que comandam um grupo podem aceitar seguir você, ir a um lugar, esperar, patrulhar, atacar, sitiar, saquear ou se juntar ao seu exército. Também por carta." />
+    <string id="AIL_65ad4195" text="Morre {0}" />
+    <string id="AIL_65f35dd2" text="Dados do mundo (JSON). Valem para todas as partidas. Ao salvar, fica uma cópia .bak do anterior." />
+    <string id="AIL_66a677f0" text="NPCs" />
+    <string id="AIL_66fb1576" text=", {0} se machucaram." />
+    <string id="AIL_6744d3b1" text="Nome próprio (só gente sem nome)" />
+    <string id="AIL_6746c998" text="Transferência de tropas e prisioneiros" />
+    <string id="AIL_675de4ca" text="{0} se junta ao seu exército com {1} homens." />
+    <string id="AIL_6764c714" text=" · não está mais na partida" />
+    <string id="AIL_67c8cba8" text="{0} vai se sentar." />
+    <string id="AIL_67d30a9a" text="Com uma partida carregada: pede já uma rodada de eventos (aparecem quando você voltar ao mapa)." />
+    <string id="AIL_68a7d597" text="Modo de testes: NPCs complacentes" />
+    <string id="AIL_68edf522" text="(incluindo o que você conversou com eles depois). Os arquivos deles são movidos para uma subpasta da campanha, não são apagados.&#10;&#10;Continuar?" />
+    <string id="AIL_68f3dc4c" text="Ativado: ao carregar uma partida, os NPCs lembram do que sabiam quando você salvou. Desativado: lembram sempre do mais recente, mesmo que você carregue uma partida anterior." />
+    <string id="AIL_68f76b26" text="Doenças" />
+    <string id="AIL_695a2835" text="a paz" />
+    <string id="AIL_69c192a8" text="Máximo de lembranças por personagem" />
+    <string id="AIL_69ffe8b4" text="de origem" />
+    <string id="AIL_6a025b78" text="Gerar eventos agora" />
+    <string id="AIL_6a0ec00a" text="Surtos de temporada ou por um evento: prejudicam o assentamento, contagiam os vizinhos, adoecem suas tropas se você entrar, e são contidos com quarentenas." />
+    <string id="AIL_6a2934ef" text="Se várias coisas acontecem seguidas, juntam-se numa única reação." />
+    <string id="AIL_6a695bcb" text="{0}, libertado" />
+    <string id="AIL_6a69d3fd" text="{0} irá para {1} e esperará você lá." />
+    <string id="AIL_6a6bf769" text="Além disso, um NPC nunca cede mais de um terço do seu grupo de uma vez." />
+    <string id="AIL_6ac2e619" text="Só entre cônjuges (o jogo precisa de um pai conhecido)." />
+    <string id="AIL_6b1ca542" text="Probabilidade de gravidez (%)" />
+    <string id="AIL_6b587fde" text="Novo soberano em {0}" />
+    <string id="AIL_6b899a92" text="Livro de memórias por páginas" />
+    <string id="AIL_6c0ce598" text="desapareceu e é dado como morto" />
+    <string id="AIL_6c0f99f2" text="Os clãs do jogo deixam de propor guerras, pazes, alianças e comércio por conta própria. Quem decide são os reis, com declarações públicas. Requer os eventos do mundo ativados." />
+    <string id="AIL_6c1f353e" text="{0} recebeu {1} de {2} × {3}." />
+    <string id="AIL_6c33ff94" text="Sentença de {0}" />
+    <string id="AIL_6c53dc0f" text="Seus capitães: {0}" />
+    <string id="AIL_6c7f2b62" text="0. Chaves de IA" />
+    <string id="AIL_6cf8197b" text="8. Importar" />
+    <string id="AIL_6d2b9329" text="Após uma briga ou um duelo num assentamento que não é seu, se houver um guarda por perto, ele se aproxima para pedir explicações e decide: deixar você ir, multar ou prender." />
+    <string id="AIL_6d3c2db8" text="Você fala ao grupo" />
+    <string id="AIL_6d44c3f5" text="&#10;Você tem {0} soldado(s) feridos ou doentes." />
+    <string id="AIL_6d808299" text="Você não tem {0} denares para pagar a multa." />
+    <string id="AIL_6dfb3368" text="Não há dados do AIInfluence para ESTA campanha ({0}).&#10;&#10;Você pode importar outra campanha: só serão usados os NPCs que existirem nesta partida " />
+    <string id="AIL_6e09fc5c" text="{0} propõe a {1} um acordo comercial de {2} ano(s)." />
+    <string id="AIL_6e224a81" text="Buscar nos seus NPCs…" />
+    <string id="AIL_6e275f0e" text="Objeto criado" />
+    <string id="AIL_6e4f31b1" text="Os personagens podem prender uns aos outros" />
+    <string id="AIL_6e64a84e" text="O que o move e o que teme" />
+    <string id="AIL_6e6f1630" text="O que você diz é ouvido" />
+    <string id="AIL_6e7730a9" text="Você fala com {0}" />
+    <string id="AIL_6ee119bd" text="comércio impossível agora" />
+    <string id="AIL_6f600589" text="{0} e {1} assinaram a paz. Por ora, as armas se calam entre os dois reinos." />
+    <string id="AIL_6f87960d" text="{0} abandona a perseguição de {1}." />
+    <string id="AIL_6fed9f7e" text="Nas conversas de cena, quem fala faz a expressão e o gesto do que sente (assentir, negar, duvidar, irritar-se…). Quem está sentado, ocupado ou andando só muda a expressão." />
+    <string id="AIL_6ffaa6ff" text="{=!}Perguntar sobre as doenças que circulam" />
+    <string id="AIL_7074bda0" text="{0} dos seus soldados adoecem de {1} em {2}." />
+    <string id="AIL_70a3a006" text="Filho ou filha" />
+    <string id="AIL_70a6b6c9" text="Quantas frases antigas são guardadas de cada personagem para poderem ser lembradas. Mais = melhor memória de longo prazo e arquivos um pouco maiores." />
+    <string id="AIL_70ab64bf" text="· Sua instrução: " />
+    <string id="AIL_70c30ed9" text="O clã {0} abandonou {1}" />
+    <string id="AIL_70eda317" text="Duelo até a morte com {0}!" />
+    <string id="AIL_71329b44" text="Confiança (à parte da relação)" />
+    <string id="AIL_717f4a1a" text="espancado" />
+    <string id="AIL_71b565dc" text="Não há ninguém a menos de {0} metros para conversar." />
+    <string id="AIL_7237f719" text="Seus capitães não sabem o que fazer com essa ordem." />
+    <string id="AIL_723bcca4" text="não estão mais aqui" />
+    <string id="AIL_7245c3fc" text="Um morador de uma cena, ou um dos seus soldados, pode aceitar entrar a seu serviço como companheiro (se houver vaga) ou ficar como alguém com nome que você poderá encontrar de novo. Mantém o rosto, a idade e o que foi conversado com você." />
+    <string id="AIL_7278010d" text="um dia" />
+    <string id="AIL_7282058a" text=", chefe do clã {0}," />
+    <string id="AIL_731669e9" text="Gente da cidade que se junta a você" />
+    <string id="AIL_7319097c" text="verão (risco baixo)" />
+    <string id="AIL_73468258" text="Criar" />
+    <string id="AIL_734fab9c" text="{0}Relação {1:+0;-0;0} · {2} conversa(s)" />
+    <string id="AIL_735ebb21" text="Se você vencer um duelo até a morte contra um herói, ele morre. Você nunca morre: fica gravemente ferido." />
+    <string id="AIL_73786ab4" text="Voltar ao texto original" />
+    <string id="AIL_73936b3a" text="{=!}Você não tem dinheiro para pagar os mestres de armas." />
+    <string id="AIL_73afba9b" text="&#10;&#10;O QUE ELE BUSCA&#10;" />
+    <string id="AIL_73b83666" text="Se você atacar alguém com arma numa cidade, os guardas próximos vão se juntando a cada poucos segundos. Com vários caídos, soa o alarme e toda a guarda acorre." />
+    <string id="AIL_73c1647d" text="{=!}Ei, tem um momento? [Conversa livre]" />
+    <string id="AIL_7450a805" text="Conversa em grupo (Alt+T)" />
+    <string id="AIL_745a654d" text="Os NPCs podem passar tarefas a você, anotar seu progresso, dá-las por cumpridas (com recompensa) ou por fracassadas. Aparecem no diário de missões do jogo. Atenção: uma partida salva com tarefas precisa do AI Legacy para carregar." />
+    <string id="AIL_74ca054c" text="Provedor para o mundo e a diplomacia" />
+    <string id="AIL_74ddb46b" text="Multa da guarda" />
+    <string id="AIL_74de2d20" text="Resumo do que viveu com você" />
+    <string id="AIL_74efb871" text="Por padrão não: estão de serviço. Continuam respondendo se você falar com eles." />
+    <string id="AIL_750e804a" text="Uma agressão sua na rua, um morto, uma prisão, ou um boato de peso que você espalhe numa conversa, viram um evento do mundo com sua notícia (e com efeitos no lugar se houve sangue). Conta só o que as testemunhas puderam saber. É uma requisição à IA por evento." />
+    <string id="AIL_7576bfa9" text="Você espera nas masmorras de {0} até que {1} decida o que fazer com você…" />
+    <string id="AIL_7584960c" text="O que lembra de você, em resumo" />
+    <string id="AIL_758ef766" text="Conversa dentro do diálogo do jogo" />
+    <string id="AIL_75b4abfe" text="{0} declara guerra a {1}." />
+    <string id="AIL_75ea110b" text="Igual aos fatos, mais &quot;access&quot;: low / medium / high (quanta confiança é necessária para contá-lo)." />
+    <string id="AIL_7611f3a8" text="Fazer uma declaração" />
+    <string id="AIL_7623bdb7" text="Falar" />
+    <string id="AIL_76c8cc5d" text="Gritos dos chefes" />
+    <string id="AIL_76ca0cb9" text="Briga armada: a guarda chega em ondas" />
+    <string id="AIL_76df6ddb" text="Você entrega {0} × {1}." />
+    <string id="AIL_76e00257" text="{=!}Seus homens treinam na arena sob os mestres de armas. Ouvem-se as pancadas das espadas de madeira e os gritos dos instrutores." />
+    <string id="AIL_76e631ee" text="Seu rei pode expulsar você ou confiscar um feudo seu" />
+    <string id="AIL_76f7a56d" text="Só quem reina pode fazer uma declaração." />
+    <string id="AIL_76fdb1de" text="Numa cidade, aldeia ou castelo, se você der um golpe com alguém bem à sua frente, a briga com essa pessoa começa sem que você precise falar com ela: na porrada se você estiver de mãos vazias, pra valer se estiver com a arma em punho. Os parentes dela saem em sua defesa e, se houver aço, a guarda também. Ela guarda rancor de você, sua má fama sobe e depois vem a guarda." />
+    <string id="AIL_77262a54" text="Máximo de amigos no prompt" />
+    <string id="AIL_77401496" text="conversa(s)" />
+    <string id="AIL_7765746a" text="{0} deixa o clã {1} e se junta ao seu." />
+    <string id="AIL_77793b62" text="Hospital nas cidades" />
+    <string id="AIL_7791a970" text="Cópia de segurança" />
+    <string id="AIL_77ca23b7" text="Dias mínimos entre novos surtos" />
+    <string id="AIL_77e4bc34" text="{0} parte para sitiar {1}." />
+    <string id="AIL_77ec28e0" text="Você liberta {0}." />
+    <string id="AIL_782deaf5" text=" (em dia em suas cidades e castelos: {0})" />
+    <string id="AIL_7858cd57" text="O exército aliado com chefe próprio, e o seu lado quando não é você quem comanda (as formações que você comanda não são alteradas)." />
+    <string id="AIL_78680a96" text="{0} fica aqui." />
+    <string id="AIL_78abe94b" text="Militar" />
+    <string id="AIL_78b1e8da" text="só a quem confia" />
+    <string id="AIL_78f99860" text="AI Legacy: comando aplicado. Clique em «Ver a resposta»." />
+    <string id="AIL_7948ed38" text="Cansaço de guerra: por dia e guerra aberta (x10)" />
+    <string id="AIL_795b98cd" text=", você recebe {0} denares" />
+    <string id="AIL_795d4279" text="Personalidade com IA" />
+    <string id="AIL_7a1b2cf4" text="Dizem coisas a você ao passar" />
+    <string id="AIL_7a47d6e7" text="Apagar TODA a memória dele?" />
+    <string id="AIL_7a6f04b2" text="Tensão e ameaça" />
+    <string id="AIL_7aad4a7d" text="Em brigas e duelos dentro de uma cena, seu rival solta frases conforme se sai, e os curiosos gritam. Uma única requisição à IA ao começar a briga." />
+    <string id="AIL_7bd9a098" text="Grupo: tamanho máximo de cada resposta" />
+    <string id="AIL_7c146680" text="Você está diante de {0}. F para falar com ele, Alt+T para falar com os que estiverem por perto, Tab para ir embora." />
+    <string id="AIL_7c23f3b8" text="Cansaço de guerra: por nobre morto" />
+    <string id="AIL_7c7093eb" text="Usar este provedor" />
+    <string id="AIL_7c907518" text="foi assassinado" />
+    <string id="AIL_7cd9f263" text="{0} volta aos seus afazeres." />
+    <string id="AIL_7d054e89" text="{0} chegou a {1} e espera você lá." />
+    <string id="AIL_7d3d5b34" text="Nível de romance com cada NPC: sobe com o cortejo, esfria se vocês não se veem, e conta para o casamento." />
+    <string id="AIL_7d9b4b55" text="O clã {0} abandona {1}" />
+    <string id="AIL_7dd76d95" text="Grupo: se posicionam em roda ao seu redor" />
+    <string id="AIL_7def1f8e" text="{0} e {1} assinam a paz." />
+    <string id="AIL_7e5382b7" text="Morte" />
+    <string id="AIL_7ed3beae" text="Você entrega a {0} seu prisioneiro {1}." />
+    <string id="AIL_7f30bf34" text="Personagens com quem você tem história escrevem a você por conta própria." />
+    <string id="AIL_7f35f286" text="Econômico" />
+    <string id="AIL_7f5984a3" text="Ordens com suas palavras (Alt+B)" />
+    <string id="AIL_7f675e5a" text="Dê um nome ao objeto." />
+    <string id="AIL_7f71ac3a" text="{0} chama {1}." />
+    <string id="AIL_7f897c38" text="Multa habitual: máximo" />
+    <string id="AIL_7fc31420" text="config.json tem um erro de formato: " />
+    <string id="AIL_7fce90d0" text="Não foi possível gerar: " />
+    <string id="AIL_7fd0d7e5" text="caiu em combate" />
+    <string id="AIL_7ff37c4e" text="Salvar requisição/resposta nos logs" />
+    <string id="AIL_7ff96949" text="Ordem em andamento: {0} {1} (até o dia {2:0})" />
+    <string id="AIL_800a1324" text="Você paga {0} denares a {1}." />
+    <string id="AIL_800f61d9" text="Às vezes a IA repete na resposta seguinte uma cobrança ou um pagamento que já foi feito. O mesmo valor, no mesmo sentido e com a mesma pessoa não é aplicado de novo dentro deste tempo. 0 = sem proteção." />
+    <string id="AIL_805db527" text="{0} derrotou você." />
+    <string id="AIL_807992a5" text="{0} baixa as armas." />
+    <string id="AIL_80912930" text="A guarda intervém" />
+    <string id="AIL_81b3cd7d" text="um território" />
+    <string id="AIL_8201313c" text="Acrescenta a conversa livre a aldeões, gente da cidade e da taverna (não heróis)." />
+    <string id="AIL_8244ba20" text="Irmão ou irmã" />
+    <string id="AIL_8279d8bb" text="{0} parte para saquear {1}." />
+    <string id="AIL_8281a6ef" text="{0} recebeu «{1}». Volte para {2}." />
+    <string id="AIL_8322c30f" text="{0} desmonta: duelo até a morte, aqui e agora." />
+    <string id="AIL_837460d0" text=" · editada" />
+    <string id="AIL_83ce96ea" text="{0} faz as pazes com o clã {1}." />
+    <string id="AIL_8441426c" text="{0} retira o imposto extraordinário da coroa." />
+    <string id="AIL_84e6eeec" text=" (terminou seu contrato de mercenários)." />
+    <string id="AIL_84e9a594" text="Instrução salva para {0}." />
+    <string id="AIL_84f97df8" text="Cansaço de guerra: recuperação por dia em paz (x10)" />
+    <string id="AIL_8525c8a9" text="Outros acabaram com o bando de {0} antes de você. Volte para {1}." />
+    <string id="AIL_8529201a" text="Ao passar: lotes extras se as frases acabarem" />
+    <string id="AIL_854c39ee" text="já é um personagem com nome" />
+    <string id="AIL_858c74a8" text="{0} se junta à sua partida como companheiro." />
+    <string id="AIL_858daf8f" text="Ainda não há notícias." />
+    <string id="AIL_85a42b1a" text="{0} se junta ao seu grupo como companheiro." />
+    <string id="AIL_85c6e155" text="Notícias de Calradia" />
+    <string id="AIL_85e6e5d4" text="{0} se junta à sua marcha com {1} homens." />
+    <string id="AIL_85ee2964" text="{=!}Curar-se ({AIL_H_SELF}{GOLD_ICON})" />
+    <string id="AIL_86941211" text="Molde de personalidade" />
+    <string id="AIL_86ee0cb9" text="Tropas máximas por transferência" />
+    <string id="AIL_871af31c" text="Relação ganha ao cumprir uma tarefa" />
+    <string id="AIL_8740b99c" text="caiu em combate contra {0}" />
+    <string id="AIL_875d42da" text="Os NPCs contam coisas entre si" />
+    <string id="AIL_88476cb6" text="quiero quieres quiere muy mas más menos todo toda todos todas nada algo alguien nadie bien mal aqui aquí alli allí ahora luego antes despues después siempre nunca tambien también " />
+    <string id="AIL_884d0de2" text="B. Iniciativa e recados" />
+    <string id="AIL_8871d6a5" text="Não há pasta de modelos para esta partida." />
+    <string id="AIL_897d3e43" text="O que busca" />
+    <string id="AIL_89a46e62" text="O jogo não tem um molde para esse sexo." />
+    <string id="AIL_89bc1b1d" text="Encomenda cumprida: «{0}»" />
+    <string id="AIL_8a207caf" text="reino de destino inválido" />
+    <string id="AIL_8a30751a" text="vez" />
+    <string id="AIL_8a331c41" text="{0} aceita o duelo. Começa assim que a conversa terminar." />
+    <string id="AIL_8a3f11e5" text="leis demais em vigor" />
+    <string id="AIL_8a4cc812" text="Eventos do mundo por IA" />
+    <string id="AIL_8aab03a7" text="Testemunhas: até onde enxergam (metros)" />
+    <string id="AIL_8b7f2016" text="Máximo de notícias no prompt" />
+    <string id="AIL_8c0a210d" text="Você passa um tempo a sós com {0}." />
+    <string id="AIL_8c51b5cf" text="Novo evento: " />
+    <string id="AIL_8c561331" text="Arquivos desta partida" />
+    <string id="AIL_8dbd7cfb" text="nascido de um evento" />
+    <string id="AIL_8dc2db66" text="crônica de uma morte" />
+    <string id="AIL_8e8232dd" text="{0} arregaça as mangas: vai haver briga de socos assim que a conversa terminar." />
+    <string id="AIL_8e88da8b" text="Testa cada provedor (os de «0. Chaves de IA» e, se existirem, os de config.json) e mostra o resultado no registro do jogo." />
+    <string id="AIL_8f3749ae" text="&#10;&#10;Você está ferido ({0} de {1})." />
+    <string id="AIL_8f57f4c0" text="{0} pôs cerco a {1}." />
+    <string id="AIL_8fb29764" text="{0} dá a você {1} × {2}." />
+    <string id="AIL_8fdf1238" text="outono (risco médio)" />
+    <string id="AIL_8ff3713b" text="Diplomacia (guerra / paz entre reis)" />
+    <string id="AIL_9003236d" text="Confiança (-100 a 100)" />
+    <string id="AIL_901ece79" text="Novo soberano" />
+    <string id="AIL_90212ba8" text="É publicado na hora como notícia: os NPCs ficam sabendo conforme a importância (1 = o lugar, 2 = a corte, 3 = todo o reino, 4 = todo o mundo). Os envolvidos e seu clã sempre sabem." />
+    <string id="AIL_904a67c2" text="Quanto tempo seguem você, esperam ou patrulham se não for combinado outro prazo. Também quanto esperam num lugar ao marcar encontro com você." />
+    <string id="AIL_904fdecc" text="&#10;&#10;(/help para ver os comandos)" />
+    <string id="AIL_90722e01" text="Silêncio após uma conversa (segundos)" />
+    <string id="AIL_90796905" text="Conversa livre com o povo da cidade" />
+    <string id="AIL_90bb89d1" text="Ao passar: segundos entre uma frase e a seguinte" />
+    <string id="AIL_911ad5bc" text="Abdicar e ceder a coroa" />
+    <string id="AIL_914cbfeb" text=", soberano de {0}," />
+    <string id="AIL_9189b76c" text="Não há nenhuma partida carregada." />
+    <string id="AIL_91b295b0" text="De quem vem (opcional)" />
+    <string id="AIL_91d66f05" text="Frases mínimas por resposta" />
+    <string id="AIL_91d8da81" text="Ligado: ao abrir a janela do Alt+T a cena continua, em câmera lenta. Desligado: o jogo pausa enquanto você escreve." />
+    <string id="AIL_923a5224" text="foi executado por {0}" />
+    <string id="AIL_923ff81c" text="Gerando…" />
+    <string id="AIL_9271ee6c" text="Dê um nome a ele." />
+    <string id="AIL_927a75ae" text=" com os olhos em {0}." />
+    <string id="AIL_92a26c15" text="Segundos entre decisões de cada chefe" />
+    <string id="AIL_92d095e7" text="No grupo, podem ir buscar alguém" />
+    <string id="AIL_92de31ad" text="{0} junta-se a {1}" />
+    <string id="AIL_92eb34bb" text="{=!}Dizer mais alguma coisa" />
+    <string id="AIL_93c01ba7" text="foi executado" />
+    <string id="AIL_94517b9a" text="O nome do clã (eventos do mundo)" />
+    <string id="AIL_946c5eaa" text="{0} muda de senhor" />
+    <string id="AIL_9480373b" text="{0} não tem mais quem perseguir ({1})." />
+    <string id="AIL_949e7526" text="&#10;&#10;ARQUÉTIPO&#10;" />
+    <string id="AIL_94ae59ca" text="O jogo só permite casamento entre nobres. Com esta opção, um companheiro, um andarilho ou um notável que você tenha conquistado pode aceitar: ele entra antes na sua casa como nobre e deixa de ocupar vaga de companheiro." />
+    <string id="AIL_94c1e5dd" text="Personagens únicos criados pela IA" />
+    <string id="AIL_94c21a0a" text="Os que você editou nunca são alterados.&#13;&#10;" />
+    <string id="AIL_953a8770" text="5. Notícias e boatos" />
+    <string id="AIL_95594522" text="{0} chama a guarda: entregue-se, convença-o ou resista." />
+    <string id="AIL_95b516ae" text="{=!}Você não tem companheiros feridos." />
+    <string id="AIL_95c582ef" text="Segredos (secrets.json)" />
+    <string id="AIL_95f8de9b" text="10 = 1 hora por unidade de distância. Mais longe = demora mais para chegar (e para a resposta voltar)." />
+    <string id="AIL_96004d45" text="Cada personagem nasce de um molde (world_data\archetypes.json) que define sua moral, como fala e quanto acredita. Editável." />
+    <string id="AIL_96136d3a" text="Declaração de {0} ({1})" />
+    <string id="AIL_96226daa" text="O que você faz e diz dá o que falar" />
+    <string id="AIL_965719f1" text="O que os médicos sabem" />
+    <string id="AIL_967570b4" text="Ao encontrar no mapa um senhor com quem você não está em guerra, aparece a opção «Vamos desmontar e conversar cara a cara»: abre-se uma cena do terreno com os dois a pé e o pessoal de vocês atrás. Tab para voltar ao mapa." />
+    <string id="AIL_967c929e" text="(sem os &quot;extra&quot; de config.json: revise esse bloco)" />
+    <string id="AIL_96933cf3" text="Cada lote extra é uma requisição a mais nessa visita. 0 = só o primeiro." />
+    <string id="AIL_96a911e0" text="Parentesco inválido." />
+    <string id="AIL_96bb78de" text="{0} reconhece você." />
+    <string id="AIL_96bdc93c" text="Briga de socos com {0}!" />
+    <string id="AIL_96e9202d" text="{=!}Você não tem soldados saudáveis para treinar." />
+    <string id="AIL_96ea6365" text="Instruções de {0} apagadas." />
+    <string id="AIL_9701c185" text="{0} rompe sua aliança com {1}." />
+    <string id="AIL_9713e4ab" text="Carregue uma partida para usar o editor." />
+    <string id="AIL_97e2efc7" text="Um mensageiro traz uma carta de {0} para você." />
+    <string id="AIL_980877af" text="Seus homens terminam o treino: {0} ganharam experiência" />
+    <string id="AIL_986efa13" text="Falecido · " />
+    <string id="AIL_98823032" text="{=!}Ver a resposta" />
+    <string id="AIL_98b07be9" text="Crônica quando morre alguém que você conhecia" />
+    <string id="AIL_98b23f3f" text="{0} não pode se mover agora" />
+    <string id="AIL_98dfb3c6" text="Objetivo: ir a {0} e voltar." />
+    <string id="AIL_990436d2" text="Mudanças de clã (juntar-se ao seu, deixá-lo)" />
+    <string id="AIL_992e899d" text="{0} reconheceu você: vão saber que foi você." />
+    <string id="AIL_99316d74" text="(desconhecido)" />
+    <string id="AIL_99bcbc8e" text="Declaração de um soberano" />
+    <string id="AIL_9a8d90d8" text="{=!}Falar [AI Legacy]" />
+    <string id="AIL_9ad50a3b" text="Restaurado" />
+    <string id="AIL_9b15365c" text="{0} concede {1} ao clã {2}." />
+    <string id="AIL_9b65eab4" text="assentamento inválido" />
+    <string id="AIL_9b770e1c" text="Quando você caminha ao lado de alguém numa cena (guardas, moradores, mercadores, nobres que não conhecem você), a pessoa solta algo de passagem. Gasta UMA requisição por visita a cada lugar: pede-se um lote de frases e elas vão sendo usadas. Desligue se não quiser esse gasto." />
+    <string id="AIL_9b8bd5de" text="A IA inventa os segredos a partir das pessoas reais de cada reino (suas casas, casamentos, dívidas, rancores) e dos eventos que vão acontecendo. Cada um trata de pessoas concretas e poucas pessoas o conhecem, que só o revelam com confiança. Gasta uma requisição por reino, distribuídas uma por dia de jogo ao começar a partida." />
+    <string id="AIL_9b9b3ffb" text="prazo vencido" />
+    <string id="AIL_9ba9f600" text="Tamanho máximo de uma declaração" />
+    <string id="AIL_9bd88abd" text="confiscar do jogador desativado" />
+    <string id="AIL_9bf3e70c" text="&#10;&#10;O QUE LEMBRA DE VOCÊS&#10;" />
+    <string id="AIL_9c4ee846" text="{0} parte para {1} e depois voltará para você." />
+    <string id="AIL_9ca95173" text="Publicar" />
+    <string id="AIL_9ccbdf55" text="{0} sai em defesa de {1}." />
+    <string id="AIL_9d30d4f1" text="Custo do mensageiro por unidade de distância" />
+    <string id="AIL_9d381c5c" text="preços do mercado {0}{1:0} %" />
+    <string id="AIL_9dedec74" text="Você só pode escrever a quem conhece. ★ = alguém com quem você já conversou. O custo e o tempo dependem da distância." />
+    <string id="AIL_9e12b7ca" text="Um parente seu com o parentesco de verdade no jogo. Para um irmão é preciso ter antes pai ou mãe." />
+    <string id="AIL_9e2fda6f" text="Os eventos afetam os clãs" />
+    <string id="AIL_9e5a3fd7" text="Desligado: quem é casado (ou você, se for) não aceita outro casamento. Ligado: pode aceitar, e o casamento anterior termina." />
+    <string id="AIL_9ef83fd5" text="{=!}Curar seus prisioneiros ({AIL_H_PRIS}{GOLD_ICON})" />
+    <string id="AIL_9f068a43" text="A guarda ouviu a briga e está vindo atrás de você." />
+    <string id="AIL_9f48ba90" text="Máximo de frases quando gente comum conversa" />
+    <string id="AIL_9ff27d57" text="Imposto da coroa: máximo (%)" />
+    <string id="AIL_a013a921" text="Dias que dura uma notícia" />
+    <string id="AIL_a046df12" text="Trata de:" />
+    <string id="AIL_a0a85eed" text="{0}{1} saqueou a aldeia de {2}. Os camponeses perderam colheitas e gado." />
+    <string id="AIL_a0af06ce" text="Encomenda fracassada: «{0}»" />
+    <string id="AIL_a0bc9158" text="Cerco" />
+    <string id="AIL_a0bdbcf2" text="Briga de socos" />
+    <string id="AIL_a0d2d00d" text="Romance (0 a 100)" />
+    <string id="AIL_a12b008e" text="O jogo não tem um molde de errante para esse sexo." />
+    <string id="AIL_a12df7a9" text="Leis em vigor por reino" />
+    <string id="AIL_a15797e0" text="Você entrega a {0}: {1}." />
+    <string id="AIL_a190aec6" text="Relação {0}{1}" />
+    <string id="AIL_a2104812" text="Um exército inimigo" />
+    <string id="AIL_a25b9c8e" text="O grupo se dispersa." />
+    <string id="AIL_a29fcb55" text="Grupo: máximo de participantes" />
+    <string id="AIL_a2e05b46" text="O que acontece entre eles muda a relação no jogo" />
+    <string id="AIL_a305fa83" text="não estão em guerra" />
+    <string id="AIL_a30867c0" text="Um líder de clã pode jurar lealdade a você ou servir você como mercenário se você for rei." />
+    <string id="AIL_a33c4ead" text="Agora você leva: " />
+    <string id="AIL_a33f15bf" text="Grupo: até onde você é ouvido (metros)" />
+    <string id="AIL_a35a41bd" text="Cultura" />
+    <string id="AIL_a3c89c8a" text="Você entrega {0} × {1} a {2}." />
+    <string id="AIL_a3cd73e3" text="A partir deste nível de clã, qualquer NPC sabe quem você é sem precisar de apresentação." />
+    <string id="AIL_a430f8e9" text="Instruções suas (uma por linha; valem mais que todo o resto)" />
+    <string id="AIL_a4403b32" text="Romance" />
+    <string id="AIL_a4990140" text=", do clã {0}," />
+    <string id="AIL_a4b23033" text="Segundos reais mínimos entre requisições do mundo" />
+    <string id="AIL_a54a9d45" text="Ninguém lhe pediu nada ainda. Quando alguém lhe pedir um favor e você aceitar, aparecerá aqui com seu prazo e sua recompensa. Você também verá aqui os documentos que lhe entregarem." />
+    <string id="AIL_a58c5f5d" text="Viram você ({0} testemunha(s)), mas ninguém sabe quem é: procuram um forasteiro armado." />
+    <string id="AIL_a5da1c9c" text="{=!}*ouve você*" />
+    <string id="AIL_a5eee76f" text="Conhece você como: {0}   ·   Conversas: {1}   ·   Mentiras descobertas: {2}" />
+    <string id="AIL_a615d39e" text="Você falou com {0}. Volte para {1}." />
+    <string id="AIL_a63c51e2" text="• {0}: {1}, {2}; restam uns {3} dias" />
+    <string id="AIL_a643593e" text="Passados estes dias sem conversar nem trocar cartas, o romance cai 1 ponto por dia (com seu cônjuge não cai abaixo de 40)." />
+    <string id="AIL_a65a644d" text="um duelo" />
+    <string id="AIL_a6a88727" text="{0} desembainha a arma." />
+    <string id="AIL_a7a5c567" text="Acaba o tributo entre {0} e {1}." />
+    <string id="AIL_a7c4d3a0" text="O que acontece numa conversa pode correr de boca em boca." />
+    <string id="AIL_a7d1636b" text="{0} abandona o exército com seus homens." />
+    <string id="AIL_a815af23" text="Os NPCs se aproximam de você no mapa" />
+    <string id="AIL_a858eb42" text="Carregue primeiro uma partida." />
+    <string id="AIL_a898353a" text="Reinos envolvidos" />
+    <string id="AIL_a8b856d9" text="Evento publicado" />
+    <string id="AIL_a8cfe43b" text="Distância a que ouvem você (metros)" />
+    <string id="AIL_a91252d2" text="&#10;Progresso: {0}/{1} {2}" />
+    <string id="AIL_a9262a10" text="Por turnos: frases por requisição" />
+    <string id="AIL_a92c1422" text="{0} fica caído e gravemente ferido: você venceu o duelo." />
+    <string id="AIL_a9628091" text="Já há dentro todos os homens que cabem." />
+    <string id="AIL_a9672a5d" text="AI Legacy — Editor" />
+    <string id="AIL_a96fe2c6" text="7. IA" />
+    <string id="AIL_a9a55bc8" text="O que se diz dele ou dela" />
+    <string id="AIL_a9aa8409" text="Nome de um provedor: o serviço que você escreveu em «0. Chaves de IA» (gemini, openai; o da vaga 2, 3 ou 4 leva o número: openai2) ou um de config.json. Vazio = a cadeia normal. Se falhar, usa-se o resto." />
+    <string id="AIL_a9b74d1b" text="Remover «Falar» da lista de personagens" />
+    <string id="AIL_a9d11dfa" text="cumprido" />
+    <string id="AIL_a9fce24e" text="{0} acompanhará você quando terminarem de conversar." />
+    <string id="AIL_aa23f794" text="Dizer" />
+    <string id="AIL_aa2c0935" text="erro de rede: " />
+    <string id="AIL_aa38cc8d" text="{0} aceita pagar a {1} {2} denares por dia durante {3} dias." />
+    <string id="AIL_aa4dc800" text="&#10;&#10;PÁGINAS DA SUA MEMÓRIA" />
+    <string id="AIL_aad18359" text="{0} reconhece você. Vocês já conversaram {1} {2}.  (Digite /help para ver os comandos)" />
+    <string id="AIL_ab129b00" text="{0} {1} {2}{3}.&#10;&#10;Se você não responder agora, a proposta continua de pé por {4} dias e você pode responder com uma declaração." />
+    <string id="AIL_ab14812d" text="Seus homens não entenderam a ordem (a IA não respondeu)." />
+    <string id="AIL_ab26e5e4" text="Cada vez que um trecho da história de vocês é resumido, a IA escreve uma página com título: ela é lida no livro de Memórias." />
+    <string id="AIL_ab45cede" text="Tamanho mínimo de uma declaração" />
+    <string id="AIL_ab464755" text="Tensão que diminui a cada dia" />
+    <string id="AIL_ab845913" text="Você não conhece ninguém para quem escrever. Converse antes com as pessoas." />
+    <string id="AIL_ab8aaa3e" text="Abre o editor no seu navegador: mundo, segredos, NPCs (personalidade, memória, instruções), eventos e cópias. Requer uma partida carregada." />
+    <string id="AIL_abc764de" text="Homem" />
+    <string id="AIL_abcab881" text="Pai ou mãe" />
+    <string id="AIL_abd77d03" text="Dias em que um evento pode provocar declarações" />
+    <string id="AIL_abf0a3ef" text="Nível de clã para que conheçam você pela fama" />
+    <string id="AIL_ac30aa7a" text="Pena máxima (dias de masmorra)" />
+    <string id="AIL_ac508642" text="Frases mínimas faladas antes que possa se juntar" />
+    <string id="AIL_ac7ff171" text="Raio para atacar grupos inimigos" />
+    <string id="AIL_acbbf598" text="Declaração de {0}" />
+    <string id="AIL_acfa98a8" text="já estão em guerra" />
+    <string id="AIL_ad1d7e50" text="{0} desmonta e aceita o duelo, aqui e agora." />
+    <string id="AIL_ad44fa7d" text="Lembrança relevante de conversas antigas" />
+    <string id="AIL_ad9e9552" text="Modelo (vazio = o recomendado)" />
+    <string id="AIL_adc42c0a" text="{0} desmonta e arregaça as mangas: vocês resolvem isso na porrada ali mesmo." />
+    <string id="AIL_adfeb4cc" text="&#10;&#10;Para encerrar, fale com {0} e conte o que você fez: é quem decide se foi cumprido." />
+    <string id="AIL_ae28cb4d" text=" · importado do AIInfluence (" />
+    <string id="AIL_ae49ce20" text="{0} dissolve seu exército." />
+    <string id="AIL_ae4ebcf0" text="clã inválido" />
+    <string id="AIL_ae73db8a" text="{0} declara guerra a {1}!" />
+    <string id="AIL_af107b28" text="fácil de arrancar" />
+    <string id="AIL_af35e867" text="Você não tem os {0} denares que o hospital pede." />
+    <string id="AIL_af3d096e" text="Além de sobre a cabeça, as frases trocadas entre os personagens aparecem no registro de mensagens (embaixo, à esquerda)." />
+    <string id="AIL_affcf5d2" text="Testar conexão com as IAs" />
+    <string id="AIL_b057228e" text="De tempos em tempos a IA escreve novos eventos a partir do estado real do mundo (política, guerra, economia, sociedade, mistérios). Aparecem em Notícias e os NPCs os conhecem." />
+    <string id="AIL_b06a4975" text="Você não pode pagar os {0} denares de multa: fica {1} dia(s) na masmorra." />
+    <string id="AIL_b0a1e3a6" text="São necessárias testemunhas" />
+    <string id="AIL_b0a43892" text="{0} cansa de esperar você em {1} e vai embora." />
+    <string id="AIL_b14d8a23" text="Faltam 2 dias para a tarefa de {0}: {1}" />
+    <string id="AIL_b1624bd9" text="Para voltar ao texto original de um arquivo: apague-o (ou deixe-o vazio) e carregue a partida.&#13;&#10;" />
+    <string id="AIL_b23dc670" text="{=!}Decretar quarentena (15 dias)" />
+    <string id="AIL_b2b050b8" text="Há {0} dias" />
+    <string id="AIL_b2d8f675" text="o jogo não tem um molde de errante para criar o personagem" />
+    <string id="AIL_b2e0ea9d" text="Objetivo: acabar com o bando que ronda {0} (marcado no mapa) e voltar." />
+    <string id="AIL_b32fb45c" text="Avisar na tela a partir da importância" />
+    <string id="AIL_b3384056" text="(os lordes do jogo têm o mesmo id em todas). Atenção: eles vão lembrar de coisas daquela partida." />
+    <string id="AIL_b3ac06a3" text="Na arena de cada cidade, «Treinar suas tropas»: você paga, passam 8 horas e seus soldados saudáveis ganham experiência (mais os novatos). Alguém pode se machucar. Cada arena demora alguns dias para aceitar vocês de novo." />
+    <string id="AIL_b3ce76cf" text="Guerra entre {0} e {1}!" />
+    <string id="AIL_b3d0b991" text="Probabilidade diária de surto sazonal (por mil)" />
+    <string id="AIL_b40b4b3a" text="Não repetir o mesmo pagamento em (segundos)" />
+    <string id="AIL_b430b5cf" text="Boatos das conversas" />
+    <string id="AIL_b4431c37" text="{0}{1} derrotou em batalha {2}{3}" />
+    <string id="AIL_b4fc9c6e" text="Grupo: vezes seguidas que continuam sem você" />
+    <string id="AIL_b57ad932" text="Tributo diário máximo" />
+    <string id="AIL_b59cea89" text="Relação pessoal com cada NPC" />
+    <string id="AIL_b6af22fa" text="Nenhum provedor com api_key em config.json" />
+    <string id="AIL_b6d441ce" text="{0}{1}, cavalgou até o seu grupo e pede para falar com você." />
+    <string id="AIL_b700fc3c" text="Efeito máximo: lealdade por dia" />
+    <string id="AIL_b70bd667" text="Modelo do que é dito à IA, só para esta partida. O que vai entre {llaves} é preenchido pelo mod: não apague nem traduza. É aplicado na hora." />
+    <string id="AIL_b720cde3" text="O mercado não tem dinheiro para comprar isso de você." />
+    <string id="AIL_b74fa9dd" text="sem resposta em {0}s" />
+    <string id="AIL_b7c8efe0" text="Numa cena, Alt+T: você fala com todos os que estão perto e a IA decide quem responde. As respostas aparecem sobre a cabeça deles e no registro. Pressione Alt+T de novo para continuar falando." />
+    <string id="AIL_b7d8f762" text="Cansaço de guerra: por batalha perdida (x10)" />
+    <string id="AIL_b7df35c1" text="Religião e costumes de cada cultura" />
+    <string id="AIL_b80262c3" text="Importar do AIInfluence" />
+    <string id="AIL_b809052a" text="guerra contra o jogador desativada" />
+    <string id="AIL_b83bfea6" text="Você compra {0} de {1} por {2} denares." />
+    <string id="AIL_b8411e1a" text="Uma carta com o selo imperial na qual…" />
+    <string id="AIL_b85090ef" text="Ordens no mapa" />
+    <string id="AIL_b86021cd" text="febre pulmonar" />
+    <string id="AIL_b8b2988f" text="Seus aliados comandam com IA" />
+    <string id="AIL_b8d972a1" text="Efeito máximo: segurança por dia" />
+    <string id="AIL_b8f58f0d" text="A guarda de {0} deteve {1} após uma confusão." />
+    <string id="AIL_b8f9f7be" text="Calar" />
+    <string id="AIL_b93602c9" text="Você ainda não falou com ninguém. Cada pessoa com quem você falar aparecerá aqui com o que lembra de você." />
+    <string id="AIL_b9583293" text="o castelo" />
+    <string id="AIL_b9c116de" text="Continuar" />
+    <string id="AIL_b9de175d" text="Registros (logs)" />
+    <string id="AIL_ba098098" text="Turnos literais após resumir" />
+    <string id="AIL_ba28fc00" text=" · personalidade" />
+    <string id="AIL_ba299376" text="Dar e receber objetos, documentos de interpretação (cartas de apresentação, contratos, salvo-condutos) e comprar oficinas conversando." />
+    <string id="AIL_ba80efa7" text="{0} recusa a aliança que {1} propunha." />
+    <string id="AIL_bb646884" text="Não há nenhuma chave: coloque-a em Opções, Mod Options, AI Legacy, 0. Chaves de IA." />
+    <string id="AIL_bbb8296b" text="   ·   Romance: {0}" />
+    <string id="AIL_bc041dfb" text="As frases que saem do histórico ao resumir são arquivadas. Ao falar, buscam-se as que têm a ver com o que você diz agora (nomes, lugares, coisas concretas) e o personagem as lembra palavra por palavra. Não gasta requisições." />
+    <string id="AIL_bc5de8fe" text="{0}{1}{2} — {3} denares, {4}" />
+    <string id="AIL_bc9212fd" text="Objetos" />
+    <string id="AIL_bca1e090" text="Você cede {0} soldados{1} a {2}." />
+    <string id="AIL_bcd82606" text="Tensão necessária para a violência" />
+    <string id="AIL_bce32dcd" text="Máximo de inimigos no prompt" />
+    <string id="AIL_bd15ad6c" text="world_data\religion.json e cultural_traditions.json: a fé e os costumes (cortejo, hospitalidade, juramentos) do seu povo. Editáveis." />
+    <string id="AIL_bd386578" text="Ao abrir uma conversa em grupo, os participantes caminham até formar um semicírculo diante de você e olham para você. Quem está sentado ou ocupado fica onde está." />
+    <string id="AIL_bd58c13d" text="Escrever carta" />
+    <string id="AIL_bd7a44d0" text="Quando acontece algo de peso no jogo (uma guerra, uma paz, uma cidade tomada, a morte ou captura de alguém importante, um grande boato nascido das suas conversas), a IA escreve logo como o mundo o recebe." />
+    <string id="AIL_bd7dfc75" text="{0}, de {1}, fez uma declaração" />
+    <string id="AIL_bdc30505" text="O clã {0} jura lealdade a {1}." />
+    <string id="AIL_bdd858a5" text="Remover" />
+    <string id="AIL_bdf82f15" text="A partir deste nível de romance com você, o jogo não casa por conta própria esse personagem com outra pessoa." />
+    <string id="AIL_be07e5b5" text="propõe a você" />
+    <string id="AIL_be7cce2e" text="Boato" />
+    <string id="AIL_be8758dd" text="Seus soldados feridos e doentes voltam às fileiras." />
+    <string id="AIL_beb1508e" text="Distância máxima entre os dois que conversam (metros)" />
+    <string id="AIL_beccbd63" text="{0} · {1} · importância {2}" />
+    <string id="AIL_bf60207b" text="Escreva o texto do evento." />
+    <string id="AIL_bfc4f22d" text="Religião" />
+    <string id="AIL_c009f7dc" text="{0} fará chegar a notícia disso a {1}." />
+    <string id="AIL_c05b0270" text="Paz" />
+    <string id="AIL_c0668e57" text="Um NPC com grupo pode ceder soldados ou prisioneiros a você, ou aceitar os que você oferecer." />
+    <string id="AIL_c0d9e15c" text="Eventos por rodada" />
+    <string id="AIL_c0e5f1de" text="A partir daqui ele pode atacar você por conta própria ou chamar a guarda. Os duelos e brigas combinados não precisam disso." />
+    <string id="AIL_c1183e43" text=" (em quarentena)" />
+    <string id="AIL_c1353aff" text="{0} responde a você." />
+    <string id="AIL_c140427d" text="{0} venceu {1} em {2}" />
+    <string id="AIL_c1c7d32a" text="O clã {0} se juntou a {1}" />
+    <string id="AIL_c1de8329" text="{0} recusa a paz que {1} oferecia." />
+    <string id="AIL_c268feb6" text="Reações ao que acontece de verdade" />
+    <string id="AIL_c271386a" text=" agora é da sua família" />
+    <string id="AIL_c27c3eed" text="O mensageiro parte para {0}. Chegará em {1}." />
+    <string id="AIL_c2daf469" text="Idade" />
+    <string id="AIL_c327ea4f" text="&#10;&#10;Na cidade há {0} ({1}){2}." />
+    <string id="AIL_c351bc8a" text="{0} desiste de saquear {1}." />
+    <string id="AIL_c3a1387b" text="Mistério" />
+    <string id="AIL_c3a3b332" text="Chega a {0}: {1}" />
+    <string id="AIL_c40dd572" text="Apagar as frases e o resumo dele?" />
+    <string id="AIL_c43fad42" text="Tempo sem novas conversas depois que uma termina. Os mesmos dois demoram o dobro para voltar a conversar." />
+    <string id="AIL_c4dbb3ad" text="Distância máxima a que o texto é visto (metros)" />
+    <string id="AIL_c4f81902" text="Você pode chamar seus homens: Ctrl+X (dez) ou Ctrl+Alt+X (todos os que couberem). Só na rua." />
+    <string id="AIL_c509c21c" text="Relação mínima para aceitar casamento" />
+    <string id="AIL_c52373ae" text="Feudo" />
+    <string id="AIL_c53c096c" text="A tarefa fracassou." />
+    <string id="AIL_c54dc4b5" text="Os eventos podem trazer doenças" />
+    <string id="AIL_c573f4b8" text="{0} entrega a você: {1} (para {2})." />
+    <string id="AIL_c5c07b9e" text="Prisão de {0}" />
+    <string id="AIL_c5ca3b43" text="Mudança máxima de romance por resposta" />
+    <string id="AIL_c5d6d5d7" text="Provedor para resumos de memória" />
+    <string id="AIL_c61991e6" text="Briga armada: você pode chamar suas tropas (Ctrl+X)" />
+    <string id="AIL_c61b5727" text="{0} exige de {1} um tributo de {2} denares por dia durante {3} dias." />
+    <string id="AIL_c6442751" text=" por {0}{1}." />
+    <string id="AIL_c65afb5d" text="{0} quer falar com você" />
+    <string id="AIL_c69c977f" text="Efeitos econômicos dos eventos" />
+    <string id="AIL_c6dc6d42" text="Ao entrar ou ficar num lugar com doença, parte dos seus soldados pode adoecer (ficam como feridos)." />
+    <string id="AIL_c704d473" text="{0}{1} foi feito prisioneiro" />
+    <string id="AIL_c70d2ac3" text="Você compra de {0} a oficina «{1}» por {2} denares." />
+    <string id="AIL_c774d780" text="Não foi possível carregar o editor dentro do jogo (WebView2).&#10;&#10;Abra-o no navegador: " />
+    <string id="AIL_c78d48c5" text="Confiança {0}{1}" />
+    <string id="AIL_c79b58e9" text="Desligado (recomendado): só prisioneiros seus e feridos. Ligado: a IA pode decidir a morte de qualquer personagem se a cena pedir, inclusive os do seu clã." />
+    <string id="AIL_c7acc8b1" text="Declarar" />
+    <string id="AIL_c7da69a7" text="Importância (1-4)" />
+    <string id="AIL_c7fbb570" text="O reino de {0} foi destruído. Não existe mais." />
+    <string id="AIL_c81ffc1c" text="Seu clã sente: renda {0:+0;-0} % enquanto durar ({1})." />
+    <string id="AIL_c829a044" text="Mostra no registro o que cada chefe ordenou a cada formação." />
+    <string id="AIL_c8741a3a" text="{0} chama a guarda aos gritos." />
+    <string id="AIL_c8ad772b" text="O lugar" />
+    <string id="AIL_c949ab1f" text="Morte por interpretação: em qualquer situação" />
+    <string id="AIL_c9d542c8" text="AI Legacy: testando {0} provedor(es)..." />
+    <string id="AIL_ca0dcdf4" text="Escreva uma ordem" />
+    <string id="AIL_ca1dd233" text="A guarda deixa passar" />
+    <string id="AIL_cab1eaa4" text="{0} propõe a paz a {1}{2}." />
+    <string id="AIL_cae619f6" text="Tarefas (missões criadas pela IA)" />
+    <string id="AIL_cb1eb4c2" text="{0} morreu." />
+    <string id="AIL_cb234369" text="{0} exige de {1} {2} denares em reparações." />
+    <string id="AIL_cb272b11" text="Enquanto cumprem uma ordem, não levam a vida normal (não compram comida nem recrutam), então não convém estendê-la." />
+    <string id="AIL_cb889c97" text="Serão removidas desta campanha as memórias de {0} personagens que vieram do AIInfluence " />
+    <string id="AIL_cb8abbac" text="Objetivo: falar com {0} e voltar." />
+    <string id="AIL_cbd20bc6" text="Um evento pode fazer um clã vassalo se levantar contra sua coroa (nunca o seu nem o clã reinante), se ele realmente se der mal com o rei." />
+    <string id="AIL_cbe9f6a8" text="&#10;&#10;O mais recente:&#10;" />
+    <string id="AIL_cc079ac8" text="Um nobre que já conhece você e passa por perto pode cavalgar até você para conversar, se tiver motivo: uma tarefa em aberto, algo que ouviu sobre você, afeto ou rancor. Ele pergunta se você o recebe." />
+    <string id="AIL_cc456770" text="Carta selada de Lucon" />
+    <string id="AIL_cc47eaca" text="{0} seguirá você com seu grupo." />
+    <string id="AIL_ccda8e3e" text="Erro interno ao montar o contexto: " />
+    <string id="AIL_cd6bc920" text="Ao passar: tamanho máximo de cada frase" />
+    <string id="AIL_cd6fe758" text="Confiança que você perde se for pego numa mentira" />
+    <string id="AIL_cd7a8ef0" text="Um personagem pode morrer como desfecho de uma conversa: se é seu prisioneiro e você o executa dizendo isso claramente, se tira a própria vida, ou se está morrendo de seus ferimentos. Ele morre de verdade na partida." />
+    <string id="AIL_cddce6e0" text="Os reis podem declarar guerra a você se você reina" />
+    <string id="AIL_cdf7046b" text="{=!}Rever o que foi dito" />
+    <string id="AIL_cdf9a5fc" text="O clã {0} agora serve a {1} como mercenários." />
+    <string id="AIL_ce1a0814" text="Encontraram {0} {1}{2}. Ninguém viu quem fez isso." />
+    <string id="AIL_ce8115b0" text="reação a um evento real" />
+    <string id="AIL_ce8ae4a7" text="De tempos em tempos chega a uma cidade próxima alguém novo inventado pela IA para esta partida (um médico foragido, uma capitã mercenária, um pregador…), com nome, ofício, personalidade e motivo. Vive como um andarilho: você pode procurá-lo e contratá-lo. Uma requisição por personagem." />
+    <string id="AIL_ce9503db" text=" como mercenários." />
+    <string id="AIL_ceb6c4a4" text="{0} frase(s) arquivadas" />
+    <string id="AIL_ced9d43e" text="Se você bater ou matar alguém sem que ninguém vivo veja, ninguém sabe que foi você: nem má fama, nem guarda, nem seu nome nas notícias. Se virem você mas não souberem quem é, procuram «um forasteiro armado» e a má fama é pela metade. Só apontam você pelo nome se alguma testemunha conhecer você ou se você já for famoso." />
+    <string id="AIL_cef46abb" text="Criar parente" />
+    <string id="AIL_cefb1dfd" text="Na lista de personagens de uma cidade, castelo ou taverna só resta «Visitar». É preciso ir até a pessoa e falar com ela na cena." />
+    <string id="AIL_cf032cac" text="Ainda não há nenhum evento dos que dão o que falar. Com «Ver tudo» aparecem também as capturas, batalhas e saques do dia a dia." />
+    <string id="AIL_cf0af550" text="Dias entre personagens únicos" />
+    <string id="AIL_cf0db558" text="O bando de {0} não existe mais. Volte para {1}." />
+    <string id="AIL_cf4c4fba" text="Conquista" />
+    <string id="AIL_d02abd4c" text="Efeito máximo sobre a renda de um clã (%)" />
+    <string id="AIL_d02be029" text="(sem modo JSON)" />
+    <string id="AIL_d0722260" text="Distância a que alguém de fora ouve a conversa. Um grito (!) chega ao dobro; um sussurro (*), só a quem você está olhando." />
+    <string id="AIL_d09068cf" text="Romance {0}{1}" />
+    <string id="AIL_d0cb85ca" text="Os personagens com nome que estão a poucos passos quando você fala com alguém numa cena ouvem o que você diz, e lembram." />
+    <string id="AIL_d1c3cda0" text="{=!}Quero falar com você sobre uma coisa. [Conversa livre]" />
+    <string id="AIL_d225285a" text="Ainda não há nenhum: vão sendo escritos com os dias de jogo." />
+    <string id="AIL_d22a5c23" text="Frases máximas por resposta" />
+    <string id="AIL_d279f208" text="Ativado: você fala a partir da caixa de diálogo do jogo (escrever → esperar → ver resposta). Desativado: janela de chat própria." />
+    <string id="AIL_d2c3f48b" text="Incluir amigos e inimigos do NPC" />
+    <string id="AIL_d36c447b" text="Ok" />
+    <string id="AIL_d37eb730" text="Efeito máximo: prosperidade por dia" />
+    <string id="AIL_d4237d66" text="AI Legacy" />
+    <string id="AIL_d43bd671" text="Não cai como um relógio: o prazo real varia entre 60 % e 140 % deste valor." />
+    <string id="AIL_d49df131" text="Quando morre um personagem com quem você conversou várias vezes, a IA escreve a crônica dele (quem foi, o que houve entre vocês, como acabou). Aparece na tela e fica em Notícias. Uma requisição por crônica." />
+    <string id="AIL_d4db6271" text="Com uma partida carregada: traz do AIInfluence a memória, personalidade, lembranças e instruções dos NPCs DESTA campanha. Não sobrescreve quem já tiver memória no AI Legacy." />
+    <string id="AIL_d53be13f" text="Importância mínima para provocar uma reação" />
+    <string id="AIL_d582953e" text="Romance necessário para aceitar casamento" />
+    <string id="AIL_d594c7d1" text="Bater em qualquer um começa uma briga" />
+    <string id="AIL_d5d6b599" text="&#10;&#10;Salve a partida para conservar isso." />
+    <string id="AIL_d63eaabc" text=" em {0}." />
+    <string id="AIL_d655636d" text="Descrição do mundo" />
+    <string id="AIL_d65def98" text="{0} chegou a {1} e inicia o regresso até você." />
+    <string id="AIL_d69db9ac" text="Personagens envolvidos" />
+    <string id="AIL_d6f2ec0b" text="Treino na arena" />
+    <string id="AIL_d6fd303c" text="O clã {0} se levanta em rebelião contra {1}." />
+    <string id="AIL_d770d7bc" text="2. Relação, confiança e romance" />
+    <string id="AIL_d77a8668" text="Arena: probabilidade de lesão por soldado (%)" />
+    <string id="AIL_d79898d4" text="{0} dia(s) de masmorra." />
+    <string id="AIL_d79a206d" text="Grupo: câmera lenta enquanto você escreve" />
+    <string id="AIL_d7c17160" text="{0} {1} | em={2} def={3} curto={4} obj={5} chegou={6} batalha={7}" />
+    <string id="AIL_d83e63f4" text="Você acabou com o bando de {0}. Volte para {1}." />
+    <string id="AIL_d8412138" text="febre terçã dos pântanos" />
+    <string id="AIL_d86408df" text="Diplomacia de reis por IA (substitui a do jogo)" />
+    <string id="AIL_d88f9ba0" text="Nada ainda." />
+    <string id="AIL_d8f59858" text="{0} recebeu {1} × {2}. Volte para {3}." />
+    <string id="AIL_d93015a6" text="comida" />
+    <string id="AIL_d943da10" text="Dias mínimos entre cartas" />
+    <string id="AIL_d9727a35" text="&#10;&#10;PERSONALIDADE&#10;" />
+    <string id="AIL_d9b2a7c5" text="{{=!}}Esta arena não aceita vocês de novo por mais {0} horas." />
+    <string id="AIL_d9d80e9f" text="Tipo" />
+    <string id="AIL_da3c0b6b" text="Você não leva nenhum." />
+    <string id="AIL_da6122fe" text="*olha para você em silêncio*" />
+    <string id="AIL_da62d72b" text="Máximo de segredos vivos na partida" />
+    <string id="AIL_da76131c" text="Mulher" />
+    <string id="AIL_da8482bd" text="Conceder e aceitar feudos" />
+    <string id="AIL_da85936f" text="Carta de {0}" />
+    <string id="AIL_dace2712" text="{0} recusa o acordo comercial de {1}." />
+    <string id="AIL_daf17754" text="Completar fichas de personagem pela metade" />
+    <string id="AIL_db05ba43" text="página(s) no livro dele" />
+    <string id="AIL_db4aebed" text="Criar evento" />
+    <string id="AIL_db9bfa6a" text="Relação máxima com o rei para se rebelar" />
+    <string id="AIL_db9c0e6a" text="(mínimo)" />
+    <string id="AIL_dba7a77b" text="Passado (opcional)" />
+    <string id="AIL_dbbb1038" text="Sexo" />
+    <string id="AIL_dc14749e" text="Objetivo: entregar «{0}» a {1} e voltar." />
+    <string id="AIL_dc40699f" text="Voltar ao texto original? O que você mudou será perdido." />
+    <string id="AIL_dc5f5110" text="Você paga uma multa de {0} denares." />
+    <string id="AIL_dcc9bf83" text="Máximo de tokens por resposta" />
+    <string id="AIL_dcd92686" text="O mensageiro cobra {0} denares e levará {1} para chegar.&#10;Se responder, a resposta levará o mesmo tempo para voltar." />
+    <string id="AIL_dd02342f" text="&#10;&#10;(Comece com * para sussurrar só para quem você está olhando, ou com ! para gritar. Alt+G encerra a conversa.)" />
+    <string id="AIL_dd1a051b" text="{0} caiu. {1} dá o cerco por encerrado." />
+    <string id="AIL_dd2f52c0" text="{0} acompanha você." />
+    <string id="AIL_dd4380be" text="Sem eventos" />
+    <string id="AIL_dd6592dc" text="Não há mais espaço para companheiros." />
+    <string id="AIL_dd736c20" text="Dias que um evento continua «no ar»" />
+    <string id="AIL_dd76aabc" text="Comandos:  /note &lt;texto&gt; (instrução permanente)  ·  /clearnotes  ·  /memory (o que lembra)  ·  /forget  ·  /help" />
+    <string id="AIL_dda0e8ca" text="1. Geral" />
+    <string id="AIL_de098566" text=", {0} denares" />
+    <string id="AIL_de5d5b50" text="Você já tem mãe." />
+    <string id="AIL_de705baa" text="Escreve toda a ficha acima a partir de quem é na partida (família, clã, traços, molde de personalidade), sem precisar conversar com o personagem no jogo. Sobrescreve o que houver. É uma requisição à IA." />
+    <string id="AIL_dec042f4" text="{0} entrega a você {1} prisioneiros." />
+    <string id="AIL_df1f7dd9" text="{0} esperará aqui com seu grupo." />
+    <string id="AIL_df336f51" text="O inimigo comanda com IA" />
+    <string id="AIL_df85af91" text="Segredos que um personagem tem presentes ao falar" />
+    <string id="AIL_e00ce40a" text="Você não tem «{0}» para dar a {1}." />
+    <string id="AIL_e00fb19f" text="Contágio diário a um vizinho por nível de gravidade (por mil)" />
+    <string id="AIL_e07caced" text="Escreva algo" />
+    <string id="AIL_e0a76c57" text="o bando de {0} continua de pé" />
+    <string id="AIL_e0d57f33" text="você ainda não falou com {0}" />
+    <string id="AIL_e102e90e" text="Última mensagem de {0}:&#10;{1}" />
+    <string id="AIL_e10a40d5" text="{0} cai no duelo." />
+    <string id="AIL_e13e09e9" text="Em {0} há {1}" />
+    <string id="AIL_e147d85d" text="Esta conversa e as últimas" />
+    <string id="AIL_e14ea467" text="Declaração" />
+    <string id="AIL_e1661a3b" text="As fichas antigas ou importadas do AIInfluence trazem apenas personalidade, passado e jeito de falar. Com esta opção, na próxima conversa com esse personagem a IA escreve o que falta (o que busca, seu segredo, o que o move, valores, religião, reputação, frases de exemplo) sem mexer no que já havia." />
+    <string id="AIL_e1d05f2f" text="Faltam {0} dias" />
+    <string id="AIL_e2132343" text="Nome de um provedor de config.json. Vazio = a cadeia normal." />
+    <string id="AIL_e250598b" text="Idioma da interface (Interface language)" />
+    <string id="AIL_e28e2ffe" text="Duração normal de uma ordem (dias)" />
+    <string id="AIL_e2b9be42" text="Escolha um arquivo" />
+    <string id="AIL_e37afdcd" text="A gente comum também conversa (em voz baixa)" />
+    <string id="AIL_e37fa365" text="inverno (risco alto de doença)" />
+    <string id="AIL_e3a1d50c" text="Crônica: conversas mínimas com o falecido" />
+    <string id="AIL_e3aa1cab" text="Lembranças (uma por linha)" />
+    <string id="AIL_e3b035c2" text="a cidade" />
+    <string id="AIL_e3c37efa" text="Além disso, segredos de fábrica (world_data\secrets.json)" />
+    <string id="AIL_e3e82b77" text="Seus prisioneiros são curados." />
+    <string id="AIL_e3f5b714" text="lealdade" />
+    <string id="AIL_e405f75e" text="Idioma das respostas dos NPCs" />
+    <string id="AIL_e424c129" text="Notícias do mundo" />
+    <string id="AIL_e4267ade" text="SÓ PARA TESTES. Os NPCs aceitam quase qualquer pedido razoável (seguir você, tarefas, presentes, tropas) sem que você precise antes ganhar a confiança deles. Desative para jogar." />
+    <string id="AIL_e43ca0c4" text="Você é jovem demais para ter filhos." />
+    <string id="AIL_e45c3132" text="uma peste" />
+    <string id="AIL_e47fec25" text="Criatividade. 80 = 0.8. Alguns modelos (GPT-5) a ignoram." />
+    <string id="AIL_e4a9f3a0" text="prosperidade" />
+    <string id="AIL_e4f26c59" text="3. Ações" />
+    <string id="AIL_e50ca8f9" text="{0} entrega {1} a {2}." />
+    <string id="AIL_e514530a" text="resposta vazia" />
+    <string id="AIL_e5df30fb" text="&#10;&#10;PASSADO&#10;" />
+    <string id="AIL_e644c872" text="Desfazer importação" />
+    <string id="AIL_e6c89e51" text="{0} está pensando..." />
+    <string id="AIL_e6d0eecf" text="Tensão do momento (0 a 100)" />
+    <string id="AIL_e70b1e8a" text="{0} parte para {1}." />
+    <string id="AIL_e778fb02" text="{0} frase(s)" />
+    <string id="AIL_e7c1ccde" text="Sua tropa fica prevenida durante {0} dias." />
+    <string id="AIL_e8438e2a" text="Fechar" />
+    <string id="AIL_e9023c1f" text="{0} vai buscar {1}." />
+    <string id="AIL_e904786b" text="não estão mais em guerra" />
+    <string id="AIL_e911ba7b" text="{0} foi presa em {1} e levada às masmorras, acusada diante de testemunhas de {2}." />
+    <string id="AIL_e912d419" text="São inventados pela IA a partir das pessoas reais de cada reino e dos eventos. Aparecem aos poucos (um reino por dia de jogo). Aqui você vê de quem trata cada um e quem o conhece; pode apagar os que não gostar." />
+    <string id="AIL_e9459925" text="&#10;Seus homens estão prevenidos por mais {0} dia(s)." />
+    <string id="AIL_e94ae63e" text="{=!}Curar suas tropas ({AIL_H_TROOPS}{GOLD_ICON})" />
+    <string id="AIL_e95b93ac" text="{0}, {1}, chegou a {2}." />
+    <string id="AIL_e97439d8" text="Duelo com {0}!" />
+    <string id="AIL_e99f2367" text="Campos que podem mudar de uma vez" />
+    <string id="AIL_e9d88202" text="Reparações máximas" />
+    <string id="AIL_e9f35fb7" text="{0} chama a guarda: você ganhou má fama diante de {1}." />
+    <string id="AIL_e9f870fb" text="Um evento pode manchar ou exaltar o nome de um clã específico (também o seu): a renda dele cai ou sobe uma porcentagem durante alguns dias. Aparece no detalhamento de renda do clã e em Notícias." />
+    <string id="AIL_ea10db3c" text="Buscar herói para adicionar…" />
+    <string id="AIL_ea76bfc7" text="a IA não respondeu" />
+    <string id="AIL_eacf656a" text="&#10;Prazo: faltam {0} dia(s)" />
+    <string id="AIL_eade4433" text="Suas tropas podem adoecer" />
+    <string id="AIL_eb19bc3f" text="Rota desconhecida: " />
+    <string id="AIL_eb1b8e7a" text="Máximo de guardas e defensores numa briga" />
+    <string id="AIL_eb66dabe" text="Batalha" />
+    <string id="AIL_ebad7b06" text="Ver tudo" />
+    <string id="AIL_ebb02c23" text="Mundo salvo" />
+    <string id="AIL_ebf54145" text="Seus arautos levam a declaração a todos os cantos…" />
+    <string id="AIL_ec31e35b" text="Saque" />
+    <string id="AIL_eccf1cc9" text="Endereço (só se o serviço for «outro»)" />
+    <string id="AIL_ed904e98" text="{0} juntou-se à companhia de {1}." />
+    <string id="AIL_ed9f27d0" text="Lista JSON: id, text, chance (0-100), who (all, lords, faction_leaders, clan_leaders, companions, wanderers, merchants, gang_leaders, town_notables, village_notables, townsfolk, villagers, guards, culture:id, kingdom:id ou id de herói)." />
+    <string id="AIL_edd26e08" text="Mudança máxima de relação por resposta" />
+    <string id="AIL_ee278059" text="Corre a notícia por Calradia: {0}" />
+    <string id="AIL_ee39700e" text="Doença" />
+    <string id="AIL_ef0295b5" text="Cerco a {0}" />
+    <string id="AIL_ef08b937" text="sem clã" />
+    <string id="AIL_ef1030cb" text="Ninguém viu: ninguém saberá que foi você." />
+    <string id="AIL_ef8b7c72" text="Um rei pode criar uma lei própria com efeitos pequenos e diários em todas as suas cidades e castelos (lealdade, prosperidade, segurança, comida), e revogá-la." />
+    <string id="AIL_efa2c194" text="Detido pela guarda" />
+    <string id="AIL_effea661" text="Resumir a partir de N turnos" />
+    <string id="AIL_f00983f3" text="Escreva o que você proclama diante de Calradia. O que você decidir com clareza (guerra, paz, aliança, tributo, impostos, feudos…) será executado; o resto ficará como palavras." />
+    <string id="AIL_f039f8c1" text="Tarefas ativas ao mesmo tempo" />
+    <string id="AIL_f054b3ad" text="&#10;Época do ano: {0}." />
+    <string id="AIL_f08739d1" text="Se você não disser nada durante este tempo, a IA decide se alguém do grupo continua a conversa (insiste com você, ou começam a falar entre si). Cada vez é uma requisição." />
+    <string id="AIL_f0a2c329" text="{0} cumpriu uma tarefa de {1}: {2}." />
+    <string id="AIL_f0c471e9" text="Romance que impede o jogo de casá-lo com outro (0 = não impedir)" />
+    <string id="AIL_f106aea0" text="Baixar cópia (.json)" />
+    <string id="AIL_f12fa594" text="{0} paga a {1} {2} denares em reparações." />
+    <string id="AIL_f1406603" text="você entregou {0} e leva {1} de {2} × {3}" />
+    <string id="AIL_f1ae2294" text="{0} propõe uma aliança a {1}." />
+    <string id="AIL_f2440a00" text="O guarda prende você: você vai para as masmorras de {0}." />
+    <string id="AIL_f257824f" text="Como trata superiores, iguais, inferiores e estranhos" />
+    <string id="AIL_f25e35cc" text="Humor" />
+    <string id="AIL_f264e0b3" text="Comércio de verdade com o povo do lugar" />
+    <string id="AIL_f2caa92d" text="A. Mundo e diplomacia" />
+    <string id="AIL_f30c7e23" text="Passado" />
+    <string id="AIL_f3138943" text="Relação: {0:+0;-0;0}" />
+    <string id="AIL_f313a714" text="Cônjuge" />
+    <string id="AIL_f362d5cb" text="{0} contrata seu clã como mercenários de {1}." />
+    <string id="AIL_f378719a" text="{0} entrega a você seu prisioneiro {1}." />
+    <string id="AIL_f39268ed" text="Personalidade" />
+    <string id="AIL_f3c39683" text="hoje" />
+    <string id="AIL_f42f2a6a" text="Dias mínimos entre aproximações" />
+    <string id="AIL_f43bef55" text="Lembranças que guarda de cada outro personagem" />
+    <string id="AIL_f43d7a3d" text="Testar" />
+    <string id="AIL_f45ab3e9" text="fracassado" />
+    <string id="AIL_f48c59a0" text="lei sem nome" />
+    <string id="AIL_f4d11fd9" text="para pero porque como cuando donde quien quién cual esto esta este esos esas estos estas aquel aquella tiene tengo tienes tenemos hacer hace hago haces puede puedo puedes " />
+    <string id="AIL_f4f38e0c" text="Não há mais doentes de {0} em {1}." />
+    <string id="AIL_f533587d" text="resposta vazia (finish_reason=" />
+    <string id="AIL_f636277a" text="não há mais espaço para companheiros" />
+    <string id="AIL_f65463d8" text="{0} deixa sua vida aqui e se junta à sua companhia." />
+    <string id="AIL_f683eca5" text="No menu de cada cidade, «Visitar o hospital»: informam as doenças que circulam, curam você, seus companheiros, suas tropas feridas ou doentes e seus prisioneiros (pagando; mais barato em cidades prósperas), e vendem prevenção para que seus homens adoeçam menos durante alguns dias." />
+    <string id="AIL_f6cbdca6" text="Grupo: segundos sem falar para que se desfaça" />
+    <string id="AIL_f71c6f6e" text="Não lhe restam homens saudáveis para chamar." />
+    <string id="AIL_f7528310" text="Memória guardada" />
+    <string id="AIL_f7d8e495" text="Agressão de um forasteiro" />
+    <string id="AIL_f8007f6a" text="Cada NPC leva a conta de quanto confia em você. Sem confiança suficiente, não conta segredos nem informações delicadas." />
+    <string id="AIL_f85f4507" text="Mensagem de {0}, de {1}" />
+    <string id="AIL_f8647bfd" text="Tipo: {0}   ·   Há {1} dia(s)   ·   Importância {2} ({3})" />
+    <string id="AIL_f8823100" text="Mostrar as ordens da IA" />
+    <string id="AIL_f8ac2cac" text="Crônica de {0}" />
+    <string id="AIL_f8db9623" text="Botões no mapa (Notícias / Memórias)" />
+    <string id="AIL_f8fff764" text="Um morador com quem você conversou de verdade pode deixar a vida dele e se juntar à sua companhia: passa a ser um personagem permanente, com nome, personalidade e memória. A aparência dele muda para a do novo personagem." />
+    <string id="AIL_f90050f2" text="Social" />
+    <string id="AIL_f92abc25" text="Sem tarefas" />
+    <string id="AIL_f96ef1d1" text="Só eventos" />
+    <string id="AIL_f991b6e7" text="O prazo acabou." />
+    <string id="AIL_fa2d5313" text="{0} suspende a quarentena de {1}." />
+    <string id="AIL_fa46e0da" text="febre das manchas" />
+    <string id="AIL_faa80647" text="Importar" />
+    <string id="AIL_fab5d985" text="Jeito de falar" />
+    <string id="AIL_fb003d1c" text="JSON inválido: " />
+    <string id="AIL_fb600910" text="Para ter irmãos, primeiro é preciso um pai ou uma mãe: crie antes um progenitor." />
+    <string id="AIL_fb96809a" text="{=!}Mais alguma coisa?" />
+    <string id="AIL_fba371fc" text="Você vende {0} de {1} por {2} denares." />
+    <string id="AIL_fbf8b45d" text="um tributo de {0} denares por dia durante {1} dias" />
+    <string id="AIL_fc0a69e3" text="Queda de um reino" />
+    <string id="AIL_fc7ff1ee" text="Efeito máximo: duração (dias)" />
+    <string id="AIL_fcce1e3f" text="Dias mínimos entre aproximações do mesmo NPC" />
+    <string id="AIL_fd19d606" text="durante {0} ano(s)" />
+    <string id="AIL_fd36d8df" text="O que foi conversado com {0}" />
+    <string id="AIL_fd3f245a" text="Ações ativadas" />
+    <string id="AIL_fd4aafcb" text="Você se casa com {0}!" />
+    <string id="AIL_fd4ffbec" text="Dados do mundo" />
+    <string id="AIL_fd5decd8" text="Arena: custo (% do preço normal)" />
+    <string id="AIL_fd8ad9a8" text="&#10;Recompensa prometida: {0} denares" />
+    <string id="AIL_fd979159" text="Importação do AIInfluence" />
+    <string id="AIL_fde1c2b2" text="Arena: horas até poder repetir na mesma" />
+    <string id="AIL_fde6aa22" text="Multa habitual: mínimo" />
+    <string id="AIL_fe057bc7" text="Você deixa o guarda falando sozinho: sua má fama aqui aumenta." />
+    <string id="AIL_fe2134ff" text="todo mundo" />
+    <string id="AIL_fe5df831" text="{0} e {1} se casaram." />
+    <string id="AIL_fe9e2f63" text="Falar na cena a partir do mapa" />
+    <string id="AIL_feb8d02f" text="morreu de velhice" />
+    <string id="AIL_fec92cb7" text="Declaração da coroa" />
+    <string id="AIL_fedffd7f" text="O senhor do lugar julga você" />
+    <string id="AIL_fefe856a" text="dia(s)" />
+    <string id="AIL_ff0ad962" text="{0} prende {1}: levam-na para as masmorras de {2}." />
+    <string id="AIL_ff3da657" text="Desligado: cada conversa entre personagens é escrita inteira numa requisição. Ligado: pede-se por turnos e cada rodada sabe o que foi dito antes; eles podem se interromper e a conversa termina sozinha se você se meter. Gasta várias requisições por conversa." />
+    <string id="AIL_ff5c778e" text="Você chegou a {0}. Volte para {1}." />
+    <string id="AIL_ff6e4415" text="{0} se aproxima de você." />
+    <string id="AIL_ffcd4d39" text="Imposto da coroa: mínimo (%)" />
+  </strings>
+</base>

@@ -67,7 +67,7 @@ namespace AILegacy.Memory
                     {
                         mem.Pages.Add(new MemoryPage
                         {
-                            Title = title.Length > 0 ? (title.Length > 80 ? title.Substring(0, 80) : title) : L.T("Sin título"),
+                            Title = title.Length > 0 ? (title.Length > 80 ? title.Substring(0, 80) : title) : L.T("AIL_463eb3a3", "Sin título"),
                             Text = page.Length > 2500 ? page.Substring(0, 2500) : page,
                             Day = CampaignTime.Now.ToDays,
                         });

@@ -91,20 +91,20 @@ namespace AILegacy.Llm
             var opts = CaptureOptions(60);
             var providers = LegacyConfig.Current.Providers.ToList();
             TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage(
-                L.F($"AI Legacy: probando {providers.Count(p => p.IsUsable)} proveedor(es)..."), TaleWorlds.Library.Colors.Gray));
+                L.F("AIL_c9d542c8", $"AI Legacy: probando {providers.Count(p => p.IsUsable)} proveedor(es)..."), TaleWorlds.Library.Colors.Gray));
             var msgs = new List<ChatMessage> { new ChatMessage("user", "Reply with the single word: OK") };
             foreach (var p in providers)
             {
                 if (!p.IsUsable)
                 {
-                    Core.MainThread.Post(() => Show(L.F($"{p.Name}: desactivado o sin api_key"), TaleWorlds.Library.Colors.Gray));
+                    Core.MainThread.Post(() => Show(L.F("AIL_0cd6f2e1", $"{p.Name}: desactivado o sin api_key"), TaleWorlds.Library.Colors.Gray));
                     continue;
                 }
                 var prov = p;
                 Task.Run(() => TryProvider(prov, LegacyConfig.Current, msgs, false, opts)).ContinueWith(t =>
                 {
                     var r = t.IsFaulted ? new LlmResult { Ok = false, Error = t.Exception?.GetBaseException().Message } : t.Result;
-                    Core.MainThread.Post(() => Show(r.Ok ? L.F($"{prov.Name}/{prov.Model}: OK en {r.Seconds:0.0}s") : $"{prov.Name}/{prov.Model}: ERROR {r.Error}",
+                    Core.MainThread.Post(() => Show(r.Ok ? L.F("AIL_263bf6a9", $"{prov.Name}/{prov.Model}: OK en {r.Seconds:0.0}s") : $"{prov.Name}/{prov.Model}: ERROR {r.Error}",
                         r.Ok ? TaleWorlds.Library.Colors.Green : TaleWorlds.Library.Colors.Red));
                 });
             }
@@ -118,7 +118,7 @@ namespace AILegacy.Llm
             var cfg = LegacyConfig.Current;
             var providers = cfg.Providers.Where(p => p.IsUsable).ToList();
             if (providers.Count == 0)
-                return new LlmResult { Ok = false, Error = LegacyConfig.LastLoadError ?? L.T("No hay ningún proveedor con api_key en config.json") };
+                return new LlmResult { Ok = false, Error = LegacyConfig.LastLoadError ?? L.T("AIL_b6af22fa", "No hay ningún proveedor con api_key en config.json") };
             // Proveedor preferido para esta tarea: primero; el resto de la cadena como respaldo
             if (!string.IsNullOrEmpty(opts.Preferred))
                 providers = providers.OrderBy(p => string.Equals(p.Name, opts.Preferred, StringComparison.OrdinalIgnoreCase) ? 0 : 1).ToList();
@@ -162,7 +162,7 @@ namespace AILegacy.Llm
                             {
                                 lock (WorkingLevel) WorkingLevel[p.Name + "|" + p.Model] = level;
                                 Log.Warn($"{p.Name}: no acepta todos los parámetros; desde ahora se le envía el nivel {level} " +
-                                         (level == 1 ? L.T("(sin los \"extra\" de config.json: revisa ese bloque)") : level == 2 ? L.T("(sin modo JSON)") : L.T("(mínimo)")) + $". Motivo: {lastError}");
+                                         (level == 1 ? L.T("AIL_967c929e", "(sin los \"extra\" de config.json: revisa ese bloque)") : level == 2 ? L.T("AIL_d02be029", "(sin modo JSON)") : L.T("AIL_db9c0e6a", "(mínimo)")) + $". Motivo: {lastError}");
                             }
                             return r;
                         }
@@ -232,13 +232,13 @@ namespace AILegacy.Llm
             }
             catch (TaskCanceledException)
             {
-                return (0, null, L.F($"sin respuesta en {p.TimeoutSeconds}s"), (DateTime.UtcNow - started).TotalSeconds);
+                return (0, null, L.F("AIL_b74fa9dd", $"sin respuesta en {p.TimeoutSeconds}s"), (DateTime.UtcNow - started).TotalSeconds);
             }
             catch (Exception ex)
             {
                 var inner = ex;
                 while (inner.InnerException != null) inner = inner.InnerException;
-                return (0, null, L.T("error de red: ") + inner.Message, (DateTime.UtcNow - started).TotalSeconds);
+                return (0, null, L.T("AIL_aa2c0935", "error de red: ") + inner.Message, (DateTime.UtcNow - started).TotalSeconds);
             }
         }
 
@@ -253,7 +253,7 @@ namespace AILegacy.Llm
                     : (string)content;
                 s = StripThink(s ?? "").Trim();
                 if (string.IsNullOrEmpty(s))
-                    return new LlmResult { Ok = false, Error = L.T("respuesta vacía (finish_reason=") + (string)j["choices"]?[0]?["finish_reason"] + ")" };
+                    return new LlmResult { Ok = false, Error = L.T("AIL_f533587d", "respuesta vacía (finish_reason=") + (string)j["choices"]?[0]?["finish_reason"] + ")" };
                 return new LlmResult
                 {
                     Ok = true,

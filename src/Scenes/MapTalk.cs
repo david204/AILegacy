@@ -172,7 +172,7 @@ namespace AILegacy.Scenes
 
                 string fight = MapTalk.TakeFight();
                 if (fight != null && lordAgent != null) Combat.QueueSceneFight(Speaker.FromHero(_lord), lordAgent, fight, 4f);
-                else InformationManager.DisplayMessage(new InformationMessage(L.F($"Estás frente a {_lord.Name}. F para hablarle, Alt+T para hablar a los que tengas cerca, Tab para marcharte."), Colors.Yellow));
+                else InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_7c146680", $"Estás frente a {_lord.Name}. F para hablarle, Alt+T para hablar a los que tengas cerca, Tab para marcharte."), Colors.Yellow));
             }
             catch (Exception ex) { Log.Error("Montar la escena del mapa", ex); }
         }

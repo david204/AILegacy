@@ -166,7 +166,7 @@ namespace AILegacy.World
                     Quests.Add(q);
                     Log.Info($"Encargo creado por {s.Name}: {q.Name} ({days} días, {reward} denarios) [{q.Id}]");
                     GameJournal.Create(q);
-                    shown.Add(L.F($"Nuevo encargo: «{q.Name}» ({days} días") + (reward > 0 ? L.F($", {reward} denarios") : "") + ")");
+                    shown.Add(L.F("AIL_2bd6ef00", $"Nuevo encargo: «{q.Name}» ({days} días") + (reward > 0 ? L.F("AIL_de098566", $", {reward} denarios") : "") + ")");
                     break;
                 }
 
@@ -179,7 +179,7 @@ namespace AILegacy.World
                     while (q.Log.Count > 8) q.Log.RemoveAt(0);
                     GameJournal.Update(q, r.Note);
                     Log.Info($"Encargo {q.Id} actualizado por {s.Name}: {r.Note} {(q.ProgressTarget > 0 ? q.Progress + "/" + q.ProgressTarget : "")}");
-                    shown.Add(L.F($"Encargo «{q.Name}»: ") + (q.ProgressTarget > 0 ? $"{q.Progress}/{q.ProgressTarget} {q.ProgressLabel}" : "anotado"));
+                    shown.Add(L.F("AIL_0681e274", $"Encargo «{q.Name}»: ") + (q.ProgressTarget > 0 ? $"{q.Progress}/{q.ProgressTarget} {q.ProgressLabel}" : "anotado"));
                     break;
                 }
 
@@ -191,7 +191,7 @@ namespace AILegacy.World
                     {
                         // El NPC lo da por hecho, pero el mundo dice que no: no se cumple ni se paga
                         Log.Warn($"{s.Name} quiso dar por cumplido {q.Id}, pero falta: {QuestObjectives.MissingEs(q)}");
-                        shown.Add(L.F($"«{q.Name}» aún no está cumplido: {QuestObjectives.MissingEs(q)}"));
+                        shown.Add(L.F("AIL_390cb390", $"«{q.Name}» aún no está cumplido: {QuestObjectives.MissingEs(q)}"));
                         break;
                     }
                     var handed = QuestObjectives.OnCompleted(q, s);
@@ -201,8 +201,8 @@ namespace AILegacy.World
                     if (paid > 0) GiveGoldAction.ApplyBetweenCharacters(h, P, paid);
                     if (cfg.QuestRelationReward > 0) ChangeRelationAction.ApplyPlayerRelation(h, cfg.QuestRelationReward, affectRelatives: false, showQuickNotification: true);
                     Bonds.ChangeTrust(s, 10);
-                    GameJournal.Close(q, "completed", string.IsNullOrWhiteSpace(r.Reason) ? L.F($"{s.Name} da el encargo por cumplido.") : r.Reason);
-                    shown.Add(L.F($"Encargo cumplido: «{q.Name}»") + (paid > 0 ? L.F($", recibes {paid} denarios") : ""));
+                    GameJournal.Close(q, "completed", string.IsNullOrWhiteSpace(r.Reason) ? L.F("AIL_01ad2df2", $"{s.Name} da el encargo por cumplido.") : r.Reason);
+                    shown.Add(L.F("AIL_89bc1b1d", $"Encargo cumplido: «{q.Name}»") + (paid > 0 ? L.F("AIL_795b98cd", $", recibes {paid} denarios") : ""));
                     News(q, s, true);
                     break;
                 }
@@ -212,7 +212,7 @@ namespace AILegacy.World
                     var q = Find(h, r.QuestId, allowTarget: false);
                     if (q == null) break;
                     Fail(q, s, "failed", r.Reason);
-                    shown.Add(L.F($"Encargo fracasado: «{q.Name}»"));
+                    shown.Add(L.F("AIL_a0af06ce", $"Encargo fracasado: «{q.Name}»"));
                     break;
                 }
             }
@@ -245,7 +245,7 @@ namespace AILegacy.World
                 ChangeRelationAction.ApplyPlayerRelation(h, -Math.Max(1, S.Get.QuestRelationReward / 2), affectRelatives: false, showQuickNotification: true);
                 Bonds.ChangeTrust(s ?? Speaker.FromHero(h), -8);
             }
-            GameJournal.Close(q, state, state == "expired" ? L.T("Se acabó el plazo.") : string.IsNullOrWhiteSpace(reason) ? L.T("El encargo ha fracasado.") : reason);
+            GameJournal.Close(q, state, state == "expired" ? L.T("AIL_f991b6e7", "Se acabó el plazo.") : string.IsNullOrWhiteSpace(reason) ? L.T("AIL_c53c096c", "El encargo ha fracasado.") : reason);
         }
 
         /// <summary>El juego ha dado por vencida la misión del diario antes que nuestro tick diario.</summary>
@@ -270,7 +270,7 @@ namespace AILegacy.World
                 {
                     Type = "rumor", Importance = 1,
                     Text = $"{P.Name} carried out a task for {q.GiverName}.",
-                    TitleEs = L.T("Encargo cumplido"), TextEs = L.F($"{P.Name} ha cumplido un encargo de {q.GiverName}: {q.Name}."),
+                    TitleEs = L.T("AIL_4c5ed9ad", "Encargo cumplido"), TextEs = L.F("AIL_f0a2c329", $"{P.Name} ha cumplido un encargo de {q.GiverName}: {q.Name}."),
                     SettlementId = s.Settlement?.StringId,
                     Kingdoms = s.Faction != null ? new List<string> { s.Faction.StringId } : new List<string>(),
                     Heroes = new List<string> { q.GiverId, P.StringId },
@@ -290,14 +290,14 @@ namespace AILegacy.World
                 foreach (var q in Quests.Where(x => x.Active).ToList())
                 {
                     var giver = Hero.Find(q.GiverId);
-                    if (giver == null || giver.IsDead) { End(q, "failed", "the giver died"); GameJournal.Close(q, "cancelled", L.F($"{q.GiverName} ha muerto.")); continue; }
+                    if (giver == null || giver.IsDead) { End(q, "failed", "the giver died"); GameJournal.Close(q, "cancelled", L.F("AIL_cb1eb4c2", $"{q.GiverName} ha muerto.")); continue; }
                     if (now >= q.DueDay)
                     {
                         Fail(q, null, "expired", "the deadline passed with no word from them");
                         var mem = MemoryStore.Get(giver.StringId, giver.Name.ToString());
                         ChatSession.AddNote(mem, $"They let the deadline pass on the task I gave them ({(string.IsNullOrWhiteSpace(q.Brief) ? q.Name : q.Brief)}).", S.Get.MaxNotesPerHero, q.GiverName);
                     }
-                    else if ((int)(q.DueDay - now) == 2) Say(L.F($"Quedan 2 días para el encargo de {q.GiverName}: {q.Name}"), Colors.Yellow);
+                    else if ((int)(q.DueDay - now) == 2) Say(L.F("AIL_b14d8a23", $"Quedan 2 días para el encargo de {q.GiverName}: {q.Name}"), Colors.Yellow);
                 }
                 // historial corto
                 var old = Quests.Where(x => !x.Active).OrderByDescending(x => x.EndDay).Skip(60).ToList();

@@ -80,7 +80,7 @@ namespace AILegacy.World
                                 Name = q.DocName, FromId = giver.Hero.StringId, FromName = giver.Name, Day = CampaignTime.Now.ToDays,
                                 Description = $"To be delivered to {h.Name} on behalf of {giver.Name}. " + (string.IsNullOrWhiteSpace(q.Brief) ? q.Description : q.Brief),
                             });
-                            Say(L.F($"{giver.Name} te entrega: {q.DocName} (para {h.Name})."), Colors.Yellow);
+                            Say(L.F("AIL_c573f4b8", $"{giver.Name} te entrega: {q.DocName} (para {h.Name})."), Colors.Yellow);
                         }
                         break;
                     }
@@ -107,7 +107,7 @@ namespace AILegacy.World
             if (q.ObjType == "none")
             {
                 Log.Warn($"Objetivo '{type}' con destino '{r.ObjTarget}' {r.ObjItem} no encontrado: el encargo queda libre (lo juzga quien lo dio)");
-                Say(L.T("(Este encargo nombra a alguien o algo que no existe en el mundo: no se puede comprobar solo y lo juzgará quien te lo dio.)"), Colors.Gray);
+                Say(L.T("AIL_1191e28d", "(Este encargo nombra a alguien o algo que no existe en el mundo: no se puede comprobar solo y lo juzgará quien te lo dio.)"), Colors.Gray);
             }
             else Log.Info($"Objetivo del encargo {q.Id}: {q.ObjType} → {q.ObjTargetName}" + (q.ObjAmount > 0 ? $" x{q.ObjAmount}" : ""));
         }
@@ -153,7 +153,7 @@ namespace AILegacy.World
                 var basic = clan.Culture?.BanditBandit ?? clan.Culture?.BasicTroop;
                 int have = party.MemberRoster.TotalManCount;
                 if (basic != null && have < want) party.MemberRoster.AddToCounts(basic, want - have);
-                party.Party.SetCustomName(new TextObject("{=!}" + L.F($"Banda buscada por {q.GiverName}").Replace("{", "(").Replace("}", ")")));
+                party.Party.SetCustomName(new TextObject("{=!}" + L.F("AIL_51f2c203", $"Banda buscada por {q.GiverName}").Replace("{", "(").Replace("}", ")")));
                 party.SetPartyUsedByQuest(true);
                 party.SetMovePatrolAroundSettlement(st, MobileParty.NavigationType.Default, false);
             }
@@ -206,7 +206,7 @@ namespace AILegacy.World
                     q.Progress = q.Delivered;
                     bool done = q.Delivered >= q.ObjAmount;
                     string note = deliver
-                        ? (done ? L.F($"{taker.Name} ha recibido {q.ObjAmount} × {item.Name}. Vuelve con {q.GiverName}.") : L.F($"{taker.Name} ha recibido {q.Delivered} de {q.ObjAmount} × {item.Name}."))
+                        ? (done ? L.F("AIL_d8f59858", $"{taker.Name} ha recibido {q.ObjAmount} × {item.Name}. Vuelve con {q.GiverName}.") : L.F("AIL_6c1f353e", $"{taker.Name} ha recibido {q.Delivered} de {q.ObjAmount} × {item.Name}."))
                         : $"Has entregado {q.Delivered} de {q.ObjAmount} × {item.Name} a {q.GiverName}.";
                     if (done && deliver) MarkMet(q, note);
                     else { GameJournal.Update(q, note); Say($"{q.Name}: {note}", Colors.Green); }
@@ -270,11 +270,11 @@ namespace AILegacy.World
             switch (q.ObjType)
             {
                 case "bring_item": return $"Objetivo: llevarle {q.ObjAmount} × {q.ObjTargetName} a {q.GiverName}.";
-                case "deliver_item": return L.F($"Objetivo: entregar {q.ObjAmount} × {q.ObjItemName} a {q.ObjTargetName} (marcado en el mapa) y volver con {q.GiverName}.");
-                case "talk_to": return L.F($"Objetivo: hablar con {q.ObjTargetName} y volver.");
-                case "visit": return L.F($"Objetivo: ir a {q.ObjTargetName} y volver.");
-                case "defeat_bandits": return L.F($"Objetivo: acabar con la banda que ronda {q.ObjTargetName} (marcada en el mapa) y volver.");
-                case "deliver_document": return L.F($"Objetivo: entregar «{q.DocName}» a {q.ObjTargetName} y volver.");
+                case "deliver_item": return L.F("AIL_52b80370", $"Objetivo: entregar {q.ObjAmount} × {q.ObjItemName} a {q.ObjTargetName} (marcado en el mapa) y volver con {q.GiverName}.");
+                case "talk_to": return L.F("AIL_cb8abbac", $"Objetivo: hablar con {q.ObjTargetName} y volver.");
+                case "visit": return L.F("AIL_98dfb3c6", $"Objetivo: ir a {q.ObjTargetName} y volver.");
+                case "defeat_bandits": return L.F("AIL_b2e0ea9d", $"Objetivo: acabar con la banda que ronda {q.ObjTargetName} (marcada en el mapa) y volver.");
+                case "deliver_document": return L.F("AIL_dc14749e", $"Objetivo: entregar «{q.DocName}» a {q.ObjTargetName} y volver.");
                 default: return "";
             }
         }
@@ -283,12 +283,12 @@ namespace AILegacy.World
         {
             switch (q.ObjType)
             {
-                case "bring_item": return L.F($"has entregado {q.Delivered} y llevas {Carried(q)} de {q.ObjAmount} × {q.ObjTargetName}");
-                case "deliver_item": return L.F($"{q.ObjTargetName} ha recibido {q.Delivered} de {q.ObjAmount} × {q.ObjItemName}");
-                case "talk_to": return L.F($"aún no has hablado con {q.ObjTargetName}");
-                case "visit": return L.F($"aún no has ido a {q.ObjTargetName}");
-                case "defeat_bandits": return L.F($"la banda de {q.ObjTargetName} sigue en pie");
-                case "deliver_document": return L.F($"{q.ObjTargetName} aún no ha recibido «{q.DocName}»");
+                case "bring_item": return L.F("AIL_f1406603", $"has entregado {q.Delivered} y llevas {Carried(q)} de {q.ObjAmount} × {q.ObjTargetName}");
+                case "deliver_item": return L.F("AIL_08d1b4a4", $"{q.ObjTargetName} ha recibido {q.Delivered} de {q.ObjAmount} × {q.ObjItemName}");
+                case "talk_to": return L.F("AIL_e0d57f33", $"aún no has hablado con {q.ObjTargetName}");
+                case "visit": return L.F("AIL_378f2647", $"aún no has ido a {q.ObjTargetName}");
+                case "defeat_bandits": return L.F("AIL_e0a76c57", $"la banda de {q.ObjTargetName} sigue en pie");
+                case "deliver_document": return L.F("AIL_5eeedbdf", $"{q.ObjTargetName} aún no ha recibido «{q.DocName}»");
                 default: return "";
             }
         }
@@ -311,7 +311,7 @@ namespace AILegacy.World
             {
                 if (party == null || !party.IsMainParty || st == null) return;
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active && x.ObjType == "visit" && x.ObjTargetId == st.StringId).ToList())
-                    MarkMet(q, L.F($"Has llegado a {st.Name}. Vuelve con {q.GiverName}."));
+                    MarkMet(q, L.F("AIL_ff5c778e", $"Has llegado a {st.Name}. Vuelve con {q.GiverName}."));
             }
             catch (Exception ex) { Log.Error("Encargos: entrada en asentamiento", ex); }
         }
@@ -325,8 +325,8 @@ namespace AILegacy.World
                 {
                     bool mine = destroyer != null && (destroyer == PartyBase.MainParty || (MobileParty.MainParty?.Army != null && destroyer.MobileParty?.Army == MobileParty.MainParty.Army));
                     q.BandByPlayer = mine;
-                    MarkMet(q, mine ? L.F($"Has acabado con la banda de {q.ObjTargetName}. Vuelve con {q.GiverName}.")
-                                    : L.F($"Otros han acabado con la banda de {q.ObjTargetName} antes que tú. Vuelve con {q.GiverName}."));
+                    MarkMet(q, mine ? L.F("AIL_d83e63f4", $"Has acabado con la banda de {q.ObjTargetName}. Vuelve con {q.GiverName}.")
+                                    : L.F("AIL_8525c8a9", $"Otros han acabado con la banda de {q.ObjTargetName} antes que tú. Vuelve con {q.GiverName}."));
                 }
             }
             catch (Exception ex) { Log.Error("Encargos: grupo destruido", ex); }
@@ -339,7 +339,7 @@ namespace AILegacy.World
             {
                 if (h == null) return;
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active && x.ObjType == "talk_to" && x.ObjTargetId == h.StringId).ToList())
-                    MarkMet(q, L.F($"Has hablado con {h.Name}. Vuelve con {q.GiverName}."));
+                    MarkMet(q, L.F("AIL_a615d39e", $"Has hablado con {h.Name}. Vuelve con {q.GiverName}."));
             }
             catch (Exception ex) { Log.Error("Encargos: charla", ex); }
         }
@@ -351,7 +351,7 @@ namespace AILegacy.World
                 if (taker == null || !taker.IsHero || item == null) return;
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active && x.ObjType == "deliver_document" && x.ObjTargetId == taker.Hero.StringId
                                                               && Belongings.Norm(x.DocName) == Belongings.Norm(item.Name)).ToList())
-                    MarkMet(q, L.F($"{taker.Name} ha recibido «{item.Name}». Vuelve con {q.GiverName}."));
+                    MarkMet(q, L.F("AIL_8281a6ef", $"{taker.Name} ha recibido «{item.Name}». Vuelve con {q.GiverName}."));
             }
             catch (Exception ex) { Log.Error("Encargos: documento", ex); }
         }
@@ -369,7 +369,7 @@ namespace AILegacy.World
                         if (now != q.Progress) { q.Progress = now; GameJournal.Update(q, null); }
                     }
                     else if (q.ObjType == "defeat_bandits" && !q.ObjMet && BandOf(q) == null)
-                        MarkMet(q, L.F($"La banda de {q.ObjTargetName} ya no existe. Vuelve con {q.GiverName}."));
+                        MarkMet(q, L.F("AIL_cf0db558", $"La banda de {q.ObjTargetName} ya no existe. Vuelve con {q.GiverName}."));
                 }
             }
             catch (Exception ex) { Log.Error("Encargos: objetivos, tick diario", ex); }
@@ -391,7 +391,7 @@ namespace AILegacy.World
                         if (n == 0) return null;
                         MobileParty.MainParty.ItemRoster.AddToCounts(item, -n);
                         if (giver != null && giver.IsHero) OrderSystem.PartyLedBy(giver.Hero)?.ItemRoster.AddToCounts(item, n);
-                        return L.F($"Entregas {n} × {item.Name}.");
+                        return L.F("AIL_76df6ddb", $"Entregas {n} × {item.Name}.");
                     }
                 }
             }

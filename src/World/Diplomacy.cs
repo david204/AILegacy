@@ -63,15 +63,15 @@ namespace AILegacy.World
         private static string TermsEs(Proposal p)
         {
             var parts = new List<string>();
-            if (p.DailyTribute > 0) parts.Add(L.F($"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
-            if (p.Reparations > 0) parts.Add(L.F($"{p.Reparations} denarios de reparaciones"));
-            if (!string.IsNullOrEmpty(p.SettlementId)) parts.Add(L.F($"la entrega de {Settlement.Find(p.SettlementId)?.Name}"));
-            if (p.TradeYears > 0) parts.Add(L.F($"durante {p.TradeYears} año(s)"));
+            if (p.DailyTribute > 0) parts.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
+            if (p.Reparations > 0) parts.Add(L.F("AIL_555e7801", $"{p.Reparations} denarios de reparaciones"));
+            if (!string.IsNullOrEmpty(p.SettlementId)) parts.Add(L.F("AIL_5c924813", $"la entrega de {Settlement.Find(p.SettlementId)?.Name}"));
+            if (p.TradeYears > 0) parts.Add(L.F("AIL_fd19d606", $"durante {p.TradeYears} año(s)"));
             return parts.Count == 0 ? "" : " (" + string.Join(", ", parts) + ")";
         }
 
         private static string TypeEn(string t) => t == "peace" ? "peace" : t == "alliance" ? "an alliance" : t == "trade" ? "a trade agreement" : t == "tribute" ? "a tribute" : t == "reparations" ? "reparations" : "territory";
-        private static string TypeEs(string t) => t == "peace" ? L.T("la paz") : t == "alliance" ? L.T("una alianza") : t == "trade" ? L.T("un acuerdo comercial") : t == "tribute" ? L.T("un tributo") : t == "reparations" ? "reparaciones" : L.T("un territorio");
+        private static string TypeEs(string t) => t == "peace" ? L.T("AIL_695a2835", "la paz") : t == "alliance" ? L.T("AIL_27bd042f", "una alianza") : t == "trade" ? L.T("AIL_08285b4c", "un acuerdo comercial") : t == "tribute" ? L.T("AIL_2d5ee223", "un tributo") : t == "reparations" ? "reparaciones" : L.T("AIL_81b3cd7d", "un territorio");
         private static bool IsDemand(string t) => t == "tribute" || t == "reparations" || t == "territory";
 
         public static string DescribeAllProposals()
@@ -247,7 +247,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 : "Proposals are waiting for your answer. Issue your statement now.";
 
             St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
-            WorldSim.Ask(L.F($"declaración de {ruler.Name}"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", task) }, 1100,
+            WorldSim.Ask(L.F("AIL_3b33d5b8", $"declaración de {ruler.Name}"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", task) }, 1100,
                 j => ApplyStatement(k, j, null));
         }
 
@@ -290,7 +290,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             while (St.Statements.Count > 120) St.Statements.RemoveAt(0);
 
             var involved = new List<string> { k.StringId };
-            var ev = new WorldEvent { Id = WorldSim.NewId("ev"), Day = s.Day, Type = "political", Source = "statement", Title = L.F($"Declaración de {s.RulerName}"), Importance = s.Importance, SummaryEn = s.SummaryEn };
+            var ev = new WorldEvent { Id = WorldSim.NewId("ev"), Day = s.Day, Type = "political", Source = "statement", Title = L.F("AIL_acbbf598", $"Declaración de {s.RulerName}"), Importance = s.Importance, SummaryEn = s.SummaryEn };
             if (j["kingdom_engagement"] is JObject eng)
                 foreach (var p in eng.Properties())
                 {
@@ -306,10 +306,10 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             NewsStore.Add(new NewsItem
             {
                 Type = "statement", Importance = s.Importance, Text = $"{s.RulerName}, ruler of {k.Name}, declared: {s.SummaryEn}",
-                TitleEs = L.F($"Declaración de {s.RulerName} ({k.Name})"), TextEs = body, Kingdoms = involved, Heroes = new List<string> { k.Leader.StringId },
+                TitleEs = L.F("AIL_96136d3a", $"Declaración de {s.RulerName} ({k.Name})"), TextEs = body, Kingdoms = involved, Heroes = new List<string> { k.Leader.StringId },
             });
             Log.Info($"[diplomacia] {s.RulerName}: {s.SummaryEn} | {string.Join(" | ", s.Results)}");
-            WorldSim.Say(L.F($"{s.RulerName}, de {k.Name}, ha hecho una declaración") + (s.Results.Count > 0 ? ": " + s.Results[0] : "."), s.Results.Count > 0 ? Colors.Yellow : Colors.Cyan);
+            WorldSim.Say(L.F("AIL_bd7dfc75", $"{s.RulerName}, de {k.Name}, ha hecho una declaración") + (s.Results.Count > 0 ? ": " + s.Results[0] : "."), s.Results.Count > 0 ? Colors.Yellow : Colors.Cyan);
         }
 
         private static int I(JObject a, string key, int min, int max)
@@ -333,71 +333,71 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             {
                 // ---------------------------------------------------- guerra
                 case "declare_war":
-                    if (o == null || o == k) return Bad(L.T("reino destino no válido"));
-                    if (k.IsAtWarWith(o)) return Bad(L.T("ya están en guerra"));
-                    if (PlayerRules(o) && !cfg.AllowAiWarOnPlayer) return Bad(L.T("guerra contra el jugador desactivada"));
+                    if (o == null || o == k) return Bad(L.T("AIL_8a207caf", "reino destino no válido"));
+                    if (k.IsAtWarWith(o)) return Bad(L.T("AIL_acfa98a8", "ya están en guerra"));
+                    if (PlayerRules(o) && !cfg.AllowAiWarOnPlayer) return Bad(L.T("AIL_b809052a", "guerra contra el jugador desactivada"));
                     EndAlliance(k, o); EndTrade(k, o);
                     St.Proposals.RemoveAll(p => (p.From == k.StringId && p.To == o.StringId) || (p.From == o.StringId && p.To == k.StringId));
                     DeclareWarAction.ApplyByDefault(k, o);
                     WorldSim.ChangeStance(o.StringId, k.StringId, -30);
-                    return L.F($"{kn} declara la guerra a {o.Name}.");
+                    return L.F("AIL_75b4abfe", $"{kn} declara la guerra a {o.Name}.");
 
                 // ---------------------------------------------------- paz
                 case "propose_peace":
                 {
-                    if (o == null || o == k || !k.IsAtWarWith(o)) return Bad(L.T("no están en guerra"));
+                    if (o == null || o == k || !k.IsAtWarWith(o)) return Bad(L.T("AIL_a305fa83", "no están en guerra"));
                     var p = AddProposal("peace", k, o);
                     p.DailyTribute = I(a, "daily_tribute", 0, cfg.MaxDailyTribute); p.TributeDays = p.DailyTribute > 0 ? I(a, "tribute_days", 10, 200) : 0;
                     p.Reparations = I(a, "reparations", 0, cfg.MaxReparations);
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == o);
                     p.SettlementId = st?.StringId;
-                    return L.F($"{kn} propone la paz a {o.Name}{TermsEs(p)}.");
+                    return L.F("AIL_cab1eaa4", $"{kn} propone la paz a {o.Name}{TermsEs(p)}.");
                 }
                 case "accept_peace":
                 {
-                    if (o == null) return Bad(L.T("sin reino"));
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("peace", o, k);
                     if (p == null) return Bad("no hay propuesta de paz de ese reino");
-                    if (!k.IsAtWarWith(o)) { St.Proposals.Remove(p); return Bad(L.T("ya no están en guerra")); }
+                    if (!k.IsAtWarWith(o)) { St.Proposals.Remove(p); return Bad(L.T("AIL_e904786b", "ya no están en guerra")); }
                     St.Proposals.Remove(p);
                     St.Proposals.RemoveAll(x => x.Type == "peace" && x.From == k.StringId && x.To == o.StringId);
                     // quien acepta paga lo que se le exigió
                     if (p.DailyTribute > 0) MakePeaceAction.ApplyByKingdomDecision(k, o, p.DailyTribute, p.TributeDays);
                     else MakePeaceAction.Apply(k, o);
                     var extra = new List<string>();
-                    if (p.Reparations > 0) { int paid = Pay(k, o, p.Reparations); if (paid > 0) extra.Add(L.F($"{paid} denarios de reparaciones")); }
+                    if (p.Reparations > 0) { int paid = Pay(k, o, p.Reparations); if (paid > 0) extra.Add(L.F("AIL_555e7801", $"{paid} denarios de reparaciones")); }
                     var st = string.IsNullOrEmpty(p.SettlementId) ? null : Settlement.Find(p.SettlementId);
-                    if (st != null && st.MapFaction == k) { ChangeOwnerOfSettlementAction.ApplyByDefault(o.Leader, st); extra.Add(L.F($"la entrega de {st.Name}")); }
-                    if (p.DailyTribute > 0) extra.Add(L.F($"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
+                    if (st != null && st.MapFaction == k) { ChangeOwnerOfSettlementAction.ApplyByDefault(o.Leader, st); extra.Add(L.F("AIL_5c924813", $"la entrega de {st.Name}")); }
+                    if (p.DailyTribute > 0) extra.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
                     WorldSim.ChangeStance(k.StringId, o.StringId, 10); WorldSim.ChangeStance(o.StringId, k.StringId, 10);
-                    return L.F($"{kn} y {o.Name} firman la paz") + (extra.Count > 0 ? $": {kn} acepta " + string.Join(", ", extra) : "") + ".";
+                    return L.F("AIL_64b1d2d4", $"{kn} y {o.Name} firman la paz") + (extra.Count > 0 ? $": {kn} acepta " + string.Join(", ", extra) : "") + ".";
                 }
                 case "reject_peace":
-                    return Reject("peace", k, o, L.F($"{kn} rechaza la paz que ofrecía {o?.Name}."));
+                    return Reject("peace", k, o, L.F("AIL_c1de8329", $"{kn} rechaza la paz que ofrecía {o?.Name}."));
 
                 // ---------------------------------------------------- alianzas
                 case "propose_alliance":
                     if (o == null || o == k || k.IsAtWarWith(o) || Allied(k, o)) return Bad("alianza no posible");
                     AddProposal("alliance", k, o);
-                    return L.F($"{kn} propone una alianza a {o.Name}.");
+                    return L.F("AIL_f1ae2294", $"{kn} propone una alianza a {o.Name}.");
                 case "accept_alliance":
                 {
-                    if (o == null) return Bad(L.T("sin reino"));
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("alliance", o, k);
                     if (p == null) return Bad("no hay propuesta de alianza");
                     St.Proposals.Remove(p);
-                    if (k.IsAtWarWith(o) || Alli == null) return Bad(L.T("alianza imposible ahora"));
+                    if (k.IsAtWarWith(o) || Alli == null) return Bad(L.T("AIL_1d0a19e2", "alianza imposible ahora"));
                     Alli.StartAlliance(o, k);
                     WorldSim.ChangeStance(k.StringId, o.StringId, 15); WorldSim.ChangeStance(o.StringId, k.StringId, 15);
-                    return L.F($"{kn} y {o.Name} sellan una alianza.");
+                    return L.F("AIL_47c0f5a2", $"{kn} y {o.Name} sellan una alianza.");
                 }
                 case "reject_alliance":
-                    return Reject("alliance", k, o, L.F($"{kn} rechaza la alianza que proponía {o?.Name}."));
+                    return Reject("alliance", k, o, L.F("AIL_ba80efa7", $"{kn} rechaza la alianza que proponía {o?.Name}."));
                 case "break_alliance":
                     if (o == null || !Allied(k, o)) return Bad("no son aliados");
                     EndAlliance(k, o);
                     WorldSim.ChangeStance(o.StringId, k.StringId, -20);
-                    return L.F($"{kn} rompe su alianza con {o.Name}.");
+                    return L.F("AIL_9701c185", $"{kn} rompe su alianza con {o.Name}.");
 
                 // ---------------------------------------------------- comercio
                 case "propose_trade":
@@ -405,127 +405,127 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (o == null || o == k || k.IsAtWarWith(o) || HasTrade(k, o)) return Bad("acuerdo comercial no posible");
                     var p = AddProposal("trade", k, o);
                     p.TradeYears = I(a, "trade_years", 1, 5);
-                    return L.F($"{kn} propone a {o.Name} un acuerdo comercial de {p.TradeYears} año(s).");
+                    return L.F("AIL_6e09fc5c", $"{kn} propone a {o.Name} un acuerdo comercial de {p.TradeYears} año(s).");
                 }
                 case "accept_trade":
                 {
-                    if (o == null) return Bad(L.T("sin reino"));
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("trade", o, k);
                     if (p == null) return Bad("no hay propuesta comercial");
                     St.Proposals.Remove(p);
-                    if (k.IsAtWarWith(o) || Trade == null) return Bad(L.T("comercio imposible ahora"));
+                    if (k.IsAtWarWith(o) || Trade == null) return Bad(L.T("AIL_6ee119bd", "comercio imposible ahora"));
                     Trade.MakeTradeAgreement(o, k, CampaignTime.YearsFromNow(Math.Max(1, p.TradeYears)));
                     WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
-                    return L.F($"{kn} y {o.Name} firman un acuerdo comercial de {Math.Max(1, p.TradeYears)} año(s).");
+                    return L.F("AIL_4e5e61ea", $"{kn} y {o.Name} firman un acuerdo comercial de {Math.Max(1, p.TradeYears)} año(s).");
                 }
                 case "reject_trade":
-                    return Reject("trade", k, o, L.F($"{kn} rechaza el acuerdo comercial de {o?.Name}."));
+                    return Reject("trade", k, o, L.F("AIL_dace2712", $"{kn} rechaza el acuerdo comercial de {o?.Name}."));
                 case "end_trade":
                     if (o == null || !HasTrade(k, o)) return Bad("no hay acuerdo comercial");
                     EndTrade(k, o);
-                    return L.F($"{kn} da por terminado su acuerdo comercial con {o.Name}.");
+                    return L.F("AIL_270778c1", $"{kn} da por terminado su acuerdo comercial con {o.Name}.");
 
                 // ---------------------------------------------------- tributo
                 case "demand_tribute":
                 {
-                    if (o == null || o == k) return Bad(L.T("sin reino"));
+                    if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = AddProposal("tribute", k, o);
                     p.DailyTribute = I(a, "daily_tribute", 10, cfg.MaxDailyTribute); p.TributeDays = I(a, "tribute_days", 10, 200);
-                    return L.F($"{kn} exige a {o.Name} un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días.");
+                    return L.F("AIL_c61b5727", $"{kn} exige a {o.Name} un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días.");
                 }
                 case "accept_tribute":
                 {
-                    if (o == null) return Bad(L.T("sin reino"));
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("tribute", o, k);
                     if (p == null) return Bad("no hay exigencia de tributo");
                     St.Proposals.Remove(p);
                     St.Tributes.RemoveAll(t => t.Payer == k.StringId && t.Receiver == o.StringId);
                     St.Tributes.Add(new Tribute { Payer = k.StringId, Receiver = o.StringId, Daily = p.DailyTribute, UntilDay = CampaignTime.Now.ToDays + p.TributeDays });
-                    return L.F($"{kn} acepta pagar a {o.Name} {p.DailyTribute} denarios al día durante {p.TributeDays} días.");
+                    return L.F("AIL_aa38cc8d", $"{kn} acepta pagar a {o.Name} {p.DailyTribute} denarios al día durante {p.TributeDays} días.");
                 }
                 case "reject_tribute":
-                    return Reject("tribute", k, o, L.F($"{kn} se niega a pagar tributo a {o?.Name}."));
+                    return Reject("tribute", k, o, L.F("AIL_6458f7e4", $"{kn} se niega a pagar tributo a {o?.Name}."));
                 case "end_tribute":
                     if (o == null || St.Tributes.RemoveAll(t => (t.Payer == k.StringId && t.Receiver == o.StringId) || (t.Payer == o.StringId && t.Receiver == k.StringId)) == 0) return Bad("no hay tributo");
-                    return L.F($"Se acaba el tributo entre {kn} y {o.Name}.");
+                    return L.F("AIL_a7a5c567", $"Se acaba el tributo entre {kn} y {o.Name}.");
 
                 // ---------------------------------------------------- reparaciones
                 case "demand_reparations":
                 {
-                    if (o == null || o == k) return Bad(L.T("sin reino"));
+                    if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = AddProposal("reparations", k, o);
                     p.Reparations = I(a, "reparations", 100, cfg.MaxReparations);
-                    return L.F($"{kn} exige a {o.Name} {p.Reparations} denarios en reparaciones.");
+                    return L.F("AIL_cb234369", $"{kn} exige a {o.Name} {p.Reparations} denarios en reparaciones.");
                 }
                 case "accept_reparations":
                 {
-                    if (o == null) return Bad(L.T("sin reino"));
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("reparations", o, k);
                     if (p == null) return Bad("no hay exigencia de reparaciones");
                     St.Proposals.Remove(p);
                     int paid = Pay(k, o, p.Reparations);
-                    return L.F($"{kn} paga a {o.Name} {paid} denarios en reparaciones.");
+                    return L.F("AIL_f12fa594", $"{kn} paga a {o.Name} {paid} denarios en reparaciones.");
                 }
                 case "reject_reparations":
-                    return Reject("reparations", k, o, L.F($"{kn} se niega a pagar reparaciones a {o?.Name}."));
+                    return Reject("reparations", k, o, L.F("AIL_0b583a3b", $"{kn} se niega a pagar reparaciones a {o?.Name}."));
 
                 // ---------------------------------------------------- territorio
                 case "demand_territory":
                 {
-                    if (o == null || o == k) return Bad(L.T("sin reino"));
+                    if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == o);
-                    if (st == null) return Bad(L.T("asentamiento no válido"));
+                    if (st == null) return Bad(L.T("AIL_9b65eab4", "asentamiento no válido"));
                     var p = AddProposal("territory", k, o);
                     p.SettlementId = st.StringId;
-                    return L.F($"{kn} exige a {o.Name} la entrega de {st.Name}.");
+                    return L.F("AIL_3cfa625f", $"{kn} exige a {o.Name} la entrega de {st.Name}.");
                 }
                 case "transfer_territory":
                 {
-                    if (o == null) return Bad(L.T("sin reino"));
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("territory", o, k);
                     var st = p != null ? Settlement.Find(p.SettlementId) : OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == k);
                     if (p != null) St.Proposals.Remove(p);
-                    if (st == null || st.MapFaction != k || st.IsUnderSiege) return Bad(L.T("asentamiento no válido"));
+                    if (st == null || st.MapFaction != k || st.IsUnderSiege) return Bad(L.T("AIL_9b65eab4", "asentamiento no válido"));
                     ChangeOwnerOfSettlementAction.ApplyByDefault(o.Leader, st);
-                    return L.F($"{kn} entrega {st.Name} a {o.Name}.");
+                    return L.F("AIL_e50ca8f9", $"{kn} entrega {st.Name} a {o.Name}.");
                 }
                 case "reject_territory":
-                    return Reject("territory", k, o, L.F($"{kn} se niega a ceder territorio a {o?.Name}."));
+                    return Reject("territory", k, o, L.F("AIL_0d2e0018", $"{kn} se niega a ceder territorio a {o?.Name}."));
 
                 // ---------------------------------------------------- política interna
                 case "expel_clan":
                 {
                     var clan = FindClan(k, (string)a["clan"]);
-                    if (clan == null || clan == k.RulingClan || clan.IsUnderMercenaryService) return Bad(L.T("clan no válido"));
-                    if (clan == Clan.PlayerClan && !cfg.AllowAiExpelPlayer) return Bad(L.T("expulsar al jugador desactivado"));
+                    if (clan == null || clan == k.RulingClan || clan.IsUnderMercenaryService) return Bad(L.T("AIL_ae4ebcf0", "clan no válido"));
+                    if (clan == Clan.PlayerClan && !cfg.AllowAiExpelPlayer) return Bad(L.T("AIL_007c510b", "expulsar al jugador desactivado"));
                     ChangeKingdomAction.ApplyByLeaveKingdom(clan);
-                    return L.F($"{kn} expulsa del reino al clan {clan.Name}.");
+                    return L.F("AIL_0d7f7775", $"{kn} expulsa del reino al clan {clan.Name}.");
                 }
                 case "grant_fief":
                 {
                     var clan = FindClan(k, (string)a["clan"]);
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.OwnerClan == k.RulingClan && !x.IsUnderSiege);
-                    if (clan == null || clan == k.RulingClan || clan.IsUnderMercenaryService || clan.Leader == null || st == null) return Bad(L.T("feudo o clan no válidos"));
-                    if (k.RulingClan.Settlements.Count(x => x.IsTown || x.IsCastle) <= 1) return Bad(L.T("es el último feudo de la corona"));
+                    if (clan == null || clan == k.RulingClan || clan.IsUnderMercenaryService || clan.Leader == null || st == null) return Bad(L.T("AIL_46e19d91", "feudo o clan no válidos"));
+                    if (k.RulingClan.Settlements.Count(x => x.IsTown || x.IsCastle) <= 1) return Bad(L.T("AIL_44dd0aa7", "es el último feudo de la corona"));
                     ChangeOwnerOfSettlementAction.ApplyByGift(st, clan.Leader);
-                    return L.F($"{kn} concede {st.Name} al clan {clan.Name}.");
+                    return L.F("AIL_9b15365c", $"{kn} concede {st.Name} al clan {clan.Name}.");
                 }
                 case "confiscate_fief":
                 {
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == k && x.OwnerClan != k.RulingClan && !x.IsUnderSiege);
-                    if (st == null) return Bad(L.T("asentamiento no válido"));
-                    if (st.OwnerClan == Clan.PlayerClan && !cfg.AllowAiExpelPlayer) return Bad(L.T("confiscar al jugador desactivado"));
+                    if (st == null) return Bad(L.T("AIL_9b65eab4", "asentamiento no válido"));
+                    if (st.OwnerClan == Clan.PlayerClan && !cfg.AllowAiExpelPlayer) return Bad(L.T("AIL_9bd88abd", "confiscar al jugador desactivado"));
                     var old = st.OwnerClan;
                     ChangeOwnerOfSettlementAction.ApplyByDefault(k.Leader, st);
                     if (old?.Leader != null && old.Leader != Hero.MainHero) ChangeRelationAction.ApplyRelationChangeBetweenHeroes(k.Leader, old.Leader, -20, false);
-                    return L.F($"{kn} confisca {st.Name} al clan {old?.Name}.");
+                    return L.F("AIL_3d1f0c15", $"{kn} confisca {st.Name} al clan {old?.Name}.");
                 }
                 case "enact_law":
                 {
                     if (!cfg.EnableKingdomLaws) return Bad("leyes desactivadas");
                     string name = WorldSim.Clean((string)a["law_name"], 60), text = WorldSim.Clean((string)a["law_text"], 500);
-                    if (name.Length < 3) return Bad(L.T("ley sin nombre"));
-                    if (St.Laws.Count(l => l.KingdomId == k.StringId) >= cfg.MaxLawsPerKingdom) return Bad(L.T("demasiadas leyes en vigor"));
+                    if (name.Length < 3) return Bad(L.T("AIL_f48c59a0", "ley sin nombre"));
+                    if (St.Laws.Count(l => l.KingdomId == k.StringId) >= cfg.MaxLawsPerKingdom) return Bad(L.T("AIL_8a3f11e5", "demasiadas leyes en vigor"));
                     var fx = a["law_effects"] as JObject ?? new JObject();
                     float F(string key, float max) { float v = 0f; try { v = (float?)fx[key] ?? 0f; } catch { } return Math.Max(-max, Math.Min(max, v)); }
                     St.Laws.RemoveAll(l => l.KingdomId == k.StringId && WorldSim.Norm(l.Name) == WorldSim.Norm(name));
@@ -538,7 +538,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     var parts = new List<string>();
                     if (law.LoyaltyPerDay != 0) parts.Add($"lealtad {law.LoyaltyPerDay:+0.#;-0.#}"); if (law.ProsperityPerDay != 0) parts.Add($"prosperidad {law.ProsperityPerDay:+0.#;-0.#}");
                     if (law.SecurityPerDay != 0) parts.Add($"seguridad {law.SecurityPerDay:+0.#;-0.#}"); if (law.FoodPerDay != 0) parts.Add($"comida {law.FoodPerDay:+0.#;-0.#}");
-                    return L.F($"{kn} promulga la ley «{name}»") + (parts.Count > 0 ? L.F($" (al día en sus ciudades y castillos: {string.Join(", ", parts)})") : "") + ".";
+                    return L.F("AIL_203a7d74", $"{kn} promulga la ley «{name}»") + (parts.Count > 0 ? L.F("AIL_782deaf5", $" (al día en sus ciudades y castillos: {string.Join(", ", parts)})") : "") + ".";
                 }
                 case "repeal_law":
                 {
@@ -546,43 +546,43 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     var law = St.Laws.FirstOrDefault(l => l.KingdomId == k.StringId && (WorldSim.Norm(l.Name) == n || (n.Length > 2 && (WorldSim.Norm(l.Name).Contains(n) || n.Contains(WorldSim.Norm(l.Name))))));
                     if (law == null) return Bad("ley no encontrada");
                     St.Laws.Remove(law);
-                    return L.F($"{kn} deroga la ley «{law.Name}».");
+                    return L.F("AIL_59559c9d", $"{kn} deroga la ley «{law.Name}».");
                 }
                 case "declare_war_on_clan":
                 case "make_peace_with_clan":
                 {
                     string n = WorldSim.Norm((string)a["clan"]);
-                    if (n.Length < 2) return Bad(L.T("sin clan"));
+                    if (n.Length < 2) return Bad(L.T("AIL_ef08b937", "sin clan"));
                     var clan = Clan.All.FirstOrDefault(c => c != null && !c.IsEliminated && c.Kingdom == null && !c.IsBanditFaction && c.Leader != null
                                                              && (WorldSim.Norm(c.Name.ToString()) == n || WorldSim.Norm(c.Name.ToString()).Contains(n) || n.Contains(WorldSim.Norm(c.Name.ToString()))));
                     if (clan == null) return Bad("clan independiente no encontrado");
-                    if (clan == Clan.PlayerClan && !cfg.AllowAiWarOnPlayer) return Bad(L.T("guerra contra el jugador desactivada"));
+                    if (clan == Clan.PlayerClan && !cfg.AllowAiWarOnPlayer) return Bad(L.T("AIL_b809052a", "guerra contra el jugador desactivada"));
                     if (type == "declare_war_on_clan")
                     {
-                        if (k.IsAtWarWith(clan)) return Bad(L.T("ya están en guerra"));
+                        if (k.IsAtWarWith(clan)) return Bad(L.T("AIL_acfa98a8", "ya están en guerra"));
                         DeclareWarAction.ApplyByDefault(k, clan);
-                        return L.F($"{kn} declara la guerra al clan {clan.Name}.");
+                        return L.F("AIL_30aa9ee2", $"{kn} declara la guerra al clan {clan.Name}.");
                     }
-                    if (!k.IsAtWarWith(clan)) return Bad(L.T("no están en guerra"));
+                    if (!k.IsAtWarWith(clan)) return Bad(L.T("AIL_a305fa83", "no están en guerra"));
                     MakePeaceAction.Apply(k, clan);
-                    return L.F($"{kn} hace las paces con el clan {clan.Name}.");
+                    return L.F("AIL_83ce96ea", $"{kn} hace las paces con el clan {clan.Name}.");
                 }
                 case "quarantine_settlement":
                 case "lift_quarantine":
                 {
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => x.MapFaction == k && Diseases.At(x) != null);
-                    if (st == null) return Bad(L.T("asentamiento sin enfermedad o ajeno"));
+                    if (st == null) return Bad(L.T("AIL_1b485942", "asentamiento sin enfermedad o ajeno"));
                     return type == "lift_quarantine" ? Diseases.Lift(st, kn) : Diseases.Quarantine(st, I(a, "quarantine_days", 5, 60), kn);
                 }
                 case "set_tax":
                 {
                     int pct = I(a, "tax_percent", cfg.KingdomTaxMinPercent, cfg.KingdomTaxMaxPercent);
-                    if (pct == 0) { St.KingdomTaxPercent.Remove(k.StringId); return L.F($"{kn} retira el impuesto extraordinario de la corona."); }
+                    if (pct == 0) { St.KingdomTaxPercent.Remove(k.StringId); return L.F("AIL_8441426c", $"{kn} retira el impuesto extraordinario de la corona."); }
                     St.KingdomTaxPercent[k.StringId] = pct;
-                    return pct > 0 ? L.F($"{kn} impone un impuesto extraordinario del {pct} % en sus ciudades.") : L.F($"{kn} rebaja los impuestos de sus ciudades un {-pct} %.");
+                    return pct > 0 ? L.F("AIL_07bd9260", $"{kn} impone un impuesto extraordinario del {pct} % en sus ciudades.") : L.F("AIL_63e55204", $"{kn} rebaja los impuestos de sus ciudades un {-pct} %.");
                 }
             }
-            return Bad(L.T("acción desconocida"));
+            return Bad(L.T("AIL_0a156f01", "acción desconocida"));
         }
 
         /// <summary>Un evento dice que un clan se alza contra su corona: se ejecuta solo si de verdad hay ruptura.</summary>
@@ -602,7 +602,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 if (rel > cfg.RebellionMaxRelation) { Log.Info($"[diplomacia] rebelión de {clan.Name} descartada: su relación con {k.Leader.Name} es {rel}"); return; }
                 ChangeKingdomAction.ApplyByLeaveWithRebellionAgainstKingdom(clan);
                 Log.Info($"[diplomacia] el clan {clan.Name} se alza contra {k.Name}");
-                WorldSim.Say(L.F($"El clan {clan.Name} se alza en rebelión contra {k.Name}."), Colors.Red);
+                WorldSim.Say(L.F("AIL_d6fd303c", $"El clan {clan.Name} se alza en rebelión contra {k.Name}."), Colors.Red);
             }
             catch (Exception ex) { Log.Error("Rebelión de clan", ex); }
         }
@@ -642,7 +642,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
         {
             var from = WorldSim.FindKingdom(p.From); var mine = PlayerRealm;
             if (from == null || mine == null) return;
-            string verb = IsDemand(p.Type) ? L.T("te exige") : L.T("te propone");
+            string verb = IsDemand(p.Type) ? L.T("AIL_3958d81a", "te exige") : L.T("AIL_be07e5b5", "te propone");
             string accept = p.Type == "peace" ? "accept_peace" : p.Type == "alliance" ? "accept_alliance" : p.Type == "trade" ? "accept_trade" : p.Type == "tribute" ? "accept_tribute"
                           : p.Type == "reparations" ? "accept_reparations" : "transfer_territory";
             string reject = p.Type == "peace" ? "reject_peace" : p.Type == "alliance" ? "reject_alliance" : p.Type == "trade" ? "reject_trade" : p.Type == "tribute" ? "reject_tribute"
@@ -659,15 +659,15 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                         NewsStore.Add(new NewsItem
                         {
                             Type = "statement", Importance = 3, Text = $"{Hero.MainHero.Name}, ruler of {mine.Name}, answered {from.Name}: {type.Replace('_', ' ')}.",
-                            TitleEs = L.F($"Respuesta de {mine.Name} a {from.Name}"), TextEs = r, Kingdoms = new List<string> { mine.StringId, from.StringId },
+                            TitleEs = L.F("AIL_3f2c88e6", $"Respuesta de {mine.Name} a {from.Name}"), TextEs = r, Kingdoms = new List<string> { mine.StringId, from.StringId },
                         });
                         SaveFiles.Flush(heroes: false);
                     }
                     catch (Exception ex) { Log.Error("Respuesta del jugador a una propuesta", ex); }
                 });
             }
-            InformationManager.ShowInquiry(new InquiryData(L.F($"Mensaje de {from.Leader.Name}, de {from.Name}"),
-                L.F($"{from.Name} {verb} {TypeEs(p.Type)}{TermsEs(p)}.\n\nSi no contestas ahora, la propuesta sigue en pie {S.Get.ProposalLifetimeDays} días y puedes responder con una declaración."),
+            InformationManager.ShowInquiry(new InquiryData(L.F("AIL_f85f4507", $"Mensaje de {from.Leader.Name}, de {from.Name}"),
+                L.F("AIL_ab129b00", $"{from.Name} {verb} {TypeEs(p.Type)}{TermsEs(p)}.\n\nSi no contestas ahora, la propuesta sigue en pie {S.Get.ProposalLifetimeDays} días y puedes responder con una declaración."),
                 true, true, "Aceptar", "Rechazar", () => Answer(accept), () => Answer(reject)), true);
         }
 
@@ -686,9 +686,9 @@ Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English s
         public static void PlayerStatement()
         {
             var k = PlayerRealm;
-            if (!PlayerCanDeclare) { WorldSim.Say(L.T("Solo quien reina puede hacer una declaración."), Colors.Red); return; }
-            InformationManager.ShowTextInquiry(new TextInquiryData(L.T("Declaración de la corona"),
-                L.T("Escribe lo que proclamas ante Calradia. Lo que decidas con claridad (guerra, paz, alianza, tributo, impuestos, feudos…) se llevará a cabo; lo demás quedará como palabras."),
+            if (!PlayerCanDeclare) { WorldSim.Say(L.T("AIL_76f7a56d", "Solo quien reina puede hacer una declaración."), Colors.Red); return; }
+            InformationManager.ShowTextInquiry(new TextInquiryData(L.T("AIL_fec92cb7", "Declaración de la corona"),
+                L.T("AIL_f00983f3", "Escribe lo que proclamas ante Calradia. Lo que decidas con claridad (guerra, paz, alianza, tributo, impuestos, feudos…) se llevará a cabo; lo demás quedará como palabras."),
                 true, true, "Proclamar", "Cancelar", text =>
                 {
                     text = (text ?? "").Trim();
@@ -698,10 +698,10 @@ Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English s
                     sys.AppendLine(); sys.AppendLine($"## The realm of {k.Name}: clans and fiefs"); sys.AppendLine(DescribeRealm(k));
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
                     sys.AppendLine(); sys.AppendLine("## Pending proposals directed at this realm"); sys.AppendLine(DescribeProposalsTo(k));
-                    WorldSim.Say(L.T("Tus heraldos llevan la declaración a todos los rincones…"), Colors.Cyan);
-                    WorldSim.Ask(L.T("declaración del jugador"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", text) }, 700,
+                    WorldSim.Say(L.T("AIL_ebf54145", "Tus heraldos llevan la declaración a todos los rincones…"), Colors.Cyan);
+                    WorldSim.Ask(L.T("AIL_100794a8", "declaración del jugador"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", text) }, 700,
                         j => ApplyStatement(k, j, WorldSim.Clean(text, 1600)));
-                }, null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t) && t.Trim().Length >= 10, L.T("Escribe algo más"))), true);
+                }, null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t) && t.Trim().Length >= 10, L.T("AIL_49569563", "Escribe algo más"))), true);
         }
     }
 }

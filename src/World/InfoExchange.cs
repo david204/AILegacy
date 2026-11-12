@@ -95,7 +95,7 @@ namespace AILegacy.World
             });
             Log.Info($"Recado de {from.Name} para {to.Name} ({secrecy}, llega en {hours:0} h): {text}");
             // El jugador solo lo ve si se lo dicen a la cara; lo secreto no se anuncia
-            return secrecy == "secret" ? null : L.F($"{from.Name} hará llegar noticia de esto a {to.Name}.");
+            return secrecy == "secret" ? null : L.F("AIL_c009f7dc", $"{from.Name} hará llegar noticia de esto a {to.Name}.");
         }
 
         private static double Hours(Hero a, Hero b)
@@ -136,7 +136,7 @@ namespace AILegacy.World
                         NewsStore.Add(new NewsItem
                         {
                             Type = "rumor", Importance = 2, Text = $"{m.FromName} has been telling people: {m.Text}",
-                            TitleEs = L.F($"Lo que cuenta {m.FromName}"), TextEs = "",
+                            TitleEs = L.F("AIL_5ff5abe9", $"Lo que cuenta {m.FromName}"), TextEs = "",
                             Heroes = new List<string> { m.FromId, m.ToId, P.StringId },
                             Kingdoms = to.MapFaction != null ? new List<string> { to.MapFaction.StringId } : new List<string>(),
                             SettlementId = (to.CurrentSettlement ?? to.HomeSettlement)?.StringId,

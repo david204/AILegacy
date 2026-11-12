@@ -155,7 +155,7 @@ namespace AILegacy.Dialogue
 
             var logic = Mission.Current.GetMissionBehavior<MissionConversationLogic>();
             if (logic == null) { _p = null; p.OnUnanswered?.Invoke(); return; }
-            InformationManager.DisplayMessage(new InformationMessage(L.F($"{p.Who.Name} se te acerca."), Colors.Yellow));
+            InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_ff6e4415", $"{p.Who.Name} se te acerca."), Colors.Yellow));
             logic.StartConversation(p.Agent, false, false);
             // si la línea de inicio no llega a casar, el acercamiento caduca solo por edad
         }
@@ -172,8 +172,8 @@ namespace AILegacy.Dialogue
 
             p.Asked = true;
             p.Age = 0f;
-            InformationManager.ShowInquiry(new InquiryData(L.F($"{h.Name} quiere hablar contigo"),
-                L.F($"{h.Name}{(h.Clan != null ? L.T(", del clan ") + h.Clan.Name : "")}, ha cabalgado hasta tu grupo y pide hablar contigo."),
+            InformationManager.ShowInquiry(new InquiryData(L.F("AIL_c65afb5d", $"{h.Name} quiere hablar contigo"),
+                L.F("AIL_b6d441ce", $"{h.Name}{(h.Clan != null ? L.T("AIL_4514967a", ", del clan ") + h.Clan.Name : "")}, ha cabalgado hasta tu grupo y pide hablar contigo."),
                 true, true, "Recibirle", "Ahora no",
                 () => MainThread.Post(() =>
                 {

@@ -187,16 +187,16 @@ namespace AILegacy.Behaviors
             // --- Héroes: lores, notables, compañeros, vagabundos (estilo ventana de chat)
             starter.AddPlayerLine(
                 "ailegacy_talk_start", "hero_main_options", "ailegacy_npc_listen",
-                L.T("{=!}Quiero hablar contigo de algo. [Charla libre]"),
+                L.T("AIL_d1c3cda0", "{=!}Quiero hablar contigo de algo. [Charla libre]"),
                 () => !S.Get.UseDialogStyle && CanTalkHero(),
                 () => MainThread.Post(() => ChatSession.Start(Speaker.FromHero(Hero.OneToOneConversationHero))),
                 priority: 110);
-            starter.AddDialogLine("ailegacy_npc_listen", "ailegacy_npc_listen", "hero_main_options", L.T("{=!}*te escucha*"), null, null, priority: 110);
+            starter.AddDialogLine("ailegacy_npc_listen", "ailegacy_npc_listen", "hero_main_options", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
             // --- Gente corriente de ciudades y aldeas
             starter.AddPlayerLine(
                 "ailegacy_res_start", "town_or_village_player", "ailegacy_res_listen",
-                L.T("{=!}Oye, ¿tienes un momento? [Charla libre]"),
+                L.T("AIL_73c1647d", "{=!}Oye, ¿tienes un momento? [Charla libre]"),
                 () => !S.Get.UseDialogStyle && CanTalkResident(),
                 () => MainThread.Post(() =>
                 {
@@ -205,7 +205,7 @@ namespace AILegacy.Behaviors
                     if (c != null) ChatSession.Start(Speaker.FromResident(c, cm.OneToOneConversationAgent));
                 }),
                 priority: 110);
-            starter.AddDialogLine("ailegacy_res_listen", "ailegacy_res_listen", "town_or_village_player", L.T("{=!}*te escucha*"), null, null, priority: 110);
+            starter.AddDialogLine("ailegacy_res_listen", "ailegacy_res_listen", "town_or_village_player", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
             Log.Info($"AI Legacy listo: diálogos añadidos, {MemoryStore.Count} personajes en memoria, {System.Linq.Enumerable.Count(NewsStore.All)} noticias");
         }
@@ -231,7 +231,7 @@ namespace AILegacy.Behaviors
                 () => Initiative.Done(), priority: 10000);
 
             // Entrada desde héroes y desde gente del pueblo
-            starter.AddPlayerLine("ailegacy_d_start_h", "hero_main_options", "ailegacy_d_wait", L.T("{=!}Hablar [AI Legacy]"),
+            starter.AddPlayerLine("ailegacy_d_start_h", "hero_main_options", "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
                 () => S.Get.UseDialogStyle && CanTalkHero(),
                 () =>
                 {
@@ -239,10 +239,10 @@ namespace AILegacy.Behaviors
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
             // En el mapa: bajar del caballo y hablar cara a cara, en una escena del terreno
-            starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
+            starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),
                 () => Scenes.MapTalk.Queue(Hero.OneToOneConversationHero), priority: 119);
-            starter.AddPlayerLine("ailegacy_d_start_r", "town_or_village_player", "ailegacy_d_wait", L.T("{=!}Hablar [AI Legacy]"),
+            starter.AddPlayerLine("ailegacy_d_start_r", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
                 () => S.Get.UseDialogStyle && CanTalkResident(),
                 () =>
                 {
@@ -254,29 +254,29 @@ namespace AILegacy.Behaviors
             // El NPC "espera" mientras escribes. Las opciones de aquí se calculan ANTES de que escribas,
             // así que solo puede haber "Ver su respuesta" / "Volver".
             starter.AddDialogLine("ailegacy_d_wait", "ailegacy_d_wait", "ailegacy_d_optw", "{=!}{AIL_DLG}",
-                () => { MBTextManager.SetTextVariable("AIL_DLG", new TextObject(L.T("{=!}(Envía tu mensaje y espera su respuesta)"))); return true; },
+                () => { MBTextManager.SetTextVariable("AIL_DLG", new TextObject(L.T("AIL_58ce073f", "{=!}(Envía tu mensaje y espera su respuesta)"))); return true; },
                 null, priority: 120);
-            starter.AddPlayerLine("ailegacy_d_view", "ailegacy_d_optw", "ailegacy_d_show", L.T("{=!}Ver su respuesta"),
+            starter.AddPlayerLine("ailegacy_d_view", "ailegacy_d_optw", "ailegacy_d_show", L.T("AIL_98823032", "{=!}Ver su respuesta"),
                 () => Cur() != null, null, priority: 130);
-            starter.AddPlayerLine("ailegacy_d_backw", "ailegacy_d_optw", "ailegacy_d_ret", L.T("{=!}Volver"),
+            starter.AddPlayerLine("ailegacy_d_backw", "ailegacy_d_optw", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
                 () => true, null, priority: 110);
 
             // Tras ver la respuesta
-            starter.AddPlayerLine("ailegacy_d_say", "ailegacy_d_opts", "ailegacy_d_wait", L.T("{=!}Decir algo más"),
+            starter.AddPlayerLine("ailegacy_d_say", "ailegacy_d_opts", "ailegacy_d_wait", L.T("AIL_92eb34bb", "{=!}Decir algo más"),
                 () => { var c = Cur(); return c != null && !c.Ended; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.AskInput); }, priority: 125);
             // Repasar toda la conversación en una ventana con barra de desplazamiento
-            starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("{=!}Repasar lo hablado"),
+            starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_cdf7046b", "{=!}Repasar lo hablado"),
                 () => { var c = Cur(); return c != null && c.Who != null && c.Who.Memory.Turns.Count > 2; },
                 () => { var c = Cur(); if (c != null) { var who = c.Who; MainThread.Post(() => UI.Books.OpenTranscript(who)); } }, priority: 109);
-            starter.AddPlayerLine("ailegacy_d_leave", "ailegacy_d_opts", "close_window", L.T("{=!}Marcharse"),
+            starter.AddPlayerLine("ailegacy_d_leave", "ailegacy_d_opts", "close_window", L.T("AIL_41e43789", "{=!}Marcharse"),
                 () => { var c = Cur(); return c != null && c.Ended; },
                 () =>
                 {
                     try { if (PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement && !Combat.KeepEncounter) PlayerEncounter.LeaveEncounter = true; }
                     catch (Exception ex) { Log.Error("Marcharse", ex); }
                 }, priority: 124);
-            starter.AddPlayerLine("ailegacy_d_back", "ailegacy_d_opts", "ailegacy_d_ret", L.T("{=!}Volver"),
+            starter.AddPlayerLine("ailegacy_d_back", "ailegacy_d_opts", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
                 () => { var c = Cur(); return c == null || !c.Ended; }, null, priority: 110);
 
             // La respuesta en el cuadro de diálogo. Si aún piensa, se vuelve a "Ver su respuesta".
@@ -297,9 +297,9 @@ namespace AILegacy.Behaviors
                 }, null, priority: 120);
 
             // Volver a las opciones normales del juego
-            starter.AddDialogLine("ailegacy_d_ret_h", "ailegacy_d_ret", "hero_main_options", L.T("{=!}¿Algo más?"),
+            starter.AddDialogLine("ailegacy_d_ret_h", "ailegacy_d_ret", "hero_main_options", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => Hero.OneToOneConversationHero != null, null, priority: 120);
-            starter.AddDialogLine("ailegacy_d_ret_r", "ailegacy_d_ret", "town_or_village_player", L.T("{=!}¿Algo más?"),
+            starter.AddDialogLine("ailegacy_d_ret_r", "ailegacy_d_ret", "town_or_village_player", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => Hero.OneToOneConversationHero == null, null, priority: 110);
         }
 

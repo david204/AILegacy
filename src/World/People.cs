@@ -25,8 +25,8 @@ namespace AILegacy.World
             error = null;
             try
             {
-                if (s == null || s.IsHero || s.Character == null) { error = L.T("ya es un personaje con nombre"); return null; }
-                if (companion && Clan.PlayerClan.Companions.Count >= Clan.PlayerClan.CompanionLimit) { error = L.T("no te queda sitio para más compañeros"); return null; }
+                if (s == null || s.IsHero || s.Character == null) { error = L.T("AIL_854c39ee", "ya es un personaje con nombre"); return null; }
+                if (companion && Clan.PlayerClan.Companions.Count >= Clan.PlayerClan.CompanionLimit) { error = L.T("AIL_f636277a", "no te queda sitio para más compañeros"); return null; }
                 var st = Settlement.CurrentSettlement ?? s.ResidentSettlement
                          ?? Settlement.All.Where(x => x.IsTown).OrderBy(x => x.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D)).FirstOrDefault();
                 if (st == null) { error = "no hay asentamiento de referencia"; return null; }
@@ -36,7 +36,7 @@ namespace AILegacy.World
                 // Molde: un errante de su cultura y su sexo (le da habilidades y equipo de partida razonables)
                 var templates = CharacterObject.All.Where(c => c.IsTemplate && c.Occupation == Occupation.Wanderer && c.IsFemale == female).ToList();
                 var template = templates.Where(c => c.Culture == culture).OrderBy(_ => Guid.NewGuid()).FirstOrDefault() ?? templates.OrderBy(_ => Guid.NewGuid()).FirstOrDefault();
-                if (template == null) { error = L.T("el juego no tiene un molde de errante para crear al personaje"); return null; }
+                if (template == null) { error = L.T("AIL_b2d8f675", "el juego no tiene un molde de errante para crear al personaje"); return null; }
 
                 int age = (int)Math.Max(18f, Math.Min(70f, s.Age));
                 var hero = HeroCreator.CreateSpecialHero(template, st, null, null, age);
@@ -87,17 +87,17 @@ namespace AILegacy.World
                 var p = Hero.MainHero;
                 name = (name ?? "").Trim();
                 relation = (relation ?? "").Trim().ToLowerInvariant();
-                if (name.Length < 2) { error = L.T("Ponle nombre."); return null; }
-                if (relation == "spouse" && p.Spouse != null) { error = L.T("Ya estás casado."); return null; }
-                if (relation == "child") { age = Math.Max(0, Math.Min((int)p.Age - 16, age)); if (p.Age < 17) { error = L.T("Eres demasiado joven para tener hijos."); return null; } }
-                else if (relation == "parent") { age = Math.Max((int)p.Age + 16, age); if ((female ? p.Mother : p.Father) != null) { error = female ? L.T("Ya tienes madre.") : L.T("Ya tienes padre."); return null; } }
+                if (name.Length < 2) { error = L.T("AIL_9271ee6c", "Ponle nombre."); return null; }
+                if (relation == "spouse" && p.Spouse != null) { error = L.T("AIL_2603bf41", "Ya estás casado."); return null; }
+                if (relation == "child") { age = Math.Max(0, Math.Min((int)p.Age - 16, age)); if (p.Age < 17) { error = L.T("AIL_e43ca0c4", "Eres demasiado joven para tener hijos."); return null; } }
+                else if (relation == "parent") { age = Math.Max((int)p.Age + 16, age); if ((female ? p.Mother : p.Father) != null) { error = female ? L.T("AIL_de5d5b50", "Ya tienes madre.") : L.T("AIL_42716849", "Ya tienes padre."); return null; } }
                 else age = Math.Max(18, Math.Min(80, age));
-                if (relation == "sibling" && p.Father == null && p.Mother == null) { error = L.T("Para tener hermanos primero hace falta un padre o una madre: crea antes un progenitor."); return null; }
+                if (relation == "sibling" && p.Father == null && p.Mother == null) { error = L.T("AIL_fb600910", "Para tener hermanos primero hace falta un padre o una madre: crea antes un progenitor."); return null; }
 
                 var culture = TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<CultureObject>(cultureId ?? "") ?? p.Culture;
                 var templates = CharacterObject.All.Where(c => c.IsTemplate && c.Occupation == Occupation.Wanderer && c.IsFemale == female).ToList();
                 var template = templates.Where(c => c.Culture == culture).OrderBy(_ => Guid.NewGuid()).FirstOrDefault() ?? templates.OrderBy(_ => Guid.NewGuid()).FirstOrDefault();
-                if (template == null) { error = L.T("El juego no tiene un molde para ese sexo."); return null; }
+                if (template == null) { error = L.T("AIL_89a46e62", "El juego no tiene un molde para ese sexo."); return null; }
                 var st = Settlement.CurrentSettlement ?? p.HomeSettlement ?? Settlement.All.Where(x => x.IsTown).OrderBy(x => x.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D)).First();
                 var hero = HeroCreator.CreateSpecialHero(template, st, Clan.PlayerClan, null, Math.Max(1, age));
                 var full = new TextObject("{=!}" + name);
@@ -113,7 +113,7 @@ namespace AILegacy.World
                     case "sibling": hero.Father = p.Father; hero.Mother = p.Mother; break;
                     case "parent": if (female) p.Mother = hero; else p.Father = hero; break;
                     case "spouse": MarriageAction.Apply(p, hero, false); break;
-                    default: error = L.T("Parentesco no válido."); return null;
+                    default: error = L.T("AIL_96a911e0", "Parentesco no válido."); return null;
                 }
                 if (hero.IsChild) { hero.ChangeState(Hero.CharacterStates.NotSpawned); try { hero.ChangeState(Hero.CharacterStates.Active); } catch { } }
                 else
@@ -136,12 +136,12 @@ namespace AILegacy.World
             try
             {
                 name = (name ?? "").Trim();
-                if (name.Length < 2) { error = L.T("Ponle nombre."); return null; }
-                if (Clan.PlayerClan.Companions.Count >= Clan.PlayerClan.CompanionLimit) { error = L.T("No te queda sitio para más compañeros."); return null; }
+                if (name.Length < 2) { error = L.T("AIL_9271ee6c", "Ponle nombre."); return null; }
+                if (Clan.PlayerClan.Companions.Count >= Clan.PlayerClan.CompanionLimit) { error = L.T("AIL_dd6592dc", "No te queda sitio para más compañeros."); return null; }
                 var culture = TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<CultureObject>(cultureId ?? "") ?? Hero.MainHero.Culture;
                 var templates = CharacterObject.All.Where(c => c.IsTemplate && c.Occupation == Occupation.Wanderer && c.IsFemale == female).ToList();
                 var template = templates.Where(c => c.Culture == culture).OrderBy(_ => Guid.NewGuid()).FirstOrDefault() ?? templates.OrderBy(_ => Guid.NewGuid()).FirstOrDefault();
-                if (template == null) { error = L.T("El juego no tiene un molde de errante para ese sexo."); return null; }
+                if (template == null) { error = L.T("AIL_a12b008e", "El juego no tiene un molde de errante para ese sexo."); return null; }
                 var st = Settlement.CurrentSettlement ?? Settlement.All.Where(x => x.IsTown).OrderBy(x => x.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D)).First();
                 var hero = HeroCreator.CreateSpecialHero(template, st, null, null, Math.Max(18, Math.Min(70, age)));
                 var full = new TextObject("{=!}" + name);

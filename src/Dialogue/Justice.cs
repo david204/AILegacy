@@ -141,8 +141,8 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
         public static string LetGo(Speaker s)
         {
             var st = Settlement.CurrentSettlement;
-            Close($"The guard of {st?.Name} questioned {P.Name} after a disturbance and let them go.", L.T("La guardia lo deja pasar"), L.F($"La guardia de {st?.Name} interrogó a {P.Name} tras un altercado y lo dejó marchar."));
-            return L.T("El guardia te deja marchar.");
+            Close($"The guard of {st?.Name} questioned {P.Name} after a disturbance and let them go.", L.T("AIL_ca1dd233", "La guardia lo deja pasar"), L.F("AIL_05112fe7", $"La guardia de {st?.Name} interrogó a {P.Name} tras un altercado y lo dejó marchar."));
+            return L.T("AIL_3f4f693a", "El guardia te deja marchar.");
         }
 
         public static string Fine(Speaker s, int amount)
@@ -150,11 +150,11 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             var cfg = S.Get;
             var st = Settlement.CurrentSettlement;
             amount = Math.Max(1, Math.Min(cfg.FineMax * 5, amount));
-            if (P.Gold < amount) return L.F($"No llevas {amount} denarios para pagar la multa.");
+            if (P.Gold < amount) return L.F("AIL_6d808299", $"No llevas {amount} denarios para pagar la multa.");
             if (st != null) GiveGoldAction.ApplyForCharacterToSettlement(P, st, amount);
             else P.ChangeHeroGold(-amount);
-            Close($"The guard of {st?.Name} fined {P.Name} {amount} denars for a disturbance.", L.T("Multa de la guardia"), L.F($"La guardia de {st?.Name} multó a {P.Name} con {amount} denarios por un altercado."));
-            return L.F($"Pagas una multa de {amount} denarios.");
+            Close($"The guard of {st?.Name} fined {P.Name} {amount} denars for a disturbance.", L.T("AIL_74ddb46b", "Multa de la guardia"), L.F("AIL_23d64abe", $"La guardia de {st?.Name} multó a {P.Name} con {amount} denarios por un altercado."));
+            return L.F("AIL_dc5f5110", $"Pagas una multa de {amount} denarios.");
         }
 
         public static string Arrest(Speaker s)
@@ -164,8 +164,8 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             _jailIn = st;
             _jailGuard = s; _jailStanding = Standing(st); _jailCrime = Crime(st);
             try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 10f, true); } catch { }
-            Close($"The guard of {st.Name} arrested {P.Name} after a disturbance.", L.T("Detenido por la guardia"), L.F($"La guardia de {st.Name} detuvo a {P.Name} tras un altercado."));
-            return L.F($"El guardia te detiene: vas a los calabozos de {st.Name}.");
+            Close($"The guard of {st.Name} arrested {P.Name} after a disturbance.", L.T("AIL_efa2c194", "Detenido por la guardia"), L.F("AIL_b8f58f0d", $"La guardia de {st.Name} detuvo a {P.Name} tras un altercado."));
+            return L.F("AIL_f2440a00", $"El guardia te detiene: vas a los calabozos de {st.Name}.");
         }
 
         /// <summary>El guardia no llegó a hablar contigo (te fuiste de la escena, la IA no contestó…).</summary>
@@ -190,7 +190,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                         {
                             var st = Settlement.CurrentSettlement;
                             try { if (st?.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, S.Get.CrimeForWalkingAway, true); } catch { }
-                            Say(L.T("Dejas al guardia con la palabra en la boca: tu mala fama aquí crece."), Colors.Red);
+                            Say(L.T("AIL_fe057bc7", "Dejas al guardia con la palabra en la boca: tu mala fama aquí crece."), Colors.Red);
                         }
                         _guard = null;
                     }

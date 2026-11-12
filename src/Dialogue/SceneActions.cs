@@ -80,13 +80,13 @@ namespace AILegacy.Dialogue
                         if (Followers.Contains(who) || !SceneMove.GoTo(who, Agent.Main)) return false;
                         Guides.RemoveAll(g => g.Who == who);
                         Followers.Add(who);
-                        Say(L.F($"{who.Name} te acompaña."));
+                        Say(L.F("AIL_dd2f52c0", $"{who.Name} te acompaña."));
                         Log.Info($"[escena] {who.Name} te acompaña");
                         return false;
                     case "stay":
                         if (!Followers.Remove(who)) return false;
                         SceneMove.Release(who);
-                        Say(L.F($"{who.Name} se queda aquí."));
+                        Say(L.F("AIL_78680a96", $"{who.Name} se queda aquí."));
                         return false;
                     case "guide":
                     {
@@ -95,7 +95,7 @@ namespace AILegacy.Dialogue
                         Followers.Remove(who);
                         Guides.RemoveAll(g => g.Who == who);
                         Guides.Add(new Guide { Who = who, To = to, Left = 240f });
-                        Say(L.F($"{who.Name} te lleva hasta {to.Name}. Síguele."));
+                        Say(L.F("AIL_5f595733", $"{who.Name} te lleva hasta {to.Name}. Síguele."));
                         Log.Info($"[escena] {who.Name} guía al jugador hasta {to.Name}");
                         return true;
                     }
@@ -104,13 +104,13 @@ namespace AILegacy.Dialogue
                         var target = Find();
                         if (target == null || target == who || Busy(target) || !SceneMove.GoTo(target, Agent.Main)) return false;
                         Calls.Add(new Call { Who = target, Left = 120f });
-                        Say(L.F($"{who.Name} llama a {target.Name}."));
+                        Say(L.F("AIL_7f71ac3a", $"{who.Name} llama a {target.Name}."));
                         Log.Info($"[escena] {who.Name} llama a {target.Name}");
                         return false;
                     }
                     case "draw_weapon":
                         try { who.WieldInitialWeapons(); } catch { }
-                        InformationManager.DisplayMessage(new InformationMessage(L.F($"{who.Name} desenvaina."), Colors.Red));
+                        InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_a6a88727", $"{who.Name} desenvaina."), Colors.Red));
                         return false;
                     case "sheathe_weapon":
                         try
@@ -119,7 +119,7 @@ namespace AILegacy.Dialogue
                             who.TryToSheathWeaponInHand(Agent.HandIndex.MainHand, Agent.WeaponWieldActionType.WithAnimation);
                         }
                         catch { }
-                        Say(L.F($"{who.Name} envaina."));
+                        Say(L.F("AIL_1ee0d3b1", $"{who.Name} envaina."));
                         return false;
                     case "sit_down":
                         try
@@ -139,7 +139,7 @@ namespace AILegacy.Dialogue
                             if (best == null) return false;
                             Followers.Remove(who); SceneMove.Release(who);
                             who.AIMoveToGameObjectEnable(best, bestChair, Agent.AIScriptedFrameFlags.NoAttack);
-                            Say(L.F($"{who.Name} va a sentarse."));
+                            Say(L.F("AIL_67c8cba8", $"{who.Name} va a sentarse."));
                         }
                         catch (Exception ex) { Log.Error("Sentarse", ex); }
                         return false;
@@ -159,7 +159,7 @@ namespace AILegacy.Dialogue
                                       "No blood was shed: the offence is insolence in a noble's hall. You carry out the order. They either come away quietly with you (let_go, once they agree to leave), " +
                                       "pay for the insult (fine), or go to the cells (arrest) if they argue with the order, mock or resist.";
                         if (!Justice.Summon(what, who, true)) { Log.Info($"[escena] {who.Name} llama a la guardia, pero no hay ningún guardia cerca (o la justicia está apagada)"); return false; }
-                        InformationManager.DisplayMessage(new InformationMessage(L.F($"{who.Name} llama a la guardia: entrégate, convéncele o resístete."), Colors.Red));
+                        InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_95594522", $"{who.Name} llama a la guardia: entrégate, convéncele o resístete."), Colors.Red));
                         Log.Info($"[escena] {who.Name} llama a la guardia contra el jugador");
                         return false;
                     }
@@ -184,7 +184,7 @@ namespace AILegacy.Dialogue
                         Jail.Add((th, st));
                         Leaving.Add((target, 7f));
                         SceneMove.GoTo(who, target);
-                        InformationManager.DisplayMessage(new InformationMessage(L.F($"{who.Name} detiene a {th.Name}: se la llevan a los calabozos de {st.Name}."), Colors.Red));
+                        InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_ff0ad962", $"{who.Name} detiene a {th.Name}: se la llevan a los calabozos de {st.Name}."), Colors.Red));
                         Log.Info($"[escena] {who.Name} detiene a {th.Name} en {st.Name}. Motivo dicho: {line}");
                         try
                         {
@@ -199,7 +199,7 @@ namespace AILegacy.Dialogue
                             {
                                 Type = "rumor", Importance = th.IsLord ? 3 : 2, PlayerInvolved = true,
                                 Text = $"{th.Name} was arrested at {st.Name} and taken to the cells, accused before witnesses by {TaleWorlds.CampaignSystem.Hero.MainHero.Name}.",
-                                TitleEs = L.F($"Arresto de {th.Name}"), TextEs = L.F($"{th.Name} ha sido detenida en {st.Name} y llevada a los calabozos, acusada ante testigos por {TaleWorlds.CampaignSystem.Hero.MainHero.Name}."),
+                                TitleEs = L.F("AIL_c5c07b9e", $"Arresto de {th.Name}"), TextEs = L.F("AIL_e911ba7b", $"{th.Name} ha sido detenida en {st.Name} y llevada a los calabozos, acusada ante testigos por {TaleWorlds.CampaignSystem.Hero.MainHero.Name}."),
                                 SettlementId = st.StringId, Kingdoms = st.MapFaction != null ? new List<string> { st.MapFaction.StringId } : new List<string>(),
                                 Heroes = new List<string> { th.StringId, TaleWorlds.CampaignSystem.Hero.MainHero.StringId },
                             });
@@ -211,7 +211,7 @@ namespace AILegacy.Dialogue
                     }
                     case "leave":
                         if (Followers.Remove(who)) SceneMove.Release(who);
-                        Say(L.F($"{who.Name} se aparta de la conversación."));
+                        Say(L.F("AIL_56f0d4a1", $"{who.Name} se aparta de la conversación."));
                         return true;
                 }
             }
@@ -329,7 +329,7 @@ namespace AILegacy.Dialogue
                         if (toPlayer <= 5f)
                         {
                             try { g.Who.SetLookAgent(null); } catch { }
-                            Say(L.F($"{g.Who.Name} te ha traído hasta {g.To.Name}."));
+                            Say(L.F("AIL_3cc9d40f", $"{g.Who.Name} te ha traído hasta {g.To.Name}."));
                             Guides.RemoveAt(i);
                         }
                         continue;
@@ -347,7 +347,7 @@ namespace AILegacy.Dialogue
                     if (c.Who.Position.Distance(me) > 3.5f) continue;
                     SceneMove.Release(c.Who);
                     Calls.RemoveAt(i);
-                    if (!c.Quiet) { GroupTalk.Join(c.Who); Say(L.F($"{c.Who.Name} se acerca.")); }
+                    if (!c.Quiet) { GroupTalk.Join(c.Who); Say(L.F("AIL_4eaee384", $"{c.Who.Name} se acerca.")); }
                 }
             }
             catch (Exception ex) { Log.Error("Acciones en la escena", ex); Guides.Clear(); Calls.Clear(); }
