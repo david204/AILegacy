@@ -228,6 +228,8 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             // ---------- 1a. común a todos
             sys.AppendLine(TShared.Text);
             AppendWorld(sys);
+            // Reglas de mundo que han puesto otros mods (parte común: no cambia de un personaje a otro)
+            try { string rules = AILegacy.Api.ModHooks.DescribeWorldRules(); if (rules.Length > 0) { sys.AppendLine(); sys.AppendLine("## More about this world"); sys.AppendLine(rules); } } catch { }
             sys.AppendLine();
             sys.AppendLine(TRules.Format("min_sentences", cfg.ReplyMinSentences, "max_sentences", cfg.ReplyMaxSentences, "language", cfg.Language,
                 "gesture_rule", (cfg.UseAsterisks ? TGestureOn : TGestureOff).Text));
@@ -510,6 +512,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             sys.AppendLine(ContextBuilder.DescribeWorld(s));
             try { var fx = WorldSim.DescribeEffectsAt(s.Settlement ?? s.HomeSettlement); if (fx.Length > 0) sys.AppendLine(fx); } catch { }
             try { var sick = Diseases.DescribeAt(s.Settlement ?? s.HomeSettlement); if (sick.Length > 0) sys.AppendLine(sick); } catch { }
+            try { var mods = AILegacy.Api.ModHooks.DescribeContext(s.Hero); if (mods.Length > 0) sys.AppendLine(mods); } catch { }
             if (!string.IsNullOrWhiteSpace(s.Memory.RecentTalk) && (System.DateTime.UtcNow - s.Memory.RecentTalkAt).TotalMinutes < 10)
                 sys.AppendLine(s.Memory.RecentTalk + " (They may have overheard it.)");
             if (!string.IsNullOrWhiteSpace(s.Situation))

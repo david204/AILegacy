@@ -76,6 +76,14 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: apuntar causa", ex); }
         }
 
+        /// <summary>Una causa de ánimo que apunta otro mod por la API.</summary>
+        internal static bool AddFromMod(string heroId, string text, int sign, int strength, int days)
+        {
+            if (!S.Get.EnableMoodCauses || St == null) return false;
+            Add(heroId, "mod", sign, strength, days, 0, text, text);
+            return true;
+        }
+
         public static void OnDailyTick()
         {
             try

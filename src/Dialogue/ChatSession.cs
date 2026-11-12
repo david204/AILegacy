@@ -308,6 +308,7 @@ namespace AILegacy.Dialogue
             if (text.StartsWith("/")) { HandleCommand(text); return; }
 
             Mem.Turns.Add(new ChatTurn { Role = "player", Text = text, Day = CampaignTime.Now.ToDays });
+            if (_s.IsHero) AILegacy.Api.AILegacyApi.RaisePlayerSaid(_s.Hero, text);
             UiPlayer(text);
             Ambient.Overhear(_s, text);
             _lines++;
@@ -421,6 +422,7 @@ namespace AILegacy.Dialogue
                 catch (Exception ex) { Log.Error("Reintento por repetición", ex); }
             }
             Mem.Turns.Add(new ChatTurn { Role = "npc", Text = reply.Reply, Day = CampaignTime.Now.ToDays });
+            if (_s.IsHero) AILegacy.Api.AILegacyApi.RaiseNpcReplied(_s.Hero, reply.Reply);
             UiNpc(reply.Reply);
             _lines++;
             _answered++;

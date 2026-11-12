@@ -1589,11 +1589,41 @@ namespace AILegacy.Dialogue
         private static List<Settlement> FiefsOf(Clan c) => c == null ? new List<Settlement>() : c.Settlements.Where(x => x.IsTown || x.IsCastle).ToList();
 
         /// <summary>Texto con las acciones disponibles ahora mismo (para el prompt).</summary>
+        // ---- acciones que registran otros mods (AILegacy.Api.AILegacyApi.RegisterAction)
+        internal static bool RegisterModAction(string name, string description, string argumentHint, Func<Hero, bool> isAvailable, Func<Hero, string, string> execute)
+        {
+            if (string.IsNullOrEmpty(name) || !name.StartsWith("mod_") || execute == null) return false;
+            All.RemoveAll(a => a.Name == name);
+            All.Add(new ActionDef
+            {
+                Name = name,
+                Usage = string.IsNullOrEmpty(argumentHint) ? name : name + ":<" + argumentHint + ">",
+                Description = description,
+                // El fallo de otro mod se queda en el log: para la conversación, la acción no está o no ha ocurrido
+                IsAvailable = s =>
+                {
+                    try { return s.IsHero && (isAvailable == null || isAvailable(s.Hero)); }
+                    catch (Exception ex) { Log.Error("API: fallo en la condición de la acción " + name, ex); return false; }
+                },
+                Execute = (s, arg, ctx) =>
+                {
+                    string shown;
+                    try { shown = execute(s.Hero, arg ?? ""); }
+                    catch (Exception ex) { Log.Error("API: fallo al ejecutar la acción " + name, ex); shown = null; }
+                    return shown ?? Nope(null, "it could not be done");
+                },
+            });
+            Log.Info("API: acción registrada por otro mod: " + name);
+            return true;
+        }
+
+        internal static int UnregisterModActions(string prefix) => string.IsNullOrEmpty(prefix) || !prefix.StartsWith("mod_") ? 0 : All.RemoveAll(a => a.Name.StartsWith(prefix));
+
         public static string DescribeAvailable(Speaker s, bool viaLetter = false)
         {
             if (!S.Get.EnableActions) return "";
             var open = new List<ActionDef>();
-            foreach (var a in All)
+            foreach (var a in All.ToList())      // copia: la condición de una acción de otro mod podría registrar o quitar acciones
             {
                 if (viaLetter && !a.Letter) continue;
                 bool ok;
@@ -1677,6 +1707,7 @@ namespace AILegacy.Dialogue
                     if (happened)
                     {
                         executed.Add(name);
+                        if (s.IsHero) AILegacy.Api.AILegacyApi.RaiseActionExecuted(s.Hero, name, arg, msg);
                         // Noticia solo si de verdad ha salido bien (si no, por ejemplo, una boda que no ha pasado)
                         RecordAsNews(s, name);
                         // Las que ya dejan su propia nota (oro, objetos, tropas…) no se apuntan dos veces
