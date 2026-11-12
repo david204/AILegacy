@@ -69,29 +69,50 @@ namespace AILegacy.Memory
             if (mem.Archive.Count > max) mem.Archive.RemoveRange(0, mem.Archive.Count - max);
         }
 
-        /// <summary>Los intercambios antiguos que más tienen que ver con lo que se dice ahora (en orden de tiempo).</summary>
-        public static List<string> Find(HeroMemory mem, string query, string npcName, string playerName, double today, int max)
+        /// <summary>Lo dicho en un turno, sin el envoltorio JSON de las respuestas guardadas en bruto, y recortado.</summary>
+        private static string Said(ChatTurn t)
+        {
+            string text = (t.Text ?? "").Trim();
+            if (t.Role != "player" && text.StartsWith("{"))
+            {
+                try { text = ((string)Newtonsoft.Json.Linq.JObject.Parse(text)["reply"] ?? text).Trim(); } catch { }
+            }
+            return text.Length > 600 ? text.Substring(0, 600) + "…" : text;
+        }
+
+        /// <summary>
+        /// Los intercambios antiguos que más tienen que ver con lo que se dice ahora (en orden de tiempo).
+        /// «older» son los turnos que siguen en el historial pero ya no caben en el prompt (una charla muy larga): sin esto,
+        /// el principio de la conversación de hoy no estaría ni en el prompt, ni en el resumen, ni en el archivo.
+        /// </summary>
+        public static List<string> Find(HeroMemory mem, string query, string npcName, string playerName, double today, int max, IList<ChatTurn> older = null)
         {
             var result = new List<string>();
             try
             {
-                if (mem == null || max <= 0 || (mem.Archive.Count == 0 && mem.Pages.Count == 0)) return result;
+                int olderCount = older?.Count ?? 0;
+                if (mem == null || max <= 0 || (mem.Archive.Count == 0 && mem.Pages.Count == 0 && olderCount == 0)) return result;
                 var q = Words(query);
                 if (q.Count == 0) return result;
 
-                // Unidades: cada frase del jugador con la respuesta que le siguió; y cada página del libro
+                // Unidades: cada frase del jugador con la respuesta que le siguió (del archivo y de lo que ya no cabe en el prompt)
+                var past = new List<ChatTurn>(mem.Archive.Count + olderCount);
+                past.AddRange(mem.Archive);
+                if (older != null) past.AddRange(older.Where(t => t != null && !string.IsNullOrWhiteSpace(t.Text)));
                 var units = new List<Unit>();
-                for (int i = 0; i < mem.Archive.Count; i++)
+                for (int i = 0; i < past.Count; i++)
                 {
-                    var t = mem.Archive[i];
-                    string line = (t.Role == "player" ? playerName : npcName) + ": " + t.Text;
-                    if (t.Role == "player" && i + 1 < mem.Archive.Count && mem.Archive[i + 1].Role != "player")
+                    var t = past[i];
+                    string line = t.IsNote ? t.Text.Trim() : (t.Role == "player" ? playerName : npcName) + ": " + Said(t);
+                    if (t.Role == "player" && !t.IsNote && i + 1 < past.Count && past[i + 1].Role != "player")
                     {
-                        line += "\n   " + npcName + ": " + mem.Archive[i + 1].Text;
+                        line += "\n   " + npcName + ": " + Said(past[i + 1]);
                         i++;
                     }
                     units.Add(new Unit { Text = line, Day = t.Day, W = Words(line), Order = units.Count });
                 }
+                int turnUnits = units.Count;
+                // Las páginas del libro son prosa narrada (con adornos): solo valen de reserva, si lo literal no da nada
                 foreach (var p in mem.Pages)
                 {
                     string line = $"(from your memories — {p.Title}) {p.Text}";
@@ -116,9 +137,11 @@ namespace AILegacy.Memory
                 }
                 // Hace falta algo más que una palabra corriente en común
                 double floor = Math.Log(1.0 + units.Count / Math.Max(1.0, units.Count * 0.5)) / Math.Sqrt(12.0);
-                foreach (var x in scored.Where(x => x.hits >= 2 || x.score > floor * 1.6).OrderByDescending(x => x.score).Take(max).OrderBy(x => x.u.Order))
+                var good = scored.Where(x => x.hits >= 2 || x.score > floor * 1.6).ToList();
+                if (good.Any(x => x.u.Order < turnUnits)) good = good.Where(x => x.u.Order < turnUnits).ToList();
+                foreach (var x in good.OrderByDescending(x => x.score).Take(max).OrderBy(x => x.u.Order))
                 {
-                    string when = x.u.Day < 0 ? "" : (today - x.u.Day) < 1 ? "[earlier today] " : $"[{(int)(today - x.u.Day)} days ago] ";
+                    string when = x.u.Day <= 0 ? "" : (today - x.u.Day) < 1 ? "[earlier today] " : $"[{(int)(today - x.u.Day)} days ago] ";
                     result.Add(when + x.u.Text);
                 }
             }

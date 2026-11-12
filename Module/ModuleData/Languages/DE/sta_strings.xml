@@ -1265,5 +1265,20 @@
     <string id="AIL_ffcd4d39" text="Steuer der Krone: Minimum (%)" />
     <string id="AIL_0490687a" text="Die Sicherung konnte nicht erstellt werden; es wurde nichts geändert." />
     <string id="AIL_d0109f54" text="Du hast {0} besiegt." />
+    <string id="AIL_b1e0a6d2" text="{0} lässt {1} frei: einer von euren Leuten." />
+    <string id="AIL_4c9d7e31" text="Du übergibst {0} den Seinen: Er kommt frei." />
+    <string id="AIL_7a3f52c8" text="{0} ruft seine Leute zurück und lässt euch ziehen." />
+    <string id="AIL_5e0b93a7" text="{0} kann nicht mehr tun, was ihr vereinbart habt: {1}." />
+    <string id="AIL_91c2d4f6" text="ist in Gefangenschaft geraten" />
+    <string id="AIL_2f7a8b13" text="hat seinen Trupp verloren" />
+    <string id="AIL_c4d81e09" text="{0} wurde ins Heer von {1} gerufen und lässt eure Abmachung fallen." />
+    <string id="AIL_a1c0e5d1" text="Stimmung aus Ursachen" />
+    <string id="AIL_a1c0e5d2" text="Die Stimmung jeder Figur ergibt sich aus dem, was ihr widerfahren ist, mehreres zugleich: eine gewonnene oder verlorene Schlacht, ein Turnier, Gefangenschaft oder Verwundung, ein toter Verwandter oder Freund, ein eben erklärter Krieg, eine Geburt. Jede Ursache hält einige Tage an. Aus: Es zählt nur, wie das letzte Gespräch sie zurückließ." />
+    <string id="AIL_a1c0e5d3" text="Dauer der Stimmungsursachen (%)" />
+    <string id="AIL_a1c0e5d4" text="100 = normal: Ein Turniersieg wirkt 5 Tage nach, eine Schlacht 3 oder 4, die Trauer um Verwandte dauert 14 Tage, um einen Freund 10. 200 = doppelt so lang." />
+    <string id="AIL_a1c0e5d5" text="Weiblicher Zyklus" />
+    <string id="AIL_a1c0e5d6" text="Frauen zwischen 13 und 47 haben einen Zyklus: Er verändert je nach Tag ihre Stimmung (bei manchen stark, bei anderen kaum) und die Wahrscheinlichkeit einer Schwangerschaft, auch die des Spiels. Kein Zyklus während der Schwangerschaft und nach der Geburt. Sie weiß, an welchem Tag sie ist." />
+    <string id="AIL_a1c0e5d7" text="Dauer des Zyklus in Tagen" />
+    <string id="AIL_a1c0e5d8" text="Kampagnentage. Ein Spieljahr hat 84 Tage, 21 bedeuten also vier Zyklen pro Jahr." />
   </strings>
 </base>

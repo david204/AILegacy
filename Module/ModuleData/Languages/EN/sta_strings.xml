@@ -1265,5 +1265,20 @@
     <string id="AIL_ffcd4d39" text="Crown tax: minimum (%)" />
     <string id="AIL_0490687a" text="The backup could not be made; nothing has been changed." />
     <string id="AIL_d0109f54" text="You have defeated {0}." />
+    <string id="AIL_b1e0a6d2" text="{0} sets {1} free: one of your own." />
+    <string id="AIL_4c9d7e31" text="You hand {0} back to their own side: they go free." />
+    <string id="AIL_7a3f52c8" text="{0} calls their people off and lets you pass." />
+    <string id="AIL_5e0b93a7" text="{0} can no longer do what you agreed: {1}." />
+    <string id="AIL_91c2d4f6" text="they have been taken prisoner" />
+    <string id="AIL_2f7a8b13" text="they have lost their party" />
+    <string id="AIL_c4d81e09" text="{0} has been called into the army of {1} and drops what you agreed." />
+    <string id="AIL_a1c0e5d1" text="Mood from causes" />
+    <string id="AIL_a1c0e5d2" text="Each character's mood comes from what has happened to them, several things at once: a battle won or lost, a tournament, being a prisoner or wounded, a dead relative or friend, a war just declared, a birth. Each one lasts a few days. Off: only how the last talk left them counts." />
+    <string id="AIL_a1c0e5d3" text="How long mood causes last (%)" />
+    <string id="AIL_a1c0e5d4" text="100 = normal: a tournament win is savoured for 5 days, a battle for 3 or 4, mourning lasts 14 days for family and 10 for a friend. 200 = twice as long." />
+    <string id="AIL_a1c0e5d5" text="Female cycle" />
+    <string id="AIL_a1c0e5d6" text="Women aged 13 to 47 have a cycle: it changes their mood depending on the day (a lot for some, hardly at all for others) and the chance of pregnancy, the game's own included. No cycle during pregnancy or after giving birth. She knows what day she is on." />
+    <string id="AIL_a1c0e5d7" text="Cycle length in days" />
+    <string id="AIL_a1c0e5d8" text="Campaign days. A game year has 84 days, so 21 means four cycles a year." />
   </strings>
 </base>

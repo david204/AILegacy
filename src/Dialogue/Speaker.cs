@@ -15,6 +15,8 @@ namespace AILegacy.Dialogue
         public string Key { get; private set; }
         public HeroMemory Memory { get; private set; }
         public Settlement ResidentSettlement { get; private set; }
+        /// <summary>Partida sin señor (bandidos, caravana, aldeanos de camino) cuyo jefe es quien habla. null en los demás casos.</summary>
+        public TaleWorlds.CampaignSystem.Party.MobileParty Band { get; private set; }
 
         public bool IsHero => Hero != null;
 
@@ -42,7 +44,7 @@ namespace AILegacy.Dialogue
         /// <summary>Asentamiento "de casa" (para noticias locales).</summary>
         public Settlement HomeSettlement => IsHero ? (Hero.HomeSettlement ?? Settlement) : ResidentSettlement;
 
-        public IFaction Faction => IsHero ? Hero.MapFaction : ResidentSettlement?.MapFaction;
+        public IFaction Faction => IsHero ? Hero.MapFaction : (ResidentSettlement?.MapFaction ?? Band?.MapFaction);
 
         public static Speaker FromHero(Hero h)
         {
@@ -52,13 +54,46 @@ namespace AILegacy.Dialogue
         public static Speaker FromResident(CharacterObject c, IAgent agent)
         {
             var settlement = Settlement.CurrentSettlement;
-            int agentHash = agent != null ? Math.Abs(agent.GetHashCode()) : 0;
-            var key = $"res:{settlement?.StringId ?? "none"}:{agentHash}";
+            var key = $"res:{settlement?.StringId ?? "none"}:{c?.StringId}:{FaceKey(agent)}";
             return new Speaker
             {
                 Character = c,
                 Key = key,
                 ResidentSettlement = settlement,
+                Memory = MemoryStore.Get(key, c.Name.ToString(), resident: true),
+            };
+        }
+
+        /// <summary>
+        /// Identidad de un vecino dentro de la sesión: su cara. El agente cambia al pasar de la calle a la taberna, pero la
+        /// persona (su aspecto) es la misma, así que te sigue recordando. Si no se puede leer, vale el propio agente.
+        /// </summary>
+        private static string FaceKey(IAgent agent)
+        {
+            try
+            {
+                if (agent is TaleWorlds.MountAndBlade.Agent a)
+                {
+                    var f = a.BodyPropertiesValue.StaticProperties;
+                    ulong h = 1469598103934665603UL;
+                    foreach (ulong k in new[] { f.KeyPart1, f.KeyPart2, f.KeyPart3, f.KeyPart4, f.KeyPart5, f.KeyPart6, f.KeyPart7, f.KeyPart8 })
+                        h = (h ^ k) * 1099511628211UL;
+                    return h.ToString("x");
+                }
+            }
+            catch { }
+            return agent != null ? Math.Abs(agent.GetHashCode()).ToString() : "0";
+        }
+
+        /// <summary>El jefe de una partida sin señor con la que hablas en el mapa (bandidos, caravana, aldeanos). Memoria de sesión.</summary>
+        public static Speaker FromBand(CharacterObject c, TaleWorlds.CampaignSystem.Party.MobileParty party)
+        {
+            var key = $"band:{party?.StringId ?? "none"}";
+            return new Speaker
+            {
+                Character = c,
+                Key = key,
+                Band = party,
                 Memory = MemoryStore.Get(key, c.Name.ToString(), resident: true),
             };
         }
@@ -91,7 +126,8 @@ namespace AILegacy.Dialogue
                 else
                 {
                     var s = ResidentSettlement;
-                    if (s != null && s.IsVillage) t.Add("villagers"); else t.Add("townsfolk");
+                    if (Band != null) t.Add(Band.MapFaction != null && Band.MapFaction.IsBanditFaction ? "bandits" : Band.IsCaravan ? "merchants" : "villagers");
+                    else if (s != null && s.IsVillage) t.Add("villagers"); else t.Add("townsfolk");
                     if (Character.Occupation == Occupation.Soldier || Character.Occupation == Occupation.Guard) t.Add("guards");
                 }
                 return t;

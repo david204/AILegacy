@@ -35,6 +35,12 @@ namespace AILegacy.Behaviors
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.StorySecrets.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.UniqueCharacters.OnDailyTick);
             CampaignEvents.MapEventEnded.AddNonSerializedListener(this, WorldSim.OnMapEventEnded);
+            // Ánimo por causas: lo que les pasa les dura unos días
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.Mood.OnDailyTick);
+            CampaignEvents.TournamentFinished.AddNonSerializedListener(this, World.Mood.OnTournamentFinished);
+            CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener(this, World.Mood.OnPrisonerReleased);
+            CampaignEvents.WarDeclared.AddNonSerializedListener(this, World.Mood.OnWarDeclared);
+            CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(this, World.Mood.OnGivenBirth);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, WorldSim.OnHeroKilled);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, WorldSim.OnPrisonerTaken);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, WorldSim.OnSettlementOwnerChanged);
@@ -234,6 +240,18 @@ namespace AILegacy.Behaviors
                 priority: 110);
             starter.AddDialogLine("ailegacy_res_listen", "ailegacy_res_listen", "town_or_village_player", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
+            // --- Partidas sin señor en el mapa (bandidos, caravanas, aldeanos de camino), con la ventana de charla
+            foreach (var token in BandTokens)
+            {
+                string back = token;
+                starter.AddPlayerLine("ailegacy_band_start_" + token, token, "ailegacy_band_listen_" + token,
+                    L.T("AIL_73c1647d", "{=!}Oye, ¿tienes un momento? [Charla libre]"),
+                    () => !S.Get.UseDialogStyle && CanTalkBand(),
+                    () => MainThread.Post(() => { var sp = BandSpeaker(); if (sp != null) ChatSession.Start(sp); }),
+                    priority: 110);
+                starter.AddDialogLine("ailegacy_band_listen_" + token, "ailegacy_band_listen_" + token, back, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
+            }
+
             Log.Info($"AI Legacy listo: diálogos añadidos, {MemoryStore.Count} personajes en memoria, {System.Linq.Enumerable.Count(NewsStore.All)} noticias");
         }
 
@@ -263,6 +281,7 @@ namespace AILegacy.Behaviors
                 () =>
                 {
                     _fromPrisonerBranch = false;
+                    _bandReturn = null;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
@@ -272,6 +291,7 @@ namespace AILegacy.Behaviors
                 () =>
                 {
                     _fromPrisonerBranch = true;
+                    _bandReturn = null;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
@@ -283,10 +303,29 @@ namespace AILegacy.Behaviors
                 () => S.Get.UseDialogStyle && CanTalkResident(),
                 () =>
                 {
+                    _bandReturn = null;
                     var cm = Campaign.Current.ConversationManager;
                     var s = ChatSession.StartDialog(Speaker.FromResident(cm.OneToOneConversationCharacter, cm.OneToOneConversationAgent));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
+
+            // Partidas sin señor en el mapa: el jefe de unos bandidos (te asalten ellos o los abordes tú), de una caravana
+            // o de unos aldeanos. Cada una tiene su rama en el juego; «Volver» regresa a ella.
+            foreach (var token in BandTokens)
+            {
+                string back = token;
+                starter.AddPlayerLine("ailegacy_d_start_" + token, token, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                    () => S.Get.UseDialogStyle && CanTalkBand(),
+                    () =>
+                    {
+                        _fromPrisonerBranch = false;
+                        _bandReturn = back;
+                        var s = ChatSession.StartDialog(BandSpeaker());
+                        if (s != null) MainThread.Post(s.AskInput);
+                    }, priority: 120);
+                starter.AddDialogLine("ailegacy_d_ret_" + token, "ailegacy_d_ret", back, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
+                    () => _bandReturn == back && Hero.OneToOneConversationHero == null && BandParty() != null, null, priority: 126);
+            }
 
             // El NPC "espera" mientras escribes. Las opciones de aquí se calculan ANTES de que escribas,
             // así que solo puede haber "Ver su respuesta" / "Volver".
@@ -364,6 +403,45 @@ namespace AILegacy.Behaviors
         {
             var h = Hero.OneToOneConversationHero;
             return h != null && h != Hero.MainHero && h.IsAlive && !h.IsChild;
+        }
+
+        /// <summary>
+        /// Ramas del juego para partidas sin señor (TaleWorlds.CampaignSystem 1.4.8): BanditInteractionsCampaignBehavior
+        /// («bandit_attacker» si los abordas tú, «bandit_defender» si te asaltan), CaravansCampaignBehavior y VillagerCampaignBehavior.
+        /// </summary>
+        private static readonly string[] BandTokens = { "bandit_attacker", "bandit_defender", "caravan_talk", "village_farmer_talk" };
+        /// <summary>Rama a la que vuelve «Volver» cuando la charla en curso es con el jefe de una partida sin señor.</summary>
+        private static string _bandReturn;
+
+        /// <summary>La partida sin señor con la que hablas ahora en el mapa.</summary>
+        private static TaleWorlds.CampaignSystem.Party.MobileParty BandParty()
+        {
+            try
+            {
+                if (TaleWorlds.MountAndBlade.Mission.Current != null) return null;
+                // En el asalto de unos bandidos la partida de la charla puede venir solo por el encuentro
+                var p = TaleWorlds.CampaignSystem.Party.MobileParty.ConversationParty ?? (PlayerEncounter.Current != null ? PlayerEncounter.EncounteredMobileParty : null);
+                return p != null && p.IsActive && !p.IsMainParty && p.LeaderHero == null ? p : null;
+            }
+            catch { return null; }
+        }
+
+        private static bool CanTalkBand()
+        {
+            try
+            {
+                if (!S.Get.EnableResidents || Hero.OneToOneConversationHero != null) return false;
+                var c = Campaign.Current?.ConversationManager?.OneToOneConversationCharacter;
+                return c != null && !c.IsHero && BandParty() != null;
+            }
+            catch { return false; }
+        }
+
+        private static Speaker BandSpeaker()
+        {
+            var p = BandParty();
+            var c = Campaign.Current?.ConversationManager?.OneToOneConversationCharacter;
+            return p == null || c == null ? null : Speaker.FromBand(c, p);
         }
 
         private static bool CanTalkResident()

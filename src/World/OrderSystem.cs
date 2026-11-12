@@ -230,8 +230,22 @@ namespace AILegacy.World
                     var h = Hero.Find(o.HeroId);
                     if (h == null || h.IsDead) { Orders.Remove(o); continue; }
                     var p = PartyLedBy(h);
-                    if (p == null || h.IsPrisoner) { Release(o, h, null); continue; }                    // derrotado, preso o sin grupo
-                    if (p.Army != null && p.Army.LeaderParty != p && p.Army.LeaderParty != MobileParty.MainParty) { Release(o, h, null); continue; }
+                    // Derrotado, preso o sin grupo: lo acordado se queda sin hacer, y los dos lo saben
+                    if (p == null || h.IsPrisoner)
+                    {
+                        if (o.Type != "approach") Remember(h, h.IsPrisoner ? $"you were taken prisoner and could not do what you had agreed with them ({o.Type} {o.TargetName})"
+                                                 : $"you lost your party and could not do what you had agreed with them ({o.Type} {o.TargetName})");
+                        Release(o, h, o.Type == "approach" ? null : L.F("AIL_5e0b93a7", $"{h.Name} ya no puede cumplir lo que acordasteis: {(h.IsPrisoner ? L.T("AIL_91c2d4f6", "ha caído prisionero") : L.T("AIL_2f7a8b13", "se ha quedado sin partida"))}."));
+                        continue;
+                    }
+                    // El juego lo ha metido en el ejército de otro: no desaparece en silencio
+                    if (p.Army != null && p.Army.LeaderParty != p && p.Army.LeaderParty != MobileParty.MainParty)
+                    {
+                        string boss = p.Army.LeaderParty?.LeaderHero?.Name?.ToString() ?? p.Army.Name?.ToString() ?? "?";
+                        if (o.Type != "approach") Remember(h, $"you were called into the army of {boss} and had to leave undone what you had agreed with them ({o.Type} {o.TargetName}). You owe them an explanation");
+                        Release(o, h, o.Type == "approach" ? null : L.F("AIL_c4d81e09", $"{h.Name} ha sido llamado al ejército de {boss} y deja lo que acordasteis."));
+                        continue;
+                    }
                     if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction != Hero.MainHero.MapFaction
                         && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction) && (o.Type == "follow" || o.Type == "meet"))
                     { Release(o, h, L.F("AIL_35617af2", $"{h.Name} ya no acude a tu llamada: ahora sois enemigos.")); continue; }
@@ -242,6 +256,18 @@ namespace AILegacy.World
                 }
                 catch (Exception ex) { Log.Error("Órdenes: tick", ex); }
             }
+        }
+
+        /// <summary>Apunta en la memoria del personaje algo que le ha pasado con una orden, para que lo sepa la próxima vez que habléis.</summary>
+        private static void Remember(Hero h, string what)
+        {
+            try
+            {
+                var mem = Memory.MemoryStore.Find(h.StringId);
+                if (mem == null) return;
+                mem.Turns.Add(new Memory.ChatTurn { Role = "player", Day = CampaignTime.Now.ToDays, Text = "[Since you last spoke: " + what + ".]" });
+            }
+            catch { }
         }
 
         private static string EndText(PartyOrder o, Hero h)
@@ -406,10 +432,20 @@ namespace AILegacy.World
             var p = PartyLedBy(h);
             if (p == null || p.Army != null || !(h.MapFaction is Kingdom k)) return null;
             Cancel(h, silent: true);
-            var type = target != null && target.MapFaction != null && target.MapFaction.IsAtWarWith(k)
-                ? (target.IsVillage ? Army.ArmyTypes.Raider : Army.ArmyTypes.Besieger)
-                : (target != null ? Army.ArmyTypes.Defender : Army.ArmyTypes.Patrolling);
-            k.CreateArmy(h, target, type);
+            bool hostile = target != null && target.MapFaction != null && target.MapFaction.IsAtWarWith(k);
+            var type = hostile ? (target.IsVillage ? Army.ArmyTypes.Raider : Army.ArmyTypes.Besieger)
+                               : (target != null ? Army.ArmyTypes.Defender : Army.ArmyTypes.Patrolling);
+            // El asentamiento que recibe CreateArmy es el PUNTO DE REUNIÓN (Army.Gather), no el objetivo: nunca se reúne el
+            // ejército a las puertas del enemigo. Con objetivo hostil (o sin objetivo) se junta en la plaza propia más cercana.
+            Settlement gather = hostile || target == null ? null : target;
+            if (gather == null)
+            {
+                var from = hostile ? target.GetPosition2D : p.GetPosition2D;
+                gather = Settlement.All.Where(s => s.IsFortification && s.MapFaction == k && !s.IsUnderSiege).OrderBy(s => s.GetPosition2D.Distance(from)).FirstOrDefault()
+                         ?? Settlement.All.Where(s => (s.IsFortification || s.IsVillage) && s.MapFaction == k).OrderBy(s => s.GetPosition2D.Distance(p.GetPosition2D)).FirstOrDefault();
+            }
+            if (gather == null) return null;
+            k.CreateArmy(h, gather, type);
             if (p.Army == null) return null;
             return L.F("AIL_55cee6ef", $"{h.Name} reúne un ejército") + (target != null ? L.F("AIL_927a75ae", $" con la vista puesta en {target.Name}.") : ".");
         }

@@ -1265,5 +1265,20 @@
     <string id="AIL_ffcd4d39" text="Impôt de la couronne : minimum (%)" />
     <string id="AIL_0490687a" text="La sauvegarde préalable a échoué ; rien n'a été modifié." />
     <string id="AIL_d0109f54" text="Vous avez vaincu {0}." />
+    <string id="AIL_b1e0a6d2" text="{0} libère {1}, qui est des vôtres." />
+    <string id="AIL_4c9d7e31" text="Vous remettez {0} aux siens : le voilà libre." />
+    <string id="AIL_7a3f52c8" text="{0} écarte les siens et vous laisse passer." />
+    <string id="AIL_5e0b93a7" text="{0} ne peut plus faire ce dont vous étiez convenus : {1}." />
+    <string id="AIL_91c2d4f6" text="a été fait prisonnier" />
+    <string id="AIL_2f7a8b13" text="a perdu sa troupe" />
+    <string id="AIL_c4d81e09" text="{0} a été appelé dans l'armée de {1} et abandonne ce dont vous étiez convenus." />
+    <string id="AIL_a1c0e5d1" text="Humeur par causes" />
+    <string id="AIL_a1c0e5d2" text="L'humeur de chaque personnage vient de ce qui lui est arrivé, plusieurs choses à la fois : une bataille gagnée ou perdue, un tournoi, être prisonnier ou blessé, un parent ou un ami mort, une guerre tout juste déclarée, une naissance. Chacune dure quelques jours. Désactivé : seul compte l'état où l'a laissé la dernière conversation." />
+    <string id="AIL_a1c0e5d3" text="Durée des causes d'humeur (%)" />
+    <string id="AIL_a1c0e5d4" text="100 = normal : une victoire en tournoi se savoure 5 jours, une bataille 3 ou 4, le deuil d'un parent dure 14 jours et celui d'un ami 10. 200 = le double." />
+    <string id="AIL_a1c0e5d5" text="Cycle féminin" />
+    <string id="AIL_a1c0e5d6" text="Les femmes de 13 à 47 ans ont un cycle : il change leur humeur selon le jour (beaucoup pour certaines, presque pas pour d'autres) et la probabilité de grossesse, y compris celle du jeu. Pas de cycle pendant la grossesse ni après l'accouchement. Elle sait à quel jour elle en est." />
+    <string id="AIL_a1c0e5d7" text="Durée du cycle en jours" />
+    <string id="AIL_a1c0e5d8" text="Jours de campagne. Une année de jeu compte 84 jours : 21 font donc quatre cycles par an." />
   </strings>
 </base>

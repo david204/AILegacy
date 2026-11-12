@@ -28,6 +28,8 @@ namespace AILegacy.Dialogue
         private readonly Speaker _s;
         private HeroMemory Mem => _s.Memory;
         private int _relationChangedThisTalk;
+        /// <summary>Cuánto se ha movido la relación en esta charla, sumando subidas y bajadas (el tope va sobre esto, no sobre el neto).</summary>
+        private int _relationMovedThisTalk;
         private bool _waiting;
         private bool _closed;
         private bool _npcEnded;
@@ -253,7 +255,7 @@ namespace AILegacy.Dialogue
             List<ChatMessage> messages;
             try
             {
-                messages = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - Math.Abs(_relationChangedThisTalk));
+                messages = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk);
             }
             catch (Exception ex)
             {
@@ -294,7 +296,7 @@ namespace AILegacy.Dialogue
         {
             _waiting = false;
             UiWaiting(false);
-            if (_closed) return;
+            if (_closed) { OnLateAnswer(res); return; }
 
             if (!res.Ok)
             {
@@ -320,6 +322,7 @@ namespace AILegacy.Dialogue
                 Log.Info($"Personalidad creada para {_s.Name}: {reply.Profile.Personality} | Secreto: {reply.Profile.Secret}");
             }
 
+            WarnIfRepeated(reply.Reply);
             Mem.Turns.Add(new ChatTurn { Role = "npc", Text = reply.Reply, Day = CampaignTime.Now.ToDays });
             UiNpc(reply.Reply);
             _lines++;
@@ -328,6 +331,14 @@ namespace AILegacy.Dialogue
             try { effects = ApplyConsequences(reply); }
             catch (Exception ex) { Log.Error("Error aplicando consecuencias", ex); }
             foreach (var e in effects) { if (UseWindow) _win.VM.AddSystem("» " + e); else if (_dialogMode) _dialogNotes.Add(e); }
+
+            // Charla muy larga: lo que ya no cabe en el prompt se resume ahora, sin esperar a cerrarla
+            try
+            {
+                int window = S.Get.HistoryTurnsInPrompt;
+                if (Mem.Turns.Count >= Math.Max(S.Get.SummarizeAfterTurns + 1, window + 12)) MemorySummarizer.MaybeSummarize(_s, window);
+            }
+            catch (Exception ex) { Log.Error("Resumen a mitad de charla", ex); }
 
             SaveFiles.Flush();   // lo dicho queda escrito ya, se guarde o no la partida
 
@@ -356,6 +367,52 @@ namespace AILegacy.Dialogue
             UiReady();
         }
 
+        /// <summary>
+        /// La respuesta ha llegado con la charla ya cerrada (te fuiste antes de oírla). Lo que dijo se guarda igual, para que
+        /// tu frase no quede sin contestar en su historial; sus acciones no se aplican, y lo sabe.
+        /// </summary>
+        private void OnLateAnswer(LlmResult res)
+        {
+            try
+            {
+                if (res == null || !res.Ok) return;
+                if (Mem.Turns.Count == 0 || Mem.Turns[Mem.Turns.Count - 1].Role != "player" || Mem.Turns[Mem.Turns.Count - 1].IsNote) return;
+                var reply = NpcReply.Parse(res.Text);
+                if (string.IsNullOrWhiteSpace(reply.Reply)) return;
+                Mem.Turns.Add(new ChatTurn { Role = "npc", Text = reply.Reply, Day = CampaignTime.Now.ToDays });
+                Mem.Turns.Add(new ChatTurn
+                {
+                    Role = "player", Day = CampaignTime.Now.ToDays,
+                    Text = "[Did not happen: they had already walked away and did not hear that last answer" +
+                           (reply.Actions != null && reply.Actions.Any(a => !string.IsNullOrWhiteSpace(a)) ? "; nothing you meant to do with it was done (" + string.Join(", ", reply.Actions.Take(3)) + ")" : "") + ".]",
+                });
+                Log.Info($"Respuesta de {_s.Name} llegada con la charla cerrada: guardada sin aplicar acciones");
+                SaveFiles.Flush();
+            }
+            catch (Exception ex) { Log.Error("Respuesta tardía", ex); }
+        }
+
+        /// <summary>Deja constancia en el log si la respuesta es casi igual a una reciente del mismo personaje.</summary>
+        private void WarnIfRepeated(string reply)
+        {
+            try
+            {
+                var now = Tokens(reply);
+                if (now.Count < 6) return;
+                foreach (var t in Mem.Turns.Where(x => x.Role == "npc").Reverse().Take(5))
+                {
+                    var old = Tokens(t.Text);
+                    if (old.Count < 6) continue;
+                    double sim = now.Intersect(old).Count() / (double)now.Union(old).Count();
+                    if (sim >= 0.8) { Log.Warn($"{_s.Name} se repite: su respuesta se parece un {(int)(sim * 100)} % a una reciente"); return; }
+                }
+            }
+            catch { }
+        }
+
+        private static HashSet<string> Tokens(string text) =>
+            new HashSet<string>((text ?? "").ToLowerInvariant().Split(new[] { ' ', '\n', ',', '.', ';', ':', '!', '?', '¿', '¡', '*', '"', '«', '»' }, StringSplitOptions.RemoveEmptyEntries).Where(w => w.Length > 2));
+
         private List<string> ApplyConsequences(NpcReply reply)
         {
             var cfg = S.Get;
@@ -383,6 +440,18 @@ namespace AILegacy.Dialogue
                 shown.Add(msg);
             }
             if (actx.EndConversation) reply.EndConversation = true;
+
+            // El jefe de una banda que te ha asaltado corta la charla sin dejarte pasar: no te vas de rositas, hay pelea
+            try
+            {
+                if (reply.EndConversation && _s.Band != null && !actx.LetPass && !Combat.KeepEncounter && Combat.EnemyOnMap(_s)
+                    && PlayerEncounter.Current != null && PlayerEncounter.PlayerIsDefender)
+                {
+                    Combat.QueueMapAttack(_s);
+                    shown.Add(L.F("AIL_53ea433d", $"{_s.Name} da la charla por terminada y se lanza al ataque."));
+                }
+            }
+            catch (Exception ex) { Log.Error("Fin del parlamento con una banda", ex); }
 
             if (_s.IsHero && reply.SignificantEvent.Length > 12) Lore.Develop(_s, reply.SignificantEvent);
 
@@ -426,12 +495,13 @@ namespace AILegacy.Dialogue
             if (_s.IsHero)
             {
                 int delta = Math.Max(-cfg.MaxRelationChangePerReply, Math.Min(cfg.MaxRelationChangePerReply, reply.RelationChange + actx.RelationDelta));
-                int budget = cfg.MaxRelationChangePerConversation - Math.Abs(_relationChangedThisTalk);
+                int budget = cfg.MaxRelationChangePerConversation - _relationMovedThisTalk;
                 if (Math.Abs(delta) > budget) delta = Math.Sign(delta) * Math.Max(0, budget);
                 if (delta != 0)
                 {
                     ChangeRelationAction.ApplyPlayerRelation(_s.Hero, delta, affectRelatives: false, showQuickNotification: true);
                     _relationChangedThisTalk += delta;
+                    _relationMovedThisTalk += Math.Abs(delta);
                     Mem.RelationChangedTotal += delta;
                     Log.Info($"Relación con {_s.Name}: {(delta > 0 ? "+" : "")}{delta}");
                     shown.Add(L.F("AIL_a190aec6", $"Relación {(delta > 0 ? "+" : "")}{delta}"));
@@ -490,6 +560,7 @@ namespace AILegacy.Dialogue
                     var b = new StringBuilder();
                     b.AppendLine(L.F("AIL_a5eee76f", $"Te conoce como: {ContextBuilder.PlayerNameFor(_s) ?? L.T("AIL_99316d74", "(desconocido)")}   ·   Conversaciones: {Mem.ConversationCount}   ·   Mentiras pilladas: {Mem.LiesSuspected}"));
                     if (!string.IsNullOrWhiteSpace(Mem.Mood)) b.AppendLine(L.F("AIL_2259555a", $"Ánimo: {Mem.Mood} ({Mem.MoodReason})"));
+                    foreach (var c in World.Mood.Describe(_s)) b.AppendLine("   " + c);
                     if (S.Get.EnableTension) b.AppendLine(L.F("AIL_55654690", $"Tensión: {Bonds.Tension(Mem)}"));
                     if (S.Get.EnableTrust) { Bonds.EnsureTrust(_s); b.AppendLine(L.F("AIL_2cb6f858", $"Confianza: {Mem.Trust}") + (Bonds.RomancePossible(_s) ? L.F("AIL_bbb8296b", $"   ·   Romance: {Mem.Romance}") : "")); }
                     if (_s.IsHero && OrderSystem.Find(_s.Hero) is PartyOrder po) b.AppendLine(L.F("AIL_7ff96949", $"Orden en curso: {po.Type} {po.TargetName} (hasta el día {po.UntilDay:0})"));

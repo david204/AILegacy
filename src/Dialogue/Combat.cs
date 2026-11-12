@@ -656,7 +656,9 @@ namespace AILegacy.Dialogue
                 if (s == null) return null;
                 if (s.IsHero) return OrderSystem.PartyLedBy(s.Hero);
                 if (Mission.Current != null) return null;
-                var p = MobileParty.ConversationParty;
+                // El jefe de una partida sin señor con la que se abrió la charla (bandidos, caravana, aldeanos)
+                if (s.Band != null) return s.Band.IsActive && !s.Band.IsMainParty ? s.Band : null;
+                var p = MobileParty.ConversationParty ?? PlayerEncounter.EncounteredMobileParty;
                 return p != null && p.IsActive && !p.IsMainParty && p.LeaderHero == null ? p : null;
             }
             catch { return null; }

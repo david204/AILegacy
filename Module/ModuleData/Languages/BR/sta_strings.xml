@@ -1265,5 +1265,20 @@
     <string id="AIL_ffcd4d39" text="Imposto da coroa: mínimo (%)" />
     <string id="AIL_0490687a" text="Não foi possível fazer a cópia prévia; nada foi alterado." />
     <string id="AIL_d0109f54" text="Você derrotou {0}." />
+    <string id="AIL_b1e0a6d2" text="{0} liberta {1}, que é dos seus." />
+    <string id="AIL_4c9d7e31" text="Você entrega {0} aos dele: fica em liberdade." />
+    <string id="AIL_7a3f52c8" text="{0} afasta os seus e deixa vocês passarem." />
+    <string id="AIL_5e0b93a7" text="{0} já não pode cumprir o que vocês combinaram: {1}." />
+    <string id="AIL_91c2d4f6" text="foi feito prisioneiro" />
+    <string id="AIL_2f7a8b13" text="ficou sem o seu grupo" />
+    <string id="AIL_c4d81e09" text="{0} foi chamado para o exército de {1} e abandona o que vocês combinaram." />
+    <string id="AIL_a1c0e5d1" text="Humor por causas" />
+    <string id="AIL_a1c0e5d2" text="O humor de cada personagem vem do que lhe aconteceu, várias coisas ao mesmo tempo: uma batalha ganha ou perdida, um torneio, estar preso ou ferido, um parente ou amigo morto, uma guerra recém-declarada, um parto. Cada uma dura alguns dias. Desligado: só conta como a última conversa o deixou." />
+    <string id="AIL_a1c0e5d3" text="Duração das causas do humor (%)" />
+    <string id="AIL_a1c0e5d4" text="100 = normal: uma vitória em torneio é saboreada por 5 dias, uma batalha por 3 ou 4, o luto por um parente dura 14 dias e por um amigo 10. 200 = o dobro." />
+    <string id="AIL_a1c0e5d5" text="Ciclo feminino" />
+    <string id="AIL_a1c0e5d6" text="As mulheres de 13 a 47 anos têm ciclo: ele muda o humor conforme o dia (muito em algumas, quase nada em outras) e a chance de gravidez, inclusive a do jogo. Não há ciclo durante a gravidez nem depois do parto. Ela sabe em que dia está." />
+    <string id="AIL_a1c0e5d7" text="Duração do ciclo em dias" />
+    <string id="AIL_a1c0e5d8" text="Dias de campanha. Um ano do jogo tem 84 dias, então 21 dão quatro ciclos por ano." />
   </strings>
 </base>

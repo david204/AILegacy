@@ -117,6 +117,9 @@ namespace AILegacy.World
         [JsonProperty("jail_in")] public string JailSettlementId;
         [JsonProperty("jail_until")] public double JailReleaseDay = -1;
         [JsonProperty("uniques")] public List<string> UniqueIds = new List<string>();
+        /// <summary>Sucesos que pesan en el ánimo de alguien (o de un reino) unos días, y quién mató a quién.</summary>
+        [JsonProperty("mood_events")] public List<MoodEvent> MoodEvents = new List<MoodEvent>();
+        [JsonProperty("recent_kills")] public List<KillRecord> RecentKills = new List<KillRecord>();
         [JsonProperty("next_unique_day")] public double NextUniqueDay = -1;
         [JsonProperty("fatigue")] public Dictionary<string, float> WarFatigue = new Dictionary<string, float>();
         [JsonProperty("taxes")] public Dictionary<string, int> KingdomTaxPercent = new Dictionary<string, int>();
@@ -832,12 +835,14 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 AddFatigue(winner?.LeaderParty?.MapFaction as Kingdom, S.Get.FatiguePerBattleLostX10 / 40f);
             }
             catch { }
+            Mood.OnMapEventEnded(e);
         }
 
         public static void OnHeroKilled(Hero victim, Hero killer, TaleWorlds.CampaignSystem.Actions.KillCharacterAction.KillCharacterActionDetail detail, bool show)
         {
             try { if (victim != null && victim.IsLord) AddFatigue(victim.MapFaction as Kingdom, S.Get.FatiguePerLordKilled); } catch { }
             Chronicle.OnHeroKilled(victim, killer, detail);
+            Mood.OnHeroKilled(victim, killer);
         }
 
         public static void OnPrisonerTaken(PartyBase captor, Hero prisoner)

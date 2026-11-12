@@ -12,6 +12,22 @@ namespace AILegacy.Memory
         [JsonProperty("r")] public string Role;      // "player" | "npc"
         [JsonProperty("t")] public string Text;
         [JsonProperty("d")] public double Day;       // día de campaña (CampaignTime.Now.ToDays)
+
+        /// <summary>
+        /// No es algo dicho: es una nota de lo que ha pasado de verdad («[Done: …]», «[Did not happen: …]», «[Since you last spoke: …]»).
+        /// Se guarda como turno del jugador para que llegue al modelo en su sitio dentro del historial.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsNote => Role == "player" && Text != null && Text.Length > 2 && Text[0] == '['
+                              && (Text.StartsWith("[Done:") || Text.StartsWith("[Did not happen:") || Text.StartsWith("[Since you last spoke:"));
+    }
+
+    /// <summary>Un tramo del resumen de vuestra historia, con los días de campaña que cubre (-1 = sin fecha, de antes de fechar los tramos).</summary>
+    public class SummaryPart
+    {
+        [JsonProperty("from")] public double FromDay = -1;
+        [JsonProperty("to")] public double ToDay = -1;
+        [JsonProperty("text")] public string Text = "";
     }
 
     public class CharacterProfile
@@ -87,6 +103,8 @@ namespace AILegacy.Memory
         [JsonProperty("name")] public string HeroName;
         /// <summary>Resumen de lo hablado antes de las últimas conversaciones.</summary>
         [JsonProperty("summary")] public string Summary = "";
+        /// <summary>El mismo resumen, por tramos fechados (lo mantiene MemorySummarizer; «summary» es su texto completo).</summary>
+        [JsonProperty("summaries")] public List<SummaryPart> Summaries = new List<SummaryPart>();
         /// <summary>Cosas concretas que el personaje ha decidido recordar sobre el jugador.</summary>
         [JsonProperty("notes")] public List<string> Notes = new List<string>();
         [JsonProperty("turns")] public List<ChatTurn> Turns = new List<ChatTurn>();
@@ -194,6 +212,10 @@ namespace AILegacy.Memory
             var dict = resident ? _residents : _byHero;
             if (!dict.TryGetValue(id, out var m))
             {
+                // Los figurantes con los que nunca se habló (mirones, gente que pasa) no se acumulan sin límite en la sesión
+                if (resident && _residents.Count > 400)
+                    foreach (var k in _residents.Where(kv => kv.Value.Turns.Count == 0 && (kv.Value.Profile == null || kv.Value.Profile.IsEmpty)).Select(kv => kv.Key).ToList())
+                        _residents.Remove(k);
                 m = new HeroMemory { HeroId = id, HeroName = name, IsResident = resident };
                 dict[id] = m;
             }

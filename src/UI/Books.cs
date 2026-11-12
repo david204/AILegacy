@@ -87,7 +87,7 @@ namespace AILegacy.UI
                     foreach (var t in turns)
                     {
                         string text = (t.Text ?? "").Trim();
-                        if (text.Length == 0) continue;
+                        if (text.Length == 0 || t.IsNote) continue;      // las notas de lo ocurrido son para la IA, no parte de lo hablado
                         if (t.Role != "player" && text.StartsWith("{")) { try { text = ((string)Newtonsoft.Json.Linq.JObject.Parse(text)["reply"] ?? text).Trim(); } catch { } }
                         bool note = text.StartsWith("[");
                         b.Append(note ? text : (t.Role == "player" ? me : s.Name) + ":\n" + text).Append("\n\n");
@@ -322,7 +322,8 @@ namespace AILegacy.UI
                 }
                 if (!string.IsNullOrEmpty(m.Archetype)) b.Append(L.T("AIL_949e7526", "\n\nMOLDE\n")).Append(m.Archetype);
                 if (m.Notes.Count > 0) b.Append(L.T("AIL_570feb77", "\n\nRECUERDOS\n")).Append(string.Join("\n", m.Notes.Select(n => "· " + n)));
-                var lastTurns = m.Turns.Skip(Math.Max(0, m.Turns.Count - 6)).ToList();
+                var said = m.Turns.Where(t => !t.IsNote).ToList();
+                var lastTurns = said.Skip(Math.Max(0, said.Count - 6)).ToList();
                 if (lastTurns.Count > 0)
                 {
                     b.Append(L.T("AIL_5cc4dc1c", "\n\nÚLTIMAS PALABRAS\n"));

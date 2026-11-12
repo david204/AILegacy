@@ -74,10 +74,11 @@ namespace AILegacy.Prompt
                         if (men.Length > 0) sb.AppendLine("Your men, exactly (you know your own host and can speak of it in detail):\n" + men);
                     }
                 }
-                if (MobileParty.MainParty != null && (own == null || !own.IsMainParty))
+                // Sus tropas, unidad por unidad, solo si las tiene delante: a días de camino (o por carta) no las ve
+                if (MobileParty.MainParty != null && (own == null || !own.IsMainParty) && SeesPlayerParty(npc))
                 {
                     string theirs = DescribeTroops(MobileParty.MainParty, false);
-                    if (theirs.Length > 0) sb.AppendLine("Their party, as far as you can see or have been told:\n" + theirs);
+                    if (theirs.Length > 0) sb.AppendLine("Their party, as far as you can see:\n" + theirs);
                 }
             }
             catch { }
@@ -94,8 +95,58 @@ namespace AILegacy.Prompt
             return sb.ToString().TrimEnd();
         }
 
+        /// <summary>¿Tiene este personaje a la vista la partida del jugador? (mismo sitio, a su lado en el mapa, o va con ella)</summary>
+        public static bool SeesPlayerParty(Hero npc)
+        {
+            try
+            {
+                var main = MobileParty.MainParty;
+                if (npc == null || main == null) return false;
+                if (npc.PartyBelongedTo == main || npc.PartyBelongedToAsPrisoner == main.Party) return true;
+                var here = npc.CurrentSettlement ?? npc.PartyBelongedTo?.CurrentSettlement;
+                if (here != null) return here == (Settlement.CurrentSettlement ?? main.CurrentSettlement);
+                var p = npc.PartyBelongedTo;
+                return p != null && p.GetPosition2D.Distance(main.GetPosition2D) <= 6f;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>El jefe de una partida sin señor en el mapa: bandidos, una caravana, aldeanos de camino al mercado.</summary>
+        private static string DescribeBandLeader(Speaker s)
+        {
+            var c = s.Character;
+            var p = s.Band;
+            var sb = new StringBuilder();
+            var given = s.Memory.Profile?.GivenName;
+            bool bandit = p.MapFaction != null && p.MapFaction.IsBanditFaction;
+            string what = bandit ? "an outlaw band" : p.IsCaravan ? "a trade caravan" : p.IsVillager ? "a group of villagers taking goods to market" : p.IsMilitia ? "a militia" : "a party";
+            sb.AppendLine(string.IsNullOrWhiteSpace(given) ? $"You are the leader of {what} ({p.Name}); you speak for all of them." : $"Name: {given}, leader of {what} ({p.Name}); you speak for all of them.");
+            sb.AppendLine($"Gender: {(c.IsFemale ? "woman" : "man")}, age about {(int)c.Age}");
+            if (c.Culture != null) sb.AppendLine($"Culture: {c.Culture.Name}");
+            if (bandit)
+                sb.AppendLine("You live outside the law: robbery, ransom and whatever the road gives. You respect strength and coin, not titles. You have no lord and owe nothing to any realm.");
+            else if (p.IsCaravan)
+                sb.AppendLine("You carry goods between towns for your master" + (p.Owner != null ? $", {p.Owner.Name}" : "") + ". You know prices, roads and the dangers on them, and you want no trouble.");
+            else if (p.IsVillager)
+                sb.AppendLine("You are peasants" + (p.HomeSettlement != null ? $" from {p.HomeSettlement.Name}" : "") + " carrying your produce to market. You are no warriors and you fear armed men.");
+            try
+            {
+                string where = DescribeWhereabouts(p);
+                if (where.Length > 0) sb.AppendLine("Where exactly you are: " + where);
+                string men = DescribeTroops(p, true);
+                if (men.Length > 0) sb.AppendLine("Your people, exactly:\n" + men);
+                string theirs = DescribeTroops(MobileParty.MainParty, false);
+                if (theirs.Length > 0) sb.AppendLine("Their party, as far as you can see:\n" + theirs);
+                bool hostile = bandit || (p.MapFaction != null && Hero.MainHero.MapFaction != null && p.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction));
+                if (hostile) sb.AppendLine("They are armed and in front of you on the open road: this is a parley that can end in blood. Weigh your numbers against theirs.");
+            }
+            catch { }
+            return sb.ToString().TrimEnd();
+        }
+
         private static string DescribeResident(Speaker s)
         {
+            if (s.Band != null) return DescribeBandLeader(s);
             var c = s.Character;
             var sb = new StringBuilder();
             var given = s.Memory.Profile?.GivenName;

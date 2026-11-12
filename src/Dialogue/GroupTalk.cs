@@ -347,6 +347,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                         var j = JObject.Parse(res.Text.Substring(a, b - a + 1));
                         var lines = new List<(Agent who, Agent to, string text, string mood)>();
                         var spoke = new List<Member>();
+                        var heard = new HashSet<string>();
                         if (j["lines"] is JArray arr)
                             foreach (var l in arr.OfType<JObject>().Take(cfg.GroupMaxLines))
                             {
@@ -395,7 +396,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 else if (SceneActions.Apply(member.Agent, (l["action"] ?? "").ToString(), away, said))
                                     Circle.RemoveAll(x => x.Agent == member.Agent);
                                 // Quien habla lo recuerda como parte de vuestra historia
-                                if (!silent) member.Who.Memory.Turns.Add(new ChatTurn { Role = "player", Text = "[Said to the group you were in] " + text, Day = CampaignTime.Now.ToDays });
+                                // (lo que dijiste se le apunta una sola vez por ronda, aunque él hable dos veces)
+                                if (!silent && heard.Add(member.Who.Key)) member.Who.Memory.Turns.Add(new ChatTurn { Role = "player", Text = "[Said to the group you were in] " + text, Day = CampaignTime.Now.ToDays });
                                 member.Who.Memory.Turns.Add(new ChatTurn { Role = "npc", Text = said, Day = CampaignTime.Now.ToDays });
                             }
                         if (lines.Count == 0) { if (!silent) Say(L.T("AIL_156ada7f", "El grupo se queda callado."), Colors.Gray); return; }
@@ -435,6 +437,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                         {
                             if (summary.Length > 5) { x.Who.Memory.RecentTalk = $"Moments ago, in a group with them: {summary}"; x.Who.Memory.RecentTalkAt = DateTime.UtcNow; }
                             if (x.Who.IsHero && spoke.Contains(x)) { x.Who.Memory.ConversationCount = Math.Max(1, x.Who.Memory.ConversationCount); x.Who.Memory.LastConversationDay = CampaignTime.Now.ToDays; }
+                            // Quien solo habla en grupo también resume: si no, su historial crecería sin fin hasta un cara a cara
+                            try { if (x.Who.IsHero && x.Who.Memory.Turns.Count > cfg.SummarizeAfterTurns + cfg.HistoryTurnsInPrompt) MemorySummarizer.MaybeSummarize(x.Who, cfg.HistoryTurnsInPrompt); } catch { }
                         }
                         while (Transcript.Count > 40) Transcript.RemoveAt(0);
                         Log.Info($"[grupo] {string.Join(", ", circle.Select(x => x.Who.Name))}: {summary}");

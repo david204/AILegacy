@@ -201,7 +201,8 @@ namespace AILegacy.Letters
         {
             var s = Speaker.FromHero(hero);
             string playerLetter = null;
-            if (isReply) playerLetter = s.Memory.Turns.LastOrDefault(t => t.Role == "player")?.Text?.Replace("[Letter] ", "");
+            if (isReply) playerLetter = (s.Memory.Turns.LastOrDefault(t => t.Role == "player" && t.Text != null && t.Text.StartsWith("[Letter] "))
+                                         ?? s.Memory.Turns.LastOrDefault(t => t.Role == "player" && !t.IsNote))?.Text?.Replace("[Letter] ", "");
 
             List<ChatMessage> msgs;
             try { msgs = PromptBuilder.BuildLetter(s, playerLetter); }

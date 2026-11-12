@@ -156,7 +156,8 @@ namespace AILegacy.Dialogue
                 if (h.Spouse == P && h.IsFemale != P.IsFemale)
                 {
                     var mother = h.IsFemale ? h : P;
-                    if (!mother.IsPregnant && mother.Age < 46 && Rng.Next(100) < S.Get.PregnancyChancePercent)
+                    // El día del ciclo cuenta: casi imposible con la regla, el doble en los días fértiles
+                    if (!mother.IsPregnant && mother.Age < 46 && Rng.Next(1000) < S.Get.PregnancyChancePercent * 10 * World.Mood.FertilityFactor(mother))
                     {
                         MakePregnantAction.Apply(mother);
                         Log.Info($"Embarazo: {mother.Name}");
@@ -330,8 +331,12 @@ namespace AILegacy.Dialogue
                     while (b.Notes.Count > cfg.NpcBondNotes) b.Notes.RemoveAt(0);
                 }
                 // Lo que pasa entre ellos se nota también en la relación del juego (poco a poco)
+                // Relación PERSONAL entre los dos: ApplyRelationChangeBetweenHeroes, en nobles, se la apunta a los jefes de sus clanes
                 if (cfg.NpcBondsAffectRelation && Math.Abs(delta) >= 4)
-                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(from.Hero, to.Hero, delta > 0 ? 1 : -1, false);
+                {
+                    int now = CharacterRelationManager.GetHeroRelation(from.Hero, to.Hero);
+                    CharacterRelationManager.SetHeroRelation(from.Hero, to.Hero, Clamp(now + (delta > 0 ? 1 : -1), -100, 100));
+                }
                 while (mem.Others.Count > cfg.NpcBondMaxPeople)
                     mem.Others.Remove(mem.Others.OrderBy(kv => kv.Value.Day).First().Key);
             }

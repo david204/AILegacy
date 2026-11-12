@@ -1265,5 +1265,20 @@
     <string id="AIL_ffcd4d39" text="Impuesto de la corona: mínimo (%)" />
     <string id="AIL_0490687a" text="No se pudo hacer la copia previa; no se ha cambiado nada." />
     <string id="AIL_d0109f54" text="Has vencido a {0}." />
+    <string id="AIL_b1e0a6d2" text="{0} pone en libertad a {1}, que es de los tuyos." />
+    <string id="AIL_4c9d7e31" text="Entregas a {0} a los suyos: queda en libertad." />
+    <string id="AIL_7a3f52c8" text="{0} aparta a los suyos y os deja pasar." />
+    <string id="AIL_5e0b93a7" text="{0} ya no puede cumplir lo que acordasteis: {1}." />
+    <string id="AIL_91c2d4f6" text="ha caído prisionero" />
+    <string id="AIL_2f7a8b13" text="se ha quedado sin partida" />
+    <string id="AIL_c4d81e09" text="{0} ha sido llamado al ejército de {1} y deja lo que acordasteis." />
+    <string id="AIL_a1c0e5d1" text="Ánimo por causas" />
+    <string id="AIL_a1c0e5d2" text="El ánimo de cada personaje sale de lo que le ha pasado, varias cosas a la vez: una batalla ganada o perdida, un torneo, estar preso o herido, un familiar o un amigo muerto, una guerra recién declarada, un parto. Cada una dura unos días. Apagado: solo cuenta cómo le dejó la última charla." />
+    <string id="AIL_a1c0e5d3" text="Duración de las causas del ánimo (%)" />
+    <string id="AIL_a1c0e5d4" text="100 = lo normal: un torneo se saborea 5 días, una batalla 3 o 4, el luto por un familiar dura 14 y por un amigo 10. 200 = el doble." />
+    <string id="AIL_a1c0e5d5" text="Ciclo femenino" />
+    <string id="AIL_a1c0e5d6" text="Las mujeres de 13 a 47 años tienen ciclo: les cambia el ánimo según el día (a unas mucho y a otras casi nada) y cambia la probabilidad de embarazo, también la del juego. No hay ciclo durante el embarazo ni después del parto. Ella sabe en qué día está." />
+    <string id="AIL_a1c0e5d7" text="Días que dura el ciclo" />
+    <string id="AIL_a1c0e5d8" text="Días de campaña. Un año del juego tiene 84 días, así que 21 son cuatro ciclos al año." />
   </strings>
 </base>

@@ -1265,5 +1265,20 @@
     <string id="AIL_ffcd4d39" text="王室税：最低（%）" />
     <string id="AIL_0490687a" text="无法创建备份；未做任何更改。" />
     <string id="AIL_d0109f54" text="你击败了{0}。" />
+    <string id="AIL_b1e0a6d2" text="{0}释放了{1}：他是你们的人。" />
+    <string id="AIL_4c9d7e31" text="你把{0}交还给他自己的人：他恢复了自由。" />
+    <string id="AIL_7a3f52c8" text="{0}喝退手下，放你们过去。" />
+    <string id="AIL_5e0b93a7" text="{0}已无法履行你们的约定：{1}。" />
+    <string id="AIL_91c2d4f6" text="被俘虏了" />
+    <string id="AIL_2f7a8b13" text="失去了自己的队伍" />
+    <string id="AIL_c4d81e09" text="{0}被征召进{1}的军队，放下了你们约定的事。" />
+    <string id="AIL_a1c0e5d1" text="由多种原因构成的情绪" />
+    <string id="AIL_a1c0e5d2" text="每个角色的情绪来自他的遭遇，可以同时有好几件：打赢或打输一场战斗、锦标赛、被俘或受伤、亲人或朋友去世、刚刚宣战、分娩。每个原因持续数天。关闭后：只看上一次交谈给他留下的感受。" />
+    <string id="AIL_a1c0e5d3" text="情绪原因的持续时间（%）" />
+    <string id="AIL_a1c0e5d4" text="100 = 正常：锦标赛获胜回味 5 天，战斗 3 到 4 天，为亲人服丧 14 天，为朋友 10 天。200 = 两倍。" />
+    <string id="AIL_a1c0e5d5" text="女性周期" />
+    <string id="AIL_a1c0e5d6" text="13 到 47 岁的女性有周期：情绪随周期的日子变化（有人明显，有人几乎没有），怀孕几率也随之变化，游戏本身的几率也一样。怀孕期间和分娩之后没有周期。她知道自己处在第几天。" />
+    <string id="AIL_a1c0e5d7" text="周期天数" />
+    <string id="AIL_a1c0e5d8" text="战役天数。游戏中一年有 84 天，所以 21 天就是一年四个周期。" />
   </strings>
 </base>

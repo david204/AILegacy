@@ -28,6 +28,8 @@ namespace AILegacy.Dialogue
             public int TensionDelta;
             /// <summary>La acción llega por carta: el NPC no está delante del jugador.</summary>
             public bool ViaLetter;
+            /// <summary>El jefe de una partida hostil ha decidido dejar pasar al jugador.</summary>
+            public bool LetPass;
         }
 
         private class ActionDef
@@ -70,6 +72,7 @@ namespace AILegacy.Dialogue
             if (LastDone.TryGetValue(s.Key + "|" + what, out var last) && last.amount == amount && (DateTime.UtcNow - last.at).TotalSeconds < S.Get.GoldRepeatGuardSeconds)
             {
                 Log.Warn($"Acción repetida ignorada: {what} x{amount} con {s.Name} (ya se hizo hace {(int)(DateTime.UtcNow - last.at).TotalSeconds} s)");
+                _repeated = true;
                 return true;
             }
             return false;
@@ -88,6 +91,45 @@ namespace AILegacy.Dialogue
         }
 
         private static bool RepeatedGold(Speaker s, string dir, int amount) => Repeated(s, "gold|" + dir, amount);
+
+        // Resultado de la acción en curso (todo esto corre en el hilo principal, una acción cada vez)
+        private static bool _repeated;      // no se ha hecho porque ya se hizo hace un momento
+        private static string _why;         // motivo, en inglés, por el que NO ha ocurrido (aunque se enseñe un mensaje al jugador)
+
+        /// <summary>La acción no ha ocurrido: «shown» es lo que ve el jugador (o null) y «why» lo que se le dice al personaje.</summary>
+        private static string Nope(string shown, string why) { _why = why; return shown; }
+
+        /// <summary>Deja en el historial del personaje lo que de verdad ha pasado con su acción, para que su siguiente frase parta de ahí.</summary>
+        private static void NoteOutcome(Speaker s, string text)
+        {
+            try { s.Memory.Turns.Add(new Memory.ChatTurn { Role = "player", Day = CampaignTime.Now.ToDays, Text = text }); }
+            catch { }
+        }
+
+        // Nombres que los modelos traen de otros sitios para acciones que sí tenemos
+        private static readonly Dictionary<string, string> Aliases = new Dictionary<string, string>
+        {
+            { "transfer_gold", "give_gold" }, { "pay_gold", "give_gold" }, { "give_money", "give_gold" }, { "pay", "give_gold" },
+            { "receive_gold", "take_gold" }, { "take_money", "take_gold" }, { "accept_gold", "take_gold" }, { "accept_payment", "take_gold" },
+            { "follow", "follow_me" }, { "follow_player", "follow_me" }, { "go_to_settlement", "go_to" }, { "travel_to", "go_to" },
+            { "wait", "wait_here" }, { "wait_near", "wait_here" }, { "siege", "besiege" }, { "return", "resume_duties" }, { "stop", "resume_duties" },
+            { "raise_army", "form_army" }, { "create_army", "form_army" }, { "disband_army", "leave_army" },
+            { "marry", "accept_marriage" }, { "intimate", "intimacy" }, { "fist_fight", "brawl" }, { "fight", "brawl" },
+            { "release", "set_free" }, { "free", "set_free" }, { "recruit", "join_party" }, { "join", "join_party" },
+            { "end_conversation", "leave" }, { "goodbye", "leave" }, { "let_them_pass", "let_pass" }, { "let_them_go", "let_pass" },
+            { "give_items", "give_item" }, { "take_items", "take_item" }, { "transfer_troops", "give_troops" },
+        };
+
+        // De cada uno de estos grupos solo vale una acción por respuesta: pelear, rendirse, morir o soltar no van juntas
+        private static readonly string[][] Exclusive =
+        {
+            new[] { "brawl", "duel", "duel_to_death", "attack", "surrender", "die", "let_pass", "call_guards", "arrest", "let_go" },
+            new[] { "set_free", "die" },
+            new[] { "declare_war", "make_peace" },
+        };
+
+        // Acciones sin efecto que haya que recordar: no dejan nota de resultado
+        private static readonly HashSet<string> NoNote = new HashSet<string> { "leave", "suspect_lie" };
 
         private static void NoteGold(Speaker s, string dir, int amount) =>
             NoteDone(s, "gold|" + dir, amount, dir == "take" ? $"they have handed you {amount} denars. It is paid in full — do not take or ask for it again."
@@ -231,13 +273,16 @@ namespace AILegacy.Dialogue
                 Name = "give_gold", Usage = "give_gold:<amount>",
                 Description = "You hand the other person that many denars from your own purse, right now. Only when you have truly decided to give or pay them " +
                               "(a gift, a reward, a ransom you agreed to pay, payment for a deal you accepted). Never while still negotiating.",
-                IsAvailable = s => s.IsHero && s.Hero.Gold > 0,
+                IsAvailable = s => (s.IsHero && s.Hero.Gold > 0) || (s.Band != null && s.Band.PartyTradeGold > 0),
+                Extra = s => s.Band != null ? $"Your band's purse holds {s.Band.PartyTradeGold} denars." : "",
                 Execute = (s, arg, ctx) =>
                 {
-                    int amount = Math.Min(ParseAmount(arg), Math.Min(s.Hero.Gold, S.Get.MaxGoldPerAction));
-                    if (amount <= 0) return null;
+                    int purse = s.IsHero ? s.Hero.Gold : s.Band.PartyTradeGold;
+                    int amount = Math.Min(ParseAmount(arg), Math.Min(purse, S.Get.MaxGoldPerAction));
+                    if (amount <= 0) return Nope(null, "no valid amount was given, or your purse is empty");
                     if (RepeatedGold(s, "give", amount)) return null;
-                    GiveGoldAction.ApplyBetweenCharacters(s.Hero, P, amount);
+                    if (s.IsHero) GiveGoldAction.ApplyBetweenCharacters(s.Hero, P, amount);
+                    else { s.Band.PartyTradeGold -= amount; P.ChangeHeroGold(amount); }
                     NoteGold(s, "give", amount);
                     return L.F("AIL_4bf3e0c5", $"{s.Name} te da {amount} denarios.");
                 }
@@ -251,11 +296,11 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     int amount = Math.Min(ParseAmount(arg), S.Get.MaxGoldPerAction);
-                    if (amount <= 0) return null;
+                    if (amount <= 0) return Nope(null, "no valid amount was given");
                     if (RepeatedGold(s, "take", amount)) return null;
-                    if (P.Gold < amount) return L.F("AIL_2d756f08", $"No tienes {amount} denarios para pagar a {s.Name}.");
+                    if (P.Gold < amount) return Nope(L.F("AIL_2d756f08", $"No tienes {amount} denarios para pagar a {s.Name}."), $"they do not have {amount} denars: they carry only {P.Gold}. Nothing was paid");
                     if (s.IsHero) GiveGoldAction.ApplyBetweenCharacters(P, s.Hero, amount);
-                    else P.ChangeHeroGold(-amount);
+                    else { P.ChangeHeroGold(-amount); if (s.Band != null) s.Band.PartyTradeGold += amount; }
                     NoteGold(s, "take", amount);
                     return L.F("AIL_800a1324", $"Pagas {amount} denarios a {s.Name}.");
                 }
@@ -410,7 +455,7 @@ namespace AILegacy.Dialogue
                     if (Repeated(s, key, asked)) return null;
                     qty = Math.Min(qty, have);
                     int cost = PriceOf(item, false) * qty;
-                    if (P.Gold < cost) return L.F("AIL_3c14bb80", $"No te llega para {qty} de {item.Name} ({cost} denarios).");
+                    if (P.Gold < cost) return Nope(L.F("AIL_3c14bb80", $"No te llega para {qty} de {item.Name} ({cost} denarios)."), $"they cannot afford it: {qty} x {item.Name} costs {cost} denars and they carry {P.Gold}. Nothing was sold");
                     GiveGoldAction.ApplyForCharacterToSettlement(P, st, cost, true);
                     st.ItemRoster.AddToCounts(item, -qty);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, qty);
@@ -439,7 +484,7 @@ namespace AILegacy.Dialogue
                     int pay = PriceOf(item, true) * qty;
                     int purse = st.Town != null ? st.Town.Gold : pay;
                     if (purse < pay) { qty = Math.Max(0, purse / Math.Max(1, PriceOf(item, true))); pay = PriceOf(item, true) * qty; }
-                    if (qty <= 0) return L.T("AIL_b720cde3", "El mercado no tiene dinero para comprártelo.");
+                    if (qty <= 0) return Nope(L.T("AIL_b720cde3", "El mercado no tiene dinero para comprártelo."), "there is no coin here to pay for it. Nothing was bought");
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -qty);
                     st.ItemRoster.AddToCounts(item, qty);
                     GiveGoldAction.ApplyForSettlementToCharacter(st, P, pay, true);
@@ -513,11 +558,13 @@ namespace AILegacy.Dialogue
                 Name = "lead_party", Usage = "lead_party",
                 Description = "You take command of a new war party of their clan and ride out on your own from now on. ONLY if you are one of their companions riding in their party, " +
                               "they have clearly asked you to lead a party of your own, and you accept.",
-                IsAvailable = s => s.IsHero && s.Hero.Clan == Clan.PlayerClan && s.Hero.PartyBelongedTo == MobileParty.MainParty && s.Hero != P && !s.Hero.IsWounded,
+                IsAvailable = s => s.IsHero && s.Hero.Clan == Clan.PlayerClan && s.Hero.PartyBelongedTo == MobileParty.MainParty && s.Hero != P && !s.Hero.IsWounded
+                                   && Clan.PlayerClan.WarPartyComponents.Count < Clan.PlayerClan.WarPartyLimit,
                 Execute = (s, arg, ctx) =>
                 {
                     try
                     {
+                        if (Clan.PlayerClan.WarPartyComponents.Count >= Clan.PlayerClan.WarPartyLimit) return Nope(null, "their clan already fields as many war parties as it can");
                         var party = Helpers.MobilePartyHelper.CreateNewClanMobileParty(s.Hero, Clan.PlayerClan);
                         if (party == null) return null;
                         ctx.EndConversation = true;
@@ -706,6 +753,12 @@ namespace AILegacy.Dialogue
                     if (noble != null)
                     {
                         if (Repeated(s, "give_prisoners|" + noble.StringId, 1)) return null;
+                        if (SameSide(noble.HeroObject, P))
+                        {
+                            EndCaptivityAction.ApplyByReleasedByChoice(noble.HeroObject, s.Hero);
+                            NoteDone(s, "give_prisoners|" + noble.StringId, 1, $"you have set your prisoner {noble.Name} free and handed them back to their own side. {noble.Name} is free now.");
+                            return L.F("AIL_b1e0a6d2", $"{s.Name} pone en libertad a {noble.Name}, que es de los tuyos.");
+                        }
                         TransferPrisonerAction.Apply(noble, p.Party, MobileParty.MainParty.Party);
                         NoteDone(s, "give_prisoners|" + noble.StringId, 1, $"you have handed your prisoner {noble.Name} over to them.");
                         return L.F("AIL_f378719a", $"{s.Name} te entrega a su prisionero {noble.Name}.");
@@ -733,6 +786,12 @@ namespace AILegacy.Dialogue
                     {
                         if (noble.HeroObject == s.Hero) return null;
                         if (Repeated(s, "take_prisoners|" + noble.StringId, 1)) return null;
+                        if (SameSide(noble.HeroObject, s.Hero))
+                        {
+                            EndCaptivityAction.ApplyByReleasedByChoice(noble.HeroObject, P);
+                            NoteDone(s, "take_prisoners|" + noble.StringId, 1, $"they have handed {noble.Name}, one of your own side, back to you. {noble.Name} is free now, not a prisoner.");
+                            return L.F("AIL_4c9d7e31", $"Entregas a {noble.Name} a los suyos: queda en libertad.");
+                        }
                         TransferPrisonerAction.Apply(noble, main.Party, Led(s).Party);
                         NoteDone(s, "take_prisoners|" + noble.StringId, 1, $"they have handed their prisoner {noble.Name} over to you.");
                         return L.F("AIL_7ed3beae", $"Entregas a {s.Name} a tu prisionero {noble.Name}.");
@@ -786,7 +845,7 @@ namespace AILegacy.Dialogue
                 {
                     SplitArg(arg, out var name, out var amount);
                     var item = FindInRoster(MobileParty.MainParty.ItemRoster, name, out int have);
-                    if (item == null) return L.F("AIL_e00ce40a", $"No llevas «{name}» para dárselo a {s.Name}.");
+                    if (item == null) return Nope(L.F("AIL_e00ce40a", $"No llevas «{name}» para dárselo a {s.Name}."), $"they do not carry «{name}». Nothing was handed over");
                     int asked = Math.Max(1, (int)amount);
                     string key = "take_item|" + item.StringId;
                     if (Repeated(s, key, asked)) return null;
@@ -851,9 +910,14 @@ namespace AILegacy.Dialogue
                     SplitArg(arg, out var name, out var priceD);
                     int price = (int)priceD;
                     var mine = s.Hero.OwnedWorkshops.Where(w => w.Settlement == s.Settlement).ToList();
-                    var ws = mine.FirstOrDefault(w => NormName(w.Name.ToString()).Contains(NormName(name)) || NormName(name).Contains(NormName(w.Name.ToString()))) ?? mine.FirstOrDefault();
-                    if (ws == null || price <= 0) return null;
-                    if (P.Gold < price) return L.F("AIL_20cbe084", $"No tienes {price} denarios para comprar el taller de {s.Name}.");
+                    string wanted = NormName(name);
+                    var ws = wanted.Length < 2 ? null : mine.FirstOrDefault(w => NormName(w.Name.ToString()).Contains(wanted) || wanted.Contains(NormName(w.Name.ToString())));
+                    if (ws == null && mine.Count == 1) ws = mine[0];          // solo tiene uno aquí: no hay duda de cuál es
+                    if (ws == null) return Nope(null, "you did not name which of your workshops; write its exact name");
+                    if (price <= 0) return Nope(null, "no price was given; write sell_workshop:<name>:<price>");
+                    int worth = Campaign.Current.Models.WorkshopModel.GetCostForPlayer(ws);
+                    if (price < worth / 2) return Nope(null, $"{price} denars is far too little: the workshop is worth about {worth}, and you would never sell your livelihood for under {worth / 2}");
+                    if (P.Gold < price) return Nope(L.F("AIL_20cbe084", $"No tienes {price} denarios para comprar el taller de {s.Name}."), $"they do not have {price} denars. Nothing was sold");
                     string wname = ws.Name.ToString();
                     GiveGoldAction.ApplyBetweenCharacters(P, s.Hero, price);
                     ChangeOwnerOfWorkshopAction.ApplyByWar(ws, P, ws.WorkshopType);
@@ -873,7 +937,8 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var st = OrderSystem.FindSettlement(arg, x => (x.IsTown || x.IsCastle) && x.OwnerClan == s.Hero.Clan && !x.IsUnderSiege);
-                    if (st == null) return null;
+                    if (st == null) return Nope(null, "that is not a town or castle your clan holds (or it is under siege)");
+                    if (FiefsOf(s.Hero.Clan).Count <= 1) return Nope(null, $"{st.Name} is the last fief of your house: you cannot give it away");
                     ChangeOwnerOfSettlementAction.ApplyByGift(st, P);
                     return L.F("AIL_3b64d032", $"{s.Name} te concede {st.Name}.");
                 }
@@ -983,6 +1048,9 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var old = s.Hero.Clan;
+                    // Un gobernador que cambia de casa a pelo deja la ciudad con un gobernador ajeno (y el juego se cae al abrirla)
+                    try { if (s.Hero.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(s.Hero); }
+                    catch (Exception ex) { Log.Error("Quitar la gobernación antes de cambiar de clan", ex); }
                     s.Hero.Clan = PC;
                     return L.F("AIL_7765746a", $"{s.Name} deja el clan {old.Name} y se une al tuyo.");
                 }
@@ -1059,6 +1127,19 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
+                Name = "let_pass", Usage = "let_pass",
+                Description = "You call your people off and let them go on their way unharmed: there will be no fight. Use it when you have decided not to fight them " +
+                              "(they paid what you asked, they are too strong, they talked you round, or they are not worth the blood).",
+                IsAvailable = s => s.Band != null && Combat.EnemyOnMap(s),
+                Execute = (s, arg, ctx) =>
+                {
+                    ctx.LetPass = true; ctx.EndConversation = true;
+                    Combat.KeepEncounter = false;
+                    return L.F("AIL_7a3f52c8", $"{s.Name} aparta a los suyos y os deja pasar.");
+                }
+            },
+            new ActionDef
+            {
                 Name = "call_guards", Usage = "call_guards",
                 Description = "You shout for the guards and denounce the other person as a criminal: it ends the conversation and marks them as wanted in your realm. " +
                               "Only when they threatened you, attacked someone, confessed a crime or will not leave you alone.",
@@ -1081,7 +1162,7 @@ namespace AILegacy.Dialogue
                 Name = "join_their_company", Usage = "join_their_company",
                 Description = "You leave your life here for good and go with the other person as one of their companions. Very rare: only if they clearly and seriously offered to take you into their company, " +
                               "you have a real reason to go (nothing holding you here, a debt, a dream, love, hunger) and you have come to trust them. A passing remark or a joke is not an offer.",
-                IsAvailable = s => S.Get.AllowPromotions && !s.IsHero && s.Age >= 18 && Clan.PlayerClan != null && Clan.PlayerClan.Companions.Count < Clan.PlayerClan.CompanionLimit
+                IsAvailable = s => S.Get.AllowPromotions && !s.IsHero && s.Band == null && s.Age >= 18 && Clan.PlayerClan != null && Clan.PlayerClan.Companions.Count < Clan.PlayerClan.CompanionLimit
                                    && s.Memory.Profile != null && !s.Memory.Profile.IsEmpty && s.Memory.Turns.Count >= S.Get.PromotionMinTurns,
                 Execute = (s, arg, ctx) =>
                 {
@@ -1385,30 +1466,66 @@ namespace AILegacy.Dialogue
                 .OrderBy(c => c.Trim().StartsWith("take_gold") || c.Trim().StartsWith("give_gold") ? 0 : 1).ToList();
 
             var done = new HashSet<string>();
+            var executed = new HashSet<string>();      // las que de verdad han ocurrido: solo esas excluyen a otras de su grupo
+            int failNotes = 0;
+            // El personaje se entera de lo que NO ha pasado (como mucho tres avisos por respuesta)
+            void Failed(string cmd, string why)
+            {
+                // Las acciones sin efecto (irse, sospechar) no merecen aviso; y como mucho tres por respuesta
+                string n = cmd.Split(':')[0].Trim().ToLowerInvariant();
+                if (NoNote.Contains(n) || (Aliases.TryGetValue(n, out var an) && NoNote.Contains(an)) || failNotes++ >= 3) return;
+                NoteOutcome(s, $"[Did not happen: you tried «{Clip(cmd, 90)}» but {why}. Whatever your words announced about it has NOT happened: do not speak or act as if it had. " +
+                               "If it still matters, say plainly that you cannot, or do it properly with a listed action.]");
+            }
             foreach (var raw in ordered)
             {
                 var cmd = raw.Trim();
                 int colon = cmd.IndexOf(':');
-                var name = (colon >= 0 ? cmd.Substring(0, colon) : cmd).Trim().ToLowerInvariant();
+                var name = (colon >= 0 ? cmd.Substring(0, colon) : cmd).Trim().ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
                 var arg = colon >= 0 ? cmd.Substring(colon + 1).Trim() : "";
+                if (Aliases.TryGetValue(name, out var real) && All.All(a => a.Name != name)) { Log.Info($"Acción «{name}» entendida como «{real}»"); name = real; }
                 if (!done.Add(name)) continue;
 
                 var def = All.FirstOrDefault(a => a.Name == name);
-                if (def == null) { Log.Warn($"Acción desconocida ignorada: {cmd}"); continue; }
-                if (ctx.ViaLetter && !def.Letter) { Log.Warn($"Acción no válida por carta, ignorada: {cmd}"); continue; }
+                if (def == null) { Log.Warn($"Acción desconocida ignorada: {cmd}"); Failed(cmd, "there is no such action: only the actions listed in your briefing exist"); continue; }
+                if (ctx.ViaLetter && !def.Letter) { Log.Warn($"Acción no válida por carta, ignorada: {cmd}"); Failed(cmd, "that cannot be done by letter: you are not there in person"); continue; }
+                var clash = Exclusive.FirstOrDefault(g => g.Contains(name) && g.Any(o => o != name && executed.Contains(o)));
+                if (clash != null) { Log.Warn($"Acción incompatible con otra de la misma respuesta, ignorada: {cmd}"); continue; }
                 try
                 {
-                    if (!def.IsAvailable(s)) { Log.Warn($"Acción no disponible ahora, ignorada: {cmd}"); continue; }
+                    if (!def.IsAvailable(s)) { Log.Warn($"Acción no disponible ahora, ignorada: {cmd}"); Failed(cmd, "it is not possible right now (it was not among the actions open to you)"); continue; }
+                    _why = null; _repeated = false;
+                    int turnsBefore = s.Memory.Turns.Count;
                     var msg = def.Execute(s, arg, ctx);
-                    Log.Info($"Acción {cmd} de {s.Name}" + (msg != null ? ": " + msg : ""));
+                    bool happened = msg != null && _why == null;
+                    Log.Info($"Acción {cmd} de {s.Name}" + (msg != null ? ": " + msg : "") + (happened ? "" : _repeated ? " (repetida)" : " (no ha ocurrido" + (_why != null ? ": " + _why : "") + ")"));
                     if (msg != null) messages.Add(msg);
                     else if (def.Usage.Contains(":")) Log.Warn($"La acción {cmd} no se pudo cumplir (objetivo no encontrado o no válido)");
-                    // Noticia solo si de verdad ha salido bien (si no, por ejemplo, una boda que no ha pasado)
-                    if (msg != null) RecordAsNews(s, name);
+                    if (happened)
+                    {
+                        executed.Add(name);
+                        // Noticia solo si de verdad ha salido bien (si no, por ejemplo, una boda que no ha pasado)
+                        RecordAsNews(s, name);
+                        // Las que ya dejan su propia nota (oro, objetos, tropas…) no se apuntan dos veces
+                        if (!NoNote.Contains(name) && s.Memory.Turns.Count == turnsBefore)
+                            NoteOutcome(s, $"[Done: your action «{Clip(cmd, 90)}» has really taken effect in the world — do not do it again.]");
+                    }
+                    else if (!_repeated)
+                        Failed(cmd, _why ?? (def.Usage.Contains(":") ? "what you named could not be found or is not valid for it" : "the conditions for it were not met"));
                 }
-                catch (Exception ex) { Log.Error($"Error ejecutando la acción {cmd}", ex); }
+                catch (Exception ex) { Log.Error($"Error ejecutando la acción {cmd}", ex); Failed(cmd, "something went wrong and it could not be carried out"); }
+                finally { _why = null; _repeated = false; }
             }
             return messages;
+        }
+
+        private static string Clip(string t, int max) => t == null ? "" : t.Length <= max ? t : t.Substring(0, max) + "…";
+
+        /// <summary>¿Son del mismo bando? (mismo clan o mismo reino o facción): a uno de los suyos no se le tiene preso.</summary>
+        private static bool SameSide(Hero a, Hero b)
+        {
+            try { return a != null && b != null && (a == b || (a.Clan != null && a.Clan == b.Clan) || (a.MapFaction != null && a.MapFaction == b.MapFaction)); }
+            catch { return false; }
         }
 
         /// <summary>Las acciones gordas se convierten en noticia (el juego no siempre las anuncia).</summary>

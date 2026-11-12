@@ -1265,5 +1265,20 @@
     <string id="AIL_ffcd4d39" text="Imposta della corona: minimo (%)" />
     <string id="AIL_0490687a" text="Impossibile creare la copia di sicurezza; non è stato modificato nulla." />
     <string id="AIL_d0109f54" text="Hai sconfitto {0}." />
+    <string id="AIL_b1e0a6d2" text="{0} libera {1}, che è dei tuoi." />
+    <string id="AIL_4c9d7e31" text="Consegni {0} ai suoi: torna in libertà." />
+    <string id="AIL_7a3f52c8" text="{0} richiama i suoi e vi lascia passare." />
+    <string id="AIL_5e0b93a7" text="{0} non può più fare ciò che avevate concordato: {1}." />
+    <string id="AIL_91c2d4f6" text="è stato fatto prigioniero" />
+    <string id="AIL_2f7a8b13" text="è rimasto senza la sua schiera" />
+    <string id="AIL_c4d81e09" text="{0} è stato chiamato nell'esercito di {1} e lascia ciò che avevate concordato." />
+    <string id="AIL_a1c0e5d1" text="Umore per cause" />
+    <string id="AIL_a1c0e5d2" text="L'umore di ogni personaggio nasce da ciò che gli è successo, più cose insieme: una battaglia vinta o persa, un torneo, essere prigioniero o ferito, un parente o un amico morto, una guerra appena dichiarata, un parto. Ognuna dura alcuni giorni. Disattivato: conta solo come l'ha lasciato l'ultima conversazione." />
+    <string id="AIL_a1c0e5d3" text="Durata delle cause dell'umore (%)" />
+    <string id="AIL_a1c0e5d4" text="100 = normale: una vittoria al torneo si gusta per 5 giorni, una battaglia per 3 o 4, il lutto per un parente dura 14 giorni e per un amico 10. 200 = il doppio." />
+    <string id="AIL_a1c0e5d5" text="Ciclo femminile" />
+    <string id="AIL_a1c0e5d6" text="Le donne dai 13 ai 47 anni hanno il ciclo: cambia il loro umore secondo il giorno (ad alcune molto, ad altre quasi per niente) e la probabilità di gravidanza, anche quella del gioco. Nessun ciclo in gravidanza né dopo il parto. Lei sa a che giorno è." />
+    <string id="AIL_a1c0e5d7" text="Durata del ciclo in giorni" />
+    <string id="AIL_a1c0e5d8" text="Giorni di campagna. Un anno di gioco ha 84 giorni, quindi 21 significano quattro cicli l'anno." />
   </strings>
 </base>

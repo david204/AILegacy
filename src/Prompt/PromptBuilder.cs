@@ -165,14 +165,25 @@ If their letter asks you to come, to meet somewhere or to do something with your
         private static readonly Tpl TRecall = new Tpl("memory/recall_header.txt",
 @"What they have just said brings back these older moments between you, word for word as they happened (use them only if they bear on the present talk; do not recite them):");
 
-        private static readonly Tpl TSummary = new Tpl("memory/summary.txt",
-@"You keep the private memory of {npc_name}, a character in medieval Calradia. Rewrite the memory of their dealings with {player_name} into one compact summary written from {npc_name}'s point of view (""I"", ""they"").
-Keep: promises, deals and whether they were kept, money, men or goods given or received, tasks given and how they ended, insults, favours, threats, fights, secrets revealed, letters, feelings and how they changed, names and places mentioned. Keep the order in which things happened. Drop small talk. Maximum 150 words, in English.
-Then write a page for their memory book about the conversation you are folding in: a short chapter of a personal chronicle, in {language}, third person or as {npc_name} remembering, 4 to 8 sentences that follow what happened in order and let the feeling of it show. Give it a title of 2 to 5 words in {language}. Never use a double-quote character inside the texts; use «» to quote.
-Answer ONLY with JSON: { ""summary"": ""the compact memory in English"", ""page_title"": ""..."", ""page_text"": ""..."" }");
+        private static readonly Tpl TSummaryPart = new Tpl("memory/summary_part.txt",
+@"You keep the private memory of {npc_name}, a character in medieval Calradia. Below is a stretch of their dealings with {player_name} that is about to leave their word-for-word memory.
+Write a compact record of THIS STRETCH ONLY, from {npc_name}'s point of view (""I"", ""they""). Keep: promises, deals and whether they were kept, money, men or goods given or received, tasks given and how they ended, insults, favours, threats, fights, secrets revealed, letters, feelings and how they changed, names and places mentioned. Keep the order in which things happened. Drop small talk. Maximum {words} words, in English.
+Lines in [square brackets] are not speech: they state what really happened in the world (or did not). Trust them over anything that was merely said.
+The older records are shown only so you can refer back to them (""the debt I mentioned""): do not repeat what they already say.
+Then write a page for their memory book about this stretch: a short chapter of a personal chronicle, in {language}, third person or as {npc_name} remembering, 4 to 8 sentences that follow what happened in order and let the feeling of it show. Give it a title of 2 to 5 words in {language}. Never use a double-quote character inside the texts; use «» to quote.{merge_task}
+Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English"", ""page_title"": ""..."", ""page_text"": ""...""{merge_field} }");
+
+        private static readonly Tpl TSummaryMerge = new Tpl("memory/summary_merge.txt",
+            "The older records have grown too many. ALSO fold the ones marked [MERGE] into one single record of at most {words} words, in English, same point of view: keep every promise, debt, deal, grudge, favour, " +
+            "secret and every named person or place, in the order they happened; drop only small talk and repetition.");
+
+        private static readonly Tpl TGap = new Tpl("memory/time_gap.txt", "[{days} day(s) later]");
+
+        private static readonly Tpl TOpeners = new Tpl("rules/used_openers.txt",
+            "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
         /// <summary>Fuerza el registro de todas las plantillas (campos estáticos) antes de volcarlas a disco.</summary>
-        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); FightBanter.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); }
+        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); }
 
         // =========================================================== diálogo
 
@@ -186,7 +197,7 @@ Answer ONLY with JSON: { ""summary"": ""the compact memory in English"", ""page_
             bool needsProfile = mem.Profile == null || mem.Profile.IsEmpty || completing;
 
             var sys = new StringBuilder();
-            sys.AppendLine(TIntro.Format("npc_name", s.IsHero ? s.Name : "an ordinary person", "player_name", playerName ?? "a stranger"));
+            sys.AppendLine(TIntro.Format("npc_name", s.IsHero ? s.Name : s.Band != null ? "the leader of a party met on the road" : "an ordinary person", "player_name", playerName ?? "a stranger"));
 
             AppendWorld(sys);
 
@@ -245,16 +256,55 @@ Answer ONLY with JSON: { ""summary"": ""the compact memory in English"", ""page_
             if (relationBudgetLeft <= 0 && s.IsHero) sys.AppendLine(TRelationCapped.Text);
 
             var msgs = new List<ChatMessage> { new ChatMessage("system", sys.ToString().TrimEnd()) };
-            foreach (var t in mem.Turns.Skip(System.Math.Max(0, mem.Turns.Count - cfg.HistoryTurnsInPrompt)))
+            var window = mem.Turns.Skip(System.Math.Max(0, mem.Turns.Count - cfg.HistoryTurnsInPrompt)).ToList();
+            double prevDay = -1;
+            foreach (var t in window)
             {
                 // Las respuestas pasadas del NPC se enseñan con la misma forma que se le pide (JSON):
                 // si las viera como texto suelto, tendería a contestar en texto suelto y sin acciones.
                 bool npc = t.Role != "player";
                 bool rawJson = npc && t.Text != null && t.Text.TrimStart().StartsWith("{");
-                msgs.Add(new ChatMessage(npc ? "assistant" : "user",
-                    npc && !rawJson ? Newtonsoft.Json.JsonConvert.SerializeObject(new { reply = t.Text }) : t.Text));
+                string text = npc && !rawJson ? Newtonsoft.Json.JsonConvert.SerializeObject(new { reply = t.Text }) : (t.Text ?? "");
+                // Un intercambio de hace un mes y otro de hoy no se leen seguidos: se marca el salto (no se guarda)
+                if (!npc && prevDay > 0 && t.Day > 0 && t.Day - prevDay >= 1.0) text = TGap.Format("days", (int)(t.Day - prevDay)) + "\n" + text;
+                if (t.Day > 0) prevDay = t.Day;
+                var last = msgs[msgs.Count - 1];
+                // Dos mensajes seguidos del mismo lado (una nota de lo ocurrido y lo que dice después) van en uno solo
+                if (!npc && last.Role == "user") last.Content += "\n" + text;
+                else msgs.Add(new ChatMessage(npc ? "assistant" : "user", text));
             }
+            // Antirrepetición: los arranques de sus últimas respuestas, al final del último mensaje (no se guarda)
+            try
+            {
+                var tail = msgs[msgs.Count - 1];
+                if (tail.Role == "user")
+                {
+                    var openers = window.Where(t => t.Role != "player").Select(t => Opener(SaidBy(t))).Where(o => o.Length > 0).ToList();
+                    openers = openers.Skip(System.Math.Max(0, openers.Count - 5)).Distinct(System.StringComparer.OrdinalIgnoreCase).ToList();
+                    if (openers.Count >= 2) tail.Content += "\n\n" + TOpeners.Format("openers", string.Join(", ", openers.Select(o => "«" + o + "…»")));
+                }
+            }
+            catch { }
             return msgs;
+        }
+
+        /// <summary>Lo que dijo el NPC en un turno guardado (sin el envoltorio JSON si se guardó en bruto).</summary>
+        private static string SaidBy(ChatTurn t)
+        {
+            string text = (t.Text ?? "").Trim();
+            if (text.StartsWith("{")) { try { text = ((string)Newtonsoft.Json.Linq.JObject.Parse(text)["reply"] ?? text).Trim(); } catch { } }
+            return text;
+        }
+
+        /// <summary>Las primeras palabras de una respuesta, sin el gesto entre asteriscos del principio.</summary>
+        private static string Opener(string reply)
+        {
+            string r = (reply ?? "").Trim();
+            if (r.StartsWith("[")) return "";                                   // cartas y notas
+            while (r.StartsWith("*")) { int e = r.IndexOf('*', 1); if (e < 0) break; r = r.Substring(e + 1).TrimStart(); }
+            var words = r.Split(new[] { ' ', '\n', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length < 4) return "";
+            return string.Join(" ", words.Take(4)).TrimEnd(',', '.', ';', ':', '!', '?', '…');
         }
 
         /// <summary>Encargos abiertos con este NPC y documentos que lleva el jugador. Devuelve si procede el campo "quest".</summary>
@@ -334,22 +384,36 @@ Answer ONLY with JSON: { ""summary"": ""the compact memory in English"", ""page_
 
         // ========================================================== resumen
 
-        public static List<ChatMessage> BuildSummary(Speaker s, List<ChatTurn> oldTurns)
+        /// <summary>
+        /// Pide el registro del tramo que sale del historial (y su página del libro). Si hay demasiados tramos viejos,
+        /// «merge» son los que además hay que fundir en uno.
+        /// </summary>
+        public static List<ChatMessage> BuildSummary(Speaker s, List<ChatTurn> oldTurns, List<SummaryPart> merge = null)
         {
             var mem = s.Memory;
             string other = ContextBuilder.PlayerNameFor(s) ?? "the stranger";
+            bool merging = merge != null && merge.Count > 0;
             var sb = new StringBuilder();
-            sb.AppendLine(TSummary.Format("npc_name", s.Name, "player_name", other, "language", S.Get.Language));
+            sb.AppendLine(TSummaryPart.Format("npc_name", s.Name, "player_name", other, "language", S.Get.Language, "words", MemorySummarizer.PartWords,
+                "merge_task", merging ? "\n" + TSummaryMerge.Format("words", MemorySummarizer.MergedWords) : "",
+                "merge_field", merging ? ", \"merged\": \"the [MERGE] records folded into one, in English\"" : ""));
             sb.AppendLine();
-            if (!string.IsNullOrWhiteSpace(mem.Summary))
+            if (mem.Summaries.Count > 0)
             {
-                sb.AppendLine("Previous summary:");
-                sb.AppendLine(mem.Summary);
+                sb.AppendLine("Older records, oldest first:");
+                foreach (var p in mem.Summaries)
+                    sb.AppendLine("- " + (merging && merge.Contains(p) ? "[MERGE] " : "") + (p.ToDay < 0 ? "(undated) " : $"(day {(int)p.FromDay}–{(int)p.ToDay}) ") + p.Text);
                 sb.AppendLine();
             }
-            sb.AppendLine("Conversation to fold in:");
+            double from = oldTurns.Where(t => t.Day > 0).Select(t => t.Day).DefaultIfEmpty(-1).Min(), to = oldTurns.Where(t => t.Day > 0).Select(t => t.Day).DefaultIfEmpty(-1).Max();
+            sb.AppendLine(to > 0 ? $"Stretch to record (campaign days {(int)from} to {(int)to}):" : "Stretch to record:");
+            double prev = -1;
             foreach (var t in oldTurns)
-                sb.AppendLine((t.Role == "player" ? other : s.Name) + ": " + t.Text);
+            {
+                if (prev > 0 && t.Day > 0 && t.Day - prev >= 1.0) sb.AppendLine(TGap.Format("days", (int)(t.Day - prev)));
+                if (t.Day > 0) prev = t.Day;
+                sb.AppendLine(t.IsNote ? t.Text : (t.Role == "player" ? other : s.Name) + ": " + (t.Role == "player" ? t.Text : SaidBy(t)));
+            }
             return new List<ChatMessage> { new ChatMessage("user", sb.ToString()) };
         }
 
@@ -402,9 +466,8 @@ Answer ONLY with JSON: { ""summary"": ""the compact memory in English"", ""page_
                 sys.AppendLine("## What is happening right now (this comes before any small talk)");
                 sys.AppendLine(s.Situation);
             }
-            var mem = s.Memory;
-            if (!string.IsNullOrWhiteSpace(mem.Mood) && mem.MoodDay >= 0 && CampaignTime.Now.ToDays - mem.MoodDay <= 3)
-                sys.AppendLine($"Your mood lately: {mem.Mood}" + (string.IsNullOrWhiteSpace(mem.MoodReason) ? "." : $" ({mem.MoodReason})."));
+            // Ánimo: varias causas a la vez (lo que le ha pasado, cómo está, y cómo le dejó la última charla)
+            Mood.AppendTo(sys, s);
         }
 
         private static void AppendCustomInstructions(StringBuilder sys, Speaker s)
@@ -451,15 +514,30 @@ Answer ONLY with JSON: { ""summary"": ""the compact memory in English"", ""page_
                     sys.AppendLine(days <= 0 ? "You already dealt with them earlier today."
                                              : $"You last dealt with them {days} day(s) ago. You have talked {mem.ConversationCount} time(s) before.");
                 }
-                if (!string.IsNullOrWhiteSpace(mem.Summary)) sys.AppendLine("Earlier dealings: " + mem.Summary);
+                MemorySummarizer.Sync(mem);
+                if (mem.Summaries.Count == 1 && mem.Summaries[0].ToDay < 0) sys.AppendLine("Earlier dealings: " + mem.Summaries[0].Text);
+                else if (mem.Summaries.Count > 0)
+                {
+                    double today = CampaignTime.Now.ToDays;
+                    sys.AppendLine("Earlier dealings with them, oldest first (your own record of what happened):");
+                    foreach (var p in mem.Summaries)
+                    {
+                        int ago = p.ToDay < 0 ? -1 : (int)(today - p.ToDay);
+                        sys.AppendLine("- " + (ago < 0 ? "(long ago) " : ago == 0 ? "(earlier today) " : ago == 1 ? "(yesterday) " : $"({ago} days ago) ") + p.Text);
+                    }
+                }
                 // Recuerdo relevante: intercambios antiguos que tienen que ver con lo que se está diciendo ahora
                 if (S.Get.EnableRecall)
                 {
-                    var lastSaid = mem.Turns.LastOrDefault(t => t.Role == "player");
+                    var lastSaid = mem.Turns.LastOrDefault(t => t.Role == "player" && !t.IsNote);
                     if (lastSaid != null)
                     {
-                        var back = AILegacy.Memory.Recall.Find(mem, lastSaid.Text, s.Name, ContextBuilder.PlayerNameFor(s) ?? "the stranger",
-                            TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, S.Get.RecallCount);
+                        // Se busca con lo último que ha dicho y con lo último que le contestaste («sí, eso» solo no encuentra nada)
+                        var lastOwn = mem.Turns.LastOrDefault(t => t.Role != "player");
+                        string query = lastSaid.Text + (lastOwn != null ? " " + SaidBy(lastOwn) : "");
+                        var older = mem.Turns.Take(System.Math.Max(0, mem.Turns.Count - S.Get.HistoryTurnsInPrompt)).ToList();
+                        var back = AILegacy.Memory.Recall.Find(mem, query, s.Name, ContextBuilder.PlayerNameFor(s) ?? "the stranger",
+                            TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, S.Get.RecallCount, older);
                         if (back.Count > 0)
                         {
                             sys.AppendLine(TRecall.Text);

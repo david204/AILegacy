@@ -386,6 +386,26 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relación, confianza y romance")]
         public int PregnancyChancePercent { get; set; } = 25;
 
+        [SettingPropertyBool("{=AIL_a1c0e5d1}Ánimo por causas", Order = 20, RequireRestart = false,
+            HintText = "{=AIL_a1c0e5d2}El ánimo de cada personaje sale de lo que le ha pasado, varias cosas a la vez: una batalla ganada o perdida, un torneo, estar preso o herido, un familiar o un amigo muerto, una guerra recién declarada, un parto. Cada una dura unos días. Apagado: solo cuenta cómo le dejó la última charla.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relación, confianza y romance")]
+        public bool EnableMoodCauses { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_a1c0e5d3}Duración de las causas del ánimo (%)", 25, 400, Order = 21, RequireRestart = false,
+            HintText = "{=AIL_a1c0e5d4}100 = lo normal: un torneo se saborea 5 días, una batalla 3 o 4, el luto por un familiar dura 14 y por un amigo 10. 200 = el doble.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relación, confianza y romance")]
+        public int MoodDurationPercent { get; set; } = 100;
+
+        [SettingPropertyBool("{=AIL_a1c0e5d5}Ciclo femenino", Order = 22, RequireRestart = false,
+            HintText = "{=AIL_a1c0e5d6}Las mujeres de 13 a 47 años tienen ciclo: les cambia el ánimo según el día (a unas mucho y a otras casi nada) y cambia la probabilidad de embarazo, también la del juego. No hay ciclo durante el embarazo ni después del parto. Ella sabe en qué día está.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relación, confianza y romance")]
+        public bool EnableFemaleCycle { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_a1c0e5d7}Días que dura el ciclo", 15, 40, Order = 23, RequireRestart = false,
+            HintText = "{=AIL_a1c0e5d8}Días de campaña. Un año del juego tiene 84 días, así que 21 son cuatro ciclos al año.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relación, confianza y romance")]
+        public int FemaleCycleDays { get; set; } = 21;
+
         [SettingPropertyBool("{=AIL_6746c998}Traspaso de tropas y prisioneros", Order = 11, RequireRestart = false,
             HintText = "{=AIL_c0668e57}Un NPC con grupo puede cederte soldados o prisioneros, o aceptar los que tú le ofrezcas.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Acciones")]
