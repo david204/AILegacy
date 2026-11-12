@@ -34,6 +34,8 @@ namespace AILegacy.Dialogue
             public string Reply;          // null = la IA aún está pensando
             public bool Failed;
             public bool Asked;            // mapa: ya se ha preguntado al jugador si le recibe
+            public bool Hostile;          // mapa: un enemigo te ha dado alcance; no pide permiso, te corta el paso
+            public bool InParty;          // mapa: va en tu propia partida
             public float Age;
             public Action OnUnanswered;   // el jugador se fue o no se pudo abrir la charla
         }
@@ -50,13 +52,17 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>En el mapa: el noble ha llegado junto a tu grupo y quiere hablar.</summary>
-        public static bool StartMap(Hero hero, string openingInstruction)
+        public static bool StartMap(Hero hero, string openingInstruction, bool hostile = false)
         {
             if (_p != null || hero == null) return false;
             var s = Speaker.FromHero(hero);
             s.SituationKind = "initiative";
             s.Situation = openingInstruction;
-            return Begin(new Approach { Who = s, Hero = hero }, "You rode over to them. Speak first and say why you came.");
+            bool inParty = hero.PartyBelongedTo == MobileParty.MainParty;
+            return Begin(new Approach { Who = s, Hero = hero, Hostile = hostile, InParty = inParty },
+                hostile ? "You have ridden them down and barred their way. Speak first."
+                : inParty ? "You ride in their party and have asked for a word. Speak first and say what is on your mind."
+                : "You rode over to them. Speak first and say why you came.");
         }
 
         private static bool Begin(Approach p, string openingInstruction)
@@ -171,9 +177,22 @@ namespace AILegacy.Dialogue
 
             p.Asked = true;
             p.Age = 0f;
+            // Un enemigo que te ha dado alcance no pide permiso: te corta el paso, como cualquier encuentro hostil del juego.
+            // Su primera frase ya está lista y sale en cuanto se abre el parlamento; después, batalla o lo que acordéis.
+            if (p.Hostile)
+            {
+                try
+                {
+                    InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_f4c8e2a1", $"{h.Name} te corta el paso."), Colors.Red));
+                    EncounterManager.StartPartyEncounter(party.Party, PartyBase.MainParty);
+                }
+                catch (Exception ex) { Log.Error("Iniciativa hostil: abrir el encuentro", ex); _p = null; }
+                return;
+            }
             InformationManager.ShowInquiry(new InquiryData(L.F("AIL_c65afb5d", $"{h.Name} quiere hablar contigo"),
-                L.F("AIL_b6d441ce", $"{h.Name}{(h.Clan != null ? L.T("AIL_4514967a", ", del clan ") + h.Clan.Name : "")}, ha cabalgado hasta tu grupo y pide hablar contigo."),
-                true, true, "Recibirle", "Ahora no",
+                p.InParty ? L.F("AIL_f4c8e2a2", $"{h.Name}, que cabalga contigo, te pide un momento.")
+                          : L.F("AIL_b6d441ce", $"{h.Name}{(h.Clan != null ? L.T("AIL_4514967a", ", del clan ") + h.Clan.Name : "")}, ha cabalgado hasta tu grupo y pide hablar contigo."),
+                true, true, L.T("AIL_f4c8e2a3", "Recibirle"), L.T("AIL_f4c8e2a4", "Ahora no"),
                 () => MainThread.Post(() =>
                 {
                     try

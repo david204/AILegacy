@@ -1367,5 +1367,23 @@
     <string id="AIL_d2e7a4c4" text="{0}{1}赢得了{2}的锦标赛。" />
     <string id="AIL_d2e7a4c5" text="消息随距离传播" />
     <string id="AIL_d2e7a4c6" text="远方发生的事要过几天才传到，小事则永远传不到。贵族比平民能听到更远的消息，君主更远，而当事人的朋友或敌人总会知道。关闭：全王国立刻知晓。" />
+    <string id="AIL_e1f3b7a1" text="束手就擒" />
+    <string id="AIL_e1f3b7a2" text="你被关进牢房，由此地领主决定你的刑罚。" />
+    <string id="AIL_e1f3b7a3" text="反抗" />
+    <string id="AIL_e1f3b7a4" text="你与卫兵搏斗。赢了就能逃脱并被通缉；输了就进牢房，名声更坏。" />
+    <string id="AIL_e1f3b7a5" text="拔腿就跑" />
+    <string id="AIL_e1f3b7a6" text="你试图逃出城去。可能会失败。" />
+    <string id="AIL_e1f3b7a7" text="{0}的卫兵要逮捕你" />
+    <string id="AIL_e1f3b7a8" text="你怎么办？" />
+    <string id="AIL_e1f3b7a9" text="决定" />
+    <string id="AIL_e1f3b7aa" text="你反抗卫兵。" />
+    <string id="AIL_e1f3b7ab" text="你险些没能逃出{0}：现在你被通缉了。" />
+    <string id="AIL_e1f3b7ac" text="你没跑多远就被追上了。" />
+    <string id="AIL_e1f3b7ad" text="你杀出一条路逃离了{0}：现在你被通缉了。" />
+    <string id="AIL_e1f3b7ae" text="卫兵制服了你。" />
+    <string id="AIL_f4c8e2a1" text="{0}拦住了你的去路。" />
+    <string id="AIL_f4c8e2a2" text="与你同行的{0}想和你说几句。" />
+    <string id="AIL_f4c8e2a3" text="接见" />
+    <string id="AIL_f4c8e2a4" text="现在不行" />
   </strings>
 </base>

@@ -27,6 +27,12 @@ namespace AILegacy.Dialogue
         private static Settlement _jailIn;    // pendiente de encerrar al jugador al salir de la escena
         private static string _case, _jailStanding, _jailCrime;      // lo ocurrido, para el juicio del señor
         private static Speaker _jailGuard;
+        private static Agent _guardAgent;     // el agente del guardia que lleva el caso
+        private static Settlement _arrestIn;  // te han dicho que estás detenido: falta lo que haces tú
+        private static bool _asking;          // la ventana de decisión está abierta
+        private static bool _resisting;       // estás peleando con la guardia para no ir a la celda
+        private static float _resistAge;      // segundos desde que empezaste a resistirte
+        private static readonly Random Rng = new Random();
         private static Hero P => Hero.MainHero;
 
         private static readonly Tpl TSituation = new Tpl("justice/guard_after_trouble.txt",
@@ -102,6 +108,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                 s.Situation = TSituation.Format("settlement", st.Name, "owner", st.OwnerClan?.Leader?.Name?.ToString() ?? "its lord", "faction", st.MapFaction?.Name?.ToString() ?? "no realm",
                     "what_happened", whatHappenedEn, "fine_low", cfg.FineMin, "fine_high", cfg.FineMax, "standing", Standing(st), "crime", Crime(st));
                 _guard = s; _resolved = false; _talked = false;
+                _guardAgent = agent;
                 _case = whatHappenedEn;
                 if (!Initiative.Start(agent, s, "Walk up to them and speak first: demand to know what just happened here.", Unanswered))
                 { _guard = null; return false; }
@@ -112,6 +119,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
 
         public static void OnFightEnded(Speaker opponent, Agent opponentAgent, string kind, bool playerWon, bool unprovoked = false)
         {
+            if (_resisting) { _resisting = false; ResistEnded(playerWon); return; }
             string who = opponent.IsHero ? opponent.Name : (opponent.IsFemale ? "a local woman" : "a local man");
             string what = kind == "brawl" ? $"Moments ago the armed person in front of you had a fist fight with {who} in public"
                         : kind == "death" ? $"Moments ago the armed person in front of you fought {who} with drawn steel, to the death, in public"
@@ -161,11 +169,113 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
         {
             var st = Settlement.CurrentSettlement;
             if (st == null) return null;
-            _jailIn = st;
+            // No vas derecho a la celda: al acabar la charla decides si te entregas, te resistes o echas a correr
+            _arrestIn = st;
             _jailGuard = s; _jailStanding = Standing(st); _jailCrime = Crime(st);
             try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 10f, true); } catch { }
             Close($"The guard of {st.Name} arrested {P.Name} after a disturbance.", L.T("AIL_efa2c194", "Detenido por la guardia"), L.F("AIL_b8f58f0d", $"La guardia de {st.Name} detuvo a {P.Name} tras un altercado."));
             return L.F("AIL_f2440a00", $"El guardia te detiene: vas a los calabozos de {st.Name}.");
+        }
+
+        // ============================================================ detenido: qué haces tú
+
+        private static void AskArrest(Settlement st)
+        {
+            _asking = true;
+            try
+            {
+                var items = new List<InquiryElement>
+                {
+                    new InquiryElement("yield", L.T("AIL_e1f3b7a1", "Entregarte"), null, true, L.T("AIL_e1f3b7a2", "Vas a los calabozos y el señor del lugar decide tu pena.")),
+                    new InquiryElement("resist", L.T("AIL_e1f3b7a3", "Resistirte"), null, Combat.CanFightHere() && _guardAgent != null && _guardAgent.IsActive(),
+                        L.T("AIL_e1f3b7a4", "Peleas con la guardia. Si ganas, escapas y quedas buscado; si pierdes, a la celda y con peor fama.")),
+                    new InquiryElement("run", L.T("AIL_e1f3b7a5", "Echar a correr"), null, true, L.T("AIL_e1f3b7a6", "Intentas huir de la ciudad. Puede salir mal.")),
+                };
+                MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
+                    L.F("AIL_e1f3b7a7", $"La guardia de {st.Name} te detiene"), L.T("AIL_e1f3b7a8", "¿Qué haces?"),
+                    items, false, 1, 1, L.T("AIL_e1f3b7a9", "Decidir"), "",
+                    sel => MainThread.Post(() => OnArrestChoice(st, sel != null && sel.Count > 0 ? sel[0].Identifier as string : "yield")), null, "", false), true);
+            }
+            catch (Exception ex) { Log.Error("Detención: ventana", ex); _asking = false; _jailIn = st; }
+        }
+
+        private static void OnArrestChoice(Settlement st, string choice)
+        {
+            _asking = false;
+            try
+            {
+                if (Settlement.CurrentSettlement != st) return;         // ya no estás allí
+                switch (choice)
+                {
+                    case "resist":
+                    {
+                        var other = NearestGuard(_guardAgent, 25f);
+                        try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 10f, true); } catch { }
+                        if (_jailGuard != null && Combat.QueueFightWith(_jailGuard, _guardAgent, "duel", other != null ? new[] { other } : null))
+                        {
+                            _resisting = true; _resistAge = 0f;
+                            Say(L.T("AIL_e1f3b7aa", "Te resistes a la guardia."), Colors.Red);
+                            return;
+                        }
+                        _jailIn = st;      // no hay con quién pelear: te llevan
+                        return;
+                    }
+                    case "run":
+                    {
+                        int athletics = 0;
+                        try { athletics = P.GetSkillValue(DefaultSkills.Athletics); } catch { }
+                        int chance = Math.Max(20, Math.Min(85, 35 + athletics / 4));
+                        if (Rng.Next(100) < chance)
+                        {
+                            try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 15f, true); } catch { }
+                            Say(L.F("AIL_e1f3b7ab", $"Escapas por los pelos de {st.Name}: ahora te buscan."), Colors.Yellow);
+                            _escapeFrom = st;
+                        }
+                        else
+                        {
+                            try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 8f, true); } catch { }
+                            Say(L.T("AIL_e1f3b7ac", "No llegas lejos: te alcanzan."), Colors.Red);
+                            _jailIn = st;
+                        }
+                        return;
+                    }
+                    default:
+                        _jailIn = st;
+                        return;
+                }
+            }
+            catch (Exception ex) { Log.Error("Detención: decisión", ex); _jailIn = st; }
+        }
+
+        private static Settlement _escapeFrom;
+
+        /// <summary>Has peleado con la guardia para no ir a la celda.</summary>
+        private static void ResistEnded(bool playerWon)
+        {
+            var st = Settlement.CurrentSettlement;
+            if (st == null) return;
+            try
+            {
+                if (playerWon)
+                {
+                    if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 20f, true);
+                    Say(L.F("AIL_e1f3b7ad", $"Te abres paso y escapas de {st.Name}: ahora te buscan."), Colors.Yellow);
+                    _escapeFrom = st;
+                }
+                else
+                {
+                    if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 10f, true);
+                    Say(L.T("AIL_e1f3b7ae", "La guardia te reduce."), Colors.Red);
+                    _jailIn = st;
+                }
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "rumor", Importance = 1, SettlementId = st.StringId, Heroes = new List<string> { P.StringId },
+                    Kingdoms = st.MapFaction != null ? new List<string> { st.MapFaction.StringId } : new List<string>(),
+                    Text = playerWon ? $"{P.Name} fought the guard of {st.Name} to avoid arrest and got away." : $"{P.Name} fought the guard of {st.Name} to avoid arrest and was overpowered.",
+                });
+            }
+            catch (Exception ex) { Log.Error("Detención: tras la pelea", ex); }
         }
 
         /// <summary>El guardia no llegó a hablar contigo (te fuiste de la escena, la IA no contestó…).</summary>
@@ -177,8 +287,42 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
         {
             try
             {
-                if (Campaign.Current == null) { _guard = null; _jailIn = null; return; }
+                if (Campaign.Current == null) { _guard = null; _jailIn = null; _arrestIn = null; _escapeFrom = null; _asking = false; _resisting = false; return; }
                 bool talking = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
+
+                // Te resistías, pero la pelea no ha llegado a empezar (la escena cambió): no se queda a medias, te llevan
+                if (_resisting)
+                {
+                    _resistAge += dt;
+                    if (_resistAge > 6f && !Combat.Fighting)
+                    {
+                        _resisting = false;
+                        var here = Settlement.CurrentSettlement;
+                        if (here != null) _jailIn = here;
+                    }
+                }
+
+                // Detenido: en cuanto se cierra la charla, tú decides
+                if (_arrestIn != null && !talking && !_asking && !ChatSession.IsBusy)
+                {
+                    var st = _arrestIn; _arrestIn = null;
+                    if (Settlement.CurrentSettlement == st && Mission.Current != null) AskArrest(st);
+                    else _jailIn = st;
+                }
+
+                // Has escapado: fuera de la escena y fuera del lugar
+                if (_escapeFrom != null && !talking)
+                {
+                    if (Mission.Current != null)
+                    {
+                        if (!Mission.Current.MissionEnded) Mission.Current.EndMission();
+                    }
+                    else
+                    {
+                        var st = _escapeFrom; _escapeFrom = null;
+                        if (Settlement.CurrentSettlement == st) { PlayerEncounter.LeaveSettlement(); PlayerEncounter.Finish(); }
+                    }
+                }
 
                 if (_guard != null)
                 {
@@ -219,7 +363,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Justicia: tick", ex); _guard = null; _jailIn = null; }
+            catch (Exception ex) { Log.Error("Justicia: tick", ex); _guard = null; _jailIn = null; _arrestIn = null; _escapeFrom = null; }
         }
     }
 }

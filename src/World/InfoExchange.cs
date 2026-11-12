@@ -204,13 +204,42 @@ namespace AILegacy.World
                 float range = Math.Max(4f, main.SeeingRange * 0.9f);
                 var here = main.GetPosition2D;
                 var candidates = new List<(Hero h, double w, string why)>();
+                // Los que cabalgan contigo: no tienen que acercarse, te piden un momento
+                try
+                {
+                    foreach (var e in main.MemberRoster.GetTroopRoster())
+                    {
+                        var h = e.Character?.HeroObject;
+                        if (h == null || h == P || !h.IsAlive || h.IsWounded) continue;
+                        var mem = MemoryStore.Find(h.StringId);
+                        if (mem == null || mem.ConversationCount == 0) continue;
+                        if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < cfg.MapInitiativeDaysPerNpc) continue;
+                        if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay < 1) continue;
+                        var (w, why) = Motive(h, mem);
+                        if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay >= 20) { w += 1.5; why = (why.Length > 0 ? why + "; " : "") + "you ride together every day and have not really talked in weeks"; }
+                        if (w > 0) candidates.Add((h, w, why));
+                    }
+                }
+                catch { }
                 foreach (var p in MobileParty.All)
                 {
                     if (p == null || !p.IsActive || p.IsMainParty || !p.IsLordParty || p.LeaderHero == null || p.MapEvent != null || p.CurrentSettlement != null) continue;
                     if (p.Army != null && p.Army.LeaderParty != p) continue;
                     if (p.GetPosition2D.Distance(here) > range) continue;
                     var h = p.LeaderHero;
-                    if (h.MapFaction != null && P.MapFaction != null && h.MapFaction != P.MapFaction && h.MapFaction.IsAtWarWith(P.MapFaction)) continue;   // a los enemigos ya los mueve el juego
+                    if (h.MapFaction != null && P.MapFaction != null && h.MapFaction != P.MapFaction && h.MapFaction.IsAtWarWith(P.MapFaction))
+                    {
+                        // Un enemigo que te conoce, te la tiene guardada y se sabe más fuerte: te da alcance para decírtelo a la cara
+                        // antes de nada (como mucho cada tres días por personaje)
+                        var hm = MemoryStore.Find(h.StringId);
+                        if (hm == null || hm.ConversationCount == 0 || !OrderSystem.CanTakeOrders(h) || OrderSystem.Find(h) != null) continue;
+                        if (hm.LastInitiativeDay >= 0 && now - hm.LastInitiativeDay < 3) continue;
+                        int hrel = (int)h.GetRelationWithPlayer();
+                        bool grudge = hrel <= -20 || Bonds.Tension(hm) >= 40 || hm.LiesSuspected > 0;
+                        if (!grudge || p.Party.CalculateCurrentStrength() < main.Party.CalculateCurrentStrength() * 1.2f) continue;
+                        candidates.Add((h, 2.0, "HOSTILE|" + (hrel <= -20 ? "you bear them a grudge" : hm.LiesSuspected > 0 ? "they lied to you and you have not forgotten" : "things were left ugly between you")));
+                        continue;
+                    }
                     if (!OrderSystem.CanTakeOrders(h) || OrderSystem.Find(h) != null) continue;
                     var mem = MemoryStore.Find(h.StringId);
                     if (mem == null || mem.ConversationCount == 0) continue;                // solo quien ya te conoce
@@ -230,6 +259,12 @@ namespace AILegacy.World
                     mem.LastInitiativeDay = now;
                     mem.InitiativeReason = c.why;
                     MemoryStore.LastInitiativeDay = now;
+                    if (c.h.PartyBelongedTo == main)
+                    {
+                        Log.Info($"Iniciativa en el mapa: {c.h.Name}, de tu partida, pide hablar ({c.why})");
+                        Initiative.StartMap(c.h, TPartyAsk.Format("reasons", c.why));
+                        return;
+                    }
                     OrderSystem.Give(c.h, "approach", null, P.Name.ToString(), 0.5);
                     Log.Info($"Iniciativa en el mapa: {c.h.Name} va hacia el jugador ({c.why})");
                     return;
@@ -259,6 +294,14 @@ namespace AILegacy.World
 @"You saw their party on the road and rode over with your own men to speak with them, on your own initiative. Why you came: {reasons}.
 Open with that reason, in your own voice; do not make small talk and do not ask ""what brings you here"" (it is you who came). If what you want is to ask about a task, about something you heard, or to settle a grievance, say so plainly.");
 
+        private static readonly Tpl TPartyAsk = new Tpl("npc_initiative/party_member.txt",
+@"You travel in their party and have asked them for a moment, on your own initiative. Why: {reasons}.
+Open with that, in your own voice, as someone who shares the road and the camp with them. No small talk first.");
+
+        private static readonly Tpl THostile = new Tpl("npc_initiative/hostile_intercept.txt",
+@"You are at war with their side and your party is the stronger. You have ridden them down and barred their way, and you want to say something to their face before anything else. Why: {reasons}.
+Open with it, in your own voice: a demand, a taunt, an offer of terms, or a last word before blood. You decide how this ends with one of the actions open to you (attack them, let them pass, or take their surrender if they yield); do not decide in your very first words.");
+
         public static void Touch() { var _ = TMapApproach.Key; }
 
         /// <summary>El grupo del NPC ha llegado junto al del jugador.</summary>
@@ -266,6 +309,13 @@ Open with that reason, in your own voice; do not make small talk and do not ask 
         {
             var mem = MemoryStore.Find(h.StringId);
             string why = string.IsNullOrWhiteSpace(mem?.InitiativeReason) ? "you wanted a word with them" : mem.InitiativeReason;
+            if (why.StartsWith("HOSTILE|"))
+            {
+                // Sigue siendo enemigo y sigue pudiendo: si no, lo deja estar
+                bool still = h.MapFaction != null && P.MapFaction != null && h.MapFaction.IsAtWarWith(P.MapFaction);
+                if (still) Initiative.StartMap(h, THostile.Format("reasons", why.Substring(8)), hostile: true);
+                return;
+            }
             Initiative.StartMap(h, TMapApproach.Format("reasons", why));
         }
     }

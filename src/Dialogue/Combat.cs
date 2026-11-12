@@ -80,6 +80,19 @@ namespace AILegacy.Dialogue
             }
         }
 
+        /// <summary>Pelea con alguien concreto de la escena, fuera de una charla (resistirse a la guardia). Empieza enseguida.</summary>
+        /// <summary>Hay una pelea a punto de empezar o en marcha.</summary>
+        public static bool Fighting => _fight != null || _active != null;
+
+        public static bool QueueFightWith(Speaker s, Agent opponent, string kind, IEnumerable<Agent> helpers = null)
+        {
+            if (opponent == null || !opponent.IsActive() || _fight != null || !CanFightHere()) return false;
+            _fight = new PendingFight { Who = s, Opponent = opponent, Kind = kind, Wait = 0.4f };
+            if (helpers != null) _fight.Helpers.AddRange(helpers.Where(h => h != null && h.IsActive() && h != opponent));
+            Log.Info($"Pelea pendiente con {s?.Name}: {kind} (fuera de charla)");
+            return true;
+        }
+
         private static void StartFight()
         {
             var f = _fight;
