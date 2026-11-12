@@ -5,6 +5,7 @@ bin/
 *.bak
 *.zip
 *.7z
+*.rar
 
 # Never commit keys, saves or logs
 config.json
