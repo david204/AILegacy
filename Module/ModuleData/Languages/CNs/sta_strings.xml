@@ -1314,5 +1314,18 @@
     <string id="AIL_d4b8a2f8" text="完整说明的动作数" />
     <string id="AIL_d4b8a2f9" text="向量模型（留空 = 自动）" />
     <string id="AIL_d4b8a2fa" text="留空：Gemini 用 gemini-embedding-001，OpenAI 用 text-embedding-3-small，Ollama 用 nomic-embed-text。只有当你的服务商使用其他名称时才填写。" />
+    <string id="AIL_e5c9b3a1" text="消息" />
+    <string id="AIL_e5c9b3a2" text="回忆" />
+    <string id="AIL_e5c9b3a3" text="确认" />
+    <string id="AIL_e5c9b3a4" text="取消" />
+    <string id="AIL_e5c9b3a5" text="结束" />
+    <string id="AIL_e5c9b3a6" text="从未" />
+    <string id="AIL_e5c9b3a7" text="保存" />
+    <string id="AIL_e5c9b3a8" text="下令" />
+    <string id="AIL_e5c9b3a9" text="导入" />
+    <string id="AIL_e5c9b3aa" text="移除" />
+    <string id="AIL_e5c9b3ab" text="写信" />
+    <string id="AIL_e5c9b3ac" text="发送" />
+    <string id="AIL_e5c9b3ad" text="宣布" />
   </strings>
 </base>

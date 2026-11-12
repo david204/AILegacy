@@ -175,7 +175,7 @@ namespace AILegacy.UI
                     clean(n.DisplayText), clean(WorldSim.EffectsLineEs(EventIdOf(n), n.SettlementId, n.Type)), tag, when, kind));
             }
             if (vm.Cards.Count == 0)
-                vm.Cards.Add(new NewsCardVM(L.T("AIL_dd4380be", "Sin sucesos"), "", all ? L.T("AIL_6549b43d", "Todavía no ha pasado nada digno de contarse.") : L.T("AIL_cf032cac", "Todavía no hay ningún suceso de los que dan que hablar. Con «Ver todo» salen también las capturas, batallas y saqueos del día a día."), "", L.T("AIL_28b223a8", "Local"), L.T("AIL_564e2e23", "Hoy"), 0));
+                vm.Cards.Add(new NewsCardVM(L.T("AIL_dd4380be", "Sin sucesos"), "", all ? L.T("AIL_6549b43d", "Todavía no ha pasado nada digno de contarse.") : L.T("AIL_cf032cac", "Todavía no hay ningún suceso de los que dan que hablar. Con «Ver todo» salen también las capturas, batallas y saqueos del día a día."), "", "", "", 2));
             vm.ToggleText = all ? L.T("AIL_f96ef1d1", "Solo sucesos") : L.T("AIL_ebad7b06", "Ver todo");
         }
 

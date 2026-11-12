@@ -311,7 +311,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             var cfg = S.Get;
             if (!Config.LegacyConfig.Current.Providers.Any(p => p.IsUsable)) { Say("AI Legacy: no hay ninguna api_key configurada.", Colors.Red); return; }
             InformationManager.ShowTextInquiry(new TextInquiryData(L.T("AIL_56a85a72", "Órdenes a tus tropas"), L.T("AIL_33dbf353", "Escríbelas con tus palabras: «infantería en muro de escudos y aguantad», «la caballería por la izquierda contra sus arqueros», «todos a la carga»…"),
-                true, true, "Ordenar", "Cancelar", text =>
+                true, true, L.T("AIL_e5c9b3a8", "Ordenar"), L.T("AIL_e5c9b3a4", "Cancelar"), text =>
                 {
                     text = (text ?? "").Trim();
                     var m = Mission.Current;

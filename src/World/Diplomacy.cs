@@ -693,7 +693,7 @@ Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English s
             if (!PlayerCanDeclare) { WorldSim.Say(L.T("AIL_76f7a56d", "Solo quien reina puede hacer una declaración."), Colors.Red); return; }
             InformationManager.ShowTextInquiry(new TextInquiryData(L.T("AIL_fec92cb7", "Declaración de la corona"),
                 L.T("AIL_f00983f3", "Escribe lo que proclamas ante Calradia. Lo que decidas con claridad (guerra, paz, alianza, tributo, impuestos, feudos…) se llevará a cabo; lo demás quedará como palabras."),
-                true, true, "Proclamar", "Cancelar", text =>
+                true, true, L.T("AIL_e5c9b3ad", "Proclamar"), L.T("AIL_e5c9b3a4", "Cancelar"), text =>
                 {
                     text = (text ?? "").Trim();
                     if (text.Length < 10) return;

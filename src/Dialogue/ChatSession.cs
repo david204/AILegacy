@@ -52,7 +52,7 @@ namespace AILegacy.Dialogue
 
             if (!LegacyConfig.Current.Providers.Any(p => p.IsUsable))
             {
-                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("AIL_06c4b9a6", "no hay ninguna api_key configurada en Modules\\AILegacy\\config.json")), Colors.Red);
+                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("AIL_bb646884", "No hay ninguna clave: ponla en Opciones, Mod Options, AI Legacy, 0. Claves de IA.")), Colors.Red);
                 return;
             }
 
@@ -110,7 +110,7 @@ namespace AILegacy.Dialogue
 
             if (!LegacyConfig.Current.Providers.Any(p => p.IsUsable))
             {
-                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("AIL_06c4b9a6", "no hay ninguna api_key configurada en Modules\\AILegacy\\config.json")), Colors.Red);
+                Notify("AI Legacy: " + (LegacyConfig.LastLoadError ?? L.T("AIL_bb646884", "No hay ninguna clave: ponla en Opciones, Mod Options, AI Legacy, 0. Claves de IA.")), Colors.Red);
                 return null;
             }
             var session = new ChatSession(s) { _dialogMode = true };
@@ -125,7 +125,7 @@ namespace AILegacy.Dialogue
         public void AskInput()
         {
             if (_closed || _waiting || _npcEnded) return;
-            string last = Mem.LastConversationDay < 0 ? "Nunca"
+            string last = Mem.LastConversationDay < 0 ? L.T("AIL_e5c9b3a6", "Nunca")
                 : (int)(CampaignTime.Now.ToDays - Mem.LastConversationDay) <= 0 ? L.T("AIL_564e2e23", "Hoy")
                 : L.F("AIL_b2b050b8", $"Hace {(int)(CampaignTime.Now.ToDays - Mem.LastConversationDay)} días");
             var lastNpc = Mem.Turns.LastOrDefault(t => t.Role == "npc")?.Text;
@@ -134,7 +134,7 @@ namespace AILegacy.Dialogue
                 : L.F("AIL_e102e90e", $"Último mensaje de {_s.Name}:\n{(lastNpc.Length > 700 ? lastNpc.Substring(0, 700) + "…" : lastNpc)}");
             InformationManager.ShowTextInquiry(new TextInquiryData(
                 L.F("AIL_4f47d62d", $"Tu mensaje para {_s.Name}"), body + L.T("AIL_904fdecc", "\n\n(/ayuda para ver los comandos)"),
-                true, true, "Confirmar", "Cancelar",
+                true, true, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e5c9b3a4", "Cancelar"),
                 t => OnPlayerSaid(t), null, false,
                 t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
@@ -237,7 +237,7 @@ namespace AILegacy.Dialogue
                     body.AppendLine(line.Length > 600 ? line.Substring(0, 600) + "…" : line).AppendLine();
 
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                _s.Name, body.ToString().TrimEnd(), true, true, L.T("AIL_aa23f794", "Decir"), "Terminar",
+                _s.Name, body.ToString().TrimEnd(), true, true, L.T("AIL_aa23f794", "Decir"), L.T("AIL_e5c9b3a5", "Terminar"),
                 OnPlayerSaid, () => Close(_npcEnded), false,
                 t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
@@ -682,6 +682,15 @@ namespace AILegacy.Dialogue
             }
         }
 
-        public static void Notify(string msg, Color color) => InformationManager.DisplayMessage(new InformationMessage(msg, color));
+        private static string _lastNotice;
+        private static DateTime _lastNoticeAt;
+
+        public static void Notify(string msg, Color color)
+        {
+            // El mismo aviso dos veces seguidas (el juego evalúa la línea de diálogo más de una vez) solo sale una
+            if (msg == _lastNotice && (DateTime.UtcNow - _lastNoticeAt).TotalSeconds < 2) return;
+            _lastNotice = msg; _lastNoticeAt = DateTime.UtcNow;
+            InformationManager.DisplayMessage(new InformationMessage(msg, color));
+        }
     }
 }

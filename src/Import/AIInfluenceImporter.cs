@@ -52,7 +52,7 @@ namespace AILegacy.Import
                         L.T("AIL_b80262c3", "Importar de AIInfluence"),
                         L.F("AIL_6dfb3368", $"No hay datos de AIInfluence para ESTA campaña ({id}).\n\nPuedes importar otra campaña: solo se usarán los NPC que existan en esta partida ") +
                         L.T("AIL_b3384056", "(los lores del juego tienen el mismo id en todas). Ojo: recordarán cosas de aquella partida."),
-                        options, true, 1, 1, "Importar", "Cancelar",
+                        options, true, 1, 1, L.T("AIL_e5c9b3a9", "Importar"), L.T("AIL_e5c9b3a4", "Cancelar"),
                         sel => { if (sel?.Count > 0) MainThread.Post(() => Import((string)sel[0].Identifier, false)); }, null), true);
                 }
                 catch (Exception ex) { Log.Error("Importador", ex); Show("AI Legacy", "Error importando: " + ex.Message); }
@@ -72,7 +72,7 @@ namespace AILegacy.Import
                     InformationManager.ShowInquiry(new InquiryData(L.T("AIL_e644c872", "Deshacer importación"),
                         L.F("AIL_cb889c97", $"Se van a quitar de esta campaña las memorias de {imported.Count} personajes que vinieron de AIInfluence ") +
                         L.T("AIL_68edf522", "(incluido lo que hayas hablado con ellos después). Sus archivos se apartan a una subcarpeta de la campaña, no se borran.\n\n¿Seguir?"),
-                        true, true, "Quitar", "Cancelar", () =>
+                        true, true, L.T("AIL_e5c9b3aa", "Quitar"), L.T("AIL_e5c9b3a4", "Cancelar"), () =>
                         {
                             var dest = SaveFiles.BackupHeroFiles(Campaign.Current.UniqueGameId, imported, "importados");
                             foreach (var m in imported) MemoryStore.Remove(m.HeroId);

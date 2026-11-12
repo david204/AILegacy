@@ -31,7 +31,7 @@
                                     <!-- Efectos -->
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" MarginRight="24" MarginTop="14" Brush="Popup.Title.Text" Brush.FontSize="19" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Effects" IsVisible="@HasEffects" />
                                     <!-- Tipo y fecha -->
-                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="14">
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="14" IsVisible="@HasTags">
                                       <Children>
                                         <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#4A3524FF" IsVisible="@IsLocal">
                                           <Children>

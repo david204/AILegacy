@@ -123,7 +123,7 @@ namespace AILegacy.Llm
             {
                 var cfg = LegacyConfig.Current;
                 o.Providers = cfg.Providers.Where(p => p.IsUsable).ToList();
-                if (o.Providers.Count == 0) o.NoProvidersError = LegacyConfig.LastLoadError ?? L.T("AIL_b6af22fa", "No hay ningún proveedor con api_key en config.json");
+                if (o.Providers.Count == 0) o.NoProvidersError = LegacyConfig.LastLoadError ?? L.T("AIL_bb646884", "No hay ninguna clave: ponla en Opciones, Mod Options, AI Legacy, 0. Claves de IA.");
             }
             catch (Exception ex) { o.NoProvidersError = ex.Message; }
             o.Deadline = DateTime.UtcNow.AddSeconds(o.Priority == 0 ? 75 : 180);

@@ -121,6 +121,39 @@ namespace AILegacy.Core
             }
         }
 
+        private static string _synced;
+        private static System.Reflection.FieldInfo _gameTexts;
+
+        /// <summary>
+        /// Pone nuestros textos, en el idioma elegido en AI Legacy, dentro de la tabla de textos del juego. MCM (y cualquier
+        /// «{=AIL_…}») los lee de ahí. Enganchar LocalizedTextManager.GetTranslatedText no sirve: es tan corta que el juego la
+        /// incrusta al compilar y el enganche no se ejecuta. Se repite si cambia el idioma o si el juego recarga su tabla.
+        /// Barato: llamar cada segundo o dos.
+        /// </summary>
+        public static void SyncGameTexts()
+        {
+            try
+            {
+                string code = Code;
+                if (_gameTexts == null)
+                    _gameTexts = typeof(LocalizedTextManager).GetField("_gameTextDictionary", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+                var dict = _gameTexts?.GetValue(null) as Dictionary<string, string>;
+                if (dict == null) return;
+                var mine = Table(code);
+                var en = code == "en" || code == "es" ? null : Table("en");
+                // ¿Sigue puesto? (basta mirar uno: si el juego recargó su tabla, ya no coincide)
+                string probe = "AIL_dda0e8ca";
+                mine.TryGetValue(probe, out string want);
+                if (want == null && en != null) en.TryGetValue(probe, out want);
+                dict.TryGetValue(probe, out string have);
+                if (code == _synced && (want == null || want == have)) return;
+                if (en != null) foreach (var kv in en) dict[kv.Key] = kv.Value;
+                foreach (var kv in mine) dict[kv.Key] = kv.Value;
+                _synced = code;
+            }
+            catch (Exception ex) { try { Log.Warn("Textos en la tabla del juego: " + ex.Message); } catch { } }
+        }
+
         /// <summary>Traducción del identificador en el idioma en uso (o en inglés), o null.</summary>
         private static string Find(string id)
         {

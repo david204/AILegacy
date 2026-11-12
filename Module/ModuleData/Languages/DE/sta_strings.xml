@@ -1314,5 +1314,18 @@
     <string id="AIL_d4b8a2f8" text="Vollständig erklärte Aktionen" />
     <string id="AIL_d4b8a2f9" text="Vektormodell (leer = automatisch)" />
     <string id="AIL_d4b8a2fa" text="Leer: gemini-embedding-001 bei Gemini, text-embedding-3-small bei OpenAI, nomic-embed-text bei Ollama. Trage nur dann etwas anderes ein, wenn dein Anbieter einen anderen Namen verwendet." />
+    <string id="AIL_e5c9b3a1" text="Neuigkeiten" />
+    <string id="AIL_e5c9b3a2" text="Erinnerungen" />
+    <string id="AIL_e5c9b3a3" text="Bestätigen" />
+    <string id="AIL_e5c9b3a4" text="Abbrechen" />
+    <string id="AIL_e5c9b3a5" text="Beenden" />
+    <string id="AIL_e5c9b3a6" text="Nie" />
+    <string id="AIL_e5c9b3a7" text="Behalten" />
+    <string id="AIL_e5c9b3a8" text="Befehlen" />
+    <string id="AIL_e5c9b3a9" text="Importieren" />
+    <string id="AIL_e5c9b3aa" text="Entfernen" />
+    <string id="AIL_e5c9b3ab" text="Schreiben" />
+    <string id="AIL_e5c9b3ac" text="Senden" />
+    <string id="AIL_e5c9b3ad" text="Verkünden" />
   </strings>
 </base>

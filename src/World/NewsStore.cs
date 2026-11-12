@@ -25,8 +25,19 @@ namespace AILegacy.World
         [JsonProperty("title_es")] public string TitleEs;
         [JsonProperty("text_es")] public string TextEs;
 
-        [JsonIgnore] public string DisplayTitle => string.IsNullOrWhiteSpace(TitleEs) ? (Text.Length > 60 ? Text.Substring(0, 60) + "…" : Text) : TitleEs;
-        [JsonIgnore] public string DisplayText => string.IsNullOrWhiteSpace(TextEs) ? Text : TextEs;
+        /// <summary>Idioma en que se escribieron el titular y el texto para enseñar (los de la IA no llevan: van en el idioma de las respuestas).</summary>
+        [JsonProperty("lang")] public string Lang;
+        /// <summary>El titular y el texto locales valen si siguen estando en el idioma de ahora.</summary>
+        [JsonIgnore] private bool LocalOk => string.IsNullOrEmpty(Lang) || Lang == AILegacy.Core.L.Code;
+        [JsonIgnore] public string DisplayTitle => string.IsNullOrWhiteSpace(TitleEs) || !LocalOk ? Headline(Text) : TitleEs;
+        [JsonIgnore] public string DisplayText => string.IsNullOrWhiteSpace(TextEs) || !LocalOk ? Text : TextEs;
+        private static string Headline(string t)
+        {
+            t = t ?? "";
+            int dot = t.IndexOf('.');
+            if (dot > 10 && dot <= 70) return t.Substring(0, dot);
+            return t.Length > 60 ? t.Substring(0, 60) + "…" : t;
+        }
     }
 
     /// <summary>
@@ -51,6 +62,8 @@ namespace AILegacy.World
             if (n == null || string.IsNullOrWhiteSpace(n.Text)) return;
             n.Id = n.Id ?? Guid.NewGuid().ToString("N").Substring(0, 10);
             n.Day = CampaignTime.Now.ToDays;
+            // Las noticias que escribe el propio mod (no la IA) llevan su idioma, para no enseñarlas en otro si se cambia
+            if (n.Lang == null && n.Type != "rumor" && n.Type != "event" && n.Type != "statement" && n.Type != "verdict") n.Lang = AILegacy.Core.L.Code;
             n.Importance = Math.Max(1, Math.Min(4, n.Importance));
             if (n.Heroes.Contains(Hero.MainHero?.StringId)) n.PlayerInvolved = true;
             _items.Add(n);

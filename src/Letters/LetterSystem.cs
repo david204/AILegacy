@@ -70,7 +70,7 @@ namespace AILegacy.Letters
 
             MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
                 L.T("AIL_629058ab", "Enviar una carta"), L.T("AIL_9dedec74", "Solo puedes escribir a quien conoces. ★ = alguien con quien ya has hablado. El coste y el tiempo dependen de la distancia."),
-                items, true, 1, 1, "Escribir", "Cancelar",
+                items, true, 1, 1, L.T("AIL_e5c9b3ab", "Escribir"), L.T("AIL_e5c9b3a4", "Cancelar"),
                 sel => { if (sel?.Count > 0) MainThread.Post(() => Compose((Hero)sel[0].Identifier)); }, null, "", true), true);
         }
 
@@ -80,7 +80,7 @@ namespace AILegacy.Letters
             InformationManager.ShowTextInquiry(new TextInquiryData(
                 L.F("AIL_27a8d342", $"Carta para {hero.Name}"),
                 L.F("AIL_dcd92686", $"El mensajero cobra {cost} denarios y tardará {TravelText(hours)} en llegar.\nSi te contesta, la respuesta tardará lo mismo en volver."),
-                true, true, "Enviar", "Cancelar",
+                true, true, L.T("AIL_e5c9b3ac", "Enviar"), L.T("AIL_e5c9b3a4", "Cancelar"),
                 text =>
                 {
                     text = (text ?? "").Trim();
@@ -275,7 +275,7 @@ namespace AILegacy.Letters
             _showing = true;
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
             InformationManager.ShowInquiry(new InquiryData(
-                L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, false, "Guardar", "",
+                L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, false, L.T("AIL_e5c9b3a7", "Guardar"), "",
                 () => { _showing = false; }, null), true);
         }
     }

@@ -104,6 +104,7 @@ namespace AILegacy.World
         private static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification) => Safe("muerte", () =>
         {
             if (victim == null || !(victim.IsLord || victim.IsNotable || victim.IsPlayerCompanion)) return;
+            try { if (detail.ToString() == "Lost" && Campaign.Current != null && Campaign.Current.Models.CampaignTimeModel.CampaignStartTime.ElapsedDaysUntilNow < 3) return; } catch { }
             string how, howEs;
             switch (detail.ToString())
             {

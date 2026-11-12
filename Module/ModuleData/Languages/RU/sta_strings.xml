@@ -1314,5 +1314,18 @@
     <string id="AIL_d4b8a2f8" text="Сколько действий описывать полностью" />
     <string id="AIL_d4b8a2f9" text="Модель векторов (пусто = автоматически)" />
     <string id="AIL_d4b8a2fa" text="Пусто: gemini-embedding-001 для Gemini, text-embedding-3-small для OpenAI, nomic-embed-text для Ollama. Укажите другую, только если ваш провайдер использует иное название." />
+    <string id="AIL_e5c9b3a1" text="Новости" />
+    <string id="AIL_e5c9b3a2" text="Воспоминания" />
+    <string id="AIL_e5c9b3a3" text="Подтвердить" />
+    <string id="AIL_e5c9b3a4" text="Отмена" />
+    <string id="AIL_e5c9b3a5" text="Закончить" />
+    <string id="AIL_e5c9b3a6" text="Никогда" />
+    <string id="AIL_e5c9b3a7" text="Сохранить" />
+    <string id="AIL_e5c9b3a8" text="Приказать" />
+    <string id="AIL_e5c9b3a9" text="Импорт" />
+    <string id="AIL_e5c9b3aa" text="Убрать" />
+    <string id="AIL_e5c9b3ab" text="Написать" />
+    <string id="AIL_e5c9b3ac" text="Отправить" />
+    <string id="AIL_e5c9b3ad" text="Провозгласить" />
   </strings>
 </base>

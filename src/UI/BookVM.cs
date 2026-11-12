@@ -68,6 +68,8 @@ namespace AILegacy.UI
         [DataSourceProperty] public string Tag { get; }
         [DataSourceProperty] public string When { get; }
         [DataSourceProperty] public bool HasParticipants => Participants.Length > 0;
+        /// <summary>La fila de etiquetas (tipo y fecha) solo sale en noticias de verdad, no en el aviso de «no hay nada».</summary>
+        [DataSourceProperty] public bool HasTags => !string.IsNullOrEmpty(Tag) || !string.IsNullOrEmpty(When);
         [DataSourceProperty] public bool HasEffects => Effects.Length > 0;
     }
 
@@ -81,7 +83,7 @@ namespace AILegacy.UI
         private string _toggleText = "";
         [DataSourceProperty] public string ToggleText { get => _toggleText; set { if (value != _toggleText) { _toggleText = value; OnPropertyChangedWithValue(value, nameof(ToggleText)); } } }
         [DataSourceProperty] public string Title { get; set; } = "";
-        [DataSourceProperty] public string CloseText => "Cerrar";
+        [DataSourceProperty] public string CloseText => L.T("AIL_e8438e2a", "Cerrar");
         [DataSourceProperty] public string ActionText { get; set; } = "";
         [DataSourceProperty] public bool HasAction { get; set; }
         [DataSourceProperty] public MBBindingList<NewsCardVM> Cards { get; } = new MBBindingList<NewsCardVM>();
@@ -91,12 +93,12 @@ namespace AILegacy.UI
     {
         public Action OnNews, OnMemories, OnQuests;
         public void ExecuteQuests() => OnQuests?.Invoke();
-        [DataSourceProperty] public string QuestsText => "Encargos";
+        [DataSourceProperty] public string QuestsText => L.T("AIL_32bdb403", "Encargos");
         private bool _isVisible = true;
         public void ExecuteNews() => OnNews?.Invoke();
         public void ExecuteMemories() => OnMemories?.Invoke();
-        [DataSourceProperty] public string NewsText => "Noticias";
-        [DataSourceProperty] public string MemoriesText => "Memorias";
+        [DataSourceProperty] public string NewsText => L.T("AIL_e5c9b3a1", "Noticias");
+        [DataSourceProperty] public string MemoriesText => L.T("AIL_e5c9b3a2", "Memorias");
         [DataSourceProperty] public bool IsVisible { get => _isVisible; set { if (value != _isVisible) { _isVisible = value; OnPropertyChangedWithValue(value, nameof(IsVisible)); } } }
     }
 }

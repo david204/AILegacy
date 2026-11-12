@@ -1314,5 +1314,18 @@
     <string id="AIL_d4b8a2f8" text="Azioni spiegate per intero" />
     <string id="AIL_d4b8a2f9" text="Modello di vettori (vuoto = automatico)" />
     <string id="AIL_d4b8a2fa" text="Vuoto: gemini-embedding-001 con Gemini, text-embedding-3-small con OpenAI, nomic-embed-text con Ollama. Scrivine un altro solo se il tuo fornitore usa un nome diverso." />
+    <string id="AIL_e5c9b3a1" text="Notizie" />
+    <string id="AIL_e5c9b3a2" text="Memorie" />
+    <string id="AIL_e5c9b3a3" text="Conferma" />
+    <string id="AIL_e5c9b3a4" text="Annulla" />
+    <string id="AIL_e5c9b3a5" text="Termina" />
+    <string id="AIL_e5c9b3a6" text="Mai" />
+    <string id="AIL_e5c9b3a7" text="Conserva" />
+    <string id="AIL_e5c9b3a8" text="Ordina" />
+    <string id="AIL_e5c9b3a9" text="Importa" />
+    <string id="AIL_e5c9b3aa" text="Rimuovi" />
+    <string id="AIL_e5c9b3ab" text="Scrivi" />
+    <string id="AIL_e5c9b3ac" text="Invia" />
+    <string id="AIL_e5c9b3ad" text="Proclama" />
   </strings>
 </base>
