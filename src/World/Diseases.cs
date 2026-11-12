@@ -426,7 +426,7 @@ namespace AILegacy.World
                 foreach (var town in k.Fiefs)
                 {
                     town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty + law.LoyaltyPerDay));
-                    town.Prosperity = Math.Max(0f, town.Prosperity + law.ProsperityPerDay);
+                    town.Prosperity = Math.Max(0f, town.Prosperity + Math.Max(-1.5f, Math.Min(1.5f, law.ProsperityPerDay)));   // tope también para leyes de partidas antiguas
                     town.Security = Math.Max(0f, Math.Min(100f, town.Security + law.SecurityPerDay));
                     town.FoodStocks = Math.Max(0f, town.FoodStocks + law.FoodPerDay);
                 }

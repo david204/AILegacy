@@ -1263,5 +1263,7 @@
     <string id="AIL_ff5c778e" text="你已抵达 {0}。回去找 {1}。" />
     <string id="AIL_ff6e4415" text="{0} 走向你。" />
     <string id="AIL_ffcd4d39" text="王室税：最低（%）" />
+    <string id="AIL_0490687a" text="无法创建备份；未做任何更改。" />
+    <string id="AIL_d0109f54" text="你击败了{0}。" />
   </strings>
 </base>

@@ -1263,5 +1263,7 @@
     <string id="AIL_ff5c778e" text="Du bist in {0} angekommen. Kehre zu {1} zurück." />
     <string id="AIL_ff6e4415" text="{0} kommt auf dich zu." />
     <string id="AIL_ffcd4d39" text="Steuer der Krone: Minimum (%)" />
+    <string id="AIL_0490687a" text="Die Sicherung konnte nicht erstellt werden; es wurde nichts geändert." />
+    <string id="AIL_d0109f54" text="Du hast {0} besiegt." />
   </strings>
 </base>

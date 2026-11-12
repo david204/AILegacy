@@ -1263,5 +1263,7 @@
     <string id="AIL_ff5c778e" text="Tu es arrivé à {0}. Retourne voir {1}." />
     <string id="AIL_ff6e4415" text="{0} s'approche de toi." />
     <string id="AIL_ffcd4d39" text="Impôt de la couronne : minimum (%)" />
+    <string id="AIL_0490687a" text="La sauvegarde préalable a échoué ; rien n'a été modifié." />
+    <string id="AIL_d0109f54" text="Vous avez vaincu {0}." />
   </strings>
 </base>

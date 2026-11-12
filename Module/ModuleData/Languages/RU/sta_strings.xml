@@ -1263,5 +1263,7 @@
     <string id="AIL_ff5c778e" text="Ты добрался до {0}. Вернись к {1}." />
     <string id="AIL_ff6e4415" text="{0} подходит к тебе." />
     <string id="AIL_ffcd4d39" text="Налог короны: минимум (%)" />
+    <string id="AIL_0490687a" text="Не удалось создать резервную копию; ничего не изменено." />
+    <string id="AIL_d0109f54" text="Вы победили {0}." />
   </strings>
 </base>

@@ -1263,5 +1263,7 @@
     <string id="AIL_ff5c778e" text="You have arrived in {0}. Return to {1}." />
     <string id="AIL_ff6e4415" text="{0} approaches you." />
     <string id="AIL_ffcd4d39" text="Crown tax: minimum (%)" />
+    <string id="AIL_0490687a" text="The backup could not be made; nothing has been changed." />
+    <string id="AIL_d0109f54" text="You have defeated {0}." />
   </strings>
 </base>

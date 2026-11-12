@@ -1263,5 +1263,7 @@
     <string id="AIL_ff5c778e" text="Sei arrivato a {0}. Torna da {1}." />
     <string id="AIL_ff6e4415" text="{0} si avvicina a te." />
     <string id="AIL_ffcd4d39" text="Imposta della corona: minimo (%)" />
+    <string id="AIL_0490687a" text="Impossibile creare la copia di sicurezza; non è stato modificato nulla." />
+    <string id="AIL_d0109f54" text="Hai sconfitto {0}." />
   </strings>
 </base>

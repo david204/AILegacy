@@ -1263,5 +1263,7 @@
     <string id="AIL_ff5c778e" text="Você chegou a {0}. Volte para {1}." />
     <string id="AIL_ff6e4415" text="{0} se aproxima de você." />
     <string id="AIL_ffcd4d39" text="Imposto da coroa: mínimo (%)" />
+    <string id="AIL_0490687a" text="Não foi possível fazer a cópia prévia; nada foi alterado." />
+    <string id="AIL_d0109f54" text="Você derrotou {0}." />
   </strings>
 </base>
