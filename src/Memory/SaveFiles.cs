@@ -6,6 +6,7 @@ using System.Text;
 using AILegacy.Core;
 using AILegacy.World;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AILegacy.Memory
 {
@@ -19,6 +20,9 @@ namespace AILegacy.Memory
     ///   ailegacy_items.json          → documentos y objetos de rol
     ///   ailegacy_campaign.json       → datos sueltos de la campaña
     ///   _escritos.json               → huella de lo que escribió el mod (para saber qué has editado tú a mano)
+    ///   _ramas\AAAAMMDD_HHMMSS\      → archivos de una rama descartada al cargar un guardado anterior (las 5 últimas)
+    ///   _papelera\                   → archivos que sobraban (personajes olvidados, archivos desconocidos), en vez de borrarlos
+    ///   _copias_editor\              → copia de toda la memoria antes de importar o borrar desde el editor
     /// Se escriben al momento (tras cada respuesta, carta, orden…) y al guardar la partida.
     /// Al cargar una partida manda la copia que va dentro de ella,
     /// salvo los archivos que hayas editado a mano, que se respetan.
@@ -39,12 +43,30 @@ namespace AILegacy.Memory
         private static Dictionary<string, string> _written = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static string _writtenDir;
 
+        // Sello del estado de los archivos: cambia cada vez que el mod escribe algo nuevo y va también dentro de la partida.
+        // Si al cargar no coincide con el de la partida, los archivos son de otra rama (posterior) y se archivan antes de pisarlos.
+        private static string _stamp;
+
+        // Subcarpetas de la campaña
+        private const string BranchesDir = "_ramas";
+        private const string TrashDir = "_papelera";
+        private const string EditorBackupsDir = "_copias_editor";
+        private const int MaxBranches = 5;
+        private const int MaxTrash = 100;
+        private const int MaxEditorBackups = 10;
+
         private class CampaignInfo
         {
             [JsonProperty("v")] public int Version = 3;
             [JsonProperty("last_letter_day")] public double LastLetterDay = -1;
             [JsonProperty("saved_day")] public double SavedDay;
+            [JsonProperty("stamp")] public string Stamp;
         }
+
+        /// <summary>Sello actual de los archivos de la campaña en curso (se guarda dentro de la partida).</summary>
+        public static string Stamp => _stamp;
+
+        private static string NewStamp() => Guid.NewGuid().ToString("N").Substring(0, 16);
 
         public static string Root => Path.Combine(Paths.ModuleDir, "save_data");
         public static string DirFor(string campaignId) => Path.Combine(Root, Safe(campaignId));
@@ -81,6 +103,17 @@ namespace AILegacy.Memory
             if (string.Equals(_writtenDir, dir, StringComparison.OrdinalIgnoreCase)) return;
             _writtenDir = dir;
             _written = ReadManifest(dir);
+            _stamp = ReadInfo(dir)?.Stamp;
+        }
+
+        private static CampaignInfo ReadInfo(string dir)
+        {
+            try
+            {
+                var p = Path.Combine(dir, CampaignFile);
+                return File.Exists(p) ? JsonConvert.DeserializeObject<CampaignInfo>(File.ReadAllText(p, Encoding.UTF8)) : null;
+            }
+            catch { return null; }
         }
 
         private static Dictionary<string, string> ReadManifest(string dir)
@@ -96,18 +129,94 @@ namespace AILegacy.Memory
             return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        /// <summary>Escribe el archivo solo si su contenido ha cambiado (primero a .tmp para no dejarlo a medias).</summary>
+        /// <summary>Escribe el archivo solo si su contenido ha cambiado (primero a .tmp para no dejarlo a medias).
+        /// Si no se puede escribir, se salta con aviso en el log (se reintentará en el siguiente volcado).</summary>
         private static bool WriteIfChanged(string dir, string name, string content)
         {
             var path = Path.Combine(dir, name);
             string hash = Hash(content);
             if (_written.TryGetValue(name, out var old) && old == hash && File.Exists(path)) return false;
-            var tmp = path + ".tmp";
-            File.WriteAllText(tmp, content, new UTF8Encoding(false));
-            if (File.Exists(path)) File.Delete(path);
-            File.Move(tmp, path);
+            if (!WriteAtomic(path, content)) return false;
             _written[name] = hash;
             return true;
+        }
+
+        /// <summary>
+        /// Escribe en .tmp y lo cambia por el archivo de una vez (File.Replace, atómico en NTFS): un corte a medias
+        /// nunca deja el archivo bueno borrado. Unos pocos reintentos (antivirus, el archivo abierto en un editor…);
+        /// si aun así falla, aviso en el log y false, sin lanzar nada (no debe romper el guardado del juego).
+        /// </summary>
+        private static bool WriteAtomic(string path, string content)
+        {
+            var tmp = path + ".tmp";
+            Exception last = null;
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    if (attempt > 0) System.Threading.Thread.Sleep(40 * attempt);
+                    File.WriteAllText(tmp, content, new UTF8Encoding(false));
+                    if (File.Exists(path))
+                    {
+                        try { File.Replace(tmp, path, null, true); }
+                        catch (PlatformNotSupportedException) { File.Delete(path); File.Move(tmp, path); }   // unidades sin Replace (FAT, red)
+                    }
+                    else File.Move(tmp, path);
+                    return true;
+                }
+                catch (Exception ex) { last = ex; }
+            }
+            try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
+            Log.Warn($"No se pudo escribir {Path.GetFileName(path)} tras 3 intentos; se salta por ahora ({last?.GetType().Name}: {last?.Message})");
+            return false;
+        }
+
+        /// <summary>
+        /// Restos de un corte: un .tmp sin su archivo principal pasa a ser el principal (si es JSON válido);
+        /// un .tmp junto a su principal sobra (el principal está entero gracias a File.Replace).
+        /// </summary>
+        private static void RecoverTemp(string dir)
+        {
+            try
+            {
+                foreach (var tmp in Directory.GetFiles(dir, "*.json.tmp"))
+                {
+                    var main = tmp.Substring(0, tmp.Length - 4);
+                    try
+                    {
+                        if (File.Exists(main)) { File.Delete(tmp); continue; }
+                        JToken.Parse(File.ReadAllText(tmp, Encoding.UTF8));   // solo si está entero
+                        File.Move(tmp, main);
+                        Log.Warn("Recuperado de un corte: " + Path.GetFileName(main));
+                    }
+                    catch (Exception ex) { Log.Warn($"Resto de escritura ilegible, se ignora: {Path.GetFileName(tmp)} ({ex.Message})"); }
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>Mueve un archivo a _papelera (con fecha delante) en vez de borrarlo; se conservan los últimos MaxTrash.</summary>
+        private static bool MoveToTrash(string dir, string file)
+        {
+            try
+            {
+                var trash = Path.Combine(dir, TrashDir);
+                Directory.CreateDirectory(trash);
+                var baseName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{Path.GetFileName(file)}";
+                var dest = Path.Combine(trash, baseName);
+                for (int i = 2; File.Exists(dest); i++) dest = Path.Combine(trash, $"{Path.GetFileNameWithoutExtension(baseName)}_{i}{Path.GetExtension(baseName)}");
+                File.Move(file, dest);
+                Prune(Directory.GetFiles(trash), MaxTrash, File.Delete);
+                return true;
+            }
+            catch (Exception ex) { Log.Warn($"No se pudo mover a la papelera {Path.GetFileName(file)}: {ex.Message}"); return false; }
+        }
+
+        /// <summary>Deja solo las <paramref name="keep"/> entradas más nuevas (los nombres empiezan por la fecha).</summary>
+        private static void Prune(IEnumerable<string> entries, int keep, Action<string> delete)
+        {
+            foreach (var old in entries.OrderByDescending(x => Path.GetFileName(x), StringComparer.Ordinal).Skip(keep))
+                try { delete(old); } catch { }
         }
 
         // ============================================================ guardar
@@ -118,13 +227,13 @@ namespace AILegacy.Memory
         /// Escribe ya lo que haya cambiado. Se llama tras cada respuesta de un NPC, al cerrar una charla, con cada carta
         /// y cada orden.
         /// </summary>
-        public static void Flush(bool heroes = true)
+        public static void Flush(bool heroes = true, bool keepStamp = false)
         {
             try
             {
                 var c = TaleWorlds.CampaignSystem.Campaign.Current;
                 if (c == null || string.IsNullOrEmpty(c.UniqueGameId)) return;
-                Save(c.UniqueGameId, TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, heroes);
+                Save(c.UniqueGameId, TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, heroes, keepStamp);
             }
             catch (Exception ex) { Log.Error("Volcado de archivos de la campaña", ex); }
         }
@@ -142,7 +251,9 @@ namespace AILegacy.Memory
             Flush(heroes: newDay);
         }
 
-        public static void Save(string campaignId, double campaignDay, bool heroes = true)
+        /// <param name="keepStamp">true solo en el volcado justo tras cargar: los archivos pasan a ser los de esa partida
+        /// y conservan su sello (así, recargarla otra vez no se toma por otra rama).</param>
+        public static void Save(string campaignId, double campaignDay, bool heroes = true, bool keepStamp = false)
         {
             if (string.IsNullOrEmpty(campaignId)) return;
             try
@@ -162,26 +273,30 @@ namespace AILegacy.Memory
                     if (string.IsNullOrEmpty(m.HeroId)) continue;
                     var name = HeroFileName(m);
                     keep.Add(name);
-                    if (WriteIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented))) written++;
+                    // Un personaje que no se pueda escribir no detiene a los demás
+                    try { if (WriteIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented))) written++; }
+                    catch (Exception ex) { Log.Warn($"Se salta el archivo de {m.HeroName} ({m.HeroId}): {ex.Message}"); }
                 }
                 if (WriteIfChanged(dir, NewsFile, JsonConvert.SerializeObject(NewsStore.All.ToList(), Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, LettersFile, JsonConvert.SerializeObject(MemoryStore.Letters, Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, OrdersFile, JsonConvert.SerializeObject(OrderSystem.Orders, Formatting.Indented))) written++;
+                // Algo ha cambiado: nuevo sello (salvo en el volcado de después de cargar, que adopta el de la partida)
+                if (string.IsNullOrEmpty(_stamp) || (written > 0 && !keepStamp)) _stamp = NewStamp();
                 if (WriteIfChanged(dir, CampaignFile, JsonConvert.SerializeObject(
-                        new CampaignInfo { LastLetterDay = MemoryStore.LastLetterDay, SavedDay = campaignDay }, Formatting.Indented))) written++;
+                        new CampaignInfo { LastLetterDay = MemoryStore.LastLetterDay, SavedDay = campaignDay, Stamp = _stamp }, Formatting.Indented))) written++;
 
-                // Personajes olvidados (/olvidar) o renombrados: su archivo viejo sobra
+                // Personajes olvidados (/olvidar) o renombrados, o archivos que no conocemos: no se borran, van a _papelera
                 int removed = 0;
                 foreach (var f in heroes ? Directory.GetFiles(dir, "*.json") : new string[0])
                 {
                     var n = Path.GetFileName(f);
                     if (keep.Contains(n)) continue;
-                    try { File.Delete(f); _written.Remove(n); removed++; } catch { }
+                    if (MoveToTrash(dir, f)) { _written.Remove(n); removed++; }
                 }
                 if (written + removed > 0)
                 {
-                    File.WriteAllText(Path.Combine(dir, ManifestFile), JsonConvert.SerializeObject(_written, Formatting.Indented));
-                    Log.Info($"Archivos de la campaña {campaignId}: {written} escritos, {removed} borrados");
+                    WriteAtomic(Path.Combine(dir, ManifestFile), JsonConvert.SerializeObject(_written, Formatting.Indented));
+                    Log.Info($"Archivos de la campaña {campaignId}: {written} escritos, {removed} a la papelera");
                 }
             }
             catch (Exception ex) { Log.Error("No se pudieron escribir los archivos de la campaña", ex); }
@@ -200,6 +315,7 @@ namespace AILegacy.Memory
             try
             {
                 var dir = DirFor(campaignId);
+                RecoverTemp(dir);
                 var manifest = ReadManifest(dir);
                 if (manifest.Count == 0) return list;   // sin huellas no se puede saber: no se asume nada
                 foreach (var f in Directory.GetFiles(dir, "*.json"))
@@ -226,6 +342,7 @@ namespace AILegacy.Memory
             try
             {
                 var dir = DirFor(campaignId);
+                RecoverTemp(dir);
                 UseDir(dir);
                 var heroes = new List<HeroMemory>();
                 int bad = 0;
@@ -257,6 +374,81 @@ namespace AILegacy.Memory
                 return true;
             }
             catch (Exception ex) { Log.Error("No se pudieron leer los archivos de la campaña", ex); return false; }
+        }
+
+        /// <summary>
+        /// Al cargar una partida cuya memoria va a pisar los archivos: si estos son de otra rama (has seguido jugando
+        /// después de ese guardado, o vienes de otro guardado distinto), se copian antes a _ramas\AAAAMMDD_HHMMSS\
+        /// (se conservan las MaxBranches últimas). Se compara el sello de la partida con el de los archivos; con partidas
+        /// de antes del sello, el día guardado en los archivos con el de la partida.
+        /// </summary>
+        public static string ArchiveIfDiverged(string campaignId, string savedStamp, double campaignDay)
+        {
+            if (!Exists(campaignId)) return null;
+            try
+            {
+                var dir = DirFor(campaignId);
+                RecoverTemp(dir);
+                var info = ReadInfo(dir);
+                bool diverged;
+                string why;
+                if (!string.IsNullOrEmpty(savedStamp) && !string.IsNullOrEmpty(info?.Stamp))
+                {
+                    diverged = savedStamp != info.Stamp;
+                    why = $"sello {info.Stamp} ≠ {savedStamp}";
+                }
+                else
+                {
+                    diverged = info == null || info.SavedDay > campaignDay + 0.01;
+                    why = $"día de los archivos {info?.SavedDay:0.##} > día de la partida {campaignDay:0.##}";
+                }
+                if (!diverged) return null;
+                var files = Directory.GetFiles(dir, "*.json");
+                if (files.Length == 0) return null;
+
+                var root = Path.Combine(dir, BranchesDir);
+                var dest = Path.Combine(root, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+                for (int i = 2; Directory.Exists(dest); i++) dest = Path.Combine(root, $"{DateTime.Now:yyyyMMdd_HHmmss}_{i}");
+                Directory.CreateDirectory(dest);
+                int copied = 0;
+                foreach (var f in files)
+                {
+                    try { File.Copy(f, Path.Combine(dest, Path.GetFileName(f)), true); copied++; }
+                    catch (Exception ex) { Log.Warn($"Rama archivada sin {Path.GetFileName(f)}: {ex.Message}"); }
+                }
+                Prune(Directory.GetDirectories(root), MaxBranches, d => Directory.Delete(d, true));
+                Log.Info($"Los archivos eran de otra rama ({why}): {copied} archivos copiados a {dest} antes de cargar la memoria de la partida");
+                return dest;
+            }
+            catch (Exception ex) { Log.Error("Archivando la rama descartada", ex); return null; }
+        }
+
+        /// <summary>Tras cargar una partida, los archivos pasan a llevar su sello (el siguiente volcado debe usar keepStamp).</summary>
+        public static void AdoptStamp(string campaignId, string stamp)
+        {
+            if (string.IsNullOrEmpty(campaignId) || string.IsNullOrEmpty(stamp)) return;
+            UseDir(DirFor(campaignId));
+            _stamp = stamp;
+        }
+
+        /// <summary>
+        /// Copia de toda la memoria (lo mismo que exporta el editor) en _copias_editor\, antes de importar o borrar.
+        /// Se conservan las MaxEditorBackups últimas. Devuelve la ruta, o null si no se pudo.
+        /// </summary>
+        public static string BackupMemory(string campaignId, string label)
+        {
+            try
+            {
+                var root = Path.Combine(DirFor(campaignId), EditorBackupsDir);
+                Directory.CreateDirectory(root);
+                var path = Path.Combine(root, $"{DateTime.Now:yyyyMMdd_HHmmss}_{Safe(label)}.json");
+                for (int i = 2; File.Exists(path); i++) path = Path.Combine(root, $"{DateTime.Now:yyyyMMdd_HHmmss}_{Safe(label)}_{i}.json");
+                if (!WriteAtomic(path, MemoryStore.Serialize())) return null;
+                Prune(Directory.GetFiles(root, "*.json"), MaxEditorBackups, File.Delete);
+                Log.Info("Copia de la memoria antes de " + label + ": " + path);
+                return path;
+            }
+            catch (Exception ex) { Log.Error("Copia de la memoria", ex); return null; }
         }
 
         /// <summary>Aparta a una subcarpeta los archivos de los personajes indicados (para deshacer una importación sin perder nada).</summary>

@@ -267,6 +267,9 @@
 <div id="toast"></div>
 
 <script>
+// Ficha de la sesión: el juego la pone aquí al servir la página; va en cada llamada a /api/*
+const AIL_TOKEN = '__AIL_TOKEN__';
+const authFetch = (path, opts = {}) => fetch(path, { ...opts, headers:{ ...(opts.headers || {}), 'X-AIL-Token':AIL_TOKEN } });
 let LANG = {};
 const T = s => LANG[s] || s;
 function trNode(n) {
@@ -281,7 +284,7 @@ function trNode(n) {
   n.childNodes.forEach(trNode);
 }
 async function loadLang() {
-  try { const r = await (await fetch('/api/lang')).json(); LANG = r.table || {}; document.documentElement.lang = r.code || 'en'; } catch { LANG = {}; }
+  try { const r = await (await authFetch('/api/lang')).json(); LANG = r.table || {}; document.documentElement.lang = r.code || 'en'; } catch { LANG = {}; }
   trNode(document.body); document.title = T(document.title);
   new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(trNode))).observe(document.body, { childList:true, subtree:true });
 }
@@ -292,7 +295,7 @@ const $ = id => document.getElementById(id);
 const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(msg, bad) { const t = $('toast'); t.textContent = msg; t.style.borderColor = bad ? '#d77' : '#d9b25f'; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3500); }
 async function api(path, body) {
-  const r = await fetch(path, body === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  const r = await authFetch(path, body === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
   const j = await r.json().catch(() => ({ error:T('Respuesta no válida') }));
   if (!r.ok || j.error) { toast(j.error || (T('Error ') + r.status), true); throw new Error(j.error); }
   return j;

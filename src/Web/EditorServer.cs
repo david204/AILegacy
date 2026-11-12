@@ -20,14 +20,28 @@ namespace AILegacy.Web
     /// <summary>
     /// Editor de AI Legacy en el navegador (http://localhost:PUERTO/). Sirve Modules\AILegacy\web\editor.html
     /// y una pequeña API JSON. Todo lo que toca el juego se ejecuta en el hilo principal.
+    /// Seguridad: solo peticiones de este equipo, Host/Origin = localhost o 127.0.0.1 con nuestro puerto,
+    /// y la API exige la ficha de la sesión (cabecera X-AIL-Token) que va incrustada en la página.
     /// </summary>
     internal static class EditorServer
     {
         private static HttpListener _http;
         private static Thread _thread;
         private static int _port;
+        // Ficha de esta sesión del servidor: va incrustada en la página que servimos y la página la manda en cada /api/*.
+        // Otra web abierta en el navegador no puede leer la página (otro origen), así que no la conoce.
+        private static string _token;
+        private const string TokenHeader = "X-AIL-Token";
+        private const string TokenMarker = "__AIL_TOKEN__";
 
         public static string Url => $"http://localhost:{_port}/";
+
+        private static string NewToken()
+        {
+            var bytes = new byte[24];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create()) rng.GetBytes(bytes);
+            return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+        }
 
         public static void OpenInBrowser()
         {
@@ -47,9 +61,22 @@ namespace AILegacy.Web
             try
             {
                 _port = port;
-                _http = new HttpListener();
-                _http.Prefixes.Add(Url);
-                _http.Start();
+                _token = NewToken();
+                // Solo en el propio equipo: localhost y, si Windows lo permite sin permisos de administrador, 127.0.0.1
+                try
+                {
+                    _http = new HttpListener();
+                    _http.Prefixes.Add(Url);
+                    _http.Prefixes.Add($"http://127.0.0.1:{_port}/");
+                    _http.Start();
+                }
+                catch (HttpListenerException)
+                {
+                    try { _http?.Close(); } catch { }
+                    _http = new HttpListener();
+                    _http.Prefixes.Add(Url);
+                    _http.Start();
+                }
                 _thread = new Thread(Loop) { IsBackground = true, Name = "AILegacyEditor" };
                 _thread.Start();
                 Log.Info("Editor web en " + Url);
@@ -85,12 +112,27 @@ namespace AILegacy.Web
             var req = ctx.Request; var res = ctx.Response;
             try
             {
+                // Solo desde este equipo, con Host = localhost/127.0.0.1:puerto (contra el "DNS rebinding") y, si viene, Origin igual
+                if (!Allowed(req, out string why))
+                {
+                    Reject($"({why}) {req.HttpMethod} {req.Url?.AbsolutePath}");
+                    Send(res, 403, JsonConvert.SerializeObject(new { error = "forbidden" }), "application/json; charset=utf-8");
+                    return;
+                }
                 string path = req.Url.AbsolutePath.TrimEnd('/');
                 if (path == "/favicon.ico") { Send(res, 204, "", "text/plain"); return; }
                 if (path == "" || path == "/index.html")
                 {
                     var file = Path.Combine(Paths.ModuleDir, "web", "editor.html");
-                    Send(res, 200, File.Exists(file) ? File.ReadAllText(file, Encoding.UTF8) : "<h1>Falta web/editor.html</h1>", "text/html; charset=utf-8");
+                    var html = File.Exists(file) ? File.ReadAllText(file, Encoding.UTF8).Replace(TokenMarker, _token) : "<h1>Falta web/editor.html</h1>";
+                    Send(res, 200, html, "text/html; charset=utf-8");
+                    return;
+                }
+                // Toda la API exige la ficha de la sesión
+                if (!path.StartsWith("/api/") || !TokenOk(req.Headers[TokenHeader]))
+                {
+                    Reject($"(sin ficha válida) {req.HttpMethod} {path}");
+                    Send(res, 403, JsonConvert.SerializeObject(new { error = "forbidden" }), "application/json; charset=utf-8");
                     return;
                 }
                 string body = "";
@@ -107,12 +149,62 @@ namespace AILegacy.Web
             }
         }
 
+        private static int _rejected;
+
+        /// <summary>Apunta las peticiones rechazadas (solo las primeras, para que una web insistente no llene el log).</summary>
+        private static void Reject(string what)
+        {
+            int n = Interlocked.Increment(ref _rejected);
+            if (n <= 20) Log.Warn("Editor web: petición rechazada " + what);
+            else if (n == 21) Log.Warn("Editor web: más peticiones rechazadas; ya no se apuntan");
+        }
+
+        private static bool Allowed(HttpListenerRequest req, out string why)
+        {
+            why = null;
+            var remote = req.RemoteEndPoint?.Address;
+            if (remote == null || !IPAddress.IsLoopback(remote)) { why = "no es este equipo: " + remote; return false; }
+            string host = (req.Headers["Host"] ?? "").Trim();
+            if (!IsOwnAuthority(host)) { why = "Host " + host; return false; }
+            string origin = req.Headers["Origin"];
+            if (origin != null)
+            {
+                Uri o;
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out o) || o.Scheme != Uri.UriSchemeHttp || !IsOwnAuthority(o.Authority)) { why = "Origin " + origin; return false; }
+            }
+            return true;
+        }
+
+        /// <summary>"localhost:puerto" o "127.0.0.1:puerto" (sin puerto solo si es el 80).</summary>
+        private static bool IsOwnAuthority(string a)
+        {
+            if (string.IsNullOrEmpty(a)) return false;
+            foreach (var h in new[] { "localhost", "127.0.0.1" })
+            {
+                if (string.Equals(a, $"{h}:{_port}", StringComparison.OrdinalIgnoreCase)) return true;
+                if (_port == 80 && string.Equals(a, h, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>Compara la ficha sin cortar en el primer carácter distinto.</summary>
+        private static bool TokenOk(string got)
+        {
+            var want = _token;
+            if (string.IsNullOrEmpty(want) || string.IsNullOrEmpty(got) || got.Length != want.Length) return false;
+            int diff = 0;
+            for (int i = 0; i < want.Length; i++) diff |= want[i] ^ got[i];
+            return diff == 0;
+        }
+
         private static void Send(HttpListenerResponse res, int code, string text, string type)
         {
             var bytes = Encoding.UTF8.GetBytes(text);
             res.StatusCode = code;
             res.ContentType = type;
             res.Headers["Cache-Control"] = "no-store";
+            res.Headers["X-Frame-Options"] = "DENY";          // que otra web no pueda meter el editor en un marco
+            res.Headers["X-Content-Type-Options"] = "nosniff";
             res.ContentLength64 = bytes.Length;
             res.OutputStream.Write(bytes, 0, bytes.Length);
             res.OutputStream.Close();
@@ -217,13 +309,19 @@ namespace AILegacy.Web
                 case "/api/npc/clearhistory":
                 {
                     var m = MemoryStore.Find((string)d["id"]);
-                    if (m != null) { m.Turns.Clear(); m.Summary = ""; }
+                    if (m != null) { m.Turns.Clear(); m.Summary = ""; SaveFiles.Flush(); }
                     return new { ok = true };
                 }
 
                 case "/api/npc/delete":
+                {
+                    // Copia previa de toda la memoria (como /api/export); sin ella no se borra nada
+                    var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "borrar_npc");
+                    if (backup == null) throw new Exception(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
                     MemoryStore.Remove((string)d["id"]);
-                    return new { ok = true };
+                    SaveFiles.Flush();   // su archivo va a _papelera ya, no en el siguiente volcado diario
+                    return new { ok = true, backup };
+                }
 
                 case "/api/news/add":
                 {
@@ -428,8 +526,16 @@ namespace AILegacy.Web
                     return JObject.Parse(MemoryStore.Serialize());
 
                 case "/api/import":
-                    MemoryStore.Deserialize(d["data"]?.ToString(Formatting.None));
-                    return new { ok = true, npcs = MemoryStore.Count };
+                {
+                    var json = d["data"]?.ToString(Formatting.None);
+                    if (string.IsNullOrWhiteSpace(json) || !(d["data"] is JObject)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
+                    // Copia previa de toda la memoria actual (como /api/export); sin ella no se sustituye nada
+                    var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "importar");
+                    if (backup == null) throw new Exception(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
+                    MemoryStore.Deserialize(json);
+                    SaveFiles.Flush();   // los archivos que ya no vienen en la copia van a _papelera, no se borran
+                    return new { ok = true, npcs = MemoryStore.Count, backup };
+                }
 
                 default:
                     throw new Exception(L.T("AIL_eb19bc3f", "Ruta desconocida: ") + path);
