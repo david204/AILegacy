@@ -25,6 +25,8 @@ namespace AILegacy.World
             CampaignEvents.MakePeace.AddNonSerializedListener(owner, OnPeace);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(owner, OnSettlementOwnerChanged);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(owner, OnHeroKilled);
+            CampaignEvents.BeforeHeroesMarried.AddNonSerializedListener(owner, OnMarried);
+            CampaignEvents.TournamentFinished.AddNonSerializedListener(owner, OnTournamentFinished);
             CampaignEvents.MapEventEnded.AddNonSerializedListener(owner, OnMapEventEnded);
             CampaignEvents.KingdomDestroyedEvent.AddNonSerializedListener(owner, OnKingdomDestroyed);
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(owner, OnClanChangedKingdom);
@@ -218,6 +220,35 @@ namespace AILegacy.World
             {
                 Type = "clan", Importance = merc ? 1 : (rebel ? 3 : 2),
                 Text = text, TitleEs = title, TextEs = es, Kingdoms = Ids(oldK, newK), Heroes = HeroIds(clan.Leader),
+            });
+        });
+
+        private static void OnMarried(Hero a, Hero b, bool showNotification) => Safe("boda", () =>
+        {
+            if (a == null || b == null || a == Hero.MainHero || b == Hero.MainHero) return;      // la del jugador ya la cuenta su propia acción
+            if (!a.IsLord && !b.IsLord) return;
+            int imp = a.IsKingdomLeader || b.IsKingdomLeader ? 3 : a.IsClanLeader || b.IsClanLeader ? 2 : 1;
+            NewsStore.Add(new NewsItem
+            {
+                Type = "marriage", Importance = imp, Kingdoms = Ids(a.MapFaction, b.MapFaction), Heroes = HeroIds(a, b),
+                SettlementId = (a.CurrentSettlement ?? b.CurrentSettlement ?? a.HomeSettlement)?.StringId,
+                Text = $"{a.Name}{TitleOf(a)} and {b.Name}{TitleOf(b)} have married.",
+                TitleEs = L.F("AIL_d2e7a4c1", $"Boda de {a.Name} y {b.Name}"),
+                TextEs = L.F("AIL_d2e7a4c2", $"{a.Name}{TitleOfEs(a)} y {b.Name}{TitleOfEs(b)} se han casado."),
+            });
+        });
+
+        private static void OnTournamentFinished(CharacterObject winner, TaleWorlds.Library.MBReadOnlyList<CharacterObject> participants, Town town, TaleWorlds.Core.ItemObject prize) => Safe("torneo", () =>
+        {
+            var h = winner?.HeroObject;
+            if (h == null || town?.Settlement == null || h == Hero.MainHero) return;
+            NewsStore.Add(new NewsItem
+            {
+                Type = "tournament", Importance = h.IsLord ? 2 : 1, Kingdoms = Ids(town.Settlement.MapFaction, h.MapFaction), Heroes = HeroIds(h),
+                SettlementId = town.Settlement.StringId,
+                Text = $"{h.Name}{TitleOf(h)} has won the tournament of {town.Name}.",
+                TitleEs = L.F("AIL_d2e7a4c3", $"{h.Name} gana el torneo de {town.Name}"),
+                TextEs = L.F("AIL_d2e7a4c4", $"{h.Name}{TitleOfEs(h)} ha ganado el torneo de {town.Name}."),
             });
         });
 

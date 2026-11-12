@@ -1361,5 +1361,11 @@
     <string id="AIL_c7a9d5e1" text="{0} volta para você, como combinado." />
     <string id="AIL_c7a9d5e2" text="{0} chegou a {1} e fica lá por {2} dia(s)." />
     <string id="AIL_c7a9d5e3" text="{0} dá {1} denários a {2}." />
+    <string id="AIL_d2e7a4c1" text="Casamento de {0} e {1}" />
+    <string id="AIL_d2e7a4c2" text="{0}{1} e {2}{3} se casaram." />
+    <string id="AIL_d2e7a4c3" text="{0} vence o torneio de {1}" />
+    <string id="AIL_d2e7a4c4" text="{0}{1} venceu o torneio de {2}." />
+    <string id="AIL_d2e7a4c5" text="As notícias viajam com a distância" />
+    <string id="AIL_d2e7a4c6" text="O que acontece longe leva dias para chegar, e as coisas miúdas nunca chegam. Os nobres ficam sabendo de mais longe que o povo, os soberanos de mais longe ainda, e amigos ou inimigos dos envolvidos sempre ficam sabendo. Desligado: o reino inteiro sabe na hora." />
   </strings>
 </base>

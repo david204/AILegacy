@@ -1361,5 +1361,11 @@
     <string id="AIL_c7a9d5e1" text="{0} comes back to you, as agreed." />
     <string id="AIL_c7a9d5e2" text="{0} has reached {1} and stays there for {2} day(s)." />
     <string id="AIL_c7a9d5e3" text="{0} gives {1} denars to {2}." />
+    <string id="AIL_d2e7a4c1" text="Wedding of {0} and {1}" />
+    <string id="AIL_d2e7a4c2" text="{0}{1} and {2}{3} have married." />
+    <string id="AIL_d2e7a4c3" text="{0} wins the tournament of {1}" />
+    <string id="AIL_d2e7a4c4" text="{0}{1} has won the tournament of {2}." />
+    <string id="AIL_d2e7a4c5" text="News travels with distance" />
+    <string id="AIL_d2e7a4c6" text="What happens far away takes days to arrive, and small matters never get there. Nobles hear from further away than commoners, rulers from further still, and friends or enemies of those involved always find out. Off: everyone in the realm knows at once." />
   </strings>
 </base>

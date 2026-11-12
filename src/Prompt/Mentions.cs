@@ -159,6 +159,7 @@ namespace AILegacy.Prompt
                 if (st.IsVillage && st.Village?.VillageType?.PrimaryProduction != null) sb.Append($"; lives off {st.Village.VillageType.PrimaryProduction.Name}");
                 if (st.IsUnderSiege) sb.Append("; UNDER SIEGE now");
                 if (st.IsVillage && st.Village != null && st.Village.VillageState != Village.VillageStates.Normal) sb.Append($"; {st.Village.VillageState.ToString().ToLowerInvariant()}");
+                sb.Append(World.History.OfSettlement(st));
                 sb.Append($". It lies {Far(from, st.GetPosition2D)}.");
             }
             catch { }
@@ -171,6 +172,7 @@ namespace AILegacy.Prompt
             try
             {
                 if (k.Leader != null) sb.Append($" ruled by {k.Leader.Name}");
+                sb.Append(World.History.OfKingdom(k));
                 var wars = Kingdom.All.Where(o => o != k && !o.IsEliminated && k.IsAtWarWith(o)).Select(o => o.Name.ToString()).ToList();
                 sb.Append(wars.Count > 0 ? "; at war with " + string.Join(", ", wars) : "; at peace with the other realms");
                 sb.Append($"; {k.Clans.Count(c => !c.IsEliminated)} houses, {k.Settlements.Count(x => x.IsTown)} towns and {k.Settlements.Count(x => x.IsCastle)} castles.");

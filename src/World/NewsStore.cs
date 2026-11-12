@@ -111,6 +111,35 @@ namespace AILegacy.World
             bool inKingdom = s.Faction != null && n.Kingdoms.Contains(s.Faction.StringId);
             bool court = s.IsHero && (s.Hero.IsLord || s.Hero.IsNotable);
 
+            // Las noticias viajan: lo que pasa lejos tarda en llegar, y lo menudo no llega nunca. Un noble se entera de más
+            // lejos que un aldeano, y un soberano de más lejos aún (tienen quien les traiga nuevas).
+            if (Settings.S.Get.RealisticNewsSpread && !string.IsNullOrEmpty(n.SettlementId))
+            {
+                try
+                {
+                    var at = Settlement.Find(n.SettlementId);
+                    var me = Where(s);
+                    if (at != null && me.HasValue)
+                    {
+                        float d = me.Value.Distance(at.GetPosition2D);
+                        float reach = s.IsHero && s.Hero.IsKingdomLeader ? 2f : court ? 1.5f : 1f;
+                        float local = 15f * reach, regional = 50f * reach, far = 150f * reach;
+                        // Un jinete hace unas 60 unidades de mapa al día; lo gordo corre el doble (relevos, palomas, pregones)
+                        if (age < d / (n.Importance >= 4 ? 120.0 : 60.0)) return 0;
+                        // Un amigo o un enemigo de los implicados se entera aunque no sea asunto suyo
+                        bool personal = s.IsHero && n.Heroes.Any(id => { var o = Hero.Find(id); return o != null && o != s.Hero && Math.Abs(CharacterRelationManager.GetHeroRelation(s.Hero, o)) >= 20; });
+                        if (n.Importance <= 1) return d <= local || (personal && d <= far) ? 2 : 0;
+                        if (n.Importance == 2)
+                        {
+                            if (d <= regional) return court || inKingdom ? 2 : 1;
+                            if (d > far && !personal) return 0;
+                        }
+                        if (personal) return 2;
+                    }
+                }
+                catch { }
+            }
+
             switch (n.Importance)
             {
                 case 4:
@@ -125,6 +154,20 @@ namespace AILegacy.World
                 default:
                     return 0;                          // importancia 1: solo el lugar
             }
+        }
+
+        /// <summary>Dónde está quien habla (su asentamiento, su partida o la del jugador si va con él).</summary>
+        private static TaleWorlds.Library.Vec2? Where(Speaker s)
+        {
+            try
+            {
+                var st = s.Settlement ?? s.HomeSettlement;
+                if (s.IsHero && s.Hero.PartyBelongedTo != null) return s.Hero.PartyBelongedTo.GetPosition2D;
+                if (st != null) return st.GetPosition2D;
+                if (s.Band != null) return s.Band.GetPosition2D;
+            }
+            catch { }
+            return null;
         }
 
         private static bool SameArea(Settlement a, string settlementId)

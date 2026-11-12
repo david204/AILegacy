@@ -1361,5 +1361,11 @@
     <string id="AIL_c7a9d5e1" text="{0} revient vers vous, comme convenu." />
     <string id="AIL_c7a9d5e2" text="{0} est arrivé à {1} et y reste {2} jour(s)." />
     <string id="AIL_c7a9d5e3" text="{0} donne {1} deniers à {2}." />
+    <string id="AIL_d2e7a4c1" text="Mariage de {0} et {1}" />
+    <string id="AIL_d2e7a4c2" text="{0}{1} et {2}{3} se sont mariés." />
+    <string id="AIL_d2e7a4c3" text="{0} remporte le tournoi de {1}" />
+    <string id="AIL_d2e7a4c4" text="{0}{1} a remporté le tournoi de {2}." />
+    <string id="AIL_d2e7a4c5" text="Les nouvelles voyagent avec la distance" />
+    <string id="AIL_d2e7a4c6" text="Ce qui se passe au loin met des jours à arriver, et les petites affaires n'arrivent jamais. Les nobles sont informés de plus loin que le peuple, les souverains de plus loin encore, et les amis ou ennemis des personnes concernées l'apprennent toujours. Désactivé : tout le royaume le sait aussitôt." />
   </strings>
 </base>

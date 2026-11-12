@@ -1361,5 +1361,11 @@
     <string id="AIL_c7a9d5e1" text="{0}按约定回到你身边。" />
     <string id="AIL_c7a9d5e2" text="{0}已到达{1}，将在那里停留{2}天。" />
     <string id="AIL_c7a9d5e3" text="{0}给了{2} {1}第纳尔。" />
+    <string id="AIL_d2e7a4c1" text="{0}与{1}成婚" />
+    <string id="AIL_d2e7a4c2" text="{0}{1}与{2}{3}已经成婚。" />
+    <string id="AIL_d2e7a4c3" text="{0}赢得{1}的锦标赛" />
+    <string id="AIL_d2e7a4c4" text="{0}{1}赢得了{2}的锦标赛。" />
+    <string id="AIL_d2e7a4c5" text="消息随距离传播" />
+    <string id="AIL_d2e7a4c6" text="远方发生的事要过几天才传到，小事则永远传不到。贵族比平民能听到更远的消息，君主更远，而当事人的朋友或敌人总会知道。关闭：全王国立刻知晓。" />
   </strings>
 </base>

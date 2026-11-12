@@ -42,6 +42,9 @@ namespace AILegacy.Behaviors
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, World.Mood.OnWarDeclared);
             CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(this, World.Mood.OnGivenBirth);
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
+            // Memoria política: soberanos y dueños de cada feudo
+            CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.History.OnRulingClanChanged);
+            CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, World.History.OnSettlementOwnerChanged);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, WorldSim.OnHeroKilled);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, WorldSim.OnPrisonerTaken);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, World.Mood.OnPrisonerTaken);
@@ -206,6 +209,7 @@ namespace AILegacy.Behaviors
         {
             LoadCampaignData();
             World.NewsTracker.Live = true;       // a partir de aquí, lo que pase es noticia
+            World.History.Snapshot();
             AddDialogStyleLines(starter);
             LetterSystem.AddMenu(starter);
             Diseases.AddMenus(starter);

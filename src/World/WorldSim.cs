@@ -124,6 +124,9 @@ namespace AILegacy.World
         [JsonProperty("conceived")] public Dictionary<string, double> Conceived = new Dictionary<string, double>();
         /// <summary>Último día en que una charla cambió guerra o paz entre dos reinos ("a|b").</summary>
         [JsonProperty("war_peace_day")] public Dictionary<string, double> WarPeaceDay = new Dictionary<string, double>();
+        /// <summary>Soberanos que ha tenido cada reino y dueños que ha tenido cada ciudad o castillo (los últimos).</summary>
+        [JsonProperty("rulers")] public Dictionary<string, List<TenureRecord>> Rulers = new Dictionary<string, List<TenureRecord>>();
+        [JsonProperty("owners")] public Dictionary<string, List<TenureRecord>> Owners = new Dictionary<string, List<TenureRecord>>();
         [JsonProperty("next_unique_day")] public double NextUniqueDay = -1;
         [JsonProperty("fatigue")] public Dictionary<string, float> WarFatigue = new Dictionary<string, float>();
         [JsonProperty("taxes")] public Dictionary<string, int> KingdomTaxPercent = new Dictionary<string, int>();

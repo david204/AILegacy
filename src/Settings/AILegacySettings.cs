@@ -799,6 +799,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_953a8770}5. News and rumors")]
         public int NewsLifetimeDays { get; set; } = 60;
 
+        [SettingPropertyBool("{=AIL_d2e7a4c5}News travels with distance", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_d2e7a4c6}What happens far away takes days to arrive, and small matters never get there. Nobles hear from further away than commoners, rulers from further still, and friends or enemies of those involved always find out. Off: everyone in the realm knows at once.")]
+        [SettingPropertyGroup("{=AIL_953a8770}5. News and rumors")]
+        public bool RealisticNewsSpread { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_8b7f2016}Maximum news in the prompt", 0, 30, Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_953a8770}5. News and rumors")]
         public int MaxNewsInPrompt { get; set; } = 8;
