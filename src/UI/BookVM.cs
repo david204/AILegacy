@@ -26,17 +26,22 @@ namespace AILegacy.UI
     public class BookVM : ViewModel
     {
         private string _title = "", _detailTitle = "", _detailText = "", _actionText = "", _closeText = L.T("AIL_e8438e2a", "Cerrar");
-        private bool _hasAction;
+        private bool _hasAction, _hasAction2, _hasImage;
+        private string _action2Text = "", _detailImage = "";
+        public Action OnAction2;
+        public void ExecuteAction2() => OnAction2?.Invoke();
         private MBBindingList<BookEntryVM> _entries = new MBBindingList<BookEntryVM>();
         public Action OnClose;
         public Action<BookEntryVM> OnAction;
         public BookEntryVM Selected { get; private set; }
 
-        public void Select(BookEntryVM e, string detailTitle, string detailText)
+        public void Select(BookEntryVM e, string detailTitle, string detailText, string imagePath = null)
         {
             Selected = e;
             DetailTitle = detailTitle;
             DetailText = detailText;
+            DetailImage = imagePath ?? "";
+            HasImage = !string.IsNullOrEmpty(imagePath);
         }
 
         public void ExecuteClose() => OnClose?.Invoke();
@@ -48,6 +53,10 @@ namespace AILegacy.UI
         [DataSourceProperty] public string DetailText { get => _detailText; set { if (value != _detailText) { _detailText = value; OnPropertyChangedWithValue(value, nameof(DetailText)); } } }
         [DataSourceProperty] public string ActionText { get => _actionText; set { if (value != _actionText) { _actionText = value; OnPropertyChangedWithValue(value, nameof(ActionText)); } } }
         [DataSourceProperty] public string CloseText { get => _closeText; set { if (value != _closeText) { _closeText = value; OnPropertyChangedWithValue(value, nameof(CloseText)); } } }
+        [DataSourceProperty] public string DetailImage { get => _detailImage; set { if (value != _detailImage) { _detailImage = value; OnPropertyChangedWithValue(value, nameof(DetailImage)); } } }
+        [DataSourceProperty] public bool HasImage { get => _hasImage; set { if (value != _hasImage) { _hasImage = value; OnPropertyChangedWithValue(value, nameof(HasImage)); } } }
+        [DataSourceProperty] public string Action2Text { get => _action2Text; set { if (value != _action2Text) { _action2Text = value; OnPropertyChangedWithValue(value, nameof(Action2Text)); } } }
+        [DataSourceProperty] public bool HasAction2 { get => _hasAction2; set { if (value != _hasAction2) { _hasAction2 = value; OnPropertyChangedWithValue(value, nameof(HasAction2)); } } }
         [DataSourceProperty] public bool HasAction { get => _hasAction; set { if (value != _hasAction) { _hasAction = value; OnPropertyChangedWithValue(value, nameof(HasAction)); } } }
     }
 

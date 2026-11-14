@@ -256,13 +256,28 @@ namespace AILegacy.Dialogue
         }
 
         // Roleplay deaths: applied once the chat closes and the scene ends
-        private static readonly List<(Hero who, bool executed, string how)> RoleDeaths = new List<(Hero, bool, string)>();
+        private static readonly List<(Hero who, string kind, string how, string found)> RoleDeaths = new List<(Hero, string, string, string)>();
 
-        public static void QueueDeath(Hero h, bool executedByPlayer, string how)
+        /// <summary>kind: executed, killed (by the player's hand), suicide, poison, wounds, illness, accident.</summary>
+        public static void QueueDeath(Hero h, string kind, string how, string found)
         {
             if (h == null || RoleDeaths.Any(d => d.who == h)) return;
-            RoleDeaths.Add((h, executedByPlayer, how ?? ""));
-            Log.Info($"Muerte por rol pendiente: {h.Name} ({(executedByPlayer ? "ejecución" : "por su mano o sus heridas")}: {how})");
+            RoleDeaths.Add((h, kind ?? "suicide", how ?? "", found ?? ""));
+            Log.Info($"Muerte por rol pendiente: {h.Name} ({kind}: {how}){(string.IsNullOrWhiteSpace(found) ? "" : " — se encuentra: " + found)}");
+        }
+
+        private static string DeathInEnglish(string kind, string victim, string killer)
+        {
+            switch (kind)
+            {
+                case "executed": return $"{victim} was executed by {killer}";
+                case "killed": return $"{victim} was killed by {killer}";
+                case "suicide": return $"{victim} took their own life";
+                case "poison": return $"{victim} died of poison";
+                case "wounds": return $"{victim} died of their wounds";
+                case "illness": return $"{victim} died of illness";
+                default: return $"{victim} died in an accident";
+            }
         }
 
         // Whoever leaves with you fades out of the scene when the talk ends
@@ -849,9 +864,29 @@ namespace AILegacy.Dialogue
                         try
                         {
                             if (d.who == null || !d.who.IsAlive) continue;
-                            if (d.executed) KillCharacterAction.ApplyByExecution(d.who, P, true, true);
-                            else KillCharacterAction.ApplyByMurder(d.who, null, true);
-                            Log.Info($"Muerte por rol cumplida: {d.who.Name}");
+                            string victim = d.who.Name.ToString(), clanId = d.who.MapFaction?.StringId, heroId = d.who.StringId;
+                            var where = d.who.CurrentSettlement ?? Settlement.CurrentSettlement;
+                            bool byPlayer = d.kind == "executed" || d.kind == "killed";
+                            // The game only knows a few ways to die: execution, a killing with a culprit, or one without
+                            if (d.kind == "executed") KillCharacterAction.ApplyByExecution(d.who, P, true, true);
+                            else KillCharacterAction.ApplyByMurder(d.who, d.kind == "killed" ? P : null, true);
+                            Log.Info($"Muerte por rol cumplida: {victim} ({d.kind})");
+                            // How it happened, who did it and what was found go to the news, where characters learn of it
+                            string text = DeathInEnglish(d.kind, victim, P.Name.ToString()) + (d.how.Length > 2 ? $" ({d.how})" : "") + "."
+                                          + (d.found.Length > 2 ? $" Found afterwards: {d.found}" : "");
+                            var item = new NewsItem
+                            {
+                                Type = "death", Importance = d.who.IsLord ? 3 : 2, Text = text, SettlementId = where?.StringId,
+                                Kingdoms = clanId != null ? new List<string> { clanId } : new List<string>(),
+                                Heroes = byPlayer ? new List<string> { heroId, P.StringId } : new List<string> { heroId },
+                            };
+                            if (d.found.Length > 2)
+                            {
+                                item.TitleEs = L.F("AIL_e7b1c4e0", $"Muerte de {victim}");
+                                item.TextEs = d.found;
+                                InformationManager.ShowInquiry(new InquiryData(item.TitleEs, d.found, true, false, L.T("AIL_f6d0c4b4", "Enterado"), "", null, null), true);
+                            }
+                            NewsStore.Add(item);
                         }
                         catch (Exception ex) { Log.Error("Muerte por rol", ex); }
                     }

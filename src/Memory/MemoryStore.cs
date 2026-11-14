@@ -96,6 +96,10 @@ namespace AILegacy.Memory
         [JsonProperty("title")] public string Title;
         [JsonProperty("text")] public string Text;
         [JsonProperty("day")] public double Day;
+        /// <summary>File name of its illustration in save_data\[campaign]\images, if it has one.</summary>
+        [JsonProperty("image", NullValueHandling = NullValueHandling.Ignore)] public string Image;
+        /// <summary>The visual description the illustration was drawn from. Kept so another try costs no AI request.</summary>
+        [JsonProperty("image_prompt", NullValueHandling = NullValueHandling.Ignore)] public string ImagePrompt;
     }
 
     public class HeroMemory
@@ -136,6 +140,8 @@ namespace AILegacy.Memory
         // Current mood
         [JsonProperty("mood")] public string Mood = "";
         [JsonProperty("mood_reason")] public string MoodReason = "";
+        /// <summary>Mood and reason as one phrase in the player's language, for the conversation panel.</summary>
+        [JsonProperty("mood_shown")] public string MoodShown = "";
         [JsonProperty("mood_day")] public double MoodDay = -1;
 
         [JsonProperty("imported")] public string ImportedFrom;

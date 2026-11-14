@@ -60,6 +60,7 @@
                               <Children>
                                 <ListPanel Id="RightInner" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
                                   <Children>
+                                    <AILegacyImageWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="860" SuggestedHeight="484" HorizontalAlignment="Center" MarginTop="14" ImagePath="@DetailImage" IsVisible="@HasImage" />
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="18" MarginRight="12" MarginTop="14" Brush="Popup.Title.Text" Brush.FontSize="26" Brush.TextHorizontalAlignment="Left" Text="@DetailTitle" />
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="18" MarginRight="12" MarginTop="12" MarginBottom="14" Brush="Popup.Title.Text" Brush.FontSize="21" Brush.FontColor="#F2E8D5FF" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Text="@DetailText" />
                                   </Children>
@@ -89,6 +90,11 @@
                     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="251" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteAction" IsVisible="@HasAction">
                       <Children>
                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@ActionText" />
+                      </Children>
+                    </ButtonWidget>
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="251" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteAction2" IsVisible="@HasAction2">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@Action2Text" />
                       </Children>
                     </ButtonWidget>
                     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="251" SuggestedHeight="64" Brush="Popup.Cancel.Button" Command.Click="ExecuteClose">

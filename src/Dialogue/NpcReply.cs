@@ -30,6 +30,7 @@ namespace AILegacy.Dialogue
         public string Thoughts = "";
         public string Mood = "";
         public string MoodReason = "";
+        public string MoodShown = "";
 
         /// <summary>Parses the model's JSON reply. If it isn't valid JSON, the raw text is used as the reply.</summary>
         public static NpcReply Parse(string raw)
@@ -59,6 +60,7 @@ namespace AILegacy.Dialogue
                     r.Thoughts = Str(j["thoughts"]) ?? "";
                     r.Mood = Str(j["mood"]) ?? "";
                     r.MoodReason = Str(j["mood_reason"]) ?? "";
+                    r.MoodShown = (Str(j["mood_shown"]) ?? "").Trim();
 
                     if (j["actions"] is JArray arr)
                         r.Actions = arr.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();

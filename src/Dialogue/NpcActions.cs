@@ -48,6 +48,30 @@ namespace AILegacy.Dialogue
 
         private static Hero P => Hero.MainHero;
 
+        private static readonly HashSet<string> DeathKinds = new HashSet<string> { "executed", "killed", "suicide", "poison", "wounds", "illness", "accident" };
+
+        /// <summary>
+        /// Where a death by roleplay can happen: held by the player, in the player's party, in a scene with the player,
+        /// inside a settlement without leading a party, or alone on the road. Never for someone at the head of troops
+        /// or held by another party.
+        /// </summary>
+        private static bool CanDieHere(Speaker s)
+        {
+            try
+            {
+                var h = s.Hero;
+                if (S.Get.RoleplayDeathAnywhere || HeldByPlayer(s) || h.IsWounded) return true;
+                if (h.IsPrisoner) return false;
+                var party = h.PartyBelongedTo;
+                if (party == MobileParty.MainParty) return true;
+                if (party != null && party.LeaderHero == h && party.MemberRoster.TotalManCount >= 2) return false;
+                if (TaleWorlds.MountAndBlade.Mission.Current != null && SceneAgent() != null) return true;
+                if (party == null && h.CurrentSettlement != null) return true;
+                return party != null && party.MemberRoster.TotalManCount <= 1;
+            }
+            catch { return false; }
+        }
+
         /// <summary>The character you're talking to, if you're in a scene and the game AI controls them.</summary>
         private static TaleWorlds.MountAndBlade.Agent SceneAgent()
         {
@@ -524,15 +548,18 @@ namespace AILegacy.Dialogue
                         {
                             if (h.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(h);
                             if (h.IsPlayerCompanion) h.CompanionOf = null;
-                            if (h.Occupation != Occupation.Lord) h.SetNewOccupation(Occupation.Lord);
+                            if (h.Occupation != Occupation.Lord) { h.SetNewOccupation(Occupation.Lord); World.People.SyncOccupation(h); }
                             if (h.Clan == null || h.Clan != Clan.PlayerClan && h.Clan.Leader != h) h.Clan = Clan.PlayerClan;
                         }
                         // If either one was still married (the "romance with married" setting), that marriage ends
-                        if (h.Spouse != null && h.Spouse != P) { var ex = h.Spouse; h.Spouse = null; if (ex.Spouse == h) ex.Spouse = null; }
-                        if (P.Spouse != null && P.Spouse != h) { var ex = P.Spouse; P.Spouse = null; if (ex.Spouse == P) ex.Spouse = null; }
+                        if (h.Spouse != null && h.Spouse != P) EndMarriage(h);
+                        if (P.Spouse != null && P.Spouse != h) EndMarriage(P);
+                        // The head of another house hands it over first. Otherwise their old clan is left with a
+                        // leader who now belongs to yours.
+                        StepDownAsClanLeader(h);
                     }
                     catch (Exception ex) { Log.Error("Preparar la boda", ex); }
-                    MarriageAction.Apply(P, h);
+                    Marry(P, h);
                     if (P.Spouse != h) { Log.Warn($"La boda con {s.Name} no se ha podido celebrar"); return null; }
                     Bonds.ChangeRomance(s, 10);
                     return L.F("AIL_fd4aafcb", $"¡Te casas con {s.Name}!");
@@ -1226,17 +1253,26 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
-                Name = "die", Usage = "die:<how, in a few words>",
-                Description = "Your life ends here and now, as the direct outcome of this scene. EXTREMELY rare and never for effect. Only when one of these is truly happening: " +
-                              "you are their prisoner and they have just plainly carried out your execution; you take your own life; or you are already dying of your wounds and this is your last breath. " +
+                Name = "die", Usage = "die:<kind>|<how, in a few words>|<what is found>",
+                Description = "Your life ends here and now, as the direct outcome of this scene. EXTREMELY rare and never for effect. Only when one of these is truly happening, and <kind> says which: " +
+                              "executed (you are their prisoner and they have just plainly carried out your execution), killed (they have just killed you with their own hand in this scene and you could not stop it), " +
+                              "suicide (you take your own life), poison, wounds (you were already dying of your wounds and this is your last breath), illness, accident. " +
+                              "<what is found> is one sentence, in the language you speak, about what those who come afterwards find on you or beside you (a letter, a ring, a weapon, nothing at all); leave it empty if there is nothing worth telling. " +
                               "Say your last words in the same reply. If in any doubt, do not use it.",
-                IsAvailable = s => S.Get.AllowRoleplayDeath && s.IsHero && s.Hero.IsAlive && s.Hero != P && (HeldByPlayer(s) || s.Hero.IsWounded || S.Get.RoleplayDeathAnywhere)
+                IsAvailable = s => S.Get.AllowRoleplayDeath && s.IsHero && s.Hero.IsAlive && s.Hero != P && CanDieHere(s)
                                    && !(s.Hero.Clan == Clan.PlayerClan && !S.Get.RoleplayDeathAnywhere),
                 Execute = (s, arg, ctx) =>
                 {
                     ctx.EndConversation = true;
-                    Combat.QueueDeath(s.Hero, HeldByPlayer(s), arg);
-                    return $"{s.Name} muere: {(string.IsNullOrWhiteSpace(arg) ? L.T("AIL_4b487b93", "aquí acaba su historia") : arg.Trim())}.";
+                    var parts = (arg ?? "").Split('|');
+                    string kind = parts.Length > 1 ? parts[0].Trim().ToLowerInvariant() : "";
+                    string how = (parts.Length > 1 ? parts[1] : parts[0]).Trim();
+                    string found = parts.Length > 2 ? string.Join("|", parts.Skip(2)).Trim() : "";
+                    if (!DeathKinds.Contains(kind)) kind = HeldByPlayer(s) ? "executed" : s.Hero.IsWounded ? "wounds" : "suicide";
+                    // an execution needs a prisoner of yours; without one it is a killing by your hand
+                    if (kind == "executed" && !HeldByPlayer(s)) kind = "killed";
+                    Combat.QueueDeath(s.Hero, kind, how, found);
+                    return $"{s.Name} muere: {(string.IsNullOrWhiteSpace(how) ? L.T("AIL_4b487b93", "aquí acaba su historia") : how)}.";
                 }
             },
             new ActionDef
@@ -1433,6 +1469,68 @@ namespace AILegacy.Dialogue
         /// Can you two marry? The game's rules only cover nobles. Here it's also open to companions, wanderers and notables,
         /// with the same basic conditions: adults, alive, not close kin, and unmarried (unless the married setting is on).
         /// </summary>
+        /// <summary>Ends h's current marriage and records each as the other's former spouse, as the game does on a death.</summary>
+        private static void EndMarriage(Hero h)
+        {
+            var ex = h.Spouse;
+            if (ex == null) return;
+            h.Spouse = null;
+            if (ex.Spouse == h) ex.Spouse = null;
+            AddExSpouse(h, ex); AddExSpouse(ex, h);
+        }
+
+        private static void AddExSpouse(Hero of, Hero ex)
+        {
+            try
+            {
+                // Hero.ExSpouses is read-only; the list behind it is private
+                var list = HarmonyLib.AccessTools.Field(typeof(Hero), "_exSpouses")?.GetValue(of) as System.Collections.IList;
+                if (list != null && !list.Contains(ex)) list.Add(ex);
+            }
+            catch (Exception e) { Log.Warn("No se pudo anotar al ex cónyuge: " + e.Message); }
+        }
+
+        /// <summary>If h leads a clan that is not the player's, the clan gets a new head before h marries out of it.</summary>
+        private static void StepDownAsClanLeader(Hero h)
+        {
+            try
+            {
+                var clan = h.Clan;
+                if (clan == null || clan == Clan.PlayerClan || clan.Leader != h) return;
+                var heir = clan.Heroes.Where(x => x != h && x.IsAlive && !x.IsChild && x.IsLord).OrderByDescending(x => x.Age).FirstOrDefault();
+                if (heir != null) ChangeClanLeaderAction.ApplyWithSelectedNewLeader(clan, heir);
+                else ChangeClanLeaderAction.ApplyWithoutSelectedNewLeader(clan);
+                Log.Info($"{h.Name} deja la jefatura del clan {clan.Name} antes de casarse{(heir != null ? ": pasa a " + heir.Name : "")}");
+            }
+            catch (Exception e) { Log.Error("Dejar la jefatura del clan antes de la boda", e); }
+        }
+
+        /// <summary>
+        /// The wedding, with fallbacks. The game's own action refuses some pairs (same clan, same sex, odd clan
+        /// states) without saying why, so if it leaves them unmarried it is tried the other way round, and then by
+        /// hand.
+        /// </summary>
+        private static void Marry(Hero a, Hero b)
+        {
+            bool sameClan = a.Clan != null && a.Clan == b.Clan;
+            if (!sameClan)
+            {
+                try { MarriageAction.Apply(a, b); } catch (Exception e) { Log.Warn("Boda, primer intento: " + e.Message); }
+                if (a.Spouse == b) return;
+                try { MarriageAction.Apply(b, a); } catch (Exception e) { Log.Warn("Boda, segundo intento: " + e.Message); }
+                if (a.Spouse == b) return;
+            }
+            try
+            {
+                try { CampaignEventDispatcher.Instance.OnBeforeHeroesMarried(a, b, true); } catch { }
+                a.Spouse = b;
+                if (b.Spouse != a) b.Spouse = a;
+                if (b.Clan != a.Clan && a.Clan != null && (b.Clan == null || b.Clan.Leader != b)) b.Clan = a.Clan;
+                Log.Info($"Boda de {a.Name} y {b.Name} hecha a mano: el juego no la aceptó por su vía normal");
+            }
+            catch (Exception e) { Log.Error("Boda a mano", e); }
+        }
+
         private static bool CanWed(Hero h)
         {
             try

@@ -1326,6 +1326,30 @@
     <string id="AIL_e7b1c4dd" text="好感得来不易、失去容易：增加的部分按此比例计算，减少的部分始终全额计算。100 = 两边相同。" />
     <string id="AIL_e7b1c4de" text="记住偶然听到的话的天数（0 = 永久）" />
     <string id="AIL_e7b1c4df" text="角色偶然听到的话在这些天后会淡忘。4.5 米内每个字都听得清，更远只能听到一部分。" />
+    <string id="AIL_e7b1c4e0" text="{0}之死" />
+    <string id="AIL_e7b1c4e1" text="知道你是{0}" />
+    <string id="AIL_e7b1c4e2" text="不知道你是谁" />
+    <string id="AIL_e7b1c4e3" text="亲密 {0} · 成婚 {1}" />
+    <string id="AIL_e7b1c4e4" text="你的配偶" />
+    <string id="AIL_e7b1c4e5" text="共同子女：{0}" />
+    <string id="AIL_e7b1c4e6" text="{0} · 今天" />
+    <string id="AIL_e7b1c4e7" text="{0} · {1} 天前" />
+    <string id="AIL_e7b1c4e8" text="人物" />
+    <string id="AIL_e7b1c4e9" text="绘制中…" />
+    <string id="AIL_e7b1c4ea" text="无法生成图片。原因见模组日志。" />
+    <string id="AIL_e7b1c4eb" text="还没有章节。当一段长谈进入角色的记忆时，章节会自动写成。" />
+    <string id="AIL_e7b1c4ec" text="生成图片" />
+    <string id="AIL_e7b1c4ed" text="换一张" />
+    <string id="AIL_e7b1c4ee" text="章节" />
+    <string id="AIL_e7b1c4f0" text="图片来源" />
+    <string id="AIL_e7b1c4f1" text="回忆录的每一章都可以配一张图。免费：使用无需密钥的公共服务，只会发送场景描述。OpenAI：使用你在“0. AI 密钥”中设置的 OpenAI 服务商，每张图都要花钱。本地：需要在你的电脑上运行并开启 API 的 Stable Diffusion。Off = 不生成图片。" />
+    <string id="AIL_e7b1c4f2" text="F. 图片" />
+    <string id="AIL_e7b1c4f3" text="自动为每个新章节绘图" />
+    <string id="AIL_e7b1c4f4" text="新章节写成后，图片会在后台生成。关闭：只有在书中按下按钮时才生成。每张图需要一次简短的 AI 请求来生成描述。" />
+    <string id="AIL_e7b1c4f5" text="图片风格" />
+    <string id="AIL_e7b1c4f6" text="附加到每条图片描述后面，用英文。" />
+    <string id="AIL_e7b1c4f7" text="本地 Stable Diffusion 地址" />
+    <string id="AIL_e7b1c4f8" text="OpenAI 图片模型" />
     <string id="AIL_e5c9b3a1" text="消息" />
     <string id="AIL_e5c9b3a2" text="回忆" />
     <string id="AIL_e5c9b3a3" text="确认" />

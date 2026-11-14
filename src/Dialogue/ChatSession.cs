@@ -528,6 +528,7 @@ namespace AILegacy.Dialogue
                 Mem.Mood = reply.Mood;
                 Mem.MoodReason = reply.MoodReason?.Length > 120 ? reply.MoodReason.Substring(0, 120) : reply.MoodReason;
                 Mem.MoodDay = CampaignTime.Now.ToDays;
+                Mem.MoodShown = reply.MoodShown.Length > 140 ? reply.MoodShown.Substring(0, 140) : reply.MoodShown;
             }
 
             if (!string.IsNullOrWhiteSpace(reply.PlayerIntroducedAs) && reply.PlayerIntroducedAs.Length <= 60

@@ -37,6 +37,8 @@ namespace AILegacy.UI
         private bool _statsVisible, _trustVisible, _romanceVisible, _tensionVisible, _warnVisible, _historyAvailable, _historyVisible;
         private string _relationText = "", _trustText = "", _romanceText = "", _tensionText = "", _warnText = "", _historyLabel = "";
         private int _relationFill, _trustFill, _romanceFill, _tensionFill, _scrollVersion;
+        private bool _moodVisible, _romanceInfoVisible, _familyVisible;
+        private string _moodText = "", _knownText = "", _romanceInfoText = "", _familyText = "";
         private MBBindingList<AilHistoryLineVM> _history = new MBBindingList<AilHistoryLineVM>();
         private string _historyOf;
         private int _historyCount = -1;
@@ -110,11 +112,35 @@ namespace AILegacy.UI
                 AilRomanceText = L.F("AIL_d5a0e001", $"Romance: {romanceNow}"); AilRomanceFill = Math.Max(0, Math.Min(100, romanceNow));
                 AilTensionVisible = cfg.EnableTension;
                 AilTensionText = L.F("AIL_55654690", $"Tensión: {tensionNow}"); AilTensionFill = Math.Max(0, Math.Min(100, tensionNow));
+                // Mood, in the player's language when the character has given it that way
+                string moodLine = mem == null ? "" : !string.IsNullOrWhiteSpace(mem.MoodShown) ? mem.MoodShown : (mem.Mood ?? "");
+                AilMoodText = moodLine; AilMoodVisible = moodLine.Trim().Length > 0;
+                // Whether they know who the player is
+                string knownAs = null;
+                try { knownAs = Prompt.ContextBuilder.PlayerNameFor(Speaker.FromHero(h)); } catch { }
+                AilKnownText = string.IsNullOrWhiteSpace(knownAs) ? L.T("AIL_e7b1c4e2", "No sabe quién eres") : L.F("AIL_e7b1c4e1", $"Te conoce como {knownAs}");
+                // Romance only where it can exist, with the two values that matter
+                bool canLove = false;
+                try { canLove = Bonds.RomancePossible(Speaker.FromHero(h)); } catch { }
+                AilRomanceVisible = canLove || romanceNow > 0;
+                AilRomanceInfoVisible = canLove && h.Spouse != Hero.MainHero;
+                AilRomanceInfoText = L.F("AIL_e7b1c4e3", $"Intimidad {cfg.RomanceForIntimacy} · Boda {cfg.RomanceForMarriage}");
+                // Family ties with the player
+                string family = "";
+                try
+                {
+                    var pc = Hero.MainHero;
+                    if (h.Spouse == pc) family = L.T("AIL_e7b1c4e4", "Tu cónyuge");
+                    int kids = h.Children.Count(c => c != null && (c.Father == pc || c.Mother == pc));
+                    if (kids > 0) family += (family.Length > 0 ? " · " : "") + L.F("AIL_e7b1c4e5", $"{kids} hijo(s) en común");
+                }
+                catch { }
+                AilFamilyText = family; AilFamilyVisible = family.Length > 0;
                 string warn = mem != null && mem.LiesSuspected > 0 ? L.T("AIL_d5a0e002", "Sospecha que mientes") : "";
                 AilWarnText = warn;
                 AilWarnVisible = warn.Length > 0;
             }
-            else { AilTrustVisible = false; AilRomanceVisible = false; AilTensionVisible = false; AilWarnVisible = false; }
+            else { AilTrustVisible = false; AilRomanceVisible = false; AilTensionVisible = false; AilWarnVisible = false; AilMoodVisible = false; AilRomanceInfoVisible = false; AilFamilyVisible = false; }
 
             // ---- history
             bool can = h != null && cfg.ShowDialogHistory && mem != null && mem.Turns.Any(t => !t.IsNote);
@@ -156,6 +182,13 @@ namespace AILegacy.UI
         [DataSourceProperty] public bool AilTensionVisible { get => _tensionVisible; set { if (value != _tensionVisible) { _tensionVisible = value; OnPropertyChangedWithValue(value, nameof(AilTensionVisible)); } } }
         [DataSourceProperty] public string AilTensionText { get => _tensionText; set { if (value != _tensionText) { _tensionText = value; OnPropertyChangedWithValue(value, nameof(AilTensionText)); } } }
         [DataSourceProperty] public int AilTensionFill { get => _tensionFill; set { if (value != _tensionFill) { _tensionFill = value; OnPropertyChangedWithValue(value, nameof(AilTensionFill)); } } }
+        [DataSourceProperty] public bool AilMoodVisible { get => _moodVisible; set { if (value != _moodVisible) { _moodVisible = value; OnPropertyChangedWithValue(value, nameof(AilMoodVisible)); } } }
+        [DataSourceProperty] public bool AilRomanceInfoVisible { get => _romanceInfoVisible; set { if (value != _romanceInfoVisible) { _romanceInfoVisible = value; OnPropertyChangedWithValue(value, nameof(AilRomanceInfoVisible)); } } }
+        [DataSourceProperty] public bool AilFamilyVisible { get => _familyVisible; set { if (value != _familyVisible) { _familyVisible = value; OnPropertyChangedWithValue(value, nameof(AilFamilyVisible)); } } }
+        [DataSourceProperty] public string AilMoodText { get => _moodText; set { if (value != _moodText) { _moodText = value; OnPropertyChangedWithValue(value, nameof(AilMoodText)); } } }
+        [DataSourceProperty] public string AilKnownText { get => _knownText; set { if (value != _knownText) { _knownText = value; OnPropertyChangedWithValue(value, nameof(AilKnownText)); } } }
+        [DataSourceProperty] public string AilRomanceInfoText { get => _romanceInfoText; set { if (value != _romanceInfoText) { _romanceInfoText = value; OnPropertyChangedWithValue(value, nameof(AilRomanceInfoText)); } } }
+        [DataSourceProperty] public string AilFamilyText { get => _familyText; set { if (value != _familyText) { _familyText = value; OnPropertyChangedWithValue(value, nameof(AilFamilyText)); } } }
         [DataSourceProperty] public bool AilWarnVisible { get => _warnVisible; set { if (value != _warnVisible) { _warnVisible = value; OnPropertyChangedWithValue(value, nameof(AilWarnVisible)); } } }
         [DataSourceProperty] public bool AilHistoryAvailable { get => _historyAvailable; set { if (value != _historyAvailable) { _historyAvailable = value; OnPropertyChangedWithValue(value, nameof(AilHistoryAvailable)); } } }
         [DataSourceProperty] public bool AilHistoryVisible { get => _historyVisible; set { if (value != _historyVisible) { _historyVisible = value; OnPropertyChangedWithValue(value, nameof(AilHistoryVisible)); } } }
@@ -172,32 +205,38 @@ namespace AILegacy.UI
     }
 
     /// <summary>
-    /// Our own panel to the right of the scene, just above the dialogue options: the bars stacked one under another, the
-    /// lie warning and the history button. It copies the dialogue box height, like the game's name strip, so it moves
-    /// with the box.
+    /// Our own panel to the right of the scene, just above the dialogue options: mood, whether they know who you are,
+    /// the bars stacked one under another, family ties, the lie warning and the history button. It copies the dialogue
+    /// box height, like the game's name strip, so it moves with the box.
     /// </summary>
     [PrefabExtension("SPConversation", "descendant::ListPanel[@Id='VerticalContainer']")]
     internal sealed class ConversationStatsPrefab : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Append;
 
-        // Every size here is Fixed. A StretchToParent child is measured with the whole available width, so a
-        // CoverChildren box that holds one grows to that width (that made the old card and its button 680 px wide).
-        // PaddingAmount 290 = 8 gap + 282 panel height. MarginLeft 1480 on a centred 320 px box puts it 740 px right of
-        // the screen centre, over the dialogue options.
+        // Widths are all Fixed. A StretchToParent child is measured with the whole available size, so a CoverChildren
+        // box that holds one grows to that size (that made the first card and its button 680 px wide).
+        // The panel's height follows its content. To keep its BOTTOM edge just above the dialogue options it sits at
+        // the bottom of a 460 px slot, and the slot hangs from the top of the synced box: PaddingAmount 468 = 8 + 460.
+        // MarginLeft 1480 on a centred 320 px box puts it 740 px right of the screen centre.
         [PrefabExtensionText]
         public string Xml =>
-            "<DimensionSyncWidget Id=\"AilStatsSync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"320\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginLeft=\"1480\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"290\">" +
+            "<DimensionSyncWidget Id=\"AilStatsSync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"320\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginLeft=\"1480\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"468\">" +
             "<Children>" +
-            "<Widget Id=\"AilStatsCard\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"320\" SuggestedHeight=\"282\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" IsVisible=\"@AilCardVisible\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\">" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"320\" SuggestedHeight=\"460\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" DoNotAcceptEvents=\"true\">" +
             "<Children>" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" MarginLeft=\"2\" MarginRight=\"2\" MarginTop=\"2\" MarginBottom=\"2\" Sprite=\"BlankWhiteSquare_9\" Color=\"#0D0A07FF\">" +
+            "<Widget Id=\"AilStatsCard\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"320\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Bottom\" IsVisible=\"@AilCardVisible\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\">" +
             "<Children>" +
-            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Top\" MarginTop=\"12\" StackLayout.LayoutMethod=\"VerticalTopToBottom\">" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"316\" HorizontalAlignment=\"Center\" MarginTop=\"2\" MarginBottom=\"2\" Sprite=\"BlankWhiteSquare_9\" Color=\"#0D0A07FF\">" +
+            "<Children>" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" HorizontalAlignment=\"Center\" MarginTop=\"12\" MarginBottom=\"12\" StackLayout.LayoutMethod=\"VerticalTopToBottom\">" +
             "<Children>" +
             "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" IsVisible=\"@AilStatsVisible\" DoNotAcceptEvents=\"true\">" +
             "<Children>" +
-            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\">" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#C9A6E8FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@AilMoodText\" IsVisible=\"@AilMoodVisible\" />" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" MarginTop=\"2\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"16\" Brush.FontColor=\"#9FB4D9FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@AilKnownText\" />" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"1\" MarginTop=\"6\" MarginBottom=\"6\" Sprite=\"BlankWhiteSquare_9\" Color=\"#5A4A30FF\" />" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"44\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\">" +
             "<Children>" +
             "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilRelationText\" />" +
             "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilRelationFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
@@ -209,7 +248,7 @@ namespace AILegacy.UI
             "</FillBarWidget>" +
             "</Children>" +
             "</ListPanel>" +
-            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilTrustVisible\">" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"44\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilTrustVisible\">" +
             "<Children>" +
             "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilTrustText\" />" +
             "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilTrustFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
@@ -221,7 +260,7 @@ namespace AILegacy.UI
             "</FillBarWidget>" +
             "</Children>" +
             "</ListPanel>" +
-            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilRomanceVisible\">" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"44\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilRomanceVisible\">" +
             "<Children>" +
             "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilRomanceText\" />" +
             "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilRomanceFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
@@ -233,7 +272,8 @@ namespace AILegacy.UI
             "</FillBarWidget>" +
             "</Children>" +
             "</ListPanel>" +
-            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilTensionVisible\">" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"14\" Brush.FontColor=\"#A8909AFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilRomanceInfoText\" IsVisible=\"@AilRomanceInfoVisible\" />" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"44\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilTensionVisible\">" +
             "<Children>" +
             "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilTensionText\" />" +
             "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilTensionFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
@@ -245,10 +285,11 @@ namespace AILegacy.UI
             "</FillBarWidget>" +
             "</Children>" +
             "</ListPanel>" +
-            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"26\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#F0A040FF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilWarnText\" IsVisible=\"@AilWarnVisible\" />" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" MarginTop=\"4\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#E8D9A6FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@AilFamilyText\" IsVisible=\"@AilFamilyVisible\" />" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" MarginTop=\"2\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#F0A040FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@AilWarnText\" IsVisible=\"@AilWarnVisible\" />" +
             "</Children>" +
             "</ListPanel>" +
-            "<ButtonWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"36\" MarginTop=\"6\" Command.Click=\"ExecuteAilToggleHistory\" IsVisible=\"@AilHistoryAvailable\" UpdateChildrenStates=\"true\">" +
+            "<ButtonWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"36\" MarginTop=\"8\" Command.Click=\"ExecuteAilToggleHistory\" IsVisible=\"@AilHistoryAvailable\" UpdateChildrenStates=\"true\">" +
             "<Children>" +
             "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#4A3920FF\" DoNotAcceptEvents=\"true\" />" +
             "<TextWidget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Text=\"@AilHistoryLabel\" DoNotAcceptEvents=\"true\" />" +
@@ -256,6 +297,8 @@ namespace AILegacy.UI
             "</ButtonWidget>" +
             "</Children>" +
             "</ListPanel>" +
+            "</Children>" +
+            "</Widget>" +
             "</Children>" +
             "</Widget>" +
             "</Children>" +

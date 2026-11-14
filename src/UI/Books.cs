@@ -268,9 +268,71 @@ namespace AILegacy.UI
             vm.Select(e, q.Name, b.ToString().Replace("{", "(").Replace("}", ")"));
         }
 
+        /// <summary>The book opens on its chapters when there are any, and on the people otherwise.</summary>
         public static void OpenMemories()
         {
+            bool anyPage = false;
+            try { anyPage = MemoryStore.AllHeroes.Any(m => m.Pages != null && m.Pages.Count > 0); } catch { }
+            if (anyPage) OpenChapters(); else OpenPeople();
+        }
+
+        /// <summary>
+        /// Chapters: every page of every character's memories, newest first. Left, the list with whose page it is and
+        /// how long ago; right, its illustration (if it has one), the title and the text.
+        /// </summary>
+        public static void OpenChapters()
+        {
+            var vm = new BookVM { Title = L.T("AIL_18fe8281", "Libro de memorias") };
+            double now = CampaignTime.Now.ToDays;
+            var all = new System.Collections.Generic.List<(HeroMemory mem, MemoryPage page, string who)>();
+            foreach (var m in MemoryStore.AllHeroes)
+            {
+                if (m.Pages == null || m.Pages.Count == 0) continue;
+                string who = Hero.Find(m.HeroId)?.Name?.ToString() ?? m.HeroName ?? "";
+                foreach (var pg in m.Pages) all.Add((m, pg, who));
+            }
+            foreach (var x in all.OrderByDescending(x => x.page.Day).Take(300))
+            {
+                int ago = Math.Max(0, (int)(now - x.page.Day));
+                string sub = ago == 0 ? L.F("AIL_e7b1c4e6", $"{x.who} · hoy") : L.F("AIL_e7b1c4e7", $"{x.who} · hace {ago} día(s)");
+                vm.Entries.Add(new BookEntryVM(x.page.Title ?? L.T("AIL_463eb3a3", "Sin título"), sub, x, e => ShowChapter(vm, e)));
+            }
+            vm.Action2Text = L.T("AIL_e7b1c4e8", "Personas"); vm.HasAction2 = true;
+            vm.OnAction2 = () => { GauntletWindow.Current?.Close(); Core.MainThread.Post(OpenPeople); };
+            vm.OnAction = e =>
+            {
+                if (!(e.Tag is ValueTuple<HeroMemory, MemoryPage, string> t) || !World.SceneImages.Enabled) return;
+                if (World.SceneImages.IsBusy) return;
+                var page = t.Item2;
+                vm.ActionText = L.T("AIL_e7b1c4e9", "Dibujando…");
+                World.SceneImages.Request(t.Item1, page, () =>
+                {
+                    // only repaint if the book is still open on this same chapter
+                    try { if (GauntletWindow.Current != null && vm.Selected == e) ShowChapter(vm, e); } catch { }
+                    if (World.SceneImages.PathOf(page) == null)
+                        InformationManager.DisplayMessage(new InformationMessage(L.T("AIL_e7b1c4ea", "No se pudo generar la imagen. El motivo está en el registro del mod."), Colors.Red));
+                });
+            };
+            if (vm.Entries.Count == 0) vm.Select(null, L.T("AIL_0872713a", "Vacío"), L.T("AIL_e7b1c4eb", "Todavía no hay capítulos. Se escriben solos cuando una charla larga pasa a la memoria de un personaje."));
+            else ShowChapter(vm, vm.Entries[0]);
+            Open("AILegacyBook", vm);
+        }
+
+        private static void ShowChapter(BookVM vm, BookEntryVM e)
+        {
+            var t = (ValueTuple<HeroMemory, MemoryPage, string>)e.Tag;
+            var page = t.Item2;
+            string path = World.SceneImages.PathOf(page);
+            vm.HasAction = World.SceneImages.Enabled;
+            vm.ActionText = World.SceneImages.IsBusy ? L.T("AIL_e7b1c4e9", "Dibujando…") : path == null ? L.T("AIL_e7b1c4ec", "Generar imagen") : L.T("AIL_e7b1c4ed", "Otra imagen");
+            vm.Select(e, page.Title ?? "", ((page.Text ?? "") + "\n\n" + e.Subtitle).Replace("{", "(").Replace("}", ")"), path);
+        }
+
+        public static void OpenPeople()
+        {
             var vm = new BookVM { Title = L.T("AIL_18fe8281", "Libro de memorias"), ActionText = L.T("AIL_7623bdb7", "Hablar"), HasAction = false };
+            vm.Action2Text = L.T("AIL_e7b1c4ee", "Capítulos"); vm.HasAction2 = true;
+            vm.OnAction2 = () => { GauntletWindow.Current?.Close(); Core.MainThread.Post(OpenChapters); };
             var list = MemoryStore.AllHeroes
                 .Where(m => m.ConversationCount > 0 || m.Turns.Count > 0 || !string.IsNullOrEmpty(m.Summary))
                 .Select(m => (m, h: Hero.Find(m.HeroId))).Where(x => x.h != null)

@@ -234,6 +234,7 @@ namespace AILegacy.World
             try { Letters.LetterSystem.ResetSession(); } catch { }
             try { Dialogue.Verdict.ResetSession(); } catch { }
             try { Dialogue.Initiative.ResetSession(); } catch { }
+            try { SceneImages.ResetSession(); } catch { }
             Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
         }
 

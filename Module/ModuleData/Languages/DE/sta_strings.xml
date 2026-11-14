@@ -1326,6 +1326,30 @@
     <string id="AIL_e7b1c4dd" text="Zuneigung ist schwerer zu gewinnen als zu verlieren: Gewinne werden damit skaliert, Verluste zählen immer voll. 100 = in beide Richtungen gleich." />
     <string id="AIL_e7b1c4de" text="Tage, die ein aufgeschnappter Satz erinnert wird (0 = immer)" />
     <string id="AIL_e7b1c4df" text="Was eine Figur im Vorbeigehen aufgeschnappt hat, verblasst nach so vielen Tagen. Bis 4,5 Meter hört sie jedes Wort, weiter weg nur einen Teil." />
+    <string id="AIL_e7b1c4e0" text="Tod von {0}" />
+    <string id="AIL_e7b1c4e1" text="Kennt dich als {0}" />
+    <string id="AIL_e7b1c4e2" text="Weiß nicht, wer du bist" />
+    <string id="AIL_e7b1c4e3" text="Nähe {0} · Heirat {1}" />
+    <string id="AIL_e7b1c4e4" text="Dein Ehepartner" />
+    <string id="AIL_e7b1c4e5" text="{0} gemeinsame(s) Kind(er)" />
+    <string id="AIL_e7b1c4e6" text="{0} · heute" />
+    <string id="AIL_e7b1c4e7" text="{0} · vor {1} Tag(en)" />
+    <string id="AIL_e7b1c4e8" text="Personen" />
+    <string id="AIL_e7b1c4e9" text="Zeichne…" />
+    <string id="AIL_e7b1c4ea" text="Das Bild konnte nicht erstellt werden. Der Grund steht im Mod-Protokoll." />
+    <string id="AIL_e7b1c4eb" text="Noch keine Kapitel. Sie entstehen von selbst, wenn ein langes Gespräch in das Gedächtnis einer Figur übergeht." />
+    <string id="AIL_e7b1c4ec" text="Bild erstellen" />
+    <string id="AIL_e7b1c4ed" text="Anderes Bild" />
+    <string id="AIL_e7b1c4ee" text="Kapitel" />
+    <string id="AIL_e7b1c4f0" text="Woher die Bilder kommen" />
+    <string id="AIL_e7b1c4f1" text="Jedes Kapitel des Erinnerungsbuchs kann ein Bild bekommen. Kostenlos nutzt einen öffentlichen Dienst ohne Schlüssel: Es wird nur eine Beschreibung der Szene gesendet. OpenAI nutzt den OpenAI-Anbieter aus 0. KI-Schlüssel und kostet Geld pro Bild. Lokal braucht Stable Diffusion auf deinem PC mit aktivierter API. Off = keine Bilder." />
+    <string id="AIL_e7b1c4f2" text="F. Bilder" />
+    <string id="AIL_e7b1c4f3" text="Jedes neue Kapitel von selbst zeichnen" />
+    <string id="AIL_e7b1c4f4" text="Wenn ein neues Kapitel geschrieben wird, entsteht sein Bild im Hintergrund. Aus: nur wenn du im Buch den Knopf drückst. Jedes Bild braucht eine kurze KI-Anfrage für die Beschreibung." />
+    <string id="AIL_e7b1c4f5" text="Stil der Bilder" />
+    <string id="AIL_e7b1c4f6" text="Wird an jede Bildbeschreibung angehängt, auf Englisch." />
+    <string id="AIL_e7b1c4f7" text="Adresse des lokalen Stable Diffusion" />
+    <string id="AIL_e7b1c4f8" text="OpenAI-Bildmodell" />
     <string id="AIL_e5c9b3a1" text="Neuigkeiten" />
     <string id="AIL_e5c9b3a2" text="Erinnerungen" />
     <string id="AIL_e5c9b3a3" text="Bestätigen" />

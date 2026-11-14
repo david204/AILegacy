@@ -20,6 +20,22 @@ namespace AILegacy.World
     internal static class People
     {
         /// <summary>companion = joins the player's clan and party.</summary>
+        /// <summary>
+        /// After a commoner is made a lord, the game still reads the old occupation from their CharacterObject when
+        /// it creates their children. Sets that hidden copy to match. Harmless if the game already agrees.
+        /// </summary>
+        public static void SyncOccupation(Hero h)
+        {
+            try
+            {
+                var co = h?.CharacterObject;
+                if (co == null || h.Occupation != Occupation.Lord || co.GetDefaultOccupation() == Occupation.Lord) return;
+                var f = HarmonyLib.AccessTools.Field(typeof(CharacterObject), "_occupation");
+                if (f != null) f.SetValue(co, Occupation.Lord);
+            }
+            catch (Exception ex) { Log.Warn("No se pudo igualar la ocupación de " + h?.Name + ": " + ex.Message); }
+        }
+
         public static Hero Promote(Speaker s, Agent agent, bool companion, out string error)
         {
             error = null;
@@ -101,7 +117,7 @@ namespace AILegacy.World
                 var hero = HeroCreator.CreateSpecialHero(template, st, Clan.PlayerClan, null, Math.Max(1, age));
                 var full = new TextObject("{=!}" + name);
                 hero.SetName(full, full);
-                hero.SetNewOccupation(Occupation.Lord);
+                hero.SetNewOccupation(Occupation.Lord); SyncOccupation(hero);
                 if (hero.Clan != Clan.PlayerClan) hero.Clan = Clan.PlayerClan;
 
                 switch (relation)

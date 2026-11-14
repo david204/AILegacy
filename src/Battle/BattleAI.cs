@@ -37,15 +37,20 @@ YOUR FORMATIONS (name — what it is — men — where it stands — what it is 
 ENEMY FORMATIONS (name — what it is — men — where it stands):
 {foe}
 
+Ground: each formation shows how high it stands against your centre. Height matters: archers shoot further and charges hit harder downhill, and men climbing a slope arrive tired and in disorder.
+
 Your recent orders (oldest first): {history}
 
 Give orders for this moment, as this commander would, and think like a soldier: infantry holds the line and fixes the enemy; archers need a clear shot and someone between them and enemy horse; cavalry is for flanks, for enemy archers and for breaking men who are already engaged, not for charging fresh spearmen head-on; do not send formations in one by one; if you are much the stronger, close and finish it; if much the weaker, hold good ground and make them come to you. Do not change a sound order every moment: repeat it or leave that formation out. You may leave a formation to its captain's judgment by not listing it.
 For each formation you order:
-- ""move"": charge | advance | hold | fall_back | flank_left | flank_right | attack:<enemy formation name> | retreat   (flank = swing wide around that side of the enemy's main body; retreat = leave the field, only when all is lost: outnumbered about three to one)
-- ""shape"" (optional): line | shield_wall | loose | square | circle | scatter
+- ""move"": charge | advance | hold | fall_back | flank_left | flank_right | attack:<enemy formation name> | move:<forward|back|left|right> <meters> | retreat   (flank = swing wide around that side of the enemy's main body; move = walk that many meters from where they stand, forward being toward the enemy's main body, to take a hill, close a gap or get out of arrow range; retreat = leave the field, only when all is lost: outnumbered about three to one)
+- ""shape"" (optional): line | shield_wall | loose | square | circle | scatter | wedge | column
 - ""fire"" (optional): at_will | hold
+- ""width"" (optional): wide | wider | deep   (how broad the formation stands: wide to outflank or thin out under arrows, deep to punch through or hold a gap)
+- ""face"" (optional): enemy | hold_direction   (enemy = keep turning toward the nearest enemy; hold_direction = keep facing the way they face now)
+- ""mount"" (optional): mount | dismount | free   (only for formations with horses: dismount to hold ground, a slope or a wall on foot)
 ""shout"": what you bellow to your men right now (under 90 characters, in {language}), in your own voice. ""plan"": your intent in ONE short English sentence.
-Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<your formation name>"", ""move"": ""..."", ""shape"": """", ""fire"": """" } ], ""shout"": ""..."", ""plan"": ""..."" }");
+Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<your formation name>"", ""move"": ""..."", ""shape"": """", ""fire"": """", ""width"": """", ""face"": """", ""mount"": """" } ], ""shout"": ""..."", ""plan"": ""..."" }");
 
         private static readonly Tpl TPlayerOrder = new Tpl("battle/player_orders.txt",
 @"A commander in a field battle in Calradia (Mount & Blade II: Bannerlord) has just shouted an order to their troops in their own words. Turn it into orders for their formations. Do exactly what was asked, no more: formations not mentioned and not covered by words like ""everyone"" or ""all"" get no order.
@@ -59,10 +64,13 @@ ENEMY FORMATIONS (name — what it is — men — where it stands):
 The order as shouted: «{said}»
 
 For each formation concerned:
-- ""move"": charge | advance | hold | fall_back | flank_left | flank_right | attack:<enemy formation name> | retreat
-- ""shape"" (optional): line | shield_wall | loose | square | circle | scatter
+- ""move"": charge | advance | hold | fall_back | flank_left | flank_right | attack:<enemy formation name> | move:<forward|back|left|right> <meters> | retreat
+- ""shape"" (optional): line | shield_wall | loose | square | circle | scatter | wedge | column
 - ""fire"" (optional): at_will | hold
-Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""move"": ""..."", ""shape"": """", ""fire"": """" } ], ""understood"": ""what you understood, one short sentence in {language}"" }");
+- ""width"" (optional): wide | wider | deep   (how broad the formation stands: wide to outflank or thin out under arrows, deep to punch through or hold a gap)
+- ""face"" (optional): enemy | hold_direction   (enemy = keep turning toward the nearest enemy; hold_direction = keep facing the way they face now)
+- ""mount"" (optional): mount | dismount | free   (only for formations with horses: dismount to hold ground, a slope or a wall on foot)
+Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""move"": ""..."", ""shape"": """", ""fire"": """", ""width"": """", ""face"": """", ""mount"": """" } ], ""understood"": ""what you understood, one short sentence in {language}"" }");
 
         public static void Touch() { var _ = TCommander.Key + TPlayerOrder.Key; }
 
@@ -143,6 +151,21 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             if (front.Length < 0.1f) front = new Vec2(0f, 1f);
             front = front.Normalized();
 
+            // Ground height of each formation against the height of our own centre
+            float baseZ = 0f; int zn = 0;
+            foreach (var f in mine) { try { baseZ += f.CachedMedianPosition.GetGroundZ() * f.CountOfUnits; zn += f.CountOfUnits; } catch { } }
+            if (zn > 0) baseZ /= zn;
+            string Ground(Formation f)
+            {
+                try
+                {
+                    if (zn == 0) return "";
+                    int dz = (int)Math.Round(f.CachedMedianPosition.GetGroundZ() - baseZ);
+                    return dz >= 2 ? $"; {dz} m higher ground" : dz <= -2 ? $"; {-dz} m lower ground" : "; level ground";
+                }
+                catch { return ""; }
+            }
+
             var sb = new StringBuilder();
             foreach (var f in mine)
             {
@@ -150,12 +173,12 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 float nearest = theirs.Count == 0 ? 999f : theirs.Min(e => e.CurrentPosition.Distance(pos));
                 string doing = side != null && side.Held.Contains(f) && side.Doing.TryGetValue(f, out var d) ? "your last order: " + d : "acting on its captain's own judgment";
                 if (f.PlayerOwner != null && f.PlayerOwner == Agent.Main && side != null) doing = "under another commander's direct orders (you cannot order it)";
-                sb.AppendLine($"- {Name(f)} — {Kind(f)} — {f.CountOfUnits} men — {Where(centre, front, pos)} of your centre; nearest enemy {(int)nearest} m{(nearest < 18f ? " (IN MELEE)" : "")} — {doing}");
+                sb.AppendLine($"- {Name(f)} — {Kind(f)} — {f.CountOfUnits} men — {Where(centre, front, pos)} of your centre; nearest enemy {(int)nearest} m{(nearest < 18f ? " (IN MELEE)" : "")}{Ground(f)} — {doing}");
             }
             own = sb.Length == 0 ? "(none left)" : sb.ToString().TrimEnd();
             sb.Clear();
             foreach (var f in theirs)
-                sb.AppendLine($"- {Name(f)}{(theirs.Count(x => Name(x) == Name(f)) > 1 ? "/" + f.Team.TeamIndex : "")} — {Kind(f)} — {f.CountOfUnits} men — {Where(centre, front, f.CurrentPosition)} of your centre");
+                sb.AppendLine($"- {Name(f)}{(theirs.Count(x => Name(x) == Name(f)) > 1 ? "/" + f.Team.TeamIndex : "")} — {Kind(f)} — {f.CountOfUnits} men — {Where(centre, front, f.CurrentPosition)} of your centre{Ground(f)}");
             foe = sb.Length == 0 ? "(none in sight)" : sb.ToString().TrimEnd();
         }
 
@@ -188,6 +211,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 bool players = f.PlayerOwner != null && f.PlayerOwner == Agent.Main;
                 if (players != playerOrder && !(playerOrder && team.IsPlayerGeneral)) continue;      // each side only commands its own formations
                 string move = ((string)o["move"] ?? "").Trim().ToLowerInvariant(), shape = ((string)o["shape"] ?? "").Trim().ToLowerInvariant(), fire = ((string)o["fire"] ?? "").Trim().ToLowerInvariant();
+                string width = ((string)o["width"] ?? "").Trim().ToLowerInvariant(), face = ((string)o["face"] ?? "").Trim().ToLowerInvariant(), mount = ((string)o["mount"] ?? "").Trim().ToLowerInvariant();
                 if (move == "retreat" && !mayRetreat) { Log.Info($"[batalla] retirada de {Name(f)} rechazada: no están en clara inferioridad"); move = "fall_back"; }
                 MovementOrder? mo = null;
                 string label = move;
@@ -213,7 +237,24 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     var target = theirs.Where(x => string.Equals(Name(x), en, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.CurrentPosition.Distance(pos)).FirstOrDefault();
                     if (target != null) mo = MovementOrder.MovementOrderChargeToTarget(target);      // unknown targets are ignored
                 }
-                if (mo == null && shape.Length == 0 && fire.Length == 0) continue;
+                else if (move.StartsWith("move:"))
+                {
+                    // "move:forward 40": that many meters from where they stand; forward is toward the enemy's main body
+                    var bits = move.Substring(5).Trim().Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    float meters = 30f;
+                    if (bits.Length > 1) float.TryParse(new string(bits[1].Where(c => char.IsDigit(c) || c == '.').ToArray()), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out meters);
+                    meters = Math.Max(5f, Math.Min(200f, meters));
+                    var left = new Vec2(-front.y, front.x);
+                    Vec2? dir = bits.Length == 0 ? (Vec2?)null : bits[0] == "forward" ? front : bits[0] == "back" ? front * -1f : bits[0] == "left" ? left : bits[0] == "right" ? left * -1f : (Vec2?)null;
+                    if (dir != null)
+                    {
+                        var wp = f.CreateNewOrderWorldPosition(WorldPosition.WorldPositionEnforcedCache.None);
+                        wp.SetVec2(f.CurrentPosition + dir.Value * meters);
+                        mo = MovementOrder.MovementOrderMove(wp);
+                        label = $"move {bits[0]} {(int)meters} m";
+                    }
+                }
+                if (mo == null && shape.Length == 0 && fire.Length == 0 && width.Length == 0 && face.Length == 0 && mount.Length == 0) continue;
 
                 if (!playerOrder && f.IsAIControlled) { f.SetControlledByAI(false); side.Held.Add(f); }
                 if (mo != null) f.SetMovementOrder(mo.Value);
@@ -225,12 +266,30 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     case "square": f.SetArrangementOrder(ArrangementOrder.ArrangementOrderSquare); break;
                     case "circle": f.SetArrangementOrder(ArrangementOrder.ArrangementOrderCircle); break;
                     case "scatter": f.SetArrangementOrder(ArrangementOrder.ArrangementOrderScatter); break;
+                    case "wedge": f.SetArrangementOrder(ArrangementOrder.ArrangementOrderSkein); break;
+                    case "column": f.SetArrangementOrder(ArrangementOrder.ArrangementOrderColumn); break;
                     default: shape = ""; break;
                 }
                 if (fire == "at_will") f.SetFiringOrder(FiringOrder.FiringOrderFireAtWill);
                 else if (fire == "hold") f.SetFiringOrder(FiringOrder.FiringOrderHoldYourFire);
                 else fire = "";
-                label = (mo != null ? label : "") + (shape != "" ? " " + shape : "") + (fire != "" ? " fire:" + fire : "");
+                if (width == "wide") f.SetFormOrder(FormOrder.FormOrderWide);
+                else if (width == "wider") f.SetFormOrder(FormOrder.FormOrderWider);
+                else if (width == "deep") f.SetFormOrder(FormOrder.FormOrderDeep);
+                else width = "";
+                if (face == "enemy") f.SetFacingOrder(FacingOrder.FacingOrderLookAtEnemy);
+                else if (face == "hold_direction") f.SetFacingOrder(FacingOrder.FacingOrderLookAtDirection(f.Direction));
+                else face = "";
+                // riding orders mean nothing to men without horses
+                bool horses = false;
+                try { horses = f.HasAnyMountedUnit || f.RidingOrder == RidingOrder.RidingOrderDismount; } catch { }
+                if (!horses) mount = "";
+                else if (mount == "mount") f.SetRidingOrder(RidingOrder.RidingOrderMount);
+                else if (mount == "dismount") f.SetRidingOrder(RidingOrder.RidingOrderDismount);
+                else if (mount == "free") f.SetRidingOrder(RidingOrder.RidingOrderFree);
+                else mount = "";
+                label = (mo != null ? label : "") + (shape != "" ? " " + shape : "") + (fire != "" ? " fire:" + fire : "")
+                        + (width != "" ? " " + width : "") + (face != "" ? " face:" + face : "") + (mount != "" ? " " + mount : "");
                 if (side != null) side.Doing[f] = label.Trim();
                 shown?.Append($"{Name(f)}: {label.Trim()}; ");
                 done++;

@@ -1326,6 +1326,30 @@
     <string id="AIL_e7b1c4dd" text="Liking is harder to win than to lose: gains are scaled by this and losses always count in full. 100 = the same both ways." />
     <string id="AIL_e7b1c4de" text="Days an overheard line is remembered (0 = always)" />
     <string id="AIL_e7b1c4df" text="What a character caught in passing fades after this many days. Up to 4.5 meters they hear every word; further away they catch only part of it." />
+    <string id="AIL_e7b1c4e0" text="Death of {0}" />
+    <string id="AIL_e7b1c4e1" text="They know you as {0}" />
+    <string id="AIL_e7b1c4e2" text="They do not know who you are" />
+    <string id="AIL_e7b1c4e3" text="Intimacy {0} · Marriage {1}" />
+    <string id="AIL_e7b1c4e4" text="Your spouse" />
+    <string id="AIL_e7b1c4e5" text="{0} child(ren) together" />
+    <string id="AIL_e7b1c4e6" text="{0} · today" />
+    <string id="AIL_e7b1c4e7" text="{0} · {1} day(s) ago" />
+    <string id="AIL_e7b1c4e8" text="People" />
+    <string id="AIL_e7b1c4e9" text="Drawing…" />
+    <string id="AIL_e7b1c4ea" text="The picture could not be made. The reason is in the mod log." />
+    <string id="AIL_e7b1c4eb" text="No chapters yet. They are written by themselves when a long talk passes into a character’s memory." />
+    <string id="AIL_e7b1c4ec" text="Make picture" />
+    <string id="AIL_e7b1c4ed" text="Another picture" />
+    <string id="AIL_e7b1c4ee" text="Chapters" />
+    <string id="AIL_e7b1c4f0" text="Where pictures come from" />
+    <string id="AIL_e7b1c4f1" text="Each chapter of the memory book can have a picture. Free uses a public service that needs no key: only a description of the scene is sent to it. OpenAI uses the OpenAI provider you set up in 0. AI Keys and costs money per picture. Local needs Stable Diffusion running on your PC with its API on. Off = no pictures." />
+    <string id="AIL_e7b1c4f2" text="F. Pictures" />
+    <string id="AIL_e7b1c4f3" text="Draw each new chapter by itself" />
+    <string id="AIL_e7b1c4f4" text="When a new chapter is written, its picture is made in the background. Off: only when you press the button in the book. Each picture takes one short AI request for the description." />
+    <string id="AIL_e7b1c4f5" text="Style of the pictures" />
+    <string id="AIL_e7b1c4f6" text="Added to every picture description, in English." />
+    <string id="AIL_e7b1c4f7" text="Local Stable Diffusion address" />
+    <string id="AIL_e7b1c4f8" text="OpenAI image model" />
     <string id="AIL_e5c9b3a1" text="News" />
     <string id="AIL_e5c9b3a2" text="Memories" />
     <string id="AIL_e5c9b3a3" text="Confirm" />

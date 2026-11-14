@@ -1326,6 +1326,30 @@
     <string id="AIL_e7b1c4dd" text="El aprecio cuesta más ganarlo que perderlo: lo ganado se multiplica por esto y lo perdido cuenta siempre entero. 100 = igual en los dos sentidos." />
     <string id="AIL_e7b1c4de" text="Días que se recuerda una frase oída de pasada (0 = siempre)" />
     <string id="AIL_e7b1c4df" text="Lo que un personaje pilló de pasada se le olvida pasados estos días. Hasta 4,5 metros oyen cada palabra; más lejos solo pillan una parte." />
+    <string id="AIL_e7b1c4e0" text="Muerte de {0}" />
+    <string id="AIL_e7b1c4e1" text="Te conoce como {0}" />
+    <string id="AIL_e7b1c4e2" text="No sabe quién eres" />
+    <string id="AIL_e7b1c4e3" text="Intimidad {0} · Boda {1}" />
+    <string id="AIL_e7b1c4e4" text="Tu cónyuge" />
+    <string id="AIL_e7b1c4e5" text="{0} hijo(s) en común" />
+    <string id="AIL_e7b1c4e6" text="{0} · hoy" />
+    <string id="AIL_e7b1c4e7" text="{0} · hace {1} día(s)" />
+    <string id="AIL_e7b1c4e8" text="Personas" />
+    <string id="AIL_e7b1c4e9" text="Dibujando…" />
+    <string id="AIL_e7b1c4ea" text="No se pudo generar la imagen. El motivo está en el registro del mod." />
+    <string id="AIL_e7b1c4eb" text="Todavía no hay capítulos. Se escriben solos cuando una charla larga pasa a la memoria de un personaje." />
+    <string id="AIL_e7b1c4ec" text="Generar imagen" />
+    <string id="AIL_e7b1c4ed" text="Otra imagen" />
+    <string id="AIL_e7b1c4ee" text="Capítulos" />
+    <string id="AIL_e7b1c4f0" text="De dónde salen las imágenes" />
+    <string id="AIL_e7b1c4f1" text="Cada capítulo del libro de memorias puede llevar una imagen. Gratis usa un servicio público que no pide clave: solo se le manda una descripción de la escena. OpenAI usa el proveedor de OpenAI que tengas en 0. Claves de IA y cuesta dinero por imagen. Local necesita Stable Diffusion en tu PC con su API encendida. Off = sin imágenes." />
+    <string id="AIL_e7b1c4f2" text="F. Imágenes" />
+    <string id="AIL_e7b1c4f3" text="Dibujar cada capítulo nuevo solo" />
+    <string id="AIL_e7b1c4f4" text="Cuando se escribe un capítulo nuevo, su imagen se hace en segundo plano. Apagado: solo cuando pulses el botón en el libro. Cada imagen gasta una petición corta a la IA para la descripción." />
+    <string id="AIL_e7b1c4f5" text="Estilo de las imágenes" />
+    <string id="AIL_e7b1c4f6" text="Se añade a la descripción de cada imagen, en inglés." />
+    <string id="AIL_e7b1c4f7" text="Dirección de Stable Diffusion local" />
+    <string id="AIL_e7b1c4f8" text="Modelo de imagen de OpenAI" />
     <string id="AIL_e5c9b3a1" text="Noticias" />
     <string id="AIL_e5c9b3a2" text="Memorias" />
     <string id="AIL_e5c9b3a3" text="Confirmar" />

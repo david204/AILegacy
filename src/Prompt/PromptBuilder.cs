@@ -72,7 +72,7 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
             "Inside text values never use straight double quotes (\"): to quote someone's words use «» or single quotes ('...').");
         private static readonly Tpl TJsonReply = new Tpl("json_output/reply.txt", "\"reply\": \"what you say out loud (and optional *gestures*)\"");
         private static readonly Tpl TJsonMood = new Tpl("json_output/mood.txt",
-            "\"mood\": \"one word for how you feel now (e.g. calm, amused, angry, afraid, proud, sad, suspicious, affectionate)\", \"mood_reason\": \"a few words why\"");
+            "\"mood\": \"one word for how you feel now (e.g. calm, amused, angry, afraid, proud, sad, suspicious, affectionate)\", \"mood_reason\": \"a few words why\", \"mood_shown\": \"that mood and its reason as one short phrase in {language}, written about you in the third person without your name (e.g. 'wary, because of the rumours about them')\"");
         private static readonly Tpl TJsonRelation = new Tpl("json_output/relation_change.txt",
             "\"relation_change\": integer from -{max} to {max}: how this exchange changed your opinion of them. 0 most of the time; only real insults, threats, flattery that works, help or kindness move it");
         private static readonly Tpl TJsonTrust = new Tpl("json_output/trust_change.txt",
@@ -263,7 +263,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             var fields = new List<string>();
             if (cfg.EnableThoughts) fields.Add(TThoughts.Text);
             fields.Add(TJsonReply.Text);
-            fields.Add(TJsonMood.Text);
+            fields.Add(TJsonMood.Format("language", cfg.Language));
             if (s.IsHero) fields.Add(TJsonRelation.Format("max", cfg.MaxRelationChangePerReply));
             if (cfg.EnableTrust) fields.Add(TJsonTrust.Format("max", cfg.MaxTrustChangePerReply));
             if (cfg.EnableTension) fields.Add(TJsonTension.Format("max", cfg.MaxTensionChangePerReply));

@@ -323,6 +323,30 @@ namespace AILegacy.Settings
                 P1PriceIn, P1PriceOut, P2PriceIn, P2PriceOut, P3PriceIn, P3PriceOut, P4PriceIn, P4PriceOut, P1Embed, P2Embed, P3Embed, P4Embed,
                 P5Enabled, P5Service, P5Key, P5Model, P5Url, P5PriceIn, P5PriceOut, P5Embed, P6Enabled, P6Service, P6Key, P6Model, P6Url, P6PriceIn, P6PriceOut, P6Embed);
 
+        // ------------------------------------------------------------ Images
+        [SettingPropertyDropdown("{=AIL_e7b1c4f0}Where pictures come from", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4f1}Each chapter of the memory book can have a picture. Free uses a public service that needs no key: only a description of the scene is sent to it. OpenAI uses the OpenAI provider you set up in 0. AI Keys and costs money per picture. Local needs Stable Diffusion running on your PC with its API on. Off = no pictures.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public MCM.Common.Dropdown<string> ImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Free);
+
+        [SettingPropertyBool("{=AIL_e7b1c4f3}Draw each new chapter by itself", Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4f4}When a new chapter is written, its picture is made in the background. Off: only when you press the button in the book. Each picture takes one short AI request for the description.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public bool ImageAuto { get; set; } = true;
+
+        [SettingPropertyText("{=AIL_e7b1c4f5}Style of the pictures", Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4f6}Added to every picture description, in English.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string ImageStyle { get; set; } = "Painterly medieval illustration, oil on canvas, muted earthy colours, soft natural light, detailed, no text, no watermark";
+
+        [SettingPropertyText("{=AIL_e7b1c4f7}Local Stable Diffusion address", Order = 3, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string ImageLocalUrl { get; set; } = "http://127.0.0.1:7860";
+
+        [SettingPropertyText("{=AIL_e7b1c4f8}OpenAI image model", Order = 4, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string ImageOpenAiModel { get; set; } = "gpt-image-1";
+
         // ------------------------------------------------------------ General
         [SettingPropertyDropdown("{=AIL_e250598b}Interface language", Order = -2, RequireRestart = false,
             HintText = "{=AIL_5fd4967b}Language of AI Legacy's menus, notices and windows. \"Auto\" uses the game's language. To see this menu in the new language, leave the options and come back in.")]

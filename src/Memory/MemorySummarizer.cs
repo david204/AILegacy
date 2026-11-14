@@ -145,6 +145,7 @@ namespace AILegacy.Memory
                             Day = CampaignTime.Now.ToDays,
                         });
                         while (mem.Pages.Count > cfg.MaxMemoryPages) mem.Pages.RemoveAt(0);
+                        if (cfg.ImageAuto && World.SceneImages.Enabled) World.SceneImages.Request(mem, mem.Pages[mem.Pages.Count - 1]);
                         Log.Info($"Nueva página en el libro de memorias de {s.Name}: {title}");
                     }
                     SaveFiles.Flush();
