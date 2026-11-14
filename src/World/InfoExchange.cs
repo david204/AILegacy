@@ -349,6 +349,20 @@ You did not just meet or catch them on the road: the capture is done. Open with 
             if (QuestSystem.ActiveFrom(h.StringId) != null) { w += 3; reasons.Add("you gave them a task that is still open and want to know how it goes"); }
             if (InfoExchange.HasFreshNews(mem)) { w += 3; reasons.Add("you have recently heard things about them from others and want to hear it from them"); }
             if (mem.Romance >= 20) { w += 2; reasons.Add("you have feelings for them and seized the chance to see them"); }
+            else
+            {
+                // An unattached character who likes the player may be the one to make the first move
+                try
+                {
+                    if (S.Get.EnableNpcRomance && h.Spouse == null && P.Spouse == null && NpcRomance.Of(h) == null && h.GetRelationWithPlayer() >= 30
+                        && Bonds.RomancePossible(Speaker.FromHero(h)) && Rng.Next(100) < 25)
+                    {
+                        w += 1.5;
+                        reasons.Add("you have taken a liking to them that is more than friendship and want them to know it, in your own way and at your own pace");
+                    }
+                }
+                catch { }
+            }
             if (mem.OwesReplyToPlayer) { w += 1; reasons.Add("they wrote to you and you would rather answer in person"); }
             int rel = (int)h.GetRelationWithPlayer();
             if (rel >= 25) { w += 1.5; reasons.Add("you count them a friend and were glad to see their banner"); }

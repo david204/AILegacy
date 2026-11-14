@@ -18,6 +18,7 @@ namespace AILegacy.UI
     {
         private string _imagePath = "";
         private Texture _texture;
+        private TaleWorlds.Engine.Texture _engine;
         private bool _failed;
 
         public AILegacyImageWidget(UIContext context) : base(context) { }
@@ -31,9 +32,23 @@ namespace AILegacy.UI
                 value = value ?? "";
                 if (value == _imagePath) return;
                 _imagePath = value;
-                _texture = null; _failed = false;
+                Drop(); _failed = false;
                 OnPropertyChanged(value, nameof(ImagePath));
             }
+        }
+
+        /// <summary>Lets go of the loaded picture so the engine can free it.</summary>
+        private void Drop()
+        {
+            _texture = null;
+            var e = _engine; _engine = null;
+            try { e?.Release(); } catch { }
+        }
+
+        protected override void OnDisconnectedFromRoot()
+        {
+            base.OnDisconnectedFromRoot();
+            Drop();
         }
 
         private void Load()
@@ -44,6 +59,7 @@ namespace AILegacy.UI
                 var engine = TaleWorlds.Engine.Texture.LoadTextureFromPath(Path.GetFileName(_imagePath), Path.GetDirectoryName(_imagePath));
                 if (engine == null) { _failed = true; return; }
                 engine.PreloadTexture(false);
+                _engine = engine;
                 _texture = new Texture(new EngineTexture(engine));
             }
             catch (Exception ex) { _failed = true; Log.Error("Imagen: cargar " + _imagePath, ex); }
@@ -70,7 +86,7 @@ namespace AILegacy.UI
                 drawObject.Scale = _scaleToUse;
                 drawContext.Draw(material, in drawObject);
             }
-            catch (Exception ex) { _failed = true; _texture = null; Log.Error("Imagen: dibujar", ex); }
+            catch (Exception ex) { _failed = true; Drop(); Log.Error("Imagen: dibujar", ex); }
         }
     }
 }

@@ -541,6 +541,7 @@ namespace AILegacy.Dialogue
                 {
                     var h = s.Hero;
                     if (P.Spouse == h || h.Spouse == P) return null;
+                    Hero hadH = h.Spouse, hadP = P.Spouse;
                     try
                     {
                         // A non-noble (companion, wanderer, notable without a clan) joins your clan as a noble first
@@ -560,7 +561,18 @@ namespace AILegacy.Dialogue
                     }
                     catch (Exception ex) { Log.Error("Preparar la boda", ex); }
                     Marry(P, h);
-                    if (P.Spouse != h) { Log.Warn($"La boda con {s.Name} no se ha podido celebrar"); return null; }
+                    if (P.Spouse != h)
+                    {
+                        // Nobody is left single because of a wedding that did not happen
+                        try
+                        {
+                            if (hadH != null && hadH.IsAlive && h.Spouse == null && hadH.Spouse == null) { h.Spouse = hadH; RemoveExSpouse(h, hadH); RemoveExSpouse(hadH, h); }
+                            if (hadP != null && hadP.IsAlive && P.Spouse == null && hadP.Spouse == null) { P.Spouse = hadP; RemoveExSpouse(P, hadP); RemoveExSpouse(hadP, P); }
+                        }
+                        catch (Exception ex) { Log.Error("Deshacer la boda fallida", ex); }
+                        Log.Warn($"La boda con {s.Name} no se ha podido celebrar");
+                        return null;
+                    }
                     Bonds.ChangeRomance(s, 10);
                     return L.F("AIL_fd4aafcb", $"¡Te casas con {s.Name}!");
                 }
@@ -1352,6 +1364,23 @@ namespace AILegacy.Dialogue
             // ----------------------------------------------------------- common people becoming someone
             new ActionDef
             {
+                Name = "join_with_band", Usage = "join_with_band",
+                Description = "Your whole band throws in its lot with them: every one of your men joins their party as soldiers, and you with them. Very rare. Only when they made a real offer of service " +
+                              "(pay, food, a pardon, plunder, a cause) that beats the life you lead, your men would follow you into it, and you believe they can deliver. " +
+                              "A threat alone is not enough unless you are plainly beaten and this is the way out they offered.",
+                IsAvailable = s => S.Get.AllowBandRecruit && s.Band != null && s.Band.IsActive && s.Band.MapFaction != null && s.Band.MapFaction.IsBanditFaction
+                                   && s.Band.MapEvent == null && !Combat.BandJoinPending,
+                Extra = s => $"Your band: {s.Band.MemberRoster.TotalManCount} men. Their party: {MobileParty.MainParty.MemberRoster.TotalManCount} of {MobileParty.MainParty.Party.PartySizeLimit} they can feed and lead.",
+                Execute = (s, arg, ctx) =>
+                {
+                    int men = s.Band.MemberRoster.TotalManCount;
+                    Combat.QueueBandJoin(s.Band);
+                    ctx.EndConversation = true;
+                    return L.F("AIL_e7b1c4fb", $"La banda entera ({men} hombres) se une a tu partida.");
+                }
+            },
+            new ActionDef
+            {
                 Name = "join_their_company", Usage = "join_their_company",
                 Description = "You leave your life here for good and go with the other person as one of their companions. Very rare: only if they clearly and seriously offered to take you into their company, " +
                               "you have a real reason to go (nothing holding you here, a debt, a dream, love, hunger) and you have come to trust them. A passing remark or a joke is not an offer.",
@@ -1362,6 +1391,18 @@ namespace AILegacy.Dialogue
                     var agent = SceneAgent();
                     var hero = World.People.Promote(s, agent, true, out string perr) ?? Promote(s);
                     if (hero == null) return null;
+                    // One of your own soldiers leaves the ranks: the party has one fewer of that troop
+                    try
+                    {
+                        var troop = s.Character;
+                        bool yours = agent != null && agent.Origin != null && agent.Origin.BattleCombatant == PartyBase.MainParty;
+                        if (yours && troop != null && !troop.IsHero && MobileParty.MainParty.MemberRoster.GetTroopCount(troop) > 0)
+                        {
+                            MobileParty.MainParty.MemberRoster.AddToCounts(troop, -1);
+                            Log.Info($"{hero.Name} sale de filas ({troop.Name}) y pasa a ser compañero");
+                        }
+                    }
+                    catch (Exception ex) { Log.Warn("Sacar de filas al soldado ascendido: " + ex.Message); }
                     ctx.EndConversation = true;
                     try { if (agent != null) Combat.FadeAfterTalk(agent); } catch { }
                     return L.F("AIL_f65463d8", $"{hero.Name} deja su vida aquí y se une a tu compañía.");
@@ -1488,6 +1529,11 @@ namespace AILegacy.Dialogue
                 if (list != null && !list.Contains(ex)) list.Add(ex);
             }
             catch (Exception e) { Log.Warn("No se pudo anotar al ex cónyuge: " + e.Message); }
+        }
+
+        private static void RemoveExSpouse(Hero of, Hero ex)
+        {
+            try { (HarmonyLib.AccessTools.Field(typeof(Hero), "_exSpouses")?.GetValue(of) as System.Collections.IList)?.Remove(ex); } catch { }
         }
 
         /// <summary>If h leads a clan that is not the player's, the clan gets a new head before h marries out of it.</summary>

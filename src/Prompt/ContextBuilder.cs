@@ -41,6 +41,8 @@ namespace AILegacy.Prompt
                 var banned = AILegacy.World.Banished.DescribeForClan(npc.Clan);
                 if (banned.Length > 0) clanLine += ". Your clan is " + banned;
                 sb.AppendLine(clanLine);
+                var courting = AILegacy.World.NpcRomance.DescribeFor(npc);
+                if (courting.Length > 0) sb.AppendLine(courting);
             }
 
             if (npc.MapFaction is Kingdom k)

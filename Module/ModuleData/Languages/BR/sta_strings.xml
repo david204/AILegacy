@@ -1350,6 +1350,31 @@
     <string id="AIL_e7b1c4f6" text="Acrescentado a cada descrição, em inglês." />
     <string id="AIL_e7b1c4f7" text="Endereço do Stable Diffusion local" />
     <string id="AIL_e7b1c4f8" text="Modelo de imagem da OpenAI" />
+    <string id="AIL_e7b1c4f9" text="Um bando inteiro pode se juntar a você" />
+    <string id="AIL_e7b1c4fa" text="O chefe de um grupo de bandidos com quem você fala no mapa pode decidir se juntar ao seu grupo com todos os homens, se você fizer uma oferta de verdade. Vêm os homens, os cativos e a bolsa dele." />
+    <string id="AIL_e7b1c4fb" text="O bando inteiro ({0} homens) se junta ao seu grupo." />
+    <string id="AIL_e7b1c4fc" text="{0} homens de {1} agora marcham com você." />
+    <string id="AIL_e7b1c4fd" text="{0} se rende. Você aceita a rendição?" />
+    <string id="AIL_e7b1c4fe" text="Aceitar" />
+    <string id="AIL_e7b1c4ff" text="Continuar lutando" />
+    <string id="AIL_e7b1c500" text="{0} pede uma trégua. Você aceita?" />
+    <string id="AIL_e7b1c501" text="{0} foge da luta." />
+    <string id="AIL_e7b1c502" text="Você se rende." />
+    <string id="AIL_e7b1c503" text="{0} não aceita sua rendição." />
+    <string id="AIL_e7b1c504" text="Você pede uma trégua." />
+    <string id="AIL_e7b1c505" text="{0} aceita a trégua." />
+    <string id="AIL_e7b1c506" text="{0} não quer trégua." />
+    <string id="AIL_e7b1c507" text="{0} entra na luta do lado de {1}." />
+    <string id="AIL_e7b1c508" text="(Alt+Y: render-se · Alt+P: pedir trégua)" />
+    <string id="AIL_e7b1c509" text="Rendição de {0}" />
+    <string id="AIL_e7b1c50a" text="Trégua" />
+    <string id="AIL_e7b1c50b" text="{0} corteja {1}" />
+    <string id="AIL_e7b1c50c" text="Dizem que {0}, do clã {1}, corteja {2}, do clã {3}." />
+    <string id="AIL_e7b1c50d" text="Cortejos entre outros personagens" />
+    <string id="AIL_e7b1c50e" text="Nobres solteiros que dividem um salão ou um exército e combinam podem começar a se cortejar. Cresce enquanto ficam perto, esfria quando se afastam e pode acabar em casamento. Eles e quem está em volta sabem e comentam. Um personagem que gosta de você também pode dar o primeiro passo. Não gasta pedidos à IA." />
+    <string id="AIL_e7b1c50f" text="Chance diária de começar um cortejo (%)" />
+    <string id="AIL_e7b1c510" text="Cortejos ao mesmo tempo, no máximo" />
+    <string id="AIL_e7b1c511" text="Dias de cortejo antes de poderem casar" />
     <string id="AIL_e5c9b3a1" text="Notícias" />
     <string id="AIL_e5c9b3a2" text="Memórias" />
     <string id="AIL_e5c9b3a3" text="Confirmar" />

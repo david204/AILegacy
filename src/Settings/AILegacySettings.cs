@@ -569,6 +569,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public int TrustForSensitive { get; set; } = 25;
 
+        [SettingPropertyBool("{=AIL_e7b1c4f9}A whole band can join you", Order = 30, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4fa}The leader of a bandit party you talk to on the map can decide to join your party with all their men, if you make them a real offer. Their men, their captives and their purse come with them.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
+        public bool AllowBandRecruit { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_e7b1c4dc}Relation gained (% of what the AI gives)", 10, 100, Order = 4, RequireRestart = false,
             HintText = "{=AIL_e7b1c4dd}Liking is harder to win than to lose: gains are scaled by this and losses always count in full. 100 = the same both ways.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
@@ -601,6 +606,26 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_09d60746}Romance between people of the same sex", Order = 7, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public bool RomanceSameSex { get; set; } = false;
+
+        [SettingPropertyBool("{=AIL_e7b1c50d}Courtships between other characters", Order = 40, RequireRestart = false,
+            HintText = "{=AIL_e7b1c50e}Unmarried nobles who share a hall or an army and suit each other may begin to court. It grows while they stay near, cools when they are apart and can end in a wedding. They and the people around them know about it and talk about it. A character who likes you may also make the first move. No AI requests.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public bool EnableNpcRomance { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c50f}Daily chance that a new courtship begins (%)", 0, 100, Order = 41, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int NpcRomanceChancePercent { get; set; } = 8;
+
+        [SettingPropertyInteger("{=AIL_e7b1c510}Courtships at the same time, at most", 1, 40, Order = 42, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int NpcRomanceMax { get; set; } = 6;
+
+        [SettingPropertyInteger("{=AIL_e7b1c511}Days of courtship before they can marry", 1, 200, Order = 43, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int NpcRomanceMinDays { get; set; } = 20;
+
+        /// <summary>How far a courtship has to go before the wedding.</summary>
+        public int NpcRomanceForMarriage => 80;
 
         [SettingPropertyInteger("{=AIL_c5ca3b43}Maximum romance change per reply", 1, 20, Order = 8, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]

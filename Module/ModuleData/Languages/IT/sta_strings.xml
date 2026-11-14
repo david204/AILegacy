@@ -1350,6 +1350,31 @@
     <string id="AIL_e7b1c4f6" text="Aggiunto a ogni descrizione, in inglese." />
     <string id="AIL_e7b1c4f7" text="Indirizzo di Stable Diffusion locale" />
     <string id="AIL_e7b1c4f8" text="Modello di immagine OpenAI" />
+    <string id="AIL_e7b1c4f9" text="Un’intera banda può unirsi a te" />
+    <string id="AIL_e7b1c4fa" text="Il capo di una banda di banditi con cui parli sulla mappa può decidere di unirsi al tuo gruppo con tutti i suoi uomini, se gli fai un’offerta vera. Vengono i suoi uomini, i suoi prigionieri e la sua borsa." />
+    <string id="AIL_e7b1c4fb" text="L’intera banda ({0} uomini) si unisce al tuo gruppo." />
+    <string id="AIL_e7b1c4fc" text="{0} uomini di {1} ora marciano con te." />
+    <string id="AIL_e7b1c4fd" text="{0} si arrende. Accetti la sua resa?" />
+    <string id="AIL_e7b1c4fe" text="Accetta" />
+    <string id="AIL_e7b1c4ff" text="Continua a combattere" />
+    <string id="AIL_e7b1c500" text="{0} chiede una tregua. La accetti?" />
+    <string id="AIL_e7b1c501" text="{0} fugge dallo scontro." />
+    <string id="AIL_e7b1c502" text="Ti arrendi." />
+    <string id="AIL_e7b1c503" text="{0} non accetta la tua resa." />
+    <string id="AIL_e7b1c504" text="Chiedi una tregua." />
+    <string id="AIL_e7b1c505" text="{0} accetta la tregua." />
+    <string id="AIL_e7b1c506" text="{0} non vuole tregua." />
+    <string id="AIL_e7b1c507" text="{0} entra nello scontro dalla parte di {1}." />
+    <string id="AIL_e7b1c508" text="(Alt+Y: arrenderti · Alt+P: chiedere una tregua)" />
+    <string id="AIL_e7b1c509" text="Resa di {0}" />
+    <string id="AIL_e7b1c50a" text="Tregua" />
+    <string id="AIL_e7b1c50b" text="{0} corteggia {1}" />
+    <string id="AIL_e7b1c50c" text="Si dice che {0}, del clan {1}, corteggi {2}, del clan {3}." />
+    <string id="AIL_e7b1c50d" text="Corteggiamenti tra altri personaggi" />
+    <string id="AIL_e7b1c50e" text="I nobili non sposati che condividono una sala o un esercito e si piacciono possono iniziare a corteggiarsi. Cresce finché restano vicini, si raffredda quando sono lontani e può finire in nozze. Loro e chi sta intorno lo sanno e ne parlano. Anche un personaggio a cui piaci può fare il primo passo. Nessuna richiesta IA." />
+    <string id="AIL_e7b1c50f" text="Probabilità giornaliera che inizi un corteggiamento (%)" />
+    <string id="AIL_e7b1c510" text="Corteggiamenti contemporanei, al massimo" />
+    <string id="AIL_e7b1c511" text="Giorni di corteggiamento prima di potersi sposare" />
     <string id="AIL_e5c9b3a1" text="Notizie" />
     <string id="AIL_e5c9b3a2" text="Memorie" />
     <string id="AIL_e5c9b3a3" text="Conferma" />

@@ -1350,6 +1350,31 @@
     <string id="AIL_e7b1c4f6" text="附加到每条图片描述后面，用英文。" />
     <string id="AIL_e7b1c4f7" text="本地 Stable Diffusion 地址" />
     <string id="AIL_e7b1c4f8" text="OpenAI 图片模型" />
+    <string id="AIL_e7b1c4f9" text="整支匪帮可以投靠你" />
+    <string id="AIL_e7b1c4fa" text="你在地图上交谈的匪帮头目，如果你给出真正的条件，可以决定带着所有手下加入你的队伍。他的人、俘虏和钱袋都会跟来。" />
+    <string id="AIL_e7b1c4fb" text="整支匪帮（{0} 人）加入了你的队伍。" />
+    <string id="AIL_e7b1c4fc" text="{1}的 {0} 人现在跟随你行军。" />
+    <string id="AIL_e7b1c4fd" text="{0}投降了。接受吗？" />
+    <string id="AIL_e7b1c4fe" text="接受" />
+    <string id="AIL_e7b1c4ff" text="继续战斗" />
+    <string id="AIL_e7b1c500" text="{0}请求停手。接受吗？" />
+    <string id="AIL_e7b1c501" text="{0}逃离了打斗。" />
+    <string id="AIL_e7b1c502" text="你认输了。" />
+    <string id="AIL_e7b1c503" text="{0}不接受你的认输。" />
+    <string id="AIL_e7b1c504" text="你请求停手。" />
+    <string id="AIL_e7b1c505" text="{0}同意停手。" />
+    <string id="AIL_e7b1c506" text="{0}不肯停手。" />
+    <string id="AIL_e7b1c507" text="{0}加入打斗，站在{1}一边。" />
+    <string id="AIL_e7b1c508" text="（Alt+Y：认输 · Alt+P：请求停手）" />
+    <string id="AIL_e7b1c509" text="{0}投降" />
+    <string id="AIL_e7b1c50a" text="停手" />
+    <string id="AIL_e7b1c50b" text="{0}在追求{1}" />
+    <string id="AIL_e7b1c50c" text="据说{1}家族的{0}正在追求{3}家族的{2}。" />
+    <string id="AIL_e7b1c50d" text="其他角色之间的追求" />
+    <string id="AIL_e7b1c50e" text="同处一座厅堂或一支军队、彼此合适的未婚贵族可能开始相互追求。在一起时感情升温，分开后变淡，最终可能成婚。他们自己和周围的人都知道并会谈论此事。喜欢你的角色也可能主动示好。不消耗 AI 请求。" />
+    <string id="AIL_e7b1c50f" text="每天开始一段新追求的几率（%）" />
+    <string id="AIL_e7b1c510" text="同时进行的追求上限" />
+    <string id="AIL_e7b1c511" text="成婚前需要追求的天数" />
     <string id="AIL_e5c9b3a1" text="消息" />
     <string id="AIL_e5c9b3a2" text="回忆" />
     <string id="AIL_e5c9b3a3" text="确认" />

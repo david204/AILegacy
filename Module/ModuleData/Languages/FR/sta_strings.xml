@@ -1350,6 +1350,31 @@
     <string id="AIL_e7b1c4f6" text="Ajouté à chaque description d’image, en anglais." />
     <string id="AIL_e7b1c4f7" text="Adresse de Stable Diffusion local" />
     <string id="AIL_e7b1c4f8" text="Modèle d’image OpenAI" />
+    <string id="AIL_e7b1c4f9" text="Une bande entière peut vous rejoindre" />
+    <string id="AIL_e7b1c4fa" text="Le chef d’un groupe de bandits à qui vous parlez sur la carte peut décider de rejoindre votre groupe avec tous ses hommes, si vous lui faites une vraie offre. Ses hommes, ses captifs et sa bourse viennent avec lui." />
+    <string id="AIL_e7b1c4fb" text="Toute la bande ({0} hommes) rejoint votre groupe." />
+    <string id="AIL_e7b1c4fc" text="{0} hommes de {1} marchent désormais avec vous." />
+    <string id="AIL_e7b1c4fd" text="{0} se rend. Acceptez-vous sa reddition ?" />
+    <string id="AIL_e7b1c4fe" text="Accepter" />
+    <string id="AIL_e7b1c4ff" text="Continuer le combat" />
+    <string id="AIL_e7b1c500" text="{0} demande une trêve. L’acceptez-vous ?" />
+    <string id="AIL_e7b1c501" text="{0} fuit le combat." />
+    <string id="AIL_e7b1c502" text="Vous vous rendez." />
+    <string id="AIL_e7b1c503" text="{0} refuse votre reddition." />
+    <string id="AIL_e7b1c504" text="Vous demandez une trêve." />
+    <string id="AIL_e7b1c505" text="{0} accepte la trêve." />
+    <string id="AIL_e7b1c506" text="{0} ne veut pas de trêve." />
+    <string id="AIL_e7b1c507" text="{0} entre dans le combat du côté de {1}." />
+    <string id="AIL_e7b1c508" text="(Alt+Y : se rendre · Alt+P : demander une trêve)" />
+    <string id="AIL_e7b1c509" text="Reddition de {0}" />
+    <string id="AIL_e7b1c50a" text="Trêve" />
+    <string id="AIL_e7b1c50b" text="{0} courtise {1}" />
+    <string id="AIL_e7b1c50c" text="On dit que {0}, du clan {1}, courtise {2}, du clan {3}." />
+    <string id="AIL_e7b1c50d" text="Cours entre autres personnages" />
+    <string id="AIL_e7b1c50e" text="Des nobles célibataires qui partagent une salle ou une armée et se conviennent peuvent commencer à se courtiser. Cela grandit tant qu’ils restent proches, refroidit quand ils sont séparés et peut finir en mariage. Eux et leur entourage le savent et en parlent. Un personnage qui vous apprécie peut aussi faire le premier pas. Aucune requête IA." />
+    <string id="AIL_e7b1c50f" text="Chance quotidienne qu’une cour commence (%)" />
+    <string id="AIL_e7b1c510" text="Cours en même temps, au maximum" />
+    <string id="AIL_e7b1c511" text="Jours de cour avant de pouvoir se marier" />
     <string id="AIL_e5c9b3a1" text="Nouvelles" />
     <string id="AIL_e5c9b3a2" text="Souvenirs" />
     <string id="AIL_e5c9b3a3" text="Confirmer" />

@@ -12,6 +12,7 @@ using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core;
+using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
@@ -31,6 +32,8 @@ namespace AILegacy.Dialogue
             public float Wait;
             public bool Unprovoked;                              // you hit them out of nowhere
             public List<Agent> Helpers = new List<Agent>();      // people who step in to defend them
+            /// <summary>How it ended when it wasn't simply won or lost: truce, fled, yielded, player_yielded. Null otherwise.</summary>
+            public string Ending;
         }
 
         private static PendingFight _fight;
@@ -129,6 +132,7 @@ namespace AILegacy.Dialogue
                 Say(f.Unprovoked ? L.F("AIL_1ee35da7", $"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F("AIL_96bdc93c", $"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F("AIL_70eda317", $"¡Duelo a muerte con {f.Who.Name}!") : L.F("AIL_e97439d8", $"¡Duelo con {f.Who.Name}!"), Colors.Red);
                 Log.Info($"Pelea empezada con {f.Who.Name}: {f.Kind}");
                 FightBanter.Begin(f.Who, f.Opponent, f.Kind);
+                Say(L.T("AIL_e7b1c508", "(Alt+Y: rendirte · Alt+P: pedir tregua)"), Colors.Gray);
             }
             catch (Exception ex) { Log.Error("Empezar la pelea", ex); }
         }
@@ -237,6 +241,125 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Terminar la pelea amistosa", ex); }
         }
 
+        // ============================================================ what fighters decide mid-fight
+
+        internal static bool ActiveIsFriendly => IsFriendly(_active);
+        private static bool _asking;
+
+        /// <summary>Ends the fight in progress with that outcome. False if there is none.</summary>
+        private static bool EndActive(string ending, bool playerWon)
+        {
+            try
+            {
+                var fh = Mission.Current?.GetMissionBehavior<MissionFightHandler>();
+                if (_active == null || fh == null || !fh.IsThereActiveFight()) return false;
+                _active.Ending = ending;
+                Log.Info($"[pelea] termina: {ending}");
+                fh.EndFight(playerWon);
+                return true;
+            }
+            catch (Exception ex) { Log.Error("Terminar la pelea", ex); return false; }
+        }
+
+        private static void AskPlayer(string title, string text, string yes, string no, Action onYes)
+        {
+            if (_asking) return;
+            _asking = true;
+            InformationManager.ShowInquiry(new InquiryData(title, text, true, true, yes, no,
+                () => { _asking = false; try { onYes(); } catch (Exception ex) { Log.Error("Pelea: decisión del jugador", ex); } },
+                () => { _asking = false; }), true);
+        }
+
+        /// <summary>The opponent gives up. In a friendly fight that ends it. With steel drawn in earnest, the player decides.</summary>
+        internal static bool OpponentYields()
+        {
+            var f = _active;
+            if (f == null) return false;
+            if (IsFriendly(f)) return EndActive("yielded", true);
+            AskPlayer(L.F("AIL_e7b1c509", $"Rendición de {f.Who.Name}"), L.F("AIL_e7b1c4fd", $"{f.Who.Name} se rinde. ¿Aceptas su rendición?"),
+                L.T("AIL_e7b1c4fe", "Aceptar"), L.T("AIL_e7b1c4ff", "Seguir luchando"), () => EndActive("yielded", true));
+            return true;
+        }
+
+        internal static bool OpponentFlees()
+        {
+            var f = _active;
+            if (f == null) return false;
+            Say(L.F("AIL_e7b1c501", $"{f.Who.Name} huye de la pelea."), Colors.Yellow);
+            return EndActive("fled", true);
+        }
+
+        internal static bool OpponentOffersTruce()
+        {
+            var f = _active;
+            if (f == null) return false;
+            AskPlayer(L.T("AIL_e7b1c50a", "Tregua"), L.F("AIL_e7b1c500", $"{f.Who.Name} pide una tregua. ¿La aceptas?"),
+                L.T("AIL_e7b1c4fe", "Aceptar"), L.T("AIL_e7b1c4ff", "Seguir luchando"), () => EndActive("truce", true));
+            return true;
+        }
+
+        /// <summary>The nearest people who would stand with them come in on their side. Not in a friendly fight.</summary>
+        internal static void OpponentCallsHelp()
+        {
+            try
+            {
+                var f = _active; var m = Mission.Current;
+                var fh = m?.GetMissionBehavior<MissionFightHandler>();
+                if (f == null || fh == null || !fh.IsThereActiveFight() || IsFriendly(f) || f.Opponent == null) return;
+                var near = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && a != Agent.Main && !ActiveFoes.Contains(a)
+                                               && a.Position.Distance(f.Opponent.Position) <= 18f && IsGuard(a))
+                                   .OrderBy(a => a.Position.Distance(f.Opponent.Position)).Take(2).ToList();
+                foreach (var a in near)
+                    if (JoinFight(fh, a, false)) Say(L.F("AIL_e7b1c507", $"{a.Name} se mete en la pelea de parte de {f.Who.Name}."), Colors.Red);
+            }
+            catch (Exception ex) { Log.Error("Pedir ayuda en la pelea", ex); }
+        }
+
+        /// <summary>Someone watching takes a side. Never in a friendly fight, which is between the two of them.</summary>
+        internal static void OnlookerStepsIn(bool playerSide, string line)
+        {
+            try
+            {
+                var f = _active; var m = Mission.Current;
+                var fh = m?.GetMissionBehavior<MissionFightHandler>();
+                if (f == null || fh == null || !fh.IsThereActiveFight() || IsFriendly(f) || Agent.Main == null) return;
+                var who = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && a != Agent.Main && !ActiveFoes.Contains(a)
+                                              && a.MountAgent == null && a.Position.Distance(Agent.Main.Position) <= 15f)
+                                  .OrderBy(a => a.Position.Distance(Agent.Main.Position)).FirstOrDefault();
+                if (who == null || !JoinFight(fh, who, playerSide)) return;
+                if (!string.IsNullOrWhiteSpace(line)) { try { UI.Bubbles.Show(who, line, 4f); } catch { } Say($"{who.Name}: {line}", Colors.Yellow); }
+                Say(L.F("AIL_e7b1c507", $"{who.Name} se mete en la pelea de parte de {(playerSide ? P.Name.ToString() : f.Who.Name)}."), playerSide ? Colors.Green : Colors.Red);
+            }
+            catch (Exception ex) { Log.Error("Mirón que se mete en la pelea", ex); }
+        }
+
+        /// <summary>Alt+Y: the player yields. Alt+P: the player asks to stop as equals. The opponent answers as they decided.</summary>
+        private static void PlayerFightKeys()
+        {
+            try
+            {
+                if (_active == null || _asking || !(Input.IsKeyDown(InputKey.LeftAlt) || Input.IsKeyDown(InputKey.RightAlt))) return;
+                bool yield = Input.IsKeyPressed(InputKey.Y), parley = Input.IsKeyPressed(InputKey.P);
+                if (!yield && !parley) return;
+                var fh = Mission.Current?.GetMissionBehavior<MissionFightHandler>();
+                if (fh == null || !fh.IsThereActiveFight()) return;
+                string name = _active.Who.Name;
+                if (yield)
+                {
+                    Say(L.T("AIL_e7b1c502", "Te rindes."), Colors.Yellow);
+                    if (FightBanter.AcceptsYield) { FightBanter.Shout(FightBanter.YieldAnswer); EndActive("player_yielded", false); }
+                    else { FightBanter.Shout(FightBanter.YieldAnswer); Say(L.F("AIL_e7b1c503", $"{name} no acepta tu rendición."), Colors.Red); }
+                }
+                else
+                {
+                    Say(L.T("AIL_e7b1c504", "Pides una tregua."), Colors.Yellow);
+                    if (FightBanter.AcceptsTruce) { FightBanter.Shout(FightBanter.TruceAnswer); Say(L.F("AIL_e7b1c505", $"{name} acepta la tregua."), Colors.Green); EndActive("truce", true); }
+                    else { FightBanter.Shout(FightBanter.TruceAnswer); Say(L.F("AIL_e7b1c506", $"{name} no quiere tregua."), Colors.Red); }
+                }
+            }
+            catch (Exception ex) { Log.Error("Teclas de la pelea", ex); }
+        }
+
         // ============================================================ hitting someone out of nowhere
 
         /// <summary>New or loaded campaign: drop anything pending from the previous one.</summary>
@@ -244,6 +367,7 @@ namespace AILegacy.Dialogue
         {
             _fight = null; _active = null; _surrender = null; _surrenderParty = null; KeepEncounter = false; _autoAttack = 0f;
             try { Unguard(); } catch { GuardedAgents.Clear(); _friendly = null; _yield = 0; }
+            _bandJoin = null;
             ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear();
         }
 
@@ -253,6 +377,49 @@ namespace AILegacy.Dialogue
             if (s == null || opponent == null) return;
             _fight = new PendingFight { Who = s, Opponent = opponent, Kind = kind, Wait = wait };
             Log.Info($"Pelea en la escena del mapa con {s.Name}: {kind}");
+        }
+
+        // A band that agreed to join: once the talk and the encounter are over, its men move to the player's party
+        private static MobileParty _bandJoin;
+        public static bool BandJoinPending => _bandJoin != null;
+        public static void QueueBandJoin(MobileParty band) { if (band != null) _bandJoin = band; }
+
+        private static void TickBandJoin()
+        {
+            var b = _bandJoin;
+            try
+            {
+                if (b == null || !b.IsActive || b.MapEvent != null) { _bandJoin = null; return; }
+                // The meeting has to be closed first, or the game still treats them as the party in front of you
+                if (PlayerEncounter.Current != null)
+                {
+                    try { PlayerEncounter.LeaveEncounter = true; PlayerEncounter.Finish(true); } catch (Exception ex) { Log.Warn("Cerrar el encuentro con la banda: " + ex.Message); }
+                    if (PlayerEncounter.Current != null) return;      // next frame
+                }
+                _bandJoin = null;
+                var main = MobileParty.MainParty;
+                int joined = 0;
+                foreach (var e in b.MemberRoster.GetTroopRoster().ToList())
+                {
+                    if (e.Character == null || e.Character.IsHero || e.Number <= 0) continue;
+                    main.MemberRoster.AddToCounts(e.Character, e.Number, false, e.WoundedNumber);
+                    joined += e.Number;
+                }
+                // Whoever they were holding: ordinary captives change hands, named ones walk free
+                foreach (var e in b.PrisonRoster.GetTroopRoster().ToList())
+                {
+                    if (e.Character == null) continue;
+                    if (e.Character.IsHero) { try { if (e.Character.HeroObject.IsPrisoner) EndCaptivityAction.ApplyByEscape(e.Character.HeroObject); } catch { } }
+                    else if (e.Number > 0) main.PrisonRoster.AddToCounts(e.Character, e.Number);
+                }
+                int purse = Math.Max(0, b.PartyTradeGold);
+                if (purse > 0) P.ChangeHeroGold(purse);
+                string name = b.Name?.ToString() ?? "";
+                DestroyPartyAction.Apply(null, b);
+                Log.Info($"La banda {name} se une a la partida: {joined} hombres, {purse} denarios");
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1c4fc", $"{joined} hombres de {name} marchan ahora contigo."), Colors.Green));
+            }
+            catch (Exception ex) { Log.Error("Unir la banda a la partida", ex); _bandJoin = null; }
         }
 
         // Roleplay deaths: applied once the chat closes and the scene ends
@@ -550,6 +717,19 @@ namespace AILegacy.Dialogue
             }
         }
 
+        /// <summary>The outcome in the NPC's own terms ("you" is the NPC), for their memory.</summary>
+        private static string HowItEnded(PendingFight f, bool playerWon, bool firstPerson)
+        {
+            switch (f.Ending)
+            {
+                case "truce": return firstPerson ? "we stopped it between us, a truce with no winner." : "You stopped it between you: a truce, with no winner.";
+                case "fled": return firstPerson ? "I broke off and ran." : "You broke off and ran from them.";
+                case "yielded": return firstPerson ? "I yielded and they accepted it." : "You yielded and they accepted it.";
+                case "player_yielded": return firstPerson ? "they yielded to me and I accepted it." : "They yielded to you and you accepted it.";
+                default: return firstPerson ? (playerWon ? "they beat me." : "I beat them.") : (playerWon ? "They beat you." : "You beat them.");
+            }
+        }
+
         private static void OnFightEnded(PendingFight f, bool playerWon)
         {
             try
@@ -567,7 +747,7 @@ namespace AILegacy.Dialogue
                 mem.Turns.Add(new ChatTurn
                 {
                     Role = "player", Day = CampaignTime.Now.ToDays,
-                    Text = $"[What happened: {(f.Unprovoked ? $"{you} attacked you without a word of warning, and you fought {what}" : $"you and {you} fought {what}")}. " + (playerWon ? "They beat you." : "You beat them.") + "]"
+                    Text = $"[What happened: {(f.Unprovoked ? $"{you} attacked you without a word of warning, and you fought {what}" : $"you and {you} fought {what}")}. " + HowItEnded(f, playerWon, false) + "]"
                 });
                 // Witnesses: an assault only costs you if someone alive saw it, and only by name if they know you
                 Witness.Result seen = null;
@@ -584,7 +764,8 @@ namespace AILegacy.Dialogue
                       : seen.Level == 1 ? L.F("AIL_a58c5f5d", $"Te han visto ({seen.Count} testigo(s)), pero nadie sabe quién eres: buscan a un forastero armado.")
                       : L.F("AIL_992e899d", $"{seen.ByWhom} te ha reconocido: se sabrá que has sido tú."), seen.Level == 0 ? Colors.Green : seen.Level == 1 ? Colors.Yellow : Colors.Red);
                 }
-                ChatSession.AddNote(mem, playerWon ? $"{you} beat me in {what}." : $"I beat {you} in {what}.", S.Get.MaxNotesPerHero, s.Name);
+                ChatSession.AddNote(mem, f.Ending == null ? (playerWon ? $"{you} beat me in {what}." : $"I beat {you} in {what}.") : $"{what} with {you}: {HowItEnded(f, playerWon, true)}", S.Get.MaxNotesPerHero, s.Name);
+                if (f.Ending == "fled") { try { SceneActions.WalkAway(f.Opponent); } catch { } }
                 mem.Tension = Math.Max(0, mem.Tension - 40);
 
                 if (s.IsHero)
@@ -830,7 +1011,7 @@ namespace AILegacy.Dialogue
                 FightBanter.Tick(dt);
                 if (_yield != 0) EndFriendlyOnYield();
                 if (GuardedAgents.Count > 0 && Mission.Current == null) Unguard();
-                if (_active != null) GrowFight(dt);
+                if (_active != null) { GrowFight(dt); PlayerFightKeys(); }
                 if (ActiveFoes.Count > 0)
                 {
                     var fhNow = Mission.Current?.GetMissionBehavior<MissionFightHandler>();
@@ -856,6 +1037,7 @@ namespace AILegacy.Dialogue
                     foreach (var a in ToFade.ToList()) { try { if (Mission.Current != null && a.IsActive()) a.FadeOut(false, true); } catch { } }
                     ToFade.Clear();
                 }
+                if (_bandJoin != null && Mission.Current == null && !talking && !ChatSession.IsBusy) TickBandJoin();
                 if (RoleDeaths.Count > 0 && Mission.Current == null && !talking && !ChatSession.IsBusy)
                 {
                     foreach (var d in RoleDeaths.ToList())

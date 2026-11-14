@@ -41,12 +41,16 @@ Answer with the prompt only, nothing else.");
         private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done)> Pending = new Queue<(HeroMemory, MemoryPage, Action)>();
         private static bool _busy;
         private static int _failures;
+        // Bumped on every session reset. A request that finishes after a reset belongs to nobody and must not touch
+        // the busy flag of the new session.
+        private static int _gen;
+        private static MemoryPage _active;
 
         public static bool Enabled => Source != Off;
         public static int Source { get { try { return Math.Max(0, Math.Min(3, S.Get.ImageSource.SelectedIndex)); } catch { return Off; } } }
         public static bool IsBusy => _busy || Pending.Count > 0;
 
-        public static void ResetSession() { Pending.Clear(); _busy = false; _failures = 0; }
+        public static void ResetSession() { _gen++; Pending.Clear(); _busy = false; _active = null; _failures = 0; }
 
         private static string Dir
         {
@@ -74,7 +78,7 @@ Answer with the prompt only, nothing else.");
         public static void Request(HeroMemory mem, MemoryPage page, Action done = null)
         {
             if (!Enabled || mem == null || page == null || Dir == null) { done?.Invoke(); return; }
-            if (Pending.Any(x => x.page == page)) return;
+            if (_active == page || Pending.Any(x => x.page == page)) return;
             Pending.Enqueue((mem, page, done));
             Next();
         }
@@ -86,6 +90,8 @@ Answer with the prompt only, nothing else.");
             if (_failures >= 4) { while (Pending.Count > 0) Pending.Dequeue().done?.Invoke(); return; }
             var job = Pending.Dequeue();
             _busy = true;
+            _active = job.page;
+            int gen = _gen;
             int session = WorldSim.Session;
             string dir = Dir;
             int source = Source;
@@ -99,7 +105,8 @@ Answer with the prompt only, nothing else.");
             {
                 MainThread.Post(() =>
                 {
-                    _busy = false;
+                    if (gen != _gen) return;            // a reset happened meanwhile: this job is no longer ours
+                    _busy = false; _active = null;
                     if (session != WorldSim.Session) return;
                     if (ok)
                     {
@@ -142,7 +149,8 @@ Answer with the prompt only, nothing else.");
             // Step 2 (background): the picture itself
             describe.ContinueWith(async t =>
             {
-                string prompt = t.IsFaulted ? null : t.Result;
+                string prompt = null;
+                try { prompt = t.Status == TaskStatus.RanToCompletion ? t.Result : null; } catch { }
                 if (string.IsNullOrWhiteSpace(prompt)) { Finish(false, null, null, "sin descripción de la escena"); return; }
                 try
                 {

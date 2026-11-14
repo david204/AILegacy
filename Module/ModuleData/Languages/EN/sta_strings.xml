@@ -1350,6 +1350,31 @@
     <string id="AIL_e7b1c4f6" text="Added to every picture description, in English." />
     <string id="AIL_e7b1c4f7" text="Local Stable Diffusion address" />
     <string id="AIL_e7b1c4f8" text="OpenAI image model" />
+    <string id="AIL_e7b1c4f9" text="A whole band can join you" />
+    <string id="AIL_e7b1c4fa" text="The leader of a bandit party you talk to on the map can decide to join your party with all their men, if you make them a real offer. Their men, their captives and their purse come with them." />
+    <string id="AIL_e7b1c4fb" text="The whole band ({0} men) joins your party." />
+    <string id="AIL_e7b1c4fc" text="{0} men of {1} now march with you." />
+    <string id="AIL_e7b1c4fd" text="{0} yields. Do you accept their surrender?" />
+    <string id="AIL_e7b1c4fe" text="Accept" />
+    <string id="AIL_e7b1c4ff" text="Fight on" />
+    <string id="AIL_e7b1c500" text="{0} asks for a truce. Do you accept it?" />
+    <string id="AIL_e7b1c501" text="{0} runs from the fight." />
+    <string id="AIL_e7b1c502" text="You yield." />
+    <string id="AIL_e7b1c503" text="{0} does not accept your surrender." />
+    <string id="AIL_e7b1c504" text="You ask for a truce." />
+    <string id="AIL_e7b1c505" text="{0} accepts the truce." />
+    <string id="AIL_e7b1c506" text="{0} wants no truce." />
+    <string id="AIL_e7b1c507" text="{0} joins the fight on the side of {1}." />
+    <string id="AIL_e7b1c508" text="(Alt+Y: yield · Alt+P: ask for a truce)" />
+    <string id="AIL_e7b1c509" text="Surrender of {0}" />
+    <string id="AIL_e7b1c50a" text="Truce" />
+    <string id="AIL_e7b1c50b" text="{0} is courting {1}" />
+    <string id="AIL_e7b1c50c" text="It is said that {0}, of clan {1}, is courting {2}, of clan {3}." />
+    <string id="AIL_e7b1c50d" text="Courtships between other characters" />
+    <string id="AIL_e7b1c50e" text="Unmarried nobles who share a hall or an army and suit each other may begin to court. It grows while they stay near, cools when they are apart and can end in a wedding. They and the people around them know about it and talk about it. A character who likes you may also make the first move. No AI requests." />
+    <string id="AIL_e7b1c50f" text="Daily chance that a new courtship begins (%)" />
+    <string id="AIL_e7b1c510" text="Courtships at the same time, at most" />
+    <string id="AIL_e7b1c511" text="Days of courtship before they can marry" />
     <string id="AIL_e5c9b3a1" text="News" />
     <string id="AIL_e5c9b3a2" text="Memories" />
     <string id="AIL_e5c9b3a3" text="Confirm" />

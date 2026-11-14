@@ -1350,6 +1350,31 @@
     <string id="AIL_e7b1c4f6" text="Wird an jede Bildbeschreibung angehängt, auf Englisch." />
     <string id="AIL_e7b1c4f7" text="Adresse des lokalen Stable Diffusion" />
     <string id="AIL_e7b1c4f8" text="OpenAI-Bildmodell" />
+    <string id="AIL_e7b1c4f9" text="Eine ganze Bande kann sich dir anschließen" />
+    <string id="AIL_e7b1c4fa" text="Der Anführer einer Banditengruppe, mit dem du auf der Karte sprichst, kann sich mit allen seinen Männern deinem Trupp anschließen, wenn du ihm ein echtes Angebot machst. Seine Männer, seine Gefangenen und seine Kasse kommen mit." />
+    <string id="AIL_e7b1c4fb" text="Die ganze Bande ({0} Mann) schließt sich deinem Trupp an." />
+    <string id="AIL_e7b1c4fc" text="{0} Mann von {1} marschieren jetzt mit dir." />
+    <string id="AIL_e7b1c4fd" text="{0} ergibt sich. Nimmst du die Aufgabe an?" />
+    <string id="AIL_e7b1c4fe" text="Annehmen" />
+    <string id="AIL_e7b1c4ff" text="Weiterkämpfen" />
+    <string id="AIL_e7b1c500" text="{0} bittet um Waffenruhe. Nimmst du an?" />
+    <string id="AIL_e7b1c501" text="{0} flieht aus dem Kampf." />
+    <string id="AIL_e7b1c502" text="Du ergibst dich." />
+    <string id="AIL_e7b1c503" text="{0} nimmt deine Aufgabe nicht an." />
+    <string id="AIL_e7b1c504" text="Du bittest um Waffenruhe." />
+    <string id="AIL_e7b1c505" text="{0} nimmt die Waffenruhe an." />
+    <string id="AIL_e7b1c506" text="{0} will keine Waffenruhe." />
+    <string id="AIL_e7b1c507" text="{0} greift auf der Seite von {1} in den Kampf ein." />
+    <string id="AIL_e7b1c508" text="(Alt+Y: aufgeben · Alt+P: um Waffenruhe bitten)" />
+    <string id="AIL_e7b1c509" text="Aufgabe von {0}" />
+    <string id="AIL_e7b1c50a" text="Waffenruhe" />
+    <string id="AIL_e7b1c50b" text="{0} wirbt um {1}" />
+    <string id="AIL_e7b1c50c" text="Man sagt, {0} vom Clan {1} werbe um {2} vom Clan {3}." />
+    <string id="AIL_e7b1c50d" text="Werbungen zwischen anderen Figuren" />
+    <string id="AIL_e7b1c50e" text="Unverheiratete Adlige, die eine Halle oder ein Heer teilen und zueinander passen, können einander den Hof machen. Es wächst, solange sie nah beieinander sind, kühlt ab, wenn sie getrennt sind, und kann in einer Hochzeit enden. Sie und ihr Umfeld wissen davon und reden darüber. Auch eine Figur, die dich mag, kann den ersten Schritt tun. Keine KI-Anfragen." />
+    <string id="AIL_e7b1c50f" text="Tägliche Chance, dass eine Werbung beginnt (%)" />
+    <string id="AIL_e7b1c510" text="Werbungen gleichzeitig, höchstens" />
+    <string id="AIL_e7b1c511" text="Tage der Werbung, bevor sie heiraten können" />
     <string id="AIL_e5c9b3a1" text="Neuigkeiten" />
     <string id="AIL_e5c9b3a2" text="Erinnerungen" />
     <string id="AIL_e5c9b3a3" text="Bestätigen" />

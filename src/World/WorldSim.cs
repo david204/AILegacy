@@ -141,6 +141,7 @@ namespace AILegacy.World
         [JsonProperty("stance")] public Dictionary<string, int> Stance = new Dictionary<string, int>();
         [JsonProperty("outbreaks")] public List<Outbreak> Outbreaks = new List<Outbreak>();
         [JsonProperty("banished")] public List<Banishment> Banished = new List<Banishment>();
+        [JsonProperty("courtships")] public List<Courtship> Courtships = new List<Courtship>();
         [JsonProperty("statement_queue")] public List<QueuedStatement> StatementQueue = new List<QueuedStatement>();
         [JsonProperty("last_outbreak_day")] public double LastOutbreakDay = -1;
         [JsonProperty("laws")] public List<KingdomLaw> Laws = new List<KingdomLaw>();
@@ -705,6 +706,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 Diseases.ApplyLaws();
                 Diseases.OnDailyTick();
                 Banished.OnDailyTick();
+                NpcRomance.OnDailyTick();
                 TickFatigue();
                 Diplomacy.OnDailyTick(now);
 
