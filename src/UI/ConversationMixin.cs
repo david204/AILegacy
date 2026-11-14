@@ -34,9 +34,9 @@ namespace AILegacy.UI
         private static float _since;
 
         private bool _cardVisible;
-        private bool _statsVisible, _trustVisible, _romanceVisible, _warnVisible, _historyAvailable, _historyVisible;
-        private string _relationText = "", _trustText = "", _romanceText = "", _warnText = "", _historyLabel = "";
-        private int _relationFill, _trustFill, _romanceFill, _scrollVersion;
+        private bool _statsVisible, _trustVisible, _romanceVisible, _tensionVisible, _warnVisible, _historyAvailable, _historyVisible;
+        private string _relationText = "", _trustText = "", _romanceText = "", _tensionText = "", _warnText = "", _historyLabel = "";
+        private int _relationFill, _trustFill, _romanceFill, _tensionFill, _scrollVersion;
         private MBBindingList<AilHistoryLineVM> _history = new MBBindingList<AilHistoryLineVM>();
         private string _historyOf;
         private int _historyCount = -1;
@@ -102,20 +102,19 @@ namespace AILegacy.UI
                 int rel = (int)h.GetRelationWithPlayer();
                 AilRelationText = L.F("AIL_f3138943", $"Relación: {rel:+0;-0;0}");
                 AilRelationFill = Math.Max(0, Math.Min(100, (rel + 100) / 2));
-                bool trust = cfg.EnableTrust && mem != null && (mem.TrustSet || mem.ConversationCount > 0);
-                AilTrustVisible = trust;
-                if (trust) { AilTrustText = L.F("AIL_2cb6f858", $"Confianza: {mem.Trust}"); AilTrustFill = Math.Max(0, Math.Min(100, (mem.Trust + 100) / 2)); }
-                bool romance = mem != null && mem.Romance > 0;
-                AilRomanceVisible = romance;
-                if (romance) { AilRomanceText = L.F("AIL_d5a0e001", $"Romance: {mem.Romance}"); AilRomanceFill = Math.Max(0, Math.Min(100, mem.Romance)); }
-                string warn = "";
-                if (mem != null && mem.LiesSuspected > 0) warn = L.T("AIL_d5a0e002", "Sospecha que mientes");
-                if (mem != null && cfg.EnableTension && Bonds.Tension(mem) > 0)
-                    warn += (warn.Length > 0 ? "  ·  " : "") + L.F("AIL_55654690", $"Tensión: {Bonds.Tension(mem)}");
+                // All bars show from the first word, at their starting value, so the player sees where things stand
+                int trustNow = mem?.Trust ?? 0, romanceNow = mem?.Romance ?? 0, tensionNow = mem == null ? 0 : Bonds.Tension(mem);
+                AilTrustVisible = cfg.EnableTrust;
+                AilTrustText = L.F("AIL_2cb6f858", $"Confianza: {trustNow}"); AilTrustFill = Math.Max(0, Math.Min(100, (trustNow + 100) / 2));
+                AilRomanceVisible = true;
+                AilRomanceText = L.F("AIL_d5a0e001", $"Romance: {romanceNow}"); AilRomanceFill = Math.Max(0, Math.Min(100, romanceNow));
+                AilTensionVisible = cfg.EnableTension;
+                AilTensionText = L.F("AIL_55654690", $"Tensión: {tensionNow}"); AilTensionFill = Math.Max(0, Math.Min(100, tensionNow));
+                string warn = mem != null && mem.LiesSuspected > 0 ? L.T("AIL_d5a0e002", "Sospecha que mientes") : "";
                 AilWarnText = warn;
                 AilWarnVisible = warn.Length > 0;
             }
-            else { AilTrustVisible = false; AilRomanceVisible = false; AilWarnVisible = false; }
+            else { AilTrustVisible = false; AilRomanceVisible = false; AilTensionVisible = false; AilWarnVisible = false; }
 
             // ---- history
             bool can = h != null && cfg.ShowDialogHistory && mem != null && mem.Turns.Any(t => !t.IsNote);
@@ -154,6 +153,9 @@ namespace AILegacy.UI
         [DataSourceProperty] public bool AilStatsVisible { get => _statsVisible; set { if (value != _statsVisible) { _statsVisible = value; OnPropertyChangedWithValue(value, nameof(AilStatsVisible)); } } }
         [DataSourceProperty] public bool AilTrustVisible { get => _trustVisible; set { if (value != _trustVisible) { _trustVisible = value; OnPropertyChangedWithValue(value, nameof(AilTrustVisible)); } } }
         [DataSourceProperty] public bool AilRomanceVisible { get => _romanceVisible; set { if (value != _romanceVisible) { _romanceVisible = value; OnPropertyChangedWithValue(value, nameof(AilRomanceVisible)); } } }
+        [DataSourceProperty] public bool AilTensionVisible { get => _tensionVisible; set { if (value != _tensionVisible) { _tensionVisible = value; OnPropertyChangedWithValue(value, nameof(AilTensionVisible)); } } }
+        [DataSourceProperty] public string AilTensionText { get => _tensionText; set { if (value != _tensionText) { _tensionText = value; OnPropertyChangedWithValue(value, nameof(AilTensionText)); } } }
+        [DataSourceProperty] public int AilTensionFill { get => _tensionFill; set { if (value != _tensionFill) { _tensionFill = value; OnPropertyChangedWithValue(value, nameof(AilTensionFill)); } } }
         [DataSourceProperty] public bool AilWarnVisible { get => _warnVisible; set { if (value != _warnVisible) { _warnVisible = value; OnPropertyChangedWithValue(value, nameof(AilWarnVisible)); } } }
         [DataSourceProperty] public bool AilHistoryAvailable { get => _historyAvailable; set { if (value != _historyAvailable) { _historyAvailable = value; OnPropertyChangedWithValue(value, nameof(AilHistoryAvailable)); } } }
         [DataSourceProperty] public bool AilHistoryVisible { get => _historyVisible; set { if (value != _historyVisible) { _historyVisible = value; OnPropertyChangedWithValue(value, nameof(AilHistoryVisible)); } } }
@@ -170,57 +172,86 @@ namespace AILegacy.UI
     }
 
     /// <summary>
-    /// Our own card just above the name strip, with the bars, the warning and the history button. It's positioned the same
-    /// way as the game's name strip (copies the dialogue box height), so it moves with the box and never covers the name or
-    /// the banner.
+    /// Our own panel to the right of the scene, just above the dialogue options: the bars stacked one under another, the
+    /// lie warning and the history button. It copies the dialogue box height, like the game's name strip, so it moves
+    /// with the box.
     /// </summary>
     [PrefabExtension("SPConversation", "descendant::ListPanel[@Id='VerticalContainer']")]
     internal sealed class ConversationStatsPrefab : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Append;
 
-        private static string Gauge(string text, string fill, string visible, string color) =>
-            "<ListPanel WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" VerticalAlignment=\"Center\" MarginRight=\"18\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\"" +
-            (visible == null ? "" : " IsVisible=\"@" + visible + "\"") + ">" +
+        // Every size here is Fixed. A StretchToParent child is measured with the whole available width, so a
+        // CoverChildren box that holds one grows to that width (that made the old card and its button 680 px wide).
+        // PaddingAmount 290 = 8 gap + 282 panel height. MarginLeft 1480 on a centred 320 px box puts it 740 px right of
+        // the screen centre, over the dialogue options.
+        [PrefabExtensionText]
+        public string Xml =>
+            "<DimensionSyncWidget Id=\"AilStatsSync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"320\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginLeft=\"1480\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"290\">" +
             "<Children>" +
-            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@" + text + "\" />" +
-            "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@" + fill + "\" MaxAmount=\"100\" IsEnabled=\"false\">" +
+            "<Widget Id=\"AilStatsCard\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"320\" SuggestedHeight=\"282\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" IsVisible=\"@AilCardVisible\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\">" +
             "<Children>" +
-            "<Widget Id=\"FillWidget\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Center\" ClipContents=\"true\">" +
-            "<Children><Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"140\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"" + color + "\" /></Children>" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" MarginLeft=\"2\" MarginRight=\"2\" MarginTop=\"2\" MarginBottom=\"2\" Sprite=\"BlankWhiteSquare_9\" Color=\"#0D0A07FF\">" +
+            "<Children>" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Top\" MarginTop=\"12\" StackLayout.LayoutMethod=\"VerticalTopToBottom\">" +
+            "<Children>" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" IsVisible=\"@AilStatsVisible\" DoNotAcceptEvents=\"true\">" +
+            "<Children>" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\">" +
+            "<Children>" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilRelationText\" />" +
+            "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilRelationFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
+            "<Children>" +
+            "<Widget Id=\"FillWidget\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Center\" ClipContents=\"true\">" +
+            "<Children><Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"#D9BF86FF\" /></Children>" +
             "</Widget>" +
             "</Children>" +
             "</FillBarWidget>" +
             "</Children>" +
-            "</ListPanel>";
-
-        // PaddingAmount 127 = 55 (the game's name strip margin) + 8 gap + 64 card height
-        [PrefabExtensionText]
-        public string Xml =>
-            "<DimensionSyncWidget Id=\"AilStatsSync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"680\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginRight=\"700\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"127\">" +
+            "</ListPanel>" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilTrustVisible\">" +
             "<Children>" +
-            "<Widget Id=\"AilStatsCard\" WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"64\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" MarginLeft=\"40\" IsVisible=\"@AilCardVisible\">" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilTrustText\" />" +
+            "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilTrustFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
             "<Children>" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#0D0A07FF\" AlphaFactor=\"0.86\" DoNotAcceptEvents=\"true\" />" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"2\" VerticalAlignment=\"Top\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"2\" VerticalAlignment=\"Bottom\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
-            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"2\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
-            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"StretchToParent\" SuggestedWidth=\"2\" HorizontalAlignment=\"Right\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
-            "<ListPanel WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" VerticalAlignment=\"Center\" MarginLeft=\"18\" MarginRight=\"14\">" +
-            "<Children>" +
-            "<ListPanel WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"CoverChildren\" VerticalAlignment=\"Center\" IsVisible=\"@AilStatsVisible\" DoNotAcceptEvents=\"true\">" +
-            "<Children>" +
-            Gauge("AilRelationText", "AilRelationFill", null, "#D9BF86FF") +
-            Gauge("AilTrustText", "AilTrustFill", "AilTrustVisible", "#7FB0D9FF") +
-            Gauge("AilRomanceText", "AilRomanceFill", "AilRomanceVisible", "#D97F9FFF") +
+            "<Widget Id=\"FillWidget\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Center\" ClipContents=\"true\">" +
+            "<Children><Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"#7FB0D9FF\" /></Children>" +
+            "</Widget>" +
+            "</Children>" +
+            "</FillBarWidget>" +
             "</Children>" +
             "</ListPanel>" +
-            "<TextWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"30\" VerticalAlignment=\"Center\" MarginRight=\"18\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#F0A040FF\" Text=\"@AilWarnText\" IsVisible=\"@AilWarnVisible\" />" +
-            "<ButtonWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"36\" VerticalAlignment=\"Center\" Command.Click=\"ExecuteAilToggleHistory\" IsVisible=\"@AilHistoryAvailable\" UpdateChildrenStates=\"true\">" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilRomanceVisible\">" +
             "<Children>" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#3A2C16FF\" DoNotAcceptEvents=\"true\" />" +
-            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"1\" VerticalAlignment=\"Bottom\" Sprite=\"BlankWhiteSquare_9\" Color=\"#C9B48AFF\" DoNotAcceptEvents=\"true\" />" +
-            "<TextWidget WidthSizePolicy=\"CoverChildren\" HeightSizePolicy=\"StretchToParent\" MarginLeft=\"14\" MarginRight=\"14\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Text=\"@AilHistoryLabel\" DoNotAcceptEvents=\"true\" />" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilRomanceText\" />" +
+            "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilRomanceFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
+            "<Children>" +
+            "<Widget Id=\"FillWidget\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Center\" ClipContents=\"true\">" +
+            "<Children><Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"#D97F9FFF\" /></Children>" +
+            "</Widget>" +
+            "</Children>" +
+            "</FillBarWidget>" +
+            "</Children>" +
+            "</ListPanel>" +
+            "<ListPanel WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"46\" StackLayout.LayoutMethod=\"VerticalTopToBottom\" DoNotAcceptEvents=\"true\" IsVisible=\"@AilTensionVisible\">" +
+            "<Children>" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"24\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilTensionText\" />" +
+            "<FillBarWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" MarginTop=\"3\" Sprite=\"BlankWhiteSquare_9\" Color=\"#2A241AFF\" FillWidget=\"FillWidget\" InitialAmount=\"@AilTensionFill\" MaxAmount=\"100\" IsEnabled=\"false\">" +
+            "<Children>" +
+            "<Widget Id=\"FillWidget\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Center\" ClipContents=\"true\">" +
+            "<Children><Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"8\" HorizontalAlignment=\"Left\" Sprite=\"BlankWhiteSquare_9\" Color=\"#D9703FFF\" /></Children>" +
+            "</Widget>" +
+            "</Children>" +
+            "</FillBarWidget>" +
+            "</Children>" +
+            "</ListPanel>" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"26\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#F0A040FF\" Brush.TextHorizontalAlignment=\"Left\" Text=\"@AilWarnText\" IsVisible=\"@AilWarnVisible\" />" +
+            "</Children>" +
+            "</ListPanel>" +
+            "<ButtonWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"36\" MarginTop=\"6\" Command.Click=\"ExecuteAilToggleHistory\" IsVisible=\"@AilHistoryAvailable\" UpdateChildrenStates=\"true\">" +
+            "<Children>" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#4A3920FF\" DoNotAcceptEvents=\"true\" />" +
+            "<TextWidget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"18\" Brush.FontColor=\"#F0E6CCFF\" Text=\"@AilHistoryLabel\" DoNotAcceptEvents=\"true\" />" +
             "</Children>" +
             "</ButtonWidget>" +
             "</Children>" +
@@ -228,19 +259,21 @@ namespace AILegacy.UI
             "</Children>" +
             "</Widget>" +
             "</Children>" +
+            "</Widget>" +
+            "</Children>" +
             "</DimensionSyncWidget>";
     }
 
-    /// <summary>Scrollable chat history panel above the card. Moves with the dialogue box.</summary>
+    /// <summary>Scrollable chat history panel above the name strip. Moves with the dialogue box.</summary>
     [PrefabExtension("SPConversation", "descendant::ListPanel[@Id='VerticalContainer']")]
     internal sealed class ConversationHistoryPrefab : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Append;
 
-        // PaddingAmount 565 = 127 (card) + 8 gap + 430 panel height
+        // PaddingAmount 493 = 55 (the game's name strip margin) + 8 gap + 430 panel height
         [PrefabExtensionText]
         public string Xml =>
-            "<DimensionSyncWidget Id=\"AilHistorySync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"680\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginRight=\"700\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"565\">" +
+            "<DimensionSyncWidget Id=\"AilHistorySync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"680\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginRight=\"700\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"493\">" +
             "<Children>" +
             "<Widget Id=\"AilHistoryPanel\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"640\" SuggestedHeight=\"430\" HorizontalAlignment=\"Left\" VerticalAlignment=\"Top\" MarginLeft=\"40\" IsVisible=\"@AilHistoryVisible\">" +
             "<Children>" +

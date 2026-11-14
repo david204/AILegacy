@@ -424,7 +424,7 @@
     <string id="AIL_56a8023e" text="You have served your sentence: you are released from the dungeon of {0}." />
     <string id="AIL_56a85a72" text="Orders to your troops" />
     <string id="AIL_56bb73a9" text="Clan {0} has left {1} and now serves {2}" />
-    <string id="AIL_56f0d4a1" text="{0} steps away from the conversation." />
+    <string id="AIL_56f0d4a1" text="{0} leaves the conversation." />
     <string id="AIL_57011337" text="Generate personality" />
     <string id="AIL_570feb77" text="&#10;&#10;MEMORIES&#10;" />
     <string id="AIL_5794d85d" text="Service" />
@@ -1318,6 +1318,14 @@
     <string id="AIL_e7b1c4d2" text="Model this provider uses for recall by meaning (embeddings). Empty: the usual one of the service if it has one (embedding-3 with GLM), or the one in 4. Memory. Type - so that this provider is never asked for vectors." />
     <string id="AIL_e7b1c4d5" text="Provider 5" />
     <string id="AIL_e7b1c4d6" text="Provider 6" />
+    <string id="AIL_e7b1c4d7" text="{=!}Well? Do you yield or not?" />
+    <string id="AIL_e7b1c4d8" text="{0} comes to see you." />
+    <string id="AIL_e7b1c4da" text="Trust needed to talk about sensitive matters" />
+    <string id="AIL_e7b1c4db" text="Below this they keep plans, troop movements and intrigues to themselves. Real secrets need the higher value above." />
+    <string id="AIL_e7b1c4dc" text="Relation gained (% of what the AI gives)" />
+    <string id="AIL_e7b1c4dd" text="Liking is harder to win than to lose: gains are scaled by this and losses always count in full. 100 = the same both ways." />
+    <string id="AIL_e7b1c4de" text="Days an overheard line is remembered (0 = always)" />
+    <string id="AIL_e7b1c4df" text="What a character caught in passing fades after this many days. Up to 4.5 meters they hear every word; further away they catch only part of it." />
     <string id="AIL_e5c9b3a1" text="News" />
     <string id="AIL_e5c9b3a2" text="Memories" />
     <string id="AIL_e5c9b3a3" text="Confirm" />

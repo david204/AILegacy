@@ -85,6 +85,14 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
             "\"remember\": \"one short fact about them worth remembering for years (a promise, an insult, a secret, a deal), or empty string\"");
         private static readonly Tpl TJsonIntroduced = new Tpl("json_output/player_introduced_as.txt",
             "\"player_introduced_as\": \"if in their LAST message they told you their name, that name exactly as they said it; otherwise empty string\"");
+        private static readonly Tpl TJsonClaims = new Tpl("json_output/player_claims.txt",
+            "\"player_claims\": \"if in their LAST message they stated something about who they are that you cannot check on the spot (their clan or house, rank or office, age, wealth, trade, whom they serve), one short English sentence with exactly what they claimed; otherwise empty string\"");
+        private static readonly Tpl TCredShrewd = new Tpl("context/credulity_shrewd.txt",
+            "You are hard to fool (credulity {value} on a 0..1 scale). You do not take a stranger's word for who they are, what they own or what they have done: you want proof, a witness or a deed, you notice when a story does not fit what you know, and flattery makes you more wary, not less.");
+        private static readonly Tpl TCredNormal = new Tpl("context/credulity_normal.txt",
+            "You are neither gullible nor suspicious by nature (credulity {value} on a 0..1 scale). You accept ordinary claims at face value, and doubt the ones that are too convenient, too grand or contradict what you know.");
+        private static readonly Tpl TCredTrusting = new Tpl("context/credulity_trusting.txt",
+            "You are trusting and easily taken in (credulity {value} on a 0..1 scale). You tend to believe what you are told about who someone is and what they want, unless it plainly contradicts what you have seen yourself; you rarely suspect a lie until it has cost you.");
         private static readonly Tpl TJsonActions = new Tpl("json_output/actions.txt", "\"actions\": [ ...zero or more of the actions open to you right now (listed with the latest message), as strings... ]");
         private static readonly Tpl TJsonQuest = new Tpl("json_output/quest.txt",
             "\"quest\": null, or one object following the rules in \"Tasks between you\" above: { \"action\": \"create\" | \"update\" | \"complete\" | \"fail\", \"quest_id\": \"...\", " +
@@ -100,7 +108,7 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
             "\"title_local\": \"a 3-6 word headline of that rumour in {language}\", \"text_local\": \"the same rumour in {language}\", \"importance\": 1 (local gossip) to 3 (the whole realm would talk) }");
         private static readonly Tpl TJsonProfile = new Tpl("json_output/profile.txt",
             "\"profile\": { {given_name_field}\"personality\": \"...\", \"backstory\": \"...\", \"speech_style\": \"...\", \"goals\": \"...\", \"drives\": \"...\", \"values\": \"...\", " +
-            "\"social_behavior\": \"...\", \"cognitive_style\": \"...\", \"religion\": \"...\", \"reputation\": \"...\", \"secret\": \"...\", \"sample_lines\": [\"...\", \"...\", \"...\"] }");
+            "\"social_behavior\": \"...\", \"cognitive_style\": \"...\", \"religion\": \"...\", \"reputation\": \"...\", \"secret\": \"...\", \"naivety\": <number from 0.0 to 1.0>, \"sample_lines\": [\"...\", \"...\", \"...\"] }");
         private static readonly Tpl TJsonSignificant = new Tpl("json_output/significant_event.txt",
             "\"significant_event\": \"almost always an empty string. Only if THIS exchange was a turning point in your own life (a betrayal, a death you learned of, a vow, falling in love, a humiliation, losing or gaining everything), one English sentence saying what happened to you\"");
         private static readonly Tpl TJsonEnd = new Tpl("json_output/end_conversation.txt", "\"end_conversation\": true only if YOU decide to stop talking or leave now, otherwise false");
@@ -115,7 +123,8 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
             "(rhythm, favourite words, how formal, any verbal tic), goals that could clash with other people's, and a personal secret believable for your station. " +
             "drives = what moves you and what you fear; values = what you respect and what you despise; social_behavior = how you treat superiors, equals, inferiors and strangers; " +
             "cognitive_style = your humour, how readily you lie, how you make decisions, how easily you are fooled; religion = your faith and how devout you are, in the terms of your culture; " +
-            "reputation = what people say about you, true or not. sample_lines = three short things you would typically say, written in {language}, each showing your voice in a different mood. " +
+            "reputation = what people say about you, true or not. naivety = a number from 0.0 (shrewd and suspicious, very hard to fool) through 0.5 (ordinary caution) to 1.0 (trusting, easily taken in), " +
+            "following from your cognitive style, age, upbringing and experience; avoid the extremes without a reason. sample_lines = three short things you would typically say, written in {language}, each showing your voice in a different mood. " +
             "Your reply must already sound like this character.");
 
         private static readonly Tpl TRelationCapped = new Tpl("rules/relation_capped.txt",
@@ -260,7 +269,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             if (cfg.EnableTension) fields.Add(TJsonTension.Format("max", cfg.MaxTensionChangePerReply));
             if (romance) fields.Add(TJsonRomance.Format("max", cfg.MaxRomanceChangePerReply));
             fields.Add(TJsonRemember.Text);
-            if (playerName == null || mem.KnownPlayerName != null) fields.Add(TJsonIntroduced.Text);
+            if (playerName == null || mem.KnownPlayerName != null) { fields.Add(TJsonIntroduced.Text); fields.Add(TJsonClaims.Text); }
             fields.Add(TJsonActions.Text);
             if (quests) fields.Add(TJsonQuest.Format("language", cfg.Language));
             if (cfg.EnableCharacterDevelopment && s.IsHero && !needsProfile) fields.Add(TJsonSignificant.Text);
@@ -624,6 +633,11 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                     foreach (var n in mem.Notes) sys.AppendLine("- " + n);
                 }
                 if (mem.LiesSuspected > 0) sys.AppendLine($"You have caught them lying {mem.LiesSuspected} time(s); you trust their word less.");
+                // Each character has their own credulity. Profiles made before this have none and get no line
+                double naive = mem.Profile?.Naivety ?? -1;
+                if (naive >= 0)
+                    sys.AppendLine((naive < 0.34 ? TCredShrewd : naive > 0.66 ? TCredTrusting : TCredNormal)
+                        .Format("value", naive.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)));
             }
             else
             {

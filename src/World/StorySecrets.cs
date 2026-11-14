@@ -165,7 +165,7 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
                 if (!S.Get.StorySecrets || !s.IsHero) return list;
                 string id = s.Hero.StringId;
                 foreach (var x in All.Where(x => x.KnownBy.Contains(id)).OrderByDescending(x => x.Day).Take(S.Get.StorySecretsInPrompt))
-                    list.Add($"{x.Text} ({(x.About.Contains(id) ? "this is YOUR OWN secret: you guard it and would deny it" : "you know this about others")}; trust needed to share it: {x.Access})");
+                    list.Add($"{x.Text} ({(x.About.Contains(id) ? "this is YOUR OWN secret: you guard it and would deny it" : "you know this about others")}; {Dialogue.Bonds.ShareRule(s, x.Access)})");
             }
             catch { }
             return list;

@@ -1318,6 +1318,14 @@
     <string id="AIL_e7b1c4d2" text="Modello che questo fornitore usa per il ricordo per significato (vettori). Vuoto: quello abituale del servizio se ne ha uno (embedding-3 con GLM), oppure quello di 4. Memoria. Scrivi - perché a questo fornitore non si chiedano mai vettori." />
     <string id="AIL_e7b1c4d5" text="Provider 5" />
     <string id="AIL_e7b1c4d6" text="Provider 6" />
+    <string id="AIL_e7b1c4d7" text="{=!}Allora? Vi arrendete o no?" />
+    <string id="AIL_e7b1c4d8" text="{0} viene a vederti." />
+    <string id="AIL_e7b1c4da" text="Fiducia necessaria per parlare di questioni delicate" />
+    <string id="AIL_e7b1c4db" text="Sotto questo valore tengono per sé piani, movimenti di truppe e intrighi. I veri segreti richiedono il valore più alto qui sopra." />
+    <string id="AIL_e7b1c4dc" text="Relazione guadagnata (% di ciò che dà l’IA)" />
+    <string id="AIL_e7b1c4dd" text="La stima è più difficile da guadagnare che da perdere: i guadagni vengono moltiplicati per questo valore, le perdite contano sempre per intero. 100 = uguale nei due sensi." />
+    <string id="AIL_e7b1c4de" text="Giorni in cui si ricorda una frase sentita di passaggio (0 = sempre)" />
+    <string id="AIL_e7b1c4df" text="Ciò che un personaggio ha colto di passaggio svanisce dopo questi giorni. Fino a 4,5 metri sente ogni parola; più lontano solo una parte." />
     <string id="AIL_e5c9b3a1" text="Notizie" />
     <string id="AIL_e5c9b3a2" text="Memorie" />
     <string id="AIL_e5c9b3a3" text="Conferma" />

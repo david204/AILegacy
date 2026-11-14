@@ -150,7 +150,28 @@ namespace AILegacy.World
         public static bool IsAmbientTopic(HeardItem x) => x == null || string.IsNullOrWhiteSpace(x.Text) || x.Text.StartsWith("(talking together)", StringComparison.Ordinal);
 
         /// <summary>Messages and overheard things that are actually about the player.</summary>
-        public static IEnumerable<HeardItem> AboutPlayer(HeroMemory mem) => mem?.Heard == null ? Enumerable.Empty<HeardItem>() : mem.Heard.Where(x => !IsAmbientTopic(x));
+        public static IEnumerable<HeardItem> AboutPlayer(HeroMemory mem)
+        {
+            if (mem?.Heard == null) return Enumerable.Empty<HeardItem>();
+            ForgetOverheard(mem);
+            return mem.Heard.Where(x => !IsAmbientTopic(x)).ToList();
+        }
+
+        /// <summary>FromName of something caught in passing, as opposed to something they were told.</summary>
+        public const string OwnEars = "your own ears";
+
+        /// <summary>What was only overheard fades after a while. Checked right before it would go into a prompt.</summary>
+        public static void ForgetOverheard(HeroMemory mem)
+        {
+            try
+            {
+                int days = S.Get.OverheardLifespanDays;
+                if (days <= 0 || mem?.Heard == null || mem.Heard.Count == 0) return;
+                double now = CampaignTime.Now.ToDays;
+                mem.Heard.RemoveAll(x => x != null && x.FromName == OwnEars && now - x.Day > days);
+            }
+            catch { }
+        }
 
         /// <summary>Clears old ambient topics first so they don't push out real messages.</summary>
         public static void AddHeard(HeroMemory mem, HeardItem item)
@@ -194,6 +215,10 @@ namespace AILegacy.World
                 var cfg = S.Get;
                 if (!cfg.EnableMapInitiative || Campaign.Current == null || Initiative.Busy || !WorldSim.OnMap()) return;
                 var main = MobileParty.MainParty;
+                // A captive player is already with their captor: nobody rides up to "intercept" them.
+                // The captor may come to see them instead.
+                if (P == null) return;
+                if (P.IsPrisoner || PlayerCaptivity.IsCaptive) { CaptorVisit(); return; }
                 if (main == null || main.MapEvent != null || main.CurrentSettlement != null || main.Army != null && main.Army.LeaderParty != main) return;
                 double now = CampaignTime.Now.ToDays;
                 if (MemoryStore.LastInitiativeDay >= 0 && now - MemoryStore.LastInitiativeDay < cfg.MapInitiativeMinDaysBetween) return;
@@ -271,6 +296,51 @@ namespace AILegacy.World
             }
             catch (Exception ex) { Log.Error("Iniciativa en el mapa", ex); }
         }
+
+        /// <summary>
+        /// While the player is a prisoner, the lord holding them may come to speak: at most once every two days,
+        /// and not in the first hours after the capture.
+        /// </summary>
+        private static void CaptorVisit()
+        {
+            var captor = PlayerCaptivity.CaptorParty;
+            if (captor == null) return;
+            Hero h = captor.IsMobile ? captor.LeaderHero : null;
+            string place = "your camp, under guard";
+            if (captor.IsSettlement && captor.Settlement != null)
+            {
+                // In a dungeon: the lord of the place, only if they are inside the walls right now
+                var st = captor.Settlement;
+                h = st.OwnerClan?.Heroes.FirstOrDefault(x => x.IsAlive && !x.IsChild && !x.IsPrisoner && x.CurrentSettlement == st && (x == st.OwnerClan.Leader || x == st.Town?.Governor));
+                place = "the dungeon of " + st.Name + ", which you hold";
+            }
+            if (h == null || h == P || !h.IsAlive || h.IsPrisoner || h.IsChild) return;
+            double now = CampaignTime.Now.ToDays;
+            double held = 0;
+            try { held = PlayerCaptivity.CaptivityStartTime.ElapsedDaysUntilNow; } catch { }
+            if (held < 0.15) return;
+            var mem = MemoryStore.Get(h.StringId, h.Name.ToString());
+            if (mem == null) return;
+            if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < 2) return;
+            if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay < 0.25) return;
+            if (Rng.Next(100) >= 12) return;
+
+            int rel = (int)h.GetRelationWithPlayer();
+            string mood = rel <= -20 || Bonds.Tension(mem) >= 40 || mem.LiesSuspected > 0 ? "you bear them a grudge and it shows"
+                : rel >= 20 ? "you think well of them and holding them sits badly with you"
+                : mem.ConversationCount == 0 ? "you have never spoken before and want to see who you have caught"
+                : "you have no strong feelings about them: they are a prisoner with a price";
+            mem.LastInitiativeDay = now;
+            mem.InitiativeReason = "CAPTOR|" + mood;
+            MemoryStore.LastInitiativeDay = now;
+            string days = held < 1 ? "since earlier today" : "for " + (int)held + " day(s)";
+            Log.Info($"Iniciativa en el mapa: {h.Name} va a ver a su prisionero ({mood})");
+            Initiative.StartCaptor(h, TCaptorVisit.Format("place", place, "days", days, "mood", mood));
+        }
+
+        private static readonly Tpl TCaptorVisit = new Tpl("npc_initiative/captor_visit.txt",
+@"They are YOUR PRISONER, held in {place} {days}. They are disarmed and bound, and they go nowhere unless you say so. You have come to see them, on your own initiative: {mood}.
+You did not just meet or catch them on the road: the capture is done. Open with what you came for (questions, terms, a ransom, a warning, scorn or an apology, whatever fits you and your history with them). No small talk first.");
 
         /// <summary>Does the NPC have something to say? Weight and reason (English, goes into their prompt).</summary>
         private static (double w, string why) Motive(Hero h, HeroMemory mem)

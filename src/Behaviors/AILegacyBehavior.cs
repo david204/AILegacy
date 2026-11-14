@@ -294,6 +294,19 @@ namespace AILegacy.Behaviors
                 () =>
                 {
                     _fromPrisonerBranch = false;
+                    _fromSurrenderDemand = false;
+                    _bandReturn = null;
+                    var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
+                    if (s != null) MainThread.Post(s.AskInput);
+                }, priority: 120);
+            // A lord who caught you and demands your surrender: the game goes straight to this branch and never
+            // shows hero_main_options, so Talk needs its own entry here. "Back" returns to the demand.
+            starter.AddPlayerLine("ailegacy_d_start_s", SurrenderDemandOptions, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                () => S.Get.UseDialogStyle && CanTalkHero(),
+                () =>
+                {
+                    _fromPrisonerBranch = false;
+                    _fromSurrenderDemand = true;
                     _bandReturn = null;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
@@ -304,6 +317,7 @@ namespace AILegacy.Behaviors
                 () =>
                 {
                     _fromPrisonerBranch = true;
+                    _fromSurrenderDemand = false;
                     _bandReturn = null;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
@@ -332,6 +346,7 @@ namespace AILegacy.Behaviors
                     () =>
                     {
                         _fromPrisonerBranch = false;
+                        _fromSurrenderDemand = false;
                         _bandReturn = back;
                         var s = ChatSession.StartDialog(BandSpeaker());
                         if (s != null) MainThread.Post(s.AskInput);
@@ -389,6 +404,8 @@ namespace AILegacy.Behaviors
             // (to the prisoner branch if we came from there, since the game's exit lives in it: "Don't do anything stupid..." -> close)
             starter.AddDialogLine("ailegacy_d_ret_p", "ailegacy_d_ret", PrisonerOptions, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => _fromPrisonerBranch && IsMainPartyPrisoner(), null, priority: 125);
+            starter.AddDialogLine("ailegacy_d_ret_s", "ailegacy_d_ret", SurrenderDemandOptions, L.T("AIL_e7b1c4d7", "{=!}¿Y bien? ¿Os rendís o no?"),
+                () => _fromSurrenderDemand && Hero.OneToOneConversationHero != null, null, priority: 124);
             starter.AddDialogLine("ailegacy_d_ret_h", "ailegacy_d_ret", "hero_main_options", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => Hero.OneToOneConversationHero != null, null, priority: 120);
             starter.AddDialogLine("ailegacy_d_ret_r", "ailegacy_d_ret", "town_or_village_player", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
@@ -399,6 +416,9 @@ namespace AILegacy.Behaviors
         private const string PrisonerOptions = "prisoner_recruit_start_player";
         /// <summary>The current AI Legacy chat was started from the prisoner branch.</summary>
         private static bool _fromPrisonerBranch;
+        /// <summary>Player options after a hostile lord's surrender demand (LordConversationsCampaignBehavior).</summary>
+        private const string SurrenderDemandOptions = "player_responds_to_surrender_demand";
+        private static bool _fromSurrenderDemand;
 
         /// <summary>The hero you're talking to is a prisoner in your party (same check the game uses for its branch).</summary>
         private static bool IsMainPartyPrisoner()

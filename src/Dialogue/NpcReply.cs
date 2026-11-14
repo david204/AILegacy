@@ -20,6 +20,7 @@ namespace AILegacy.Dialogue
         public string Remember = "";
         public bool EndConversation;
         public string PlayerIntroducedAs = "";
+        public string PlayerClaims = "";
         public List<string> Actions = new List<string>();
         public CharacterProfile Profile;
         public string RumorText = "";
@@ -54,6 +55,7 @@ namespace AILegacy.Dialogue
                     r.Remember = Str(j["remember"]) ?? "";
                     r.EndConversation = ToBool(j["end_conversation"]);
                     r.PlayerIntroducedAs = Str(j["player_introduced_as"]) ?? "";
+                    r.PlayerClaims = (Str(j["player_claims"]) ?? "").Trim();
                     r.Thoughts = Str(j["thoughts"]) ?? "";
                     r.Mood = Str(j["mood"]) ?? "";
                     r.MoodReason = Str(j["mood_reason"]) ?? "";
@@ -80,6 +82,9 @@ namespace AILegacy.Dialogue
                             Religion = Str(p["religion"]) ?? "",
                             Reputation = Str(p["reputation"]) ?? "",
                         };
+                        if (p["naivety"] != null && double.TryParse(p["naivety"].ToString().Trim().Replace(',', '.'), System.Globalization.NumberStyles.Float,
+                                                                    System.Globalization.CultureInfo.InvariantCulture, out double nv))
+                            r.Profile.Naivety = Math.Max(0.0, Math.Min(1.0, nv));
                         if (p["sample_lines"] is JArray lines)
                             r.Profile.SampleLines = lines.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).Take(5).ToList();
                         if (r.Profile.IsEmpty) r.Profile = null;

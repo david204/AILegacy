@@ -265,6 +265,21 @@ namespace AILegacy.Dialogue
             catch { return ""; }
         }
 
+        /// <summary>
+        /// A secret's access level as a trust number, and whether this character may tell it to the player right now.
+        /// low = sensitive matters, medium = secrets, high = well above that.
+        /// </summary>
+        public static string ShareRule(Speaker s, string access)
+        {
+            var cfg = S.Get;
+            if (!cfg.EnableTrust) return $"trust needed to share it: {access}";
+            EnsureTrust(s);
+            int need = access == "low" ? Math.Min(cfg.TrustForSensitive, cfg.TrustForSecrets)
+                     : access == "medium" ? cfg.TrustForSecrets
+                     : Math.Min(100, cfg.TrustForSecrets + 25);
+            return $"trust needed to share it: {need}; you may tell them now: {(s.Memory.Trust >= need ? "yes, if it comes up naturally" : "NO")}";
+        }
+
         // ============================================================ prompt text
 
         public static void AppendTo(StringBuilder sys, Speaker s)
@@ -277,6 +292,8 @@ namespace AILegacy.Dialogue
                 sys.AppendLine($"How far you trust their word (trust {mem.Trust} on a -100..100 scale, separate from liking them): {DescribeTrust(mem.Trust)}. " +
                                (mem.Trust >= cfg.TrustForSecrets
                                    ? "You trust them enough to confide sensitive things if it comes up naturally."
+                                   : mem.Trust >= Math.Min(cfg.TrustForSensitive, cfg.TrustForSecrets)
+                                   ? $"You trust them enough to speak of sensitive matters (plans, troop movements, intrigues, what you think of your betters) when it comes up, but NOT enough to give away real secrets (trust {cfg.TrustForSecrets}+ needed for those)."
                                    : $"That is NOT enough to confide in them: keep secrets, plans, troop movements, intrigues and anything that could hurt you or yours to yourself (you would need trust {cfg.TrustForSecrets}+). Deflect, stay vague or lie."));
             }
             if (RomancePossible(s))

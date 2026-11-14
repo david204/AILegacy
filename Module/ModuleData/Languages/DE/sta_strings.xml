@@ -1318,6 +1318,14 @@
     <string id="AIL_e7b1c4d2" text="Modell, das dieser Anbieter für die Erinnerung nach Bedeutung (Vektoren) nutzt. Leer: das übliche des Dienstes, falls vorhanden (embedding-3 bei GLM), sonst das aus 4. Gedächtnis. Gib - ein, damit dieser Anbieter nie nach Vektoren gefragt wird." />
     <string id="AIL_e7b1c4d5" text="Anbieter 5" />
     <string id="AIL_e7b1c4d6" text="Anbieter 6" />
+    <string id="AIL_e7b1c4d7" text="{=!}Nun? Ergebt ihr euch oder nicht?" />
+    <string id="AIL_e7b1c4d8" text="{0} kommt zu dir." />
+    <string id="AIL_e7b1c4da" text="Vertrauen, das für heikle Themen nötig ist" />
+    <string id="AIL_e7b1c4db" text="Darunter behalten sie Pläne, Truppenbewegungen und Intrigen für sich. Echte Geheimnisse brauchen den höheren Wert oben." />
+    <string id="AIL_e7b1c4dc" text="Gewonnene Beziehung (% dessen, was die KI vergibt)" />
+    <string id="AIL_e7b1c4dd" text="Zuneigung ist schwerer zu gewinnen als zu verlieren: Gewinne werden damit skaliert, Verluste zählen immer voll. 100 = in beide Richtungen gleich." />
+    <string id="AIL_e7b1c4de" text="Tage, die ein aufgeschnappter Satz erinnert wird (0 = immer)" />
+    <string id="AIL_e7b1c4df" text="Was eine Figur im Vorbeigehen aufgeschnappt hat, verblasst nach so vielen Tagen. Bis 4,5 Meter hört sie jedes Wort, weiter weg nur einen Teil." />
     <string id="AIL_e5c9b3a1" text="Neuigkeiten" />
     <string id="AIL_e5c9b3a2" text="Erinnerungen" />
     <string id="AIL_e5c9b3a3" text="Bestätigen" />

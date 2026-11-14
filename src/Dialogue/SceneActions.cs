@@ -28,7 +28,7 @@ namespace AILegacy.Dialogue
         /// <summary>New or loaded save: drop anything pending from the previous one, above all queued arrests.</summary>
         public static void ResetSession()
         {
-            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear();
+            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Away.Clear();
             _mission = null;
         }
 
@@ -212,7 +212,8 @@ namespace AILegacy.Dialogue
                     }
                     case "leave":
                         if (Followers.Remove(who)) SceneMove.Release(who);
-                        Say(L.F("AIL_56f0d4a1", $"{who.Name} se aparta de la conversación."));
+                        WalkAway(who);
+                        Say(L.F("AIL_56f0d4a1", $"{who.Name} sale de la conversación."));
                         return true;
                 }
             }
@@ -259,6 +260,33 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Colocar el corro", ex); }
         }
 
+        private static readonly List<(Agent who, float left)> Away = new List<(Agent, float)>();
+
+        /// <summary>
+        /// Someone leaving the talk turns away and walks a few steps off before going back to their routine.
+        /// Anyone seated, mounted or busy with something just stops looking at the player.
+        /// </summary>
+        public static void WalkAway(Agent a)
+        {
+            try
+            {
+                var me = Agent.Main;
+                if (a == null || !a.IsActive() || me == null) return;
+                try { a.SetLookAgent(null); } catch { }
+                Ring.RemoveAll(r => r.who == a);
+                if (!a.IsAIControlled || a.MountAgent != null || a.IsSitting() || a.IsUsingGameObject || Busy(a)) return;
+                var dir = a.Position.AsVec2 - me.Position.AsVec2;
+                if (dir.Length < 0.05f) dir = me.LookDirection.AsVec2;
+                if (dir.Length < 0.01f) dir = new Vec2(0f, 1f);
+                var wp = a.GetWorldPosition();
+                wp.SetVec2(a.Position.AsVec2 + dir.Normalized() * 7f);
+                a.SetScriptedPosition(ref wp, false, Agent.AIScriptedFrameFlags.DoNotRun);
+                Away.RemoveAll(x => x.who == a);
+                Away.Add((a, 7f));
+            }
+            catch (Exception ex) { Log.Error("Salir de la conversación", ex); }
+        }
+
         /// <summary>Walks the agent over to the player with no message. Used when someone joins the conversation.</summary>
         public static void Summon(Agent a)
         {
@@ -300,6 +328,14 @@ namespace AILegacy.Dialogue
                         }
                         catch (Exception ex) { Log.Error("Encerrar al detenido", ex); }
                     }
+                }
+                for (int i = Away.Count - 1; i >= 0; i--)
+                {
+                    var w = Away[i];
+                    float left = w.left - dt;
+                    if (left > 0f && Mission.Current != null && w.who != null && w.who.IsActive()) { Away[i] = (w.who, left); continue; }
+                    try { if (w.who != null && w.who.IsActive()) w.who.DisableScriptedMovement(); } catch { }
+                    Away.RemoveAt(i);
                 }
                 for (int i = Ring.Count - 1; i >= 0; i--)
                 {
@@ -348,7 +384,7 @@ namespace AILegacy.Dialogue
                     if (c.Who.Position.Distance(me) > 3.5f) continue;
                     SceneMove.Release(c.Who);
                     Calls.RemoveAt(i);
-                    if (!c.Quiet) { GroupTalk.Join(c.Who); Say(L.F("AIL_4eaee384", $"{c.Who.Name} se acerca.")); }
+                    if (!c.Quiet) { GroupTalk.Join(c.Who); Say(L.F("AIL_2215a755", $"{c.Who.Name} se une a la conversación.")); }
                 }
             }
             catch (Exception ex) { Log.Error("Acciones en la escena", ex); Guides.Clear(); Calls.Clear(); }

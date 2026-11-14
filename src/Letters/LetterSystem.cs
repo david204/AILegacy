@@ -197,7 +197,20 @@ namespace AILegacy.Letters
         }
 
         private static bool CanWrite(Hero h) =>
-            h != null && h.IsAlive && !h.IsChild && h != Hero.MainHero && !h.IsPrisoner && h.PartyBelongedTo != MobileParty.MainParty;
+            h != null && h.IsAlive && !h.IsChild && h != Hero.MainHero && !h.IsPrisoner && h.PartyBelongedTo != MobileParty.MainParty && !HoldsPlayer(h);
+
+        // Nobody writes a letter to the prisoner riding in their own column or sitting in their own dungeon
+        private static bool HoldsPlayer(Hero h)
+        {
+            try
+            {
+                var captor = PlayerCaptivity.CaptorParty;
+                if (captor == null || !PlayerCaptivity.IsCaptive) return false;
+                if (captor.IsMobile) return h.PartyBelongedTo != null && h.PartyBelongedTo == captor.MobileParty;
+                return captor.IsSettlement && h.CurrentSettlement == captor.Settlement;
+            }
+            catch { return false; }
+        }
 
         private static void Generate(Hero hero, bool isReply)
         {

@@ -36,6 +36,7 @@ namespace AILegacy.Dialogue
             public bool Asked;            // map: player was already asked whether to receive them
             public bool Hostile;          // map: an enemy caught up and blocks your way, no asking
             public bool InParty;          // map: in the player's own party
+            public bool Captor;           // map: holds the player prisoner and comes to see them
             public float Age;
             public Action OnUnanswered;   // player left or the conversation couldn't open
         }
@@ -54,7 +55,7 @@ namespace AILegacy.Dialogue
         /// <summary>On the map: the noble reached the player's party and wants to talk.</summary>
         public static bool StartMap(Hero hero, string openingInstruction, bool hostile = false)
         {
-            if (_p != null || hero == null) return false;
+            if (_p != null || hero == null || Hero.MainHero == null || Hero.MainHero.IsPrisoner) return false;
             var s = Speaker.FromHero(hero);
             s.SituationKind = "initiative";
             s.Situation = openingInstruction;
@@ -63,6 +64,17 @@ namespace AILegacy.Dialogue
                 hostile ? "You have ridden them down and barred their way. Speak first."
                 : inParty ? "You ride in their party and have asked for a word. Speak first and say what is on your mind."
                 : "You rode over to them. Speak first and say why you came.");
+        }
+
+        /// <summary>On the map: the lord who holds the player prisoner comes to speak to them.</summary>
+        public static bool StartCaptor(Hero hero, string openingInstruction)
+        {
+            if (_p != null || hero == null || Hero.MainHero == null || !Hero.MainHero.IsPrisoner) return false;
+            var s = Speaker.FromHero(hero);
+            s.SituationKind = "initiative";
+            s.Situation = openingInstruction;
+            return Begin(new Approach { Who = s, Hero = hero, Captor = true },
+                "You have come to see your prisoner. Speak first and say what you came for.");
         }
 
         private static bool Begin(Approach p, string openingInstruction)
@@ -165,10 +177,34 @@ namespace AILegacy.Dialogue
             // if the opening line never matches, the approach expires on its own by age
         }
 
+        /// <summary>A prisoner isn't asked whether to receive anyone: the captor's line is ready, so the talk just opens.</summary>
+        private static void TickCaptor(Approach p)
+        {
+            var h = p.Hero;
+            var captor = PlayerCaptivity.CaptorParty;
+            bool stillTheirs = h != null && captor != null && Hero.MainHero.IsPrisoner
+                && (captor.IsMobile ? captor.LeaderHero == h : captor.IsSettlement && h.CurrentSettlement == captor.Settlement);
+            if (h == null || !h.IsAlive || h.IsPrisoner || !stillTheirs || p.Age > 240f) { _p = null; return; }
+            if (captor.IsMobile && captor.MobileParty?.MapEvent != null) return;      // busy fighting: later, or it expires
+            if (p.Reply == null || p.Asked) return;
+            if (!WorldSim.OnMap()) return;
+            p.Asked = true;
+            p.Age = 0f;
+            try
+            {
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1c4d8", $"{h.Name} viene a verte."), Colors.Yellow));
+                CampaignMapConversation.OpenConversation(
+                    new ConversationCharacterData(CharacterObject.PlayerCharacter, PartyBase.MainParty),
+                    new ConversationCharacterData(h.CharacterObject, captor));
+            }
+            catch (Exception ex) { Log.Error("Iniciativa del captor: abrir conversación", ex); _p = null; }
+        }
+
         private static void TickMap(Approach p)
         {
             var h = p.Hero;
             var party = h?.PartyBelongedTo;
+            if (p.Captor) { TickCaptor(p); return; }
             if (h == null || !h.IsAlive || h.IsPrisoner || party == null || !party.IsActive || party.MapEvent != null || p.Age > 240f) { _p = null; return; }
             if (p.Reply == null || p.Asked) return;
             if (!WorldSim.OnMap() || MobileParty.MainParty.MapEvent != null) return;

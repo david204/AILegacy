@@ -540,6 +540,16 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public int TrustForSecrets { get; set; } = 40;
 
+        [SettingPropertyInteger("{=AIL_e7b1c4da}Trust needed to talk about sensitive matters", 0, 100, Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4db}Below this they keep plans, troop movements and intrigues to themselves. Real secrets need the higher value above.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int TrustForSensitive { get; set; } = 25;
+
+        [SettingPropertyInteger("{=AIL_e7b1c4dc}Relation gained (% of what the AI gives)", 10, 100, Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4dd}Liking is harder to win than to lose: gains are scaled by this and losses always count in full. 100 = the same both ways.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int RelationGainPercent { get; set; } = 60;
+
         [SettingPropertyInteger("{=AIL_cd6fe758}Trust you lose if caught in a lie", 0, 50, Order = 5, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public int TrustLostPerLie { get; set; } = 10;
@@ -1252,7 +1262,12 @@ namespace AILegacy.Settings
 
         [SettingPropertyInteger("{=AIL_a8cfe43b}Distance at which they hear you (meters)", 1, 30, Order = 6, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
-        public int OverhearRadius { get; set; } = 6;
+        public int OverhearRadius { get; set; } = 10;
+
+        [SettingPropertyInteger("{=AIL_e7b1c4de}Days an overheard line is remembered (0 = always)", 0, 120, Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4df}What a character caught in passing fades after this many days. Up to 4.5 meters they hear every word; further away they catch only part of it.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public int OverheardLifespanDays { get; set; } = 15;
 
         [SettingPropertyInteger("{=AIL_c4dbb3ad}Maximum distance at which the text is visible (meters)", 5, 100, Order = 6, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]

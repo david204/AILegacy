@@ -161,7 +161,7 @@
     <string id="AIL_20cbe084" text="No tienes {0} denarios para comprar el taller de {1}." />
     <string id="AIL_20e63156" text="Quita de esta campaña las memorias que vinieron de AIInfluence (por ejemplo, si importaste las de otra partida). Los archivos se apartan a una subcarpeta, no se borran." />
     <string id="AIL_2118a039" text="Eventos" />
-    <string id="AIL_2215a755" text="{0} se mete en la conversación." />
+    <string id="AIL_2215a755" text="{0} se une a la conversación." />
     <string id="AIL_2259555a" text="Ánimo: {0} ({1})" />
     <string id="AIL_226baec1" text=" (otra campaña)" />
     <string id="AIL_226c9a7f" text="&#10;&#10;Estás sano." />
@@ -424,7 +424,7 @@
     <string id="AIL_56a8023e" text="Has cumplido tu condena: te sueltan de la mazmorra de {0}." />
     <string id="AIL_56a85a72" text="Órdenes a tus tropas" />
     <string id="AIL_56bb73a9" text="El clan {0} ha abandonado {1} y ahora sirve a {2}" />
-    <string id="AIL_56f0d4a1" text="{0} se aparta de la conversación." />
+    <string id="AIL_56f0d4a1" text="{0} sale de la conversación." />
     <string id="AIL_57011337" text="Generar personalidad" />
     <string id="AIL_570feb77" text="&#10;&#10;RECUERDOS&#10;" />
     <string id="AIL_5794d85d" text="Servicio" />
@@ -1318,6 +1318,14 @@
     <string id="AIL_e7b1c4d2" text="Modelo que usa este proveedor para el recuerdo por significado (vectores). Vacío: el habitual del servicio si tiene (embedding-3 con GLM), o el de 4. Memoria. Escribe - para que a este proveedor no se le pidan nunca vectores." />
     <string id="AIL_e7b1c4d5" text="Proveedor 5" />
     <string id="AIL_e7b1c4d6" text="Proveedor 6" />
+    <string id="AIL_e7b1c4d7" text="{=!}¿Y bien? ¿Os rendís o no?" />
+    <string id="AIL_e7b1c4d8" text="{0} viene a verte." />
+    <string id="AIL_e7b1c4da" text="Confianza necesaria para hablar de asuntos delicados" />
+    <string id="AIL_e7b1c4db" text="Por debajo de esto se guardan planes, movimientos de tropas e intrigas. Los secretos de verdad necesitan el valor más alto de arriba." />
+    <string id="AIL_e7b1c4dc" text="Relación ganada (% de lo que da la IA)" />
+    <string id="AIL_e7b1c4dd" text="El aprecio cuesta más ganarlo que perderlo: lo ganado se multiplica por esto y lo perdido cuenta siempre entero. 100 = igual en los dos sentidos." />
+    <string id="AIL_e7b1c4de" text="Días que se recuerda una frase oída de pasada (0 = siempre)" />
+    <string id="AIL_e7b1c4df" text="Lo que un personaje pilló de pasada se le olvida pasados estos días. Hasta 4,5 metros oyen cada palabra; más lejos solo pillan una parte." />
     <string id="AIL_e5c9b3a1" text="Noticias" />
     <string id="AIL_e5c9b3a2" text="Memorias" />
     <string id="AIL_e5c9b3a3" text="Confirmar" />

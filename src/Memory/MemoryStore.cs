@@ -44,6 +44,8 @@ namespace AILegacy.Memory
         [JsonProperty("cognitive_style")] public string CognitiveStyle = ""; // humour, how much they lie, how they decide, how trusting
         [JsonProperty("religion")] public string Religion = "";
         [JsonProperty("reputation")] public string Reputation = "";          // what people say about them
+        /// <summary>How easily they are fooled: 0 shrewd, 0.5 ordinary caution, 1 trusting. -1 = not set (older profiles).</summary>
+        [JsonProperty("naivety")] public double Naivety = -1;
         [JsonProperty("sample_lines")] public List<string> SampleLines = new List<string>();
 
         [JsonIgnore]
@@ -112,6 +114,8 @@ namespace AILegacy.Memory
         [JsonProperty("rel_total")] public int RelationChangedTotal;
         /// <summary>Name the player introduced themselves with (may be fake). null = never introduced.</summary>
         [JsonProperty("player_name")] public string KnownPlayerName;
+        /// <summary>What the player has said about themselves that this character could not check (clan, rank, wealth...).</summary>
+        [JsonProperty("player_claims")] public string KnownPlayerClaims;
         /// <summary>Personality the AI made up on the first talk, fixed from then on.</summary>
         [JsonProperty("profile")] public CharacterProfile Profile;
         [JsonProperty("lies")] public int LiesSuspected;

@@ -53,6 +53,8 @@ namespace AILegacy.World
 
         public static void Clear() => _items = new List<NewsItem>();
 
+        public static bool Contains(NewsItem n) => n != null && _items.Contains(n);
+
         public static void Delete(string id) => _items.RemoveAll(n => n.Id == id);
 
         public static void Load(List<NewsItem> items) => _items = items ?? new List<NewsItem>();

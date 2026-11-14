@@ -230,6 +230,47 @@ namespace AILegacy.Prompt
             return string.IsNullOrWhiteSpace(s.Memory.KnownPlayerName) ? null : s.Memory.KnownPlayerName;
         }
 
+        private static readonly Tpl TRecentLetters = new Tpl("context/recent_letters.txt",
+@"You and this person have been WRITING TO EACH OTHER, and this is the first time you meet face to face since. They are the one who wrote those letters and received yours: you know it is them. You remember what was written. If you invited them, agreed to meet, asked for something or promised something in those letters, that stands and you act on it now; do not behave as if they had turned up unannounced.
+{letters}");
+
+        /// <summary>
+        /// Letters exchanged just before this meeting. Models tend to treat a face to face talk as a fresh start and
+        /// forget an appointment made by letter a few turns back, so it is spelled out while the meeting is young.
+        /// </summary>
+        private static string RecentLetters(AILegacy.Memory.HeroMemory mem)
+        {
+            try
+            {
+                var turns = mem.Turns;
+                int last = turns.FindLastIndex(t => !t.IsNote && t.Text != null && t.Text.StartsWith("[Letter] "));
+                if (last < 0) return "";
+                double now = CampaignTime.Now.ToDays;
+                if (now - turns[last].Day > 40) return "";
+                // more than a few spoken lines since the last letter: the meeting is well under way, history is enough
+                if (turns.Skip(last + 1).Count(t => !t.IsNote) > 6) return "";
+                var lines = new List<string>();
+                for (int i = last; i >= 0 && lines.Count < 3; i--)
+                {
+                    var t = turns[i];
+                    if (t.IsNote) continue;
+                    if (t.Text == null || !t.Text.StartsWith("[Letter] ")) break;
+                    string body = t.Text.Substring(9).Replace("\r", "").Replace("\n", " ").Trim();
+                    if (body.Length > 500) body = body.Substring(0, 500) + "…";
+                    int days = (int)(now - t.Day);
+                    string when = days <= 0 ? "today" : days + " day(s) ago";
+                    lines.Insert(0, (t.Role == "player" ? "- They wrote to you (" : "- You wrote to them (") + when + "): \"" + body + "\"");
+                }
+                return lines.Count == 0 ? "" : TRecentLetters.Format("letters", string.Join("\n", lines)) + "\n";
+            }
+            catch { return ""; }
+        }
+
+        private static readonly Tpl TClaimsUnverified = new Tpl("context/player_claims_unverified.txt",
+            "What they have told you about themselves, on their word alone (you have no way to check it yet): {claims}");
+        private static readonly Tpl TClaimsVsTruth = new Tpl("context/player_claims_vs_truth.txt",
+            "Before you knew who they really were, they gave their name as {name} and told you: {claims} Set that against what you now know to be true (above). Where it does not match, they lied to you then, and you have not forgotten it.");
+
         public static string DescribePlayer(Speaker s)
         {
             var p = Hero.MainHero;
@@ -245,6 +286,7 @@ namespace AILegacy.Prompt
                                   "Do not call them by any name; address them as a stranger would (traveller, friend, stranger, my lord...). You may ask who they are.");
                 else
                     sb.AppendLine($"They introduced themselves to you as \"{mem.KnownPlayerName}\". That is all you know about their identity; you cannot tell whether it is their real name.");
+                if (!string.IsNullOrWhiteSpace(mem.KnownPlayerClaims)) sb.AppendLine(TClaimsUnverified.Format("claims", mem.KnownPlayerClaims));
                 sb.AppendLine("What you can see: " + DescribeAppearance(p));
             }
             else
@@ -264,6 +306,10 @@ namespace AILegacy.Prompt
                 if (pBanned.Length > 0) sb.AppendLine("Their clan is " + pBanned);
                 var fiefs = clan != null ? string.Join(", ", clan.Settlements.Where(x => x.IsTown || x.IsCastle).Take(6).Select(x => x.Name.ToString())) : "";
                 if (fiefs.Length > 0) sb.AppendLine("Holds: " + fiefs);
+                // What they said they were, back when this character could not know better, against what is true
+                if (!string.IsNullOrWhiteSpace(mem.KnownPlayerClaims))
+                    sb.AppendLine(TClaimsVsTruth.Format("claims", mem.KnownPlayerClaims,
+                        "name", string.IsNullOrWhiteSpace(mem.KnownPlayerName) ? "(no name given)" : mem.KnownPlayerName));
             }
 
             if (s.IsHero)
@@ -271,6 +317,8 @@ namespace AILegacy.Prompt
                 var npc = s.Hero;
                 int rel = (int)npc.GetRelationWithPlayer();
                 sb.AppendLine($"Your opinion of them (relation {rel} on a -100..100 scale): {DescribeRelation(rel)}");
+                var mail = RecentLetters(mem);
+                if (mail.Length > 0) sb.Append(mail);
 
                 if (npc.Spouse == p) sb.AppendLine("They are your spouse.");
                 else if (npc.Father == p || npc.Mother == p) sb.AppendLine("They are your parent.");

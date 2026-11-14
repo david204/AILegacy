@@ -63,7 +63,7 @@ namespace AILegacy.World
             var list = StorySecrets.For(s);
             if (Settings.S.Get.PresetSecrets)
                 list.AddRange(s.Memory.KnownSecretIds.Select(id => Secrets.Entries.FirstOrDefault(e => e.Id == id)).Where(e => e != null)
-                    .Select(e => $"{e.Text.Replace("{character}", s.Name)} (secret, trust needed to share it: {e.Access})"));
+                    .Select(e => $"{e.Text.Replace("{character}", s.Name)} (secret, {Dialogue.Bonds.ShareRule(s, e.Access)})"));
             return list;
         }
 

@@ -26,10 +26,13 @@ namespace AILegacy.Dialogue
         public static ChatSession Active { get; private set; }
 
         private readonly Speaker _s;
+        private static NewsItem _lastRumor;
+        private static string _lastRumorWho;
         private HeroMemory Mem => _s.Memory;
         private int _relationChangedThisTalk;
         /// <summary>Total relation movement this talk, ups and downs added together. The cap applies to this, not to the net change.</summary>
         private int _relationMovedThisTalk;
+        private double _gainCarry;
         /// <summary>Trust lost this talk. If any, the end-of-talk familiarity bonus is skipped.</summary>
         private int _trustLostThisTalk;
         private bool _waiting;
@@ -533,6 +536,19 @@ namespace AILegacy.Dialogue
                 Mem.KnownPlayerName = reply.PlayerIntroducedAs;
                 Log.Info($"{_s.Name} ahora te conoce como \"{reply.PlayerIntroducedAs}\"");
             }
+            // What you say you are, kept apart from what you really are (only while they can't know better)
+            if (reply.PlayerClaims.Length > 8 && reply.PlayerClaims.Length <= 220 && ContextBuilder.WhyKnowsPlayer(_s) == null)
+            {
+                string had = Mem.KnownPlayerClaims ?? "";
+                if (had.IndexOf(reply.PlayerClaims, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    string all = had.Length == 0 ? reply.PlayerClaims : had + " " + reply.PlayerClaims;
+                    Mem.KnownPlayerClaims = all.Length > 400 ? all.Substring(all.Length - 400) : all;
+                    Log.Info($"{_s.Name} anota lo que dices ser: {reply.PlayerClaims}");
+                }
+            }
+            // Named people standing close hear the answer too
+            try { if (TaleWorlds.MountAndBlade.Mission.Current != null) Ambient.Overhear(new Speaker[0], reply.Reply, _s); } catch { }
 
             var actx = new NpcActions.ActionContext();
             foreach (var msg in NpcActions.Execute(_s, reply.Actions, actx))
@@ -597,6 +613,13 @@ namespace AILegacy.Dialogue
             if (_s.IsHero)
             {
                 int delta = Math.Max(-cfg.MaxRelationChangePerReply, Math.Min(cfg.MaxRelationChangePerReply, reply.RelationChange + actx.RelationDelta));
+                // Liking is harder to win than to lose: gains are scaled down, losses count in full
+                if (delta > 0 && cfg.RelationGainPercent < 100)
+                {
+                    _gainCarry += delta * Math.Max(10, cfg.RelationGainPercent) / 100.0;
+                    delta = (int)Math.Floor(_gainCarry + 1e-9);
+                    _gainCarry -= delta;
+                }
                 int budget = cfg.MaxRelationChangePerConversation - _relationMovedThisTalk;
                 if (Math.Abs(delta) > budget) delta = Math.Sign(delta) * Math.Max(0, budget);
                 if (delta != 0)
@@ -614,19 +637,39 @@ namespace AILegacy.Dialogue
 
             if (cfg.EnableRumors && !string.IsNullOrWhiteSpace(reply.RumorText) && reply.RumorText.Length > 10)
             {
-                NewsStore.Add(new NewsItem
+                int imp = Math.Max(1, Math.Min(3, reply.RumorImportance));
+                string text = reply.RumorText.Length > 300 ? reply.RumorText.Substring(0, 300) : reply.RumorText;
+                // Models put a rumour in almost every reply of the same scene. One talk gives one piece of news:
+                // later rumours from the same character within a day rewrite it, they don't add another.
+                double today = CampaignTime.Now.ToDays;
+                bool grew = true;
+                if (_lastRumor != null && _lastRumorWho == _s.Key && today - _lastRumor.Day < 1.0 && NewsStore.Contains(_lastRumor))
                 {
-                    Type = "rumor",
-                    Importance = Math.Max(1, Math.Min(3, reply.RumorImportance)),
-                    Text = reply.RumorText.Length > 300 ? reply.RumorText.Substring(0, 300) : reply.RumorText,
-                    TitleEs = reply.RumorTitleLocal,
-                    TextEs = reply.RumorTextLocal,
-                    SettlementId = _s.Settlement?.StringId,
-                    Kingdoms = _s.Faction != null ? new List<string> { _s.Faction.StringId } : new List<string>(),
-                    Heroes = _s.IsHero ? new List<string> { _s.Hero.StringId, Hero.MainHero.StringId } : new List<string> { Hero.MainHero.StringId },
-                });
-                // An important rumour starts its own world incident
-                if (reply.RumorImportance >= 2 && _s.IsHero)
+                    grew = imp > _lastRumor.Importance;
+                    _lastRumor.Text = text;
+                    _lastRumor.TitleEs = reply.RumorTitleLocal;
+                    _lastRumor.TextEs = reply.RumorTextLocal;
+                    _lastRumor.Importance = Math.Max(_lastRumor.Importance, imp);
+                    Log.Info($"Rumor de la charla con {_s.Name}, actualizado: {text}");
+                }
+                else
+                {
+                    _lastRumor = new NewsItem
+                    {
+                        Type = "rumor",
+                        Importance = imp,
+                        Text = text,
+                        TitleEs = reply.RumorTitleLocal,
+                        TextEs = reply.RumorTextLocal,
+                        SettlementId = _s.Settlement?.StringId,
+                        Kingdoms = _s.Faction != null ? new List<string> { _s.Faction.StringId } : new List<string>(),
+                        Heroes = _s.IsHero ? new List<string> { _s.Hero.StringId, Hero.MainHero.StringId } : new List<string> { Hero.MainHero.StringId },
+                    };
+                    _lastRumorWho = _s.Key;
+                    NewsStore.Add(_lastRumor);
+                }
+                // An important rumour starts its own world incident (once, unless it becomes more important)
+                if (grew && reply.RumorImportance >= 2 && _s.IsHero)
                     WorldSim.OnIncident($"A rumour has started to spread, first told by {_s.Name}: {reply.RumorText}", _s.Settlement, false);
             }
             return shown;

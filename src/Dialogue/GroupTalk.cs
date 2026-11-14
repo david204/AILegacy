@@ -210,7 +210,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             string names = string.Join(", ", Circle.Select(x => x.Who.Name));
             string last = Transcript.Count == 0 ? "" : L.T("AIL_cbe9f6a8", "\n\nLo último:\n") + string.Join("\n", Transcript.Skip(Math.Max(0, Transcript.Count - 4)));
             var looked = _addressed != null ? Circle.FirstOrDefault(x => x.Agent == _addressed) : null;
-            string title = looked != null ? L.F("AIL_6e7730a9", $"Hablas a {looked.Who.Name}") : L.T("AIL_6d3c2db8", "Hablas al grupo");
+            string title = L.T("AIL_6d3c2db8", "Hablas al grupo");
             string how = L.T("AIL_dd02342f", "\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)");
             // The world doesn't pause while you type, it goes into slow motion
             bool slow = cfg.GroupSlowMotion;
@@ -246,11 +246,13 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     if (Circle.Count >= cfg.GroupMaxParticipants) break;
                     string dsc = Ambient.Describe(a, out var spx);
                     Circle.Add(new Member { Agent = a, Who = spx, Desc = dsc });
+                    SceneActions.Summon(a);
+                    Say(L.F("AIL_2215a755", $"{spx.Name} se une a la conversación."), Colors.Gray);
                 }
             }
             string manner = whisper ? $"{{player}} WHISPERS this to {addressed.Who.Name} alone. The others see the two of them whispering but do NOT hear the words: only {addressed.Who.Name} can answer what was said (in a low voice); another person may at most remark on the whispering itself."
                           : shout ? "{player} SHOUTS this so that everyone around hears it; people react to being shouted at as their station and temper dictate."
-                          : addressed != null ? $"{{player}} is looking at {addressed.Who.Name} while speaking: it is {addressed.Who.Name} who is being addressed and who answers first; others join in only if they have something to add."
+                          : addressed != null ? $"{{player}} happens to be looking at {addressed.Who.Name} while speaking, but everyone in the group hears it. If the words are plainly meant for {addressed.Who.Name} (their name, a matter that is theirs alone), {addressed.Who.Name} answers and the others join in only if they have something to add. If the words are meant for everyone (a greeting to all, a plural address such as 'my lords' or 'friends', a question put to the group), {addressed.Who.Name} answers first and then each other person listed by name also answers in their own line, briefly; nobody named is left out of a greeting made to all."
                           : "{player} speaks to the group at large.";
 
             // People nearby but outside the group heard it, and can butt in if it concerns them
@@ -345,8 +347,9 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             {
                 Transcript.Add($"{playerName}: {text}");
                 Bubbles.Show(Agent.Main, text, Math.Max(2.5f, Math.Min(7f, 1.5f + text.Length * 0.05f)));
-                if (whisper) Ambient.Overhear(addressed.Who, "");      // nobody else hears a whisper
-                else Ambient.Overhear(Circle.Select(x => x.Who).ToList(), text);   // once per line, group members don't count as overhearing
+                // A whisper carries a quarter as far and a shout twice as far. Group members don't count as overhearing
+                if (whisper) Ambient.Overhear(new List<Speaker> { addressed.Who }, text, null, 0.25f);
+                else Ambient.Overhear(Circle.Select(x => x.Who).ToList(), text, null, shout ? 2f : 1f);
             }
             _waiting = true;
             var circle = Circle.ToList();
@@ -364,7 +367,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a < 0 || b <= a) return;
                         var j = JObject.Parse(res.Text.Substring(a, b - a + 1));
-                        var lines = new List<(Agent who, Agent to, string text, string mood)>();
+                        var lines = new List<(Agent who, Agent to, string text, string mood, string pre, bool deferred)>();
+                        var walkingOver = new HashSet<Agent>();
                         var spoke = new List<Member>();
                         var heard = new HashSet<string>();
                         if (j["lines"] is JArray arr)
@@ -376,6 +380,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 int.TryParse(new string(whoRaw.Where(char.IsDigit).ToArray()), out idx);
                                 if (said.Length < 2 || idx < 1) continue;
                                 Member member;
+                                string pre = null;
                                 if (whoRaw.StartsWith("B", StringComparison.OrdinalIgnoreCase))
                                 {
                                     // A bystander butts in: walks over and joins the group
@@ -384,8 +389,16 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                     Join(ba);
                                     member = Circle.FirstOrDefault(x => x.Agent == ba);
                                     if (member == null) continue;
-                                    SceneActions.Summon(ba);
-                                    Say(L.F("AIL_2215a755", $"{member.Who.Name} se mete en la conversación."), Colors.Gray);
+                                    // Far away: they walk over first and their line waits for them. Close by: they just join
+                                    string joined = L.F("AIL_2215a755", $"{member.Who.Name} se une a la conversación.");
+                                    if (Agent.Main != null && ba.Position.Distance(Agent.Main.Position) > 4.5f && ba.IsAIControlled)
+                                    {
+                                        SceneActions.Summon(ba);
+                                        Say(L.F("AIL_4eaee384", $"{member.Who.Name} se acerca."), Colors.Gray);
+                                        walkingOver.Add(ba);
+                                        pre = joined;
+                                    }
+                                    else Say(joined, Colors.Gray);
                                 }
                                 else
                                 {
@@ -394,9 +407,11 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 }
                                 if (member.Agent == null || !member.Agent.IsActive()) continue;
                                 if (said.Length > cfg.GroupMaxChars + 80) said = said.Substring(0, cfg.GroupMaxChars + 80);
-                                lines.Add((member.Agent, Agent.Main, said, (string)l["mood"]));
+                                bool later = walkingOver.Contains(member.Agent);
+                                lines.Add((member.Agent, Agent.Main, said, (string)l["mood"], pre, later));
                                 Transcript.Add($"{member.Who.Name}: {said}");
-                                Say($"{member.Who.Name}: {said}", Colors.Yellow);
+                                if (!later) Say($"{member.Who.Name}: {said}", Colors.Yellow);
+                                try { Ambient.Overhear(circle.Select(x => x.Who).ToList(), said, member.Who); } catch { }
                                 if (!spoke.Contains(member)) spoke.Add(member);
                                 // Going off to fetch someone?
                                 string goes = ((string)l["goes_to"] ?? "").Trim();

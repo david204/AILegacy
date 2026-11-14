@@ -334,7 +334,7 @@ namespace AILegacy.Memory
                 T(m.Summary); A(m.Summaries?.Count ?? 0); A(m.Notes.Count); if (m.Notes.Count > 0) T(m.Notes[m.Notes.Count - 1]);
                 A(m.CustomInstructions.Count); if (m.CustomInstructions.Count > 0) T(m.CustomInstructions[m.CustomInstructions.Count - 1]);
                 A(m.Trust); A(m.TrustSet ? 1 : 0); A(m.Romance); A(m.Tension); A(m.LiesSuspected); A(m.ConversationCount); A(m.RelationChangedTotal);
-                A((long)(m.LastConversationDay * 100)); A((long)(m.MoodDay * 100)); T(m.Mood); T(m.MoodReason); T(m.KnownPlayerName); T(m.HeroName);
+                A((long)(m.LastConversationDay * 100)); A((long)(m.MoodDay * 100)); T(m.Mood); T(m.MoodReason); T(m.KnownPlayerName); T(m.KnownPlayerClaims); T(m.HeroName);
                 A(m.Pages.Count); if (m.Pages.Count > 0) T(m.Pages[m.Pages.Count - 1].Text);
                 A(m.Archive.Count); A(m.ArchivedTotal); A(m.Heard.Count);
                 // Capped lists can change without changing size (oldest out, new one in), so hash the last item too

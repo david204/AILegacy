@@ -26,7 +26,15 @@ namespace AILegacy.Dialogue
     /// </summary>
     internal static class Ambient
     {
-        private class Line { public Agent Who; public Agent To; public string Text; public bool Quiet; public string Mood; }
+        private class Line
+        {
+            public Agent Who; public Agent To; public string Text; public bool Quiet; public string Mood;
+            /// <summary>Group talk: the speaker is still walking over. The line waits for them and is logged when spoken.</summary>
+            public bool Deferred;
+            /// <summary>Notice shown just before the line ("X joins the conversation").</summary>
+            public string Pre;
+        }
+        private static float _hold;
         private static Agent _speaking;
 
         private static readonly Random Rng = new Random();
@@ -598,13 +606,34 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
         }
 
         /// <summary>Queues lines to show one at a time over heads. Used by group talk.</summary>
-        internal static void Enqueue(Mission m, List<(Agent who, Agent to, string text, string mood)> lines)
+        internal static void Enqueue(Mission m, List<(Agent who, Agent to, string text, string mood, string pre, bool deferred)> lines)
         {
+            FlushDeferred();
             Play.Clear();
+            _hold = 0f;
             _chain = null;      // if you step in, their private talk ends
             _lineLeft = 0f;
             _mission = m;
-            foreach (var l in lines) Play.Enqueue(new Line { Who = l.who, To = l.to, Text = l.text, Mood = l.mood, Quiet = true });   // group talk already writes these to the log
+            // group talk already writes these to the log, except the deferred ones
+            foreach (var l in lines) Play.Enqueue(new Line { Who = l.who, To = l.to, Text = l.text, Mood = l.mood, Quiet = true, Pre = l.pre, Deferred = l.deferred });
+        }
+
+        private static readonly Color GroupLineColor = Colors.Yellow, NoticeColor = Colors.Gray;
+
+        private static void Announce(Line l)
+        {
+            try
+            {
+                if (l.Pre != null) InformationManager.DisplayMessage(new InformationMessage(l.Pre, NoticeColor));
+                if (l.Deferred && l.Who != null) InformationManager.DisplayMessage(new InformationMessage($"{l.Who.Name}: {l.Text}", GroupLineColor));
+            }
+            catch { }
+        }
+
+        /// <summary>Lines dropped before being spoken still reach the log, so nothing a joiner said is lost.</summary>
+        private static void FlushDeferred()
+        {
+            foreach (var l in Play) if (l.Deferred || l.Pre != null) Announce(l);
         }
 
         private static readonly HashSet<string> OverheardBy = new HashSet<string>();
@@ -618,37 +647,97 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             if (speaker != null) Overhear(new[] { speaker }, playerSaid);
         }
 
-        /// <summary>Same for a line said to a group: one entry per listener, and never for the people in the group.</summary>
-        public static void Overhear(IList<Speaker> addressed, string playerSaid)
+        /// <summary>Within this distance every word is heard. Further away, words and letters are lost.</summary>
+        private const float ClearHearing = 4.5f;
+        private static readonly Dictionary<string, int> HeardCount = new Dictionary<string, int>();
+
+        /// <summary>What reaches a listener at that distance: clean up close, with gaps further off.</summary>
+        internal static string Degrade(string said, float distance, float radius)
+        {
+            if (distance <= ClearHearing || radius <= ClearHearing) return said;
+            double loss = Math.Min(1.0, (distance - ClearHearing) / (radius - ClearHearing));
+            var rng = new Random(said.GetHashCode() ^ (int)(distance * 10));
+            var words = said.Split(' ');
+            var sb = new StringBuilder();
+            bool gap = false;
+            foreach (var w in words)
+            {
+                if (w.Length == 0) continue;
+                if (rng.NextDouble() < loss * 0.6)
+                {
+                    if (!gap) { sb.Append("… "); gap = true; }
+                    continue;
+                }
+                gap = false;
+                foreach (char c in w) sb.Append(char.IsLetter(c) && rng.NextDouble() < loss * 0.3 ? '·' : c);
+                sb.Append(' ');
+            }
+            return sb.ToString().Trim();
+        }
+
+        /// <summary>
+        /// A line spoken in a scene reaches the named characters standing around. speaker null = the player said it to
+        /// 'addressed'; otherwise that character said it (to the player, or within the group in 'addressed').
+        /// The people in 'addressed' and the speaker heard it directly, so they are skipped.
+        /// reach scales the hearing distance: 0.25 for a whisper, 2 for a shout.
+        /// </summary>
+        public static void Overhear(IList<Speaker> addressed, string said, Speaker speaker = null, float reach = 1f)
         {
             try
             {
                 var cfg = S.Get;
-                if (!cfg.EnableOverhearing || Mission.Current == null || Agent.Main == null || string.IsNullOrWhiteSpace(playerSaid) || playerSaid.Length < 15) return;
+                if (!cfg.EnableOverhearing || Mission.Current == null || Agent.Main == null || string.IsNullOrWhiteSpace(said) || said.Length < 15) return;
                 var to = (addressed ?? new Speaker[0]).Where(x => x != null).ToList();
-                if (to.Count == 0) return;
+                if (to.Count == 0 && speaker == null) return;
                 var inside = new HashSet<Hero>(to.Where(x => x.IsHero && x.Hero != null).Select(x => x.Hero));
-                string key = string.Join(",", to.Select(x => x.Key));
-                string names = to.Count == 1 ? to[0].Name : to.Count == 2 ? $"{to[0].Name} and {to[1].Name}" : $"the group ({string.Join(", ", to.Select(x => x.Name))})";
-                string said = playerSaid.Length > 220 ? playerSaid.Substring(0, 220) + "…" : playerSaid;
+                if (speaker != null && speaker.IsHero && speaker.Hero != null) inside.Add(speaker.Hero);
+                string key = (speaker?.Key ?? "player") + ">" + string.Join(",", to.Select(x => x.Key));
+                string names = to.Count == 0 ? "the one they were talking to" : to.Count == 1 ? to[0].Name : to.Count == 2 ? $"{to[0].Name} and {to[1].Name}" : $"the group ({string.Join(", ", to.Select(x => x.Name))})";
+                if (said.Length > 220) said = said.Substring(0, 220) + "…";
                 double now = CampaignTime.Now.ToDays;
+                float radius = Math.Max(1f, cfg.OverhearRadius * reach);
+                // where the words come from
+                var origin = Agent.Main.Position;
+                if (speaker != null)
+                {
+                    var sa = Mission.Current.Agents.FirstOrDefault(x => x != null && x.IsActive() && x.Character is CharacterObject sc && speaker.IsHero && sc.IsHero && sc.HeroObject == speaker.Hero);
+                    if (sa != null) origin = sa.Position;
+                }
                 foreach (var a in Mission.Current.Agents)
                 {
                     if (a == null || !a.IsHuman || !a.IsActive() || a == Agent.Main) continue;
                     var c = a.Character as CharacterObject;
                     var h = c != null && c.IsHero ? c.HeroObject : null;
                     if (h == null || h == Hero.MainHero || inside.Contains(h)) continue;
-                    if (a.Position.Distance(Agent.Main.Position) > cfg.OverhearRadius) continue;
-                    if (!OverheardBy.Add(key + "|" + h.StringId + "|" + (int)(now * 4))) continue;      // once per listener per quarter day
+                    float dist = a.Position.Distance(origin);
+                    if (dist > radius) continue;
+                    string slot = key + "|" + h.StringId + "|" + (int)(now * 4);
+                    if (speaker == null)
+                    {
+                        if (!OverheardBy.Add(slot)) continue;                  // the player: once per listener per quarter day
+                    }
+                    else
+                    {
+                        // other speakers: a few lines per listener per quarter day, never the same line twice
+                        if (!OverheardBy.Add(slot + "|" + said.GetHashCode())) continue;
+                        HeardCount.TryGetValue(slot, out int n);
+                        if (n >= 3) continue;
+                        HeardCount[slot] = n + 1;
+                    }
+                    string caught = Degrade(said, dist, radius);
+                    if (caught.Replace("…", "").Replace("·", "").Trim().Length < 8) continue;      // too far to make anything out
+                    bool partial = caught != said;
                     var mem = MemoryStore.Get(h.StringId, h.Name.ToString());
                     InfoExchange.AddHeard(mem, new HeardItem
                     {
-                        FromName = "your own ears", Secrecy = "private", Day = now,
-                        Text = $"Standing nearby, you overheard them say to {names}: «{said}»",
+                        FromName = InfoExchange.OwnEars, Secrecy = "private", Day = now,
+                        Text = (partial ? "From a distance, you caught only part of what " : "Standing nearby, you overheard ")
+                               + (speaker == null ? (partial ? "they said to " : "them say to ") : (partial ? speaker.Name + " said to " : speaker.Name + " say to "))
+                               + names + $": «{caught}»" + (partial ? " (the gaps are what you could not hear; do not fill them in as if you knew)" : ""),
                     });
-                    Log.Info($"[escena] {h.Name} oye lo que le dices a {names}");
+                    Log.Info($"[escena] {h.Name} oye {(partial ? "a medias " : "")}lo que {(speaker == null ? "dices" : speaker.Name + " dice")} a {names} ({dist:0.0} m)");
                 }
-                if (OverheardBy.Count > 500) OverheardBy.Clear();
+                if (OverheardBy.Count > 800) { OverheardBy.Clear(); HeardCount.Clear(); }
             }
             catch (Exception ex) { Log.Error("Oír de pasada", ex); }
         }
@@ -708,7 +797,13 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                         }
                         if (Play.Count > 0 && !talking)
                         {
+                            // Someone joining speaks once they have walked up, not from across the room (12 s at most)
+                            var next = Play.Peek();
+                            if (next.Deferred && next.Who != null && next.Who.IsActive() && Agent.Main != null
+                                && next.Who.Position.Distance(Agent.Main.Position) > 4.5f && (_hold += dt) < 12f) return;
+                            _hold = 0f;
                             var l = Play.Dequeue();
+                            Announce(l);
                             if (l.Who != null && l.Who.IsActive())
                             {
                                 float secs = Math.Max(2.5f, Math.Min(9f, 1.5f + l.Text.Length * 0.06f));
@@ -720,7 +815,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                                 _lineLeft = secs + 0.4f;
                             }
                         }
-                        else if (talking) Play.Clear();
+                        else if (talking) { FlushDeferred(); Play.Clear(); }
                     }
                     return;
                 }

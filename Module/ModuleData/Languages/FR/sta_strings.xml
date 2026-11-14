@@ -1318,6 +1318,14 @@
     <string id="AIL_e7b1c4d2" text="Modèle que ce fournisseur utilise pour le rappel par le sens (vecteurs). Vide : celui habituel du service s'il en a un (embedding-3 avec GLM), ou celui de 4. Mémoire. Tapez - pour ne jamais demander de vecteurs à ce fournisseur." />
     <string id="AIL_e7b1c4d5" text="Fournisseur 5" />
     <string id="AIL_e7b1c4d6" text="Fournisseur 6" />
+    <string id="AIL_e7b1c4d7" text="{=!}Alors ? Vous vous rendez ou non ?" />
+    <string id="AIL_e7b1c4d8" text="{0} vient vous voir." />
+    <string id="AIL_e7b1c4da" text="Confiance requise pour parler de sujets sensibles" />
+    <string id="AIL_e7b1c4db" text="En dessous, ils gardent pour eux plans, mouvements de troupes et intrigues. Les vrais secrets demandent la valeur plus haute ci-dessus." />
+    <string id="AIL_e7b1c4dc" text="Relation gagnée (% de ce que donne l’IA)" />
+    <string id="AIL_e7b1c4dd" text="L’estime est plus dure à gagner qu’à perdre : les gains sont multipliés par cette valeur, les pertes comptent toujours en entier. 100 = pareil dans les deux sens." />
+    <string id="AIL_e7b1c4de" text="Jours de mémoire d’une phrase entendue au passage (0 = toujours)" />
+    <string id="AIL_e7b1c4df" text="Ce qu’un personnage a saisi au passage s’efface après ce nombre de jours. Jusqu’à 4,5 mètres il entend chaque mot ; plus loin, seulement une partie." />
     <string id="AIL_e5c9b3a1" text="Nouvelles" />
     <string id="AIL_e5c9b3a2" text="Souvenirs" />
     <string id="AIL_e5c9b3a3" text="Confirmer" />
