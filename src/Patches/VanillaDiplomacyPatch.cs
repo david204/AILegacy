@@ -49,6 +49,50 @@ namespace AILegacy.Patches
         }
     }
 
+    /// <summary>
+    /// With AI Legacy diplomacy on, wars and peace between two AI kingdoms are decided by their rulers' declarations.
+    /// This stops the game's own decisions, call-to-war agreements and other mods from making or ending such wars on
+    /// their own. Anything that involves the player's kingdom, and wars that start from what happens in the world
+    /// (an attack, a rebellion, a new kingdom, a claim to a throne, a quest), go through untouched.
+    /// </summary>
+    [HarmonyPatch]
+    internal static class ForeignWarPeacePatch
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            var w = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.DeclareWarAction), "ApplyInternal");
+            var p = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.MakePeaceAction), "ApplyInternal");
+            if (w != null) yield return w; else Log.Warn("Diplomacia: no encuentro DeclareWarAction.ApplyInternal en esta versión del juego");
+            if (p != null) yield return p; else Log.Warn("Diplomacia: no encuentro MakePeaceAction.ApplyInternal en esta versión del juego");
+        }
+
+        private static bool Prepare() =>
+            AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.DeclareWarAction), "ApplyInternal") != null
+            || AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.MakePeaceAction), "ApplyInternal") != null;
+
+        private static bool Prefix(IFaction faction1, IFaction faction2, object[] __args, MethodBase __originalMethod)
+        {
+            try
+            {
+                if (!Diplomacy.Enabled || Diplomacy.IsOurs || !AILegacy.Settings.S.Get.BlockForeignWarPeace) return true;
+                if (!(faction1 is Kingdom a) || !(faction2 is Kingdom b)) return true;
+                var mine = Hero.MainHero?.MapFaction;
+                if (a == mine || b == mine) return true;
+                if (__originalMethod.DeclaringType == typeof(TaleWorlds.CampaignSystem.Actions.DeclareWarAction))
+                {
+                    var detail = __args.Length > 2 && __args[2] is TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail d ? d : TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail.Default;
+                    bool political = detail == TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail.Default || detail == TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail.CausedByKingdomDecision
+                                     || detail == TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail.CausedByCallToWarAgreement;
+                    if (!political) return true;
+                    Log.Info($"[diplomacia] guerra de {a.Name} contra {b.Name} ({detail}) parada: la deciden sus soberanos");
+                }
+                else Log.Info($"[diplomacia] paz entre {a.Name} y {b.Name} parada: la deciden sus soberanos");
+                return false;
+            }
+            catch (Exception ex) { Log.Error("Bloqueo de guerra y paz ajenas", ex); return true; }
+        }
+    }
+
     /// <summary>The game won't marry off someone who is in a romance with the player.</summary>
     [HarmonyPatch(typeof(DefaultMarriageModel), nameof(DefaultMarriageModel.IsCoupleSuitableForMarriage))]
     internal static class CourtshipGuardPatch
@@ -71,12 +115,12 @@ namespace AILegacy.Patches
     [HarmonyPatch(typeof(DefaultTradeItemPriceFactorModel), nameof(DefaultTradeItemPriceFactorModel.GetPrice))]
     internal static class MarketPricePatch
     {
-        private static void Postfix(TaleWorlds.CampaignSystem.Party.PartyBase merchant, ref int __result)
+        private static void Postfix(TaleWorlds.Core.EquipmentElement itemRosterElement, TaleWorlds.CampaignSystem.Party.PartyBase merchant, ref int __result)
         {
             try
             {
                 if (WorldSim.State.Effects.Count == 0 || merchant?.Settlement == null) return;
-                float f = WorldSim.PriceFactor(merchant.Settlement);
+                float f = WorldSim.PriceFactor(merchant.Settlement, itemRosterElement.Item);
                 if (Math.Abs(f) >= 0.005f) __result = Math.Max(1, (int)Math.Round(__result * (1f + f)));
             }
             catch (Exception ex) { Log.Error("Precios por sucesos", ex); }

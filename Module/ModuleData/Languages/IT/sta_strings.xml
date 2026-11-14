@@ -1375,6 +1375,9 @@
     <string id="AIL_e7b1c50f" text="Probabilità giornaliera che inizi un corteggiamento (%)" />
     <string id="AIL_e7b1c510" text="Corteggiamenti contemporanei, al massimo" />
     <string id="AIL_e7b1c511" text="Giorni di corteggiamento prima di potersi sposare" />
+    <string id="AIL_e7b1c512" text="Solo i sovrani iniziano e chiudono le guerre tra regni IA" />
+    <string id="AIL_e7b1c513" text="Impedisce ai voti del gioco, agli accordi di chiamata alle armi e ad altre mod di dichiarare guerra o fare pace tra due regni IA: lo fanno solo le dichiarazioni dei loro sovrani. Le guerre nate da ciò che accade nel mondo (un attacco, una ribellione, un nuovo regno) e tutto ciò che riguarda il tuo regno non vengono toccati." />
+    <string id="AIL_e7b1c514" text="{0} lo subisce di colpo: {1}" />
     <string id="AIL_e5c9b3a1" text="Notizie" />
     <string id="AIL_e5c9b3a2" text="Memorie" />
     <string id="AIL_e5c9b3a3" text="Conferma" />

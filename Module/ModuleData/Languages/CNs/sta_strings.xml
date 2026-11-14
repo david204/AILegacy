@@ -1375,6 +1375,9 @@
     <string id="AIL_e7b1c50f" text="每天开始一段新追求的几率（%）" />
     <string id="AIL_e7b1c510" text="同时进行的追求上限" />
     <string id="AIL_e7b1c511" text="成婚前需要追求的天数" />
+    <string id="AIL_e7b1c512" text="AI 王国之间的战争只由统治者开启和结束" />
+    <string id="AIL_e7b1c513" text="阻止游戏自身的投票、参战协议和其他模组在两个 AI 王国之间宣战或议和：只有其统治者的声明才能做到。由世界事件引发的战争（袭击、叛乱、新王国）以及任何涉及你自己王国的事务不受影响。" />
+    <string id="AIL_e7b1c514" text="{0}立刻受到冲击：{1}" />
     <string id="AIL_e5c9b3a1" text="消息" />
     <string id="AIL_e5c9b3a2" text="回忆" />
     <string id="AIL_e5c9b3a3" text="确认" />

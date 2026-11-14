@@ -39,6 +39,8 @@ namespace AILegacy.World
         [JsonProperty("income")] public float IncomePercent;
         // Market prices at that place go up or down by this percent while it lasts (shortage, fear, plenty)
         [JsonProperty("prices")] public float PricePercent;
+        /// <summary>Which goods the price change touches: food, goods, weapons, armor, horses. Empty = everything.</summary>
+        [JsonProperty("price_of", NullValueHandling = NullValueHandling.Ignore)] public string PriceCategory;
     }
 
     public class WorldEvent
@@ -55,6 +57,8 @@ namespace AILegacy.World
         /// <summary>Daily chance (0-100) that each kingdom's ruler speaks out about this.</summary>
         [JsonProperty("engagement")] public Dictionary<string, int> Engagement = new Dictionary<string, int>();
         [JsonProperty("source")] public string Source = "world";      // world | statement | player
+        /// <summary>Earlier stages of the same story, oldest first: "day|what was told then" in English.</summary>
+        [JsonProperty("history", NullValueHandling = NullValueHandling.Ignore)] public List<string> History;
     }
 
     /// <summary>A ruler whose turn it is to speak, about an event or because a proposal is waiting for them.</summary>
@@ -415,7 +419,10 @@ Rules:
 - Use readable names in title and text, never ids. Never put a double-quote character inside a text value; use «» if you must quote.
 - importance: 1 = one town or village talks about it, 2 = nobles of the realm, 3 = the whole realm, 4 = the whole world (rare).
 - kingdom_engagement: for events that call for a response from a crown, the daily chance (0-100) that the ruler of that kingdom speaks out about it. Only kingdoms listed in kingdoms_involved. Leave empty for events nobody needs to answer.
-- economic_effects (optional, only when the event really touches daily life in a real town, castle or village): small daily changes for a number of days. Limits per day: prosperity ±{max_prosperity}, food ±{max_food}, security ±{max_security}, loyalty ±{max_loyalty}; duration up to {max_days} days. For a town or village you may also set price_percent (±{max_price}): how much dearer or cheaper everything in its market is meanwhile (a shortage, a panic, a glut).
+- continues (optional): the stories below are still open. When the state of the world has plainly moved one of them forward (it worsened, it was settled, someone answered it), write its next chapter and set continues to its id. Otherwise leave it empty and write something new. At most one continuation per answer.
+Open stories:
+{open}
+- economic_effects (optional, only when the event really touches daily life in a real town, castle or village): small daily changes for a number of days. Limits per day: prosperity ±{max_prosperity}, food ±{max_food}, security ±{max_security}, loyalty ±{max_loyalty}; duration up to {max_days} days. For a town or village you may also set price_percent (±{max_price}): how much dearer or cheaper its market is meanwhile (a shortage, a panic, a glut), and price_of to say which goods: food, goods, weapons, armor, horses, or empty for everything. A sudden blow that lands at once (a sack, a fire, a flood, a plague arriving, a great fair) goes in the _now fields, each at most {max_now} times the daily limit; most events have none. To touch every town of a realm use kingdom (its id) and leave settlement empty: only for things that truly reach the whole realm, and with small numbers.
 - clan_effects (optional): when the event is about the name of ONE specific clan being stained or raised (a scandal, an outrage committed by one of its members, a feat that brings it honour), how its income changes while people remember: income_percent from -{max_clan}% to +{max_clan}%, for up to {max_days} days, with the reason in a few words. Merchants and allies avoid a disgraced house; they court an honoured one.
 - secret (optional, for about one event in three): the hidden truth behind this event that only a few people know and that the public version leaves out (who really paid for it, who is lying, what was covered up). ""known_by"": 1 to 3 REAL named nobles from the data who would know. ""access"": low | medium | high (how hard it is to get it out of them).
 - clan_rebellion (rare, optional): the name of ONE vassal clan that rises against its own crown right now. Only when the data shows a real break between that clan and its ruler; never the ruling clan and never a clan of ""the realm of ..."". The world will carry it out.
@@ -423,9 +430,9 @@ Rules:
 - title: 3-8 words in {language}. text: {min_len}-{max_len} characters in {language}, written like a chronicle. summary: the same in ONE English sentence.
 
 Answer ONLY with JSON:
-{ ""events"": [ { ""type"": ""political|military|economic|social|mysterious"", ""title"": ""..."", ""text"": ""..."", ""summary"": ""..."", ""importance"": 1-4,
+{ ""events"": [ { ""type"": ""political|military|economic|social|mysterious"", ""title"": ""..."", ""text"": ""..."", ""summary"": ""..."", ""importance"": 1-4, ""continues"": """",
   ""kingdoms_involved"": [""kingdom ids""], ""settlements_involved"": [""settlement names""], ""kingdom_engagement"": { ""kingdom_id"": 0-100 },
-  ""economic_effects"": [ { ""settlement"": ""name"", ""prosperity_per_day"": 0, ""food_per_day"": 0, ""security_per_day"": 0, ""loyalty_per_day"": 0, ""price_percent"": 0, ""duration_days"": 0, ""reason"": ""..."" } ],
+  ""economic_effects"": [ { ""settlement"": ""name"", ""prosperity_per_day"": 0, ""food_per_day"": 0, ""security_per_day"": 0, ""loyalty_per_day"": 0, ""price_percent"": 0, ""price_of"": """", ""prosperity_now"": 0, ""food_now"": 0, ""security_now"": 0, ""loyalty_now"": 0, ""kingdom"": """", ""duration_days"": 0, ""reason"": ""..."" } ],
   ""clan_effects"": [ { ""clan"": ""clan name"", ""income_percent"": 0, ""duration_days"": 0, ""reason"": ""..."" } ],
   ""secret"": { ""text"": ""one or two English sentences"", ""text_local"": ""the same in {language}"", ""about"": [""names""], ""known_by"": [""names""], ""access"": ""high"" },
   ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30 } } ] }
@@ -525,6 +532,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             int count = reactive ? 1 : cfg.WorldEventsPerGeneration;
             var sys = new StringBuilder();
             sys.AppendLine(TEventGen.Format("count", count, "language", Lang, "min_len", cfg.WorldEventMinLength, "max_len", cfg.WorldEventMaxLength,
+                "open", OpenStories(), "max_now", InstantFactor,
                 "max_prosperity", cfg.EffectMaxProsperityPerDay, "max_food", cfg.EffectMaxFoodPerDay, "max_security", cfg.EffectMaxSecurityPerDay,
                 "max_loyalty", cfg.EffectMaxLoyaltyPerDay, "max_days", cfg.EffectMaxDays, "max_severity", cfg.DiseaseMaxSeverity, "max_clan", cfg.ClanEffectMaxPercent, "max_price", cfg.EffectMaxPricePercent));
             var lore = WorldLore.Text;
@@ -566,6 +574,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
         private static void ApplyEvents(JObject j)
         {
             if (!(j["events"] is JArray arr)) return;
+            bool continued = false;
             foreach (var x in arr.OfType<JObject>().Take(S.Get.WorldEventsPerGeneration))
             {
                 var e = new WorldEvent
@@ -575,6 +584,25 @@ Write ONE development that follows directly from it: how the people, the nobles,
                     SummaryEn = Clean((string)x["summary"], 350), Importance = Math.Max(1, Math.Min(4, (int?)x["importance"] ?? 2)),
                 };
                 if (e.Title.Length < 3 || e.Text.Length < 20) continue;
+                // A next chapter of an open story keeps its id (so its effects and its news stay tied to it) and its past
+                string cont = ((string)(x["continues"]?.Type == JTokenType.String ? x["continues"] : null) ?? "").Trim();
+                if (cont.Length > 0 && !continued)
+                {
+                    var old = State.Events.FirstOrDefault(o => o.Id == cont && o.Source == "world" && e.Day - o.Day <= OpenStoryDays);
+                    if (old != null)
+                    {
+                        continued = true;
+                        e.Id = old.Id;
+                        e.History = old.History ?? new List<string>();
+                        e.History.Add((int)old.Day + "|" + (string.IsNullOrWhiteSpace(old.SummaryEn) ? old.Title : old.SummaryEn));
+                        while (e.History.Count > 5) e.History.RemoveAt(0);
+                        foreach (var k in old.Kingdoms) if (!e.Kingdoms.Contains(k)) e.Kingdoms.Add(k);
+                        foreach (var st0 in old.Settlements) if (!e.Settlements.Contains(st0)) e.Settlements.Add(st0);
+                        State.Events.Remove(old);
+                        NewsStore.Delete(old.Id);
+                        Log.Info($"[mundo] sigue la historia «{old.Title}» ({e.History.Count} capítulo(s) anteriores)");
+                    }
+                }
                 if (x["kingdoms_involved"] is JArray ks)
                     foreach (var k in ks) { var kg = FindKingdom(k?.ToString()); if (kg != null && !e.Kingdoms.Contains(kg.StringId)) e.Kingdoms.Add(kg.StringId); }
                 if (x["settlements_involved"] is JArray ss)
@@ -597,6 +625,29 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 var rebel = (string)(x["clan_rebellion"]?.Type == JTokenType.String ? x["clan_rebellion"] : null);
                 if (!string.IsNullOrWhiteSpace(rebel)) Diplomacy.Rebellion(rebel);
             }
+        }
+
+        private const int OpenStoryDays = 45, InstantFactor = 6;
+
+        /// <summary>Recent world events the chronicler may carry on, with what was told before.</summary>
+        private static string OpenStories()
+        {
+            try
+            {
+                double now = CampaignTime.Now.ToDays;
+                var open = State.Events.Where(e => e.Source == "world" && now - e.Day <= OpenStoryDays).OrderByDescending(e => e.Day).Take(6).ToList();
+                if (open.Count == 0) return "(none)";
+                var sb = new StringBuilder();
+                foreach (var e in open)
+                {
+                    sb.Append($"- id {e.Id}, {(int)(now - e.Day)} day(s) ago: {(string.IsNullOrWhiteSpace(e.SummaryEn) ? e.Title : e.SummaryEn)}");
+                    if (e.History != null && e.History.Count > 0)
+                        sb.Append(" Before that: " + string.Join(" Then: ", e.History.Select(h => h.Substring(h.IndexOf('|') + 1))));
+                    sb.AppendLine();
+                }
+                return sb.ToString().TrimEnd();
+            }
+            catch { return "(none)"; }
         }
 
         public static string Clean(string s, int max)
@@ -642,13 +693,33 @@ Write ONE development that follows directly from it: how the people, the nobles,
         }
 
         /// <summary>How much current events push that place's market prices up or down (0.25 = +25%).</summary>
-        public static float PriceFactor(Settlement st)
+        /// <summary>Which of our price groups an item falls in.</summary>
+        private static string PriceGroup(ItemObject item)
+        {
+            if (item == null) return "";
+            if (item.IsFood) return "food";
+            if (item.HasHorseComponent) return "horses";
+            if (item.HasWeaponComponent) return "weapons";
+            if (item.HasArmorComponent) return "armor";
+            return item.IsTradeGood ? "goods" : "";
+        }
+
+        public static float PriceFactor(Settlement st, ItemObject item = null)
         {
             if (st == null || State.Effects.Count == 0) return 0f;
             double now = CampaignTime.Now.ToDays;
             float sum = 0f;
+            string group = null;
             foreach (var fx in State.Effects)
-                if (fx.PricePercent != 0f && fx.SettlementId == st.StringId && fx.UntilDay > now) sum += fx.PricePercent;
+            {
+                if (fx.PricePercent == 0f || fx.SettlementId != st.StringId || fx.UntilDay <= now) continue;
+                if (!string.IsNullOrEmpty(fx.PriceCategory))
+                {
+                    if (group == null) group = PriceGroup(item);
+                    if (group != fx.PriceCategory) continue;
+                }
+                sum += fx.PricePercent;
+            }
             int max = S.Get.EffectMaxPricePercent;
             return Math.Max(-max, Math.Min(max, sum)) / 100f;
         }
@@ -670,12 +741,35 @@ Write ONE development that follows directly from it: how the people, the nobles,
             return Math.Max(-max, Math.Min(max, sum)) / 100f;
         }
 
+        private static readonly HashSet<string> PriceCategories = new HashSet<string> { "food", "goods", "weapons", "armor", "horses" };
+
         private static void AddEffect(WorldEvent e, JObject f)
         {
             var cfg = S.Get;
             if (!cfg.EnableEconomicEffects) return;
+            // A whole realm: the same effect in each of its towns, with no sudden blow
+            string kname = ((string)(f["kingdom"]?.Type == JTokenType.String ? f["kingdom"] : null) ?? "").Trim();
+            if (kname.Length > 0 && string.IsNullOrWhiteSpace((string)f["settlement"]))
+            {
+                var kg = FindKingdom(kname);
+                if (kg == null) return;
+                foreach (var town in kg.Settlements.Where(s0 => s0.IsTown).Take(14))
+                {
+                    var one = (JObject)f.DeepClone();
+                    one["settlement"] = town.StringId; one["kingdom"] = "";
+                    foreach (var k in new[] { "prosperity_now", "food_now", "security_now", "loyalty_now" }) one.Remove(k);
+                    AddEffectAt(e, one, town);
+                }
+                return;
+            }
             var st = OrderSystem.FindSettlement((string)f["settlement"]);
             if (st == null) return;
+            AddEffectAt(e, f, st);
+        }
+
+        private static void AddEffectAt(WorldEvent e, JObject f, Settlement st)
+        {
+            var cfg = S.Get;
             float C(string k, int max) { float v = (float?)f[k] ?? 0f; return Math.Max(-max, Math.Min(max, v)); }
             var fx = new EconomicEffect
             {
@@ -685,6 +779,29 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 UntilDay = CampaignTime.Now.ToDays + Math.Max(1, Math.Min(cfg.EffectMaxDays, (int?)f["duration_days"] ?? 7)),
                 PricePercent = st.IsTown || st.IsVillage ? C("price_percent", cfg.EffectMaxPricePercent) : 0f,
             };
+            string cat = ((string)(f["price_of"]?.Type == JTokenType.String ? f["price_of"] : null) ?? "").Trim().ToLowerInvariant();
+            if (fx.PricePercent != 0 && PriceCategories.Contains(cat)) fx.PriceCategory = cat;
+            // The sudden blow lands now, once, straight on the place
+            try
+            {
+                float pNow = C("prosperity_now", cfg.EffectMaxProsperityPerDay * InstantFactor), fNow = C("food_now", cfg.EffectMaxFoodPerDay * InstantFactor);
+                float sNow = C("security_now", cfg.EffectMaxSecurityPerDay * InstantFactor), lNow = C("loyalty_now", cfg.EffectMaxLoyaltyPerDay * InstantFactor);
+                if (pNow != 0 || fNow != 0 || sNow != 0 || lNow != 0)
+                {
+                    if (st.Town != null)
+                    {
+                        if (pNow != 0) st.Town.Prosperity = Math.Max(0f, st.Town.Prosperity + pNow);
+                        if (fNow != 0) st.Town.FoodStocks = Math.Max(0f, st.Town.FoodStocks + fNow);
+                        if (sNow != 0) st.Town.Security = Math.Max(0f, Math.Min(100f, st.Town.Security + sNow));
+                        if (lNow != 0) st.Town.Loyalty = Math.Max(0f, Math.Min(100f, st.Town.Loyalty + lNow));
+                    }
+                    else if (st.Village != null && pNow != 0) st.Village.Hearth = Math.Max(10f, st.Village.Hearth + pNow);
+                    Log.Info($"[mundo] golpe en {st.Name}: prosperidad {pNow:+0.#;-0.#;0}, comida {fNow:+0.#;-0.#;0}, seguridad {sNow:+0.#;-0.#;0}, lealtad {lNow:+0.#;-0.#;0} ({fx.Reason})");
+                    if (st.OwnerClan == Clan.PlayerClan)
+                        Say(L.F("AIL_e7b1c514", $"{st.Name} lo sufre de golpe: {fx.Reason}"), pNow + fNow + sNow + lNow < 0 ? Colors.Red : Colors.Green);
+                }
+            }
+            catch (Exception ex) { Log.Error("Efecto instantáneo", ex); }
             if (fx.ProsperityPerDay == 0 && fx.FoodPerDay == 0 && fx.SecurityPerDay == 0 && fx.LoyaltyPerDay == 0 && fx.PricePercent == 0) return;
             State.Effects.Add(fx);
             Log.Info($"[mundo] efecto en {st.Name}: prosperidad {fx.ProsperityPerDay:+0.#;-0.#;0}/día, comida {fx.FoodPerDay:+0.#;-0.#;0}, seguridad {fx.SecurityPerDay:+0.#;-0.#;0}, lealtad {fx.LoyaltyPerDay:+0.#;-0.#;0} ({fx.Reason})");

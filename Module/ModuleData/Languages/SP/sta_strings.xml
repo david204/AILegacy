@@ -1375,6 +1375,9 @@
     <string id="AIL_e7b1c50f" text="Probabilidad diaria de que empiece un cortejo (%)" />
     <string id="AIL_e7b1c510" text="Cortejos a la vez, como máximo" />
     <string id="AIL_e7b1c511" text="Días de cortejo antes de poder casarse" />
+    <string id="AIL_e7b1c512" text="Solo los soberanos empiezan y acaban guerras entre reinos de la IA" />
+    <string id="AIL_e7b1c513" text="Impide que las votaciones del juego, los acuerdos de llamada a la guerra y otros mods declaren guerras o firmen paces entre dos reinos de la IA: solo lo hacen las declaraciones de sus soberanos. No toca las guerras que nacen de lo que pasa en el mundo (un ataque, una rebelión, un reino nuevo) ni nada que afecte a tu propio reino." />
+    <string id="AIL_e7b1c514" text="{0} lo sufre de golpe: {1}" />
     <string id="AIL_e5c9b3a1" text="Noticias" />
     <string id="AIL_e5c9b3a2" text="Memorias" />
     <string id="AIL_e5c9b3a3" text="Confirmar" />

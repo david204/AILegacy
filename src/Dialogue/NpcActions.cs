@@ -457,7 +457,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     MarkWarPeace(s.Hero.MapFaction);
-                    DeclareWarAction.ApplyByDefault(s.Hero.MapFaction, PlayerKingdom);
+                    World.Diplomacy.Ours(() => DeclareWarAction.ApplyByDefault(s.Hero.MapFaction, PlayerKingdom));
                     ctx.EndConversation = true;
                     return L.F("AIL_ae73db8a", $"¡{s.Hero.MapFaction.Name} declara la guerra a {PlayerKingdom.Name}!");
                 }
@@ -471,7 +471,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     MarkWarPeace(s.Hero.MapFaction);
-                    MakePeaceAction.Apply(s.Hero.MapFaction, PlayerKingdom);
+                    World.Diplomacy.Ours(() => MakePeaceAction.Apply(s.Hero.MapFaction, PlayerKingdom));
                     return L.F("AIL_7def1f8e", $"{s.Hero.MapFaction.Name} y {PlayerKingdom.Name} firman la paz.");
                 }
             },

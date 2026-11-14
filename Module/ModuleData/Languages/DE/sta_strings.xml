@@ -1375,6 +1375,9 @@
     <string id="AIL_e7b1c50f" text="Tägliche Chance, dass eine Werbung beginnt (%)" />
     <string id="AIL_e7b1c510" text="Werbungen gleichzeitig, höchstens" />
     <string id="AIL_e7b1c511" text="Tage der Werbung, bevor sie heiraten können" />
+    <string id="AIL_e7b1c512" text="Nur Herrscher beginnen und beenden Kriege zwischen KI-Reichen" />
+    <string id="AIL_e7b1c513" text="Verhindert, dass Abstimmungen des Spiels, Kriegsbündnisse und andere Mods zwischen zwei KI-Reichen Krieg erklären oder Frieden schließen: Das tun nur die Erklärungen ihrer Herrscher. Kriege, die aus Ereignissen der Welt entstehen (ein Angriff, eine Rebellion, ein neues Reich), und alles, was dein eigenes Reich betrifft, bleiben unberührt." />
+    <string id="AIL_e7b1c514" text="{0} trifft es mit einem Schlag: {1}" />
     <string id="AIL_e5c9b3a1" text="Neuigkeiten" />
     <string id="AIL_e5c9b3a2" text="Erinnerungen" />
     <string id="AIL_e5c9b3a3" text="Bestätigen" />

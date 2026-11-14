@@ -1375,6 +1375,9 @@
     <string id="AIL_e7b1c50f" text="Chance quotidienne qu’une cour commence (%)" />
     <string id="AIL_e7b1c510" text="Cours en même temps, au maximum" />
     <string id="AIL_e7b1c511" text="Jours de cour avant de pouvoir se marier" />
+    <string id="AIL_e7b1c512" text="Seuls les souverains déclenchent et terminent les guerres entre royaumes IA" />
+    <string id="AIL_e7b1c513" text="Empêche les votes du jeu, les accords d’appel à la guerre et les autres mods de déclarer la guerre ou de faire la paix entre deux royaumes IA : seules les déclarations de leurs souverains le font. Les guerres nées de ce qui se passe dans le monde (une attaque, une rébellion, un nouveau royaume) et tout ce qui touche votre royaume ne sont pas concernés." />
+    <string id="AIL_e7b1c514" text="{0} le subit d’un coup : {1}" />
     <string id="AIL_e5c9b3a1" text="Nouvelles" />
     <string id="AIL_e5c9b3a2" text="Souvenirs" />
     <string id="AIL_e5c9b3a3" text="Confirmer" />

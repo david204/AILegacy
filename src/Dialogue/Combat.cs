@@ -389,7 +389,8 @@ namespace AILegacy.Dialogue
             var b = _bandJoin;
             try
             {
-                if (b == null || !b.IsActive || b.MapEvent != null) { _bandJoin = null; return; }
+                if (b == null || !b.IsActive) { _bandJoin = null; return; }
+                if (b.MapEvent != null) return;      // caught in a battle: they still join once it is over
                 // The meeting has to be closed first, or the game still treats them as the party in front of you
                 if (PlayerEncounter.Current != null)
                 {

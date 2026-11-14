@@ -1375,6 +1375,9 @@
     <string id="AIL_e7b1c50f" text="Daily chance that a new courtship begins (%)" />
     <string id="AIL_e7b1c510" text="Courtships at the same time, at most" />
     <string id="AIL_e7b1c511" text="Days of courtship before they can marry" />
+    <string id="AIL_e7b1c512" text="Only rulers start and end wars between AI kingdoms" />
+    <string id="AIL_e7b1c513" text="Stops the game’s own votes, call-to-war agreements and other mods from declaring war or making peace between two AI kingdoms: only their rulers’ declarations do. Wars that come from what happens in the world (an attack, a rebellion, a new kingdom) and anything involving your own kingdom are not touched." />
+    <string id="AIL_e7b1c514" text="{0} takes the blow at once: {1}" />
     <string id="AIL_e5c9b3a1" text="News" />
     <string id="AIL_e5c9b3a2" text="Memories" />
     <string id="AIL_e5c9b3a3" text="Confirm" />

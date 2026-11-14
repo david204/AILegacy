@@ -1572,6 +1572,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool EnableDiplomacy { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c512}Only rulers start and end wars between AI kingdoms", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c513}Stops the game's own votes, call-to-war agreements and other mods from declaring war or making peace between two AI kingdoms: only their rulers' declarations do. Wars that come from what happens in the world (an attack, a rebellion, a new kingdom) and anything involving your own kingdom are not touched.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public bool BlockForeignWarPeace { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_c3e1a901}Kings who may speak out per day", 1, 8, Order = 21, RequireRestart = false,
             HintText = "{=AIL_c3e1a902}When something big happens, several kings can speak about it. They take turns, each one knowing what the others said. Every declaration is one AI request.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]

@@ -25,6 +25,16 @@ namespace AILegacy.World
     {
         private static readonly Random Rng = new Random();
         public static bool Enabled => S.Get.EnableDiplomacy && WorldSim.Enabled;
+
+        // Depth of our own war and peace calls. The patch that stops the game and other mods from changing wars
+        // between AI kingdoms behind our back lets these through.
+        [ThreadStatic] private static int _ours;
+        public static bool IsOurs => _ours > 0;
+        public static void Ours(Action act)
+        {
+            _ours++;
+            try { act(); } finally { _ours--; }
+        }
         private static WorldState St => WorldSim.State;
         private static Kingdom PlayerRealm => Hero.MainHero?.MapFaction as Kingdom;
         private static bool PlayerRules(Kingdom k) => k != null && k.Leader == Hero.MainHero;
@@ -390,7 +400,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (PlayerRules(o) && !cfg.AllowAiWarOnPlayer) return Bad(L.T("AIL_b809052a", "guerra contra el jugador desactivada"));
                     EndAlliance(k, o); EndTrade(k, o);
                     St.Proposals.RemoveAll(p => (p.From == k.StringId && p.To == o.StringId) || (p.From == o.StringId && p.To == k.StringId));
-                    DeclareWarAction.ApplyByDefault(k, o);
+                    Diplomacy.Ours(() => DeclareWarAction.ApplyByDefault(k, o));
                     WorldSim.ChangeStance(o.StringId, k.StringId, -30);
                     return L.F("AIL_75b4abfe", $"{kn} declara la guerra a {o.Name}.");
 
@@ -414,8 +424,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     St.Proposals.Remove(p);
                     St.Proposals.RemoveAll(x => x.Type == "peace" && x.From == k.StringId && x.To == o.StringId);
                     // whoever accepts pays what was demanded of them
-                    if (p.DailyTribute > 0) MakePeaceAction.ApplyByKingdomDecision(k, o, p.DailyTribute, p.TributeDays);
-                    else MakePeaceAction.Apply(k, o);
+                    if (p.DailyTribute > 0) Diplomacy.Ours(() => MakePeaceAction.ApplyByKingdomDecision(k, o, p.DailyTribute, p.TributeDays));
+                    else Diplomacy.Ours(() => MakePeaceAction.Apply(k, o));
                     var extra = new List<string>();
                     if (p.Reparations > 0) { int paid = Pay(k, o, p.Reparations); if (paid > 0) extra.Add(L.F("AIL_555e7801", $"{paid} denarios de reparaciones")); }
                     var st = string.IsNullOrEmpty(p.SettlementId) ? null : Settlement.Find(p.SettlementId);
@@ -621,11 +631,11 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (type == "declare_war_on_clan")
                     {
                         if (k.IsAtWarWith(clan)) return Bad(L.T("AIL_acfa98a8", "ya están en guerra"));
-                        DeclareWarAction.ApplyByDefault(k, clan);
+                        Diplomacy.Ours(() => DeclareWarAction.ApplyByDefault(k, clan));
                         return L.F("AIL_30aa9ee2", $"{kn} declara la guerra al clan {clan.Name}.");
                     }
                     if (!k.IsAtWarWith(clan)) return Bad(L.T("AIL_a305fa83", "no están en guerra"));
-                    MakePeaceAction.Apply(k, clan);
+                    Diplomacy.Ours(() => MakePeaceAction.Apply(k, clan));
                     return L.F("AIL_83ce96ea", $"{kn} hace las paces con el clan {clan.Name}.");
                 }
                 case "quarantine_settlement":

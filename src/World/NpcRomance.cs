@@ -56,6 +56,8 @@ namespace AILegacy.World
             if (a == b || !Free(a) || !Free(b) || Kin(a, b)) return false;
             if (a.IsFemale == b.IsFemale && !S.Get.RomanceSameSex) return false;
             if (Math.Abs(a.Age - b.Age) > 18) return false;
+            // two heads of different houses can't marry without one house losing its head
+            if (a.Clan.Leader == a && b.Clan.Leader == b) return false;
             if (a.MapFaction != null && b.MapFaction != null && a.MapFaction != b.MapFaction && a.MapFaction.IsAtWarWith(b.MapFaction)) return false;
             // someone the player is courting is left alone: that story is the player's
             var ma = MemoryStore.Find(a.StringId); var mb = MemoryStore.Find(b.StringId);
@@ -130,7 +132,8 @@ namespace AILegacy.World
                             Heroes = new List<string> { a.StringId, b.StringId }, SettlementId = a.CurrentSettlement?.StringId,
                         });
                     }
-                    if (c.Level >= cfg.NpcRomanceForMarriage && now - c.Since >= cfg.NpcRomanceMinDays && Together(a, b)) Wed(c, a, b);
+                    if (c.Level >= cfg.NpcRomanceForMarriage && now - c.Since >= cfg.NpcRomanceMinDays && Together(a, b) && CanWedNow(a) && CanWedNow(b)
+                        && !(a.Clan.Leader == a && b.Clan.Leader == b)) Wed(c, a, b);
                 }
 
                 // ---- a new one, now and then
@@ -151,6 +154,9 @@ namespace AILegacy.World
             }
             catch (Exception ex) { Log.Error("Cortejos entre personajes", ex); }
         }
+
+        /// <summary>Not in the middle of a battle or a siege, and not in chains.</summary>
+        private static bool CanWedNow(Hero h) => !h.IsPrisoner && (h.PartyBelongedTo == null || (h.PartyBelongedTo.MapEvent == null && h.PartyBelongedTo.SiegeEvent == null));
 
         private static void Wed(Courtship c, Hero a, Hero b)
         {
