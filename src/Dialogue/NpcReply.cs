@@ -30,7 +30,7 @@ namespace AILegacy.Dialogue
         public string Mood = "";
         public string MoodReason = "";
 
-        /// <summary>Lee la respuesta JSON del modelo; si no es JSON válido, usa el texto tal cual.</summary>
+        /// <summary>Parses the model's JSON reply. If it isn't valid JSON, the raw text is used as the reply.</summary>
         public static NpcReply Parse(string raw)
         {
             var r = new NpcReply();
@@ -43,7 +43,7 @@ namespace AILegacy.Dialogue
                 {
                     JObject j;
                     try { j = JObject.Parse(json); }
-                    catch { j = JObject.Parse(Repair(json)); }   // JSON casi válido: campo sin valor, coma de más, sin cerrar
+                    catch { j = JObject.Parse(Repair(json)); }   // almost valid JSON: missing value, trailing comma, unclosed braces
                     r.Reply = Str(j["reply"]) ?? Str(j["response"]) ?? Str(j["text"]) ?? "";
                     r.RelationChange = ToInt(j["relation_change"]);
                     r.TrustChange = ToInt(j["trust_change"]);
@@ -100,13 +100,13 @@ namespace AILegacy.Dialogue
 
                     if (r.Reply.Length > 0) return r;
                 }
-                catch { /* cae al modo texto */ }
+                catch { /* fall back to text mode */ }
             }
 
-            // JSON irrecuperable: al menos se rescata lo que dice (nunca se enseña el JSON en bruto al jugador)
+            // Broken JSON: salvage the spoken line at least. Raw JSON is never shown to the player.
             if (json != null)
             {
-                raw = EscapeInnerQuotes(json);      // así una comilla interna no corta el texto rescatado
+                raw = EscapeInnerQuotes(json);      // so an inner quote doesn't cut the salvaged text short
                 var m = Regex.Match(raw, "\"(?:reply|response)\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"", RegexOptions.Singleline);
                 if (m.Success)
                 {
@@ -118,24 +118,24 @@ namespace AILegacy.Dialogue
                     if (r.Reply.Length > 0) return r;
                 }
                 r.Reply = "";
-                return r;   // ChatSession pone un gesto neutro; mejor eso que un volcado de JSON
+                return r;   // ChatSession shows a neutral gesture instead, better than a JSON dump
             }
 
-            // Sin JSON: todo el texto es lo que dice
+            // No JSON at all: the whole text is the reply
             r.Reply = Regex.Replace(raw, @"^```\w*|```$", "", RegexOptions.Multiline).Trim();
             return r;
         }
 
-        /// <summary>Arregla los fallos típicos de un modelo al escribir JSON.</summary>
+        /// <summary>Fixes the usual mistakes models make when writing JSON.</summary>
         private static string Repair(string json)
         {
-            // comillas sin escapar dentro de un texto («dijo "vete"»)
+            // unescaped quotes inside a string (he said "go away")
             json = EscapeInnerQuotes(json);
-            // "clave": seguido de , } ] → null
+            // "key": followed by , } or ] becomes null
             json = Regex.Replace(json, "(\"[A-Za-z_]+\"\\s*:)\\s*(?=[,}\\]])", "$1 null");
-            // comas sobrantes antes de cerrar
+            // trailing commas
             json = Regex.Replace(json, ",\\s*([}\\]])", "$1");
-            // llaves o corchetes sin cerrar (respuesta cortada)
+            // unclosed braces or brackets (reply got cut off)
             int braces = 0, brackets = 0; bool inStr = false, esc = false;
             foreach (char c in json)
             {
@@ -153,9 +153,9 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// Escapa las comillas internas de los textos: dentro de una cadena, una comilla solo cierra si le sigue
-        /// (con espacios opcionales) , } ] : o el final. Tras una coma tiene que venir algo que empiece un valor o una clave.
-        /// En JSON válido no cambia nada.
+        /// Escapes quotes inside strings. Inside a string, a quote only closes it if what follows (after optional spaces)
+        /// is , } ] : or the end. After a comma there has to be the start of a value or a key.
+        /// Valid JSON comes out unchanged.
         /// </summary>
         internal static string EscapeInnerQuotes(string json)
         {
@@ -191,9 +191,9 @@ namespace AILegacy.Dialogue
             if (k >= s.Length) return true;
             char n = s[k];
             if (n == '}' || n == ']' || n == ':') return true;
-            if (n == '"') return newline;       // falta la coma entre campos: mejor cerrar que escapar
+            if (n == '"') return newline;       // missing comma between fields, closing is the safer guess
             if (n != ',') return false;
-            // tras la coma: otra clave, otro elemento o el cierre
+            // after the comma: another key, another element, or the closing bracket
             k++;
             while (k < s.Length && char.IsWhiteSpace(s[k])) k++;
             if (k >= s.Length) return true;
@@ -214,7 +214,7 @@ namespace AILegacy.Dialogue
             int a = s.IndexOf('{');
             int b = s.LastIndexOf('}');
             if (a < 0) return null;
-            // sin llave de cierre = respuesta cortada: se coge hasta el final y Repair la cierra
+            // no closing brace means the reply was cut off: take it to the end and let Repair close it
             return b > a ? s.Substring(a, b - a + 1) : s.Substring(a);
         }
 

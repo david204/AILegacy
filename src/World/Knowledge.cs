@@ -12,18 +12,18 @@ namespace AILegacy.World
     {
         [JsonProperty("id")] public string Id;
         [JsonProperty("text")] public string Text;
-        /// <summary>Probabilidad 0-100 de que un personaje que encaja lo sepa.</summary>
+        /// <summary>Chance (0-100) that a matching character knows it.</summary>
         [JsonProperty("chance")] public int Chance = 50;
-        /// <summary>Quién puede saberlo: all, lords, faction_leaders, clan_leaders, companions, wanderers, merchants, gang_leaders,
-        /// town_notables, village_notables, townsfolk, villagers, guards, culture:&lt;id&gt;, kingdom:&lt;id&gt;, o el string_id de un héroe.</summary>
+        /// <summary>Who can know it: all, lords, faction_leaders, clan_leaders, companions, wanderers, merchants, gang_leaders,
+        /// town_notables, village_notables, townsfolk, villagers, guards, culture:&lt;id&gt;, kingdom:&lt;id&gt;, or a hero's string_id.</summary>
         [JsonProperty("who")] public List<string> Who = new List<string>();
-        /// <summary>Solo secretos: low / medium / high (cuánta confianza hace falta para contarlo).</summary>
+        /// <summary>Secrets only: low / medium / high, how much trust it takes to share it.</summary>
         [JsonProperty("access")] public string Access = "medium";
     }
 
     /// <summary>
-    /// Conocimiento editable del mundo: Modules\AILegacy\world_data\info.json (lo que se sabe) y secrets.json (secretos).
-    /// A cada personaje se le tira el dado una vez; lo que le toque lo sabe para siempre.
+    /// Editable world knowledge: Modules\AILegacy\world_data\info.json (common knowledge) and secrets.json.
+    /// Each character rolls once per entry, and whatever they get they know for good.
     /// </summary>
     internal static class Knowledge
     {
@@ -34,7 +34,7 @@ namespace AILegacy.World
         public static void EnsureRolled(Speaker s)
         {
             var m = s.Memory;
-            // Las entradas nuevas añadidas a los archivos también se tiran para quien ya existía
+            // Entries added to the files later also get rolled for characters that already exist
             var tags = s.Tags;
             Roll(Info.Entries, m.KnownInfoIds, tags, s.Name);
             if (Settings.S.Get.PresetSecrets) Roll(Secrets.Entries, m.KnownSecretIds, tags, s.Name);
@@ -49,7 +49,7 @@ namespace AILegacy.World
                 bool fits = e.Who == null || e.Who.Count == 0 || e.Who.Any(tags.Contains);
                 if (!fits) continue;
                 if (Rng.Next(100) < e.Chance) { known.Add(e.Id); Log.Info($"{who} sabe [{e.Id}]"); }
-                else known.Add("-" + e.Id); // tirada fallida: no se vuelve a tirar
+                else known.Add("-" + e.Id); // failed roll, never rolled again
             }
         }
 
@@ -59,7 +59,7 @@ namespace AILegacy.World
 
         public static List<string> SecretsFor(Speaker s)
         {
-            // Primero los nacidos de la historia de esta partida; los de fábrica (world_data\secrets.json), solo si están activados
+            // Secrets from this campaign's story first; preset ones (world_data\secrets.json) only if enabled
             var list = StorySecrets.For(s);
             if (Settings.S.Get.PresetSecrets)
                 list.AddRange(s.Memory.KnownSecretIds.Select(id => Secrets.Entries.FirstOrDefault(e => e.Id == id)).Where(e => e != null)

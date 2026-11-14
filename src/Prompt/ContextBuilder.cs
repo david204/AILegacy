@@ -12,7 +12,7 @@ using TaleWorlds.CampaignSystem.Settlements;
 namespace AILegacy.Prompt
 {
     /// <summary>
-    /// Lee del juego todo lo que el personaje sabría (debe llamarse en el hilo principal).
+    /// Reads from the game everything the character would know. Main thread only.
     /// </summary>
     internal static class ContextBuilder
     {
@@ -64,7 +64,7 @@ namespace AILegacy.Prompt
             sb.AppendLine("Current situation: " + DescribeSituation(npc));
             try
             {
-                // Dónde está exactamente y qué tropas lleva, con detalle: si le preguntan, lo sabe
+                // Exact location and own troops in detail, so they can answer if asked
                 var own = npc.PartyBelongedTo;
                 if (own != null && !own.IsMainParty)
                 {
@@ -76,7 +76,7 @@ namespace AILegacy.Prompt
                         if (men.Length > 0) sb.AppendLine("Your men, exactly (you know your own host and can speak of it in detail):\n" + men);
                     }
                 }
-                // Sus tropas, unidad por unidad, solo si las tiene delante: a días de camino (o por carta) no las ve
+                // Player's troops unit by unit, only if in sight. Days away (or by letter) they can't see them
                 if (MobileParty.MainParty != null && (own == null || !own.IsMainParty) && SeesPlayerParty(npc))
                 {
                     string theirs = DescribeTroops(MobileParty.MainParty, false);
@@ -97,7 +97,7 @@ namespace AILegacy.Prompt
             return sb.ToString().TrimEnd();
         }
 
-        /// <summary>¿Tiene este personaje a la vista la partida del jugador? (mismo sitio, a su lado en el mapa, o va con ella)</summary>
+        /// <summary>Same settlement, right next to it on the map, or traveling with it.</summary>
         public static bool SeesPlayerParty(Hero npc)
         {
             try
@@ -113,7 +113,7 @@ namespace AILegacy.Prompt
             catch { return false; }
         }
 
-        /// <summary>El jefe de una partida sin señor en el mapa: bandidos, una caravana, aldeanos de camino al mercado.</summary>
+        /// <summary>Leader of a lordless party on the map: bandits, a caravan, villagers heading to market.</summary>
         private static string DescribeBandLeader(Speaker s)
         {
             var c = s.Character;
@@ -200,7 +200,7 @@ namespace AILegacy.Prompt
 
         // ============================================================== PLAYER
 
-        /// <summary>Por qué este NPC sabe quién es el jugador. null = no lo sabe: es un forastero.</summary>
+        /// <summary>Why this NPC knows who the player is. null = they don't, the player is a stranger.</summary>
         public static string WhyKnowsPlayer(Speaker s)
         {
             var p = Hero.MainHero;
@@ -218,12 +218,12 @@ namespace AILegacy.Prompt
             }
             if (p.MapFaction is Kingdom pk && pk.Leader == p) return "ruler";
             if (clan != null && clan.Tier >= cfg.FameTierKnownByName) return "fame";
-            // El señor del lugar: la gente de su feudo le conoce
+            // Lord of this place: people in their own fief know them
             if (!s.IsHero && s.ResidentSettlement?.OwnerClan == clan) return "lord_here";
             return null;
         }
 
-        /// <summary>Nombre con el que el NPC conoce al jugador, o null si para él es un desconocido.</summary>
+        /// <summary>Name the NPC knows the player by, or null if the player is a stranger to them.</summary>
         public static string PlayerNameFor(Speaker s)
         {
             if (WhyKnowsPlayer(s) != null) return Hero.MainHero.Name.ToString();
@@ -340,7 +340,7 @@ namespace AILegacy.Prompt
             return sb.ToString();
         }
 
-        /// <summary>Foto de la situación de un héroe para su archivo: dónde está, qué hace, fuerzas, relación.</summary>
+        /// <summary>Snapshot of a hero's situation for their file: location, activity, strength, relation.</summary>
         public static Dictionary<string, object> Snapshot(Hero h)
         {
             var d = new Dictionary<string, object>();
@@ -429,7 +429,7 @@ namespace AILegacy.Prompt
             return string.Join("\n", lines);
         }
 
-        /// <summary>Amigos y enemigos reales según las relaciones del juego.</summary>
+        /// <summary>Real friends and enemies, from the game's relations.</summary>
         private static string DescribePeople(Hero npc)
         {
             try
@@ -456,7 +456,7 @@ namespace AILegacy.Prompt
                 if (enemies.Count > 0)
                     sb.AppendLine("People you dislike or hate: " + string.Join("; ", enemies.Select(x => $"{x.h.Name}{ClanOf(x.h)} ({(x.rel <= -50 ? "bitter enemy" : "you dislike them")})")));
 
-                // Señor y compañeros de reino importantes
+                // Liege and important fellow nobles of the realm
                 if (npc.MapFaction is Kingdom k && k.Leader != null && k.Leader != npc && !family.Contains(k.Leader))
                     sb.AppendLine($"Your ruler: {k.Leader.Name} — {WhereIs(k.Leader, npc)}");
                 return sb.ToString().TrimEnd();
@@ -464,7 +464,7 @@ namespace AILegacy.Prompt
             catch { return ""; }
         }
 
-        /// <summary>Dónde está y qué hace alguien, en pocas palabras.</summary>
+        /// <summary>Where someone is and what they're doing, in a few words.</summary>
         private static string WhereIs(Hero x, Hero viewer)
         {
             try
@@ -530,8 +530,8 @@ namespace AILegacy.Prompt
         private static string KindOf(CharacterObject c) => c.IsMounted && c.IsRanged ? "horse archer" : c.IsMounted ? "cavalry" : c.IsRanged ? "archer/crossbowman" : "infantry";
 
         /// <summary>
-        /// El grupo, tropa por tropa (nombre, clase, nivel, cuántos y cuántos heridos), con el total por clases, los heridos,
-        /// los prisioneros y, si es el suyo, la moral y los días de comida.
+        /// The party troop by troop (name, class, tier, count, wounded), with totals per class, wounded,
+        /// prisoners and, for their own party, morale and days of food.
         /// </summary>
         public static string DescribeTroops(MobileParty p, bool own)
         {
@@ -573,7 +573,7 @@ namespace AILegacy.Prompt
             catch { return ""; }
         }
 
-        /// <summary>Dónde está en el mapa con precisión: los lugares más cercanos, de quién son, y si va por tierra o por mar.</summary>
+        /// <summary>Precise map location: nearest places, who owns them, and whether it's on land or at sea.</summary>
         public static string DescribeWhereabouts(MobileParty p)
         {
             try

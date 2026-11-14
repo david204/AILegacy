@@ -12,16 +12,15 @@ using TaleWorlds.CampaignSystem;
 namespace AILegacy.Memory
 {
     /// <summary>
-    /// Cuando el historial de un personaje crece demasiado, lo antiguo se resume en segundo plano y quedan solo los últimos
-    /// turnos literales. El resumen va por TRAMOS FECHADOS: cada vez se escribe solo el tramo que sale del historial y se
-    /// añade a la lista; lo ya escrito no se vuelve a redactar (reescribir un único resumen cada vez iba borrando los datos
-    /// viejos, como el teléfono escacharrado). Solo cuando hay demasiados tramos se funden los más antiguos en uno, en la
-    /// misma petición. De paso se escribe una página del libro de memorias: ese tramo contado como un capítulo.
-    /// (Lo resumido se vuelca a archivo en el siguiente Flush.)
+    /// When a character's history gets too long, the old turns are summarized in the background and only the latest stay
+    /// word for word. The summary is a list of dated parts: each request writes only the part leaving the history and
+    /// appends it. Old parts are never rewritten, because rewriting one big summary every time kept losing old facts.
+    /// When there are too many parts, the oldest get merged into one in the same request. That request also writes a
+    /// memory book page for the new part.
     /// </summary>
     internal static class MemorySummarizer
     {
-        /// <summary>Con tantos tramos, la siguiente petición funde los más viejos en uno.</summary>
+        /// <summary>At this many parts, the next request merges the oldest ones.</summary>
         private const int MaxParts = 6;
         private const int MergeCount = 3;
         public const int PartWords = 90;
@@ -36,13 +35,13 @@ namespace AILegacy.Memory
             return a < 0 || a == b ? $"[day {b}] " : $"[day {a}–{b}] ";
         }
 
-        /// <summary>El resumen entero como texto (lo que se enseña en el libro, en el editor y a otros sistemas).</summary>
+        /// <summary>Full summary as plain text, for the book, the editor and other systems.</summary>
         public static string Compose(HeroMemory mem) =>
             string.Join("\n", mem.Summaries.Where(p => !string.IsNullOrWhiteSpace(p.Text)).Select(p => Label(p) + p.Text.Trim()));
 
         /// <summary>
-        /// Pone de acuerdo los tramos con el texto del resumen. Si el texto se ha cambiado por fuera (el editor, una
-        /// importación, el archivo tocado a mano), manda el texto: pasa a ser un único tramo sin fecha.
+        /// Keeps the parts in line with the Summary text. If the text was changed from outside (editor, import, file
+        /// edited by hand), the text wins and becomes a single undated part.
         /// </summary>
         public static void Sync(HeroMemory mem)
         {
@@ -59,7 +58,7 @@ namespace AILegacy.Memory
             if (text.Length > 0) mem.Summaries.Add(new SummaryPart { Text = text });
         }
 
-        /// <param name="keepAtLeast">Turnos literales que deben quedar como mínimo (a mitad de charla, los que caben en el prompt).</param>
+        /// <param name="keepAtLeast">Minimum turns to keep word for word (mid-conversation, the ones that fit in the prompt).</param>
         public static void MaybeSummarize(Speaker s, int keepAtLeast = 0)
         {
             var mem = s.Memory;
@@ -68,7 +67,7 @@ namespace AILegacy.Memory
 
             int keep = Math.Max(Math.Max(2, cfg.KeepTurnsAfterSummary), keepAtLeast);
             int cut = mem.Turns.Count - keep;
-            if (cut < 6) return;                                  // no merece una petición
+            if (cut < 6) return;                                  // not worth a request
             var old = mem.Turns.Take(cut).ToList();
 
             Sync(mem);
@@ -84,7 +83,7 @@ namespace AILegacy.Memory
                 MainThread.Post(() =>
                 {
                     mem.SummarizeInFlight = false;
-                    if (session != World.WorldSim.Session) return;       // se ha cargado otra partida mientras tanto
+                    if (session != World.WorldSim.Session) return;       // another save was loaded meanwhile
                     if (res == null || !res.Ok || string.IsNullOrWhiteSpace(res.Text))
                     {
                         Log.Warn($"No se pudo resumir la memoria de {s.Name}: {res?.Error}");
@@ -103,20 +102,20 @@ namespace AILegacy.Memory
                             merged = ((string)j["merged"] ?? "").Trim();
                         }
                     }
-                    catch { /* texto suelto: vale como resumen */ }
+                    catch { /* plain text reply, use it as the summary */ }
                     if (summary.Length < 10 || summary.StartsWith("{")) { Log.Warn($"Resumen de {s.Name} ilegible: se conserva el historial"); return; }
 
-                    // Solo salen del historial los turnos que se mandaron a resumir y siguen ahí, en su sitio
+                    // Only drop the turns we sent, and only while they're still at the front of the history
                     int n = 0;
                     while (n < old.Count && n < mem.Turns.Count && ReferenceEquals(mem.Turns[n], old[n])) n++;
                     if (n == 0) { Log.Warn($"El historial de {s.Name} ha cambiado mientras se resumía: se deja como está"); return; }
                     var folded = mem.Turns.Take(n).ToList();
                     Recall.Archive(mem, folded);
                     mem.Turns.RemoveRange(0, n);
-                    RagIndex.Schedule(s);          // lo recién archivado entra en el índice de recuerdos por significado
+                    RagIndex.Schedule(s);          // re-index so the archived turns show up in semantic recall
 
                     Sync(mem);
-                    // Fundir los tramos viejos, si siguen siendo los mismos que se mandaron
+                    // Merge the old parts, but only if they're still the ones we sent
                     if (merged.Length > 20 && merge.Count > 0 && mem.Summaries.Count >= merge.Count && merge.Select((p, i) => ReferenceEquals(p, mem.Summaries[i])).All(x => x))
                     {
                         var one = new SummaryPart { FromDay = merge[0].ToDay < 0 ? -1 : merge[0].FromDay, ToDay = merge[merge.Count - 1].ToDay, Text = Clip(merged, 1400) };
@@ -127,7 +126,7 @@ namespace AILegacy.Memory
                     double from = folded.Where(x => x.Day > 0).Select(x => x.Day).DefaultIfEmpty(-1).Min();
                     double to = folded.Where(x => x.Day > 0).Select(x => x.Day).DefaultIfEmpty(-1).Max();
                     mem.Summaries.Add(new SummaryPart { FromDay = from, ToDay = to, Text = Clip(summary, 1000) });
-                    // Red de seguridad: si el modelo nunca devuelve la fusión, los dos más viejos se pegan tal cual
+                    // Fallback in case the model never returns a merge: glue the two oldest parts together as they are
                     while (mem.Summaries.Count > MaxParts + 3)
                     {
                         var a = mem.Summaries[0]; var b = mem.Summaries[1];

@@ -26,8 +26,8 @@ using TaleWorlds.MountAndBlade.View.MissionViews.Singleplayer;
 namespace AILegacy.Scenes
 {
     /// <summary>
-    /// «Hablar en la escena»: un encuentro del mapa con un señor se convierte en una escena 3D del terreno donde estáis
-    /// cara a cara, a pie, cada uno con su gente detrás. Allí funciona todo lo de las escenas (hablar con F, grupo con Alt+T…).
+    /// "Talk in the scene": a map encounter with a lord turns into a 3D scene of the local terrain, both of you on foot and
+    /// face to face with your people behind you. Everything that works in scenes works here (F to talk, Alt+T for group...).
     /// </summary>
     internal static class MapTalk
     {
@@ -36,13 +36,13 @@ namespace AILegacy.Scenes
         private static Hero _pending;
         private static float _wait;
         private static bool _open;
-        private static string _fightKind;      // si la escena se abre para pelear (duelo acordado en el mapa)
+        private static string _fightKind;      // set when the scene opens for a fight (duel agreed on the map)
         internal static string TakeFight() { var k = _fightKind; _fightKind = null; return k; }
         internal static void ResetSession() { _pending = null; _fightKind = null; _open = false; _current = null; }
 
         public static bool IsOpen => _open;
 
-        /// <summary>¿Se le puede proponer hablar a pie a este personaje ahora?</summary>
+        /// <summary>Whether the "talk on foot" option can be offered for this hero right now.</summary>
         public static bool CanOffer(Hero h)
         {
             try
@@ -61,7 +61,7 @@ namespace AILegacy.Scenes
         private static bool AtWar(Hero h) => h?.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction);
         private static Hero _current;
 
-        /// <summary>Al cerrar la charla del mapa, se abre la escena.</summary>
+        /// <summary>The scene opens once the map conversation closes.</summary>
         public static void Queue(Hero h, string fightKind = null) { _pending = h; _wait = 0.3f; _fightKind = fightKind; }
 
         public static void Tick(float dt)
@@ -99,7 +99,7 @@ namespace AILegacy.Scenes
             });
         }
 
-        /// <summary>La escena ha terminado: de vuelta al mapa, cada uno sigue su camino.</summary>
+        /// <summary>Scene is over: back on the map, each party goes its own way.</summary>
         internal static void Closed()
         {
             _open = false;
@@ -108,8 +108,8 @@ namespace AILegacy.Scenes
             {
                 try
                 {
-                    // Con un enemigo, el parlamento no cierra el encuentro: al volver al mapa sigue ahí (atacar, rendirse, que te deje ir…),
-                    // salvo que en la charla haya quedado resuelto.
+                    // With an enemy, the parley doesn't end the encounter. It's still there back on the map (attack, surrender,
+                    // ask to be let go...) unless the talk already settled it.
                     if (who != null && AtWar(who) && who.IsAlive && !who.IsPrisoner) { Log.Info("[escena del mapa] fin del parlamento con un enemigo: el encuentro sigue"); return; }
                     if (PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement && !Combat.KeepEncounter) PlayerEncounter.Finish(true);
                 }
@@ -118,7 +118,7 @@ namespace AILegacy.Scenes
         }
     }
 
-    /// <summary>Coloca a los dos jefes frente a frente y a su gente detrás.</summary>
+    /// <summary>Spawns both leaders face to face with their people behind them.</summary>
     internal class MapTalkLogic : MissionLogic
     {
         private readonly Hero _lord;
@@ -133,10 +133,10 @@ namespace AILegacy.Scenes
             {
                 var player = Hero.MainHero;
                 Mission.PlayerTeam = Mission.Teams.Add(BattleSideEnum.Attacker, player.MapFaction.Color, player.MapFaction.Color2);
-                // Un segundo bando vacío: ahí pasa quien pelee contigo (duelo, pelea) mientras dure
+                // Empty second team. Whoever fights you (duel, brawl) is moved there for the fight
                 try { Mission.Teams.Add(BattleSideEnum.Defender, _party.MapFaction?.Color ?? uint.MaxValue, _party.MapFaction?.Color2 ?? uint.MaxValue); } catch (Exception ex) { Log.Warn("Segundo bando de la escena: " + ex.Message); }
 
-                // Los puntos de encuentro que traen las escenas de conversación del juego
+                // Spawn points that the game's conversation scenes come with
                 MatrixFrame mine = MatrixFrame.Identity, theirs = MatrixFrame.Identity;
                 bool found = false;
                 var set = Mission.Scene.FindEntitiesWithTag("binary_conversation_point").FirstOrDefault();
@@ -158,7 +158,7 @@ namespace AILegacy.Scenes
                 Vec2 toThem = (theirs.origin - mine.origin).AsVec2;
                 if (toThem.Length < 0.5f) toThem = new Vec2(0f, 1f);
                 toThem = toThem.Normalized();
-                // Un poco más separados que en una charla de cámara fija, para poder andar entre los dos grupos
+                // A bit further apart than in a fixed-camera conversation, so you can walk between the two groups
                 Vec3 pPos = Ground(mine.origin - new Vec3(toThem.x, toThem.y) * 1.5f);
                 Vec3 lPos = Ground(theirs.origin + new Vec3(toThem.x, toThem.y) * 1.5f);
 
@@ -183,7 +183,7 @@ namespace AILegacy.Scenes
             return p;
         }
 
-        /// <summary>Quién acompaña al jefe: primero sus héroes, luego sus mejores tropas.</summary>
+        /// <summary>Leader's escort: companion heroes first, then the best troops.</summary>
         private static List<CharacterObject> Escort(PartyBase party, Hero leader, int max)
         {
             var list = new List<CharacterObject>();
@@ -199,7 +199,6 @@ namespace AILegacy.Scenes
             return list;
         }
 
-        /// <summary>Los coloca en filas detrás de su jefe.</summary>
         private void Line(List<CharacterObject> who, PartyBase party, Vec3 leaderPos, Vec2 back, Vec2 facing)
         {
             var side = new Vec2(-back.y, back.x);
@@ -237,7 +236,7 @@ namespace AILegacy.Scenes
         }
     }
 
-    /// <summary>La interfaz de esa escena: la de un paseo por una aldea (hablar, salir, estado), sin lo que depende de un asentamiento.</summary>
+    /// <summary>UI for this scene: the village walk UI (talk, leave, status) minus the parts that need a settlement.</summary>
     [ViewCreatorModule]
     public class MapTalkViews
     {

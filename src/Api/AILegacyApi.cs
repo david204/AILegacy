@@ -81,7 +81,7 @@ namespace AILegacy.Api
         internal static void RaiseActionExecuted(Hero h, string action, string arg, string message) =>
             Raise(ActionExecuted, d => ((Action<Hero, string, string, string>)d)(h, action, arg ?? "", message ?? ""), h);
 
-        // Cada suscriptor por separado: el fallo de un mod no deja sin aviso a los demás ni rompe la conversación
+        // Call each subscriber on its own, so one broken mod can't block the others or break the conversation
         private static void Raise(Delegate ev, Action<Delegate> call, Hero h)
         {
             if (ev == null || h == null) return;
@@ -327,7 +327,7 @@ namespace AILegacy.Api
         }
     }
 
-    /// <summary>Lo que otros mods han colgado del prompt.</summary>
+    /// <summary>What other mods have hooked into the prompt.</summary>
     internal static class ModHooks
     {
         public static readonly Dictionary<string, string> WorldRules = new Dictionary<string, string>();
@@ -347,7 +347,7 @@ namespace AILegacy.Api
             return a.Length == 0 || b.Length == 0 ? null : "mod_" + a + "_" + b;
         }
 
-        /// <summary>Reglas de mundo de otros mods, para la parte del prompt común a todos (orden estable).</summary>
+        /// <summary>World rules from other mods, for the part of the prompt shared by everyone. Sorted by id so the text stays stable.</summary>
         public static string DescribeWorldRules()
         {
             try
@@ -358,7 +358,7 @@ namespace AILegacy.Api
             catch { return ""; }
         }
 
-        /// <summary>Lo que otros mods quieren decir del momento a quien habla.</summary>
+        /// <summary>What other mods want to tell the speaking hero about the current moment.</summary>
         public static string DescribeContext(Hero h)
         {
             if (h == null || Context.Count == 0) return "";

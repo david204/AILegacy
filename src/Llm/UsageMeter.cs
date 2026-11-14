@@ -9,9 +9,9 @@ using Newtonsoft.Json;
 namespace AILegacy.Llm
 {
     /// <summary>
-    /// Contabilidad de lo que se gasta: peticiones, tokens de entrada, de salida y de caché, y coste estimado, por proveedor
-    /// y por tarea. Lo de la sesión vive en memoria; el gasto de cada día (fecha real) se guarda en logs\gasto.json para el
-    /// tope diario. El coste solo se puede calcular si el proveedor tiene precio puesto (MCM › 0. Claves de IA, o config.json).
+    /// Tracks requests, tokens (input, output, cached) and estimated cost per provider and task. Session totals stay in
+    /// memory; spend per real-world day is saved to logs\gasto.json for the daily cap. Cost is only known if the provider
+    /// has a price set (in MCM or config.json).
     /// </summary>
     public static class UsageMeter
     {
@@ -30,7 +30,7 @@ namespace AILegacy.Llm
 
         private static readonly object Gate = new object();
         private static readonly Dictionary<string, Row> Rows = new Dictionary<string, Row>();
-        private static Dictionary<string, double> _days;        // "2026-11-12" → dólares
+        private static Dictionary<string, double> _days;        // "2026-11-12" -> USD
         private static int _sinceWrite;
 
         private static string DayKey => DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -76,26 +76,24 @@ namespace AILegacy.Llm
             try
             {
                 Directory.CreateDirectory(Paths.LogDir);
-                // Solo los últimos 60 días
                 foreach (var k in Days.Keys.OrderByDescending(k => k).Skip(60).ToList()) Days.Remove(k);
                 File.WriteAllText(FilePath, JsonConvert.SerializeObject(Days, Formatting.Indented));
             }
             catch { }
         }
 
-        /// <summary>Dólares gastados hoy (fecha real) según los precios puestos.</summary>
+        /// <summary>USD spent today (real-world date) at the configured prices.</summary>
         public static double SpentToday { get { lock (Gate) { Days.TryGetValue(DayKey, out double d); return d; } } }
 
         public static void Flush() { lock (Gate) WriteDays(); }
 
-        /// <summary>Lo de esta sesión, para el editor y el log.</summary>
+        /// <summary>This session only.</summary>
         public static List<Row> Snapshot()
         {
             lock (Gate) return Rows.Values.Select(r => new Row { Provider = r.Provider, Task = r.Task, Calls = r.Calls, Failed = r.Failed, In = r.In, Cached = r.Cached, Out = r.Out, Usd = r.Usd, Seconds = r.Seconds })
                                    .OrderByDescending(r => r.In + r.Out).ToList();
         }
 
-        /// <summary>Resumen de una línea para el log.</summary>
         public static string Summary()
         {
             var rows = Snapshot();

@@ -12,17 +12,17 @@ using TaleWorlds.CampaignSystem.Actions;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Lo que une al NPC con el jugador más allá de la relación del juego:
-    /// confianza (¿me fío de su palabra?), romance, y qué autoridad tiene el jugador sobre él.
+    /// What ties the NPC to the player beyond the game's relation: trust (do I believe their word?),
+    /// romance, and what authority the player has over them.
     /// </summary>
     internal static class Bonds
     {
         private static readonly Random Rng = new Random();
         private static Hero P => Hero.MainHero;
 
-        // ============================================================ confianza
+        // ============================================================ trust
 
-        /// <summary>La primera vez, la confianza sale de lo que ya os une en el juego.</summary>
+        /// <summary>First time only: starting trust comes from the existing in-game bond.</summary>
         public static void EnsureTrust(Speaker s)
         {
             var mem = s.Memory;
@@ -74,7 +74,6 @@ namespace AILegacy.Dialogue
             catch { return true; }
         }
 
-        /// <summary>¿Puede haber romance entre este NPC y el jugador?</summary>
         public static bool RomancePossible(Speaker s)
         {
             var cfg = S.Get;
@@ -85,7 +84,7 @@ namespace AILegacy.Dialogue
             return true;
         }
 
-        /// <summary>Tu cónyuge ya te quiere aunque AI Legacy no lo hubiera apuntado todavía.</summary>
+        /// <summary>A spouse already loves the player even if AI Legacy hadn't recorded it yet.</summary>
         public static void EnsureRomance(Speaker s)
         {
             if (!s.IsHero) return;
@@ -114,13 +113,13 @@ namespace AILegacy.Dialogue
             return mem.Romance - before;
         }
 
-        /// <summary>Hablar o escribirse cuenta como contacto: frena el enfriamiento.</summary>
+        /// <summary>Talking or writing counts as contact and stops romance from cooling.</summary>
         public static void Touch(HeroMemory mem)
         {
             if (mem != null) mem.LastRomanceDay = CampaignTime.Now.ToDays;
         }
 
-        /// <summary>Cada día: el romance sin contacto se enfría.</summary>
+        /// <summary>Romance cools without contact.</summary>
         public static void OnDailyTick()
         {
             try
@@ -136,7 +135,7 @@ namespace AILegacy.Dialogue
                     if (now - last < cfg.RomanceDecayAfterDays) continue;
                     var h = Hero.Find(mem.HeroId);
                     if (h == null || h.IsDead) { mem.Romance = 0; continue; }
-                    if (h.PartyBelongedTo != null && h.PartyBelongedTo.IsMainParty) continue;   // viaja contigo: no se enfría
+                    if (h.PartyBelongedTo != null && h.PartyBelongedTo.IsMainParty) continue;   // travels with the player, doesn't cool
                     int floor = h.Spouse == P ? 40 : 0;
                     if (mem.Romance > floor) mem.Romance--;
                 }
@@ -144,7 +143,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Romance: tick diario", ex); }
         }
 
-        /// <summary>Una noche juntos. Entre cónyuges puede haber embarazo. Devuelve el texto a enseñar.</summary>
+        /// <summary>A night together. Spouses can get pregnant. Returns the text to show.</summary>
         public static string Intimacy(Speaker s)
         {
             var mem = s.Memory;
@@ -157,7 +156,7 @@ namespace AILegacy.Dialogue
                 if (h.Spouse == P && h.IsFemale != P.IsFemale)
                 {
                     var mother = h.IsFemale ? h : P;
-                    // El día del ciclo cuenta: casi imposible con la regla, el doble en los días fértiles
+                    // Cycle day matters: near zero during the period, double on fertile days
                     if (!mother.IsPregnant && mother.Age < 46 && Rng.Next(1000) < Math.Min(1000f, S.Get.PregnancyChancePercent * 10 * World.Mood.FertilityFactor(mother)))
                     {
                         MakePregnantAction.Apply(mother);
@@ -169,9 +168,9 @@ namespace AILegacy.Dialogue
             return L.F("AIL_8c0a210d", $"Pasas un rato a solas con {s.Name}.");
         }
 
-        // ============================================================ tensión y amenaza
+        // ============================================================ tension and threat
 
-        /// <summary>Tensión actual, ya descontado lo que se ha calmado con los días.</summary>
+        /// <summary>Current tension, minus what has cooled off over the days.</summary>
         public static int Tension(HeroMemory mem)
         {
             if (mem.Tension <= 0) return 0;
@@ -204,7 +203,7 @@ namespace AILegacy.Dialogue
             return "explosive — violence is a breath away";
         }
 
-        /// <summary>¿Quién intimida a quién? Fuerzas de cada uno, y si el NPC está en manos del jugador o al revés.</summary>
+        /// <summary>Who intimidates whom: each side's strength, and whether the NPC is the player's prisoner or the other way round.</summary>
         public static string DescribeThreat(Speaker s)
         {
             try
@@ -242,9 +241,9 @@ namespace AILegacy.Dialogue
             catch { return ""; }
         }
 
-        // ============================================================ autoridad
+        // ============================================================ authority
 
-        /// <summary>Qué poder tiene el jugador para dar órdenes a este NPC (para el prompt).</summary>
+        /// <summary>For the prompt: how much power the player has to give this NPC orders.</summary>
         public static string DescribeAuthority(Hero npc)
         {
             try
@@ -266,7 +265,7 @@ namespace AILegacy.Dialogue
             catch { return ""; }
         }
 
-        // ============================================================ texto para el prompt
+        // ============================================================ prompt text
 
         public static void AppendTo(StringBuilder sys, Speaker s)
         {
@@ -308,13 +307,13 @@ namespace AILegacy.Dialogue
 
         private static int Clamp(int v, int min, int max) => Math.Max(min, Math.Min(max, v));
 
-        // ============================================================ entre personajes (no contigo)
+        // ============================================================ between characters (not with the player)
 
         public static string OtherWord(int t) =>
             t <= -60 ? "cannot stand them" : t <= -25 ? "distrusts and resents them" : t < -8 ? "is cool towards them" : t <= 8 ? "has no strong feeling about them"
             : t < 25 ? "thinks well of them" : t < 60 ? "trusts and likes them" : "would do almost anything for them";
 
-        /// <summary>Algo ha pasado entre dos personajes con nombre: cambia lo que uno piensa del otro y lo recuerda.</summary>
+        /// <summary>Something happened between two named characters. Changes what one thinks of the other, and they remember it.</summary>
         public static void TouchOther(Speaker from, Speaker to, int delta, string note)
         {
             try
@@ -331,8 +330,8 @@ namespace AILegacy.Dialogue
                     b.Notes.Add(note.Length > 220 ? note.Substring(0, 220) : note);
                     while (b.Notes.Count > cfg.NpcBondNotes) b.Notes.RemoveAt(0);
                 }
-                // Lo que pasa entre ellos se nota también en la relación del juego (poco a poco)
-                // Relación PERSONAL entre los dos: ApplyRelationChangeBetweenHeroes, en nobles, se la apunta a los jefes de sus clanes
+                // Also nudges the game's relation a little. SetHeroRelation keeps it personal, because
+                // ApplyRelationChangeBetweenHeroes moves the clan leaders' relation instead when they're nobles
                 if (cfg.NpcBondsAffectRelation && Math.Abs(delta) >= 4)
                 {
                     int now = CharacterRelationManager.GetHeroRelation(from.Hero, to.Hero);
@@ -344,7 +343,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Vínculo entre personajes", ex); }
         }
 
-        /// <summary>Lo que hay entre estos dos, visto por el primero (para sus charlas entre ellos).</summary>
+        /// <summary>The bond as a sees it, for a and b's own conversations.</summary>
         public static string Between(Speaker a, Speaker b)
         {
             try
@@ -358,7 +357,7 @@ namespace AILegacy.Dialogue
             catch { return ""; }
         }
 
-        /// <summary>Para hablar contigo: con quién ha tratado últimamente y cómo quedó la cosa.</summary>
+        /// <summary>For talks with the player: who this NPC dealt with lately and how it went.</summary>
         public static void AppendOthers(System.Text.StringBuilder sys, Speaker s)
         {
             try

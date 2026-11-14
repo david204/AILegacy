@@ -22,7 +22,7 @@ using TaleWorlds.MountAndBlade;
 
 namespace AILegacy.World
 {
-    // ===================================================================== datos
+    // ===================================================================== data
 
     public class EconomicEffect
     {
@@ -34,10 +34,10 @@ namespace AILegacy.World
         [JsonProperty("until")] public double UntilDay;
         [JsonProperty("reason")] public string Reason = "";
         [JsonProperty("event")] public string EventId;
-        // Efecto sobre un clan entero (su nombre manchado o en alza): sus ingresos suben o bajan ese tanto por ciento
+        // Effect on a whole clan (its name stained or rising): its income goes up or down by this percent
         [JsonProperty("clan")] public string ClanId;
         [JsonProperty("income")] public float IncomePercent;
-        // Precios del mercado de ese lugar: suben o bajan ese tanto por ciento mientras dure (escasez, miedo, abundancia)
+        // Market prices at that place go up or down by this percent while it lasts (shortage, fear, plenty)
         [JsonProperty("prices")] public float PricePercent;
     }
 
@@ -46,23 +46,23 @@ namespace AILegacy.World
         [JsonProperty("id")] public string Id;
         [JsonProperty("day")] public double Day;
         [JsonProperty("type")] public string Type = "news";            // political | military | economic | social | mysterious | news
-        [JsonProperty("title")] public string Title = "";             // idioma del jugador
-        [JsonProperty("text")] public string Text = "";               // idioma del jugador
-        [JsonProperty("summary")] public string SummaryEn = "";       // inglés, para los prompts
+        [JsonProperty("title")] public string Title = "";             // player's language
+        [JsonProperty("text")] public string Text = "";               // player's language
+        [JsonProperty("summary")] public string SummaryEn = "";       // English, for prompts
         [JsonProperty("imp")] public int Importance = 2;
         [JsonProperty("kingdoms")] public List<string> Kingdoms = new List<string>();
         [JsonProperty("settlements")] public List<string> Settlements = new List<string>();
-        /// <summary>Probabilidad diaria (0–100) de que el rey de cada reino se pronuncie sobre esto.</summary>
+        /// <summary>Daily chance (0-100) that each kingdom's ruler speaks out about this.</summary>
         [JsonProperty("engagement")] public Dictionary<string, int> Engagement = new Dictionary<string, int>();
         [JsonProperty("source")] public string Source = "world";      // world | statement | player
     }
 
-    /// <summary>Un rey que tiene turno para pronunciarse: sobre un suceso, o porque le espera una propuesta.</summary>
+    /// <summary>A ruler whose turn it is to speak, about an event or because a proposal is waiting for them.</summary>
     public class QueuedStatement
     {
         [JsonProperty("kingdom")] public string KingdomId;
-        [JsonProperty("event")] public string EventId;       // null: contesta propuestas
-        [JsonProperty("due")] public double DueHour;          // hora de campaña a partir de la cual habla
+        [JsonProperty("event")] public string EventId;       // null: answers proposals
+        [JsonProperty("due")] public double DueHour;          // campaign hour from which they speak
     }
 
     public class RulerStatement
@@ -77,7 +77,7 @@ namespace AILegacy.World
         [JsonProperty("imp")] public int Importance = 2;
     }
 
-    /// <summary>Propuesta o exigencia de un reino a otro, a la espera de respuesta.</summary>
+    /// <summary>A proposal or demand from one kingdom to another, waiting for an answer.</summary>
     public class Proposal
     {
         [JsonProperty("id")] public string Id;
@@ -87,12 +87,12 @@ namespace AILegacy.World
         [JsonProperty("to")] public string To;
         [JsonProperty("day")] public double Day;
         [JsonProperty("expires")] public double ExpiresDay;
-        [JsonProperty("daily")] public int DailyTribute;       // lo paga «to» a «from»
+        [JsonProperty("daily")] public int DailyTribute;       // paid by "to" to "from"
         [JsonProperty("days")] public int TributeDays;
-        [JsonProperty("amount")] public int Reparations;       // lo paga «to» a «from»
-        [JsonProperty("settlement")] public string SettlementId;   // lo cede «to» a «from»
+        [JsonProperty("amount")] public int Reparations;       // paid by "to" to "from"
+        [JsonProperty("settlement")] public string SettlementId;   // given up by "to" to "from"
         [JsonProperty("years")] public int TradeYears;
-        /// <summary>Ya se le ha enseñado al jugador (cuando va dirigida a su reino).</summary>
+        /// <summary>Already shown to the player (when it's aimed at their kingdom).</summary>
         [JsonProperty("notified")] public bool Notified;
     }
 
@@ -105,7 +105,7 @@ namespace AILegacy.World
         [JsonProperty("total")] public int TotalPaid;
     }
 
-    /// <summary>Todo el estado del «mundo que se mueve solo». Va en ailegacy_world.json y en la copia de la partida.</summary>
+    /// <summary>All world simulation state. Stored in ailegacy_world.json and in the in-save copy.</summary>
     public class WorldState
     {
         [JsonProperty("events")] public List<WorldEvent> Events = new List<WorldEvent>();
@@ -113,32 +113,31 @@ namespace AILegacy.World
         [JsonProperty("proposals")] public List<Proposal> Proposals = new List<Proposal>();
         [JsonProperty("tributes")] public List<Tribute> Tributes = new List<Tribute>();
         [JsonProperty("effects")] public List<EconomicEffect> Effects = new List<EconomicEffect>();
-        /// <summary>Hasta qué día dura la prevención pagada en un hospital (tus hombres enferman mucho menos).</summary>
+        /// <summary>Day until which paid hospital prevention lasts (your men get sick much less).</summary>
         [JsonProperty("prevention_until")] public double PreventionUntilDay = -1;
-        /// <summary>Secretos nacidos de la historia de esta partida, y de qué reinos ya se han escrito los de origen.</summary>
+        /// <summary>Secrets born from this campaign's story, and the kingdoms whose origin secrets are already written.</summary>
         [JsonProperty("secrets")] public List<StorySecret> Secrets = new List<StorySecret>();
         [JsonProperty("secret_kingdoms")] public List<string> SecretKingdoms = new List<string>();
-        /// <summary>Personajes únicos creados por la IA en esta partida, y cuándo toca el siguiente.</summary>
-        /// <summary>Arenas donde ya entrenaste (id del asentamiento → hora de campaña): se guarda con la partida.</summary>
+        /// <summary>Arenas you already trained at (settlement id -> campaign hour).</summary>
         [JsonProperty("arena_last")] public Dictionary<string, double> ArenaLastAt = new Dictionary<string, double>();
-        /// <summary>Condena de mazmorra en curso: dónde y hasta qué día.</summary>
+        /// <summary>Current dungeon sentence: where, and until which day.</summary>
         [JsonProperty("jail_in")] public string JailSettlementId;
         [JsonProperty("jail_until")] public double JailReleaseDay = -1;
         [JsonProperty("uniques")] public List<string> UniqueIds = new List<string>();
-        /// <summary>Sucesos que pesan en el ánimo de alguien (o de un reino) unos días, y quién mató a quién.</summary>
+        /// <summary>Events that weigh on someone's (or a kingdom's) mood for a few days, and who killed whom.</summary>
         [JsonProperty("mood_events")] public List<MoodEvent> MoodEvents = new List<MoodEvent>();
         [JsonProperty("recent_kills")] public List<KillRecord> RecentKills = new List<KillRecord>();
-        /// <summary>Día en que se concibió cada embarazo en curso (la madre tarda unos días en saberlo).</summary>
+        /// <summary>Day each current pregnancy was conceived (the mother takes a few days to find out).</summary>
         [JsonProperty("conceived")] public Dictionary<string, double> Conceived = new Dictionary<string, double>();
-        /// <summary>Último día en que una charla cambió guerra o paz entre dos reinos ("a|b").</summary>
+        /// <summary>Last day a chat changed war or peace between two kingdoms ("a|b").</summary>
         [JsonProperty("war_peace_day")] public Dictionary<string, double> WarPeaceDay = new Dictionary<string, double>();
-        /// <summary>Soberanos que ha tenido cada reino y dueños que ha tenido cada ciudad o castillo (los últimos).</summary>
+        /// <summary>Recent rulers of each kingdom and recent owners of each town or castle.</summary>
         [JsonProperty("rulers")] public Dictionary<string, List<TenureRecord>> Rulers = new Dictionary<string, List<TenureRecord>>();
         [JsonProperty("owners")] public Dictionary<string, List<TenureRecord>> Owners = new Dictionary<string, List<TenureRecord>>();
         [JsonProperty("next_unique_day")] public double NextUniqueDay = -1;
         [JsonProperty("fatigue")] public Dictionary<string, float> WarFatigue = new Dictionary<string, float>();
         [JsonProperty("taxes")] public Dictionary<string, int> KingdomTaxPercent = new Dictionary<string, int>();
-        /// <summary>Postura de un rey hacia otro reino: "a|b" → -100..100.</summary>
+        /// <summary>A ruler's stance toward another kingdom: "a|b" -> -100..100.</summary>
         [JsonProperty("stance")] public Dictionary<string, int> Stance = new Dictionary<string, int>();
         [JsonProperty("outbreaks")] public List<Outbreak> Outbreaks = new List<Outbreak>();
         [JsonProperty("banished")] public List<Banishment> Banished = new List<Banishment>();
@@ -151,11 +150,11 @@ namespace AILegacy.World
         [JsonProperty("last_statement_day")] public Dictionary<string, double> LastStatementDay = new Dictionary<string, double>();
     }
 
-    // ===================================================================== motor
+    // ===================================================================== engine
 
     /// <summary>
-    /// El mundo que se mueve solo: eventos generados por la IA con efectos reales en los asentamientos,
-    /// cansancio de guerra, tributos e impuestos. La diplomacia de reyes está en Diplomacy.cs.
+    /// The living world: AI-generated events with real effects on settlements, war fatigue, tributes and taxes.
+    /// Ruler diplomacy lives in Diplomacy.cs.
     /// </summary>
     internal static class WorldSim
     {
@@ -166,7 +165,7 @@ namespace AILegacy.World
         private static volatile bool _busy;
         private static DateTime _lastCall = DateTime.MinValue;
 
-        /// <summary>Petición del mundo en espera de turno (cola en memoria; no se guarda con la partida).</summary>
+        /// <summary>A world request waiting its turn (in-memory queue, not saved).</summary>
         private class WorldRequest
         {
             public string What, Key, Camp;
@@ -177,7 +176,7 @@ namespace AILegacy.World
             public bool Important;
         }
         private static readonly List<WorldRequest> Queue = new List<WorldRequest>();
-        /// <summary>Claves en cola, en vuelo o esperando a aplicarse: evitan pedir lo mismo dos veces.</summary>
+        /// <summary>Keys queued, in flight or waiting to be applied, so the same thing isn't asked for twice.</summary>
         private static readonly HashSet<string> Reserved = new HashSet<string>();
         private const int MaxQueued = 8;
         private static int _reactRetries;
@@ -197,9 +196,9 @@ namespace AILegacy.World
         public static string NewId(string prefix) => prefix + Rng.Next(100000, 999999);
         public static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
 
-        // ============================================================ llamadas a la IA en segundo plano
+        // ============================================================ background AI calls
 
-        /// <summary>¿Se puede tocar el mundo ahora? (en el mapa, sin misión ni conversación)</summary>
+        /// <summary>Safe to change the world now (on the map, no mission or conversation).</summary>
         public static bool OnMap()
         {
             try
@@ -212,12 +211,12 @@ namespace AILegacy.World
         }
 
         private static int _session;
-        /// <summary>Número de sesión: cambia cada vez que se carga, se crea o se importa una partida. Quien pide algo a la IA lo guarda y lo comprueba al volver.</summary>
+        /// <summary>Changes every time a campaign is loaded, created or imported. Anyone calling the AI stores it and checks it when the reply comes back.</summary>
         public static int Session => _session;
 
         /// <summary>
-        /// Partida nueva o cargada: nada de lo que quedó a medias en la anterior (sucesos por reaccionar, respuestas en cola,
-        /// peleas, detenidos, muertes pendientes) puede colarse en esta.
+        /// New or loaded campaign: nothing left half done in the previous one (events to react to, queued replies,
+        /// fights, arrests, pending deaths) can leak into this one.
         /// </summary>
         public static void ResetSession()
         {
@@ -238,26 +237,25 @@ namespace AILegacy.World
             Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
         }
 
-        /// <summary>Libre para lanzar ya: nada en vuelo y respetado el hueco mínimo entre llamadas.</summary>
+        /// <summary>Nothing in flight and the minimum gap between calls has passed.</summary>
         private static bool Ready => !_busy && (DateTime.UtcNow - _lastCall).TotalSeconds >= S.Get.WorldAiMinSecondsBetweenCalls;
 
-        /// <summary>Para lo opcional (tandas, secretos, personajes): solo si no hay nada en vuelo ni en cola.</summary>
+        /// <summary>For optional calls (event batches, secrets, characters): only when nothing is in flight or queued.</summary>
         public static bool CanCall { get { lock (Queue) return Ready && Queue.Count == 0; } }
 
-        /// <summary>¿Hay ya una petición con esta clave en cola, en vuelo o por aplicar?</summary>
         public static bool IsReserved(string key) { if (key == null) return false; lock (Queue) return Reserved.Contains(key); }
 
         /// <summary>
-        /// Lanza una petición del mundo; el resultado se aplica cuando el jugador está en el mapa. Si hay otra en curso, espera en cola
-        /// (con límite: si se llena, sale la más vieja que no sea importante). Con clave, no se pide dos veces lo mismo.
-        /// Quien pide debe consumir su agenda dentro de <paramref name="apply"/>, no antes. Devuelve false si ya estaba pedida.
+        /// Sends a world request. The result is applied when the player is on the map. If another one is running it waits in
+        /// the queue (capped: when full, the oldest non-important one is dropped). With a key, the same thing is never asked twice.
+        /// The caller must consume its schedule inside <paramref name="apply"/>, not before. Returns false if already requested.
         /// </summary>
         public static bool Ask(string what, List<ChatMessage> messages, int maxTokens, Action<JObject> apply, string key = null, Action failed = null, bool important = false)
         {
             var r = new WorldRequest
             {
                 What = what, Key = key, Messages = messages, MaxTokens = maxTokens, Apply = apply, Failed = failed, Important = important,
-                Session = _session, Camp = Campaign.Current?.UniqueGameId,      // la respuesta solo vale para la partida que la pidió
+                Session = _session, Camp = Campaign.Current?.UniqueGameId,      // the reply only counts for the campaign that asked
             };
             WorldRequest dropped = null;
             lock (Queue)
@@ -304,11 +302,11 @@ namespace AILegacy.World
                 }
                 Pending.Enqueue(() =>
                 {
-                    // De otra partida: ResetSession ya soltó sus claves y vació la cola
+                    // From another campaign: ResetSession already released its keys and cleared the queue
                     if (r.Session != _session || Campaign.Current == null || Campaign.Current.UniqueGameId != r.Camp) { if (r.Session == _session) Release(r.Key); Log.Info($"[mundo] {r.What}: respuesta de otra partida, descartada"); return; }
                     if (j == null)
                     {
-                        // Lo importante (la declaración del jugador) se reintenta una vez; lo demás devuelve su agenda
+                        // Important requests (the player's statement) get one retry. The rest hand back their schedule
                         if (r.Important && r.Attempts < 2) { lock (Queue) Queue.Insert(0, r); Log.Info($"[mundo] {r.What}: se reintenta"); return; }
                         Release(r.Key);
                         try { r.Failed?.Invoke(); } catch (Exception ex) { Log.Error($"[mundo] fallo de {r.What}", ex); }
@@ -323,7 +321,6 @@ namespace AILegacy.World
 
         private static void Release(string key) { if (key != null) lock (Queue) Reserved.Remove(key); }
 
-        /// <summary>Saca la siguiente de la cola si toca.</summary>
         private static bool LaunchQueued()
         {
             lock (Queue)
@@ -337,7 +334,7 @@ namespace AILegacy.World
             }
         }
 
-        /// <summary>Llamar a menudo desde el hilo del juego.</summary>
+        /// <summary>Call often, from the game thread.</summary>
         public static void Pump()
         {
             if (Campaign.Current == null) { while (Pending.TryDequeue(out _)) { } return; }
@@ -347,7 +344,7 @@ namespace AILegacy.World
             if (CanCall) TryReact();
         }
 
-        // ============================================================ estado del mundo para los prompts
+        // ============================================================ world state for prompts
 
         public static string FatigueWord(Kingdom k)
         {
@@ -364,7 +361,7 @@ namespace AILegacy.World
 
         public static string StanceWord(int v) => v <= -60 ? "hatred" : v <= -25 ? "hostile" : v < -5 ? "cold" : v <= 5 ? "neutral" : v < 25 ? "cordial" : v < 60 ? "friendly" : "close";
 
-        /// <summary>Datos técnicos de los reinos: la verdad del mundo ahora mismo.</summary>
+        /// <summary>Hard facts about the kingdoms: the true state of the world right now.</summary>
         public static string DescribeKingdoms(Kingdom focus = null)
         {
             var sb = new StringBuilder();
@@ -404,7 +401,7 @@ namespace AILegacy.World
             return ev.Count == 0 ? "(none)" : string.Join("\n", ev.Select(e => $"- [{e.Type}, {(int)(now - e.Day)} day(s) ago] {(string.IsNullOrWhiteSpace(e.SummaryEn) ? e.Title : e.SummaryEn)}"));
         }
 
-        // ============================================================ generador de eventos
+        // ============================================================ event generator
 
         private static readonly Tpl TEventGen = new Tpl("dynamic_events_generator/generator.txt",
 @"You are the chronicler of Calradia, the medieval world of Mount & Blade II: Bannerlord. From the real state of the world below, write {count} new development(s) that could plausibly be happening right now: political, military, economic, social or mysterious. They become news that people talk about and that rulers may react to.
@@ -434,7 +431,7 @@ Leave out economic_effects, clan_effects, secret, clan_rebellion and disease whe
 
         public static void Touch() { var _ = TEventGen.Key; Diplomacy.Touch(); }
 
-        // Sucesos REALES del juego que acaban de pasar y merecen una reacción del mundo (no se guardan: son del momento)
+        // REAL game events that just happened and deserve a world reaction (not saved, they only matter right now)
         private static readonly List<string> Triggers = new List<string>();
 
         private static readonly Tpl TReact = new Tpl("dynamic_events_generator/react_to_real_event.txt",
@@ -442,13 +439,13 @@ Leave out economic_effects, clan_effects, secret, clan_rebellion and disease whe
 {triggers}
 Write ONE development that follows directly from it: how the people, the nobles, the merchants or the other crowns take it, what it stirs up, what it threatens next. It is a consequence or a reaction, not a retelling of the fact itself (everyone already knows the fact). Give kingdom_engagement to the crowns that would want to answer.");
 
-        /// <summary>Cada noticia real del juego pasa por aquí: las gordas provocan una reacción del mundo en cuanto se puede.</summary>
+        /// <summary>Every real game news item comes through here. Big ones trigger a world reaction as soon as possible.</summary>
         public static void OnRealNews(NewsItem n)
         {
             var cfg = S.Get;
             if (!Enabled || !cfg.ReactiveEvents || n == null || Campaign.Current == null) return;
             string t = n.Type ?? "";
-            if (t == "statement" || t == "custom" || t.StartsWith("event_")) return;     // lo que escribe la propia IA no se realimenta
+            if (t == "statement" || t == "custom" || t.StartsWith("event_")) return;     // don't feed the AI's own writing back into itself
             if (n.Importance < cfg.ReactiveMinImportance) return;
             lock (Triggers)
             {
@@ -457,11 +454,11 @@ Write ONE development that follows directly from it: how the people, the nobles,
             }
         }
 
-        private static bool _urgent;      // hay un suceso tuyo esperando: no aguarda al plazo entre reacciones
+        private static bool _urgent;      // a player incident is waiting, so skip the gap between reactions
 
         /// <summary>
-        /// Algo que has hecho o dicho tú y que da que hablar (una pelea en la calle, un muerto, un arresto, un rumor gordo
-        /// que has echado a rodar): el mundo lo convierte en un suceso propio, con sus efectos en el lugar si los merece.
+        /// Something the player did or said that gets people talking (a street fight, a death, an arrest, a big rumor they
+        /// started). The world turns it into its own event, with local effects if it deserves them.
         /// </summary>
         public static void OnIncident(string whatEn, Settlement where, bool blood)
         {
@@ -491,7 +488,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             var cfg = S.Get;
             if (!Enabled || !cfg.ReactiveEvents) { lock (Triggers) Triggers.Clear(); return; }
             double hour = CampaignTime.Now.ToHours;
-            if (State.LastReactiveHour > hour) State.LastReactiveHour = -1;     // partida cargada de antes
+            if (State.LastReactiveHour > hour) State.LastReactiveHour = -1;     // loaded an older save
             if (!_urgent && State.LastReactiveHour >= 0 && hour - State.LastReactiveHour < cfg.ReactiveMinHoursBetween) return;
             _urgent = false;
             List<string> take;
@@ -505,7 +502,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             GenerateEvents(false, take);
         }
 
-        /// <summary>La reacción no salió: sus sucesos vuelven a la cola (como mucho dos veces seguidas).</summary>
+        /// <summary>The reaction failed, so its events go back in the queue (at most twice in a row).</summary>
         private static void RequeueTriggers(List<string> take)
         {
             if (take == null || take.Count == 0 || ++_reactRetries > 2) return;
@@ -522,7 +519,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             if (!Enabled || Campaign.Current == null) return;
             if (!forced && !CanCall) return;
             bool reactive = reactTo != null && reactTo.Count > 0;
-            if (IsReserved(reactive ? "react" : "events")) return;     // ya pedida: falta que llegue o se aplique
+            if (IsReserved(reactive ? "react" : "events")) return;     // already requested, still waiting for it to arrive or apply
             int count = reactive ? 1 : cfg.WorldEventsPerGeneration;
             var sys = new StringBuilder();
             sys.AppendLine(TEventGen.Format("count", count, "language", Lang, "min_len", cfg.WorldEventMinLength, "max_len", cfg.WorldEventMaxLength,
@@ -554,7 +551,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
                     if (reactive) _reactRetries = 0;
                     else
                     {
-                        // La agenda se consume al llegar la tanda. No cae como un reloj: el siguiente plazo varía entre el 60 % y el 140 % del ajuste
+                        // The schedule is consumed when the batch arrives. Not like clockwork: the next gap is 60% to 140% of the setting
                         double d = CampaignTime.Now.ToDays;
                         State.LastEventGenerationDay = d;
                         State.NextEventGenerationDay = d + S.Get.WorldEventsIntervalDays * (0.6 + Rng.NextDouble() * 0.8);
@@ -584,14 +581,14 @@ Write ONE development that follows directly from it: how the people, the nobles,
                     foreach (var p in eng.Properties())
                     {
                         var kg = FindKingdom(p.Name);
-                        if (kg == null || kg.Leader == Hero.MainHero) continue;      // el jugador habla cuando él quiere
+                        if (kg == null || kg.Leader == Hero.MainHero) continue;      // the player speaks when they want to
                         if (!e.Kingdoms.Contains(kg.StringId)) e.Kingdoms.Add(kg.StringId);
                         e.Engagement[kg.StringId] = Math.Max(0, Math.Min(100, (int?)p.Value ?? 0));
                     }
                 Publish(e);
                 if (x["economic_effects"] is JArray fx) foreach (var f in fx.OfType<JObject>().Take(4)) AddEffect(e, f);
                 if (x["clan_effects"] is JArray cfx) foreach (var f in cfx.OfType<JObject>().Take(2)) AddClanEffect(e, f);
-                // Lo que hay detrás del suceso y solo saben unos pocos
+                // What's behind the event, known only to a few
                 if (S.Get.StorySecrets && x["secret"] is JObject sec)
                     StorySecrets.Add(sec, e.Kingdoms.Select(FindKingdom).FirstOrDefault(k => k != null), "event");
                 if (x["disease"] is JObject dis) Diseases.FromEvent(dis);
@@ -606,14 +603,14 @@ Write ONE development that follows directly from it: how the people, the nobles,
             return s.Length > max ? s.Substring(0, max) : s;
         }
 
-        /// <summary>Guarda el evento y lo convierte en noticia (así lo conocen los NPC según su alcance).</summary>
+        /// <summary>Stores the event and turns it into news, so NPCs learn about it depending on their reach.</summary>
         public static void Publish(WorldEvent e)
         {
             State.Events.Add(e);
             while (State.Events.Count > 150) State.Events.RemoveAt(0);
             NewsStore.Add(new NewsItem
             {
-                Id = e.Id,      // los efectos guardan EventId = e.Id; Books los busca por el id de la noticia
+                Id = e.Id,      // effects store EventId = e.Id, and Books looks them up by the news id
                 Type = "event_" + e.Type, Importance = e.Importance, Text = string.IsNullOrWhiteSpace(e.SummaryEn) ? e.Title : e.SummaryEn,
                 TitleEs = e.Title, TextEs = e.Text, Kingdoms = e.Kingdoms.ToList(), SettlementId = e.Settlements.FirstOrDefault(),
             });
@@ -642,7 +639,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             if (clan == Clan.PlayerClan) Say(L.F("AIL_c81ffc1c", $"Tu clan lo nota: ingresos {pct:+0;-0} % mientras dure ({Clean((string)f["reason"], 120)})."), pct < 0 ? Colors.Red : Colors.Green);
         }
 
-        /// <summary>Cuánto suben o bajan ahora los precios del mercado de ese lugar por los sucesos en curso (0,25 = +25 %).</summary>
+        /// <summary>How much current events push that place's market prices up or down (0.25 = +25%).</summary>
         public static float PriceFactor(Settlement st)
         {
             if (st == null || State.Effects.Count == 0) return 0f;
@@ -654,7 +651,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             return Math.Max(-max, Math.Min(max, sum)) / 100f;
         }
 
-        /// <summary>Cuánto suben o bajan ahora los ingresos de ese clan por los sucesos en curso (0,2 = +20 %), y por qué.</summary>
+        /// <summary>How much current events push that clan's income up or down (0.2 = +20%), and why.</summary>
         public static float ClanIncomeFactor(Clan clan, out string reason)
         {
             reason = "";
@@ -710,21 +707,21 @@ Write ONE development that follows directly from it: how the people, the nobles,
                 TickFatigue();
                 Diplomacy.OnDailyTick(now);
 
-                // Tanda «de fondo»: lo que se cuece aunque no haya pasado nada sonado. Las reacciones a sucesos reales van aparte (TryReact).
+                // Background batch: things brewing even when nothing big happened. Reactions to real events are separate (TryReact).
                 if (Enabled && cfg.BackgroundEvents)
                 {
                     if (State.NextEventGenerationDay < 0 || State.NextEventGenerationDay - now > cfg.WorldEventsIntervalDays * 2)
-                        State.NextEventGenerationDay = now + 2;      // la primera, a los dos días
+                        State.NextEventGenerationDay = now + 2;      // first one after two days
                     else if (now >= State.NextEventGenerationDay) GenerateEvents();
                 }
             }
             catch (Exception ex) { Log.Error("[mundo] tick diario", ex); }
         }
 
-        // ---- efectos diarios dentro de la cuenta del juego (ver Patches\TownEffectsPatch.cs)
+        // ---- daily effects inside the game's own calculation (see Patches\TownEffectsPatch.cs)
         public const int StatProsperity = 0, StatFood = 1, StatSecurity = 2, StatLoyalty = 3;
-        // Último día en que el juego pidió cada cuenta pasando por nuestro enganche. Si deja de pasar (otro mod ha cambiado
-        // el modelo), los efectos vuelven a sumarse a mano para no perderse.
+        // Last day the game ran each calculation through our hook. If it stops (another mod replaced the model),
+        // the effects are added by hand again so they aren't lost.
         private static readonly double[] ModelDay = { -1, -1, -1, -1 };
 
         public static void ModelSeen(int stat)
@@ -732,14 +729,14 @@ Write ONE development that follows directly from it: how the people, the nobles,
             try { if (stat >= 0 && stat < 4 && Campaign.Current != null) ModelDay[stat] = CampaignTime.Now.ToDays; } catch { }
         }
 
-        /// <summary>¿La cuenta de ese valor está pasando por el juego (y por tanto ya incluye nuestros efectos)?</summary>
+        /// <summary>Whether the game's calculation for that stat goes through our hook (so it already includes our effects).</summary>
         private static bool ViaModel(int stat, double now)
         {
-            if (ModelDay[stat] < 0) { ModelDay[stat] = now; return true; }      // primer día de la sesión: se da por bueno
+            if (ModelDay[stat] < 0) { ModelDay[stat] = now; return true; }      // first day of the session: assume yes
             return now - ModelDay[stat] < 2.0;
         }
 
-        /// <summary>Las cuatro cuentas pasan por el juego: las leyes no hay que sumarlas a mano.</summary>
+        /// <summary>All four calculations go through the game, so laws don't need adding by hand.</summary>
         public static bool LawsViaModel()
         {
             try
@@ -750,7 +747,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             catch { return false; }
         }
 
-        /// <summary>Lo que sucesos y leyes suman o restan hoy a ese valor de esa ciudad o castillo, con su motivo.</summary>
+        /// <summary>What events and laws add to or take from that stat of the town or castle today, with the reason.</summary>
         public static List<(float value, string label)> TownModifiers(Town town, int stat)
         {
             var list = new List<(float, string)>();
@@ -785,28 +782,28 @@ Write ONE development that follows directly from it: how the people, the nobles,
             foreach (var fx in State.Effects.ToList())
             {
                 if (now >= fx.UntilDay) { State.Effects.Remove(fx); continue; }
-                if (!string.IsNullOrEmpty(fx.ClanId)) continue;      // los de clan no se aplican día a día: actúan sobre sus ingresos
+                if (!string.IsNullOrEmpty(fx.ClanId)) continue;      // clan effects aren't daily, they act on income
                 var st = Settlement.Find(fx.SettlementId);
                 if (st == null) { State.Effects.Remove(fx); continue; }
                 try
                 {
                     if (st.Town != null)
                     {
-                        // Lo normal es que estos efectos ya vayan dentro de la cuenta diaria del juego (y se vean en su desglose).
-                        // Solo se suman a mano los que hayan dejado de pasar por ahí.
+                        // Normally these effects are already part of the game's daily calculation (and show in its breakdown).
+                        // Only add by hand the ones that stopped going through it.
                         if (!ViaModel(StatProsperity, now)) st.Town.Prosperity = Math.Max(0f, st.Town.Prosperity + fx.ProsperityPerDay);
                         if (!ViaModel(StatFood, now)) st.Town.FoodStocks = Math.Max(0f, st.Town.FoodStocks + fx.FoodPerDay);
                         if (!ViaModel(StatSecurity, now)) st.Town.Security = Math.Max(0f, Math.Min(100f, st.Town.Security + fx.SecurityPerDay));
                         if (!ViaModel(StatLoyalty, now)) st.Town.Loyalty = Math.Max(0f, Math.Min(100f, st.Town.Loyalty + fx.LoyaltyPerDay));
                     }
                     else if (st.Village != null)
-                        st.Village.Hearth = Math.Max(10f, st.Village.Hearth + fx.ProsperityPerDay);   // en aldeas, la prosperidad son los hogares
+                        st.Village.Hearth = Math.Max(10f, st.Village.Hearth + fx.ProsperityPerDay);   // for villages, prosperity means hearths
                 }
                 catch (Exception ex) { Log.Error("[mundo] efecto económico", ex); State.Effects.Remove(fx); }
             }
         }
 
-        /// <summary>Para la ventana de noticias: los efectos en curso de ese evento, dichos en claro («Prosperidad −2 al día, quedan 14 días»).</summary>
+        /// <summary>For the news window: that event's current effects in plain words ("Prosperity -2 per day, 14 days left").</summary>
         public static string EffectsLineEs(string newsId, string settlementId, string type)
         {
             try
@@ -836,7 +833,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             catch { return ""; }
         }
 
-        /// <summary>Para el prompt de un NPC: qué pasa en su asentamiento por culpa de un evento.</summary>
+        /// <summary>For an NPC's prompt: what's happening in their settlement because of an event.</summary>
         public static string DescribeEffectsAt(Settlement st)
         {
             if (st == null) return "";
@@ -857,7 +854,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             }
         }
 
-        /// <summary>Un impuesto extra de la corona da más oro (parche de Harmony) y, a cambio, desgasta la lealtad y la prosperidad.</summary>
+        /// <summary>An extra crown tax gives more gold (Harmony patch) and wears down loyalty and prosperity in return.</summary>
         private static void ApplyTaxPressure()
         {
             foreach (var kv in State.KingdomTaxPercent.ToList())
@@ -884,7 +881,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             catch { return 1f; }
         }
 
-        // ============================================================ cansancio de guerra
+        // ============================================================ war fatigue
 
         public static void AddFatigue(Kingdom k, float amount)
         {

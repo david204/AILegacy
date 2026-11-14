@@ -333,7 +333,7 @@
     <string id="AIL_44de911b" text="社会" />
     <string id="AIL_4514967a" text="，所属家族： " />
     <string id="AIL_454cbf99" text="{0} 投降了：{1} 名士兵成为你的俘虏。" />
-    <string id="AIL_454f39f4" text="服务商按顺序（1、2、3、4）依次尝试：如果第一个失败或额度用尽，就换下一个。密钥保存在“文档”中的 Mount and Blade II Bannerlord / Configs / ModSettings，而不是模组文件夹。" />
+    <string id="AIL_454f39f4" text="服务商按顺序（1 到 6）依次尝试：如果第一个失败或额度用尽，就换下一个。1 到 4 号已按 Gemini、OpenAI、DeepSeek 和 Ollama 预先填好作为示例：填入你的密钥并启用，或随意修改。密钥保存在“文档”中的 Mount and Blade II Bannerlord / Configs / ModSettings，而不是模组文件夹。" />
     <string id="AIL_458e1b5a" text="每次决策是对每一方向AI发出的一次请求。如果一方突然损失大量人手，会提前决策。" />
     <string id="AIL_45d4f33e" text="每批守卫数" />
     <string id="AIL_463eb3a3" text="无标题" />
@@ -464,7 +464,7 @@
     <string id="AIL_5da6bc58" text="军队（加入你的军队、召集自己的军队、离开）" />
     <string id="AIL_5dca951d" text="描述（NPC将会读到的内容；最好用英文，但任何语言都可以）" />
     <string id="AIL_5de8b992" text="&#10;相关人物： " />
-    <string id="AIL_5e0df453" text="与OpenAI兼容的基础地址，例如 https://mi-servidor/v1。已知服务会自动填写。" />
+    <string id="AIL_5e0df453" text="与OpenAI兼容的基础地址，末尾不要加 /chat/completions（模组会自动添加），例如 https://my-server/v1。已知服务会自动填写。" />
     <string id="AIL_5e2efb51" text="从文件恢复" />
     <string id="AIL_5e479046" text="情绪： " />
     <string id="AIL_5e55369d" text="同时爆发的最大数量" />
@@ -1313,7 +1313,11 @@
     <string id="AIL_d4b8a2f7" text="取决于话题的动作（命令、贸易、王国）只在相关时才完整说明；其余的只在一行里列出名称，仍然可用。每句话都能节省 token。需要“按含义回忆”的向量。" />
     <string id="AIL_d4b8a2f8" text="完整说明的动作数" />
     <string id="AIL_d4b8a2f9" text="向量模型（留空 = 自动）" />
-    <string id="AIL_d4b8a2fa" text="留空：Gemini 用 gemini-embedding-001，OpenAI 用 text-embedding-3-small，Ollama 用 nomic-embed-text。只有当你的服务商使用其他名称时才填写。" />
+    <string id="AIL_d4b8a2fa" text="用于没有单独填写向量模型、且模组不认识其服务的服务商。留空：Gemini 用 gemini-embedding-001，OpenAI 用 text-embedding-3-small，GLM 用 embedding-3，Ollama 用 nomic-embed-text；DeepSeek 和 Groq 不提供向量。只有当你的服务商使用其他名称时才填写。" />
+    <string id="AIL_e7b1c4d1" text="向量模型（留空 = 自动，- = 不用）" />
+    <string id="AIL_e7b1c4d2" text="该服务商用于按含义回忆（向量）的模型。留空：使用该服务的常用模型（GLM 为 embedding-3），否则使用“4. 记忆”中的设置。填 - 表示永远不向该服务商请求向量。" />
+    <string id="AIL_e7b1c4d5" text="服务商 5" />
+    <string id="AIL_e7b1c4d6" text="服务商 6" />
     <string id="AIL_e5c9b3a1" text="消息" />
     <string id="AIL_e5c9b3a2" text="回忆" />
     <string id="AIL_e5c9b3a3" text="确认" />

@@ -9,8 +9,8 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Lo que un personaje puede HACER en una escena además de hablar (lo decide la IA en la conversación de grupo):
-    /// acompañarte, quedarse, guiarte hasta alguien, llamar a alguien para que venga, o marcharse.
+    /// What a character can do in a scene besides talking (follow you, guide you to someone, call someone over, leave...).
+    /// The AI picks the action in group conversations.
     /// </summary>
     internal static class SceneActions
     {
@@ -21,18 +21,17 @@ namespace AILegacy.Dialogue
         private static readonly List<Guide> Guides = new List<Guide>();
         private static readonly List<Call> Calls = new List<Call>();
         private static Mission _mission;
-        // Arrestos de un personaje por otro: quién va a la mazmorra al acabar la escena, y quién desaparece de ella ahora
+        // NPC-on-NPC arrests: who goes to the dungeon when the scene ends, and who fades out of the scene now
         private static readonly List<(TaleWorlds.CampaignSystem.Hero who, TaleWorlds.CampaignSystem.Settlements.Settlement where)> Jail = new List<(TaleWorlds.CampaignSystem.Hero, TaleWorlds.CampaignSystem.Settlements.Settlement)>();
         private static readonly List<(Agent who, float left)> Leaving = new List<(Agent, float)>();
 
-        /// <summary>Partida nueva o cargada: nada pendiente de la anterior (sobre todo, nadie por encerrar).</summary>
+        /// <summary>New or loaded save: drop anything pending from the previous one, above all queued arrests.</summary>
         public static void ResetSession()
         {
             Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear();
             _mission = null;
         }
 
-        /// <summary>Lista para la IA de lo que se puede hacer.</summary>
         public const string Help =
 @"""action"" is what the speaker DOES besides speaking, or """" for nothing. Use one only when the talk really leads to it:
  - ""follow"": walks along with {player} from now on (they were asked to come along and agree).
@@ -48,7 +47,7 @@ namespace AILegacy.Dialogue
 
         private static void Say(string msg) => InformationManager.DisplayMessage(new InformationMessage(msg, Colors.Gray));
 
-        /// <summary>¿Lo tenemos ocupado (siguiéndote, guiando, viniendo)? Entonces no se pone a charlar por su cuenta.</summary>
+        /// <summary>Following, guiding or walking over. Busy agents don't start chatting on their own.</summary>
         public static bool Busy(Agent a) => Followers.Contains(a) || Guides.Any(g => g.Who == a) || Calls.Any(c => c.Who == a);
 
         private static void Sync()
@@ -59,7 +58,7 @@ namespace AILegacy.Dialogue
             SceneMove.Forget(); Gestures.Forget();
         }
 
-        /// <summary>Aplica la acción que acompaña a una frase. Devuelve true si el personaje sale de la conversación.</summary>
+        /// <summary>Applies the action attached to a line. Returns true if the character leaves the conversation.</summary>
         public static bool Apply(Agent who, string action, List<Agent> elsewhere, string line = null)
         {
             try
@@ -165,7 +164,7 @@ namespace AILegacy.Dialogue
                     }
                     case "arrest":
                     {
-                        // Un guardia de servicio, o quien manda en el lugar, se lleva preso a OTRO personaje presente
+                        // A guard on duty or the local lord takes some other present character (never the player) to the cells
                         var st = TaleWorlds.CampaignSystem.Settlements.Settlement.CurrentSettlement;
                         var wc = who.Character as TaleWorlds.CampaignSystem.CharacterObject;
                         if (st == null || wc == null || !S.Get.AllowNpcArrests || (!st.IsTown && !st.IsCastle)) return false;
@@ -178,7 +177,7 @@ namespace AILegacy.Dialogue
                                                            .FirstOrDefault(x => string.Equals(x.Name, arg, StringComparison.OrdinalIgnoreCase) || (arg.Length > 2 && x.Name.IndexOf(arg, StringComparison.OrdinalIgnoreCase) >= 0));
                         var th = (target?.Character as TaleWorlds.CampaignSystem.CharacterObject)?.HeroObject;
                         if (th == null || th.IsChild || th == TaleWorlds.CampaignSystem.Hero.MainHero || th.Clan == TaleWorlds.CampaignSystem.Clan.PlayerClan) return false;
-                        // A quien manda aquí no se le arresta en su propia casa
+                        // Nobody arrests the lord in his own seat
                         if (th == st.OwnerClan?.Leader || (st.MapFaction is TaleWorlds.CampaignSystem.Kingdom k3 && k3.Leader == th)) return false;
                         if (Jail.Any(j => j.who == th)) return false;
                         var led = th.PartyBelongedTo;
@@ -190,7 +189,7 @@ namespace AILegacy.Dialogue
                         Log.Info($"[escena] {who.Name} detiene a {th.Name} en {st.Name}. Motivo dicho: {line}");
                         try
                         {
-                            // El detenido no olvida quién le señaló
+                            // The prisoner remembers who pointed the finger
                             var tm = Memory.MemoryStore.Get(th.StringId, th.Name.ToString());
                             string you = tm.KnownPlayerName ?? "a stranger";
                             tm.Turns.Add(new Memory.ChatTurn { Role = "player", Day = TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, Text = $"[What happened: in front of everyone, {you} accused you, and {who.Name} arrested you and threw you into the cells of {st.Name}.]" });
@@ -221,10 +220,10 @@ namespace AILegacy.Dialogue
             return false;
         }
 
-        // Corro: cada uno camina hasta su sitio alrededor de ti y se queda mirándote
+        // Group ring: each member walks to a spot around the player and faces them
         private static readonly List<(Agent who, Vec2 slot, float left)> Ring = new List<(Agent, Vec2, float)>();
 
-        /// <summary>Los del grupo se colocan en semicírculo delante de ti, a un par de pasos, y te miran (quien está sentado u ocupado se queda donde está).</summary>
+        /// <summary>Puts the group in a half circle a couple of steps in front of the player, facing them. Anyone seated or busy stays put.</summary>
         public static void Arrange(List<Agent> members)
         {
             try
@@ -239,10 +238,10 @@ namespace AILegacy.Dialogue
                 if (front.Length < 0.01f) front = new Vec2(0f, 1f);
                 front = front.Normalized();
                 float baseAngle = (float)Math.Atan2(front.y, front.x);
-                // De izquierda a derecha según donde ya están, para que no se crucen al colocarse
+                // Sort left to right by current position so they don't cross paths
                 var left = new Vec2(-front.y, front.x);
                 free = free.OrderByDescending(a => Vec2.DotProduct(a.Position.AsVec2 - me.Position.AsVec2, left)).ToList();
-                float spread = free.Count == 1 ? 0f : Math.Min(2.4f, 0.75f * (free.Count - 1));      // abanico total, en radianes
+                float spread = free.Count == 1 ? 0f : Math.Min(2.4f, 0.75f * (free.Count - 1));      // total fan width, radians
                 float radius = free.Count <= 2 ? 1.9f : 2.3f;
                 for (int i = 0; i < free.Count; i++)
                 {
@@ -260,7 +259,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Colocar el corro", ex); }
         }
 
-        /// <summary>Ese personaje se acerca a ti (sin avisos): para quien se suma a la conversación.</summary>
+        /// <summary>Walks the agent over to the player with no message. Used when someone joins the conversation.</summary>
         public static void Summon(Agent a)
         {
             try
@@ -276,7 +275,7 @@ namespace AILegacy.Dialogue
         {
             try
             {
-                // Detenidos: salen de la escena a los pocos segundos y, ya fuera de ella, quedan presos de verdad
+                // Arrested heroes fade out after a few seconds and are jailed for real once the mission is over
                 for (int i = Leaving.Count - 1; i >= 0; i--)
                 {
                     var l = Leaving[i];
@@ -326,7 +325,7 @@ namespace AILegacy.Dialogue
                     float toPlayer = g.Who.Position.Distance(me);
                     if (g.Who.Position.Distance(g.To.Position) <= 3.5f)
                     {
-                        // Ha llegado; espera a que llegues tú también
+                        // Arrived, now wait for the player
                         if (!g.Waiting) { g.Waiting = true; SceneMove.Release(g.Who); try { g.Who.SetLookAgent(Agent.Main); } catch { } }
                         if (toPlayer <= 5f)
                         {
@@ -336,7 +335,7 @@ namespace AILegacy.Dialogue
                         }
                         continue;
                     }
-                    // Si te quedas atrás, se para y te espera; cuando te acercas, sigue
+                    // Stop and wait if the player falls behind, carry on once they catch up
                     if (!g.Waiting && toPlayer > 10f) { g.Waiting = true; SceneMove.Release(g.Who); try { g.Who.SetLookAgent(Agent.Main); } catch { } }
                     else if (g.Waiting && toPlayer <= 5f) { g.Waiting = false; try { g.Who.SetLookAgent(null); } catch { } SceneMove.GoTo(g.Who, g.To); }
                 }

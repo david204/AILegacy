@@ -11,13 +11,13 @@ using TaleWorlds.CampaignSystem;
 namespace AILegacy.Prompt
 {
     /// <summary>
-    /// Una plantilla de instrucciones editable. El texto por defecto vive en el código; al cargar una campaña
-    /// se copia a save_data\[campaña]\prompts\[carpeta]\[archivo].txt y desde entonces manda el archivo.
-    /// Los huecos van entre llaves: {npc_name}, {language}…
+    /// Editable prompt template. The default text lives in code. When a campaign loads it gets copied to
+    /// save_data\[campaign]\prompts\[folder]\[file].txt, and from then on the file wins.
+    /// Placeholders go in braces: {npc_name}, {language}...
     /// </summary>
     internal class Tpl
     {
-        public readonly string Key;       // "rules/dialogue_rules.txt"
+        public readonly string Key;       // e.g. "rules/dialogue_rules.txt"
         public readonly string Default;
         private string _cached;
         private string _cachedPath;
@@ -31,7 +31,7 @@ namespace AILegacy.Prompt
             Templates.Register(this);
         }
 
-        /// <summary>El texto vigente (el archivo de la campaña si existe; si no, el de fábrica).</summary>
+        /// <summary>Current text: the campaign file if it exists, otherwise the default. The file is re-checked every 2 seconds.</summary>
         public string Text
         {
             get
@@ -48,7 +48,7 @@ namespace AILegacy.Prompt
                     if (_cached == null || _cachedPath != path || stamp != _cachedStamp)
                     {
                         var text = File.ReadAllText(path, Encoding.UTF8).Replace("\r\n", "\n").Trim('\n', ' ', '﻿');
-                        _cached = text.Length == 0 ? Default : text;   // archivo vacío = volver al de fábrica
+                        _cached = text.Length == 0 ? Default : text;   // empty file means use the default
                         _cachedPath = path; _cachedStamp = stamp;
                     }
                     return _cached;
@@ -57,7 +57,7 @@ namespace AILegacy.Prompt
             }
         }
 
-        /// <summary>Rellena los huecos: Format("npc_name", "Rhagaea", "language", "Spanish").</summary>
+        /// <summary>Fills placeholders from name/value pairs: Format("npc_name", "Rhagaea", "language", "Spanish").</summary>
         public string Format(params object[] pairs)
         {
             var sb = new StringBuilder(Text);
@@ -79,10 +79,9 @@ namespace AILegacy.Prompt
 
         public static Tpl Get(string key) { lock (All) return All.TryGetValue(key.Replace('\\', '/'), out var t) ? t : null; }
 
-        /// <summary>Todas las plantillas registradas (para el editor).</summary>
         public static List<Tpl> AllTemplates() { lock (All) return All.Values.OrderBy(t => t.Key, StringComparer.OrdinalIgnoreCase).ToList(); }
 
-        /// <summary>Plantilla creada sobre la marcha (acciones): la devuelve si existe o la registra.</summary>
+        /// <summary>For templates created at runtime (actions).</summary>
         public static Tpl GetOrAdd(string key, string defaultText) => Get(key) ?? new Tpl(key, defaultText);
 
         public static string PathFor(string key) => _campaignDir == null ? null : Path.Combine(_campaignDir, key.Replace('/', Path.DirectorySeparatorChar));
@@ -98,8 +97,8 @@ namespace AILegacy.Prompt
         }
 
         /// <summary>
-        /// Prepara la carpeta prompts de la campaña: crea los archivos que falten y actualiza los que el usuario
-        /// no ha tocado cuando el texto de fábrica ha cambiado con una versión nueva. Lo editado a mano no se pisa.
+        /// Sets up the campaign's prompts folder. Creates missing files and, when a new version changes a default, updates
+        /// the files the user never touched. Hand-edited files are left alone.
         /// </summary>
         public static void UseCampaign(string campaignId)
         {
@@ -132,7 +131,7 @@ namespace AILegacy.Prompt
                     if (fileHash == defHash) { manifest[t.Key] = defHash; continue; }
                     if (writtenHash != null && fileHash == writtenHash)
                     {
-                        // intacto desde que lo escribimos, pero el de fábrica ha mejorado: se actualiza
+                        // untouched since we wrote it, but the default changed: update it
                         File.WriteAllText(path, t.Default.Replace("\n", "\r\n"), new UTF8Encoding(false));
                         manifest[t.Key] = defHash; updated++;
                     }

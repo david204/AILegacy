@@ -12,36 +12,36 @@ using TaleWorlds.Library;
 
 namespace AILegacy.World
 {
-    /// <summary>Orden en el mapa que un NPC ha aceptado cumplir con su propio grupo.</summary>
+    /// <summary>A map order an NPC agreed to carry out with their own party.</summary>
     public class PartyOrder
     {
         [JsonProperty("hero")] public string HeroId;
         /// <summary>follow | goto | meet | wait | patrol | attack | besiege | raid</summary>
         [JsonProperty("type")] public string Type;
-        /// <summary>StringId del asentamiento o del grupo objetivo.</summary>
+        /// <summary>StringId of the target settlement or party.</summary>
         [JsonProperty("target")] public string TargetId;
         [JsonProperty("target_name")] public string TargetName;
         [JsonProperty("until")] public double UntilDay;
         [JsonProperty("arrived")] public bool Arrived;
-        /// <summary>Días que dura lo acordado una vez ha llegado (seguirte, esperarte).</summary>
+        /// <summary>Days the agreement lasts once they arrive (following you, waiting for you).</summary>
         [JsonProperty("stay")] public double StayDays;
-        /// <summary>Qué hacer al cumplirla: "follow" = volver junto al jugador.</summary>
+        /// <summary>What to do when done: "follow" = go back to the player.</summary>
         [JsonProperty("then")] public string Then;
-        /// <summary>Días que se queda en el sitio al llegar, antes de dar la orden por cumplida («ve a X y espera dos días»).</summary>
+        /// <summary>Days to stay on arrival before the order counts as done ("go to X and wait two days").</summary>
         [JsonProperty("wait")] public double WaitDays;
     }
 
     /// <summary>
-    /// Órdenes en el mapa: el NPC mueve su grupo como acordó (seguirte, ir a un sitio, esperar, patrullar,
-    /// atacar, asediar, saquear) hasta que la orden caduca o se cumple. Mientras dura, la IA del juego no decide por él.
+    /// Map orders: the NPC moves their party as agreed (follow you, go somewhere, wait, patrol, attack,
+    /// besiege, raid) until the order expires or is done. While it lasts, the game AI doesn't make decisions for them.
     /// </summary>
     internal static class OrderSystem
     {
         public static List<PartyOrder> Orders = new List<PartyOrder>();
 
-        // ============================================================ consultas
+        // ============================================================ queries
 
-        /// <summary>El grupo que este héroe manda (no vale el del jugador ni ir de pasajero).</summary>
+        /// <summary>The party this hero leads. Not the player's party, and not one they just ride along in.</summary>
         public static MobileParty PartyLedBy(Hero h)
         {
             var p = h?.PartyBelongedTo;
@@ -49,7 +49,7 @@ namespace AILegacy.World
             return p;
         }
 
-        /// <summary>Puede recibir órdenes: manda un grupo y no está atado a un ejército ajeno.</summary>
+        /// <summary>Leads a party and isn't tied to someone else's army.</summary>
         public static bool CanTakeOrders(Hero h)
         {
             if (!S.Get.EnableMapOrders || h == null || h.IsPrisoner || !h.IsAlive) return false;
@@ -60,7 +60,7 @@ namespace AILegacy.World
 
         public static PartyOrder Find(Hero h) => h == null ? null : Orders.FirstOrDefault(o => o.HeroId == h.StringId);
 
-        /// <summary>Para el prompt: qué ha prometido hacer con su grupo.</summary>
+        /// <summary>For the prompt: what they promised to do with their party.</summary>
         public static string Describe(Hero h)
         {
             var o = Find(h);
@@ -83,7 +83,7 @@ namespace AILegacy.World
             }
         }
 
-        // ============================================================ búsqueda de objetivos
+        // ============================================================ target lookup
 
         private static string Norm(string s) => new string((s ?? "").ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
 
@@ -98,7 +98,7 @@ namespace AILegacy.World
                    ?? all.FirstOrDefault(s => n.Contains(Norm(s.Name.ToString())) || Norm(s.Name.ToString()).Contains(n));
         }
 
-        /// <summary>Grupos enemigos del NPC que están cerca de él (para atacar).</summary>
+        /// <summary>Hostile parties near the NPC, nearest first (attack targets).</summary>
         public static List<MobileParty> HostilesNear(Hero h, int max = 6)
         {
             var result = new List<MobileParty>();
@@ -129,10 +129,9 @@ namespace AILegacy.World
                    ?? list.FirstOrDefault(p => p.LeaderHero != null && (n.Contains(Norm(p.LeaderHero.Name.ToString())) || Norm(p.LeaderHero.Name.ToString()).Contains(n)));
         }
 
-        // ============================================================ dar y quitar órdenes
+        // ============================================================ giving and cancelling orders
 
-        /// <summary>Da (o sustituye) la orden del héroe y la aplica ya. Devuelve false si no se puede.</summary>
-        /// <summary>Una partida amiga cercana por su nombre o el de su jefe (para escoltarla).</summary>
+        /// <summary>Nearest friendly party matching its name or its leader's name (escort target).</summary>
         public static MobileParty FindFriendlyParty(Hero h, string name)
         {
             try
@@ -156,13 +155,13 @@ namespace AILegacy.World
             days = Math.Max(0.5, Math.Min(cfg.OrderMaxDays, days));
             Cancel(h, silent: true);
             var o = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, UntilDay = CampaignTime.Now.ToDays + days, StayDays = days, Then = then, WaitDays = Math.Max(0, Math.Min(S.Get.OrderMaxDays, waitDays)) };
-            // Para acudir a tu lado o a una cita primero hay que llegar: el plazo de verdad empieza al llegar
+            // To join you or keep a meeting they have to get there first. The real deadline starts on arrival
             if (type == "follow") o.UntilDay = CampaignTime.Now.ToDays + Math.Max(days, cfg.OrderMaxDays);
             if (type == "meet") o.StayDays = cfg.OrderDefaultDays;
             Orders.Add(o);
             Log.Info($"Orden para {h.Name}: {type} {targetName} ({days:0.#} días)");
-            // Dentro de una escena no se mueve a su grupo (sacarlo del asentamiento mientras hablas con él rompe la escena):
-            // la orden empieza en el primer tick, cuando ya estás fuera.
+            // Don't move the party while inside a scene (pulling it out of the settlement while you talk breaks the scene).
+            // The order starts on the first tick after you leave.
             if (TaleWorlds.MountAndBlade.Mission.Current == null)
             {
                 try { Apply(o, h, PartyLedBy(h)); } catch (Exception ex) { Log.Error("Órdenes: aplicar", ex); }
@@ -198,7 +197,7 @@ namespace AILegacy.World
         private static double _lastHour = -1;
         private static readonly Dictionary<string, string> LastState = new Dictionary<string, string>();
 
-        /// <summary>Llamar a menudo: pasa el tick de órdenes una vez por hora de juego.</summary>
+        /// <summary>Call often. Runs the order tick once per game hour.</summary>
         public static void Pump()
         {
             if (Campaign.Current == null || Orders.Count == 0) return;
@@ -208,7 +207,7 @@ namespace AILegacy.World
             OnHourlyTick();
         }
 
-        /// <summary>Deja en el log qué está haciendo el grupo, solo cuando cambia (para diagnosticar órdenes atascadas).</summary>
+        /// <summary>Logs what the party is doing, only when it changes. Useful for debugging stuck orders.</summary>
         private static void Trace(PartyOrder o, Hero h, MobileParty p)
         {
             try
@@ -232,7 +231,7 @@ namespace AILegacy.World
                     var h = Hero.Find(o.HeroId);
                     if (h == null || h.IsDead) { Orders.Remove(o); continue; }
                     var p = PartyLedBy(h);
-                    // Derrotado, preso o sin grupo: lo acordado se queda sin hacer, y los dos lo saben
+                    // Defeated, captured or without a party: the deal is left undone, and both sides know it
                     if (p == null || h.IsPrisoner)
                     {
                         if (o.Type != "approach") Remember(h, h.IsPrisoner ? $"you were taken prisoner and could not do what you had agreed with them ({o.Type} {o.TargetName})"
@@ -240,7 +239,7 @@ namespace AILegacy.World
                         Release(o, h, o.Type == "approach" ? null : L.F("AIL_5e0b93a7", $"{h.Name} ya no puede cumplir lo que acordasteis: {(h.IsPrisoner ? L.T("AIL_91c2d4f6", "ha caído prisionero") : L.T("AIL_2f7a8b13", "se ha quedado sin partida"))}."));
                         continue;
                     }
-                    // El juego lo ha metido en el ejército de otro: no desaparece en silencio
+                    // The game pulled them into someone else's army: say so instead of dropping the order silently
                     if (p.Army != null && p.Army.LeaderParty != p && p.Army.LeaderParty != MobileParty.MainParty)
                     {
                         string boss = p.Army.LeaderParty?.LeaderHero?.Name?.ToString() ?? p.Army.Name?.ToString() ?? "?";
@@ -252,7 +251,7 @@ namespace AILegacy.World
                         && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction) && (o.Type == "follow" || o.Type == "meet"))
                     { Release(o, h, L.F("AIL_35617af2", $"{h.Name} ya no acude a tu llamada: ahora sois enemigos.")); continue; }
                     if (now >= o.UntilDay) { Done(o, h, EndText(o, h)); continue; }
-                    if (p.MapEvent != null) continue;                                                     // en plena batalla
+                    if (p.MapEvent != null) continue;                                                     // in a battle
                     Apply(o, h, p);
                     if (Orders.Contains(o)) Trace(o, h, p);
                 }
@@ -260,7 +259,7 @@ namespace AILegacy.World
             }
         }
 
-        /// <summary>Apunta en la memoria del personaje algo que le ha pasado con una orden, para que lo sepa la próxima vez que habléis.</summary>
+        /// <summary>Notes in the character's memory what happened with an order, so they know it next time you talk.</summary>
         private static void Remember(Hero h, string what)
         {
             try
@@ -272,7 +271,7 @@ namespace AILegacy.World
             catch { }
         }
 
-        /// <summary>La orden termina por las buenas (plazo cumplido, objetivo alcanzado o perdido). Si se acordó volver después, vuelve.</summary>
+        /// <summary>Normal end of an order (time's up, target reached or lost). If they agreed to come back afterwards, they do.</summary>
         private static void Done(PartyOrder o, Hero h, string message)
         {
             bool back = o.Then == "follow" && o.Type != "follow";
@@ -295,12 +294,12 @@ namespace AILegacy.World
                 case "meet": return o.Arrived ? L.F("AIL_b0a43892", $"{h.Name} se cansa de esperarte en {o.TargetName} y se marcha.") : L.F("AIL_5c3efc53", $"{h.Name} no ha podido llegar a {o.TargetName} y lo deja.");
                 case "wait": return L.F("AIL_645733f1", $"{h.Name} deja de esperar y vuelve a sus asuntos.");
                 case "patrol": return L.F("AIL_55479028", $"{h.Name} termina su patrulla en {o.TargetName}.");
-                case "approach": return null;      // no te alcanzó: lo deja sin más
+                case "approach": return null;      // never caught up with you, just drop it
                 default: return L.F("AIL_7cd9f263", $"{h.Name} vuelve a sus asuntos.");
             }
         }
 
-        /// <summary>Pone (o mantiene) al grupo haciendo lo acordado. Si la orden ya no tiene sentido, la termina.</summary>
+        /// <summary>Sets (or keeps) the party doing what was agreed. Ends the order if it no longer makes sense.</summary>
         private static void Apply(PartyOrder o, Hero h, MobileParty p)
         {
             var nav = p.IsCurrentlyAtSea ? p.NavigationCapability : MobileParty.NavigationType.Default;
@@ -326,7 +325,7 @@ namespace AILegacy.World
 
                 case "escort":
                 {
-                    // Escoltar a OTRA partida (una caravana, unos aldeanos, un pariente): cabalga a su lado
+                    // Escort ANOTHER party (a caravan, villagers, a relative) by riding alongside it
                     var ward = MobileParty.All.FirstOrDefault(x => x != null && x.StringId == o.TargetId);
                     if (ward == null || !ward.IsActive || ward.MapEvent != null && ward.MapEvent.HasWinner) { Release(o, h, L.F("AIL_49b6ffff", $"{h.Name} ya no tiene a quién escoltar y vuelve a sus asuntos.")); return; }
                     if (p.DefaultBehavior != AiBehavior.EscortParty || p.TargetParty != ward) p.SetMoveEscortParty(ward, nav, false);
@@ -336,7 +335,7 @@ namespace AILegacy.World
                 case "goto":
                 case "meet":
                     if (st == null) { Release(o, h, null); return; }
-                    // Ha llegado si está dentro o plantado en la puerta (hay sitios donde el grupo no llega a "entrar")
+                    // Arrived if inside or standing at the gate (in some places the party never actually "enters")
                     bool there = p.CurrentSettlement == st || p.GetPosition2D.Distance(st.GatePosition.ToVec2()) <= 2f;
                     if (there)
                     {
@@ -345,13 +344,13 @@ namespace AILegacy.World
                             o.Arrived = true;
                             if (o.Type == "meet")
                             {
-                                // empieza a contar la espera desde que llega
+                                // the wait starts counting on arrival
                                 o.UntilDay = CampaignTime.Now.ToDays + Math.Max(0.5, o.StayDays);
                                 Say(L.F("AIL_7d054e89", $"{h.Name} ha llegado a {st.Name} y te espera allí."));
                             }
                             else if (o.WaitDays > 0)
                             {
-                                // «Ve y espera N días»: se queda allí y el plazo cuenta desde que llega
+                                // "Go and wait N days": stays there, and the time counts from arrival
                                 o.UntilDay = CampaignTime.Now.ToDays + o.WaitDays;
                                 Say(L.F("AIL_c7a9d5e2", $"{h.Name} ha llegado a {st.Name} y se queda allí {o.WaitDays:0.#} día(s)."));
                             }
@@ -363,7 +362,7 @@ namespace AILegacy.World
                                 return;
                             }
                         }
-                        // quieto donde está: dentro se queda dentro, y en la puerta no entra y sale sin parar
+                        // hold in place: inside stays inside, and at the gate it doesn't keep going in and out
                         if (p.DefaultBehavior != AiBehavior.Hold) p.SetMoveModeHold();
                     }
                     else if (p.DefaultBehavior != AiBehavior.GoToSettlement || p.TargetSettlement != st)
@@ -407,7 +406,7 @@ namespace AILegacy.World
                     break;
 
                 case "approach":
-                    // Viene por su cuenta a hablar contigo: al llegar junto a tu grupo, pide la palabra
+                    // Coming over on their own to talk. Once next to your party, they ask to speak
                     if (p.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D) <= 3.5f)
                     {
                         Release(o, h, null);
@@ -424,9 +423,9 @@ namespace AILegacy.World
             }
         }
 
-        // ============================================================ ejércitos
+        // ============================================================ armies
 
-        /// <summary>El grupo del NPC entra en el ejército del jugador (lo crea si el jugador aún no tiene y puede).</summary>
+        /// <summary>The NPC's party joins the player's army. Creates the army if the player has none and is allowed to.</summary>
         public static string JoinPlayerArmy(Hero h)
         {
             var p = PartyLedBy(h);
@@ -449,7 +448,7 @@ namespace AILegacy.World
             return L.F("AIL_675de4ca", $"{h.Name} se une a tu ejército con {p.MemberRoster.TotalManCount} hombres.");
         }
 
-        /// <summary>El NPC reúne su propio ejército (la IA del juego lo dirige después).</summary>
+        /// <summary>The NPC gathers their own army. The game AI runs it afterwards.</summary>
         public static string FormOwnArmy(Hero h, Settlement target)
         {
             var p = PartyLedBy(h);
@@ -458,8 +457,8 @@ namespace AILegacy.World
             bool hostile = target != null && target.MapFaction != null && target.MapFaction.IsAtWarWith(k);
             var type = hostile ? (target.IsVillage ? Army.ArmyTypes.Raider : Army.ArmyTypes.Besieger)
                                : (target != null ? Army.ArmyTypes.Defender : Army.ArmyTypes.Patrolling);
-            // El asentamiento que recibe CreateArmy es el PUNTO DE REUNIÓN (Army.Gather), no el objetivo: nunca se reúne el
-            // ejército a las puertas del enemigo. Con objetivo hostil (o sin objetivo) se junta en la plaza propia más cercana.
+            // The settlement passed to CreateArmy is the GATHERING POINT (Army.Gather), not the target. Never gather at
+            // the enemy's gates: with a hostile target (or none) use the nearest friendly fortification.
             Settlement gather = hostile || target == null ? null : target;
             if (gather == null)
             {

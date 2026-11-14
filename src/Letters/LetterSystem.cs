@@ -19,8 +19,8 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Letters
 {
     /// <summary>
-    /// Cartas por mensajero. Tú las envías desde el distrito de tabernas (coste y tiempo según la distancia);
-    /// los NPC con los que tienes historia te escriben por su cuenta. Todo viaja: nada llega al instante.
+    /// Letters by messenger. The player sends them from the town backstreet menu (cost and travel time depend on distance),
+    /// and NPCs with some history write on their own. Every letter travels, nothing arrives instantly.
     /// </summary>
     internal static class LetterSystem
     {
@@ -29,10 +29,10 @@ namespace AILegacy.Letters
         private static bool _generating;
         private static bool _showing;
 
-        /// <summary>Partida nueva, cargada o importada: ni cartas por enseñar ni generaciones a medias de la anterior.</summary>
+        /// <summary>New, loaded or imported save: drop queued letters and half-finished generations from the previous one.</summary>
         public static void ResetSession() { ToShow.Clear(); _generating = false; _showing = false; }
 
-        // ============================================================ menú de la taberna
+        // ============================================================ backstreet menu
 
         public static void AddMenu(CampaignGameStarter starter)
         {
@@ -47,7 +47,7 @@ namespace AILegacy.Letters
 
         private static void PickRecipient()
         {
-            // Solo a quien conoces: has hablado con él (AI Legacy) o el juego dice que os conocéis
+            // Only people you know: you've talked to them in AI Legacy, or the game says you've met
             var heroes = Hero.AllAliveHeroes
                 .Where(h => h != Hero.MainHero && !h.IsChild && h.PartyBelongedTo != MobileParty.MainParty)
                 .Select(h => (h, known: MemoryStore.Find(h.StringId)))
@@ -74,7 +74,7 @@ namespace AILegacy.Letters
                 sel => { if (sel?.Count > 0) MainThread.Post(() => Compose((Hero)sel[0].Identifier)); }, null, "", true), true);
         }
 
-        /// <param name="reply">Contestas a una carta que acabas de recibir: el mensajero que la trajo lleva la respuesta, sin cobrar.</param>
+        /// <param name="reply">Answering a letter you just got. The messenger who brought it carries the reply for free.</param>
         private static void Compose(Hero hero, bool reply = false)
         {
             var (cost, hours) = Quote(hero);
@@ -102,7 +102,7 @@ namespace AILegacy.Letters
                 null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
 
-        // ============================================================ distancia, coste y tiempo
+        // ============================================================ distance, cost, travel time
 
         private static Vec2? WhereIs(Hero h)
         {
@@ -122,7 +122,7 @@ namespace AILegacy.Letters
             var a = WhereIs(Hero.MainHero); var b = WhereIs(h);
             float dist = a.HasValue && b.HasValue ? a.Value.Distance(b.Value) : 50f;
             var cfg = S.Get;
-            int cost = (int)Math.Round(dist * cfg.MessengerCostPerDistance / 10.0) * 10; // redondeado a decenas
+            int cost = (int)Math.Round(dist * cfg.MessengerCostPerDistance / 10.0) * 10; // rounded to tens
             double hours = Math.Max(2, dist * cfg.MessengerHoursPerDistanceX10 / 10.0);
             return (Math.Max(0, cost), hours);
         }
@@ -134,9 +134,8 @@ namespace AILegacy.Letters
             return days < 1.5 ? L.T("AIL_7278010d", "un día") : L.F("AIL_2003bc66", $"unos {(int)Math.Round(days)} días");
         }
 
-        // ============================================================ tiempo de juego
+        // ============================================================ campaign ticks
 
-        /// <summary>Cada hora: entrega cartas que han llegado.</summary>
         public static void OnHourlyTick()
         {
             try
@@ -155,7 +154,7 @@ namespace AILegacy.Letters
             catch (Exception ex) { Log.Error("Cartas: tick horario", ex); }
         }
 
-        /// <summary>La carta del jugador llega: el NPC la lee y contesta; la respuesta viaja de vuelta.</summary>
+        /// <summary>The player's letter arrives. The NPC reads it and writes back, and the reply travels too.</summary>
         private static void Deliver(Hero hero, string text)
         {
             var mem = MemoryStore.Get(hero.StringId, hero.Name.ToString());
@@ -167,7 +166,7 @@ namespace AILegacy.Letters
             Generate(hero, true);
         }
 
-        /// <summary>Cada día: alguien con historia contigo puede escribirte por su cuenta.</summary>
+        /// <summary>Once a day, someone with history with the player may write to them unprompted.</summary>
         public static void OnDailyTick()
         {
             try
@@ -249,14 +248,13 @@ namespace AILegacy.Letters
                     ChatSession.AddNote(mem, remember, S.Get.MaxNotesPerHero, s.Name);
                     Bonds.Touch(mem);
 
-                    // Lo que decide hacer al leer tu carta (acudir, quedar en un sitio, marchar...) empieza ya
+                    // Whatever they decide after reading your letter (come over, meet somewhere, march...) starts now
                     if (isReply && actions.Count > 0)
                     {
                         try { NpcActions.Execute(s, actions, new NpcActions.ActionContext { ViaLetter = true }); }
                         catch (Exception ex) { Log.Error("Cartas: acciones", ex); }
                     }
 
-                    // La carta viaja hasta ti
                     var (_, hours) = Quote(hero);
                     MemoryStore.Letters.Add(new PendingLetter { HeroId = hero.StringId, Text = letter, FromPlayer = false, ArriveDay = now + hours / 24.0 });
                     Log.Info($"{s.Name} escribe una carta ({(isReply ? "respuesta" : "por iniciativa propia")}); llegará en {hours:0} h");
@@ -265,9 +263,9 @@ namespace AILegacy.Letters
             });
         }
 
-        // ============================================================ mostrar cartas recibidas
+        // ============================================================ showing received letters
 
-        /// <summary>Llamar a menudo: enseña la siguiente carta cuando el jugador está en el mapa.</summary>
+        /// <summary>Call often. Shows the next letter once the player is free on the map.</summary>
         public static void TryShowPending()
         {
             if (_showing || ToShow.Count == 0) return;
@@ -276,10 +274,10 @@ namespace AILegacy.Letters
             if (ChatSession.IsBusy) return;
 
             var (hero, text) = ToShow.Dequeue();
-            text = (text ?? "").Replace("\\r\\n", "\n").Replace("\\n", "\n");      // cartas guardadas con el salto escrito
+            text = (text ?? "").Replace("\\r\\n", "\n").Replace("\\n", "\n");      // some letters were saved with literal "\n"
             _showing = true;
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
-            // Contestar ahí mismo (el mensajero espera) o darse por enterado
+            // Reply on the spot (the messenger waits) or just acknowledge
             bool canReply = CanWrite(hero);
             InformationManager.ShowInquiry(new InquiryData(
                 L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, canReply,

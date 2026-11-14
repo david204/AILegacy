@@ -12,18 +12,18 @@ using Microsoft.Web.WebView2.WinForms;
 namespace AILegacy.Web
 {
     /// <summary>
-    /// El editor de AI Legacy DENTRO del juego: un panel sin marco de ventana, encajado sobre la imagen del juego, que
-    /// pertenece a la ventana del juego (no sale en la barra de tareas, se mueve y se minimiza con ella) y se cierra con
-    /// su propia aspa o con Escape. Por dentro es la página que sirve EditorServer, dibujada con WebView2.
+    /// In-game editor: a borderless panel laid over the game image and owned by the game window, so it stays off the
+    /// taskbar and moves and minimizes with the game. Closes with its own X button or Escape. Inside it's the page served
+    /// by EditorServer, rendered with WebView2.
     /// </summary>
     internal static class EditorWindow
     {
         private static Form _form;
         private static Thread _thread;
 
-        // Cuánto del área del juego ocupa el panel
+        // Share of the game area the panel covers
         private const double WidthShare = 0.88, HeightShare = 0.90;
-        private const int Frame = 2;                                         // filete dorado alrededor
+        private const int Frame = 2;                                         // gold border width, px
         private static readonly Color Gold = Color.FromArgb(196, 160, 96);
         private static readonly Color Dark = Color.FromArgb(22, 18, 13);
 
@@ -55,13 +55,13 @@ namespace AILegacy.Web
             catch (Exception ex) { Log.Error("No se pudo abrir el editor", ex); }
         }
 
-        /// <summary>Cierra el panel si está abierto (al salir de la partida).</summary>
+        /// <summary>Closes the panel if it's open. Called when leaving the campaign.</summary>
         public static void Close()
         {
             try { var f = _form; if (f != null && !f.IsDisposed) f.BeginInvoke(new Action(f.Close)); } catch { }
         }
 
-        /// <summary>El rectángulo del panel, centrado sobre la imagen del juego. Sin ventana de juego: centrado en la pantalla.</summary>
+        /// <summary>Panel bounds, centered on the game image. Falls back to the screen center if there's no game window.</summary>
         private static Rectangle Place(IntPtr game)
         {
             try
@@ -93,7 +93,7 @@ namespace AILegacy.Web
                 var form = new Form
                 {
                     Text = L.T("AIL_a9672a5d", "AI Legacy — Editor"),
-                    FormBorderStyle = FormBorderStyle.None,        // sin marco ni barra de título: es un panel del juego
+                    FormBorderStyle = FormBorderStyle.None,        // no frame or title bar, it's meant to look like part of the game
                     StartPosition = FormStartPosition.Manual,
                     Bounds = Place(game),
                     BackColor = Gold,
@@ -105,7 +105,7 @@ namespace AILegacy.Web
                 var web = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Dark };
                 form.Controls.Add(web);
 
-                // La ventana del juego es su dueña: el panel queda siempre encima de ella y solo de ella
+                // Make the game window the owner, so the panel stays above the game and nothing else
                 form.HandleCreated += (s, e) =>
                 {
                     try { if (game != IntPtr.Zero && IsWindow(game)) SetWindowLongPtr(form.Handle, GWLP_HWNDPARENT, game); }
@@ -113,7 +113,7 @@ namespace AILegacy.Web
                 };
                 form.KeyDown += (s, e) => { if (e.KeyCode == Keys.Escape) form.Close(); };
 
-                // Sigue a la ventana del juego si se mueve o cambia de tamaño
+                // Follow the game window when it moves or resizes
                 var follow = new System.Windows.Forms.Timer { Interval = 300 };
                 follow.Tick += (s, e) =>
                 {
@@ -139,7 +139,7 @@ namespace AILegacy.Web
                         web.CoreWebView2.Settings.AreDevToolsEnabled = false;
                         web.CoreWebView2.Settings.IsStatusBarEnabled = false;
                         web.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
-                        // La página pide cerrarse (su aspa o la tecla Escape)
+                        // The page posts "close" from its X button or Escape
                         web.CoreWebView2.WebMessageReceived += (ws, we) =>
                         {
                             try { if (we.TryGetWebMessageAsString() == "close") form.BeginInvoke(new Action(form.Close)); } catch { }
@@ -159,7 +159,7 @@ namespace AILegacy.Web
                 {
                     _form = null;
                     try { follow.Stop(); follow.Dispose(); } catch { }
-                    // El foco vuelve al juego
+                    // Give focus back to the game
                     try { if (game != IntPtr.Zero && IsWindow(game)) SetForegroundWindow(game); } catch { }
                 };
                 _form = form;

@@ -12,9 +12,7 @@ using TaleWorlds.CampaignSystem.TournamentGames;
 
 namespace AILegacy.Patches
 {
-    // ================================================================ cuarentena
-
-    /// <summary>Las caravanas no eligen como destino una ciudad en cuarentena.</summary>
+    /// <summary>Caravans don't pick a quarantined town as their destination.</summary>
     [HarmonyPatch(typeof(CaravansCampaignBehavior), "GetTradeScoreForTown")]
     internal static class QuarantineCaravanPatch
     {
@@ -25,7 +23,7 @@ namespace AILegacy.Patches
         }
     }
 
-    /// <summary>Los aldeanos no salen a vender si su aldea o su ciudad de mercado están en cuarentena.</summary>
+    /// <summary>Villagers don't go out to sell if their village or its market town is quarantined.</summary>
     [HarmonyPatch(typeof(VillagerCampaignBehavior), "ThinkAboutSendingItemToTown")]
     internal static class QuarantineVillagerSendPatch
     {
@@ -50,7 +48,7 @@ namespace AILegacy.Patches
         }
     }
 
-    /// <summary>En una ciudad en cuarentena no se convoca torneo (el que ya esté en marcha sigue su curso).</summary>
+    /// <summary>No new tournaments in a quarantined town. One already running carries on.</summary>
     [HarmonyPatch(typeof(TournamentCampaignBehavior), "ConsiderStartOrEndTournament")]
     internal static class QuarantineTournamentPatch
     {
@@ -65,9 +63,7 @@ namespace AILegacy.Patches
         }
     }
 
-    // ================================================================ destierro
-
-    /// <summary>Un clan desterrado no vuelve al reino que lo echó hasta ser perdonado.</summary>
+    /// <summary>A banished clan can't rejoin the kingdom that expelled it until it's pardoned.</summary>
     [HarmonyPatch(typeof(ChangeKingdomAction))]
     internal static class BanishedReturnPatch
     {
@@ -81,7 +77,7 @@ namespace AILegacy.Patches
         private static bool Mercenary(Clan clan, Kingdom newKingdom) => Banished.AllowJoin(clan, newKingdom);
     }
 
-    /// <summary>La expulsión votada en el propio juego también es un destierro.</summary>
+    /// <summary>An expulsion voted through the game's own kingdom decision also counts as a banishment.</summary>
     [HarmonyPatch(typeof(ExpelClanFromKingdomDecision), nameof(ExpelClanFromKingdomDecision.ApplyChosenOutcome))]
     internal static class BanishedByVotePatch
     {
@@ -102,11 +98,9 @@ namespace AILegacy.Patches
         }
     }
 
-    // ================================================================ guardas del juego
-
     /// <summary>
-    /// El juego disuelve (y mata a sus miembros) a un clan sin reino ni tierras al cabo de un tiempo. No lo hace con un clan
-    /// desterrado, que puede ser perdonado, ni con uno donde hay gente con la que has tratado.
+    /// After a while the game disbands a clan with no kingdom and no fiefs, and kills its members. Skip that for a banished
+    /// clan (it can still be pardoned) and for clans with someone the player has talked to.
     /// </summary>
     [HarmonyPatch(typeof(FactionDiscontinuationCampaignBehavior), "DiscontinueClan")]
     internal static class KeepClanPatch
@@ -117,7 +111,7 @@ namespace AILegacy.Patches
         }
     }
 
-    /// <summary>Una pareja en la que uno de los dos no pertenece a ningún clan no concibe por la vía del juego (el hijo nacería sin casa).</summary>
+    /// <summary>A couple where one spouse has no clan can't conceive through the vanilla path (the child would be born clanless).</summary>
     [HarmonyPatch(typeof(PregnancyCampaignBehavior), "RefreshSpouseVisit")]
     internal static class ClanlessCouplePatch
     {

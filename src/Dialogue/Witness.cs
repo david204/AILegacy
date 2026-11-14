@@ -11,15 +11,14 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Testigos. Lo que haces a escondidas no lo sabe nadie: para que una agresión tenga consecuencias con tu nombre hace
-    /// falta que alguien vivo la haya visto, y para que te señalen por tu nombre hace falta que ese alguien sepa quién eres
-    /// (o que seas ya famoso). Si solo te han visto la cara, se busca a «un forastero armado», no a ti.
+    /// What nobody sees, nobody knows. An assault only has consequences under your name if someone alive saw it and
+    /// knows who you are (or you're already famous). If they only saw your face, they look for "an armed stranger".
     /// </summary>
     internal static class Witness
     {
         public class Result
         {
-            /// <summary>0 = nadie lo vio · 1 = te vieron, pero no saben quién eres · 2 = te han reconocido por tu nombre.</summary>
+            /// <summary>0 = nobody saw it, 1 = seen but not identified, 2 = recognized by name.</summary>
             public int Level;
             public int Count;
             public string ByWhom = "";
@@ -45,7 +44,7 @@ namespace AILegacy.Dialogue
             catch { return false; }
         }
 
-        /// <summary>Quién ha visto lo que acabas de hacerles a estos (los que sigan vivos también cuentan: te han visto la cara).</summary>
+        /// <summary>Who saw what the player just did to these victims. Victims still alive count too, they saw your face.</summary>
         public static Result Assess(IEnumerable<Agent> victims)
         {
             var r = new Result();
@@ -65,14 +64,14 @@ namespace AILegacy.Dialogue
                 }
                 r.Count = seen.Count;
                 if (r.Count == 0) return r;
-                // Famoso: a un noble de renombre lo reconoce cualquiera
+                // Everyone recognizes a famous noble
                 bool famous = Clan.PlayerClan != null && Clan.PlayerClan.Tier >= cfg.WitnessFameTier;
                 var knower = famous ? seen[0] : seen.FirstOrDefault(KnowsName);
                 r.Level = knower != null ? 2 : 1;
                 r.ByWhom = (knower ?? seen[0]).Name ?? "";
                 Log.Info($"[testigos] {r.Count} testigo(s); {(r.Level == 2 ? "te reconoce " + r.ByWhom : "nadie sabe tu nombre")}");
             }
-            catch (Exception ex) { Log.Error("Testigos", ex); r.Level = 2; r.Count = 1; }      // ante la duda, como antes
+            catch (Exception ex) { Log.Error("Testigos", ex); r.Level = 2; r.Count = 1; }      // on error, assume they were recognized
             return r;
         }
     }

@@ -19,39 +19,39 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Iniciativa: un NPC se dirige a ti sin que le hables. Primero se le pide a la IA su primera frase;
-    /// cuando llega, se abre la conversación del juego con él y esa frase es lo primero que dice.
-    ///  - En una escena (Start): la guardia tras una pelea, o cualquier NPC que deba acercarse.
-    ///  - En el mapa (StartMap): un noble que te conoce cabalga hasta ti y pide hablar.
+    /// An NPC starts talking to you on their own. The AI is asked for their opening line first.
+    /// Once it arrives, the game conversation opens and that line is the first thing they say.
+    ///  - In a scene (Start): the guard after a fight, or any NPC that should walk up.
+    ///  - On the map (StartMap): a noble who knows you rides up and asks to talk.
     /// </summary>
     internal static class Initiative
     {
         private class Approach
         {
             public Speaker Who;
-            public Agent Agent;           // escena
-            public Hero Hero;             // mapa
-            public string Reply;          // null = la IA aún está pensando
+            public Agent Agent;           // scene
+            public Hero Hero;             // map
+            public string Reply;          // null = AI still thinking
             public bool Failed;
-            public bool Asked;            // mapa: ya se ha preguntado al jugador si le recibe
-            public bool Hostile;          // mapa: un enemigo te ha dado alcance; no pide permiso, te corta el paso
-            public bool InParty;          // mapa: va en tu propia partida
+            public bool Asked;            // map: player was already asked whether to receive them
+            public bool Hostile;          // map: an enemy caught up and blocks your way, no asking
+            public bool InParty;          // map: in the player's own party
             public float Age;
-            public Action OnUnanswered;   // el jugador se fue o no se pudo abrir la charla
+            public Action OnUnanswered;   // player left or the conversation couldn't open
         }
 
         private static Approach _p;
 
         public static bool Busy => _p != null;
 
-        /// <summary>En una escena: el NPC (ya con su Situation puesta) prepara su primera frase y se acerca a hablar.</summary>
+        /// <summary>In a scene: the NPC (Situation already set) prepares an opening line and walks up to talk.</summary>
         public static bool Start(Agent agent, Speaker s, string openingInstruction, Action onUnanswered = null)
         {
             if (_p != null || agent == null || s == null) return false;
             return Begin(new Approach { Who = s, Agent = agent, OnUnanswered = onUnanswered }, openingInstruction);
         }
 
-        /// <summary>En el mapa: el noble ha llegado junto a tu grupo y quiere hablar.</summary>
+        /// <summary>On the map: the noble reached the player's party and wants to talk.</summary>
         public static bool StartMap(Hero hero, string openingInstruction, bool hostile = false)
         {
             if (_p != null || hero == null) return false;
@@ -100,10 +100,10 @@ namespace AILegacy.Dialogue
 
         public static void Cancel() { _p = null; }
 
-        /// <summary>Partida nueva, cargada o importada: nadie de la anterior sigue de camino a hablarte.</summary>
+        /// <summary>New, loaded or imported game: nobody from the previous one is still on their way to talk.</summary>
         public static void ResetSession() { _p = null; }
 
-        /// <summary>¿La conversación que se acaba de abrir es la de este acercamiento? (condición de la línea de diálogo)</summary>
+        /// <summary>Dialog line condition: is the conversation that just opened this approach?</summary>
         public static bool Matches()
         {
             try
@@ -115,7 +115,7 @@ namespace AILegacy.Dialogue
             catch { return false; }
         }
 
-        /// <summary>Entrega la primera frase a la sesión de diálogo.</summary>
+        /// <summary>Hands the opening line to the dialog session.</summary>
         public static ChatSession Take()
         {
             var p = _p;
@@ -130,7 +130,7 @@ namespace AILegacy.Dialogue
             return session;
         }
 
-        /// <summary>La línea ya se ha enseñado: el acercamiento ha cumplido.</summary>
+        /// <summary>The line was shown, so the approach is done.</summary>
         public static void Done() { _p = null; }
 
         public static void Tick(float dt)
@@ -162,7 +162,7 @@ namespace AILegacy.Dialogue
             if (logic == null) { _p = null; p.OnUnanswered?.Invoke(); return; }
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_ff6e4415", $"{p.Who.Name} se te acerca."), Colors.Yellow));
             logic.StartConversation(p.Agent, false, false);
-            // si la línea de inicio no llega a casar, el acercamiento caduca solo por edad
+            // if the opening line never matches, the approach expires on its own by age
         }
 
         private static void TickMap(Approach p)
@@ -172,13 +172,13 @@ namespace AILegacy.Dialogue
             if (h == null || !h.IsAlive || h.IsPrisoner || party == null || !party.IsActive || party.MapEvent != null || p.Age > 240f) { _p = null; return; }
             if (p.Reply == null || p.Asked) return;
             if (!WorldSim.OnMap() || MobileParty.MainParty.MapEvent != null) return;
-            // ya no está al lado: se ha ido el momento
+            // no longer close by, the moment has passed
             if (party.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D) > 8f) { _p = null; return; }
 
             p.Asked = true;
             p.Age = 0f;
-            // Un enemigo que te ha dado alcance no pide permiso: te corta el paso, como cualquier encuentro hostil del juego.
-            // Su primera frase ya está lista y sale en cuanto se abre el parlamento; después, batalla o lo que acordéis.
+            // An enemy who caught up doesn't ask, they block your way like any hostile encounter in the game.
+            // Their opening line is ready and shows as soon as the parley opens. After that, battle or whatever you agree on.
             if (p.Hostile)
             {
                 try

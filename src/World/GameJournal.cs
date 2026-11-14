@@ -7,7 +7,7 @@ using TaleWorlds.SaveSystem;
 
 namespace AILegacy.World
 {
-    /// <summary>Registra en el guardado del juego la misión propia de AI Legacy (el número base debe ser único entre mods).</summary>
+    /// <summary>Registers the AI Legacy quest type with the save system. The base id must be unique across all mods.</summary>
     public class AILegacyQuestTypeDefiner : SaveableTypeDefiner
     {
         public AILegacyQuestTypeDefiner() : base(7512040) { }
@@ -19,8 +19,8 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// Un encargo de la IA visto en el diario de misiones del juego.
-    /// Es solo el espejo: quién lo dio, plazo, recompensa, notas y progreso. La lógica vive en QuestSystem.
+    /// An AI quest as shown in the game's quest journal. It only mirrors giver, deadline, reward, notes and progress.
+    /// The logic lives in QuestSystem.
     /// </summary>
     public class AILegacyQuest : QuestBase
     {
@@ -58,7 +58,6 @@ namespace AILegacy.World
         }
     }
 
-    /// <summary>Puente entre los encargos de AI Legacy y el diario del juego.</summary>
     internal static class GameJournal
     {
         private static bool Ready => Campaign.Current?.QuestManager != null;
@@ -101,10 +100,9 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Actualizar misión del diario", ex); }
         }
 
-        /// <summary>Deja de marcar en el mapa a un héroe (ha muerto) sin cerrar la misión.</summary>
         public static void Untrack(AiQuest q, string heroId) => Untrack(q, Hero.Find(heroId));
 
-        /// <summary>Deja de marcar algo en el mapa (un héroe muerto, una banda destruida) sin cerrar la misión.</summary>
+        /// <summary>Stops tracking something on the map (a dead hero, a destroyed band) without closing the quest.</summary>
         public static void Untrack(AiQuest q, ITrackableCampaignObject obj)
         {
             try
@@ -131,14 +129,14 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Cerrar misión del diario", ex); }
         }
 
-        /// <summary>Al cargar: cada encargo abierto tiene su misión en el diario, y no queda ninguna misión huérfana.</summary>
+        /// <summary>On load: every open AI quest gets its journal entry, and orphaned journal quests are closed.</summary>
         public static void Reconcile()
         {
             try
             {
                 QuestSystem.EnsureHooks();
                 if (!Ready) return;
-                // Primero se cierran los encargos cuyo dador u objetivo ha muerto: no se crea en el diario nada con un muerto
+                // Close quests whose giver or target died first, so nothing gets created in the journal for a dead hero
                 QuestSystem.CloseDeadOnLoad();
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active).ToList())
                     if (Find(q.Id) == null) Create(q);

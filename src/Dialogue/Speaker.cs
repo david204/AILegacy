@@ -7,7 +7,7 @@ using TaleWorlds.Core;
 
 namespace AILegacy.Dialogue
 {
-    /// <summary>Con quién hablamos: un héroe (lord, notable, compañero...) o una persona corriente de un asentamiento.</summary>
+    /// <summary>Who the player is talking to: a hero (lord, notable, companion...) or a regular resident of a settlement.</summary>
     public class Speaker
     {
         public Hero Hero { get; private set; }
@@ -15,12 +15,12 @@ namespace AILegacy.Dialogue
         public string Key { get; private set; }
         public HeroMemory Memory { get; private set; }
         public Settlement ResidentSettlement { get; private set; }
-        /// <summary>Partida sin señor (bandidos, caravana, aldeanos de camino) cuyo jefe es quien habla. null en los demás casos.</summary>
+        /// <summary>Lordless party (bandits, caravan, villagers on the road) whose leader is speaking. Null otherwise.</summary>
         public TaleWorlds.CampaignSystem.Party.MobileParty Band { get; private set; }
 
         public bool IsHero => Hero != null;
 
-        /// <summary>Lo que está pasando ahora mismo y manda sobre la charla (p. ej. un guardia que viene a pedir cuentas). No se guarda.</summary>
+        /// <summary>What's happening right now and drives the talk (e.g. a guard coming to confront you). Not saved.</summary>
         public string Situation;
         public string SituationKind;
 
@@ -38,10 +38,9 @@ namespace AILegacy.Dialogue
         public float Age => IsHero ? Hero.Age : Character.Age;
         public CultureObject Culture => IsHero ? Hero.Culture : Character.Culture;
 
-        /// <summary>Asentamiento donde está ahora (si está en alguno).</summary>
         public Settlement Settlement => IsHero ? (Hero.CurrentSettlement ?? Hero.PartyBelongedTo?.CurrentSettlement) : ResidentSettlement;
 
-        /// <summary>Asentamiento "de casa" (para noticias locales).</summary>
+        /// <summary>Used for local news.</summary>
         public Settlement HomeSettlement => IsHero ? (Hero.HomeSettlement ?? Settlement) : ResidentSettlement;
 
         public IFaction Faction => IsHero ? Hero.MapFaction : (ResidentSettlement?.MapFaction ?? Band?.MapFaction);
@@ -65,8 +64,8 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// Identidad de un vecino dentro de la sesión: su cara. El agente cambia al pasar de la calle a la taberna, pero la
-        /// persona (su aspecto) es la misma, así que te sigue recordando. Si no se puede leer, vale el propio agente.
+        /// A resident's identity within the session is their face. The agent changes when they move from the street to the
+        /// tavern, but the face stays the same, so they still remember you. Falls back to the agent if it can't be read.
         /// </summary>
         private static string FaceKey(IAgent agent)
         {
@@ -85,7 +84,7 @@ namespace AILegacy.Dialogue
             return agent != null ? Math.Abs(agent.GetHashCode()).ToString() : "0";
         }
 
-        /// <summary>El jefe de una partida sin señor con la que hablas en el mapa (bandidos, caravana, aldeanos). Memoria de sesión.</summary>
+        /// <summary>Leader of a lordless party met on the map. Memory only lasts the session.</summary>
         public static Speaker FromBand(CharacterObject c, TaleWorlds.CampaignSystem.Party.MobileParty party)
         {
             var key = $"band:{party?.StringId ?? "none"}";
@@ -98,7 +97,7 @@ namespace AILegacy.Dialogue
             };
         }
 
-        /// <summary>Etiquetas para decidir qué conocimiento del mundo le corresponde (applicable en world_data).</summary>
+        /// <summary>Tags matched against "applicable" in world_data to pick which world knowledge this speaker gets.</summary>
         public HashSet<string> Tags
         {
             get

@@ -8,9 +8,9 @@ using TaleWorlds.CampaignSystem.GameComponents;
 namespace AILegacy.Patches
 {
     /// <summary>
-    /// Relación personal con cada NPC. El juego, para los nobles, usa la relación con el JEFE de su clan:
-    /// caerle bien (o mal) a un lord se lo apuntaba a su jefe de clan. Con esto, cuando uno de los dos es el jugador,
-    /// la relación es la de esas dos personas concretas, tanto al leerla como al cambiarla.
+    /// Personal relation with each NPC. For nobles the game uses the relation with their clan LEADER, so winning over a
+    /// lord actually changed the relation with his clan leader. When one side is the player, this makes reads and
+    /// changes use the two actual people.
     /// </summary>
     [HarmonyPatch(typeof(DefaultDiplomacyModel), nameof(DefaultDiplomacyModel.GetHeroesForEffectiveRelation))]
     internal static class PersonalRelationPatch

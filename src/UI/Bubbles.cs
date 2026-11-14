@@ -30,8 +30,8 @@ namespace AILegacy.UI
     }
 
     /// <summary>
-    /// Texto sobre la cabeza de los personajes en una escena (lo que dicen entre ellos, lo que te gritan al pasar).
-    /// Es una capa propia sobre la pantalla de la misión: cada frase sigue a su personaje y se borra sola.
+    /// Text over characters' heads in a scene. Our own layer on top of the mission screen; each line follows its
+    /// speaker and disappears on its own.
     /// </summary>
     internal static class Bubbles
     {
@@ -41,11 +41,10 @@ namespace AILegacy.UI
         private static GauntletLayer _layer;
         private static ScreenBase _screen;
         private static BubblesVM _vm;
-        private static bool _broken;      // si la interfaz falla una vez, no se insiste en esta sesión
+        private static bool _broken;      // if the UI fails once, don't retry this session
 
         public static bool Available => !_broken && S.Get.EnableBubbles && ScreenManager.TopScreen is MissionScreen;
 
-        /// <summary>Enseña una frase sobre la cabeza de ese personaje durante unos segundos.</summary>
         public static void Show(Agent agent, string text, float seconds)
         {
             try
@@ -111,7 +110,7 @@ namespace AILegacy.UI
                         continue;
                     }
                     if (cam == null) { it.VM.IsVisible = false; continue; }
-                    // Punto real de los ojos en el mundo, y un poco más arriba (GetEyeGlobalHeight no servía: el texto caía fuera de la pantalla)
+                    // World position of the eyes, a bit higher. GetEyeGlobalHeight put the text off screen.
                     var pos = it.Agent.GetEyeGlobalPosition();
                     pos.z += 0.4f;
                     float x = -5000f, y = -5000f, w = -1f;
@@ -125,7 +124,7 @@ namespace AILegacy.UI
                                    && (Agent.Main == null || it.Agent.Position.Distance(Agent.Main.Position) <= S.Get.BubbleMaxDistance);
                     it.VM.IsVisible = visible;
                     if (!visible) continue;
-                    it.VM.X = x - 170f * scale;       // centrado sobre el personaje (el cuadro mide 340)
+                    it.VM.X = x - 170f * scale;       // centered over the character (the box is 340 wide)
                     it.VM.Y = y - 70f * scale;
                 }
             }

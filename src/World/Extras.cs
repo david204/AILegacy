@@ -22,15 +22,15 @@ using TaleWorlds.Localization;
 namespace AILegacy.World
 {
     /// <summary>
-    /// Entrenamiento en la arena: en una ciudad, pagas y tus hombres pasan ocho horas entrenando. Ganan experiencia (más
-    /// los novatos), alguno se lesiona, y esa arena no vuelve a admitiros hasta pasados unos días.
+    /// Arena training: in a town you pay and your troops train for eight hours. They gain XP (recruits gain more), a few
+    /// get hurt, and that arena won't take you again for a few days.
     /// </summary>
     internal static class ArenaTraining
     {
         private const float Hours = 8f;
         private static float _progress;
         private static bool _running;
-        private static Dictionary<string, double> LastAt => WorldSim.State.ArenaLastAt;      // se guarda con la partida
+        private static Dictionary<string, double> LastAt => WorldSim.State.ArenaLastAt;      // saved with the campaign
         private static readonly Random Rng = new Random();
 
         private static int Cost()
@@ -54,7 +54,7 @@ namespace AILegacy.World
                 foreach (var e in roster.GetTroopRoster().Where(e => !e.Character.IsHero && e.Number - e.WoundedNumber > 0).ToList())
                 {
                     int n = e.Number - e.WoundedNumber;
-                    // Los novatos aprenden más deprisa que los veteranos
+                    // Low tier troops learn faster than veterans
                     int xpEach = (int)(cfg.ArenaTrainingXp * (1.5f - Math.Min(1f, e.Character.Tier / 6f)));
                     roster.AddXpToTroop(e.Character, xpEach * n);
                     trained += n;
@@ -125,9 +125,9 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// Personajes únicos: de vez en cuando llega a una ciudad cercana alguien nuevo, inventado por la IA para esta partida
-    /// (un predicador, una capitana mercenaria, un médico huido, un pretendiente…), con nombre, oficio, carácter y motivo
-    /// para estar allí. Vive como un errante más: puedes buscarle, tratar con él o tomarle a tu servicio.
+    /// Unique characters: every so often someone new shows up in a nearby town, made up by the AI for this campaign (a
+    /// preacher, a mercenary captain, a runaway doctor, a pretender...), with a name, a trade, a personality and a reason
+    /// to be there. They live as a regular wanderer, so you can look for them, deal with them or hire them.
     /// </summary>
     internal static class UniqueCharacters
     {
@@ -171,7 +171,7 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
                 if (wars.Count > 0) sb.AppendLine("- The realm is at war with: " + string.Join(", ", wars) + ".");
                 sb.AppendLine("- Lately: " + WorldSim.DescribeRecentNews(5));
                 string prompt = TUnique.Format("town", town.Name, "culture", town.Culture?.Name?.ToString() ?? "", "faction", town.MapFaction?.Name?.ToString() ?? "", "context", sb.ToString().TrimEnd(), "existing", existing, "language", cfg.Language);
-                // La agenda se consume al llegar la respuesta: si falla, se intenta otro día
+                // The schedule only advances when the reply arrives, so a failed call is retried another day
                 WorldSim.Ask(L.T("AIL_58e1ca60", "personaje único"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 900,
                     j => { WorldSim.State.NextUniqueDay = next; Create(town, j); }, key: "unique");
             }
@@ -221,8 +221,8 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
     }
 
     /// <summary>
-    /// Crónicas: cuando muere alguien con quien has tratado de verdad, la IA escribe su historia (quién fue, qué hubo entre
-    /// vosotros, cómo acabó). Queda en Noticias y te sale al momento.
+    /// Chronicles: when someone you really dealt with dies, the AI writes their story (who they were, what happened between
+    /// you, how it ended). It goes into the News and pops up right away.
     /// </summary>
     internal static class Chronicle
     {
@@ -259,7 +259,7 @@ Answer ONLY with JSON: { ""title"": ""3 to 7 words"", ""text"": ""the chronicle"
                 if (hist.Length == 0) hist.AppendLine("(they spoke a few times; nothing of note is recorded)");
                 string player = Hero.MainHero.Name.ToString(), name = victim.Name.ToString(), id = victim.StringId;
                 string prompt = TLife.Format("name", name, "player", player, "facts", sb.ToString().TrimEnd(), "death", death, "history", hist.ToString().TrimEnd(), "min_len", 300, "max_len", 900, "language", cfg.Language);
-                // Si hay otra petición en curso, espera en cola (antes se perdía)
+                // Queued if another request is in flight
                 WorldSim.Ask(L.T("AIL_8dc2db66", "crónica de una muerte"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 800, j =>
                 {
                     string title = WorldSim.Clean((string)j["title"], 80), text = WorldSim.Clean((string)j["text"], 1200);

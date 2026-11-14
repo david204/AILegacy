@@ -1,6 +1,6 @@
 <Prefab>
   <Window>
-    <!-- Texto sobre la cabeza de los personajes en una escena. No acepta clics: la escena sigue funcionando debajo. -->
+    <!-- Text over characters' heads. Takes no clicks, so the scene underneath keeps working. -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true">
       <Children>
         <Widget DataSource="{Bubbles}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true">

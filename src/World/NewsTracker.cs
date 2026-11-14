@@ -13,8 +13,7 @@ using TaleWorlds.CampaignSystem.Siege;
 namespace AILegacy.World
 {
     /// <summary>
-    /// Convierte lo que pasa de verdad en la campaña en noticias.
-    /// Text (inglés) va a los prompts; TitleEs/TextEs es lo que ve el jugador.
+    /// Turns real campaign events into news. Text (English) goes into prompts, TitleEs/TextEs is what the player sees.
     /// </summary>
     internal static class NewsTracker
     {
@@ -36,8 +35,8 @@ namespace AILegacy.World
         }
 
         /// <summary>
-        /// La partida ya está en marcha. Mientras el juego crea el mundo (o carga) hace ajustes que disparan los mismos
-        /// eventos que una muerte o una guerra de verdad: eso no es noticia.
+        /// The campaign is actually running. While the game builds the world (or loads) it fires the same events as a real
+        /// death or war, and those aren't news.
         /// </summary>
         public static bool Live;
 
@@ -113,7 +112,7 @@ namespace AILegacy.World
         private static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification) => Safe("muerte", () =>
         {
             if (victim == null || !(victim.IsLord || victim.IsNotable || victim.IsPlayerCompanion)) return;
-            // «Desaparecido» es como el juego retira a un notable sin más: solo es noticia si era un noble
+            // "Lost" is how the game quietly removes notables, so it's only news for a lord
             if (detail.ToString() == "Lost" && !victim.IsLord) return;
             string how, howEs;
             switch (detail.ToString())
@@ -167,7 +166,7 @@ namespace AILegacy.World
             }
             else if (e.IsSiegeAssault && place != null)
             {
-                return; // ya lo cuenta el cambio de dueño
+                return; // the owner change already reports it
             }
             else
             {
@@ -225,7 +224,7 @@ namespace AILegacy.World
 
         private static void OnMarried(Hero a, Hero b, bool showNotification) => Safe("boda", () =>
         {
-            if (a == null || b == null || a == Hero.MainHero || b == Hero.MainHero) return;      // la del jugador ya la cuenta su propia acción
+            if (a == null || b == null || a == Hero.MainHero || b == Hero.MainHero) return;      // the player's own wedding is reported by its action
             if (!a.IsLord && !b.IsLord) return;
             int imp = a.IsKingdomLeader || b.IsKingdomLeader ? 3 : a.IsClanLeader || b.IsClanLeader ? 2 : 1;
             NewsStore.Add(new NewsItem
@@ -292,8 +291,6 @@ namespace AILegacy.World
                 SettlementId = s.StringId, Kingdoms = Ids(s.MapFaction, leader?.MapFaction), Heroes = HeroIds(leader, s.OwnerClan?.Leader),
             });
         });
-
-        // ------------------------------------------------------------------
 
         private static List<string> Ids(params IFaction[] fs) => fs.Where(f => f != null).Select(f => f.StringId).Distinct().ToList();
         private static List<string> HeroIds(params Hero[] hs) => hs.Where(h => h != null).Select(h => h.StringId).Distinct().ToList();

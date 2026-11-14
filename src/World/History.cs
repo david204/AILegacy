@@ -9,19 +9,19 @@ using TaleWorlds.CampaignSystem.Settlements;
 
 namespace AILegacy.World
 {
-    /// <summary>Quién ha reinado en un reino, o quién ha tenido un feudo, y desde cuándo.</summary>
+    /// <summary>Who ruled a kingdom or held a fief, and since when.</summary>
     public class TenureRecord
     {
-        [JsonProperty("who")] public string Who;            // nombre del soberano, o del clan dueño
-        [JsonProperty("of")] public string Of;              // clan del soberano, o reino del clan dueño
-        [JsonProperty("from")] public double FromDay = -1;  // -1 = ya estaba al empezar a llevar la cuenta
-        [JsonProperty("how")] public string How;            // siege, gift, barter… (solo feudos)
+        [JsonProperty("who")] public string Who;            // ruler's name, or owner clan
+        [JsonProperty("of")] public string Of;              // ruler's clan, or the owner clan's kingdom
+        [JsonProperty("from")] public double FromDay = -1;  // -1 = already there when tracking started
+        [JsonProperty("how")] public string How;            // siege, gift, barter... (fiefs only)
     }
 
     /// <summary>
-    /// Memoria política larga: los soberanos que ha tenido cada reino y las manos por las que ha pasado cada ciudad y
-    /// castillo. El juego solo sabe quién manda hoy; con esto la gente puede decir «antes era de los Leonipardes» o
-    /// «desde que murió el viejo rey». Se usa en los datos de lo que se nombra en una charla.
+    /// Long political memory: the rulers each kingdom has had, and the hands each town and castle has passed through.
+    /// The game only knows who rules today. With this, people can say "it used to belong to the Leonipardes" or "since the
+    /// old king died". Used in the facts given for places and realms named in a conversation.
     /// </summary>
     internal static class History
     {
@@ -29,7 +29,7 @@ namespace AILegacy.World
 
         private static WorldState St => WorldSim.State;
 
-        /// <summary>Al arrancar la partida: apunta quién manda hoy en cada reino del que aún no se sabe nada.</summary>
+        /// <summary>On campaign start, records the current ruler of every kingdom with no history yet.</summary>
         public static void Snapshot()
         {
             try
@@ -66,9 +66,9 @@ namespace AILegacy.World
             {
                 if (!NewsTracker.Live || St == null || s == null || !(s.IsTown || s.IsCastle)) return;
                 var clan = newOwner?.Clan;
-                if (clan == null) return;                    // sin casa que lo reciba no hay relevo que apuntar
+                if (clan == null) return;                    // no receiving clan, nothing to record
                 if (!St.Owners.TryGetValue(s.StringId, out var list)) St.Owners[s.StringId] = list = new List<TenureRecord>();
-                // La primera vez se apunta también a quién se lo quitan: si no, no habría «antes»
+                // First time around, also record who lost it, otherwise there's no "before"
                 if (list.Count == 0 && oldOwner?.Clan != null)
                     list.Add(new TenureRecord { Who = oldOwner.Clan.Name.ToString(), Of = (oldOwner.MapFaction as Kingdom)?.Name?.ToString() });
                 string name = clan.Name.ToString();
@@ -85,7 +85,7 @@ namespace AILegacy.World
             return d <= 0 ? "today" : d == 1 ? "yesterday" : d < 84 ? $"{d} days ago" : $"about {Math.Max(1, d / 84)} year(s) ago";
         }
 
-        /// <summary>«…; taken by siege 12 days ago from clan X (of Y)», o cadena vacía.</summary>
+        /// <summary>"; taken by siege 12 days ago, before that it belonged to clan X (Y)", or empty.</summary>
         public static string OfSettlement(Settlement s)
         {
             try
@@ -101,7 +101,7 @@ namespace AILegacy.World
             catch { return ""; }
         }
 
-        /// <summary>«…; they have ruled since N days ago; before them ruled X of clan Y», o cadena vacía.</summary>
+        /// <summary>"; they took the throne N days ago; before them ruled X of clan Y", or empty.</summary>
         public static string OfKingdom(Kingdom k)
         {
             try

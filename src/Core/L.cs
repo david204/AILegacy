@@ -9,19 +9,19 @@ using TaleWorlds.Localization;
 namespace AILegacy.Core
 {
     /// <summary>
-    /// Idiomas de la interfaz. Los textos van con un identificador y un texto por defecto (en español):
-    ///   L.T("AIL_1a2b3c4d", "Texto fijo")
-    ///   L.F("AIL_1a2b3c4d", $"Texto con {huecos}")   — la traducción lleva {0}, {1}… en el orden de los huecos
-    /// Las traducciones están en el formato normal de Bannerlord: ModuleData\Languages\&lt;CARPETA&gt;\sta_strings.xml
-    /// (&lt;string id="…" text="…"/&gt;) con su language_data.xml. El juego las carga solo; además aquí se leen para poder
-    /// elegir el idioma en MCM sin cambiar el del juego. Lo que falte en un idioma sale en inglés y, si tampoco, el texto por defecto.
+    /// UI languages. Each text has an id and a default text (in Spanish):
+    ///   L.T("AIL_1a2b3c4d", "Fixed text")
+    ///   L.F("AIL_1a2b3c4d", $"Text with {holes}")   (the translation uses {0}, {1}... in the order of the holes)
+    /// Translations use the normal Bannerlord format in ModuleData\AILegacyTexts\&lt;FOLDER&gt;\sta_strings.xml
+    /// (&lt;string id="..." text="..."/&gt;). They're read here so the language can be
+    /// picked in MCM without changing the game's. Anything missing in a language falls back to English, then to the default text.
     /// </summary>
     public static class L
     {
         public static readonly string[] Codes = { "auto", "es", "en", "de", "fr", "it", "pt", "ru", "zh" };
         public static readonly string[] Names = { "Auto (game language)", "Español", "English", "Deutsch", "Français", "Italiano", "Português (Brasil)", "Русский", "简体中文" };
 
-        /// <summary>Carpeta de ModuleData\Languages de cada idioma (las mismas siglas que usa el juego).</summary>
+        /// <summary>Language folder name, same codes the game uses.</summary>
         private static string Folder(string code)
         {
             switch (code)
@@ -43,7 +43,7 @@ namespace AILegacy.Core
         private static string _cached;
         private static DateTime _cachedAt = DateTime.MinValue;
 
-        /// <summary>Código del idioma en uso ahora: es, en, de, fr, it, pt, ru, zh.</summary>
+        /// <summary>Current language code: es, en, de, fr, it, pt, ru, zh.</summary>
         public static string Code
         {
             get
@@ -58,7 +58,7 @@ namespace AILegacy.Core
             }
         }
 
-        /// <summary>Nombre en inglés del idioma en uso, para decirle a la IA en qué idioma debe escribir.</summary>
+        /// <summary>English name of the current language, to tell the AI what language to write in.</summary>
         public static string EnglishName
         {
             get
@@ -94,15 +94,15 @@ namespace AILegacy.Core
             return "en";
         }
 
-        /// <summary>Tabla id → texto de un idioma, leída de su sta_strings.xml (una vez).</summary>
+        /// <summary>id to text table for one language, read once from its sta_strings.xml.</summary>
         private static Dictionary<string, string> Table(string code)
         {
             lock (Gate)
             {
                 if (Tables.TryGetValue(code, out var t)) return t;
                 t = new Dictionary<string, string>();
-                // Carpeta propia, NO ModuleData\Languages: si el juego cargara estos archivos, traduciría los ajustes de MCM
-                // al idioma del juego aunque en el mod se haya elegido otro. Los textos los pone el mod (SyncGameTexts).
+                // Our own folder, not ModuleData\Languages. If the game loaded these files it would translate the MCM settings
+                // into the game's language even when another one is picked in the mod. The mod injects the texts itself (SyncGameTexts).
                 string path = Path.Combine(Paths.ModuleDir, "ModuleData", "AILegacyTexts", Folder(code), "sta_strings.xml");
                 try
                 {
@@ -127,10 +127,10 @@ namespace AILegacy.Core
         private static System.Reflection.FieldInfo _gameTexts;
 
         /// <summary>
-        /// Pone nuestros textos, en el idioma elegido en AI Legacy, dentro de la tabla de textos del juego. MCM (y cualquier
-        /// «{=AIL_…}») los lee de ahí. Enganchar LocalizedTextManager.GetTranslatedText no sirve: es tan corta que el juego la
-        /// incrusta al compilar y el enganche no se ejecuta. Se repite si cambia el idioma o si el juego recarga su tabla.
-        /// Barato: llamar cada segundo o dos.
+        /// Puts our texts, in the language picked in AI Legacy, into the game's text table. MCM (and any
+        /// "{=AIL_...}") reads them from there. Patching LocalizedTextManager.GetTranslatedText isn't enough: it's so short
+        /// it gets inlined and the patch never runs. Redone when the language changes or the game reloads its table.
+        /// Cheap, fine to call every second or two.
         /// </summary>
         public static void SyncGameTexts()
         {
@@ -143,7 +143,7 @@ namespace AILegacy.Core
                 if (dict == null) return;
                 var mine = Table(code);
                 var en = code == "en" || code == "es" ? null : Table("en");
-                // ¿Sigue puesto? (basta mirar uno: si el juego recargó su tabla, ya no coincide)
+                // Still there? Checking one id is enough, it won't match if the game reloaded its table
                 string probe = "AIL_dda0e8ca";
                 mine.TryGetValue(probe, out string want);
                 if (want == null && en != null) en.TryGetValue(probe, out want);
@@ -156,7 +156,7 @@ namespace AILegacy.Core
             catch (Exception ex) { try { Log.Warn("Textos en la tabla del juego: " + ex.Message); } catch { } }
         }
 
-        /// <summary>Traducción del identificador en el idioma en uso (o en inglés), o null.</summary>
+        /// <summary>Translation in the current language (or English), or null.</summary>
         private static string Find(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
@@ -166,10 +166,9 @@ namespace AILegacy.Core
             return null;
         }
 
-        /// <summary>Texto fijo.</summary>
         public static string T(string id, string fallback) => Find(id) ?? fallback;
 
-        /// <summary>Texto con huecos: se traduce la plantilla («Pagas {0} denarios a {1}.») y después se rellenan.</summary>
+        /// <summary>Translates the format template ("Pagas {0} denarios a {1}.") and then fills in the holes.</summary>
         public static string F(string id, FormattableString text)
         {
             if (text == null) return "";
@@ -182,10 +181,10 @@ namespace AILegacy.Core
             catch { return text.ToString(); }
         }
 
-        /// <summary>Para los textos «{=AIL_xxxx}…» del menú de MCM: traducción en el idioma elegido, o null para dejar el texto de origen.</summary>
+        /// <summary>For "{=AIL_xxxx}..." texts in the MCM menu: translation in the picked language, or null to keep the source text.</summary>
         internal static string ById_(string id) => Find(id);
 
-        /// <summary>Texto en español → texto en el idioma en uso (para el editor web, que busca por el texto que enseña).</summary>
+        /// <summary>Spanish text to current-language text, for the web editor (it looks texts up by what it displays).</summary>
         public static Dictionary<string, string> Current()
         {
             var res = new Dictionary<string, string>();
@@ -200,8 +199,8 @@ namespace AILegacy.Core
     }
 
     /// <summary>
-    /// Los textos del menú de ajustes llevan un identificador «{=AIL_xxxx}». El juego pregunta por su traducción aquí:
-    /// se contesta con la del idioma elegido en AI Legacy, sea cual sea el idioma del juego.
+    /// Settings menu texts carry an "{=AIL_xxxx}" id. When the game asks for the translation, answer with the
+    /// language picked in AI Legacy, whatever the game's language is.
     /// </summary>
     [HarmonyPatch(typeof(LocalizedTextManager), nameof(LocalizedTextManager.GetTranslatedText))]
     internal static class LocalizedTextPatch
@@ -211,7 +210,7 @@ namespace AILegacy.Core
             try
             {
                 if (id == null || id.Length < 5 || id[0] != 'A' || !id.StartsWith("AIL_", StringComparison.Ordinal)) return;
-                // Solo se toca si hay traducción: sin ella el juego usa el texto de origen que va tras el identificador
+                // Only override when there's a translation. Without one the game uses the source text after the id
                 string tr = L.ById_(id);
                 if (tr != null) __result = tr;
             }

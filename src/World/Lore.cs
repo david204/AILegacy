@@ -21,7 +21,7 @@ namespace AILegacy.World
         [JsonProperty("id")] public string Id;
         [JsonProperty("name")] public string Name;
         [JsonProperty("description")] public string Description;
-        /// <summary>A quién le puede tocar: ruler, lord, town_notable, village_notable, gang, wanderer, commoner, guard, merchant.</summary>
+        /// <summary>Who can get it: ruler, lord, town_notable, village_notable, gang, wanderer, commoner, guard, merchant.</summary>
         [JsonProperty("roles")] public List<string> Roles = new List<string>();
         /// <summary>principled | pragmatic | ruthless</summary>
         [JsonProperty("morality")] public string Morality = "pragmatic";
@@ -32,9 +32,9 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// Trasfondo editable de los personajes: Modules\AILegacy\world_data\archetypes.json (moldes de carácter),
-    /// religion.json (la fe de cada cultura) y cultural_traditions.json (costumbres de cada cultura).
-    /// Si no existen se crean con el contenido de fábrica. Se releen solos al editarlos.
+    /// Editable character background: Modules\AILegacy\world_data\archetypes.json (character archetypes),
+    /// religion.json (faith per culture) and cultural_traditions.json (customs per culture).
+    /// Missing files are created with the defaults, and edits are picked up without a restart.
     /// </summary>
     internal static class Lore
     {
@@ -77,7 +77,7 @@ namespace AILegacy.World
         private static readonly Cache<Dictionary<string, string>> ReligionFile = new Cache<Dictionary<string, string>>("religion.json", DefaultReligions);
         private static readonly Cache<Dictionary<string, string>> TraditionsFile = new Cache<Dictionary<string, string>>("cultural_traditions.json", DefaultTraditions);
 
-        // ============================================================ contenido de fábrica (propio de AI Legacy)
+        // ============================================================ built-in defaults
 
         private static Archetype A(string id, string name, string desc, string roles, string morality, string profanity, string piety) =>
             new Archetype { Id = id, Name = name, Description = desc, Roles = roles.Split(',').Select(x => x.Trim()).ToList(), Morality = morality, Profanity = profanity, Piety = piety };
@@ -134,7 +134,7 @@ namespace AILegacy.World
             ["default"] = "Marriage is arranged with the families' consent; guests are honoured, elders respected, and a public promise is binding.",
         };
 
-        // ============================================================ arquetipo de un personaje
+        // ============================================================ character archetype
 
         private static List<string> RolesOf(Speaker s)
         {
@@ -161,12 +161,10 @@ namespace AILegacy.World
             return r;
         }
 
-        /// <summary>Le da su molde (una vez y para siempre), encajado con su papel y, si es héroe, con sus rasgos del juego.</summary>
-        /// <summary>Los moldes de carácter disponibles (para el editor): nombre y descripción.</summary>
         public static List<KeyValuePair<string, string>> ArchetypeList() =>
             ArchetypesFile.Value.Select(a => new KeyValuePair<string, string>(a.Name, a.Description)).ToList();
 
-        /// <summary>Pone a mano un molde de carácter (desde el editor). Nombre vacío = quitarlo para que se vuelva a asignar solo.</summary>
+        /// <summary>Sets an archetype by hand from the editor. An empty name clears it so it gets picked again automatically.</summary>
         public static bool SetArchetype(Memory.HeroMemory mem, string name)
         {
             if (mem == null) return false;
@@ -186,13 +184,13 @@ namespace AILegacy.World
                 var roles = RolesOf(s);
                 var pool = ArchetypesFile.Value.Where(a => a.Roles.Any(roles.Contains)).ToList();
                 if (pool.Count == 0) return;
-                // Los rasgos del juego empujan: honor y piedad → íntegros; crueldad y engaño → despiadados
+                // Game traits tip the scale: honor and mercy lean principled, cruelty and scheming lean ruthless
                 int lean = 0;
                 if (s.IsHero)
                     lean = s.Hero.GetTraitLevel(DefaultTraits.Honor) + s.Hero.GetTraitLevel(DefaultTraits.Mercy) - Math.Max(0, s.Hero.GetTraitLevel(DefaultTraits.Calculating) - 1);
                 var fit = pool.Where(a => lean >= 2 ? a.Morality == "principled" : lean <= -2 ? a.Morality == "ruthless" : true).ToList();
                 if (fit.Count == 0) fit = pool;
-                // Elección estable por personaje (no depende de la sesión)
+                // Stable pick per character (FNV hash of the key, so it doesn't change between sessions)
                 unchecked
                 {
                     uint h = 2166136261;
@@ -212,7 +210,7 @@ namespace AILegacy.World
             return d.TryGetValue("default", out var def) ? def : "";
         }
 
-        /// <summary>Para el prompt: molde, brújula moral, lenguaje, fe y costumbres.</summary>
+        /// <summary>Adds archetype, morals, speech, faith and customs to the system prompt.</summary>
         public static void AppendTo(StringBuilder sys, Speaker s)
         {
             var cfg = S.Get;
@@ -244,7 +242,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Trasfondo en el prompt", ex); }
         }
 
-        // ============================================================ evolución del carácter
+        // ============================================================ character development
 
         private static readonly Tpl TDevelopment = new Tpl("character_development/development.txt",
 @"You maintain the inner character of {npc_name}, a person in Calradia. Something has just happened to them that could change who they are:
@@ -260,7 +258,7 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
 
         public static void Touch() { var _ = TDevelopment.Key; }
 
-        /// <summary>Un suceso que marca: en segundo plano, la IA retoca su carácter.</summary>
+        /// <summary>After a defining event, the AI reworks the character's profile in the background.</summary>
         public static void Develop(Speaker s, string whatHappened)
         {
             var cfg = S.Get;

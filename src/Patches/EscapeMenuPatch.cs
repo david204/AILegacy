@@ -8,7 +8,7 @@ using TaleWorlds.MountAndBlade.ViewModelCollection.EscapeMenu;
 
 namespace AILegacy.Patches
 {
-    /// <summary>Añade "AI Legacy" al menú de Escape del mapa (abre el editor dentro del juego).</summary>
+    /// <summary>Adds "AI Legacy" to the map's Escape menu. It opens the web editor.</summary>
     [HarmonyPatch(typeof(MapScreen), "GetEscapeMenuItems")]
     internal static class EscapeMenuPatch
     {

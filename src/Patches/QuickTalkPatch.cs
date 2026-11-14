@@ -8,15 +8,15 @@ using HarmonyLib;
 namespace AILegacy.Patches
 {
     /// <summary>
-    /// En la lista de personajes de un asentamiento (ciudad, castillo, taberna…) se quita la opción
-    /// «Hablar» (charla rápida desde el menú, sin escena) y queda «Visitar»: hay que ir hasta la persona y hablarle allí.
+    /// Removes the quick "Talk" option (menu conversation without a scene) from a settlement's character list and leaves
+    /// "Visit", so you have to walk up to the person and talk to them there.
     /// </summary>
     [HarmonyPatch]
     internal static class QuickTalkPatch
     {
         private static MethodBase TargetMethod()
         {
-            // Con el nombre del ensamblado: lo carga si aún no lo está cuando se aplican los parches
+            // Assembly-qualified name, so it gets loaded if it isn't yet when patches are applied
             const string name = "TaleWorlds.CampaignSystem.ViewModelCollection.GameMenu.Overlay.SettlementMenuOverlayVM";
             var t = Type.GetType(name + ", TaleWorlds.CampaignSystem.ViewModelCollection") ?? AccessTools.TypeByName(name);
             return t == null ? null : AccessTools.Method(t, "ExecuteOnSetAsActiveContextMenuItem");
@@ -34,7 +34,7 @@ namespace AILegacy.Patches
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
                     var item = list[i];
-                    // Identifier es un campo público (no una propiedad) de StringItemWithEnabledAndHintVM
+                    // Identifier is a public field (not a property) on StringItemWithEnabledAndHintVM
                     var id = item == null ? null : AccessTools.Field(item.GetType(), "Identifier")?.GetValue(item);
                     if (id != null && id.ToString() == "QuickConversation") list.RemoveAt(i);
                 }

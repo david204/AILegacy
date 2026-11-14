@@ -32,37 +32,38 @@ namespace AILegacy.Llm
         public int CachedTokens;
         public int CompletionTokens;
         public double Seconds;
-        /// <summary>La respuesta se cortó por el tope de tokens.</summary>
+        /// <summary>The reply was cut off by the token limit.</summary>
         public bool Truncated;
     }
 
     /// <summary>
-    /// Cliente para cualquier endpoint compatible con OpenAI (/chat/completions).
+    /// Client for any OpenAI-compatible endpoint (/chat/completions).
     ///
-    /// · Cola con prioridad: lo que el jugador está esperando (diálogo) sale antes que lo de fondo (ambiente, mundo,
-    ///   resúmenes), y lo de fondo nunca ocupa todos los huecos.
-    /// · Cadena de proveedores: el preferido de la tarea primero y el resto de respaldo.
-    /// · Disyuntor: un proveedor que da 429, agota su cuota o no contesta se deja en pausa un rato en vez de probarlo
-    ///   en cada petición.
-    /// · Escalera de parámetros: solo se baja de nivel ante un 400/422 (parámetro no aceptado). Una respuesta vacía o
-    ///   cortada se reintenta con más sitio y, si no, pasa al siguiente proveedor sin tocar el nivel.
-    /// · Contabilidad por proveedor y tarea (UsageMeter), tope de gasto diario y tareas de fondo solo con proveedores gratis.
+    /// Priority queue: what the player is waiting on (dialogue) goes before background work (ambient, world,
+    /// summaries), and background work never takes every slot.
+    /// Provider chain: the task's preferred provider first, the rest as fallback.
+    /// Circuit breaker: a provider that returns 429, runs out of quota or stops answering is paused for a while
+    /// instead of being tried on every request.
+    /// Parameter ladder: only a 400/422 (rejected parameter) steps down a level. An empty or cut-off reply is
+    /// retried with more room, then moves to the next provider without touching the level.
+    /// Usage is tracked per provider and task (UsageMeter), with a daily spend cap. Background tasks can be
+    /// limited to free providers.
     /// </summary>
     public static class LlmClient
     {
         private static readonly HttpClient Http;
-        /// <summary>El mismo cliente HTTP, para las peticiones de vectores.</summary>
+        /// <summary>Same HTTP client, reused for embedding requests.</summary>
         internal static HttpClient HttpShared => Http;
 
         static LlmClient()
         {
             try
             {
-                // .NET Framework no activa TLS 1.2/1.3 por defecto
+                // .NET Framework doesn't enable TLS 1.2/1.3 by default
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
-                try { ServicePointManager.SecurityProtocol |= (SecurityProtocolType)12288; } catch { /* Tls13 no disponible */ }
-                // Por defecto .NET Framework solo abre 2 conexiones por servidor: con varias tareas a la vez, el diálogo
-                // se quedaba esperando conexión y agotaba su tiempo sin haber salido
+                try { ServicePointManager.SecurityProtocol |= (SecurityProtocolType)12288; } catch { /* no TLS 1.3 on this runtime */ }
+                // .NET Framework opens only 2 connections per host by default. With several tasks running, dialogue
+                // requests sat waiting for a connection and timed out before they were even sent.
                 if (ServicePointManager.DefaultConnectionLimit < 16) ServicePointManager.DefaultConnectionLimit = 16;
             }
             catch (Exception ex) { Log.Warn("No se pudo ajustar la red: " + ex.Message); }
@@ -71,9 +72,9 @@ namespace AILegacy.Llm
             Http.DefaultRequestHeaders.UserAgent.ParseAdd("AILegacy/0.1");
         }
 
-        // ============================================================ opciones y tareas
+        // ============================================================ options and tasks
 
-        /// <summary>Opciones leídas en el hilo principal (MCM) antes de saltar al hilo de fondo.</summary>
+        /// <summary>Read on the main thread (MCM) before the call moves to a background thread.</summary>
         private class CallOptions
         {
             public double Temperature = 0.8;
@@ -90,7 +91,7 @@ namespace AILegacy.Llm
 
         private static volatile bool _debugBodies;
 
-        /// <summary>0 = el jugador está esperando · 1 = importa pero puede esperar · 2 = de fondo.</summary>
+        /// <summary>0 = player is waiting, 1 = matters but can wait, 2 = background.</summary>
         private static int PriorityOf(string task)
         {
             switch (task)
@@ -118,7 +119,7 @@ namespace AILegacy.Llm
                 _debugBodies = s.DebugLogBodies;
             }
             catch { if (maxTokensOverride.HasValue) o.MaxTokens = maxTokensOverride.Value; }
-            // La lista de proveedores se lee aquí (toca MCM y el disco), no en el hilo de fondo
+            // Read the provider list here, not on the background thread (it touches MCM and the disk)
             try
             {
                 var cfg = LegacyConfig.Current;
@@ -130,7 +131,7 @@ namespace AILegacy.Llm
             return o;
         }
 
-        /// <param name="task">Para qué es: dialogue, initiative, group, verdict, order, letter, banter, passby, ambient, world, summary, lore, battle, editor. Decide la prioridad y dónde se apunta el gasto.</param>
+        /// <param name="task">What the call is for: dialogue, initiative, group, verdict, order, letter, banter, passby, ambient, world, summary, lore, battle, editor. Sets the priority and where usage is logged.</param>
         public static Task<LlmResult> CompleteAsync(List<ChatMessage> messages, bool wantJson, int? maxTokensOverride = null, string preferredProvider = null, string task = null)
         {
             var opts = CaptureOptions(maxTokensOverride, task, preferredProvider);
@@ -140,7 +141,7 @@ namespace AILegacy.Llm
             return job.Done.Task;
         }
 
-        // ============================================================ cola con prioridad
+        // ============================================================ priority queue
 
         private class Job
         {
@@ -177,7 +178,7 @@ namespace AILegacy.Llm
                     if (next.Opts.Priority >= 2) _backgroundInFlight++;
                 }
                 var job = next;
-                // El tiempo de cada proveedor empieza a contar ahora, al salir de la cola (no mientras esperaba turno)
+                // The deadline starts when the job leaves the queue, not while it waits its turn
                 job.Opts.Deadline = DateTime.UtcNow.AddSeconds(job.Opts.Priority == 0 ? 75 : 180);
                 Task.Run(async () =>
                 {
@@ -191,7 +192,7 @@ namespace AILegacy.Llm
             }
         }
 
-        // ============================================================ estado de cada proveedor (disyuntor y cupo por minuto)
+        // ============================================================ provider state (circuit breaker and per-minute quota)
 
         private class ProviderState
         {
@@ -213,7 +214,7 @@ namespace AILegacy.Llm
             }
         }
 
-        /// <summary>null si se puede usar ahora; si no, por qué no.</summary>
+        /// <summary>null if usable right now, otherwise the reason it isn't.</summary>
         private static string Unavailable(ProviderConfig p)
         {
             var st = StateOf(p);
@@ -241,7 +242,7 @@ namespace AILegacy.Llm
             Log.Warn($"Proveedor {p.Name} en pausa {(int)seconds} s: {reason}");
         }
 
-        /// <summary>Apunta un fallo y decide si el proveedor se deja en pausa.</summary>
+        /// <summary>Counts a failure and pauses the provider when needed.</summary>
         private static void NoteFailure(ProviderConfig p, int status, string body, double? retryAfter)
         {
             var st = StateOf(p);
@@ -269,7 +270,7 @@ namespace AILegacy.Llm
                 Block(p, 600, $"clave rechazada ({status})");
         }
 
-        /// <summary>Estado de los proveedores, para el editor.</summary>
+        /// <summary>Provider status, shown in the editor.</summary>
         public static List<object> ProviderStatus()
         {
             var list = new List<object>();
@@ -284,9 +285,9 @@ namespace AILegacy.Llm
 
         public static int QueueLength { get { lock (QueueGate) return Queue.Count + _inFlight; } }
 
-        // ============================================================ prueba de conexión
+        // ============================================================ connection test
 
-        /// <summary>Botón de MCM: prueba cada proveedor por separado y lo cuenta en el registro del juego.</summary>
+        /// <summary>MCM button: tests each provider on its own and reports the result in the game log.</summary>
         public static void TestAllProviders()
         {
             var opts = CaptureOptions(60, "test", null);
@@ -302,7 +303,7 @@ namespace AILegacy.Llm
                     continue;
                 }
                 var prov = p;
-                // La prueba se salta la pausa: es justo para saber si ya vuelve a funcionar
+                // The test ignores the pause, since the point is to see if the provider works again
                 { var st = StateOf(prov); lock (st) st.BlockedUntil = DateTime.MinValue; }
                 Task.Run(() => TryProvider(prov, msgs, false, opts)).ContinueWith(t =>
                 {
@@ -316,29 +317,28 @@ namespace AILegacy.Llm
         private static void Show(string msg, TaleWorlds.Library.Color c) =>
             TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage("AI Legacy — " + msg, c));
 
-        // ============================================================ cadena de proveedores
+        // ============================================================ provider chain
 
         private static async Task<LlmResult> CompleteInternal(List<ChatMessage> messages, bool wantJson, CallOptions opts)
         {
             var providers = opts.Providers;
             if (providers.Count == 0) return new LlmResult { Ok = false, Error = opts.NoProvidersError ?? "sin proveedores" };
 
-            // Tareas de fondo: solo con proveedores gratis, si hay alguno (el de pago queda para lo que el jugador espera)
+            // Background tasks stick to free providers when there are any, paid ones are kept for what the player waits on
             if (opts.Priority >= 2 && opts.BackgroundFreeOnly && providers.Any(p => !p.IsPaid) && providers.Any(p => p.IsPaid))
                 providers = providers.Where(p => !p.IsPaid).ToList();
-            // Tope de gasto diario: alcanzado, los de pago se quedan fuera
+            // Daily spend cap reached: paid providers are left out
             if (opts.DailyCapUsd > 0 && UsageMeter.SpentToday >= opts.DailyCapUsd)
             {
                 var free = providers.Where(p => !p.IsPaid).ToList();
                 if (free.Count == 0) return new LlmResult { Ok = false, Error = L.T("AIL_c3a7f1e1", "Se ha alcanzado el tope de gasto diario (MCM › 7. IA) y no hay ningún proveedor gratis.") };
                 providers = free;
             }
-            // Proveedor preferido para esta tarea: primero; el resto de la cadena como respaldo
             if (!string.IsNullOrEmpty(opts.Preferred))
                 providers = providers.OrderBy(p => string.Equals(p.Name, opts.Preferred, StringComparison.OrdinalIgnoreCase) ? 0 : 1).ToList();
 
             var errors = new List<string>();
-            LlmResult prose = null;           // respuesta que no es JSON cuando se pidió JSON: último recurso
+            LlmResult prose = null;           // non-JSON reply to a JSON request, kept as a last resort
             for (int round = 0; round < 2; round++)
             {
                 bool anyTried = false;
@@ -351,7 +351,7 @@ namespace AILegacy.Llm
                     var r = await TryProvider(p, messages, wantJson, opts).ConfigureAwait(false);
                     if (r.Ok)
                     {
-                        // Se pidió JSON y ha llegado prosa: se prueba el siguiente; si nadie da JSON, vale esta
+                        // Asked for JSON and got prose: try the next one, and fall back to this if nobody returns JSON
                         if (wantJson && r.Text.IndexOf('{') < 0) { if (prose == null) prose = r; errors.Add($"{p.Name}: respuesta sin JSON"); Log.Warn($"Proveedor {p.Name}: se pidió JSON y ha contestado en prosa, pruebo el siguiente"); continue; }
                         return r;
                     }
@@ -359,7 +359,7 @@ namespace AILegacy.Llm
                     Log.Warn($"Proveedor {p.Name} falló, paso al siguiente: {r.Error}");
                 }
                 if (anyTried || prose != null) break;
-                // Todos en pausa o sin cupo. Si el jugador está esperando, se aguanta un poco al que antes vuelva
+                // All paused or over quota. If the player is waiting, hold on a bit for the first one to come back
                 if (opts.Priority != 0) break;
                 double wait = providers.Select(p => { var st = StateOf(p); lock (st) return (st.BlockedUntil - DateTime.UtcNow).TotalSeconds; }).Where(s => s > 0).DefaultIfEmpty(5).Min();
                 if (wait > 20 || DateTime.UtcNow.AddSeconds(wait) >= opts.Deadline) break;
@@ -371,13 +371,13 @@ namespace AILegacy.Llm
         }
 
         /// <summary>
-        /// Prueba un proveedor. Solo un 400/422 (parámetro no aceptado) baja la escalera de parámetros:
-        /// completo → sin "extra" → sin modo JSON → mínimo. Una respuesta vacía o cortada NO la baja.
+        /// Tries one provider. Only a 400/422 (rejected parameter) steps down the parameter ladder:
+        /// full, then no "extra", then no JSON mode, then minimal. An empty or cut-off reply does not.
         /// </summary>
         private static async Task<LlmResult> TryProvider(ProviderConfig p, List<ChatMessage> messages, bool wantJson, CallOptions opts)
         {
             string lastError = null;
-            // Nivel de parámetros que este proveedor aceptó la última vez: se empieza por ahí para no repetir la petición
+            // Start at the level this provider accepted last time, so a rejected request isn't sent again
             int start;
             lock (WorkingLevel) WorkingLevel.TryGetValue(p.Name + "|" + p.Model, out start);
             int maxTokens = opts.MaxTokens;
@@ -405,17 +405,17 @@ namespace AILegacy.Llm
                         }
                         return r;
                     }
-                    // Vacía o ilegible. Si se cortó por tokens (el razonamiento se los comió), un intento con el doble de sitio
+                    // Empty or unreadable. If it hit the token limit (reasoning ate the budget), try once with twice the room
                     lastError = r.Error;
                     if (r.Truncated && !grown && level < 3 && DateTime.UtcNow < opts.Deadline)
                     {
                         grown = true;
                         maxTokens = Math.Min(4000, Math.Max(maxTokens * 2, 1200));
                         Log.Warn($"{p.Name}: respuesta cortada por el tope de tokens; reintento con {maxTokens}");
-                        level--;            // el for lo vuelve a subir: se repite ESTE mismo nivel, una sola vez (grown)
+                        level--;            // the loop bumps it back up, so this same level runs again (once, see grown)
                         continue;
                     }
-                    return new LlmResult { Ok = false, Error = lastError };      // al siguiente proveedor, sin tocar el nivel
+                    return new LlmResult { Ok = false, Error = lastError };      // next provider, level unchanged
                 }
 
                 lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
@@ -427,7 +427,7 @@ namespace AILegacy.Llm
                     NoteFailure(p, status, text ?? err, retryAfter);
                     return new LlmResult { Ok = false, Error = lastError };
                 }
-                // 400/422: probar con menos parámetros
+                // 400/422: retry with fewer parameters
             }
             return new LlmResult { Ok = false, Error = lastError ?? "error desconocido" };
         }
@@ -439,7 +439,7 @@ namespace AILegacy.Llm
                 ["model"] = p.Model,
                 ["messages"] = new JArray(messages.Select(m => new JObject { ["role"] = m.Role, ["content"] = m.Content })),
             };
-            // Escalera: 0 = todo · 1 = sin "extra" (pero CON modo JSON) · 2 = sin modo JSON · 3 = mínimo
+            // Ladder: 0 = everything, 1 = no "extra" (JSON mode kept), 2 = no JSON mode, 3 = minimal
             if (level < 3)
             {
                 body[string.IsNullOrWhiteSpace(p.MaxTokensField) ? "max_tokens" : p.MaxTokensField] = maxTokens;
@@ -453,11 +453,11 @@ namespace AILegacy.Llm
 
         private static readonly Dictionary<string, int> WorkingLevel = new Dictionary<string, int>();
 
-        // ============================================================ envío
+        // ============================================================ sending
 
         private static int _dumpSeq;
 
-        /// <summary>Vuelca la petición o la respuesta: el «último» de siempre y un anillo de las 20 últimas con su tarea y proveedor.</summary>
+        /// <summary>Dumps the request or reply: the usual last_*.json plus a ring of the last 20, named by task and provider.</summary>
         private static void Dump(string kind, string task, string provider, int seq, string content)
         {
             try
@@ -467,7 +467,7 @@ namespace AILegacy.Llm
                 Directory.CreateDirectory(dir);
                 string safe = new string((task + "_" + provider).Select(c => char.IsLetterOrDigit(c) || c == '_' || c == '-' ? c : '_').ToArray());
                 File.WriteAllText(Path.Combine(dir, $"{seq % 20:00}_{kind}_{safe}.json"), content ?? "");
-                // Lo que ocupaba ese hueco con otro nombre (otra tarea) se quita
+                // Drop whatever held this slot under another name (another task)
                 foreach (var f in Directory.GetFiles(dir, $"{seq % 20:00}_{kind}_*.json"))
                     if (!f.EndsWith($"{seq % 20:00}_{kind}_{safe}.json", StringComparison.OrdinalIgnoreCase)) File.Delete(f);
             }
@@ -480,9 +480,9 @@ namespace AILegacy.Llm
             var started = DateTime.UtcNow;
             int seq = Interlocked.Increment(ref _dumpSeq);
             if (_debugBodies) Dump("req", opts.Task, p.Name, seq, body);
-            // El tiempo de este proveedor, sin pasar del plazo total de la tarea
+            // Per-provider timeout, capped by the task's total deadline
             double left = (opts.Deadline - started).TotalSeconds;
-            if (left < 3) return (0, null, "tiempo agotado", 0, null);          // el plazo total de la tarea manda
+            if (left < 3) return (0, null, "tiempo agotado", 0, null);
             double budget = Math.Min(Math.Max(5, p.TimeoutSeconds), left);
             try
             {

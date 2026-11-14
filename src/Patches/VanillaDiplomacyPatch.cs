@@ -11,9 +11,8 @@ using TaleWorlds.CampaignSystem.Settlements;
 namespace AILegacy.Patches
 {
     /// <summary>
-    /// Con la diplomacia de AI Legacy activa, los clanes del juego dejan de proponer por su cuenta
-    /// guerras, paces, acuerdos comerciales y alianzas. Eso lo deciden ahora los reyes con sus declaraciones.
-    /// (Las políticas y anexiones del juego siguen como siempre.)
+    /// With AI Legacy diplomacy on, vanilla clans stop proposing wars, peace, trade agreements and alliances on their own.
+    /// Rulers decide those through their declarations now. Vanilla policies and annexations still work as usual.
     /// </summary>
     [HarmonyPatch]
     internal static class VanillaDiplomacyPatch
@@ -43,14 +42,14 @@ namespace AILegacy.Patches
             try
             {
                 if (!Diplomacy.Enabled) return true;
-                __result = null;      // «ninguna propuesta»
+                __result = null;      // no proposal
                 return false;
             }
             catch (Exception ex) { Log.Error("Bloqueo de la diplomacia del juego", ex); return true; }
         }
     }
 
-    /// <summary>A quien te corteja (o cortejas) el juego no lo casa con otro por su cuenta.</summary>
+    /// <summary>The game won't marry off someone who is in a romance with the player.</summary>
     [HarmonyPatch(typeof(DefaultMarriageModel), nameof(DefaultMarriageModel.IsCoupleSuitableForMarriage))]
     internal static class CourtshipGuardPatch
     {
@@ -68,7 +67,7 @@ namespace AILegacy.Patches
         }
     }
 
-    /// <summary>Los sucesos del mundo encarecen o abaratan el mercado de un lugar mientras duran.</summary>
+    /// <summary>World events raise or lower a settlement's market prices while they last.</summary>
     [HarmonyPatch(typeof(DefaultTradeItemPriceFactorModel), nameof(DefaultTradeItemPriceFactorModel.GetPrice))]
     internal static class MarketPricePatch
     {
@@ -84,7 +83,7 @@ namespace AILegacy.Patches
         }
     }
 
-    /// <summary>El buen o mal nombre de un clan, por los sucesos del mundo, se nota en lo que ingresa.</summary>
+    /// <summary>A clan's reputation from world events affects its income.</summary>
     [HarmonyPatch(typeof(DefaultClanFinanceModel), nameof(DefaultClanFinanceModel.CalculateClanIncome))]
     internal static class ClanIncomePatch
     {
@@ -101,7 +100,7 @@ namespace AILegacy.Patches
         }
     }
 
-    /// <summary>Impuesto extraordinario de la corona (acción set_tax de un rey): más o menos recaudación en sus ciudades.</summary>
+    /// <summary>A ruler's set_tax action raises or lowers tax income in their towns.</summary>
     [HarmonyPatch(typeof(DefaultSettlementTaxModel), nameof(DefaultSettlementTaxModel.GetTownTaxRatio))]
     internal static class KingdomTaxPatch
     {

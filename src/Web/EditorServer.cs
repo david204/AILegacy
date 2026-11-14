@@ -18,18 +18,18 @@ using TaleWorlds.Library;
 namespace AILegacy.Web
 {
     /// <summary>
-    /// Editor de AI Legacy en el navegador (http://localhost:PUERTO/). Sirve Modules\AILegacy\web\editor.html
-    /// y una pequeña API JSON. Todo lo que toca el juego se ejecuta en el hilo principal.
-    /// Seguridad: solo peticiones de este equipo, Host/Origin = localhost o 127.0.0.1 con nuestro puerto,
-    /// y la API exige la ficha de la sesión (cabecera X-AIL-Token) que va incrustada en la página.
+    /// Browser editor (http://localhost:PORT/). Serves Modules\AILegacy\web\editor.html
+    /// plus a small JSON API. Anything that touches the game runs on the main thread.
+    /// Security: loopback requests only, Host/Origin must be localhost or 127.0.0.1 with our port,
+    /// and the API needs the session token (X-AIL-Token header) embedded in the page.
     /// </summary>
     internal static class EditorServer
     {
         private static HttpListener _http;
         private static Thread _thread;
         private static int _port;
-        // Ficha de esta sesión del servidor: va incrustada en la página que servimos y la página la manda en cada /api/*.
-        // Otra web abierta en el navegador no puede leer la página (otro origen), así que no la conoce.
+        // Per-session token. It's embedded in the served page and the page sends it on every /api/* call.
+        // Other sites open in the browser can't read our page (different origin), so they never see it.
         private static string _token;
         private const string TokenHeader = "X-AIL-Token";
         private const string TokenMarker = "__AIL_TOKEN__";
@@ -62,7 +62,7 @@ namespace AILegacy.Web
             {
                 _port = port;
                 _token = NewToken();
-                // Solo en el propio equipo: localhost y, si Windows lo permite sin permisos de administrador, 127.0.0.1
+                // Local only: localhost, plus 127.0.0.1 if Windows allows it without admin rights
                 try
                 {
                     _http = new HttpListener();
@@ -113,7 +113,7 @@ namespace AILegacy.Web
             var req = ctx.Request; var res = ctx.Response;
             try
             {
-                // Solo desde este equipo, con Host = localhost/127.0.0.1:puerto (contra el "DNS rebinding") y, si viene, Origin igual
+                // Loopback only, Host must be localhost/127.0.0.1:port (blocks DNS rebinding), same for Origin if present
                 if (!Allowed(req, out string why))
                 {
                     Reject($"({why}) {req.HttpMethod} {req.Url?.AbsolutePath}");
@@ -129,8 +129,8 @@ namespace AILegacy.Web
                     Send(res, 200, html, "text/html; charset=utf-8");
                     return;
                 }
-                // Toda la API exige la ficha de la sesión
                 if (path.StartsWith("/api/") && req.HttpMethod == "POST") Memory.SaveFiles.Dirty();
+                // Every API call needs the session token
                 if (!path.StartsWith("/api/") || !TokenOk(req.Headers[TokenHeader]))
                 {
                     Reject($"(sin ficha válida) {req.HttpMethod} {path}");
@@ -153,7 +153,7 @@ namespace AILegacy.Web
 
         private static int _rejected;
 
-        /// <summary>Apunta las peticiones rechazadas (solo las primeras, para que una web insistente no llene el log).</summary>
+        /// <summary>Logs rejected requests, only the first ones, so a pushy site can't flood the log.</summary>
         private static void Reject(string what)
         {
             int n = Interlocked.Increment(ref _rejected);
@@ -177,7 +177,7 @@ namespace AILegacy.Web
             return true;
         }
 
-        /// <summary>"localhost:puerto" o "127.0.0.1:puerto" (sin puerto solo si es el 80).</summary>
+        /// <summary>"localhost:port" or "127.0.0.1:port" (no port only when it's 80).</summary>
         private static bool IsOwnAuthority(string a)
         {
             if (string.IsNullOrEmpty(a)) return false;
@@ -189,7 +189,7 @@ namespace AILegacy.Web
             return false;
         }
 
-        /// <summary>Compara la ficha sin cortar en el primer carácter distinto.</summary>
+        /// <summary>Constant-time token compare (doesn't stop at the first mismatch).</summary>
         private static bool TokenOk(string got)
         {
             var want = _token;
@@ -205,14 +205,14 @@ namespace AILegacy.Web
             res.StatusCode = code;
             res.ContentType = type;
             res.Headers["Cache-Control"] = "no-store";
-            res.Headers["X-Frame-Options"] = "DENY";          // que otra web no pueda meter el editor en un marco
+            res.Headers["X-Frame-Options"] = "DENY";          // no framing by other sites
             res.Headers["X-Content-Type-Options"] = "nosniff";
             res.ContentLength64 = bytes.Length;
             res.OutputStream.Write(bytes, 0, bytes.Length);
             res.OutputStream.Close();
         }
 
-        // ================================================================ API (hilo principal)
+        // ================================================================ API (main thread)
 
         private static object Api(string path, System.Collections.Specialized.NameValueCollection q, JObject d)
         {
@@ -241,7 +241,7 @@ namespace AILegacy.Web
                 case "/api/info":
                 case "/api/secrets":
                 {
-                    var arr = JArray.Parse((string)d["json"] ?? "[]"); // valida que sea JSON
+                    var arr = JArray.Parse((string)d["json"] ?? "[]"); // throws if it isn't valid JSON
                     Directory.CreateDirectory(wd);
                     WriteText(Path.Combine(wd, path == "/api/info" ? "info.json" : "secrets.json"), arr.ToString(Formatting.Indented));
                     return new { ok = true, count = arr.Count };
@@ -284,7 +284,7 @@ namespace AILegacy.Web
                     var m = MemoryStore.Find(id) ?? (hero != null ? MemoryStore.Get(id, hero.Name.ToString()) : null);
                     if (m == null) throw new Exception("No existe ese personaje.");
                     var p = d["profile"] as JObject;
-                    // Se rellena sobre la ficha que ya hay: lo que el editor no manda (frases de ejemplo…) no se pierde
+                    // Populate over the existing profile so fields the editor doesn't send (sample lines etc.) survive
                     if (p != null) { if (m.Profile == null) m.Profile = new CharacterProfile(); JsonConvert.PopulateObject(p.ToString(), m.Profile); }
                     m.Summary = (string)d["summary"] ?? m.Summary;
                     m.Notes = Lines((string)d["notes"]);
@@ -317,11 +317,11 @@ namespace AILegacy.Web
 
                 case "/api/npc/delete":
                 {
-                    // Copia previa de toda la memoria (como /api/export); sin ella no se borra nada
+                    // Full memory backup first (same as /api/export). If it fails, nothing gets deleted
                     var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "borrar_npc");
                     if (backup == null) throw new Exception(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
                     MemoryStore.Remove((string)d["id"]);
-                    SaveFiles.Flush();   // su archivo va a _papelera ya, no en el siguiente volcado diario
+                    SaveFiles.Flush();   // moves its file to _papelera now instead of on the next daily flush
                     return new { ok = true, backup };
                 }
 
@@ -350,7 +350,7 @@ namespace AILegacy.Web
                     NewsStore.Delete((string)d["id"]);
                     return new { ok = true };
 
-                // ---------------------------------------------------------------- archivos: datos del mundo y plantillas
+                // ---------------------------------------------------------------- files: world data and templates
                 case "/api/files":
                 {
                     Directory.CreateDirectory(wd);
@@ -378,7 +378,7 @@ namespace AILegacy.Web
                     string kind = (string)d["kind"] ?? "", name = (string)d["name"] ?? "", text = (string)d["text"] ?? "";
                     if (kind == "world")
                     {
-                        JToken.Parse(text);      // valida que sea JSON antes de pisar nada
+                        JToken.Parse(text);      // validate before overwriting anything
                         WriteText(WorldFile(wd, name), text);
                         return new { ok = true };
                     }
@@ -390,7 +390,7 @@ namespace AILegacy.Web
                     return new { ok = true };
                 }
 
-                // ---------------------------------------------------------------- personalidad con IA, sin hablar en el juego
+                // ---------------------------------------------------------------- AI-generated personality, without talking in game
                 case "/api/npc/generate":
                 {
                     var id = (string)d["id"];
@@ -445,7 +445,7 @@ namespace AILegacy.Web
                     return new { busy = Generating.Contains(id), error = err ?? "" };
                 }
 
-                // ---------------------------------------------------------------- secretos nacidos de la historia
+                // ---------------------------------------------------------------- secrets drawn from the backstory
                 case "/api/storysecrets":
                     return World.WorldSim.State.Secrets.OrderByDescending(x => x.Day).Select(x => new
                     {
@@ -459,7 +459,7 @@ namespace AILegacy.Web
                     SaveFiles.Flush();
                     return new { ok = true };
 
-                // ---------------------------------------------------------------- crear un compañero a medida
+                // ---------------------------------------------------------------- custom companion
                 case "/api/companion/create":
                 {
                     var h = World.People.CreateCompanion((string)d["name"], (bool?)d["female"] == true, (int?)d["age"] ?? 25, (string)d["culture"], out string err);
@@ -491,7 +491,7 @@ namespace AILegacy.Web
                 case "/api/lang":
                     return new { code = L.Code, table = L.Current() };
 
-                // ---------------------------------------------------------------- gasto de IA
+                // ---------------------------------------------------------------- AI spending
                 case "/api/usage":
                     return new
                     {
@@ -505,7 +505,7 @@ namespace AILegacy.Web
                 case "/api/cultures":
                     return TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObjectTypeList<CultureObject>().Where(c => c.IsMainCulture).Select(c => new { id = c.StringId, name = c.Name.ToString() });
 
-                // ---------------------------------------------------------------- objetos de rol
+                // ---------------------------------------------------------------- roleplay items
                 case "/api/items":
                     return World.Belongings.Items.Select(i => new { name = i.Name, desc = i.Description, from = i.FromName, days = (int)(CampaignTime.Now.ToDays - i.Day) });
 
@@ -525,7 +525,7 @@ namespace AILegacy.Web
                     SaveFiles.Flush();
                     return new { ok = true };
 
-                // ---------------------------------------------------------------- servicio
+                // ---------------------------------------------------------------- service
                 case "/api/open":
                 {
                     string which = (string)d["what"] ?? "save";
@@ -542,11 +542,11 @@ namespace AILegacy.Web
                 {
                     var json = d["data"]?.ToString(Formatting.None);
                     if (string.IsNullOrWhiteSpace(json) || !(d["data"] is JObject)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
-                    // Copia previa de toda la memoria actual (como /api/export); sin ella no se sustituye nada
+                    // Full backup of current memory first (same as /api/export). If it fails, nothing gets replaced
                     var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "importar");
                     if (backup == null) throw new Exception(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
                     MemoryStore.Deserialize(json);
-                    SaveFiles.Flush();   // los archivos que ya no vienen en la copia van a _papelera, no se borran
+                    SaveFiles.Flush();   // files missing from the import go to _papelera, they aren't deleted
                     return new { ok = true, npcs = MemoryStore.Count, backup };
                 }
 
@@ -578,7 +578,7 @@ Write every field in {language}, each 1 to 3 sentences, concrete (habits, a fear
 - sample_lines: 3 short things they would typically say, in their voice.
 Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_style"": """", ""goals"": """", ""secret"": """", ""drives"": """", ""values"": """", ""social_behavior"": """", ""cognitive_style"": """", ""religion"": """", ""reputation"": """", ""sample_lines"": ["""", """", """"] }");
 
-        /// <summary>Ruta de un archivo de world_data, sin dejar salir de esa carpeta.</summary>
+        /// <summary>Path of a world_data file. Refuses anything outside that folder.</summary>
         private static string WorldFile(string wd, string name)
         {
             name = Path.GetFileName(name ?? "");
@@ -593,7 +593,7 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
 
         private static void WriteText(string p, string text)
         {
-            if (File.Exists(p)) File.Copy(p, p + ".bak", true); // copia de seguridad del anterior
+            if (File.Exists(p)) File.Copy(p, p + ".bak", true);
             File.WriteAllText(p, text, new UTF8Encoding(false));
         }
 

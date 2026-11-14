@@ -14,14 +14,14 @@ using TaleWorlds.CampaignSystem.CharacterDevelopment;
 
 namespace AILegacy.World
 {
-    /// <summary>Un secreto nacido de la historia de ESTA partida: quién lo sabe, de quién trata y cuánto cuesta sonsacarlo.</summary>
+    /// <summary>A secret born from this campaign's own story: who knows it, who it's about, and how much trust it takes to get it out of them.</summary>
     public class StorySecret
     {
         [JsonProperty("id")] public string Id;
-        [JsonProperty("text")] public string Text;              // inglés, para los prompts
-        [JsonProperty("text_local")] public string TextLocal;   // idioma del jugador, para el editor
-        [JsonProperty("about")] public List<string> About = new List<string>();        // ids de héroes
-        [JsonProperty("known_by")] public List<string> KnownBy = new List<string>();   // ids de héroes
+        [JsonProperty("text")] public string Text;              // English, for prompts
+        [JsonProperty("text_local")] public string TextLocal;   // player's language, for the editor
+        [JsonProperty("about")] public List<string> About = new List<string>();        // hero ids
+        [JsonProperty("known_by")] public List<string> KnownBy = new List<string>();   // hero ids
         [JsonProperty("access")] public string Access = "high"; // low | medium | high
         [JsonProperty("day")] public double Day;
         [JsonProperty("source")] public string Source = "origin"; // origin | event
@@ -29,9 +29,9 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// Secretos por historia. En vez de repartir a dados unos secretos escritos de antemano, la IA los inventa a partir de
-    /// la gente real de cada reino (sus casas, bodas, rencores, deudas, quién odia a quién) y de lo que va pasando. Cada
-    /// secreto trata de personas concretas y lo conocen unas pocas, que solo lo sueltan con confianza.
+    /// Story secrets. Instead of rolling dice over prewritten secrets, the AI makes them up from the actual people of each
+    /// kingdom (houses, marriages, grudges, who hates whom) and from what happens in the campaign. Each secret is about
+    /// specific people, and only a few know it. They only share it with someone they trust.
     /// </summary>
     internal static class StorySecrets
     {
@@ -81,7 +81,6 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
                     .Select(h => $"{h.Name} ({(h.IsFemale ? "woman" : "man")}, {(int)h.Age}{(h == l ? ", head of the house" : "")}{(h.Spouse != null ? $", married to {h.Spouse.Name}" : ", unmarried")}{(h.IsPrisoner ? ", held prisoner" : "")}){Traits(h)}");
                 sb.AppendLine(string.Join("; ", people) + ".");
             }
-            // Rencores y amistades entre cabezas de casa
             var leaders = k.Clans.Where(c => c != null && !c.IsEliminated && c.Leader != null && c != Clan.PlayerClan).Select(c => c.Leader).ToList();
             var ties = new List<string>();
             for (int i = 0; i < leaders.Count; i++)
@@ -104,7 +103,7 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
             return pool.FirstOrDefault(h => prefer != null && h.MapFaction == prefer) ?? pool.FirstOrDefault();
         }
 
-        /// <summary>Guarda un secreto que ha devuelto la IA (de origen o nacido de un suceso).</summary>
+        /// <summary>Stores a secret returned by the AI, either an origin secret or one born from an event.</summary>
         public static StorySecret Add(JObject x, Kingdom k, string source)
         {
             try
@@ -119,14 +118,14 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
                 };
                 foreach (var n in (x["about"] as JArray)?.Select(t => t.ToString()) ?? Enumerable.Empty<string>()) { var h = FindHero(n, k); if (h != null && !s.About.Contains(h.StringId)) s.About.Add(h.StringId); }
                 foreach (var n in (x["known_by"] as JArray)?.Select(t => t.ToString()) ?? Enumerable.Empty<string>()) { var h = FindHero(n, k); if (h != null && !s.KnownBy.Contains(h.StringId)) s.KnownBy.Add(h.StringId); }
-                // De quien trata lo sabe; y a veces, también su cónyuge
+                // The people it's about know it, and sometimes their spouse does too
                 foreach (var id in s.About.ToList())
                 {
                     if (!s.KnownBy.Contains(id)) s.KnownBy.Add(id);
                     var sp = Hero.Find(id)?.Spouse;
                     if (sp != null && sp != Hero.MainHero && !s.KnownBy.Contains(sp.StringId) && Rng.Next(100) < 40) s.KnownBy.Add(sp.StringId);
                 }
-                if (s.KnownBy.Count == 0) return null;      // un secreto que no sabe nadie no sirve
+                if (s.KnownBy.Count == 0) return null;      // a secret nobody knows is useless
                 All.Add(s);
                 while (All.Count > cfg.StorySecretsMax) All.RemoveAt(0);
                 Log.Info($"[secretos] nuevo ({source}, {s.Access}): {text} — lo saben: {string.Join(", ", s.KnownBy.Select(id => Hero.Find(id)?.Name?.ToString() ?? id))}");
@@ -135,7 +134,7 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
             catch (Exception ex) { Log.Error("Guardar secreto", ex); return null; }
         }
 
-        /// <summary>Un reino por día de juego, hasta tenerlos todos: así el gasto se reparte y no hay parón al empezar.</summary>
+        /// <summary>One kingdom per in-game day until all are done, so the cost is spread out and there's no stall at the start.</summary>
         public static void OnDailyTick()
         {
             try
@@ -144,7 +143,7 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
                 if (!cfg.StorySecrets || Campaign.Current == null || !WorldSim.CanCall) return;
                 var k = WorldSim.Kingdoms.FirstOrDefault(x => !WorldSim.State.SecretKingdoms.Contains(x.StringId) && !WorldSim.IsReserved("secrets:" + x.StringId) && x.Clans.Count(c => !c.IsEliminated) >= 2);
                 if (k == null) return;
-                // El reino se marca como hecho solo cuando llegan sus secretos (si la llamada falla, se reintenta otro día)
+                // The kingdom is only marked done once its secrets arrive. If the call fails, it's retried another day.
                 string prompt = TOrigin.Format("count", cfg.StorySecretsPerKingdom, "language", cfg.Language, "kingdom", k.Name, "data", Describe(k));
                 WorldSim.Ask($"secretos de {k.Name}", new List<ChatMessage> { new ChatMessage("user", prompt) }, 300 + cfg.StorySecretsPerKingdom * 220, j =>
                 {
@@ -157,7 +156,7 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
             catch (Exception ex) { Log.Error("Secretos por historia", ex); }
         }
 
-        /// <summary>Lo que este personaje sabe en secreto (para su prompt): lo suyo se marca como propio.</summary>
+        /// <summary>Secrets this character knows, for their prompt. Their own secrets are flagged as such.</summary>
         public static List<string> For(Speaker s)
         {
             var list = new List<string>();

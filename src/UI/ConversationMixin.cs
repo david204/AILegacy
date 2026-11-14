@@ -13,7 +13,6 @@ using TaleWorlds.Library;
 
 namespace AILegacy.UI
 {
-    /// <summary>Una línea del historial que se despliega sobre el cuadro de diálogo.</summary>
     public class AilHistoryLineVM : ViewModel
     {
         private string _speaker = "", _text = "";
@@ -25,9 +24,8 @@ namespace AILegacy.UI
     }
 
     /// <summary>
-    /// Lo que AI Legacy añade a la pantalla de conversación del juego: junto al nombre, las barras de relación, confianza y
-    /// romance (y un aviso si sospecha que le mientes o hay tensión); y un botón que despliega, sobre el cuadro de diálogo,
-    /// lo hablado con ese personaje, con scroll.
+    /// Adds to the game's conversation screen: relation, trust and romance bars next to the name (plus a warning when they
+    /// suspect lies or there's tension), and a button that opens a scrollable history of past talks above the dialogue box.
     /// </summary>
     [ViewModelMixin("Refresh")]
     internal sealed class ConversationMixin : BaseViewModelMixin<MissionConversationVM>
@@ -49,13 +47,13 @@ namespace AILegacy.UI
             try { Recompute(); } catch (Exception ex) { Log.Error("Conversación: barras", ex); }
         }
 
-        /// <summary>¿Están las barras en pantalla ahora mismo? (entonces sobra la línea de cifras bajo la respuesta)</summary>
+        /// <summary>True while the bars are on screen, so the stats line under the reply can be skipped.</summary>
         public static bool ShowingStats
         {
             get { try { return _current != null && _current.TryGetTarget(out var m) && m._statsVisible; } catch { return false; } }
         }
 
-        /// <summary>Dos veces por segundo: las cifras cambian tras cada respuesta sin que el juego refresque su pantalla.</summary>
+        /// <summary>Runs twice a second. The numbers change after each reply and the game doesn't refresh its screen on its own.</summary>
         public static void Tick(float dt)
         {
             _since += dt;
@@ -96,7 +94,7 @@ namespace AILegacy.UI
             var h = Conversed();
             var mem = h == null ? null : MemoryStore.Find(h.StringId);
 
-            // ---- barras
+            // ---- bars
             bool stats = h != null && cfg.ShowNameBars;
             AilStatsVisible = stats;
             if (stats)
@@ -119,7 +117,7 @@ namespace AILegacy.UI
             }
             else { AilTrustVisible = false; AilRomanceVisible = false; AilWarnVisible = false; }
 
-            // ---- historial
+            // ---- history
             bool can = h != null && cfg.ShowDialogHistory && mem != null && mem.Turns.Any(t => !t.IsNote);
             AilHistoryAvailable = can;
             AilCardVisible = stats || can;
@@ -137,7 +135,7 @@ namespace AILegacy.UI
                 if (text.Length > 700) text = text.Substring(0, 700) + "…";
                 _history.Add(new AilHistoryLineVM { Speaker = player ? me : them, Text = text, IsPlayer = player });
             }
-            AilScrollVersion = _scrollVersion + 1;       // baja al final
+            AilScrollVersion = _scrollVersion + 1;       // scroll to the bottom
         }
 
         [DataSourceMethod]
@@ -172,9 +170,9 @@ namespace AILegacy.UI
     }
 
     /// <summary>
-    /// Una tarjeta propia justo encima de la franja del nombre: fondo oscuro con filete dorado, las barras, el aviso y el
-    /// botón del historial. Se coloca igual que la franja del nombre del juego (copia la altura del cuadro de diálogo), así
-    /// sube y baja con él y no pisa el nombre ni el estandarte.
+    /// Our own card just above the name strip, with the bars, the warning and the history button. It's positioned the same
+    /// way as the game's name strip (copies the dialogue box height), so it moves with the box and never covers the name or
+    /// the banner.
     /// </summary>
     [PrefabExtension("SPConversation", "descendant::ListPanel[@Id='VerticalContainer']")]
     internal sealed class ConversationStatsPrefab : PrefabExtensionInsertPatch
@@ -196,7 +194,7 @@ namespace AILegacy.UI
             "</Children>" +
             "</ListPanel>";
 
-        // Altura de la tarjeta 64; la franja del nombre del juego usa 55 de margen: 55 + 8 de hueco + 64
+        // PaddingAmount 127 = 55 (the game's name strip margin) + 8 gap + 64 card height
         [PrefabExtensionText]
         public string Xml =>
             "<DimensionSyncWidget Id=\"AilStatsSync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"680\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginRight=\"700\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"127\">" +
@@ -233,13 +231,13 @@ namespace AILegacy.UI
             "</DimensionSyncWidget>";
     }
 
-    /// <summary>Encima de la tarjeta: lo hablado con ese personaje, con scroll. Sube y baja con el cuadro de diálogo.</summary>
+    /// <summary>Scrollable chat history panel above the card. Moves with the dialogue box.</summary>
     [PrefabExtension("SPConversation", "descendant::ListPanel[@Id='VerticalContainer']")]
     internal sealed class ConversationHistoryPrefab : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Append;
 
-        // 127 de la tarjeta + 8 de hueco + 430 del panel
+        // PaddingAmount 565 = 127 (card) + 8 gap + 430 panel height
         [PrefabExtensionText]
         public string Xml =>
             "<DimensionSyncWidget Id=\"AilHistorySync\" DoNotAcceptEvents=\"true\" WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"680\" VerticalAlignment=\"Bottom\" HorizontalAlignment=\"Center\" MarginRight=\"700\" WidgetToCopyHeightFrom=\"..\\VerticalContainer\\BottomPanelsContainer\\DialogueContainer\" DimensionToSync=\"Vertical\" PaddingAmount=\"565\">" +

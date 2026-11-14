@@ -16,7 +16,7 @@ using TaleWorlds.ScreenSystem;
 
 namespace AILegacy.UI
 {
-    /// <summary>Abre/cierra una ventana Gauntlet a pantalla completa con un ViewModel.</summary>
+    /// <summary>Opens and closes a full-screen Gauntlet window for a ViewModel.</summary>
     internal class GauntletWindow
     {
         private GauntletLayer _layer;
@@ -70,10 +70,10 @@ namespace AILegacy.UI
         }
     }
 
-    /// <summary>Ventanas de Noticias y Memorias.</summary>
+    /// <summary>News and Memories windows.</summary>
     internal static class Books
     {
-        /// <summary>Todo lo hablado con alguien, para repasarlo con calma: lo reciente, lo antiguo (archivado) y las páginas de su libro.</summary>
+        /// <summary>Full transcript with someone: recent turns, archived old ones, and their memory book pages.</summary>
         public static void OpenTranscript(Dialogue.Speaker s)
         {
             try
@@ -87,7 +87,7 @@ namespace AILegacy.UI
                     foreach (var t in turns)
                     {
                         string text = (t.Text ?? "").Trim();
-                        if (text.Length == 0 || t.IsNote) continue;      // las notas de lo ocurrido son para la IA, no parte de lo hablado
+                        if (text.Length == 0 || t.IsNote) continue;      // event notes are for the AI, not part of the conversation
                         if (t.Role != "player" && text.StartsWith("{")) { try { text = ((string)Newtonsoft.Json.Linq.JObject.Parse(text)["reply"] ?? text).Trim(); } catch { } }
                         bool note = text.StartsWith("[");
                         b.Append(note ? text : (t.Role == "player" ? me : s.Name) + ":\n" + text).Append("\n\n");
@@ -106,7 +106,7 @@ namespace AILegacy.UI
             catch (Exception ex) { Core.Log.Error("Repasar lo hablado", ex); }
         }
 
-        /// <summary>Noticias del mundo en una sola columna, como se lee un pregón: título, a quién toca, lo ocurrido, sus efectos, tipo y fecha.</summary>
+        /// <summary>World news in a single column, read like a town crier's notice: title, who it concerns, what happened, effects, type and date.</summary>
         public static void OpenNews()
         {
             try
@@ -115,7 +115,7 @@ namespace AILegacy.UI
                 bool all = false;
                 FillNews(vm, all);
                 vm.OnToggle = () => { all = !all; FillNews(vm, all); };
-                // Si reinas, desde aquí proclamas
+                // Rulers can make declarations from here
                 if (Diplomacy.PlayerCanDeclare) { vm.ActionText = L.T("AIL_7611f3a8", "Hacer una declaración"); vm.HasAction = true; }
                 GauntletWindow w = null;
                 vm.OnClose = () => w?.Close();
@@ -126,7 +126,7 @@ namespace AILegacy.UI
             catch (Exception ex) { Core.Log.Error("Ventana de noticias", ex); OpenNewsOld(); }
         }
 
-        /// <summary>¿Es un suceso de los que se cuentan (lo que escribe el mundo, lo que proclaman los reyes, lo sonado)? El resto es el goteo de capturas y escaramuzas.</summary>
+        /// <summary>True for news worth telling (world events, royal statements, big happenings). The rest is the steady trickle of captures and skirmishes.</summary>
         private static bool IsEvent(NewsItem n)
         {
             string t = n.Type ?? "";
@@ -135,7 +135,7 @@ namespace AILegacy.UI
             return n.Importance >= 3 && (t == "war" || t == "peace" || t == "ruler" || t == "kingdom" || t == "death");
         }
 
-        /// <summary>La etiqueta de abajo a la izquierda: una palabra. 0 = local, 1 = política, 2 = lo demás.</summary>
+        /// <summary>One-word tag for the bottom left corner. kind: 0 = local, 1 = politics, 2 = everything else.</summary>
         private static string TagOf(NewsItem n, out int kind)
         {
             string t = n.Type ?? "";
@@ -179,7 +179,7 @@ namespace AILegacy.UI
             vm.ToggleText = all ? L.T("AIL_f96ef1d1", "Solo sucesos") : L.T("AIL_ebad7b06", "Ver todo");
         }
 
-        /// <summary>Id del evento de una noticia (las nuevas lo llevan; en partidas antiguas se busca por el título).</summary>
+        /// <summary>Event id for a news item. New items carry it, older saves are matched by title.</summary>
         private static string EventIdOf(NewsItem n)
         {
             if (n == null || n.Type == null || !n.Type.StartsWith("event_")) return n?.Id;
@@ -187,7 +187,7 @@ namespace AILegacy.UI
             return WorldSim.State.Events.LastOrDefault(e => !string.IsNullOrEmpty(n.TitleEs) && e.Title == n.TitleEs)?.Id ?? n.Id;
         }
 
-        /// <summary>La ventana anterior (lista y detalle): queda de reserva si la nueva no se puede abrir.</summary>
+        /// <summary>Old list and detail window, kept as a fallback in case the new one fails to open.</summary>
         private static void OpenNewsOld()
         {
             var cfg = S.Get;
@@ -202,7 +202,7 @@ namespace AILegacy.UI
                 var title = n.DisplayTitle;
                 vm.Entries.Add(new BookEntryVM(title, L.F("AIL_beccbd63", $"{kind} · {when} · importancia {n.Importance}"), n, e => ShowNews(vm, e)));
             }
-            // Si reinas, desde aquí proclamas
+            // Rulers can make declarations from here
             if (Diplomacy.PlayerCanDeclare)
             {
                 vm.ActionText = L.T("AIL_7611f3a8", "Hacer una declaración");
@@ -229,7 +229,7 @@ namespace AILegacy.UI
             vm.Select(e, n.DisplayTitle, b.ToString().Replace("{", "(").Replace("}", ")"));
         }
 
-        /// <summary>Encargos de la IA (abiertos y recientes) y documentos que llevas.</summary>
+        /// <summary>AI quests (open and recent) and the documents you carry.</summary>
         public static void OpenQuests()
         {
             double now = CampaignTime.Now.ToDays;
@@ -281,7 +281,7 @@ namespace AILegacy.UI
                 string sub = L.F("AIL_734fab9c", $"{(x.h.IsDead ? L.T("AIL_986efa13", "Fallecido · ") : "")}Relación {rel:+0;-0;0} · {x.m.ConversationCount} charla(s)");
                 vm.Entries.Add(new BookEntryVM(x.h.Name.ToString(), sub, x.h, e => ShowHero(vm, e)));
             }
-            // Documentos y objetos de rol que llevas encima
+            // Role-play documents and items you carry
             foreach (var it in Belongings.Items)
                 vm.Entries.Add(new BookEntryVM(it.Name, L.F("AIL_095b55a1", $"Documento · de {it.FromName}"), it, e => ShowQuest(vm, e)));
             vm.OnAction = e =>
@@ -289,7 +289,7 @@ namespace AILegacy.UI
                 var h = e.Tag as Hero;
                 if (h == null || !h.IsAlive) return;
                 GauntletWindow.Current?.Close();
-                /* las cartas se envían desde el distrito de tabernas */
+                /* letters are sent from the town backstreet menu */
             };
             if (vm.Entries.Count == 0) vm.Select(null, L.T("AIL_0872713a", "Vacío"), L.T("AIL_b93602c9", "Aún no has hablado con nadie. Cada persona con la que hables aparecerá aquí con lo que recuerda de ti."));
             else ShowHero(vm, vm.Entries[0]);
@@ -330,7 +330,7 @@ namespace AILegacy.UI
                     foreach (var t in lastTurns) b.Append(t.Role == "player" ? L.T("AIL_63ea9af4", "Tú: ") : h.Name + ": ").Append(t.Text).Append("\n");
                 }
             }
-            vm.HasAction = false; // las cartas se envían desde el distrito de tabernas
+            vm.HasAction = false; // letters are sent from the town backstreet menu
             vm.ActionText = L.T("AIL_bd58c13d", "Escribir carta");
             vm.Select(e, h.Name.ToString(), b.ToString().Replace("{", "(").Replace("}", ")"));
         }
@@ -377,7 +377,7 @@ namespace AILegacy.UI
         private static string ImportanceName(int i) => i >= 4 ? L.T("AIL_fe2134ff", "todo el mundo") : i == 3 ? L.T("AIL_5179ad99", "todo el reino") : i == 2 ? L.T("AIL_1d84efed", "la corte") : L.T("AIL_4c08be8b", "el lugar");
     }
 
-    /// <summary>Botones fijos en el mapa (capa transparente: solo los botones reciben clics).</summary>
+    /// <summary>Fixed buttons on the campaign map. The layer is transparent, only the buttons take clicks.</summary>
     internal static class MapHud
     {
         private static GauntletLayer _layer;
@@ -407,7 +407,7 @@ namespace AILegacy.UI
             Log.Info("Creando botones del mapa…");
             _layer = new GauntletLayer("AILegacyMapHud", 300);
             _movie = _layer.LoadMovie("AILegacyMapButtons", _vm);
-            // isMouseVisible: false, como las capas del propio mapa: con true el cursor queda fijo y no se puede girar la cámara
+            // isMouseVisible false, same as the map's own layers. With true the cursor gets stuck and the camera can't rotate.
             _layer.InputRestrictions.SetInputRestrictions(false, InputUsageMask.MouseButtons);
             screen.AddLayer(_layer);
             _screen = screen;

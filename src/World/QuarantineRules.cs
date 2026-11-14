@@ -15,15 +15,15 @@ using TaleWorlds.Localization;
 namespace AILegacy.World
 {
     /// <summary>
-    /// Una cuarentena que cierra de verdad: mientras dura, las partidas del mapa no eligen ese sitio como destino, las
-    /// caravanas y los aldeanos no van, no se convocan torneos, y a ti te paran en la puerta (te vuelves, o sobornas a la
-    /// guardia y entras por tu cuenta y riesgo). No afecta a quien es dueño del lugar, ni a un enemigo que venga a tomarlo.
+    /// Quarantine that actually closes the gates. While it lasts, map parties don't pick the place as a destination,
+    /// caravans and villagers stay away, no tournaments are called, and the player is stopped at the gate (turn back, or
+    /// bribe the guards and go in at your own risk). The owner and enemies coming to take the place aren't affected.
     /// </summary>
     internal static class QuarantineRules
     {
         private const string GateMenu = "ailegacy_quarantine_gate";
-        private static string _passFor;       // asentamiento en el que ya estás dentro con permiso (o desde antes del cierre)
-        private static string _backMenu;      // menú del juego al que se vuelve tras pasar
+        private static string _passFor;       // settlement the player is already allowed inside (let in, or was there before it closed)
+        private static string _backMenu;      // game menu to return to after getting through
 
         public static bool Closed(Settlement st)
         {
@@ -42,33 +42,31 @@ namespace AILegacy.World
             if (st.OwnerClan == Clan.PlayerClan) return true;
             if (st.MapFaction is Kingdom k && k.Leader == Hero.MainHero) return true;
             var pf = Hero.MainHero?.MapFaction;
-            return pf != null && st.MapFaction != null && pf.IsAtWarWith(st.MapFaction);      // a un enemigo ya le para el juego
+            return pf != null && st.MapFaction != null && pf.IsAtWarWith(st.MapFaction);      // the game already keeps enemies out
         }
 
-        /// <summary>¿A ti te pararían hoy en la puerta de ese sitio?</summary>
         public static bool StopsPlayer(Settlement st)
         {
             try { return Closed(st) && !PlayerExempt(st) && _passFor != st.StringId; } catch { return false; }
         }
 
-        /// <summary>¿Esa partida del mapa tiene vetado ir a ese sitio?</summary>
         public static bool Barred(MobileParty party, Settlement st)
         {
             try
             {
                 if (party == null || st == null || party.IsMainParty || !Closed(st)) return false;
                 if (party.CurrentSettlement == st || party.IsGarrison || party.IsMilitia) return false;
-                if (party.HomeSettlement == st) return false;                                  // vuelve a su casa
+                if (party.HomeSettlement == st) return false;                                  // going home
                 var f = party.MapFaction;
-                if (f != null && st.MapFaction != null && f.IsAtWarWith(st.MapFaction)) return false;   // viene a sitiar o saquear
+                if (f != null && st.MapFaction != null && f.IsAtWarWith(st.MapFaction)) return false;   // coming to besiege or raid
                 var clan = party.LeaderHero?.Clan ?? party.ActualClan;
-                if (clan != null && clan == st.OwnerClan) return false;                        // el dueño entra en lo suyo
+                if (clan != null && clan == st.OwnerClan) return false;                        // owners can enter their own place
                 return true;
             }
             catch { return false; }
         }
 
-        /// <summary>Tras la cuenta de la IA del juego: ir a un sitio en cuarentena deja de puntuar.</summary>
+        /// <summary>Runs after the game's party AI scoring and zeroes the score for going to a quarantined place.</summary>
         public static void OnAiHourlyTick(MobileParty party, PartyThinkParams p)
         {
             try
@@ -84,7 +82,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("[cuarentena] IA del mapa", ex); }
         }
 
-        /// <summary>Si la cuarentena se decreta contigo dentro, o cargas partida dentro, no te echan.</summary>
+        /// <summary>If the quarantine starts while the player is inside, or a save loads inside, they aren't thrown out.</summary>
         public static void NotePlayerInside()
         {
             try { _passFor = Settlement.CurrentSettlement?.StringId; } catch { _passFor = null; }

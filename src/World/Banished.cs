@@ -10,20 +10,18 @@ using TaleWorlds.Library;
 
 namespace AILegacy.World
 {
-    /// <summary>Un clan echado de un reino: no puede volver a él hasta que su rey lo perdone.</summary>
     public class Banishment
     {
         [JsonProperty("clan")] public string ClanId;
         [JsonProperty("kingdom")] public string KingdomId;
         [JsonProperty("day")] public double Day;
-        [JsonProperty("by")] public string RulerId;        // el rey que lo echó
+        [JsonProperty("by")] public string RulerId;        // ruler who banished them
         [JsonProperty("by_name")] public string RulerName;
     }
 
     /// <summary>
-    /// Destierros. Cuando un rey expulsa a un clan (por su propia decisión en AI Legacy o por una votación del juego), ese clan
-    /// no puede volver a jurarle lealtad, pasarse a él ni servirle como mercenario hasta que el rey lo perdone. El destierro
-    /// acaba también si el reino cambia de rey (ajuste). El rey lo sabe y el desterrado también.
+    /// A clan expelled by a ruler (through an AI Legacy decision or a game vote) can't rejoin that kingdom, not even as
+    /// mercenaries, until the ruler pardons it. With the setting on, a new ruler also lifts it. Both sides know about it.
     /// </summary>
     internal static class Banished
     {
@@ -67,7 +65,6 @@ namespace AILegacy.World
             catch { return false; }
         }
 
-        /// <summary>El intento de volver que el juego iba a hacer: ¿se deja?</summary>
         public static bool AllowJoin(Clan clan, Kingdom k)
         {
             if (!IsBanned(clan, k)) return true;
@@ -109,7 +106,6 @@ namespace AILegacy.World
             return d <= 0 ? "today" : d == 1 ? "yesterday" : d + " days ago";
         }
 
-        /// <summary>Para los datos del rey: a quién tiene desterrado.</summary>
         public static string DescribeForRuler(Kingdom k)
         {
             try
@@ -124,7 +120,6 @@ namespace AILegacy.World
             catch { return ""; }
         }
 
-        /// <summary>Para la ficha de alguien de un clan desterrado.</summary>
         public static string DescribeForClan(Clan clan)
         {
             try
@@ -136,19 +131,19 @@ namespace AILegacy.World
             catch { return ""; }
         }
 
-        /// <summary>¿Hay que conservar este clan aunque el juego quiera disolverlo por no tener reino ni tierras?</summary>
+        /// <summary>True if the game shouldn't disband this clan even though it has no kingdom or fiefs.</summary>
         public static bool KeepAlive(Clan clan)
         {
             try
             {
                 if (clan == null || !S.Get.KeepKnownClansAlive) return false;
-                if (HasAny(clan)) return true;                                       // desterrado: puede ser perdonado
+                if (HasAny(clan)) return true;                                       // banished clans can still be pardoned
                 foreach (var h in clan.Heroes)
                 {
                     if (h == null || !h.IsAlive) continue;
                     if (h.Spouse == Hero.MainHero) return true;
                     var m = MemoryStore.Find(h.StringId);
-                    if (m != null && m.ConversationCount > 0) return true;           // gente con la que has tratado
+                    if (m != null && m.ConversationCount > 0) return true;           // someone the player has talked to
                 }
             }
             catch { }

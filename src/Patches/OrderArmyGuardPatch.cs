@@ -8,9 +8,9 @@ using TaleWorlds.CampaignSystem.Party;
 namespace AILegacy.Patches
 {
     /// <summary>
-    /// Un señor que está cumpliendo algo acordado contigo (seguirte, esperarte, ir a un sitio, patrullar…) no se deja
-    /// llevar al ejército de otro: el juego lo llamaba, él desaparecía y lo acordado se quedaba sin hacer. Mientras dure
-    /// la orden, la llamada se ignora. A tu propio ejército y al que forme él mismo sí puede entrar.
+    /// A lord carrying out something agreed with you (follow, wait, go somewhere, patrol...) ignores calls to join
+    /// someone else's army while the order lasts. Otherwise the game pulls him away and the order never gets done.
+    /// He can still join your army or one he leads himself.
     /// </summary>
     [HarmonyPatch(typeof(MobileParty), nameof(MobileParty.Army), MethodType.Setter)]
     internal static class OrderArmyGuardPatch

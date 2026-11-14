@@ -10,15 +10,14 @@ using TaleWorlds.CampaignSystem;
 
 namespace AILegacy.Prompt
 {
-    /// <summary>Prompts propios de AI Legacy.</summary>
     internal static class PromptBuilder
     {
-        // =========================================================== plantillas (editables en save_data\<campaña>\prompts)
+        // =========================================================== templates (editable in save_data\<campaign>\prompts)
 
         private static readonly Tpl TIntro = new Tpl("dialogue/intro.txt",
             "You are {npc_name}, a living person in Calradia, the medieval world of Mount & Blade II: Bannerlord. You are talking face to face with {player_name}.");
 
-        // Arranque común a TODOS los personajes: no lleva nombres, para que el proveedor pueda cachear lo que viene detrás
+        // Shared opening for ALL characters. No names in it, so the provider can cache everything that follows
         private static readonly Tpl TShared = new Tpl("dialogue/intro_shared.txt",
             "You play one living person in Calradia, the medieval world of Mount & Blade II: Bannerlord. Who you are, and who you are talking to, is written further down. " +
             "First the world and the rules, which are the same for everyone.");
@@ -68,7 +67,7 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
             "(4) is any action, quest change or change in my feelings truly earned by THIS exchange, and is that action in my list?\"");
 
         private static readonly Tpl TJsonHeader = new Tpl("json_output/header.txt", "## Answer format\nAnswer ONLY with a JSON object, no text outside it:");
-        // Plantilla aparte para que llegue también a campañas con header.txt ya exportado
+        // Separate template so it also reaches campaigns that already exported header.txt
         private static readonly Tpl TJsonQuotes = new Tpl("json_output/quotes.txt",
             "Inside text values never use straight double quotes (\"): to quote someone's words use «» or single quotes ('...').");
         private static readonly Tpl TJsonReply = new Tpl("json_output/reply.txt", "\"reply\": \"what you say out loud (and optional *gestures*)\"");
@@ -200,35 +199,35 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
         private static readonly Tpl TOpeners = new Tpl("rules/used_openers.txt",
             "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
-        /// <summary>Fuerza el registro de todas las plantillas (campos estáticos) antes de volcarlas a disco.</summary>
+        /// <summary>Forces every template (static fields) to register before they are written to disk.</summary>
         public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); }
 
-        // =========================================================== diálogo
+        // =========================================================== dialogue
 
         /// <summary>
-        /// El prompt de una charla, ordenado para que el proveedor pueda cachearlo:
-        ///   1. mensaje de sistema: primero lo común a todos los personajes (mundo y reglas), después lo propio de este
-        ///      (quién es, a quién tiene delante, qué recuerda, encargos, formato de respuesta). Nada de esto cambia de un
-        ///      turno al siguiente;
-        ///   2. el historial, que solo crece por el final (la ventana avanza a saltos, no en cada turno);
-        ///   3. en el último mensaje, lo de este turno: hora, ánimo, confianza y tensión, recuerdo relevante, lo nombrado,
-        ///      las acciones posibles ahora. Eso no se guarda.
-        /// «opening»: el personaje habla primero (iniciativa); es la instrucción de por qué se dirige al jugador.
+        /// Dialogue prompt, ordered so the provider can cache it:
+        ///   1. system message: first what all characters share (world and rules), then this character's part
+        ///      (who they are, who they're facing, what they remember, quests, reply format). None of it changes
+        ///      from one turn to the next.
+        ///   2. the history, which only grows at the end (the window moves in jumps, not every turn).
+        ///   3. this turn's data in the last message: time, mood, trust and tension, relevant memories, things
+        ///      mentioned, actions available now. This part is not saved.
+        /// "opening": the character speaks first (initiative). It's the instruction for why they approach the player.
         /// </summary>
         public static List<ChatMessage> BuildDialogue(Speaker s, int relationBudgetLeft, string opening = null)
         {
             var cfg = S.Get;
             var mem = s.Memory;
             string playerName = ContextBuilder.PlayerNameFor(s);
-            // Ficha vacía → se crea entera. Ficha a medias (antigua o importada) → se pide completar lo que falta.
+            // Empty profile: create it whole. Partial profile (old or imported): ask to fill in what's missing.
             bool completing = mem.Profile != null && !mem.Profile.IsEmpty && mem.Profile.IsIncomplete && cfg.CompleteProfiles;
             bool needsProfile = mem.Profile == null || mem.Profile.IsEmpty || completing;
 
             var sys = new StringBuilder();
-            // ---------- 1a. común a todos
+            // ---------- 1a. shared by everyone
             sys.AppendLine(TShared.Text);
             AppendWorld(sys);
-            // Reglas de mundo que han puesto otros mods (parte común: no cambia de un personaje a otro)
+            // World rules added by other mods. Shared part, same for every character
             try { string rules = AILegacy.Api.ModHooks.DescribeWorldRules(); if (rules.Length > 0) { sys.AppendLine(); sys.AppendLine("## More about this world"); sys.AppendLine(rules); } } catch { }
             sys.AppendLine();
             sys.AppendLine(TRules.Format("min_sentences", cfg.ReplyMinSentences, "max_sentences", cfg.ReplyMaxSentences, "language", cfg.Language,
@@ -236,7 +235,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             if (cfg.EnableActions) { sys.AppendLine(); sys.AppendLine(TActionRules.Text); }
             if (cfg.TestCompliantMode) { sys.AppendLine(); sys.AppendLine(TTestMode.Text); }
 
-            // ---------- 1b. este personaje
+            // ---------- 1b. this character
             sys.AppendLine();
             sys.AppendLine(TIntro.Format("npc_name", s.IsHero ? s.Name : s.Band != null ? "the leader of a party met on the road" : "an ordinary person", "player_name", playerName ?? "a stranger"));
             AppendCustomInstructions(sys, s);
@@ -278,31 +277,31 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             if (needsProfile) sys.AppendLine(TProfileNote.Format("language", cfg.Language));
             if (completing) sys.AppendLine(TProfileComplete.Text);
 
-            // ---------- 2. historial
+            // ---------- 2. history
             var msgs = new List<ChatMessage> { new ChatMessage("system", sys.ToString().TrimEnd()) };
-            // La ventana avanza a saltos: si se deslizara en cada turno, el principio del historial cambiaría siempre
-            // y el proveedor no podría cachear nada de él
+            // The window moves in jumps. If it slid every turn, the start of the history would always change
+            // and the provider couldn't cache any of it
             int size = System.Math.Max(4, cfg.HistoryTurnsInPrompt), step = System.Math.Max(4, size / 2);
             int first = mem.Turns.Count < size + step ? 0 : (mem.Turns.Count - size) / step * step;
             var window = mem.Turns.Skip(first).ToList();
             double prevDay = -1;
             foreach (var t in window)
             {
-                // Las respuestas pasadas del NPC se enseñan con la misma forma que se le pide (JSON):
-                // si las viera como texto suelto, tendería a contestar en texto suelto y sin acciones.
+                // Past NPC replies are shown in the same JSON shape we ask for. If the model saw them as
+                // plain text, it would tend to answer in plain text with no actions.
                 bool npc = t.Role != "player";
                 bool rawJson = npc && t.Text != null && t.Text.TrimStart().StartsWith("{");
                 string text = npc && !rawJson ? Newtonsoft.Json.JsonConvert.SerializeObject(new { reply = t.Text }) : (t.Text ?? "");
-                // Un intercambio de hace un mes y otro de hoy no se leen seguidos: se marca el salto (no se guarda)
+                // Mark time gaps so a talk from a month ago doesn't read as if it ran straight into today's (not saved)
                 if (!npc && prevDay > 0 && t.Day > 0 && t.Day - prevDay >= 1.0) text = TGap.Format("days", (int)(t.Day - prevDay)) + "\n" + text;
                 if (t.Day > 0) prevDay = t.Day;
                 var last = msgs[msgs.Count - 1];
-                // Dos mensajes seguidos del mismo lado (una nota de lo ocurrido y lo que dice después) van en uno solo
+                // Two messages in a row from the same side (an event note, then what the player says) are merged into one
                 if (!npc && last.Role == "user") last.Content += "\n" + text;
                 else msgs.Add(new ChatMessage(npc ? "assistant" : "user", text));
             }
 
-            // ---------- 3. lo de este turno, en el último mensaje
+            // ---------- 3. this turn's data, in the last message
             var now = new StringBuilder();
             now.AppendLine(TTurn.Text);
             AppendNow(now, s);
@@ -313,7 +312,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             AppendRecall(now, s);
             var actions = NpcActions.DescribeAvailable(s);
             if (actions.Length > 0) { now.AppendLine(); now.AppendLine(TActionsNow.Text); now.AppendLine(actions); }
-            // Antirrepetición: los arranques de sus últimas respuestas
+            // Anti-repetition: how their last replies started
             try
             {
                 var openers = window.Where(t => t.Role != "player").Select(t => Opener(SaidBy(t))).Where(o => o.Length > 0).ToList();
@@ -336,7 +335,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             return msgs;
         }
 
-        /// <summary>Lo que dijo el NPC en un turno guardado (sin el envoltorio JSON si se guardó en bruto).</summary>
+        /// <summary>What the NPC said in a stored turn, without the JSON wrapper if it was stored raw.</summary>
         private static string SaidBy(ChatTurn t)
         {
             string text = (t.Text ?? "").Trim();
@@ -344,18 +343,18 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             return text;
         }
 
-        /// <summary>Las primeras palabras de una respuesta, sin el gesto entre asteriscos del principio.</summary>
+        /// <summary>First words of a reply, skipping any leading *gesture*.</summary>
         private static string Opener(string reply)
         {
             string r = (reply ?? "").Trim();
-            if (r.StartsWith("[")) return "";                                   // cartas y notas
+            if (r.StartsWith("[")) return "";                                   // letters and notes
             while (r.StartsWith("*")) { int e = r.IndexOf('*', 1); if (e < 0) break; r = r.Substring(e + 1).TrimStart(); }
             var words = r.Split(new[] { ' ', '\n', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
             if (words.Length < 4) return "";
             return string.Join(" ", words.Take(4)).TrimEnd(',', '.', ';', ':', '!', '?', '…');
         }
 
-        /// <summary>Encargos abiertos con este NPC y documentos que lleva el jugador. Devuelve si procede el campo "quest".</summary>
+        /// <summary>Open quests with this NPC and documents the player carries. Returns whether the "quest" field applies.</summary>
         private static bool AppendQuestsAndItems(StringBuilder sys, Speaker s)
         {
             bool quests = false;
@@ -386,9 +385,9 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             return quests;
         }
 
-        // ============================================================ cartas
+        // ============================================================ letters
 
-        /// <summary>El NPC escribe por iniciativa propia (o contesta una carta del jugador).</summary>
+        /// <summary>The NPC writes on their own initiative, or answers a letter from the player.</summary>
         public static List<ChatMessage> BuildLetter(Speaker s, string playerLetterToAnswer)
         {
             var cfg = S.Get;
@@ -431,11 +430,11 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             return new List<ChatMessage> { new ChatMessage("system", sys.ToString().TrimEnd()), new ChatMessage("user", "Write the letter now.") };
         }
 
-        // ========================================================== resumen
+        // ========================================================== summary
 
         /// <summary>
-        /// Pide el registro del tramo que sale del historial (y su página del libro). Si hay demasiados tramos viejos,
-        /// «merge» son los que además hay que fundir en uno.
+        /// Asks for the record of the part leaving the history (and its memory book page). When there are too many
+        /// old parts, "merge" holds the ones that also have to be folded into one.
         /// </summary>
         public static List<ChatMessage> BuildSummary(Speaker s, List<ChatTurn> oldTurns, List<SummaryPart> merge = null)
         {
@@ -466,7 +465,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             return new List<ChatMessage> { new ChatMessage("user", sb.ToString()) };
         }
 
-        // ======================================================== secciones
+        // ======================================================== sections
 
         private static void AppendWorld(StringBuilder sys)
         {
@@ -504,7 +503,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             Lore.AppendTo(sys, s);
         }
 
-        /// <summary>Lo que cambia de un momento a otro: fecha y hora, lo que pasa en el lugar, la situación y el ánimo.</summary>
+        /// <summary>What changes from moment to moment: date and time, what's going on at the place, the situation, the mood.</summary>
         private static void AppendNow(StringBuilder sys, Speaker s)
         {
             sys.AppendLine();
@@ -521,7 +520,6 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                 sys.AppendLine("## What is happening right now (this comes before any small talk)");
                 sys.AppendLine(s.Situation);
             }
-            // Ánimo: varias causas a la vez (lo que le ha pasado, cómo está, y cómo le dejó la última charla)
             Mood.AppendTo(sys, s);
         }
 
@@ -556,7 +554,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             }
         }
 
-        /// <summary>¿Lo que trae la búsqueda por palabras ya está dentro de un trozo traído por significado?</summary>
+        /// <summary>True if a keyword hit is already contained in a chunk found by meaning.</summary>
         private static bool Overlaps(string chunk, string hit)
         {
             int c = hit.IndexOf(": ", System.StringComparison.Ordinal);
@@ -565,7 +563,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             return core.Length >= 12 && chunk.IndexOf(core, System.StringComparison.Ordinal) >= 0;
         }
 
-        /// <summary>Recuerdo relevante: intercambios antiguos que tienen que ver con lo que se está diciendo ahora.</summary>
+        /// <summary>Relevant memories: old exchanges related to what's being said now.</summary>
         private static void AppendRecall(StringBuilder sys, Speaker s)
         {
             try
@@ -574,7 +572,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                 if (!S.Get.EnableRecall) return;
                 var lastSaid = mem.Turns.LastOrDefault(t => t.Role == "player" && !t.IsNote);
                 if (lastSaid == null) return;
-                // Se busca con lo último que ha dicho y con lo último que le contestaste («sí, eso» solo no encuentra nada)
+                // Search with the player's last line plus the NPC's last reply ("yes, that" alone finds nothing)
                 var lastOwn = mem.Turns.LastOrDefault(t => t.Role != "player");
                 string query = lastSaid.Text + (lastOwn != null ? " " + SaidBy(lastOwn) : "");
                 int size = System.Math.Max(4, S.Get.HistoryTurnsInPrompt), step = System.Math.Max(4, size / 2);
@@ -582,7 +580,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                 var older = mem.Turns.Take(first).ToList();
                 var back = AILegacy.Memory.Recall.Find(mem, query, s.Name, ContextBuilder.PlayerNameFor(s) ?? "the stranger",
                     CampaignTime.Now.ToDays, S.Get.RecallCount, older);
-                // Por significado (si hay vectores): trozos enteros de vuestra historia, aunque no compartan ni una palabra
+                // By meaning (if embeddings exist): whole chunks of shared history, even with no words in common
                 var deep = RagIndex.Find(s, CampaignTime.Now.ToDays, S.Get.RagTopK);
                 if (deep.Count > 0) back = back.Where(b => !deep.Any(d => Overlaps(d, b))).ToList();
                 if (back.Count + deep.Count == 0) return;

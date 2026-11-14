@@ -14,15 +14,15 @@ using TaleWorlds.Library;
 
 namespace AILegacy.World
 {
-    /// <summary>Encargo que un NPC le ha hecho al jugador en una charla.</summary>
+    /// <summary>A task an NPC gave the player during a conversation.</summary>
     public class AiQuest
     {
         [JsonProperty("id")] public string Id;
         [JsonProperty("giver")] public string GiverId;
         [JsonProperty("giver_name")] public string GiverName;
-        [JsonProperty("name")] public string Name;                 // en el idioma del jugador
-        [JsonProperty("description")] public string Description;   // en el idioma del jugador
-        [JsonProperty("brief")] public string Brief;               // en inglés, para los prompts
+        [JsonProperty("name")] public string Name;                 // player's language
+        [JsonProperty("description")] public string Description;   // player's language
+        [JsonProperty("brief")] public string Brief;               // English, for prompts
         [JsonProperty("created")] public double CreatedDay;
         [JsonProperty("due")] public double DueDay;
         [JsonProperty("reward")] public int RewardGold;
@@ -34,26 +34,26 @@ namespace AILegacy.World
         [JsonProperty("state")] public string State = "active";
         [JsonProperty("ended")] public double EndDay = -1;
         [JsonProperty("reason")] public string Reason = "";
-        /// <summary>Otros héroes implicados (objetivo, testigo…): también saben del encargo.</summary>
+        /// <summary>Other heroes involved (target, witness...). They know about the task too.</summary>
         [JsonProperty("targets")] public List<string> Targets = new List<string>();
 
-        // Objetivo que comprueba el juego (ver QuestObjectives)
+        // Objective checked by the game (see QuestObjectives)
         [JsonProperty("obj_type")] public string ObjType = "none";
         [JsonProperty("obj_target")] public string ObjTargetId;
         [JsonProperty("obj_target_name")] public string ObjTargetName;
         [JsonProperty("obj_amount")] public int ObjAmount;
         [JsonProperty("obj_met")] public bool ObjMet;
-        [JsonProperty("party_id")] public string PartyId;        // banda creada para el encargo
+        [JsonProperty("party_id")] public string PartyId;        // band spawned for this task
         [JsonProperty("band_by_player")] public bool BandByPlayer;
-        [JsonProperty("doc_name")] public string DocName;        // documento a entregar
-        [JsonProperty("obj_item")] public string ObjItemId;      // deliver_item: qué objeto
+        [JsonProperty("doc_name")] public string DocName;        // document to deliver
+        [JsonProperty("obj_item")] public string ObjItemId;      // deliver_item: which item
         [JsonProperty("obj_item_name")] public string ObjItemName;
-        [JsonProperty("delivered")] public int Delivered;        // unidades ya entregadas en mano
+        [JsonProperty("delivered")] public int Delivered;        // units already handed over
 
         [JsonIgnore] public bool Active => State == "active";
     }
 
-    /// <summary>Lo que pide la IA en el campo "quest" de su respuesta.</summary>
+    /// <summary>The "quest" field of the AI's reply.</summary>
     public class QuestRequest
     {
         public string Action = "";       // create | update | complete | fail
@@ -88,7 +88,6 @@ namespace AILegacy.World
         }
     }
 
-    /// <summary>Misiones creadas por la IA: crear, anotar progreso, completar (con recompensa) y fracasar.</summary>
     internal static class QuestSystem
     {
         public static List<AiQuest> Quests = new List<AiQuest>();
@@ -102,7 +101,7 @@ namespace AILegacy.World
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
         private static string Clip(string s, int n) => string.IsNullOrEmpty(s) ? "" : s.Length <= n ? s : s.Substring(0, n);
 
-        // ============================================================ texto para el prompt
+        // ============================================================ prompt text
 
         public static string DescribeFor(Speaker s)
         {
@@ -129,7 +128,7 @@ namespace AILegacy.World
             return sb.ToString().TrimEnd();
         }
 
-        // ============================================================ aplicar lo que pide la IA
+        // ============================================================ apply the AI's request
 
         public static List<string> Apply(Speaker s, QuestRequest r)
         {
@@ -190,7 +189,7 @@ namespace AILegacy.World
                     if (q == null) break;
                     if (!QuestObjectives.Met(q))
                     {
-                        // El NPC lo da por hecho, pero el mundo dice que no: no se cumple ni se paga
+                        // The NPC says it's done but the game says no, so no completion and no reward
                         Log.Warn($"{s.Name} quiso dar por cumplido {q.Id}, pero falta: {QuestObjectives.MissingEs(q)}");
                         shown.Add(L.F("AIL_390cb390", $"«{q.Name}» aún no está cumplido: {QuestObjectives.MissingEs(q)}"));
                         break;
@@ -220,7 +219,7 @@ namespace AILegacy.World
             return shown;
         }
 
-        /// <summary>Id que no usa ningún encargo (ni activo ni del historial) ni ninguna misión del diario.</summary>
+        /// <summary>Id not used by any task (active or in history) or by any journal quest.</summary>
         private static string NewId()
         {
             for (int i = 0; i < 1000; i++)
@@ -230,7 +229,7 @@ namespace AILegacy.World
                 try { if (GameJournal.Find(id) != null) continue; } catch { }
                 return id;
             }
-            // Casi imposible: se recurre a la hora y a un contador
+            // Practically never reached, fall back to time plus a counter
             return "q" + DateTime.UtcNow.Ticks.ToString("x") + Quests.Count;
         }
 
@@ -263,7 +262,7 @@ namespace AILegacy.World
             GameJournal.Close(q, state, state == "expired" ? L.T("AIL_f991b6e7", "Se acabó el plazo.") : string.IsNullOrWhiteSpace(reason) ? L.T("AIL_c53c096c", "El encargo ha fracasado.") : reason);
         }
 
-        /// <summary>El juego ha dado por vencida la misión del diario antes que nuestro tick diario.</summary>
+        /// <summary>The game timed out the journal quest before our daily tick did.</summary>
         public static void OnJournalTimedOut(string aiQuestId)
         {
             var q = Quests.FirstOrDefault(x => x.Active && x.Id == aiQuestId);
@@ -294,14 +293,14 @@ namespace AILegacy.World
             catch { }
         }
 
-        // ============================================================ muertes: el encargo se cierra al momento
+        // ============================================================ deaths: the task closes right away
 
-        // Se escucha la muerte de héroes del juego (sin esperar al tick diario): si muere quien lo dio, o la persona a la que
-        // había que ver o entregar algo, el encargo se cierra en el acto y su misión sale del diario (y del mapa).
+        // Listens for hero deaths instead of waiting for the daily tick. If the giver dies, or the person you had to see
+        // or deliver to, the task closes at once and its quest leaves the journal and the map.
         private static readonly object HookOwner = new object();
         private static WeakReference _hookedOn;
 
-        /// <summary>Engancha el aviso de muerte en la campaña actual (una sola vez por campaña).</summary>
+        /// <summary>Hooks the death event on the current campaign, once per campaign.</summary>
         public static void EnsureHooks()
         {
             try
@@ -326,7 +325,6 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Encargos: muerte de un héroe", ex); }
         }
 
-        /// <summary>Cierra los encargos que ya no pueden seguir porque ha muerto quien los dio o su objetivo.</summary>
         private static void CloseForDeath(string heroId)
         {
             foreach (var q in Quests.Where(x => x.Active).ToList())
@@ -340,17 +338,17 @@ namespace AILegacy.World
                 bool objective = q.ObjTargetId == heroId && (q.ObjType == "talk_to" || q.ObjType == "deliver_item" || q.ObjType == "deliver_document");
                 if (objective && !QuestObjectives.Met(q))
                 {
-                    // Ya no se puede cumplir, y no es culpa del jugador: se cancela sin castigo
+                    // Can't be done anymore and it's not the player's fault, so cancel with no penalty
                     End(q, "failed", $"{q.ObjTargetName}, whom the task concerned, died");
                     GameJournal.Close(q, "cancelled", L.F("AIL_cb1eb4c2", $"{q.ObjTargetName} ha muerto."));
                     continue;
                 }
-                // Sigue en pie (objetivo ya cumplido o solo era un implicado): deja de marcarse en el mapa
+                // Still open (objective already met, or they were just involved), so only stop tracking them on the map
                 if (objective || q.Targets.Contains(heroId)) GameJournal.Untrack(q, heroId);
             }
         }
 
-        /// <summary>Al cargar: lo que haya muerto mientras tanto (o en una partida vieja) se cierra ya, antes de tocar el diario.</summary>
+        /// <summary>On load, closes tasks whose people died meanwhile (or in an old save) before touching the journal.</summary>
         public static void CloseDeadOnLoad()
         {
             try
@@ -370,7 +368,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Encargos: muertos al cargar", ex); }
         }
 
-        // ============================================================ tiempo
+        // ============================================================ time
 
         public static void OnDailyTick()
         {
@@ -382,7 +380,7 @@ namespace AILegacy.World
                 foreach (var q in Quests.Where(x => x.Active).ToList())
                 {
                     var giver = Hero.Find(q.GiverId);
-                    // Red de seguridad por si el aviso de muerte no llegó
+                    // Fallback in case the death event never fired
                     if (giver == null || giver.IsDead) { End(q, "failed", "the giver died"); GameJournal.Close(q, "cancelled", L.F("AIL_cb1eb4c2", $"{q.GiverName} ha muerto.")); continue; }
                     if (now >= q.DueDay)
                     {
@@ -392,7 +390,7 @@ namespace AILegacy.World
                     }
                     else if ((int)(q.DueDay - now) == 2) Say(L.F("AIL_b14d8a23", $"Quedan 2 días para el encargo de {q.GiverName}: {q.Name}"), Colors.Yellow);
                 }
-                // historial corto
+                // keep history short
                 var old = Quests.Where(x => !x.Active).OrderByDescending(x => x.EndDay).Skip(60).ToList();
                 foreach (var x in old) Quests.Remove(x);
             }
@@ -400,7 +398,7 @@ namespace AILegacy.World
         }
     }
 
-    /// <summary>Objeto de rol (carta, contrato, sello, prenda…) que lleva el jugador. No es un objeto del juego: solo existe para la historia.</summary>
+    /// <summary>Roleplay item the player carries (letter, contract, seal, token...). Not a game item, it only exists for the story.</summary>
     public class RpItem
     {
         [JsonProperty("name")] public string Name;
@@ -423,7 +421,7 @@ namespace AILegacy.World
 
         public static string Norm(string s) => new string((s ?? "").ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
 
-        /// <summary>Para el prompt: lo que el jugador lleva encima y podría enseñar.</summary>
+        /// <summary>For the prompt: what the player carries and could show.</summary>
         public static string Describe()
         {
             if (Items.Count == 0) return "";

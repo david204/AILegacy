@@ -1,6 +1,5 @@
 <Prefab>
   <Window>
-    <!-- Noticias del mundo: una sola columna para leer de arriba abajo. Cada noticia: título, a quién toca, lo ocurrido, sus efectos, tipo y fecha. -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.7">
       <Children>
         <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1180" SuggestedHeight="900" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -22,15 +21,10 @@
                               <ItemTemplate>
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="10" MarginRight="6" MarginTop="22" StackLayout.LayoutMethod="VerticalTopToBottom">
                                   <Children>
-                                    <!-- Título -->
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="30" Brush.FontColor="#D8B98AFF" Brush.TextHorizontalAlignment="Center" Text="@Title" />
-                                    <!-- A quién toca -->
                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="8" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Text="@Participants" IsVisible="@HasParticipants" />
-                                    <!-- Lo ocurrido -->
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" MarginRight="24" MarginTop="10" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" />
-                                    <!-- Efectos -->
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" MarginRight="24" MarginTop="14" Brush="Popup.Title.Text" Brush.FontSize="19" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Effects" IsVisible="@HasEffects" />
-                                    <!-- Tipo y fecha -->
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="14" IsVisible="@HasTags">
                                       <Children>
                                         <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#4A3524FF" IsVisible="@IsLocal">
@@ -55,7 +49,6 @@
                                         </Widget>
                                       </Children>
                                     </Widget>
-                                    <!-- Raya entre noticias -->
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" MarginTop="20" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.25" />
                                   </Children>
                                 </ListPanel>

@@ -17,9 +17,9 @@ using TaleWorlds.Library;
 namespace AILegacy.World
 {
     /// <summary>
-    /// Diplomacia de reyes por IA: declaraciones públicas con acciones reales (guerra, paz con condiciones, alianzas,
-    /// comercio, tributos, reparaciones, territorios, feudos, expulsiones, impuestos), propuestas pendientes entre coronas
-    /// y las declaraciones del jugador cuando es rey. Las palabras de un rey no cambian nada sin su acción.
+    /// AI diplomacy between rulers: public statements backed by real actions (war, peace with terms, alliances, trade,
+    /// tribute, reparations, territory, fiefs, banishment, taxes), pending proposals between crowns, and the player's own
+    /// statements when they rule. A ruler's words change nothing unless an action comes with them.
     /// </summary>
     internal static class Diplomacy
     {
@@ -29,7 +29,7 @@ namespace AILegacy.World
         private static Kingdom PlayerRealm => Hero.MainHero?.MapFaction as Kingdom;
         private static bool PlayerRules(Kingdom k) => k != null && k.Leader == Hero.MainHero;
 
-        // ============================================================ alianzas y comercio (los del propio juego)
+        // ============================================================ alliances and trade (the game's own)
 
         private static IAllianceCampaignBehavior Alli { get { try { return Campaign.Current?.GetCampaignBehavior<IAllianceCampaignBehavior>(); } catch { return null; } } }
         private static ITradeAgreementsCampaignBehavior Trade { get { try { return Campaign.Current?.GetCampaignBehavior<ITradeAgreementsCampaignBehavior>(); } catch { return null; } } }
@@ -37,7 +37,7 @@ namespace AILegacy.World
         public static bool Allied(Kingdom a, Kingdom b) { try { return Alli != null && Alli.IsAllyWithKingdom(a, b); } catch { return false; } }
         public static bool HasTrade(Kingdom a, Kingdom b) { try { return Trade != null && Trade.HasTradeAgreement(a, b, out _); } catch { return false; } }
 
-        // ============================================================ propuestas
+        // ============================================================ proposals
 
         private static Proposal Pending(string type, Kingdom from, Kingdom to) =>
             St.Proposals.FirstOrDefault(p => p.Type == type && p.From == from.StringId && p.To == to.StringId);
@@ -80,7 +80,7 @@ namespace AILegacy.World
             return string.Join("\n", St.Proposals.Select(p => $"- {p.From} {(IsDemand(p.Type) ? "demands" : "proposes")} {TypeEn(p.Type)}{Terms(p)} {(IsDemand(p.Type) ? "from" : "to")} {p.To} ({(int)(now - p.Day)} day(s) ago, unanswered)"));
         }
 
-        // ============================================================ tick diario
+        // ============================================================ daily tick
 
         public static void OnDailyTick(double now)
         {
@@ -91,7 +91,7 @@ namespace AILegacy.World
             }
             if (!Enabled) return;
 
-            // Lo que va dirigido a ti como rey: decides tú, con una ventana
+            // Proposals aimed at the player as ruler: the player decides through a popup
             var mine = PlayerRealm;
             if (PlayerRules(mine) && WorldSim.OnMap())
                 foreach (var p in St.Proposals.Where(x => x.To == mine.StringId && !x.Notified).ToList())
@@ -100,19 +100,19 @@ namespace AILegacy.World
                     AskPlayer(p);
                 }
 
-            // Quién va a hablar hoy. Varios reyes pueden pronunciarse sobre lo mismo: se ponen en cola y hablan de uno en uno,
-            // separados por unas horas de juego, y cada uno sabe lo que han dicho los anteriores (OnHourlyTick).
+            // Who speaks today. Several rulers can respond to the same thing: they get queued and speak one at a time,
+            // a few game hours apart, and each one knows what the earlier ones said (OnHourlyTick).
             var cfg = S.Get;
             var queue = St.StatementQueue;
-            queue.RemoveAll(q => now * 24 - q.DueHour > 48);       // turnos que se quedaron sin salir
+            queue.RemoveAll(q => now * 24 - q.DueHour > 48);       // turns that never got to go out
             var candidates = new List<(Kingdom k, WorldEvent ev, int weight)>();
 
-            // 1) Presión de respuesta: quien tiene una propuesta sin contestar (van delante)
+            // 1) Pressure to answer: rulers with an unanswered proposal go first
             foreach (var k in WorldSim.Kingdoms.Where(x => !PlayerRules(x)))
                 if (St.Proposals.Any(p => p.To == k.StringId) && Ready(k, now, 1) && Rng.Next(100) < cfg.ResponsePressurePercent)
                     candidates.Add((k, null, 1000));
 
-            // 2) Sucesos que piden que un rey se pronuncie
+            // 2) Events that call for a ruler to speak out
             foreach (var ev in St.Events.Where(e => now - e.Day <= cfg.EngagementDays && e.Engagement.Count > 0).OrderByDescending(e => e.Importance))
                 foreach (var kv in ev.Engagement.ToList())
                 {
@@ -126,15 +126,15 @@ namespace AILegacy.World
             foreach (var c in candidates.OrderByDescending(c => c.weight + Rng.Next(50)))
             {
                 if (room <= 0) break;
-                if (queue.Any(q => q.KingdomId == c.k.StringId)) continue;       // un turno por rey
-                if (WorldSim.IsReserved("statement:" + c.k.StringId)) continue;  // su declaración anterior aún está en camino
+                if (queue.Any(q => q.KingdomId == c.k.StringId)) continue;       // one turn per ruler
+                if (WorldSim.IsReserved("statement:" + c.k.StringId)) continue;  // their previous statement is still in flight
                 queue.Add(new QueuedStatement { KingdomId = c.k.StringId, EventId = c.ev?.Id, DueHour = due });
                 due += Math.Max(1, cfg.HoursBetweenStatements);
                 room--;
             }
         }
 
-        /// <summary>Cada hora de juego: si a un rey le toca hablar y la cola de peticiones está libre, habla.</summary>
+        /// <summary>Every game hour: if a ruler's turn is due and the request queue is free, they speak.</summary>
         public static void OnHourlyTick()
         {
             try
@@ -145,7 +145,7 @@ namespace AILegacy.World
                 double hour = CampaignTime.Now.ToHours, now = CampaignTime.Now.ToDays;
                 var next = St.StatementQueue.OrderBy(q => q.DueHour).First();
                 if (next.DueHour > hour) return;
-                if (WorldSim.IsReserved("statement:" + next.KingdomId)) return;   // aún no ha llegado la anterior: espera su turno
+                if (WorldSim.IsReserved("statement:" + next.KingdomId)) return;   // previous one hasn't landed yet, wait
                 St.StatementQueue.Remove(next);
                 var k = WorldSim.FindKingdom(next.KingdomId);
                 if (k == null || k.IsEliminated || k.Leader == null || PlayerRules(k) || !Ready(k, now, 1)) return;
@@ -153,10 +153,10 @@ namespace AILegacy.World
                 if (next.EventId != null)
                 {
                     ev = St.Events.FirstOrDefault(e => e.Id == next.EventId);
-                    if (ev == null || !ev.Engagement.ContainsKey(k.StringId)) return;      // el suceso ya no está o ya habló de él
+                    if (ev == null || !ev.Engagement.ContainsKey(k.StringId)) return;      // event is gone or they already spoke about it
                 }
-                else if (!St.Proposals.Any(p => p.To == k.StringId)) return;               // ya no le espera nada
-                MakeStatement(k, ev);     // la ocasión se gasta al aplicar la respuesta (ApplyStatement)
+                else if (!St.Proposals.Any(p => p.To == k.StringId)) return;               // nothing left waiting for them
+                MakeStatement(k, ev);     // the occasion is used up when the reply is applied (ApplyStatement)
             }
             catch (Exception ex) { Log.Error("[diplomacia] turno de declaraciones", ex); }
         }
@@ -164,7 +164,7 @@ namespace AILegacy.World
         private static bool Ready(Kingdom k, double now, int minDays) =>
             !St.LastStatementDay.TryGetValue(k.StringId, out var d) || now - d >= minDays;
 
-        // ============================================================ declaración de un rey
+        // ============================================================ ruler statement
 
         private static readonly Tpl TStatement = new Tpl("kingdom_statement/statement.txt",
 @"You are {ruler}, ruler of {kingdom} in Calradia, the medieval world of Mount & Blade II: Bannerlord. You are about to issue a public statement as sovereign.
@@ -220,7 +220,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 if (!string.IsNullOrWhiteSpace(p.Goals)) sb.AppendLine("Wants: " + p.Goals);
                 if (!string.IsNullOrWhiteSpace(p.SpeechStyle)) sb.AppendLine("Speaks: " + p.SpeechStyle);
             }
-            // Lo tratado hace poco con el jugador cuenta
+            // Recent dealings with the player count
             if (mem != null && mem.LastConversationDay >= 0 && CampaignTime.Now.ToDays - mem.LastConversationDay <= 15)
             {
                 if (!string.IsNullOrWhiteSpace(mem.Summary)) sb.AppendLine($"Recent private dealings with {Hero.MainHero.Name}: {mem.Summary}");
@@ -281,7 +281,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 sys.AppendLine(); sys.AppendLine("## Your previous statements (do not repeat yourself)");
                 foreach (var s in prev) sys.AppendLine($"- {(int)(CampaignTime.Now.ToDays - s.Day)} day(s) ago: {s.SummaryEn}");
             }
-            // Lo que otros reyes acaban de decir (sobre todo si hablan del mismo suceso): contesta, apoya o desmarcate
+            // What other rulers just said (above all on the same event), so this one can answer, back it or stand apart
             var others = St.Statements.Where(s => s.KingdomId != k.StringId && CampaignTime.Now.ToDays - s.Day <= 2 && !string.IsNullOrWhiteSpace(s.SummaryEn))
                                       .OrderByDescending(s => s.Day).Take(4).ToList();
             if (others.Count > 0)
@@ -296,14 +296,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             WorldSim.Ask(L.F("AIL_3b33d5b8", $"declaración de {ruler.Name}"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", task) }, 1100,
                 j =>
                 {
-                    // Agenda consumida solo si la respuesta llega: si falla, el rey puede hablar otro día
+                    // Only use up the turn when a reply arrives. If the call fails, the ruler can speak another day
                     St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
-                    if (about != null) about.Engagement.Remove(k.StringId);   // ya ha hablado sobre esto
+                    if (about != null) about.Engagement.Remove(k.StringId);
                     ApplyStatement(k, j, null);
                 }, key: "statement:" + k.StringId);
         }
 
-        // ============================================================ aplicar una declaración
+        // ============================================================ applying a statement
 
         private static void ApplyStatement(Kingdom k, JObject j, string playerText)
         {
@@ -371,7 +371,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return Math.Max(min, Math.Min(max, v));
         }
 
-        /// <summary>Valida y ejecuta una acción de un rey. Devuelve lo ocurrido (para enseñar) o null si no procede.</summary>
+        /// <summary>Validates and runs one ruler action. Returns what happened (to show) or null if it doesn't apply.</summary>
         private static string Resolve(Kingdom k, JObject a)
         {
             var cfg = S.Get;
@@ -383,7 +383,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
 
             switch (type)
             {
-                // ---------------------------------------------------- guerra
+                // ---------------------------------------------------- war
                 case "declare_war":
                     if (o == null || o == k) return Bad(L.T("AIL_8a207caf", "reino destino no válido"));
                     if (k.IsAtWarWith(o)) return Bad(L.T("AIL_acfa98a8", "ya están en guerra"));
@@ -394,7 +394,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     WorldSim.ChangeStance(o.StringId, k.StringId, -30);
                     return L.F("AIL_75b4abfe", $"{kn} declara la guerra a {o.Name}.");
 
-                // ---------------------------------------------------- paz
+                // ---------------------------------------------------- peace
                 case "propose_peace":
                 {
                     if (o == null || o == k || !k.IsAtWarWith(o)) return Bad(L.T("AIL_a305fa83", "no están en guerra"));
@@ -413,7 +413,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (!k.IsAtWarWith(o)) { St.Proposals.Remove(p); return Bad(L.T("AIL_e904786b", "ya no están en guerra")); }
                     St.Proposals.Remove(p);
                     St.Proposals.RemoveAll(x => x.Type == "peace" && x.From == k.StringId && x.To == o.StringId);
-                    // quien acepta paga lo que se le exigió
+                    // whoever accepts pays what was demanded of them
                     if (p.DailyTribute > 0) MakePeaceAction.ApplyByKingdomDecision(k, o, p.DailyTribute, p.TributeDays);
                     else MakePeaceAction.Apply(k, o);
                     var extra = new List<string>();
@@ -427,7 +427,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "reject_peace":
                     return Reject("peace", k, o, L.F("AIL_c1de8329", $"{kn} rechaza la paz que ofrecía {o?.Name}."));
 
-                // ---------------------------------------------------- alianzas
+                // ---------------------------------------------------- alliances
                 case "propose_alliance":
                     if (o == null || o == k || k.IsAtWarWith(o) || Allied(k, o)) return Bad("alianza no posible");
                     AddProposal("alliance", k, o);
@@ -451,7 +451,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     WorldSim.ChangeStance(o.StringId, k.StringId, -20);
                     return L.F("AIL_9701c185", $"{kn} rompe su alianza con {o.Name}.");
 
-                // ---------------------------------------------------- comercio
+                // ---------------------------------------------------- trade
                 case "propose_trade":
                 {
                     if (o == null || o == k || k.IsAtWarWith(o) || HasTrade(k, o)) return Bad("acuerdo comercial no posible");
@@ -477,7 +477,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     EndTrade(k, o);
                     return L.F("AIL_270778c1", $"{kn} da por terminado su acuerdo comercial con {o.Name}.");
 
-                // ---------------------------------------------------- tributo
+                // ---------------------------------------------------- tribute
                 case "demand_tribute":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
@@ -501,7 +501,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (o == null || St.Tributes.RemoveAll(t => (t.Payer == k.StringId && t.Receiver == o.StringId) || (t.Payer == o.StringId && t.Receiver == k.StringId)) == 0) return Bad("no hay tributo");
                     return L.F("AIL_a7a5c567", $"Se acaba el tributo entre {kn} y {o.Name}.");
 
-                // ---------------------------------------------------- reparaciones
+                // ---------------------------------------------------- reparations
                 case "demand_reparations":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
@@ -521,7 +521,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "reject_reparations":
                     return Reject("reparations", k, o, L.F("AIL_0b583a3b", $"{kn} se niega a pagar reparaciones a {o?.Name}."));
 
-                // ---------------------------------------------------- territorio
+                // ---------------------------------------------------- territory
                 case "demand_territory":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
@@ -544,7 +544,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "reject_territory":
                     return Reject("territory", k, o, L.F("AIL_0d2e0018", $"{kn} se niega a ceder territorio a {o?.Name}."));
 
-                // ---------------------------------------------------- política interna
+                // ---------------------------------------------------- internal politics
                 case "expel_clan":
                 {
                     var clan = FindClan(k, (string)a["clan"]);
@@ -646,7 +646,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return Bad(L.T("AIL_0a156f01", "acción desconocida"));
         }
 
-        /// <summary>Un evento dice que un clan se alza contra su corona: se ejecuta solo si de verdad hay ruptura.</summary>
+        /// <summary>An event says a clan rises against its crown. Only carried out if there really is a break.</summary>
         public static void Rebellion(string clanName)
         {
             try
@@ -696,9 +696,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                    ?? k.Clans.FirstOrDefault(c => !c.IsEliminated && (WorldSim.Norm(c.Name.ToString()).Contains(n) || n.Contains(WorldSim.Norm(c.Name.ToString()))));
         }
 
-        // ============================================================ el jugador como rey
+        // ============================================================ player as ruler
 
-        /// <summary>Otra corona te propone o te exige algo: decides con una ventana.</summary>
+        /// <summary>Another crown proposes or demands something from the player, who decides through a popup.</summary>
         private static void AskPlayer(Proposal p)
         {
             var from = WorldSim.FindKingdom(p.From); var mine = PlayerRealm;
@@ -743,7 +743,7 @@ Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English s
 
         public static bool PlayerCanDeclare => Enabled && PlayerRules(PlayerRealm);
 
-        /// <summary>Declaración diplomática del jugador (solo si reina): escribe libremente y la IA la traduce a acciones.</summary>
+        /// <summary>Player's diplomatic statement (rulers only): free text that the AI turns into actions.</summary>
         public static void PlayerStatement()
         {
             var k = PlayerRealm;
@@ -760,7 +760,7 @@ Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English s
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
                     sys.AppendLine(); sys.AppendLine("## Pending proposals directed at this realm"); sys.AppendLine(DescribeProposalsTo(k));
                     WorldSim.Say(L.T("AIL_ebf54145", "Tus heraldos llevan la declaración a todos los rincones…"), Colors.Cyan);
-                    // Importante: si hay otra petición en curso espera en cola (no se descarta) y se reintenta una vez si falla
+                    // With important: true it waits behind a running request instead of being dropped, and retries once if it fails
                     WorldSim.Ask(L.T("AIL_100794a8", "declaración del jugador"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", text) }, 700,
                         j => ApplyStatement(k, j, WorldSim.Clean(text, 1600)), important: true);
                 }, null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t) && t.Trim().Length >= 10, L.T("AIL_49569563", "Escribe algo más"))), true);

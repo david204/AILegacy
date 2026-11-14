@@ -21,27 +21,27 @@ using TaleWorlds.Localization;
 namespace AILegacy.World
 {
     /// <summary>
-    /// Cosas que haces en un asentamiento y que llevan su tiempo, con la barra de espera del propio juego (la misma de
-    /// «Buscas entre los caídos»): preguntar por ahí qué se cuenta, o pasar la velada con tus hombres. Un solo menú de espera
-    /// sirve para todas: cada actividad dice su texto, cuántas horas dura y qué pasa al acabar.
+    /// Timed activities in a settlement that use the game's own wait progress bar: asking around for rumours, or spending
+    /// the evening with your men. One wait menu serves them all. Each activity sets its text, its length in hours, and
+    /// what happens when it ends.
     /// </summary>
     internal static class Activities
     {
         private const string WaitMenu = "ailegacy_activity";
         private static readonly Random Rng = new Random();
 
-        // ---- la actividad en curso
+        // ---- current activity
         private static string _text = "";
         private static float _hours = 1f, _progress;
         private static string _backMenu = "town";
         private static Action _onDone;
         private static bool _running;
 
-        // ---- pausas (no se guardan: al cargar partida se puede repetir, no pasa nada)
+        // ---- cooldowns (not saved; reloading lets you repeat an activity, which is fine)
         private static readonly Dictionary<string, double> AskedAt = new Dictionary<string, double>();
         private static double _lastEvening = -100;
 
-        // ---- lo que se cuenta: la petición sale al empezar, para que esté lista al acabar la espera
+        // ---- rumours: the request goes out when the wait starts so it's ready when the wait ends
         private static List<string> _rumours;
         private static bool _rumoursFailed, _showWhenReady;
         private static string _rumoursPlace = "";
@@ -76,7 +76,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
             try { GameMenu.SwitchToMenu(_backMenu); } catch (Exception ex) { Log.Error("Actividad: volver al menú", ex); }
         }
 
-        // ============================================================ preguntar por ahí
+        // ============================================================ ask around
 
         private static string Facts(Settlement st)
         {
@@ -119,7 +119,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
             catch (Exception ex) { Log.Error("Preguntar por ahí", ex); _rumoursFailed = true; }
         }
 
-        /// <summary>Sin IA (o si falla): las últimas noticias tal cual han llegado.</summary>
+        /// <summary>Fallback with no AI (or when it fails): the latest news as they came in.</summary>
         private static List<string> PlainNews()
         {
             try
@@ -136,7 +136,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
             try
             {
                 var list = _rumours ?? (_rumoursFailed ? PlainNews() : null);
-                if (list == null) { _showWhenReady = true; return; }       // aún no ha llegado: saldrá en cuanto llegue
+                if (list == null) { _showWhenReady = true; return; }       // not back yet, it shows as soon as it arrives
                 string body = list.Count == 0 ? L.T("AIL_e6b1c002", "Nadie cuenta nada que no supieras ya.") : string.Join("\n\n", list.Select(r => "• " + r));
                 InformationManager.ShowInquiry(new InquiryData(L.F("AIL_e6b1c003", $"Lo que se cuenta en {_rumoursPlace}"), body, true, false,
                     L.T("AIL_f6d0c4b4", "Enterado"), null, null, null), true);
@@ -145,7 +145,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
             catch (Exception ex) { Log.Error("Enseñar lo que se cuenta", ex); }
         }
 
-        // ============================================================ velada con tus hombres
+        // ============================================================ evening with your men
 
         private static int EveningCost()
         {
@@ -159,7 +159,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
             _lastEvening = CampaignTime.Now.ToDays;
             int morale = Math.Max(1, cfg.EveningMorale);
             try { MobileParty.MainParty.RecentEventsMorale += morale; } catch (Exception ex) { Log.Error("Velada: moral", ex); }
-            // Los compañeros que cabalgan contigo te cogen algo más de confianza
+            // Companions riding with you trust you a bit more
             int closer = 0;
             try
             {
@@ -181,7 +181,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
                 L.F("AIL_e6b1c004", $"La velada sienta bien a la tropa: moral +{morale}.") + (closer > 0 ? " " + L.F("AIL_e6b1c005", $"{closer} de tus compañeros te tienen algo más de confianza.") : ""), Colors.Green));
         }
 
-        // ============================================================ menús
+        // ============================================================ menus
 
         public static void AddMenus(CampaignGameStarter starter)
         {

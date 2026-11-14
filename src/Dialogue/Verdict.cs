@@ -16,8 +16,8 @@ using TaleWorlds.Library;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// El juicio. Cuando la guardia te encierra, el señor del lugar decide qué hacer contigo: soltarte, multarte o tenerte
-    /// unos días en la mazmorra, y cuánto pesa en tu fama allí. Su sentencia se pregona: es noticia.
+    /// When the guard locks the player up, the local lord judges them: release, a fine or some days in the dungeon, plus
+    /// the effect on their crime rating there. The decree is cried in public, so it becomes news.
     /// </summary>
     internal static class Verdict
     {
@@ -42,7 +42,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
         public static void Touch() { var _ = TVerdict.Key; }
 
         private static Hero P => Hero.MainHero;
-        // La condena en curso se guarda con la partida (no se pierde al cargar ni se cuela en otra)
+        // The current sentence lives in the save, so it survives a load and doesn't leak into another campaign
         private static Settlement _in
         {
             get { var id = WorldSim.State.JailSettlementId; return string.IsNullOrEmpty(id) ? null : Settlement.Find(id); }
@@ -59,7 +59,6 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
 
         public static void ResetSession() { _busy = false; }
 
-        /// <summary>Te acaban de encerrar: el señor del lugar dicta sentencia.</summary>
         public static void Judge(Settlement st, string caseEn, Speaker guard, string standing, string crime)
         {
             try
@@ -68,7 +67,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 if (!cfg.AllowVerdict || _busy || st == null) return;
                 var lord = st.OwnerClan?.Leader;
                 if (lord == null || !lord.IsAlive || lord == P || lord.IsPrisoner) return;
-                if (st.OwnerClan == Clan.PlayerClan || (st.MapFaction != null && st.MapFaction == P.MapFaction && P.MapFaction is Kingdom)) return;     // en tu feudo o tu reino no te juzgan
+                if (st.OwnerClan == Clan.PlayerClan || (st.MapFaction != null && st.MapFaction == P.MapFaction && P.MapFaction is Kingdom)) return;     // no trial in your own fief or kingdom
                 var judge = Speaker.FromHero(lord);
                 string player = ContextBuilder.PlayerNameFor(judge) ?? (guard != null ? ContextBuilder.PlayerNameFor(guard) : null);
                 if (player == null) { Log.Info($"[juicio] nadie en {st.Name} sabe quién eres: no hay sentencia con tu nombre"); return; }
@@ -159,13 +158,12 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 outcome = L.F("AIL_d79898d4", $"{days} día(s) de mazmorra.");
             }
 
-            // Tu fama allí: nunca tanto como para que te declaren enemigo solo por la sentencia
             try
             {
                 if (st.MapFaction != null && crime != 0)
                 {
                     float cur = st.MapFaction.MainHeroCrimeRating;
-                    float delta = crime > 0 ? Math.Max(0f, Math.Min(crime, 85f - cur)) : crime;      // puede dejarte proscrito, pero no sin límite
+                    float delta = crime > 0 ? Math.Max(0f, Math.Min(crime, 85f - cur)) : crime;      // can make you an outlaw, but crime rating is capped at 85
                     if (Math.Abs(delta) >= 1f) ChangeCrimeRatingAction.Apply(st.MapFaction, delta, true);
                 }
                 if (rel != 0) ChangeRelationAction.ApplyPlayerRelation(lord, rel, affectRelatives: false, showQuickNotification: true);
@@ -187,7 +185,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
             InformationManager.ShowInquiry(new InquiryData(L.F("AIL_6c33ff94", $"Sentencia de {lord.Name}"), $"«{decree}»\n\n{outcome}", true, false, L.T("AIL_265409ff", "Entendido"), null, null, null), true);
         }
 
-        /// <summary>Cumplida la condena, te sueltan (si no te has escapado antes).</summary>
+        /// <summary>Releases the player once the sentence is served, unless they already escaped.</summary>
         public static void OnDailyTick()
         {
             try

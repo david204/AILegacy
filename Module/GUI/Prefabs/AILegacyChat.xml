@@ -4,11 +4,10 @@
     <Constant Name="PanelHeight" Value="860" />
   </Constants>
   <Window>
-    <!-- Fondo oscuro: tapa y bloquea las opciones de diálogo del juego mientras dura la charla -->
+    <!-- Dark backdrop that covers and blocks the game's dialogue options during the chat -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.65">
       <Children>
 
-        <!-- Panel principal -->
         <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="!PanelWidth" SuggestedHeight="!PanelHeight" HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
 
@@ -17,12 +16,10 @@
             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="40" MarginRight="40" MarginTop="18" MarginBottom="22" StackLayout.LayoutMethod="VerticalTopToBottom">
               <Children>
 
-                <!-- Título y subtítulo -->
                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="52" Brush="Popup.Title.Text" Text="@Title" />
                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#C9B48AFF" Text="@Subtitle" />
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginTop="6" MarginBottom="8" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
 
-                <!-- Historial con scroll -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="560" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.35">
                   <Children>
                     <ScrollablePanel Id="ChatScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="22" AutoHideScrollBars="true" ClipRect="ChatClip" InnerPanel="ChatClip\ChatLines" VerticalScrollbar="..\ChatScrollbarHolder\ChatScrollbar">
@@ -57,18 +54,15 @@
                   </Children>
                 </Widget>
 
-                <!-- "Está pensando..." -->
                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="4" Brush="Popup.Title.Text" Brush.FontSize="19" Brush.FontColor="#B0B0B0FF" Text="@WaitingText" IsVisible="@IsWaiting" />
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="4" IsHidden="@IsWaiting" />
 
-                <!-- Caja de texto -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="58" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.55">
                   <Children>
                     <EditableTextWidget Id="ChatInput" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14" MarginTop="10" MarginBottom="10" Brush="Review.NameInput.Text" Brush.TextHorizontalAlignment="Left" RealText="@InputText" IsEnabled="@CanType" />
                   </Children>
                 </Widget>
 
-                <!-- Botones -->
                 <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginTop="10" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight">
                   <Children>
                     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="251" SuggestedHeight="64" MarginRight="30" Brush="Popup.Cancel.Button" Command.Click="ExecuteClose">
@@ -87,7 +81,6 @@
               </Children>
             </ListPanel>
 
-            <!-- Marco -->
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="StdAssets\Popup\canvas_gradient" IsEnabled="false" />
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="18" ExtendTop="18" ExtendRight="18" ExtendBottom="18" IsEnabled="false" />
 

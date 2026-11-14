@@ -18,8 +18,8 @@ using TaleWorlds.Library;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Una conversación libre. Usa la ventana de chat propia (ChatWindow); si no se pudiera abrir,
-    /// cae al modo antiguo de ventanas de texto del juego.
+    /// A free-form conversation. Uses our own chat window (ChatWindow), and falls back to the game's
+    /// text inquiry popups if it can't be opened.
     /// </summary>
     internal class ChatSession
     {
@@ -28,20 +28,20 @@ namespace AILegacy.Dialogue
         private readonly Speaker _s;
         private HeroMemory Mem => _s.Memory;
         private int _relationChangedThisTalk;
-        /// <summary>Cuánto se ha movido la relación en esta charla, sumando subidas y bajadas (el tope va sobre esto, no sobre el neto).</summary>
+        /// <summary>Total relation movement this talk, ups and downs added together. The cap applies to this, not to the net change.</summary>
         private int _relationMovedThisTalk;
-        /// <summary>Confianza perdida en esta charla (si la hay, el trato no suma).</summary>
+        /// <summary>Trust lost this talk. If any, the end-of-talk familiarity bonus is skipped.</summary>
         private int _trustLostThisTalk;
         private bool _waiting;
         private bool _closed;
         private bool _npcEnded;
         private int _lines;
-        /// <summary>Respuestas del personaje que han llegado: una charla sin ninguna no cuenta como charla.</summary>
+        /// <summary>Replies received. A talk with none doesn't count as a conversation.</summary>
         private int _answered;
-        /// <summary>Ya se ha pedido otra vez la respuesta de este turno por repetirse.</summary>
+        /// <summary>This turn's reply was already re-requested once for repeating itself.</summary>
         private bool _retriedRepeat;
         private ChatWindow _win;
-        private readonly List<string> _transcript = new List<string>(); // solo modo antiguo
+        private readonly List<string> _transcript = new List<string>(); // fallback popup mode only
 
         private ChatSession(Speaker s) { _s = s; }
 
@@ -80,8 +80,8 @@ namespace AILegacy.Dialogue
 
         public static void TickUI() => ChatWindow.Current?.Tick();
 
-        // ====================================================== modo diálogo del juego
-        // La charla vive en el cuadro de diálogo nativo: escribir -> "(espera)" -> "Ver su respuesta".
+        // ====================================================== game dialogue mode
+        // The talk lives in the native dialogue box: type, "(wait)", then "See their reply".
 
         private bool _dialogMode;
         private string _lastPlayer = "", _lastNpc = "";
@@ -89,7 +89,7 @@ namespace AILegacy.Dialogue
         public bool HasUnreadReply { get; private set; }
         public bool Seeded { get; private set; }
 
-        /// <summary>El NPC habla primero (iniciativa): su frase ya está escrita y es lo primero que enseña el cuadro.</summary>
+        /// <summary>The NPC speaks first (initiative): their line is already written and is the first thing the box shows.</summary>
         public void Seed(string npcText)
         {
             _lastPlayer = "";
@@ -103,7 +103,7 @@ namespace AILegacy.Dialogue
         public bool Ended => _npcEnded;
         public Speaker Who => _s;
 
-        /// <summary>Sesión ligada a la conversación del juego en curso (se cierra sola al acabar la conversación).</summary>
+        /// <summary>Session tied to the current game conversation. Closes by itself when the conversation ends.</summary>
         public static ChatSession StartDialog(Speaker s)
         {
             if (s == null) return null;
@@ -123,7 +123,7 @@ namespace AILegacy.Dialogue
             return session;
         }
 
-        /// <summary>Abre la caja para escribir el mensaje (modo diálogo).</summary>
+        /// <summary>Opens the text box for the player's message (dialogue mode).</summary>
         public void AskInput()
         {
             if (_closed || _waiting || _npcEnded) return;
@@ -141,7 +141,7 @@ namespace AILegacy.Dialogue
                 t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
 
-        /// <summary>Texto que enseña el cuadro de diálogo del NPC ahora mismo (marca la respuesta como leída).</summary>
+        /// <summary>Text for the NPC's dialogue box right now. Marks the reply as read.</summary>
         public string ConsumeDialogText()
         {
             if (_waiting) return L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*");
@@ -158,8 +158,8 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// La respuesta ya ha llegado: si el cuadro de diálogo está esperando con «Ver su respuesta», se pulsa solo.
-        /// Si el jugador está en otra cosa (otra rama del diálogo, una ventana abierta), no se toca nada.
+        /// The reply has arrived: if the dialogue box is sitting on "See their reply", click it for the player.
+        /// If the player is somewhere else (another dialogue branch, an open window), leave it alone.
         /// </summary>
         private void AutoShow()
         {
@@ -174,14 +174,14 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Enseñar la respuesta sola", ex); }
         }
 
-        /// <summary>Cómo estáis ahora mismo, en una línea: relación, confianza, tensión y romance.</summary>
+        /// <summary>One-line status: relation, trust, tension and romance.</summary>
         private string StatsLine()
         {
             try
             {
                 var cfg = S.Get;
                 if (!cfg.ShowDialogStats || !_s.IsHero) return "";
-                if (UI.ConversationMixin.ShowingStats) return "";      // ya están en las barras junto al nombre
+                if (UI.ConversationMixin.ShowingStats) return "";      // already shown in the bars next to the name
                 var parts = new List<string> { L.F("AIL_f3138943", $"Relación: {(int)_s.Hero.GetRelationWithPlayer():+0;-0;0}") };
                 if (cfg.EnableTrust) { Bonds.EnsureTrust(_s); parts.Add(L.F("AIL_2cb6f858", $"Confianza: {Mem.Trust}")); }
                 if (cfg.EnableTension && Bonds.Tension(Mem) > 0) parts.Add(L.F("AIL_55654690", $"Tensión: {Bonds.Tension(Mem)}"));
@@ -230,13 +230,12 @@ namespace AILegacy.Dialogue
             {
                 _lastNpc = text;
                 HasUnreadReply = true;
-                // Aviso con sonido, y la respuesta aparece sola en el cuadro (sin tener que pulsar «Ver su respuesta»)
                 bool auto = S.Get.AutoShowReply;
                 try
                 {
                     if (auto)
                     {
-                        // La respuesta va a salir sola en el cuadro: basta el sonido (el mensaje flotante se montaba sobre el texto)
+                        // The reply will show in the box by itself, so just play the sound (the floating message overlapped the text)
                         if (S.Get.ReplyReadySound) TaleWorlds.Engine.SoundEvent.PlaySound2D("event:/ui/notification/quest_update");
                     }
                     else
@@ -280,7 +279,7 @@ namespace AILegacy.Dialogue
             else ShowLegacyInput();
         }
 
-        // -------- modo antiguo (ventanas de texto del juego)
+        // -------- fallback mode (game text popups)
 
         private void ShowLegacyInput()
         {
@@ -298,7 +297,7 @@ namespace AILegacy.Dialogue
                 t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
 
-        // ============================================================ lógica
+        // ============================================================ logic
 
         private void OnPlayerSaid(string text)
         {
@@ -319,7 +318,7 @@ namespace AILegacy.Dialogue
             try { deep = RagIndex.WantsQuery(_s); } catch { }
             if (!deep) { BuildAndAsk(text); return; }
 
-            // Recuerdo y acciones por significado: primero el vector de lo que acabas de decir
+            // Memory recall and action matching by meaning need the embedding of what was just said first
             _waiting = true;
             UiWaiting(true);
             int session = World.WorldSim.Session;
@@ -355,7 +354,7 @@ namespace AILegacy.Dialogue
             _waiting = true;
             UiWaiting(true);
 
-            // La primera respuesta trae además la ficha de carácter (12 campos): necesita más sitio para no quedar cortada
+            // The first reply also carries the character profile (12 fields) and needs more room to avoid being cut off
             bool firstTime = Mem.Profile == null || Mem.Profile.IsEmpty;
             int? tokens = firstTime ? Math.Max(S.Get.MaxTokens, 1800) : (int?)null;
             int session = World.WorldSim.Session;
@@ -364,7 +363,7 @@ namespace AILegacy.Dialogue
                 var res = task.IsFaulted ? new LlmResult { Ok = false, Error = task.Exception?.GetBaseException().Message } : task.Result;
                 MainThread.Post(() =>
                 {
-                    // Si mientras tanto has cargado otra partida, esa respuesta ya no es de aquí: ni se aplica ni se guarda
+                    // Another save was loaded in the meantime: this reply belongs to it, so don't apply or store it
                     if (session != World.WorldSim.Session) { _waiting = false; _closed = true; Log.Info("Respuesta de una charla de otra partida, descartada"); return; }
                     OnNpcAnswered(res, text);
                 });
@@ -376,7 +375,7 @@ namespace AILegacy.Dialogue
             if (Mem.Turns.Count > 0 && Mem.Turns[Mem.Turns.Count - 1].Role == "player")
                 Mem.Turns.RemoveAt(Mem.Turns.Count - 1);
             if (!UseWindow && _transcript.Count > 0) _transcript.RemoveAt(_transcript.Count - 1);
-            if (UseWindow && string.IsNullOrEmpty(_win.VM.InputText)) _win.VM.InputText = text; // para reintentar con Enter
+            if (UseWindow && string.IsNullOrEmpty(_win.VM.InputText)) _win.VM.InputText = text; // so Enter retries
         }
 
         private void OnNpcAnswered(LlmResult res, string playerText)
@@ -409,7 +408,7 @@ namespace AILegacy.Dialogue
                 Log.Info($"Personalidad creada para {_s.Name}: {reply.Profile.Personality} | Secreto: {reply.Profile.Secret}");
             }
 
-            // Casi la misma frase que hace un momento: no se pronuncia, se le pide otra (una sola vez por turno)
+            // Nearly the same line as a moment ago: don't show it, ask for another one (once per turn)
             if (WarnIfRepeated(reply.Reply) && !_retriedRepeat)
             {
                 _retriedRepeat = true;
@@ -433,7 +432,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Error aplicando consecuencias", ex); }
             foreach (var e in effects) { if (UseWindow) _win.VM.AddSystem("» " + e); else if (_dialogMode) _dialogNotes.Add(e); }
 
-            // Charla muy larga: lo que ya no cabe en el prompt se resume ahora, sin esperar a cerrarla
+            // Very long talk: summarize what no longer fits in the prompt now, without waiting for the close
             try
             {
                 int window = S.Get.HistoryTurnsInPrompt;
@@ -441,7 +440,7 @@ namespace AILegacy.Dialogue
             }
             catch (Exception ex) { Log.Error("Resumen a mitad de charla", ex); }
 
-            SaveFiles.Flush();   // lo dicho queda escrito ya, se guarde o no la partida
+            SaveFiles.Flush();   // write it now, whether or not the game gets saved
 
             if (reply.EndConversation)
             {
@@ -469,8 +468,8 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// La respuesta ha llegado con la charla ya cerrada (te fuiste antes de oírla). Lo que dijo se guarda igual, para que
-        /// tu frase no quede sin contestar en su historial; sus acciones no se aplican, y lo sabe.
+        /// The reply arrived after the talk was closed (the player left before hearing it). The line is still stored so the
+        /// player's message isn't left unanswered in the history. Its actions are not applied, and the NPC is told so.
         /// </summary>
         private void OnLateAnswer(LlmResult res)
         {
@@ -493,7 +492,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Respuesta tardía", ex); }
         }
 
-        /// <summary>Deja constancia en el log si la respuesta es casi igual a una reciente del mismo personaje.</summary>
+        /// <summary>Logs and returns true if the reply is nearly the same as a recent one from this character.</summary>
         private bool WarnIfRepeated(string reply)
         {
             try
@@ -543,7 +542,7 @@ namespace AILegacy.Dialogue
             }
             if (actx.EndConversation) reply.EndConversation = true;
 
-            // El jefe de una banda que te ha asaltado corta la charla sin dejarte pasar: no te vas de rositas, hay pelea
+            // A bandit leader who ambushed you ends the talk without letting you pass: you don't just walk away, it's a fight
             try
             {
                 if (reply.EndConversation && _s.Band != null && !actx.LetPass && !Combat.KeepEncounter && Combat.EnemyOnMap(_s)
@@ -626,14 +625,14 @@ namespace AILegacy.Dialogue
                     Kingdoms = _s.Faction != null ? new List<string> { _s.Faction.StringId } : new List<string>(),
                     Heroes = _s.IsHero ? new List<string> { _s.Hero.StringId, Hero.MainHero.StringId } : new List<string> { Hero.MainHero.StringId },
                 });
-                // Un rumor de peso echa a rodar su propio suceso en el mundo
+                // An important rumour starts its own world incident
                 if (reply.RumorImportance >= 2 && _s.IsHero)
                     WorldSim.OnIncident($"A rumour has started to spread, first told by {_s.Name}: {reply.RumorText}", _s.Settlement, false);
             }
             return shown;
         }
 
-        // ========================================================== comandos
+        // ========================================================== commands
 
         private void HandleCommand(string text)
         {
@@ -703,9 +702,9 @@ namespace AILegacy.Dialogue
             Log.Info($"{who} recuerda: {note}");
         }
 
-        // ============================================================ cierre
+        // ============================================================ closing
 
-        /// <summary>Termina la charla en curso como si el personaje la diera por acabada (tras aceptar un duelo, una rendición…).</summary>
+        /// <summary>Ends the current talk as if the character had ended it (after accepting a duel, a surrender...).</summary>
         public static void EndFromOutside()
         {
             try { var a = Active; if (a != null && !a._closed) { a._npcEnded = true; a.Close(true); } }
@@ -726,8 +725,8 @@ namespace AILegacy.Dialogue
                 Mem.LastConversationDay = CampaignTime.Now.ToDays;
                 if (_s.IsHero) QuestObjectives.OnTalked(_s.Hero);
                 Bonds.Touch(Mem);
-                // El trato hace el roce: una charla de verdad (no dos frases) en la que no has perdido su confianza la sube un punto,
-                // hasta un tope modesto. La confianza alta se gana con hechos, no con horas de conversación.
+                // Familiarity: a real talk (not two lines) with no trust lost adds one point, up to a modest cap.
+                // High trust has to be earned with deeds, not hours of chatting.
                 try
                 {
                     if (S.Get.EnableTrust && _s.IsHero && _answered >= 3 && _trustLostThisTalk == 0 && Mem.Trust < 30) Bonds.ChangeTrust(_s, 1);
@@ -744,8 +743,8 @@ namespace AILegacy.Dialogue
             {
                 try
                 {
-                    // En el mapa, hablar con un grupo es un "encuentro": hay que marcar que nos vamos,
-                    // como hace el juego en su despedida; si no, sale el menú de atacar / irse.
+                    // On the map, talking to a party is an "encounter". We have to flag that we're leaving, like the
+                    // game's own farewell does, or the attack/leave menu pops up.
                     if (PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement && !Combat.KeepEncounter)
                         PlayerEncounter.LeaveEncounter = true;
                     if (Campaign.Current?.ConversationManager != null && Campaign.Current.ConversationManager.IsConversationInProgress)
@@ -760,7 +759,7 @@ namespace AILegacy.Dialogue
 
         public static void Notify(string msg, Color color)
         {
-            // El mismo aviso dos veces seguidas (el juego evalúa la línea de diálogo más de una vez) solo sale una
+            // Show the same notice only once in a row (the game evaluates a dialogue line more than once)
             if (msg == _lastNotice && (DateTime.UtcNow - _lastNoticeAt).TotalSeconds < 2) return;
             _lastNotice = msg; _lastNoticeAt = DateTime.UtcNow;
             InformationManager.DisplayMessage(new InformationMessage(msg, color));

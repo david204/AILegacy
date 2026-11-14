@@ -60,7 +60,6 @@
   <button id="closePanel" title="Esc">&#10005;</button>
 </header>
 <main>
-  <!-- MUNDO -->
   <section class="tab on" id="t-world">
     <div class="card">
       <h2>Descripción del mundo</h2>
@@ -89,7 +88,6 @@
     </div>
   </section>
 
-  <!-- NPC -->
   <section class="tab" id="t-npc">
     <div class="npcs">
       <div>
@@ -183,7 +181,6 @@
     </div>
   </section>
 
-  <!-- EVENTOS -->
   <section class="tab" id="t-events">
     <div class="card">
       <h2>Crear evento</h2>
@@ -210,7 +207,6 @@
     </div>
   </section>
 
-  <!-- DATOS Y PLANTILLAS -->
   <section class="tab" id="t-files">
     <div class="npcs">
       <div>
@@ -229,7 +225,6 @@
     </div>
   </section>
 
-  <!-- OBJETOS DE ROL -->
   <section class="tab" id="t-items">
     <div class="card">
       <h2>Objetos de rol que llevas</h2>
@@ -245,7 +240,6 @@
     </div>
   </section>
 
-  <!-- SERVICIO -->
   <section class="tab" id="t-service">
     <div class="card">
       <h2>Gasto de IA (esta sesión)</h2>
@@ -277,13 +271,13 @@
 <div id="toast"></div>
 
 <script>
-// Ficha de la sesión: el juego la pone aquí al servir la página; va en cada llamada a /api/*
+// Session token. The game fills it in when serving the page; it goes with every /api/* call
 const AIL_TOKEN = '__AIL_TOKEN__';
 const authFetch = (path, opts = {}) => fetch(path, { ...opts, headers:{ ...(opts.headers || {}), 'X-AIL-Token':AIL_TOKEN } });
 let LANG = {};
 const T = s => LANG[s] || s;
-// Dentro del juego la página va en un panel sin marco: lleva su propia aspa, y Escape lo cierra
-// (si estás escribiendo en un campo, el primer Escape solo sale del campo).
+// In game the page runs in a frameless panel, so it has its own close button and Escape closes it
+// (while typing in a field, the first Escape only leaves the field).
 const HOST = window.chrome && window.chrome.webview;
 if (HOST) {
   const closePanel = () => HOST.postMessage('close');
@@ -356,7 +350,6 @@ async function load() {
   files = await api('/api/files'); renderFiles(); loadItems(); loadCultures(); loadStorySecrets();
 }
 
-// ---------- datos y plantillas
 function renderFiles() {
   const q = $('fileSearch').value.toLowerCase();
   $('fileList').innerHTML = files.filter(f => !q || f.name.toLowerCase().includes(q))
@@ -384,7 +377,6 @@ async function resetFile() {
   await openFile(curFile.kind, curFile.name); files = await api('/api/files'); renderFiles(); toast(T('Restaurada'));
 }
 
-// ---------- objetos de rol
 async function loadItems() {
   const items = await api('/api/items');
   $('itemList').innerHTML = items.map(i => `<div><span class="txt"><b>${esc(i.name)}</b>${i.from ? T(' · de ') + esc(i.from) : ''} — ${esc(i.desc)}</span> <button class="btn danger" onclick="delItem('${esc(i.name).replace(/'/g, '&#39;')}')">Quitar</button></div>`).join('') || '<div><small>No llevas ninguno.</small></div>';
@@ -396,7 +388,6 @@ async function addItem() {
 async function delItem(name) { await api('/api/item/delete', { name }); loadItems(); }
 async function openDir(what) { await api('/api/open', { what }); toast(T('Carpeta abierta en el equipo del juego')); }
 
-// ---------- crear compañero
 async function loadCultures() { const c = await api('/api/cultures'); $('c_culture').innerHTML = $('fam_culture').innerHTML = c.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); }
 async function createCompanion() {
   const r = await api('/api/companion/create', { name:$('c_name').value, female:$('c_female').value === '1', age:parseInt($('c_age').value || '25'), culture:$('c_culture').value, backstory:$('c_backstory').value, personality:$('c_personality').value });
@@ -404,7 +395,6 @@ async function createCompanion() {
   state = await api('/api/state'); renderNpcs(); openNpc(r.id);
 }
 
-// ---------- secretos de la historia
 async function loadStorySecrets() {
   const s = await api('/api/storysecrets');
   const lvl = { low:T('fácil de sonsacar'), medium:T('solo a quien se fía'), high:T('solo con mucha confianza') };
@@ -418,7 +408,6 @@ async function createFamily() {
   state = await api('/api/state'); renderNpcs(); openNpc(r.id);
 }
 
-// ---------- personalidad con IA
 async function generateNpc() {
   if (!npcId || !confirm(T('¿Generar la personalidad con IA? Pisa la ficha actual.'))) return;
   const id = npcId;

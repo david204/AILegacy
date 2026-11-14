@@ -20,7 +20,7 @@ namespace AILegacy.UI
         [DataSourceProperty] public bool HasSpeaker => !string.IsNullOrEmpty(_speaker);
     }
 
-    /// <summary>Datos de la ventana de chat (GUI/Prefabs/AILegacyChat.xml).</summary>
+    /// <summary>Bound to GUI/Prefabs/AILegacyChat.xml.</summary>
     public class ChatVM : ViewModel
     {
         public const string NpcColor = "#E8C67AFF";
@@ -42,7 +42,6 @@ namespace AILegacy.UI
             _title = title; _onSend = onSend; _onClose = onClose;
         }
 
-        // ------------------------------------------------------------ API
         public void AddLine(string speaker, string text, string nameColor, string textColor = BodyColor)
         {
             Lines.Add(new ChatLineVM(speaker, text, nameColor, textColor));
@@ -52,7 +51,6 @@ namespace AILegacy.UI
         public void AddSystem(string text) => AddLine("", text, SystemColor, SystemColor);
         public void AddError(string text) => AddLine("", text, ErrorColor, ErrorColor);
 
-        // ------------------------------------------------------------ comandos (desde el XML)
         public void ExecuteSend()
         {
             if (IsWaiting || !CanType) return;
@@ -64,7 +62,6 @@ namespace AILegacy.UI
 
         public void ExecuteClose() => _onClose?.Invoke();
 
-        // ------------------------------------------------------------ propiedades enlazadas
         [DataSourceProperty] public MBBindingList<ChatLineVM> Lines { get => _lines; set { if (value != _lines) { _lines = value; OnPropertyChangedWithValue(value, nameof(Lines)); } } }
         [DataSourceProperty] public string Title { get => _title; set { if (value != _title) { _title = value; OnPropertyChangedWithValue(value, nameof(Title)); } } }
         [DataSourceProperty] public string Subtitle { get => _subtitle; set { if (value != _subtitle) { _subtitle = value; OnPropertyChangedWithValue(value, nameof(Subtitle)); } } }

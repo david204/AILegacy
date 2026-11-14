@@ -20,20 +20,20 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Conversación de grupo en una escena: hablas a todos los que tienes cerca y la IA
-    /// decide quién contesta y en qué orden. Las respuestas salen sobre sus cabezas y en el registro del juego.
+    /// Group talk in a scene: you speak to everyone nearby and the AI decides who answers and in
+    /// what order. Replies show over their heads and in the game log.
     /// </summary>
     internal static class GroupTalk
     {
         private class Member { public Agent Agent; public Speaker Who; public string Desc; }
 
         private static readonly List<Member> Circle = new List<Member>();
-        private static readonly List<string> Transcript = new List<string>();     // «Nombre: frase», en orden
+        private static readonly List<string> Transcript = new List<string>();     // "Name: line", in order
         private static Mission _mission;
         private static bool _waiting;
         private static float _idle;
-        private static Agent _addressed;      // a quién mirabas al abrir la ventana
-        // Si te quedas callado, alguien sigue la conversación por su cuenta (un par de veces como mucho)
+        private static Agent _addressed;      // who you were looking at when the window opened
+        // If you stay quiet, someone carries the talk on by themselves (a couple of times at most)
         private static float _silence;
         private static int _followUps;
         private static bool _silentTurn;
@@ -47,7 +47,7 @@ namespace AILegacy.Dialogue
             try { if (m != null && Mission.Current == m) m.RemoveTimeSpeedRequest(SlowId); } catch { }
         }
 
-        /// <summary>El personaje al que estás mirando (el más centrado en tu mirada, a esa distancia como mucho).</summary>
+        /// <summary>The character closest to the center of your view, within maxDist.</summary>
         private static Agent LookedAt(float maxDist)
         {
             try
@@ -98,11 +98,10 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
 
         public static void Touch() { var _ = TGroup.Key; }
 
-        /// <summary>¿Está ese personaje en tu conversación de grupo? (mientras lo esté, no se pone a charlar por su cuenta)</summary>
+        /// <summary>Whether the agent is in your group talk. While it is, it won't start ambient chats of its own.</summary>
         internal static bool Has(Agent a) => Circle.Any(x => x.Agent == a);
 
-        /// <summary>Algo dicho fuera del turno (alguien que vuelve de un recado) queda en lo hablado.</summary>
-        /// <summary>Alguien a quien han llamado llega y entra en la conversación.</summary>
+        /// <summary>Someone who was called over arrives and joins the talk.</summary>
         internal static void Join(Agent a)
         {
             try
@@ -140,7 +139,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 var cfg = S.Get;
                 if (!cfg.EnableGroupTalk || !SceneOk()) { if (Circle.Count > 0) End(false); return; }
 
-                // El grupo se deshace si te alejas, si cambias de escena o si pasa mucho rato sin hablar
+                // The group breaks up if you walk away, change scene or stay silent too long
                 if (Circle.Count > 0)
                 {
                     _idle += dt;
@@ -148,7 +147,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     if (Mission.Current != _mission || Circle.Count == 0 || _idle > cfg.GroupIdleSeconds) End(true);
                 }
 
-                // Silencio: si no dices nada tras una ronda, la IA decide si alguien sigue hablando
+                // Silence: if you say nothing after a round, the AI decides whether someone keeps talking
                 if (Circle.Count > 0 && cfg.GroupSilenceSeconds > 0 && Transcript.Count > 0 && _followUps < cfg.GroupSilenceFollowUps)
                 {
                     bool busy = _waiting || Ambient.IsPlaying || Ambient.ErrandBusy || ChatSession.IsBusy || Initiative.Busy || Campaign.Current.ConversationManager.IsConversationInProgress;
@@ -163,11 +162,11 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     }
                 }
 
-                // Por si la ventana se cerró sin pasar por sus botones: que no se quede el mundo a cámara lenta
+                // In case the popup closed without going through its buttons, don't leave the world in slow motion
                 if (_slowed != null) { bool open = true; try { open = InformationManager.IsAnyInquiryActive(); } catch { } if (!open) Unslow(); }
 
                 bool alt = Input.IsKeyDown(InputKey.LeftAlt) || Input.IsKeyDown(InputKey.RightAlt);
-                // Alt+G: das la conversación por terminada
+                // Alt+G ends the talk
                 if (alt && Input.IsKeyPressed(InputKey.G) && Circle.Count > 0 && !_waiting) { End(true); return; }
                 if (!alt || !Input.IsKeyPressed(InputKey.T)) return;
                 if (_waiting || ChatSession.IsBusy || Initiative.Busy || Campaign.Current.ConversationManager.IsConversationInProgress) return;
@@ -183,7 +182,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             var m = Mission.Current;
             var me = Agent.Main.Position;
 
-            // A quien miras se le habla a él, aunque esté algo más lejos: se acerca
+            // Whoever you look at is the one addressed, even a bit further away (they walk over)
             _addressed = LookedAt(cfg.GroupRadius * 2f);
             if (_addressed != null && !Circle.Any(x => x.Agent == _addressed) && !(_addressed.Team != null && Agent.Main.Team != null && _addressed.IsEnemyOf(Agent.Main)))
             {
@@ -192,7 +191,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 if (_addressed.Position.Distance(me) > 3.5f) SceneActions.Summon(_addressed);
             }
 
-            // Se suman los que tengas cerca ahora (hasta el máximo); los que ya estaban, siguen
+            // Add whoever is near now (up to the max). Existing members stay
             foreach (var a in m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a != Agent.Main && a.Character is CharacterObject
                                                   && a.Position.Distance(me) <= cfg.GroupRadius && !(a.Team != null && Agent.Main.Team != null && a.IsEnemyOf(Agent.Main)))
                                       .OrderBy(a => a.Position.Distance(me)))
@@ -203,7 +202,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 Circle.Add(new Member { Agent = a, Who = sp, Desc = desc });
             }
             if (Circle.Count == 0) { Say(L.F("AIL_71b565dc", $"No hay nadie a menos de {cfg.GroupRadius} metros a quien hablar."), Colors.Gray); return; }
-            // Se ponen a tu alrededor y te miran: los que están algo apartados se acercan (quien está sentado u ocupado, se queda)
+            // They gather around and face you. The ones a bit apart walk over (anyone seated or busy stays put)
             SceneActions.Arrange(Circle.Select(x => x.Agent).ToList());
             if (_mission != m) { Transcript.Clear(); _mission = m; }
             _idle = 0f;
@@ -213,7 +212,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             var looked = _addressed != null ? Circle.FirstOrDefault(x => x.Agent == _addressed) : null;
             string title = looked != null ? L.F("AIL_6e7730a9", $"Hablas a {looked.Who.Name}") : L.T("AIL_6d3c2db8", "Hablas al grupo");
             string how = L.T("AIL_dd02342f", "\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)");
-            // Mientras escribes el mundo no se para: va a cámara lenta
+            // The world doesn't pause while you type, it goes into slow motion
             bool slow = cfg.GroupSlowMotion;
             if (slow) { try { m.AddTimeSpeedRequest(new Mission.TimeSpeedRequest(0.2f, SlowId)); _slowed = m; } catch { slow = false; } }
             InformationManager.ShowTextInquiry(new TextInquiryData(title, L.F("AIL_26906366", $"Te oyen: {names}.{last}{how}"), true, true, L.T("AIL_aa23f794", "Decir"), L.T("AIL_b8f9f7be", "Callar"),
@@ -231,7 +230,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             if (!silent) { _idle = 0f; _followUps = 0; }
             _silence = 0f;
 
-            // Susurro (*) o grito (!)
+            // Whisper (*) or shout (!)
             bool whisper = !silent && text.StartsWith("*"), shout = !silent && !whisper && text.StartsWith("!");
             if (whisper || shout) text = text.Substring(1).Trim();
             if (text.Length == 0) return;
@@ -239,7 +238,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             if (whisper && addressed == null) addressed = Circle.OrderBy(x => x.Agent.Position.Distance(Agent.Main.Position)).First();
             if (shout)
             {
-                // Un grito llega al doble de distancia: los que lo oyen entran en la conversación
+                // A shout carries twice as far, and whoever hears it joins the talk
                 foreach (var a in m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a != Agent.Main && a.Character is CharacterObject
                                                       && a.Position.Distance(Agent.Main.Position) <= cfg.GroupRadius * 2f && !Circle.Any(x => x.Agent == a)
                                                       && !(a.Team != null && Agent.Main.Team != null && a.IsEnemyOf(Agent.Main))).OrderBy(a => a.Position.Distance(Agent.Main.Position)))
@@ -254,7 +253,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                           : addressed != null ? $"{{player}} is looking at {addressed.Who.Name} while speaking: it is {addressed.Who.Name} who is being addressed and who answers first; others join in only if they have something to add."
                           : "{player} speaks to the group at large.";
 
-            // Los que están cerca sin estar en el corro: han oído, y pueden meterse si les va algo en ello
+            // People nearby but outside the group heard it, and can butt in if it concerns them
             var bystanders = new List<Agent>();
             string byText = "(nobody)";
             if (cfg.GroupBystanders && !whisper)
@@ -276,7 +275,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 string knows = ContextBuilder.PlayerNameFor(x.Who) != null ? "knows who they are" : "does not know who they are";
                 string mem = x.Who.IsHero && !string.IsNullOrWhiteSpace(x.Who.Memory.Summary) ? $" Past dealings with them: {x.Who.Memory.Summary}" : "";
                 string rel = x.Who.IsHero ? $" Opinion of them: {ContextBuilder.DescribeRelation((int)x.Who.Hero.GetRelationWithPlayer())}." : "";
-                // Lo reciente: sin esto, quien acaba de volver de hablar con otro contesta como si no hubiera pasado nada
+                // Recent context. Without it, someone just back from talking to another person answers as if nothing happened
                 var xm = x.Who.Memory;
                 string recent = "";
                 if (!string.IsNullOrWhiteSpace(xm.RecentTalk) && (DateTime.UtcNow - xm.RecentTalkAt).TotalMinutes < 30) recent += $" JUST NOW: {xm.RecentTalk}.";
@@ -285,7 +284,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 var heardP = InfoExchange.AboutPlayer(xm).ToList();
                 var heard = heardP.Skip(Math.Max(0, heardP.Count - 2)).Where(h => !string.IsNullOrWhiteSpace(h.Text)).Select(h => $"{h.FromName}: {h.Text}").ToList();
                 if (heard.Count > 0) recent += " Lately heard from others — " + string.Join(" / ", heard) + ".";
-                // Lo que hay entre él y los demás presentes
+                // How they stand with the others present
                 string among = "";
                 if (cfg.EnableNpcBonds && x.Who.IsHero)
                     foreach (var y in Circle)
@@ -295,7 +294,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             }
             string transcript = Transcript.Count == 0 ? "(nothing yet)" : string.Join("\n", Transcript.Skip(Math.Max(0, Transcript.Count - 16)));
             string context = st != null ? Ambient.Context(st, Circle[0].Who) : "(on the road)";
-            // Gente con nombre que está en el lugar pero no en el corro: se puede ir a buscarla
+            // Named people in the scene but outside the group, who someone could go and fetch
             var away = new List<Agent>();
             string elsewhere = "(nobody)";
             if (cfg.SceneErrands && st != null)
@@ -318,7 +317,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                          "Only if there is one single person present (nobody else to talk to) may they say one short thing to {player} or simply go back to their business; if nobody would naturally speak, return an empty \"lines\" list.";
             }
             manner = manner.Replace("{player}", Hero.MainHero.Name.ToString());
-            // El catálogo completo, para los que tienen nombre: lo mismo que podrían hacer hablando a solas contigo
+            // Full action catalog for named people, the same they could do in a private talk with you
             string deeds = "";
             if (cfg.GroupFullActions && cfg.EnableActions)
             {
@@ -346,8 +345,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             {
                 Transcript.Add($"{playerName}: {text}");
                 Bubbles.Show(Agent.Main, text, Math.Max(2.5f, Math.Min(7f, 1.5f + text.Length * 0.05f)));
-                if (whisper) Ambient.Overhear(addressed.Who, "");      // un susurro no lo oye nadie más
-                else Ambient.Overhear(Circle.Select(x => x.Who).ToList(), text);   // una vez por frase; los del corro no la oyen de pasada
+                if (whisper) Ambient.Overhear(addressed.Who, "");      // nobody else hears a whisper
+                else Ambient.Overhear(Circle.Select(x => x.Who).ToList(), text);   // once per line, group members don't count as overhearing
             }
             _waiting = true;
             var circle = Circle.ToList();
@@ -379,7 +378,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 Member member;
                                 if (whoRaw.StartsWith("B", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    // Alguien de alrededor se mete: se acerca y entra en el corro
+                                    // A bystander butts in: walks over and joins the group
                                     if (idx > bystanders.Count || !bystanders[idx - 1].IsActive()) continue;
                                     var ba = bystanders[idx - 1];
                                     Join(ba);
@@ -399,7 +398,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 Transcript.Add($"{member.Who.Name}: {said}");
                                 Say($"{member.Who.Name}: {said}", Colors.Yellow);
                                 if (!spoke.Contains(member)) spoke.Add(member);
-                                // ¿Sale a buscar a alguien?
+                                // Going off to fetch someone?
                                 string goes = ((string)l["goes_to"] ?? "").Trim();
                                 if (goes.Length > 1 && !Ambient.ErrandBusy && member.Agent.IsAIControlled)
                                 {
@@ -415,7 +414,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 }
                                 else if (SceneActions.Apply(member.Agent, (l["action"] ?? "").ToString(), away, said))
                                     Circle.RemoveAll(x => x.Agent == member.Agent);
-                                // Hechos del catálogo completo (dar oro, jurar, unirse…), decididos delante de todos
+                                // Deeds from the full catalog (give gold, swear an oath, join...), decided in front of everyone
                                 try
                                 {
                                     if (cfg.GroupFullActions && member.Who.IsHero && l["do"] != null)
@@ -428,15 +427,15 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                     }
                                 }
                                 catch (Exception ex) { Log.Error("Corro: acción del catálogo", ex); }
-                                // Quien habla lo recuerda como parte de vuestra historia
-                                // (lo que dijiste se le apunta una sola vez por ronda, aunque él hable dos veces)
+                                // The speaker remembers this as part of your shared history
+                                // (your line is stored once per round, even if they speak twice)
                                 if (!silent && heard.Add(member.Who.Key)) member.Who.Memory.Turns.Add(new ChatTurn { Role = "player", Text = "[Said to the group you were in] " + text, Day = CampaignTime.Now.ToDays });
                                 member.Who.Memory.Turns.Add(new ChatTurn { Role = "npc", Text = said, Day = CampaignTime.Now.ToDays });
                             }
                         if (lines.Count == 0) { if (!silent) Say(L.T("AIL_156ada7f", "El grupo se queda callado."), Colors.Gray); return; }
                         Ambient.Enqueue(m, lines);
                         string summary = ((string)j["summary"] ?? "").Trim();
-                        // Lo que ha pasado ENTRE ellos en esta ronda queda entre ellos
+                        // What happened BETWEEN them this round updates their bonds with each other
                         try
                         {
                             if (j["between"] is JArray bt)
@@ -452,7 +451,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                 }
                         }
                         catch { }
-                        // Lo que cada uno pasa a pensar de TI por lo que acabas de decir o hacer delante de todos
+                        // How each one now sees YOU after what you just said or did in front of everyone
                         try
                         {
                             if (!silent && j["toward_player"] is JArray tp)
@@ -495,7 +494,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                         {
                             if (summary.Length > 5) { x.Who.Memory.RecentTalk = $"Moments ago, in a group with them: {summary}"; x.Who.Memory.RecentTalkAt = DateTime.UtcNow; }
                             if (x.Who.IsHero && spoke.Contains(x)) { x.Who.Memory.ConversationCount = Math.Max(1, x.Who.Memory.ConversationCount); x.Who.Memory.LastConversationDay = CampaignTime.Now.ToDays; }
-                            // Quien solo habla en grupo también resume: si no, su historial crecería sin fin hasta un cara a cara
+                            // Summarize group-only talkers too, or their history would grow without limit until a one-on-one talk
                             try { if (x.Who.IsHero && x.Who.Memory.Turns.Count > cfg.SummarizeAfterTurns + cfg.HistoryTurnsInPrompt) MemorySummarizer.MaybeSummarize(x.Who, cfg.HistoryTurnsInPrompt); } catch { }
                         }
                         while (Transcript.Count > 40) Transcript.RemoveAt(0);
@@ -511,7 +510,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
         {
             if (Circle.Count == 0) return;
             foreach (var x in Circle) { try { if (x.Agent != null && x.Agent.IsActive()) x.Agent.SetLookAgent(null); } catch { } }
-            // Lo hablado se conserva mientras sigas en la misma escena: si vuelves a juntarlos, se acuerdan
+            // Transcript is kept while you stay in the same scene, so a regrouped circle remembers it
             Circle.Clear();
             _idle = 0f; _waiting = false;
             if (announce) Say(L.T("AIL_a25b9c8e", "El grupo se deshace."), Colors.Gray);

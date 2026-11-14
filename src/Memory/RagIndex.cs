@@ -13,10 +13,10 @@ using TaleWorlds.CampaignSystem;
 
 namespace AILegacy.Memory
 {
-    /// <summary>Un trozo de vuestra historia: unas cuantas frases seguidas, con su día y su vector de significado.</summary>
+    /// <summary>A few consecutive lines of shared history, with their day and embedding vector.</summary>
     public class RagChunk
     {
-        /// <summary>Posición de su última frase en la cuenta total de frases archivadas de ese personaje.</summary>
+        /// <summary>Index of its last line in the character's total count of archived lines.</summary>
         [JsonProperty("end")] public int End;
         [JsonProperty("day")] public double Day;
         [JsonProperty("text")] public string Text;
@@ -29,19 +29,19 @@ namespace AILegacy.Memory
         [JsonProperty("v")] public int Version = 1;
         [JsonProperty("npc")] public string Npc;
         [JsonProperty("model")] public string Model;
-        /// <summary>Cuántas frases archivadas están ya indexadas.</summary>
+        /// <summary>How many archived lines are already indexed.</summary>
         [JsonProperty("indexed")] public int Indexed;
-        /// <summary>Huella de la última frase indexada: si el archivo del personaje ya no la tiene ahí, es otra rama de la partida.</summary>
+        /// <summary>Fingerprint of the last indexed line. If the character's archive no longer has it there, it's another branch of the save.</summary>
         [JsonProperty("tail")] public string Tail;
         [JsonProperty("chunk_size")] public int ChunkSize;
         [JsonProperty("chunks")] public List<RagChunk> Chunks = new List<RagChunk>();
     }
 
     /// <summary>
-    /// Recuerdo por significado. Cada personaje tiene un índice en save_data\[campaña]\rag\[id].json con trozos de las
-    /// frases que ya salieron de su historial; cada trozo lleva su texto, así que el recuerdo llega más atrás que el
-    /// archivo de frases (que tiene tope). Se indexa en segundo plano cuando hay frases nuevas y se puede borrar: se rehace.
-    /// Al hablar, el vector de lo que dices se compara con todos los trozos (son unos cientos: milisegundos).
+    /// Recall by meaning. Each character has an index in save_data\[campaign]\rag\[id].json with chunks of the lines
+    /// that already left their history. Each chunk keeps its text, so recall reaches further back than the
+    /// line archive (which is capped). Indexing runs in the background when there are new lines. The file can be deleted, it gets rebuilt.
+    /// When you talk, the vector of what you say is compared against every chunk (a few hundred, so milliseconds).
     /// </summary>
     internal static class RagIndex
     {
@@ -107,13 +107,13 @@ namespace AILegacy.Memory
 
         private static string Print(ChatTurn t) => t == null ? "" : ((t.Text ?? "").Length + ":" + (t.Text ?? "").GetHashCode().ToString("x") + ":" + (int)(t.Day * 10));
 
-        /// <summary>Lo dicho en un turno archivado, con quién lo dijo.</summary>
+        /// <summary>An archived turn's text, with who said it.</summary>
         private static string Line(ChatTurn t, string npc, string player) =>
             t.IsNote ? t.Text.Trim() : (t.Role == "player" ? player : npc) + ": " + (t.Text ?? "").Trim();
 
         /// <summary>
-        /// Si hay frases archivadas sin indexar, las trocea y pide sus vectores en segundo plano. No hace nada si no hay
-        /// de dónde sacar vectores. Hay que llamarlo en el hilo principal.
+        /// Chunks any unindexed archived lines and fetches their vectors in the background. Does nothing if no
+        /// provider gives vectors. Main thread only.
         /// </summary>
         public static void Schedule(Speaker s)
         {
@@ -127,12 +127,16 @@ namespace AILegacy.Memory
                 if (f == null) return;
                 lock (Busy) { if (Busy.Contains(key)) return; }
 
-                // ¿Sigue siendo el mismo hilo de la historia? Si se cargó otra rama (o cambió el tamaño de trozo), se rehace
+                // Vectors from different models can't be compared: re-embed the stored chunk texts with the current one
+                string working = Embeddings.Working;
+                if (f.Chunks.Count > 0 && working != null && !Embeddings.SameModel(f.Model, working)) { Reembed(s.Name, key, f); return; }
+
+                // Same story thread? If another branch was loaded (or the chunk size changed), rebuild
                 int total = mem.ArchivedTotal, have = mem.Archive.Count;
                 bool rebuild = f.Indexed > total || f.ChunkSize != size;
                 if (!rebuild && f.Indexed > 0)
                 {
-                    int at = have - (total - f.Indexed) - 1;         // dónde debería estar la última frase indexada
+                    int at = have - (total - f.Indexed) - 1;         // where the last indexed line should be
                     if (at >= 0 && at < have && f.Tail != null && f.Tail != Print(mem.Archive[at])) rebuild = true;
                 }
                 if (rebuild)
@@ -140,11 +144,11 @@ namespace AILegacy.Memory
                     f.Chunks.Clear(); f.Indexed = Math.Max(0, total - have); f.Tail = null; f.ChunkSize = size;
                     Log.Info($"Índice de recuerdos de {s.Name}: se rehace");
                 }
-                // Si se archivó más de lo que el archivo conserva, lo que ya no está no se puede indexar: se salta
+                // If more was archived than the archive keeps, the missing lines can't be indexed, skip them
                 if (total - f.Indexed > have) f.Indexed = total - have;
 
                 int pending = total - f.Indexed;
-                if (pending < size) return;                          // aún no hay un trozo entero
+                if (pending < size) return;                          // not a full chunk yet
                 int start = have - pending;
                 string npc = s.Name, player = Prompt.ContextBuilder.PlayerNameFor(s) ?? "the stranger";
                 var chunks = new List<RagChunk>();
@@ -161,17 +165,23 @@ namespace AILegacy.Memory
                 string tail = Print(mem.Archive[start + chunks.Count * size - 1]);
                 int session = World.WorldSim.Session;
                 lock (Busy) Busy.Add(key);
-                Embeddings.EmbedAsync(chunks.Select(c => c.Text).ToList(), "embed").ContinueWith(t =>
+                Task<Embeddings.Result> job;
+                try { job = Embeddings.EmbedAsync(chunks.Select(c => c.Text).ToList(), "embed"); }
+                catch { lock (Busy) Busy.Remove(key); throw; }
+                job.ContinueWith(t =>
                 {
-                    var vecs = t.IsFaulted ? null : t.Result;
+                    var r = t.IsFaulted ? null : t.Result;
+                    var vecs = r?.Vecs;
                     MainThread.Post(() =>
                     {
                         lock (Busy) Busy.Remove(key);
                         if (session != World.WorldSim.Session || vecs == null || vecs.Length != chunks.Count) return;
+                        // A different model answered this time. Don't mix it in, the next pass re-embeds the whole index
+                        if (f.Chunks.Count > 0 && !Embeddings.SameModel(f.Model, r.Model)) return;
                         for (int i = 0; i < chunks.Count; i++) { chunks[i].V = vecs[i]; chunks[i].Vec = Embeddings.ToText(vecs[i]); }
                         f.Chunks.AddRange(chunks);
                         f.Indexed = chunks[chunks.Count - 1].End;
-                        f.Tail = tail; f.ChunkSize = size; f.Model = Embeddings.Working;
+                        f.Tail = tail; f.ChunkSize = size; f.Model = r.Model;
                         int max = Math.Max(50, S.Get.RagMaxChunks);
                         if (f.Chunks.Count > max) f.Chunks.RemoveRange(0, f.Chunks.Count - max);
                         Write(key, f);
@@ -182,7 +192,31 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Error("Índice de recuerdos", ex); }
         }
 
-        /// <summary>¿Merece la pena pedir el vector de lo que acaba de decir el jugador? (hay índice, o acciones que elegir)</summary>
+        /// <summary>Re-embeds every stored chunk with the model now in use. The texts are kept, so no memory is lost.</summary>
+        private static void Reembed(string name, string key, RagFile f)
+        {
+            var chunks = f.Chunks.ToList();
+            int session = World.WorldSim.Session;
+            lock (Busy) Busy.Add(key);
+            Log.Info($"Memory index of {name}: re-embedding {chunks.Count} chunk(s), the vector model changed ({f.Model ?? "?"} -> {Embeddings.Working})");
+            Task<Embeddings.Result> job;
+            try { job = Embeddings.EmbedAsync(chunks.Select(c => c.Text ?? "").ToList(), "embed"); }
+            catch { lock (Busy) Busy.Remove(key); throw; }
+            job.ContinueWith(t =>
+            {
+                var r = t.IsFaulted ? null : t.Result;
+                MainThread.Post(() =>
+                {
+                    lock (Busy) Busy.Remove(key);
+                    if (session != World.WorldSim.Session || r?.Vecs == null || r.Vecs.Length != chunks.Count) return;
+                    for (int i = 0; i < chunks.Count; i++) { chunks[i].V = r.Vecs[i]; chunks[i].Vec = Embeddings.ToText(r.Vecs[i]); }
+                    f.Model = r.Model;
+                    Write(key, f);
+                });
+            });
+        }
+
+        /// <summary>Is it worth embedding the player's line? Yes if there's an index, or actions to pick from.</summary>
         public static bool WantsQuery(Speaker s)
         {
             try
@@ -196,27 +230,27 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Pide el vector de la frase del jugador y lo deja en la memoria del personaje para el prompt de este turno.
-        /// No espera más de dos segundos y medio: si no llega, el turno sigue con la búsqueda por palabras.
+        /// Embeds the player's line and stores the vector in the character's memory for this turn's prompt.
+        /// Waits 2.5 s at most. If it doesn't arrive, the turn falls back to keyword search.
         /// </summary>
         public static Task PrepareQuery(Speaker s, string text)
         {
             var mem = s.Memory;
-            mem.QueryVec = null; mem.QueryText = null;
+            mem.QueryVec = null; mem.QueryText = null; mem.QueryModel = null;
             if (string.IsNullOrWhiteSpace(text) || !WantsQuery(s)) return Task.CompletedTask;
-            // Con frases muy cortas («sí», «¿y eso?») ayuda sumar lo último que dijo el personaje
+            // Very short lines ("yes", "how so?") work better with the character's last line added
             var lastOwn = mem.Turns.LastOrDefault(t => t.Role != "player");
             string query = text.Trim().Length < 40 && lastOwn != null ? (lastOwn.Text ?? "") + "\n" + text : text;
             int session = World.WorldSim.Session;
             var embed = Embeddings.EmbedAsync(new[] { query }, "embed").ContinueWith(t =>
             {
-                var v = t.IsFaulted ? null : t.Result;
-                if (v != null && v.Length == 1 && session == World.WorldSim.Session) { mem.QueryVec = v[0]; mem.QueryText = text; }
+                var r = t.IsFaulted ? null : t.Result;
+                if (r?.Vecs != null && r.Vecs.Length == 1 && session == World.WorldSim.Session) { mem.QueryModel = r.Model; mem.QueryVec = r.Vecs[0]; mem.QueryText = text; }
             });
             return Task.WhenAny(embed, Task.Delay(2500));
         }
 
-        /// <summary>Los trozos de vuestra historia que más se parecen, por significado, a lo que se dice ahora (en orden de tiempo).</summary>
+        /// <summary>History chunks closest in meaning to what's being said now, in time order.</summary>
         public static List<string> Find(Speaker s, double today, int max)
         {
             var result = new List<string>();
@@ -225,11 +259,11 @@ namespace AILegacy.Memory
                 var mem = s.Memory;
                 if (!s.IsHero || mem.QueryVec == null || max <= 0 || !S.Get.EnableRag) return result;
                 var f = Get(s.Key, false);
-                if (f == null || f.Chunks.Count == 0) return result;
+                if (f == null || f.Chunks.Count == 0 || !Embeddings.SameModel(f.Model, mem.QueryModel)) return result;
                 var scored = f.Chunks.Where(c => c.V != null).Select(c => (c, score: Embeddings.Cosine(mem.QueryVec, c.V))).OrderByDescending(x => x.score).ToList();
                 if (scored.Count == 0) return result;
                 double best = scored[0].score;
-                if (best < 0.30) return result;                      // nada que se parezca de verdad
+                if (best < 0.30) return result;                      // nothing really similar
                 foreach (var x in scored.Where(x => x.score >= Math.Max(0.30, best * 0.75)).Take(max).OrderBy(x => x.c.End))
                 {
                     string when = x.c.Day <= 0 ? "" : (today - x.c.Day) < 1 ? "[earlier today]\n" : $"[{(int)(today - x.c.Day)} days ago]\n";

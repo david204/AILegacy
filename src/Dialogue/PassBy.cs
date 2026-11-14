@@ -16,9 +16,9 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Vida al pasar: cuando caminas junto a alguien en una escena (un guardia, un vecino, un mercader, un noble que no te
-    /// conoce), suelta algo de pasada: un saludo, un aviso, un pregón, una queja al de al lado, un comentario sobre ti.
-    /// Para no gastar, se pide UN lote de frases por visita (una sola petición) y se van usando según con quién te cruzas.
+    /// Passing remarks: when you walk past someone in a scene (a guard, a resident, a merchant, a noble who doesn't know
+    /// you) they say something in passing. To keep cost down it's ONE request per visit for a batch of lines, handed out
+    /// by who you walk past.
     /// </summary>
     internal static class PassBy
     {
@@ -114,8 +114,7 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
         {
             try
             {
-                // Sin partida cargada (menú principal, batalla personalizada) no hay nada que hacer: ni siquiera se puede
-                // preguntar por el asentamiento, que falla fuera de una campaña.
+                // No campaign loaded (main menu, custom battle). Even asking for the current settlement throws outside a campaign.
                 if (Campaign.Current == null)
                 {
                     if (_mission != null) { _mission = null; Pool.Clear(); Spoke.Clear(); }
@@ -157,13 +156,13 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
                     if (d > best || Math.Abs(a.Position.z - me.z) > 2f) continue;
                     string k = Kind(a);
                     if (k == null || !Pool.TryGetValue(k, out var l) || l.Count == 0) continue;
-                    // Un noble que ya te conoce no usa estas frases: tiene las suyas
+                    // A noble who already knows you has their own lines, not these
                     if (k == "noble") { var h = ((CharacterObject)a.Character).HeroObject; if (Memory.MemoryStore.Find(h.StringId)?.ConversationCount > 0) continue; }
                     best = d; pick = a; kind = k;
                 }
                 if (pick == null)
                 {
-                    // Si ya se han gastado casi todas y sigues aquí, un lote más (los que se indiquen en MCM)
+                    // Almost out of lines and still here: request another batch (up to the MCM refill count)
                     if (_refills < cfg.PassByRefills && Pool.Values.Sum(l => l.Count) <= 3 && Spoke.Count >= 6) { _refills++; Spoke.Clear(); Request(st, m); }
                     return;
                 }

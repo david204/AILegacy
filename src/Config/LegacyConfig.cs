@@ -19,14 +19,14 @@ namespace AILegacy.Config
         [JsonProperty("timeout_seconds")] public int TimeoutSeconds = 30;
         [JsonProperty("send_temperature")] public bool SendTemperature = true;
         [JsonProperty("extra")] public JObject Extra = new JObject();
-        /// <summary>Peticiones por minuto que admite (0 = sin límite propio). Al llegar al cupo se usa el siguiente proveedor.</summary>
+        /// <summary>Requests per minute allowed (0 = no limit). Once it's reached, the next provider is used.</summary>
         [JsonProperty("rpm")] public int Rpm = 0;
-        /// <summary>Precio en dólares por millón de tokens de entrada y de salida (0 = gratis o sin poner).</summary>
+        /// <summary>USD per million input and output tokens (0 = free or not set).</summary>
         [JsonProperty("price_in")] public double PriceIn = 0;
         [JsonProperty("price_out")] public double PriceOut = 0;
-        /// <summary>¿Cuesta dinero? Sin poner, se deduce: tiene precio, o es un servicio que cobra siempre (OpenAI, DeepSeek, OpenRouter).</summary>
+        /// <summary>When unset, it's inferred: the provider has a price, or it's a service that always charges.</summary>
         [JsonProperty("paid")] public bool? Paid;
-        /// <summary>Modelo de vectores («embeddings») de este proveedor. Vacío = el habitual del servicio; «-» = no usarlo para vectores.</summary>
+        /// <summary>Embedding model for this provider. Empty = the service's usual one, "-" = don't use it for embeddings.</summary>
         [JsonProperty("embedding_model")] public string EmbeddingModel = "";
 
         [JsonIgnore]
@@ -48,8 +48,8 @@ namespace AILegacy.Config
     }
 
     /// <summary>
-    /// config.json: solo proveedores de IA (con sus keys). El resto de ajustes está en MCM.
-    /// Se recarga solo cuando el archivo cambia.
+    /// config.json only holds AI providers and their keys. Everything else lives in MCM.
+    /// Reloaded when the file or the MCM provider fields change.
     /// </summary>
     public class LegacyConfig
     {
@@ -75,13 +75,13 @@ namespace AILegacy.Config
                         try { sig = Settings.S.Get.McmProvidersSignature(); } catch { }
                         if (_current == null || stamp != _loadedStamp || sig != _mcmSig)
                         {
-                            // Primero los proveedores escritos en MCM; después, si existe, los de config.json (para ajustes avanzados)
+                            // MCM providers first, then config.json ones if the file exists (for advanced setups)
                             bool hasFile = File.Exists(Paths.ConfigFile);
                             var file = hasFile ? Load() : new LegacyConfig();
                             var merged = new LegacyConfig();
                             try
                             {
-                                // Foto coherente de lo escrito en MCM: si lo estás editando justo ahora, se vuelve a leer
+                                // Re-read if the MCM fields changed mid-read (the player is editing them right now)
                                 var mcm = Settings.S.Get.McmProviders();
                                 string sig2 = Settings.S.Get.McmProvidersSignature();
                                 if (sig2 != sig) { mcm = Settings.S.Get.McmProviders(); sig = Settings.S.Get.McmProvidersSignature(); }
@@ -89,7 +89,7 @@ namespace AILegacy.Config
                             }
                             catch (Exception ex) { Log.Error("Proveedores de MCM", ex); }
                             int fromMcm = merged.Providers.FindAll(p => p.IsUsable).Count;
-                            // Sin nombres repetidos (ni entre MCM y el archivo, ni dentro del archivo): el repetido se queda fuera
+                            // Names must be unique across MCM and the file; a duplicate is skipped
                             foreach (var p in file.Providers)
                             {
                                 string n = (p.Name ?? "").Trim();
@@ -118,7 +118,7 @@ namespace AILegacy.Config
         private static LegacyConfig Load()
         {
             LastLoadError = null;
-            if (!File.Exists(Paths.ConfigFile)) return new LegacyConfig();      // ya no hace falta: las claves pueden ir en MCM
+            if (!File.Exists(Paths.ConfigFile)) return new LegacyConfig();      // the file is optional, keys can go in MCM
             try
             {
                 var cfg = JsonConvert.DeserializeObject<LegacyConfig>(File.ReadAllText(Paths.ConfigFile)) ?? new LegacyConfig();

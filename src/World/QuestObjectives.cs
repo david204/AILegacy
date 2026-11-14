@@ -16,13 +16,13 @@ using TaleWorlds.ObjectSystem;
 namespace AILegacy.World
 {
     /// <summary>
-    /// Objetivos de encargo que comprueba el juego, no la palabra del jugador:
-    ///   bring_item        traer N unidades de un objeto real (se entregan al cumplir)
-    ///   talk_to           hablar con una persona real (marcada en el mapa)
-    ///   visit             ir a un asentamiento real
-    ///   defeat_bandits    acabar con una banda que aparece de verdad junto a un asentamiento
-    ///   deliver_document  llevar un documento a una persona real, que debe recogerlo
-    /// Sin objetivo ("none") el encargo es libre y lo juzga quien lo dio.
+    /// Quest objectives checked by the game, not by the player's word:
+    ///   bring_item        bring N units of a real item (handed over on completion)
+    ///   talk_to           talk to a real person (marked on the map)
+    ///   visit             go to a real settlement
+    ///   defeat_bandits    destroy a band actually spawned near a settlement
+    ///   deliver_document  carry a document to a real person, who has to take it
+    /// With no objective ("none") the quest is free-form and the giver judges it.
     /// </summary>
     internal static class QuestObjectives
     {
@@ -30,9 +30,9 @@ namespace AILegacy.World
         private static string Norm(string s) => new string((s ?? "").ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
 
-        // ============================================================ crear
+        // ============================================================ create
 
-        /// <summary>Convierte lo que pidió la IA en un objetivo real. Si no se puede, el encargo queda libre.</summary>
+        /// <summary>Turns what the AI asked for into a real objective. If that fails, the quest stays free-form.</summary>
         public static void Resolve(AiQuest q, QuestRequest r, Speaker giver)
         {
             q.ObjType = "none";
@@ -117,7 +117,7 @@ namespace AILegacy.World
             string n = Norm(name);
             if (n.Length < 3) return null;
             var all = MBObjectManager.Instance.GetObjectTypeList<ItemObject>().Where(i => i != null && i.Name != null).ToList();
-            // primero lo corriente (mercancía, comida, animales); después cualquier objeto
+            // common stuff first (trade goods, food, animals), then any item
             foreach (var pool in new[] { all.Where(i => i.IsTradeGood || i.IsFood || i.IsAnimal).ToList(), all })
             {
                 var hit = pool.FirstOrDefault(i => Norm(i.Name.ToString()) == n || Norm(i.StringId) == n)
@@ -138,7 +138,6 @@ namespace AILegacy.World
                    ?? all.FirstOrDefault(h => { var a = Norm(h.Name.ToString()); return a.Length > 2 && (n.Contains(a) || a.Contains(n)); });
         }
 
-        /// <summary>Una banda real, con nombre, junto al asentamiento: es el objetivo que hay que derrotar.</summary>
         private static MobileParty SpawnBand(AiQuest q, Settlement st)
         {
             var clan = Clan.BanditFactions.FirstOrDefault(c => c.StringId == "looters") ?? Clan.BanditFactions.FirstOrDefault();
@@ -147,7 +146,7 @@ namespace AILegacy.World
             if (party == null) return null;
             try
             {
-                // Que sea un rival a la medida: ni un paseo ni imposible
+                // Scale it to the player: not a walkover, not impossible
                 int mine = Math.Max(5, MobileParty.MainParty.MemberRoster.TotalHealthyCount);
                 int want = Math.Max(8, Math.Min(120, (int)(mine * 0.8)));
                 var basic = clan.Culture?.BanditBandit ?? clan.Culture?.BasicTroop;
@@ -165,7 +164,7 @@ namespace AILegacy.World
         public static MobileParty BandOf(AiQuest q) =>
             string.IsNullOrEmpty(q.PartyId) ? null : MobileParty.All.FirstOrDefault(p => p != null && p.StringId == q.PartyId && p.IsActive);
 
-        // ============================================================ estado
+        // ============================================================ state
 
         private static int Carried(AiQuest q)
         {
@@ -188,8 +187,8 @@ namespace AILegacy.World
         }
 
         /// <summary>
-        /// Alguien acaba de aceptar objetos del jugador (acción take_item). Si es a quien había que llevárselos
-        /// (el destinatario de un deliver_item, o el propio dador en un bring_item), cuenta para el encargo.
+        /// Someone just took items from the player (take_item action). If they're the right person
+        /// (the recipient of a deliver_item, or the giver of a bring_item), it counts toward the quest.
         /// </summary>
         public static void OnItemTaken(Speaker taker, ItemObject item, int amount)
         {
@@ -216,8 +215,8 @@ namespace AILegacy.World
         }
 
         /// <summary>
-        /// Gente y sitios REALES que este NPC puede nombrar en un encargo (para que no se invente administradores ni informadores):
-        /// los notables de sus tierras o del lugar donde está, con su oficio.
+        /// Real people this NPC can name in a quest, so it doesn't make up stewards or informants:
+        /// the notables of its lands or of where it is, with their trade.
         /// </summary>
         public static string RealPeopleFor(Speaker s)
         {
@@ -245,7 +244,7 @@ namespace AILegacy.World
             catch { return ""; }
         }
 
-        /// <summary>Para el prompt: el hecho comprobado, que el NPC no puede contradecir.</summary>
+        /// <summary>For the prompt: the checked fact, which the NPC can't contradict.</summary>
         public static string StatusLine(AiQuest q)
         {
             if (!HasObjective(q)) return "";
@@ -264,7 +263,7 @@ namespace AILegacy.World
             return $" CHECKED BY THE WORLD: {what} → {(met ? "DONE" : "NOT DONE")}.";
         }
 
-        /// <summary>Para el diario del jugador.</summary>
+        /// <summary>For the player's journal.</summary>
         public static string GoalEs(AiQuest q)
         {
             switch (q.ObjType)
@@ -303,7 +302,7 @@ namespace AILegacy.World
             Log.Info($"Objetivo cumplido del encargo {q.Id}: {note}");
         }
 
-        // ============================================================ sucesos del juego
+        // ============================================================ game events
 
         public static void OnSettlementEntered(MobileParty party, Settlement st, Hero hero)
         {
@@ -325,7 +324,7 @@ namespace AILegacy.World
                 {
                     bool mine = destroyer != null && (destroyer == PartyBase.MainParty || (MobileParty.MainParty?.Army != null && destroyer.MobileParty?.Army == MobileParty.MainParty.Army));
                     q.BandByPlayer = mine;
-                    GameJournal.Untrack(q, destroyed);      // una partida destruida no se queda marcada en el diario
+                    GameJournal.Untrack(q, destroyed);      // a destroyed party shouldn't stay tracked in the journal
                     MarkMet(q, mine ? L.F("AIL_d83e63f4", $"Has acabado con la banda de {q.ObjTargetName}. Vuelve con {q.GiverName}.")
                                     : L.F("AIL_8525c8a9", $"Otros han acabado con la banda de {q.ObjTargetName} antes que tú. Vuelve con {q.GiverName}."));
                 }
@@ -333,7 +332,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Encargos: grupo destruido", ex); }
         }
 
-        /// <summary>Has hablado (de verdad, con al menos un intercambio) con este héroe.</summary>
+        /// <summary>The player really talked with this hero (at least one exchange).</summary>
         public static void OnTalked(Hero h)
         {
             try
@@ -357,7 +356,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Encargos: documento", ex); }
         }
 
-        /// <summary>Cada día: refresca lo que llevas (para el diario) y detecta bandas que han desaparecido sin avisar.</summary>
+        /// <summary>Refreshes carried items for the journal and catches bands that vanished without an event.</summary>
         public static void OnDailyTick()
         {
             try
@@ -376,9 +375,9 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Encargos: objetivos, tick diario", ex); }
         }
 
-        // ============================================================ cierre
+        // ============================================================ close
 
-        /// <summary>Al cumplir: se entrega lo traído. Devuelve un texto para enseñar, o null.</summary>
+        /// <summary>Hands over the brought items. Returns a message to show, or null.</summary>
         public static string OnCompleted(AiQuest q, Speaker giver)
         {
             try
@@ -400,7 +399,7 @@ namespace AILegacy.World
             return null;
         }
 
-        /// <summary>Al cerrar un encargo (como sea): la banda deja de estar reservada y el documento sin entregar se retira.</summary>
+        /// <summary>On any quest end: frees the band and removes an undelivered document.</summary>
         public static void OnEnded(AiQuest q)
         {
             try
@@ -413,7 +412,6 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Encargos: limpieza", ex); }
         }
 
-        /// <summary>Qué hay que marcar en el mapa para este encargo.</summary>
         public static IEnumerable<ITrackableCampaignObject> Trackables(AiQuest q)
         {
             var list = new List<ITrackableCampaignObject>();

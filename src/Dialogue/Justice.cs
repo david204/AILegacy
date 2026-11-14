@@ -16,22 +16,22 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// La guardia. Tras una pelea en un asentamiento (o si alguien grita pidiéndola), el guardia más cercano se acerca,
-    /// te pide cuentas y, según lo que le digas y quién seas, te deja ir, te multa o te encierra.
+    /// Town guard. After a fight in a settlement (or if someone shouts for the guard), the nearest guard walks up
+    /// and questions you. Depending on what you say and who you are, they let you go, fine you or lock you up.
     /// </summary>
     internal static class Justice
     {
-        private static Speaker _guard;        // el guardia que lleva el caso ahora
+        private static Speaker _guard;        // guard handling the current case
         private static bool _resolved;
         private static bool _talked;
-        private static Settlement _jailIn;    // pendiente de encerrar al jugador al salir de la escena
-        private static string _case, _jailStanding, _jailCrime;      // lo ocurrido, para el juicio del señor
+        private static Settlement _jailIn;    // jail the player once they leave the scene
+        private static string _case, _jailStanding, _jailCrime;      // what happened, for the lord's trial
         private static Speaker _jailGuard;
-        private static Agent _guardAgent;     // el agente del guardia que lleva el caso
-        private static Settlement _arrestIn;  // te han dicho que estás detenido: falta lo que haces tú
-        private static bool _asking;          // la ventana de decisión está abierta
-        private static bool _resisting;       // estás peleando con la guardia para no ir a la celda
-        private static float _resistAge;      // segundos desde que empezaste a resistirte
+        private static Agent _guardAgent;
+        private static Settlement _arrestIn;  // told they're under arrest, waiting on the player's choice
+        private static bool _asking;          // choice popup is open
+        private static bool _resisting;       // fighting the guards to avoid the cell
+        private static float _resistAge;      // seconds since resisting started
         private static readonly Random Rng = new Random();
         private static Hero P => Hero.MainHero;
 
@@ -49,7 +49,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
 
         public static bool Active(Speaker s) => s != null && _guard != null && !_resolved && s.SituationKind == "justice" && s.Key == _guard.Key;
 
-        // ============================================================ buscar un guardia y mandarlo
+        // ============================================================ find a guard and send them over
 
         private static Agent NearestGuard(Agent except, float maxDistance)
         {
@@ -91,7 +91,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             catch { return "unknown"; }
         }
 
-        /// <summary>Hay jaleo: si hay un guardia lo bastante cerca (o lo han llamado a gritos), va a por ti.</summary>
+        /// <summary>Trouble happened. If a guard is close enough (or was shouted for), they come for you.</summary>
         public static bool Summon(string whatHappenedEn, Agent except, bool called)
         {
             try
@@ -99,7 +99,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                 var cfg = S.Get;
                 if (!cfg.AllowJustice || _guard != null || Initiative.Busy || Mission.Current == null) return false;
                 var st = Settlement.CurrentSettlement;
-                if (st == null || st.OwnerClan == Clan.PlayerClan) return false;       // en tu casa nadie te pide cuentas
+                if (st == null || st.OwnerClan == Clan.PlayerClan) return false;       // nobody questions you in your own fief
                 var agent = NearestGuard(except, called ? cfg.GuardCallDistance : cfg.GuardHearingDistance);
                 if (agent == null) return false;
 
@@ -129,7 +129,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             Summon(what, opponentAgent, false);
         }
 
-        // ============================================================ lo que decide el guardia
+        // ============================================================ the guard's verdict
 
         private static void Close(string rumorEn, string titleEs, string textEs)
         {
@@ -169,7 +169,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
         {
             var st = Settlement.CurrentSettlement;
             if (st == null) return null;
-            // No vas derecho a la celda: al acabar la charla decides si te entregas, te resistes o echas a correr
+            // Not straight to the cell. When the talk ends the player picks: surrender, resist or run
             _arrestIn = st;
             _jailGuard = s; _jailStanding = Standing(st); _jailCrime = Crime(st);
             try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 10f, true); } catch { }
@@ -177,7 +177,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             return L.F("AIL_f2440a00", $"El guardia te detiene: vas a los calabozos de {st.Name}.");
         }
 
-        // ============================================================ detenido: qué haces tú
+        // ============================================================ arrested: the player's choice
 
         private static void AskArrest(Settlement st)
         {
@@ -204,7 +204,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             _asking = false;
             try
             {
-                if (Settlement.CurrentSettlement != st) return;         // ya no estás allí
+                if (Settlement.CurrentSettlement != st) return;         // player already left
                 switch (choice)
                 {
                     case "resist":
@@ -217,7 +217,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                             Say(L.T("AIL_e1f3b7aa", "Te resistes a la guardia."), Colors.Red);
                             return;
                         }
-                        _jailIn = st;      // no hay con quién pelear: te llevan
+                        _jailIn = st;      // nobody to fight, so they take you
                         return;
                     }
                     case "run":
@@ -249,7 +249,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
 
         private static Settlement _escapeFrom;
 
-        /// <summary>Has peleado con la guardia para no ir a la celda.</summary>
+        /// <summary>The fight against the guards (to avoid the cell) is over.</summary>
         private static void ResistEnded(bool playerWon)
         {
             var st = Settlement.CurrentSettlement;
@@ -278,7 +278,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             catch (Exception ex) { Log.Error("Detención: tras la pelea", ex); }
         }
 
-        /// <summary>El guardia no llegó a hablar contigo (te fuiste de la escena, la IA no contestó…).</summary>
+        /// <summary>The guard never got to talk (player left the scene, the AI didn't answer...).</summary>
         private static void Unanswered() { _guard = null; }
 
         // ============================================================ tick
@@ -290,7 +290,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                 if (Campaign.Current == null) { _guard = null; _jailIn = null; _arrestIn = null; _escapeFrom = null; _asking = false; _resisting = false; return; }
                 bool talking = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
 
-                // Te resistías, pero la pelea no ha llegado a empezar (la escena cambió): no se queda a medias, te llevan
+                // Was resisting but the fight never started (scene changed). Don't leave it hanging, take them to jail
                 if (_resisting)
                 {
                     _resistAge += dt;
@@ -302,7 +302,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     }
                 }
 
-                // Detenido: en cuanto se cierra la charla, tú decides
+                // Arrested: the player decides as soon as the talk closes
                 if (_arrestIn != null && !talking && !_asking && !ChatSession.IsBusy)
                 {
                     var st = _arrestIn; _arrestIn = null;
@@ -310,7 +310,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     else _jailIn = st;
                 }
 
-                // Has escapado: fuera de la escena y fuera del lugar
+                // Escaped: out of the scene and out of the settlement
                 if (_escapeFrom != null && !talking)
                 {
                     if (Mission.Current != null)
@@ -329,7 +329,6 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     if (talking && ChatSession.Active != null && ChatSession.Active.Who?.Key == _guard.Key) _talked = true;
                     else if (!talking && !ChatSession.IsBusy && !Initiative.Busy)
                     {
-                        // La charla con el guardia ha terminado
                         if (_talked && !_resolved)
                         {
                             var st = Settlement.CurrentSettlement;
@@ -340,7 +339,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     }
                 }
 
-                // A los calabozos: primero hay que salir de la escena
+                // To the dungeon, but the scene has to close first
                 if (_jailIn != null && !talking)
                 {
                     if (Mission.Current != null)
@@ -352,7 +351,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                         var st = _jailIn; _jailIn = null;
                         if (Settlement.CurrentSettlement == st)
                         {
-                            // igual que hace el juego cuando falla una fuga de la cárcel
+                            // same as the game does when a prison break fails
                             PlayerEncounter.LeaveSettlement();
                             PlayerEncounter.Finish();
                             TakePrisonerAction.Apply(st.Party, P);

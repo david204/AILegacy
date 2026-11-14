@@ -8,12 +8,12 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Mover a un personaje por la escena hasta otro (también entre plantas): se usa el mismo comportamiento con el que
-    /// el juego hace que tus compañeros te sigan, que ya sabe buscar camino, subir escaleras y cruzar puertas.
+    /// Walks a character to another one in the scene, across floors too. Uses the same behavior the game uses to make
+    /// companions follow you, which already handles pathing, stairs and doors.
     /// </summary>
     internal static class SceneMove
     {
-        // A quién hemos puesto a andar nosotros (para no soltar a un compañero que ya te seguía por su cuenta)
+        // Agents we set walking, so we never release a companion who was already following you on their own
         private static readonly HashSet<Agent> Ours = new HashSet<Agent>();
 
         private static DailyBehaviorGroup Group(Agent a)
@@ -22,7 +22,7 @@ namespace AILegacy.Dialogue
             catch { return null; }
         }
 
-        /// <summary>Ese personaje deja lo que hace y camina hasta el otro. Devuelve false si no se le puede mover.</summary>
+        /// <summary>Returns false if the agent can't be moved.</summary>
         public static bool GoTo(Agent a, Agent target)
         {
             try
@@ -31,7 +31,7 @@ namespace AILegacy.Dialogue
                 var g = Group(a);
                 if (g != null)
                 {
-                    if (g.ScriptedBehavior is FollowAgentBehavior && !Ours.Contains(a)) return false;      // ya sigue a alguien (va contigo)
+                    if (g.ScriptedBehavior is FollowAgentBehavior && !Ours.Contains(a)) return false;      // already following someone (with you)
                     try { if (a.IsUsingGameObject) a.StopUsingGameObject(); } catch { }
                     var f = g.GetBehavior<FollowAgentBehavior>() ?? g.AddBehavior<FollowAgentBehavior>();
                     g.SetScriptedBehavior<FollowAgentBehavior>();
@@ -39,7 +39,7 @@ namespace AILegacy.Dialogue
                     Ours.Add(a);
                     return true;
                 }
-                // Sin el navegador de la campaña (raro): se le manda al punto, sin más
+                // No campaign navigator (rare), just send them to the spot
                 try { if (a.IsUsingGameObject) a.StopUsingGameObject(); } catch { }
                 var wp = target.GetWorldPosition();
                 a.SetScriptedPosition(ref wp, false, Agent.AIScriptedFrameFlags.DoNotRun);
@@ -49,7 +49,6 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Mover a un personaje por la escena", ex); return false; }
         }
 
-        /// <summary>Vuelve a su vida normal.</summary>
         public static void Release(Agent a)
         {
             try

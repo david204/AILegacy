@@ -14,7 +14,6 @@
                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="680" StackLayout.LayoutMethod="HorizontalLeftToRight">
                   <Children>
 
-                    <!-- Lista de la izquierda -->
                     <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="470" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.35">
                       <Children>
                         <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="18" AutoHideScrollBars="true" ClipRect="LeftClip" InnerPanel="LeftClip\LeftList" VerticalScrollbar="..\LeftBarHolder\LeftBar">
@@ -53,7 +52,6 @@
                       </Children>
                     </Widget>
 
-                    <!-- Detalle de la derecha -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="20" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.35">
                       <Children>
                         <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="18" AutoHideScrollBars="true" ClipRect="RightClip" InnerPanel="RightClip\RightInner" VerticalScrollbar="..\RightBarHolder\RightBar">

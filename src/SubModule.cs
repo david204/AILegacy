@@ -19,10 +19,10 @@ namespace AILegacy
         {
             base.OnSubModuleLoad();
             Log.Info("AI Legacy cargado desde " + Paths.ModuleDir);
-            var cfg = LegacyConfig.Current; // primera lectura (queda en el log)
+            var cfg = LegacyConfig.Current; // first read, so it shows up in the log
             try { new HarmonyLib.Harmony("com.ailegacy").PatchAll(typeof(SubModule).Assembly); Log.Info("Parches de Harmony aplicados"); }
             catch (Exception ex) { Log.Error("Harmony", ex); }
-            // Lo que se añade a pantallas del propio juego (barras junto al nombre e historial en la conversación)
+            // Additions to vanilla screens (bars next to the name, history in conversations)
             try
             {
                 var ui = Bannerlord.UIExtenderEx.UIExtender.Create("AILegacy");
@@ -38,7 +38,7 @@ namespace AILegacy
             base.OnGameStart(game, gameStarterObject);
             if (game.GameType is Campaign && gameStarterObject is CampaignGameStarter starter)
             {
-                MemoryStore.Clear(); // partida nueva o cargada: SyncData rellenará si hay datos
+                MemoryStore.Clear(); // new or loaded game; SyncData fills it if there's saved data
                 starter.AddBehavior(new AILegacyBehavior());
             }
         }
@@ -54,11 +54,10 @@ namespace AILegacy
                 UI.ConversationMixin.Tick(dt);
             }
 
-            // Cartas pendientes: comprobar cada segundo si el jugador está en el mapa
             _letterCheck += dt;
             if (_letterCheck >= 1f)
             {
-                Core.L.SyncGameTexts();          // los textos «{=AIL_…}», en el idioma elegido en el mod
+                Core.L.SyncGameTexts();          // "{=AIL_...}" texts, in the language picked in the mod
                 _letterCheck = 0f;
                 try { if (Campaign.Current != null) LetterSystem.TryShowPending(); } catch (Exception ex) { Log.Error("Cartas", ex); }
                 try { World.OrderSystem.Pump(); } catch (Exception ex) { Log.Error("Órdenes", ex); }

@@ -9,10 +9,9 @@ using AILegacy.Settings;
 namespace AILegacy.Memory
 {
     /// <summary>
-    /// Recuerdo relevante: cuando el historial se resume, las frases viejas no se tiran, se archivan. Al hablar, se buscan
-    /// en ese archivo (y en las páginas del libro de memorias) los intercambios que tienen que ver con lo que se está
-    /// diciendo ahora, y se le recuerdan al personaje palabra por palabra. No gasta peticiones: es una búsqueda por
-    /// palabras hecha aquí mismo, dando más peso a las palabras raras (nombres, lugares, cosas concretas).
+    /// Keyword recall. When the history is summarized the old lines are archived, not thrown away. On each turn we search
+    /// that archive (and the memory book pages) for exchanges related to what's being said now and hand them back to the
+    /// character word for word. Runs locally with no requests, and rare words (names, places) weigh more.
     /// </summary>
     internal static class Recall
     {
@@ -42,23 +41,22 @@ namespace AILegacy.Memory
             foreach (var w in Fold(text).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 if (w.Length < 4 || Stop.Contains(w)) continue;
-                set.Add(w.Length > 7 ? w.Substring(0, 7) : w);      // raíz aproximada: «cosecha» y «cosechas» cuentan igual
+                set.Add(w.Length > 7 ? w.Substring(0, 7) : w);      // rough stemming, so "harvest" and "harvests" match
             }
             return set;
         }
 
         private class Unit { public string Text; public double Day; public HashSet<string> W; public int Order; }
 
-        /// <summary>Al resumir: las frases que salen del historial pasan al archivo.</summary>
         public static void Archive(HeroMemory mem, IEnumerable<ChatTurn> removed)
         {
             if (mem == null || removed == null) return;
-            if (mem.ArchivedTotal < mem.Archive.Count) mem.ArchivedTotal = mem.Archive.Count;       // memorias de antes de llevar la cuenta
+            if (mem.ArchivedTotal < mem.Archive.Count) mem.ArchivedTotal = mem.Archive.Count;       // memories saved before this counter existed
             foreach (var t in removed)
             {
                 if (t == null || string.IsNullOrWhiteSpace(t.Text)) continue;
                 string text = t.Text.Trim();
-                // Las respuestas guardadas como JSON se archivan solo con lo dicho
+                // Replies stored as raw JSON: archive only the spoken line
                 if (t.Role != "player" && text.StartsWith("{"))
                 {
                     try { text = ((string)Newtonsoft.Json.Linq.JObject.Parse(text)["reply"] ?? text).Trim(); } catch { }
@@ -71,7 +69,6 @@ namespace AILegacy.Memory
             if (mem.Archive.Count > max) mem.Archive.RemoveRange(0, mem.Archive.Count - max);
         }
 
-        /// <summary>Lo dicho en un turno, sin el envoltorio JSON de las respuestas guardadas en bruto, y recortado.</summary>
         private static string Said(ChatTurn t)
         {
             string text = (t.Text ?? "").Trim();
@@ -83,9 +80,9 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Los intercambios antiguos que más tienen que ver con lo que se dice ahora (en orden de tiempo).
-        /// «older» son los turnos que siguen en el historial pero ya no caben en el prompt (una charla muy larga): sin esto,
-        /// el principio de la conversación de hoy no estaría ni en el prompt, ni en el resumen, ni en el archivo.
+        /// Old exchanges most related to the current line, in time order.
+        /// <c>older</c> are turns still in the history that no longer fit in the prompt (a very long chat). Without them the
+        /// start of today's conversation wouldn't be in the prompt, the summary or the archive.
         /// </summary>
         public static List<string> Find(HeroMemory mem, string query, string npcName, string playerName, double today, int max, IList<ChatTurn> older = null)
         {
@@ -97,7 +94,7 @@ namespace AILegacy.Memory
                 var q = Words(query);
                 if (q.Count == 0) return result;
 
-                // Unidades: cada frase del jugador con la respuesta que le siguió (del archivo y de lo que ya no cabe en el prompt)
+                // One unit per player line plus the reply that followed it
                 var past = new List<ChatTurn>(mem.Archive.Count + olderCount);
                 past.AddRange(mem.Archive);
                 if (older != null) past.AddRange(older.Where(t => t != null && !string.IsNullOrWhiteSpace(t.Text)));
@@ -114,7 +111,7 @@ namespace AILegacy.Memory
                     units.Add(new Unit { Text = line, Day = t.Day, W = Words(line), Order = units.Count });
                 }
                 int turnUnits = units.Count;
-                // Las páginas del libro son prosa narrada (con adornos): solo valen de reserva, si lo literal no da nada
+                // Book pages are embellished prose, so they're only a fallback when no literal turn matches
                 foreach (var p in mem.Pages)
                 {
                     string line = $"(from your memories — {p.Title}) {p.Text}";
@@ -123,7 +120,6 @@ namespace AILegacy.Memory
                 }
                 if (units.Count == 0) return result;
 
-                // Peso de cada palabra: cuanto más rara en el archivo, más vale
                 var df = new Dictionary<string, int>();
                 foreach (var u in units) foreach (var w in u.W) { df.TryGetValue(w, out int c); df[w] = c + 1; }
                 double Idf(string w) => df.TryGetValue(w, out int c) ? Math.Log(1.0 + units.Count / (double)c) : 0.0;
@@ -134,10 +130,10 @@ namespace AILegacy.Memory
                     double sc = 0; int hits = 0;
                     foreach (var w in q) if (u.W.Contains(w)) { sc += Idf(w); hits++; }
                     if (hits == 0) continue;
-                    sc /= Math.Sqrt(4.0 + u.W.Count);      // que no ganen siempre los párrafos largos
+                    sc /= Math.Sqrt(4.0 + u.W.Count);      // so long paragraphs don't always win
                     scored.Add((u, sc, hits));
                 }
-                // Hace falta algo más que una palabra corriente en común
+                // Sharing one ordinary word isn't enough
                 double floor = Math.Log(1.0 + units.Count / Math.Max(1.0, units.Count * 0.5)) / Math.Sqrt(12.0);
                 var good = scored.Where(x => x.hits >= 2 || x.score > floor * 1.6).ToList();
                 if (good.Any(x => x.u.Order < turnUnits)) good = good.Where(x => x.u.Order < turnUnits).ToList();

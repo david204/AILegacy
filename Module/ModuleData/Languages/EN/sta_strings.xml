@@ -333,7 +333,7 @@
     <string id="AIL_44de911b" text="Society" />
     <string id="AIL_4514967a" text=", of clan " />
     <string id="AIL_454cbf99" text="{0} surrenders: {1} men become your prisoners." />
-    <string id="AIL_454f39f4" text="Providers are tried in order (1, 2, 3, 4): if the first one fails or runs out of quota, the next one is used. Keys are saved in Documents, in Mount and Blade II Bannerlord / Configs / ModSettings, not in the mod folder." />
+    <string id="AIL_454f39f4" text="Providers are tried in order (1 to 6): if the first one fails or runs out of quota, the next one is used. Slots 1 to 4 come filled in for Gemini, OpenAI, DeepSeek and Ollama as examples: add your key and switch them on, or change anything. Keys are saved in Documents, in Mount and Blade II Bannerlord / Configs / ModSettings, not in the mod folder." />
     <string id="AIL_458e1b5a" text="Each decision is one request to the AI per side. If a side suddenly loses many people, it decides sooner." />
     <string id="AIL_45d4f33e" text="Guards per wave" />
     <string id="AIL_463eb3a3" text="Untitled" />
@@ -464,7 +464,7 @@
     <string id="AIL_5da6bc58" text="Armies (join yours, gather their own, leave it)" />
     <string id="AIL_5dca951d" text="Description (what NPCs will read; better in English, but any language works)" />
     <string id="AIL_5de8b992" text="&#10;Involved: " />
-    <string id="AIL_5e0df453" text="OpenAI-compatible base address, e.g. https://my-server/v1. For the known services it is filled in automatically." />
+    <string id="AIL_5e0df453" text="OpenAI-compatible base address, without /chat/completions at the end (the mod adds it), e.g. https://my-server/v1. For the known services it is filled in automatically." />
     <string id="AIL_5e2efb51" text="Restore from file" />
     <string id="AIL_5e479046" text="Mood: " />
     <string id="AIL_5e55369d" text="Maximum simultaneous outbreaks" />
@@ -1313,7 +1313,11 @@
     <string id="AIL_d4b8a2f7" text="Actions that depend on what is being discussed (orders, trade, realm) are only explained in full when relevant; the rest are named on one line and still work. Saves tokens on every line. Needs the vectors of recall by meaning." />
     <string id="AIL_d4b8a2f8" text="Actions explained in full" />
     <string id="AIL_d4b8a2f9" text="Vector model (empty = automatic)" />
-    <string id="AIL_d4b8a2fa" text="Empty: gemini-embedding-001 with Gemini, text-embedding-3-small with OpenAI, nomic-embed-text with Ollama. Type another only if your provider uses a different name." />
+    <string id="AIL_d4b8a2fa" text="For providers whose own vector model field is empty and whose service the mod does not know. Empty: gemini-embedding-001 with Gemini, text-embedding-3-small with OpenAI, embedding-3 with GLM, nomic-embed-text with Ollama; DeepSeek and Groq do not give vectors. Type another only if your provider uses a different name." />
+    <string id="AIL_e7b1c4d1" text="Vector model (empty = automatic, - = none)" />
+    <string id="AIL_e7b1c4d2" text="Model this provider uses for recall by meaning (embeddings). Empty: the usual one of the service if it has one (embedding-3 with GLM), or the one in 4. Memory. Type - so that this provider is never asked for vectors." />
+    <string id="AIL_e7b1c4d5" text="Provider 5" />
+    <string id="AIL_e7b1c4d6" text="Provider 6" />
     <string id="AIL_e5c9b3a1" text="News" />
     <string id="AIL_e5c9b3a2" text="Memories" />
     <string id="AIL_e5c9b3a3" text="Confirm" />

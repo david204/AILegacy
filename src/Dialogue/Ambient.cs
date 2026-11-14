@@ -20,9 +20,9 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Vida en las escenas: de vez en cuando, dos personajes que están cerca de ti hablan entre ellos de lo que pasa
-    /// (noticias que conocen, la escasez, la enfermedad, sus señores), con el texto sobre la cabeza. A veces, alguien
-    /// que te conoce te suelta una frase al pasar. Lo que han dicho lo recuerdan si luego hablas con ellos.
+    /// Scene life: now and then two characters near you talk to each other about what's going on (news they know,
+    /// shortages, disease, their lords), with the text over their heads. Sometimes someone who knows you calls out
+    /// as you pass. They remember what was said if you talk to them later.
     /// </summary>
     internal static class Ambient
     {
@@ -35,7 +35,7 @@ namespace AILegacy.Dialogue
         private static float _timer = 20f, _lineLeft;
         private static bool _busy;
         private static bool _warned;
-        // Quien va andando hasta el otro para hablarle
+        // Agent walking over to talk to the other one
         private static Agent _walker, _walkTo;
         private static float _walkLeft;
         private static bool _arrived = true;
@@ -84,16 +84,15 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
 
         public static void Touch() { var _ = TAmbient.Key + TCallOut.Key + TErrandAngle.Key + TErrandReport.Key; }
 
-        /// <summary>Un recado dentro de la escena: alguien va a buscar a otro, hablan, y (si toca) vuelve a contártelo.</summary>
+        /// <summary>An errand inside the scene: someone goes to find another person, they talk, and if asked the first one comes back to tell you.</summary>
         private class Errand { public Agent Who, Target; public string Said, Report; public bool Back; public int Stage; public float Left; }
         private static Errand _errand;
-        private static int _gen;       // cambia al cancelar: la respuesta de la IA que llegue tarde se descarta
+        private static int _gen;       // bumped on cancel so a late AI reply gets thrown away
 
         internal static bool ErrandBusy => _errand != null;
-        /// <summary>¿Hay frases saliendo ahora mismo sobre las cabezas?</summary>
         internal static bool IsPlaying => Play.Count > 0 || _lineLeft > 0f;
 
-        /// <summary>En cuanto terminen las frases en curso, ese personaje sale a buscar al otro.</summary>
+        /// <summary>Once the current lines finish, this character goes off to find the other one.</summary>
         internal static void SendTo(Agent who, Agent target, string said, bool back)
         {
             if (who == null || target == null || _errand != null) return;
@@ -159,7 +158,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             catch (Exception ex) { Log.Error("Volver a contarlo", ex); }
         }
 
-        /// <summary>Soldados, guardias y matones: están de servicio, no se ponen a charlar por su cuenta.</summary>
+        /// <summary>Soldiers, guards and thugs are on duty and don't start chatting on their own.</summary>
         private static bool OnDuty(Agent a)
         {
             var c = a.Character as CharacterObject;
@@ -174,7 +173,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
 
         private static bool Named(Agent a) => a.Character is CharacterObject c && c.IsHero && c.HeroObject != null;
 
-        // De qué han hablado ya estos dos, y por dónde les ha dado (para no repetirse)
+        // What each pair already talked about and which angle they took, so they don't repeat themselves
         private static readonly Dictionary<string, List<string>> PairTopics = new Dictionary<string, List<string>>();
         private static readonly Dictionary<string, List<string>> PairAngles = new Dictionary<string, List<string>>();
         private static string _lastPair = "";
@@ -194,7 +193,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             return "they are very close";
         }
 
-        /// <summary>Qué son el uno del otro: sin esto, hablan como dos desconocidos.</summary>
+        /// <summary>What they are to each other. Without this they talk like strangers.</summary>
         private static string Tie(Speaker a, Speaker b)
         {
             try
@@ -232,7 +231,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             catch { return "They know each other."; }
         }
 
-        /// <summary>Lo que cada uno tiene en la cabeza hoy, sacado de su situación real.</summary>
+        /// <summary>What's on their mind today, taken from their actual situation.</summary>
         private static string Mind(Speaker s, Agent ag)
         {
             var parts = new List<string>();
@@ -267,7 +266,6 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             return parts.Count == 0 ? "nothing pressing; an ordinary day" : string.Join("; ", parts) + ".";
         }
 
-        /// <summary>Gente que los dos conocen y de la que pueden hablar.</summary>
         private static List<string> SharedPeople(Settlement st, Speaker a, Speaker b)
         {
             var list = new List<string>();
@@ -294,7 +292,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             return list.Take(7).ToList();
         }
 
-        /// <summary>Por dónde les da hoy: se elige aquí para que no acaben siempre en el tiempo y la guerra.</summary>
+        /// <summary>Today's angle. Picked here so they don't always end up talking about the weather and the war.</summary>
         private static string PickAngle(Settlement st, Speaker a, Speaker b, string pairKey, List<string> others, string playerKnown)
         {
             var opts = new List<string>
@@ -339,7 +337,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                 var m = Mission.Current;
                 if (m == null || Campaign.Current == null || Agent.Main == null || !Agent.Main.IsActive()) return false;
                 st = Settlement.CurrentSettlement;
-                if (st == null) return false;                                   // solo en asentamientos: ni batallas ni emboscadas
+                if (st == null) return false;                                   // settlements only, no battles or ambushes
                 if (m.Mode == MissionMode.Battle || m.Mode == MissionMode.Duel || m.Mode == MissionMode.Stealth || m.Mode == MissionMode.Deployment) return false;
                 var fh = m.GetMissionBehavior<MissionFightHandler>();
                 return fh == null || !fh.IsThereActiveFight();
@@ -397,7 +395,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             if (_calledMission != m) { _calledMission = m; CalledOut.Clear(); }
             if (near.Count == 0) { Log.Info($"[escena] nadie a menos de {cfg.AmbientRadius} m"); _timer = 20f; return; }
 
-            // A veces, alguien que te conoce te dice algo al pasar
+            // Sometimes someone who knows you says something as you pass
             if (cfg.AmbientCallOuts && Rng.Next(100) < 30)
             {
                 var known = near.Where(a => ((CharacterObject)a.Character).IsHero && ((CharacterObject)a.Character).HeroObject != null
@@ -406,7 +404,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                                             && a.Position.Distance(me) <= 9f).OrderBy(_ => Rng.Next()).FirstOrDefault();
                 if (known != null)
                 {
-                    // Cada uno te dice algo al pasar una sola vez por visita, y después hay un rato de silencio
+                    // Each one calls out only once per visit, then a quiet stretch follows
                     CalledOut.Add(((CharacterObject)known.Character).HeroObject.StringId);
                     _timer = cfg.AmbientCooldownSeconds * 0.5f;
                     string desc = Describe(known, out var sp);
@@ -419,11 +417,11 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                 }
             }
 
-            // Quién charla por su cuenta: la gente con nombre (señores, damas, notables, errantes) siempre; la gente corriente
-            // y la tropa, solo si está activado, y en corto.
+            // Named people (lords, ladies, notables, wanderers) always chat on their own. Commoners and troops only
+            // when enabled, and briefly.
             near = near.Where(a => Named(a) || (OnDuty(a) ? cfg.AmbientGuards : cfg.AmbientCommoners)).ToList();
 
-            // La pareja: dos que estén lo bastante cerca el uno del otro. Se prefiere a los que tienes más a mano, y a los que tienen nombre.
+            // Pick two who stand close enough to each other, preferring the ones nearest you and named ones.
             Agent first = null, second = null; float best = float.MaxValue;
             foreach (var x in near)
                 foreach (var y in near)
@@ -438,13 +436,13 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             if (first == null)
             {
                 Log.Info($"[escena] sin pareja para charlar: {near.Count} personaje(s) a menos de {cfg.AmbientRadius} m, ninguno a menos de {cfg.AmbientPairDistance} m de otro");
-                _timer = 20f;      // se reintenta pronto: la gente se mueve
+                _timer = 20f;      // retry soon, people move around
                 return;
             }
             if (Rng.Next(2) == 0) { var tmp = first; first = second; second = tmp; }
             string da = Describe(first, out var sa), db = Describe(second, out var sb2);
             string pairKey = string.CompareOrdinal(sa.Key, sb2.Key) < 0 ? sa.Key + "|" + sb2.Key : sb2.Key + "|" + sa.Key;
-            // Los mismos dos no vuelven a la carga enseguida
+            // Don't let the same two start again right away
             if (pairKey == _lastPair && (DateTime.UtcNow - _lastPairAt).TotalSeconds < cfg.AmbientCooldownSeconds * 2) { _timer = 30f; return; }
             float apart = first.Position.Distance(second.Position);
             if (cfg.AmbientWalk && apart > 3f) StartWalk(first, second);
@@ -467,15 +465,15 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             }
             string before = PairTopics.TryGetValue(pairKey, out var past) && past.Count > 0 ? string.Join(" | ", past.Skip(Math.Max(0, past.Count - 3))) : "(none yet today)";
             string angle = PickAngle(st, sa, sb2, pairKey, others, playerKnown);
-            // Solo la gente con nombre habla largo; con gente corriente o tropa por medio, dos o tres frases cortas
+            // Only named people talk at length. With a commoner or a soldier involved, two or three short lines
             bool full = sa.IsHero && sb2.IsHero;
             int maxLines = full ? Math.Max(2, cfg.AmbientMaxLines) : Math.Max(2, cfg.AmbientCommonerLines);
             int minLines = full ? Math.Min(maxLines, Math.Max(2, maxLines / 2)) : 2;
             int maxChars = full ? cfg.AmbientMaxChars : Math.Min(cfg.AmbientMaxChars, 90);
             Log.Info($"[escena] {sa.Name} y {sb2.Name} van a charlar (están a {apart:0.0} m{(_walker != null ? "; " + sa.Name + " va hacia allí" : "")}; tema: {angle})");
             _lastPair = pairKey; _lastPairAt = DateTime.UtcNow;
-            // Por turnos: se pide de dos en dos frases y cada tanda sabe lo dicho antes. Más peticiones, y la
-            // charla se corta sola si te metes por medio. Solo entre gente con nombre.
+            // Turn by turn: ask for a couple of lines at a time, each batch sees what was said before. Costs more
+            // requests, but the talk stops by itself if you step in. Named people only.
             if (cfg.AmbientTurnByTurn && full)
             {
                 int step = Math.Max(1, cfg.AmbientTurnSize);
@@ -492,7 +490,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                 first, second, sa, sb2, maxLines, 300 + maxLines * 90, pairKey);
         }
 
-        // ---- charla por turnos
+        // ---- turn-by-turn talk
         private class Chain { public string Base, Key; public Agent A, B; public Speaker SA, SB; public int Left, Step; public readonly List<string> Said = new List<string>(); }
         private static Chain _chain;
 
@@ -559,7 +557,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                             if (text.Length > max) text = text.Substring(0, max);
                             bool isB = ((string)l["who"] ?? "A").Trim().ToUpperInvariant() == "B" && b != null;
                             Play.Enqueue(new Line { Who = isB ? b : a, To = isB ? a : (b ?? Agent.Main), Text = text, Mood = (string)l["mood"] });
-                            // Lo hablado en un recado queda en lo dicho del grupo: quien fue, lo sabe al volver
+                            // Errand lines go into the group log, so whoever went knows them on the way back
                             if (errand != null && sa != null && sb != null) GroupTalk.Note($"{(isB ? sb.Name : sa.Name)} (to {(isB ? sa.Name : sb.Name)}, away from the group): {text}");
                         }
                         _mission = m;
@@ -567,11 +565,11 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                         string topic = ((string)j["topic"] ?? "").Trim();
                         if (topic.Length > 5 && pairKey != null && sa != null && sb != null)
                         {
-                            // Lo recuerdan: no lo repiten, y quien sea alguien con nombre lo sabrá cuando hables con él
+                            // Remembered so it isn't repeated, and a named person will know it when you talk to them
                             if (!PairTopics.TryGetValue(pairKey, out var past)) PairTopics[pairKey] = past = new List<string>();
                             past.Add(topic);
                             while (past.Count > 6) past.RemoveAt(0);
-                            // Cómo quedan entre ellos tras la charla: lo recuerdan los dos, cada uno a su manera
+                            // How they stand after the talk. Each one remembers it their own way
                             try
                             {
                                 int da = 0, db = 0;
@@ -584,11 +582,11 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                                 Bonds.TouchOther(sb, sa, db * 4, topic);
                             }
                             catch { }
-                            // El tema ya queda en Others[...].Notes (TouchOther); no va a Heard, que es lo que saben del jugador
+                            // TouchOther already puts the topic in Others[...].Notes. It doesn't go to Heard, which is only for what they know about the player
                         }
                         if (topic.Length > 5)
                         {
-                            // Si luego hablas con ellos, saben de qué estaban hablando
+                            // If you talk to them afterwards, they know what they were just talking about
                             if (sa != null) { sa.Memory.RecentTalk = b != null ? $"Moments ago you were talking with {(sb != null ? sb.Name : "someone")} nearby: {topic}" : $"Moments ago you called out to them as they passed: {topic}"; sa.Memory.RecentTalkAt = DateTime.UtcNow; }
                             if (sb != null) { sb.Memory.RecentTalk = $"Moments ago you were talking with {sa?.Name ?? "someone"} nearby: {topic}"; sb.Memory.RecentTalkAt = DateTime.UtcNow; }
                             Log.Info($"[escena] {(sa?.Name ?? "?")}{(sb != null ? " y " + sb.Name : " (al jugador)")}: {topic}");
@@ -599,28 +597,28 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             });
         }
 
-        /// <summary>Pone en cola frases para que salgan una a una sobre las cabezas (las usa la conversación de grupo).</summary>
+        /// <summary>Queues lines to show one at a time over heads. Used by group talk.</summary>
         internal static void Enqueue(Mission m, List<(Agent who, Agent to, string text, string mood)> lines)
         {
             Play.Clear();
-            _chain = null;      // si te metes tú, su charla privada se acaba
+            _chain = null;      // if you step in, their private talk ends
             _lineLeft = 0f;
             _mission = m;
-            foreach (var l in lines) Play.Enqueue(new Line { Who = l.who, To = l.to, Text = l.text, Mood = l.mood, Quiet = true });   // el grupo ya lo escribe en el registro
+            foreach (var l in lines) Play.Enqueue(new Line { Who = l.who, To = l.to, Text = l.text, Mood = l.mood, Quiet = true });   // group talk already writes these to the log
         }
 
         private static readonly HashSet<string> OverheardBy = new HashSet<string>();
 
         /// <summary>
-        /// Lo que le dices a alguien en una escena lo oyen los personajes con nombre que están a pocos pasos:
-        /// les queda como algo que han oído (una vez por charla y oyente).
+        /// Named characters a few steps away hear what you say to someone in a scene, and keep it as
+        /// something they overheard (once per talk and listener).
         /// </summary>
         public static void Overhear(Speaker speaker, string playerSaid)
         {
             if (speaker != null) Overhear(new[] { speaker }, playerSaid);
         }
 
-        /// <summary>Lo mismo para una frase dicha a un corro: una sola entrada por oyente y nunca para los del corro.</summary>
+        /// <summary>Same for a line said to a group: one entry per listener, and never for the people in the group.</summary>
         public static void Overhear(IList<Speaker> addressed, string playerSaid)
         {
             try
@@ -641,7 +639,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     var h = c != null && c.IsHero ? c.HeroObject : null;
                     if (h == null || h == Hero.MainHero || inside.Contains(h)) continue;
                     if (a.Position.Distance(Agent.Main.Position) > cfg.OverhearRadius) continue;
-                    if (!OverheardBy.Add(key + "|" + h.StringId + "|" + (int)(now * 4))) continue;      // una vez por oyente y rato
+                    if (!OverheardBy.Add(key + "|" + h.StringId + "|" + (int)(now * 4))) continue;      // once per listener per quarter day
                     var mem = MemoryStore.Get(h.StringId, h.Name.ToString());
                     InfoExchange.AddHeard(mem, new HeardItem
                     {
@@ -671,7 +669,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 }
                 bool talking = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
 
-                // Si uno va andando hacia el otro, la charla no empieza hasta que llega (o se cansa de intentarlo)
+                // If one is walking over to the other, the talk waits until they arrive (or give up)
                 if (_walker != null && !_arrived)
                 {
                     _walkLeft -= dt;
@@ -684,7 +682,6 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     else return;
                 }
 
-                // Reproducir las frases una a una
                 if (Play.Count > 0 || _lineLeft > 0f)
                 {
                     if (Mission.Current != _mission) { Play.Clear(); _lineLeft = 0f; StopLooking(); return; }
@@ -694,16 +691,16 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                         StopLooking();
                         if (Play.Count == 0 && _chain != null && !_busy && !talking)
                         {
-                            // Por turnos: aún no ha terminado, se pide la tanda siguiente
+                            // Turn by turn and not finished yet: ask for the next batch
                             ContinueChain();
                             if (_chain != null) return;
                         }
                         if (Play.Count == 0)
                         {
-                            ReleaseWalker();      // se acabó la charla
+                            ReleaseWalker();
                             if (_ambientPlaying)
                             {
-                                // Tras una charla, un rato de silencio antes de la siguiente
+                                // Quiet stretch before the next talk
                                 _ambientPlaying = false;
                                 _lastPairAt = DateTime.UtcNow;
                                 _timer = Math.Max(_timer, cfg.AmbientCooldownSeconds * (0.8f + (float)Rng.NextDouble() * 0.4f));
@@ -728,7 +725,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     return;
                 }
 
-                // Recados dentro de la escena: salir a buscar a alguien, y volver a contarlo
+                // Errands inside the scene: go find someone, then come back to report
                 if (_errand != null)
                 {
                     if (_errand.Stage == 0) { if (!talking && !_busy) BeginErrand(st); return; }
@@ -736,7 +733,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     TickReturn(dt);
                     return;
                 }
-                if (_walker != null && !_busy) ReleaseWalker();     // la IA no dio charla: que no se quede plantado
+                if (_walker != null && !_busy) ReleaseWalker();     // the AI gave no talk, don't leave the walker standing there
                 if (_busy || talking || ChatSession.IsBusy || Initiative.Busy) return;
                 if (!Bubbles.Available)
                 {
@@ -751,7 +748,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             catch (Exception ex) { Log.Error("Vida en la escena", ex); Play.Clear(); _busy = false; }
         }
 
-        /// <summary>El primero camina hasta quedar a un par de pasos del segundo.</summary>
+        /// <summary>The first agent walks up to within a couple of steps of the second.</summary>
         private static void StartWalk(Agent a, Agent b, float timeout = 40f)
         {
             try
@@ -762,7 +759,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             catch (Exception ex) { Log.Error("Acercarse a hablar", ex); _walker = null; _walkTo = null; _arrived = true; }
         }
 
-        /// <summary>Quien se acercó vuelve a lo suyo.</summary>
+        /// <summary>The walker goes back to what it was doing.</summary>
         private static void ReleaseWalker()
         {
             var w = _walker;

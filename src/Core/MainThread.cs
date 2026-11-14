@@ -4,8 +4,8 @@ using System.Collections.Concurrent;
 namespace AILegacy.Core
 {
     /// <summary>
-    /// Las peticiones HTTP van en hilos de fondo; todo lo que toca el juego
-    /// (UI, héroes, relaciones) se encola aquí y se ejecuta en el tick del juego.
+    /// HTTP requests run on background threads. Anything that touches the game (UI, heroes, relations)
+    /// gets queued here and runs on the game tick.
     /// </summary>
     internal static class MainThread
     {
@@ -16,7 +16,7 @@ namespace AILegacy.Core
             if (action != null) Queue.Enqueue(action);
         }
 
-        /// <summary>Ejecuta en el hilo principal y espera el resultado (para el editor web, que corre en otro hilo).</summary>
+        /// <summary>Runs on the main thread and waits for the result. For the web editor, which runs on another thread.</summary>
         public static T Invoke<T>(Func<T> f, int timeoutMs = 10000)
         {
             var tcs = new System.Threading.Tasks.TaskCompletionSource<T>();

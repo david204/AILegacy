@@ -6,7 +6,6 @@ using TaleWorlds.ScreenSystem;
 
 namespace AILegacy.UI
 {
-    /// <summary>Capa Gauntlet con la ventana de chat (abrir, cerrar, Enter/Escape).</summary>
     internal class ChatWindow
     {
         public ChatVM VM { get; }
@@ -18,7 +17,7 @@ namespace AILegacy.UI
 
         private ChatWindow(ChatVM vm) { VM = vm; }
 
-        /// <summary>Abre la ventana. Devuelve null si no se pudo (y entonces se usa el modo antiguo de ventanas de texto).</summary>
+        /// <summary>Returns null if it can't open, and the caller falls back to text inquiry popups.</summary>
         public static ChatWindow Open(ChatVM vm)
         {
             try

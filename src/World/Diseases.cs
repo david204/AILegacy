@@ -16,12 +16,11 @@ using TaleWorlds.Library;
 
 namespace AILegacy.World
 {
-    /// <summary>Un brote de enfermedad en un asentamiento.</summary>
     public class Outbreak
     {
         [JsonProperty("id")] public string Id;
-        [JsonProperty("name")] public string Name;        // idioma del jugador
-        [JsonProperty("name_en")] public string NameEn;   // para los prompts
+        [JsonProperty("name")] public string Name;        // player's language
+        [JsonProperty("name_en")] public string NameEn;   // for prompts
         [JsonProperty("settlement")] public string SettlementId;
         [JsonProperty("severity")] public int Severity = 2;   // 1..5
         [JsonProperty("start")] public double StartDay;
@@ -31,7 +30,7 @@ namespace AILegacy.World
         [JsonIgnore] public bool Quarantined => QuarantineUntilDay > CampaignTime.Now.ToDays;
     }
 
-    /// <summary>Ley proclamada por un rey: un efecto pequeño y diario sobre todas las ciudades y castillos de su reino.</summary>
+    /// <summary>Law decreed by a king: a small daily effect on every town and castle in the kingdom.</summary>
     public class KingdomLaw
     {
         [JsonProperty("id")] public string Id;
@@ -47,8 +46,8 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// Enfermedades: brotes estacionales o provocados por un evento, que dañan al asentamiento, se contagian a los vecinos,
-    /// hieren a tus tropas si entras, y se frenan con cuarentenas (que deciden los reyes, o tú en tus feudos).
+    /// Seasonal or event-driven outbreaks. They hurt the settlement, spread to neighbors and wound your troops if you go in.
+    /// Quarantines slow them down (kings decide, or you in your own fiefs).
     /// </summary>
     internal static class Diseases
     {
@@ -60,7 +59,7 @@ namespace AILegacy.World
         private static string SeverityWord(int s) => s <= 1 ? "mild" : s == 2 ? "troubling" : s == 3 ? "serious" : s == 4 ? "deadly" : "a plague";
         private static string SeverityEs(int s) => s <= 1 ? "leve" : s == 2 ? "preocupante" : s == 3 ? "grave" : s == 4 ? L.T("AIL_44011913", "mortífera") : L.T("AIL_e45c3132", "una peste");
 
-        /// <summary>Para el prompt de quien vive o está en ese sitio.</summary>
+        /// <summary>For the prompt of anyone who lives in or is at that settlement.</summary>
         public static string DescribeAt(Settlement st)
         {
             var o = At(st);
@@ -69,14 +68,13 @@ namespace AILegacy.World
                    (o.Quarantined ? " The place is under QUARANTINE by order of its rulers: nobody is supposed to come or go." : " People are afraid.");
         }
 
-        /// <summary>Para los datos técnicos de un reino.</summary>
         public static string DescribeFor(Kingdom k)
         {
             var list = All.Select(o => (o, st: Settlement.Find(o.SettlementId))).Where(x => x.st != null && x.st.MapFaction == k).ToList();
             return list.Count == 0 ? "" : "sickness in: " + string.Join(", ", list.Select(x => $"{x.st.Name} ({x.o.NameEn}, {SeverityWord(x.o.Severity)}{(x.o.Quarantined ? ", quarantined" : "")})"));
         }
 
-        // ============================================================ brotes
+        // ============================================================ outbreaks
 
         public static Outbreak Start(Settlement st, string name, string nameEn, int severity, int days, bool announce = true)
         {
@@ -103,7 +101,7 @@ namespace AILegacy.World
             return o;
         }
 
-        /// <summary>El generador de eventos puede traer un brote: { settlement, name, name_en, severity, duration_days }.</summary>
+        /// <summary>Outbreak from the event generator: { settlement, name, name_en, severity, duration_days }.</summary>
         public static void FromEvent(JObject d)
         {
             if (d == null || !Enabled || !S.Get.DiseaseFromEvents) return;
@@ -116,10 +114,10 @@ namespace AILegacy.World
         {
             switch ((int)CampaignTime.Now.GetSeasonOfYear)
             {
-                case 0: return (L.T("AIL_fa46e0da", "fiebre de las manchas"), "spotted fever");        // primavera
-                case 1: return ("flujo de sangre", "the bloody flux");            // verano
-                case 2: return (L.T("AIL_d8412138", "tercianas de los pantanos"), "marsh ague");       // otoño
-                default: return (L.T("AIL_b86021cd", "fiebre de pulmón"), "lung fever");               // invierno
+                case 0: return (L.T("AIL_fa46e0da", "fiebre de las manchas"), "spotted fever");        // spring
+                case 1: return ("flujo de sangre", "the bloody flux");            // summer
+                case 2: return (L.T("AIL_d8412138", "tercianas de los pantanos"), "marsh ague");       // autumn
+                default: return (L.T("AIL_b86021cd", "fiebre de pulmón"), "lung fever");               // winter
             }
         }
 
@@ -149,7 +147,6 @@ namespace AILegacy.World
                         continue;
                     }
 
-                    // Daño al asentamiento
                     float s = o.Severity;
                     if (st.Town != null)
                     {
@@ -161,7 +158,6 @@ namespace AILegacy.World
                     else if (st.Village != null)
                         st.Village.Hearth = Math.Max(10f, st.Village.Hearth - s * cfg.DiseaseProsperityLossPerSeverity * 0.4f);
 
-                    // Contagio a un vecino (la cuarentena lo corta)
                     if (!o.Quarantined && All.Count < cfg.DiseaseMaxSimultaneous && Rng.Next(1000) < cfg.DiseaseSpreadChancePerMille * s)
                     {
                         var here = st.GetPosition2D;
@@ -175,12 +171,11 @@ namespace AILegacy.World
                     }
                 }
 
-                // Tus tropas, si estás dentro de un sitio con enfermos
+                // Player's troops, if inside an infected settlement
                 var mine = MobileParty.MainParty?.CurrentSettlement;
                 var ob = At(mine);
                 if (ob != null) SickenPlayerTroops(ob, mine, 0.5f);
 
-                // Brotes de temporada
                 if (cfg.DiseaseSeasonalChancePerMille > 0 && All.Count < cfg.DiseaseMaxSimultaneous
                     && (WorldSim.State.LastOutbreakDay < 0 || now - WorldSim.State.LastOutbreakDay >= cfg.DiseaseMinDaysBetweenOutbreaks)
                     && Rng.Next(1000) < cfg.DiseaseSeasonalChancePerMille)
@@ -203,7 +198,7 @@ namespace AILegacy.World
                 if (!Enabled || party == null || !party.IsMainParty) return;
                 var o = At(st);
                 if (o == null) return;
-                if (QuarantineRules.StopsPlayer(st)) return;      // te paran en la puerta: aún no has entrado
+                if (QuarantineRules.StopsPlayer(st)) return;      // stopped at the gate, not inside yet
                 InformationManager.DisplayMessage(new InformationMessage(
                     L.F("AIL_e13e09e9", $"En {st.Name} hay {o.Name}") + (o.Quarantined ? L.T("AIL_5eccf2c1", ". Está en cuarentena: entras por tu cuenta y riesgo.") : "."), Colors.Red));
                 SickenPlayerTroops(o, st, o.Quarantined ? 1.3f : 1f);
@@ -211,18 +206,18 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("[enfermedad] entrada", ex); }
         }
 
-        /// <summary>Has entrado sobornando a la guardia en un sitio en cuarentena.</summary>
+        /// <summary>The player bribed the guards to get into a quarantined settlement.</summary>
         public static void SickenAtGate(Settlement st)
         {
             try { var o = At(st); if (Enabled && o != null) SickenPlayerTroops(o, st, 1.3f); }
             catch (Exception ex) { Log.Error("[enfermedad] entrada con soborno", ex); }
         }
 
-        /// <summary>Parte de tus soldados cae enferma (quedan como heridos y se recuperan con el tiempo).</summary>
+        /// <summary>Some of the player's soldiers fall sick. They count as wounded and recover over time.</summary>
         private static void SickenPlayerTroops(Outbreak o, Settlement st, float factor)
         {
             var cfg = S.Get;
-            if (WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays) factor *= 0.25f;      // prevención pagada en un hospital
+            if (WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays) factor *= 0.25f;      // prevention paid for at a hospital
             if (!cfg.DiseaseAffectsPlayerTroops || Rng.Next(100) >= o.Severity * cfg.DiseaseTroopChancePerSeverity * factor) return;
             var roster = MobileParty.MainParty.MemberRoster;
             int healthy = roster.TotalHealthyCount;
@@ -239,7 +234,7 @@ namespace AILegacy.World
                 InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_7074bda0", $"{done} de tus soldados caen enfermos de {o.Name} en {st.Name}."), Colors.Red));
         }
 
-        // ============================================================ cuarentena
+        // ============================================================ quarantine
 
         public static string Quarantine(Settlement st, int days, string byWhom)
         {
@@ -247,7 +242,7 @@ namespace AILegacy.World
             if (o == null) return null;
             days = Math.Max(5, Math.Min(60, days <= 0 ? 15 : days));
             o.QuarantineUntilDay = CampaignTime.Now.ToDays + days;
-            try { if (Settlement.CurrentSettlement == st) QuarantineRules.NotePlayerInside(); } catch { }      // si estás dentro, no te echan
+            try { if (Settlement.CurrentSettlement == st) QuarantineRules.NotePlayerInside(); } catch { }      // if the player is already inside, they don't get thrown out
             return L.F("AIL_34a22788", $"{byWhom} decreta {days} días de cuarentena en {st.Name}.");
         }
 
@@ -399,7 +394,7 @@ namespace AILegacy.World
                 args => GameMenu.SwitchToMenu("town"), true, -1);
         }
 
-        /// <summary>En tus propios feudos decides tú, desde el menú del asentamiento.</summary>
+        /// <summary>In the player's own fiefs, the player decides from the settlement menu.</summary>
         public static void AddMenus(CampaignGameStarter starter)
         {
             try { AddHospital(starter); } catch (Exception ex) { Log.Error("Menú del hospital", ex); }
@@ -425,7 +420,7 @@ namespace AILegacy.World
             }
         }
 
-        // ============================================================ leyes (viven aquí por ser efectos diarios del mismo tipo)
+        // ============================================================ laws (they live here because they're the same kind of daily effect)
 
         public static void ApplyLaws()
         {
@@ -433,13 +428,13 @@ namespace AILegacy.World
             {
                 var k = WorldSim.FindKingdom(law.KingdomId);
                 if (k == null) { WorldSim.State.Laws.Remove(law); continue; }
-                // Los efectos de las leyes van dentro de la cuenta diaria del juego (WorldSim.TownModifiers, con su motivo en el
-                // desglose). Aquí solo se suman a mano si esa cuenta ha dejado de pasar por nuestro enganche.
+                // Law effects normally go through the game's daily calculation (WorldSim.TownModifiers, with a line in the
+                // breakdown). We only apply them by hand here if that calculation stopped going through our hook.
                 if (WorldSim.LawsViaModel()) continue;
                 foreach (var town in k.Fiefs)
                 {
                     town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty + law.LoyaltyPerDay));
-                    town.Prosperity = Math.Max(0f, town.Prosperity + Math.Max(-1.5f, Math.Min(1.5f, law.ProsperityPerDay)));   // tope también para leyes de partidas antiguas
+                    town.Prosperity = Math.Max(0f, town.Prosperity + Math.Max(-1.5f, Math.Min(1.5f, law.ProsperityPerDay)));   // clamp also covers laws from old saves
                     town.Security = Math.Max(0f, Math.Min(100f, town.Security + law.SecurityPerDay));
                     town.FoodStocks = Math.Max(0f, town.FoodStocks + law.FoodPerDay);
                 }

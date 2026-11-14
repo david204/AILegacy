@@ -8,9 +8,8 @@ using TaleWorlds.CampaignSystem.GameComponents;
 namespace AILegacy.Patches
 {
     /// <summary>
-    /// Ciclo femenino y embarazo del juego. La probabilidad diaria que calcula el juego para una mujer casada se multiplica
-    /// según el día del ciclo en que está: casi nula con la regla, más del doble en los días fértiles. Con el ciclo apagado
-    /// en los ajustes (o si ella no tiene ciclo) el factor es 1 y el juego se queda como estaba.
+    /// Scales the game's daily pregnancy chance for a married woman by her cycle day: near zero during her period, more
+    /// than double on fertile days. With the cycle off in settings (or no cycle for her) the factor is 1 and vanilla is unchanged.
     /// </summary>
     [HarmonyPatch(typeof(DefaultPregnancyModel), nameof(DefaultPregnancyModel.GetDailyChanceOfPregnancyForHero))]
     internal static class CyclePregnancyPatch
@@ -20,7 +19,7 @@ namespace AILegacy.Patches
             try
             {
                 if (hero == null || __result <= 0f || !S.Get.EnableFemaleCycle) return;
-                // El juego puede preguntar por cualquiera de los dos: cuenta el ciclo de ella
+                // The game can ask for either spouse; her cycle is the one that counts
                 var woman = hero.IsFemale ? hero : hero.Spouse;
                 if (woman == null || !woman.IsFemale) return;
                 __result = Math.Min(1f, __result * World.Mood.FertilityFactor(woman));

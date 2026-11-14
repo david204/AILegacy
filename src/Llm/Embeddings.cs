@@ -13,10 +13,10 @@ using Newtonsoft.Json.Linq;
 namespace AILegacy.Llm
 {
     /// <summary>
-    /// Vectores de significado («embeddings») para buscar recuerdos y acciones por lo que quieren decir y no solo por las
-    /// palabras. Se piden al punto /embeddings (formato OpenAI) de un proveedor que ya esté configurado: primero los
-    /// gratuitos. Si ninguno los da, todo sigue funcionando con la búsqueda por palabras.
-    /// Los vectores se recortan a 256 dimensiones y se guardan en un byte por dimensión: caben miles en poco sitio.
+    /// Embeddings, so memories and actions can be searched by meaning and not just by keywords. They come from the
+    /// OpenAI-style /embeddings endpoint of an already configured provider, free ones first. If none works, everything
+    /// keeps running on keyword search.
+    /// Vectors are cut to 256 dimensions and stored as one byte per dimension, so thousands fit in little space.
     /// </summary>
     public static class Embeddings
     {
@@ -24,13 +24,13 @@ namespace AILegacy.Llm
         private const int BatchSize = 48;
 
         private static readonly SemaphoreSlim Gate = new SemaphoreSlim(1, 1);
-        // Proveedores que han fallado dando vectores en esta sesión (nombre → fallos)
+        // Embedding failures per provider name, this session only
         private static readonly Dictionary<string, int> Fails = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<string, bool> NoDimensions = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         private static DateTime _retryAt = DateTime.MinValue;
-        private static volatile string _working;       // "proveedor/modelo" que funcionó la última vez
+        private static volatile string _working;       // "provider/model" that worked last time
 
-        /// <summary>Modelo de vectores de un proveedor: el de config.json, el de MCM, o el habitual de ese servicio.</summary>
+        /// <summary>Embedding model for a provider: config.json first ("-" turns it off), then the known default for that service, then the MCM setting.</summary>
         private static string ModelFor(ProviderConfig p, string fromSettings)
         {
             if (!string.IsNullOrWhiteSpace(p.EmbeddingModel)) return p.EmbeddingModel.Trim() == "-" ? null : p.EmbeddingModel.Trim();
@@ -38,12 +38,33 @@ namespace AILegacy.Llm
             if (u.Contains("generativelanguage.googleapis.com")) return "gemini-embedding-001";
             if (u.Contains("api.openai.com")) return "text-embedding-3-small";
             if (u.Contains("localhost:11434") || u.Contains("127.0.0.1:11434")) return "nomic-embed-text";
+            if (u.Contains("bigmodel.cn") || u.Contains("api.z.ai")) return "embedding-3";
+            if (u.Contains("deepseek.com") || u.Contains("api.groq.com")) return null;   // no /embeddings endpoint
             return string.IsNullOrWhiteSpace(fromSettings) ? null : fromSettings.Trim();
+        }
+
+        /// <summary>True if two vector ids ("provider/model") use the same model, so their vectors can be compared.</summary>
+        public static bool SameModel(string a, string b)
+        {
+            if (a == null || b == null) return false;
+            // Current ids are "host|model": the same model name on another service is a different vector space.
+            // Ids written by older versions are "provider/model", with no host to compare, so only the model counts.
+            int ha = a.IndexOf('|'), hb = b.IndexOf('|');
+            if (ha >= 0 && hb >= 0) return string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+            string ma = ha >= 0 ? a.Substring(ha + 1) : a.Substring(a.IndexOf('/') + 1);
+            string mb = hb >= 0 ? b.Substring(hb + 1) : b.Substring(b.IndexOf('/') + 1);
+            return string.Equals(ma, mb, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public class Result
+        {
+            public sbyte[][] Vecs;
+            public string Model;
         }
 
         private class Source { public ProviderConfig P; public string Model; }
 
-        /// <summary>Qué proveedores pueden dar vectores, en orden (hay que llamarlo en el hilo principal: lee MCM).</summary>
+        /// <summary>Providers that can give embeddings, in order. Main thread only, it reads MCM settings.</summary>
         private static List<Source> Capture()
         {
             var list = new List<Source>();
@@ -60,7 +81,6 @@ namespace AILegacy.Llm
             return list;
         }
 
-        /// <summary>¿Hay de dónde sacar vectores ahora mismo?</summary>
         public static bool Available
         {
             get
@@ -76,17 +96,17 @@ namespace AILegacy.Llm
 
         public static string Working => _working;
 
-        /// <summary>Vectores de esos textos (uno por texto, ya recortados y en bytes), o null si no se han podido sacar.</summary>
-        public static Task<sbyte[][]> EmbedAsync(IList<string> texts, string task = "embed")
+        /// <summary>One packed vector per text, or null if no provider could give them.</summary>
+        public static Task<Result> EmbedAsync(IList<string> texts, string task = "embed")
         {
-            if (texts == null || texts.Count == 0) return Task.FromResult<sbyte[][]>(null);
+            if (texts == null || texts.Count == 0) return Task.FromResult<Result>(null);
             var sources = Capture();
-            if (sources.Count == 0 || DateTime.UtcNow < _retryAt) return Task.FromResult<sbyte[][]>(null);
+            if (sources.Count == 0 || DateTime.UtcNow < _retryAt) return Task.FromResult<Result>(null);
             var copy = texts.Select(t => Clip(t ?? "", 2000)).ToList();
             return Task.Run(() => Run(copy, sources, task));
         }
 
-        private static async Task<sbyte[][]> Run(List<string> texts, List<Source> sources, string task)
+        private static async Task<Result> Run(List<string> texts, List<Source> sources, string task)
         {
             await Gate.WaitAsync().ConfigureAwait(false);
             try
@@ -105,13 +125,15 @@ namespace AILegacy.Llm
                     if (ok && all.Count == texts.Count)
                     {
                         lock (Fails) Fails[src.P.Name] = 0;
-                        string id = src.P.Name + "/" + src.Model;
+                        string host = src.P.BaseUrl ?? "";
+                        try { host = new Uri(host).Authority; } catch { }
+                        string id = host.ToLowerInvariant() + "|" + src.Model;
                         if (_working != id) { _working = id; Log.Info($"Vectores de significado: se usa {id}"); }
-                        return all.ToArray();
+                        return new Result { Vecs = all.ToArray(), Model = id };
                     }
                     lock (Fails) Fails[src.P.Name] = fails + 1;
                 }
-                // Nadie ha podido: se deja descansar diez minutos antes de volver a intentarlo
+                // Every provider failed: back off for ten minutes before trying again
                 _retryAt = DateTime.UtcNow.AddMinutes(10);
                 lock (Fails) Fails.Clear();
                 Log.Warn("Vectores de significado: ningún proveedor los ha dado; se sigue con la búsqueda por palabras (se reintentará en 10 minutos)");
@@ -159,7 +181,7 @@ namespace AILegacy.Llm
                                 return list;
                             }
                             UsageMeter.Record(p.Name, task, false, 0, 0, 0, secs, 0, 0);
-                            // Parámetro no aceptado: otra vez sin pedir dimensiones (se recortan aquí)
+                            // Provider rejected the dimensions parameter: retry without it and cut the vectors here
                             if ((status == 400 || status == 422) && !noDims) { noDims = true; lock (NoDimensions) NoDimensions[p.Name] = true; continue; }
                             Log.Warn($"Vectores ({p.Name}/{src.Model}): HTTP {status} {Clip(text, 200)}");
                             return null;
@@ -171,7 +193,7 @@ namespace AILegacy.Llm
             return null;
         }
 
-        /// <summary>Recorta a 256 dimensiones, normaliza y guarda cada una en un byte con signo.</summary>
+        /// <summary>Cuts to 256 dimensions, normalizes, and stores each one as a signed byte.</summary>
         public static sbyte[] Pack(float[] v)
         {
             int n = Math.Min(Dim, v.Length);
@@ -180,7 +202,7 @@ namespace AILegacy.Llm
             norm = Math.Sqrt(norm);
             var r = new sbyte[n];
             if (norm < 1e-9) return r;
-            // Con vectores normalizados, casi todo cae en ±0,25: se escala para aprovechar el byte
+            // Normalized components almost all fall within ±0.25, so scale by 4 to use the whole byte range
             for (int i = 0; i < n; i++)
             {
                 double x = v[i] / norm * 4.0 * 127.0;
@@ -189,7 +211,7 @@ namespace AILegacy.Llm
             return r;
         }
 
-        /// <summary>Parecido entre dos vectores, de -1 a 1.</summary>
+        /// <summary>Cosine similarity, -1 to 1.</summary>
         public static double Cosine(sbyte[] a, sbyte[] b)
         {
             if (a == null || b == null) return 0;

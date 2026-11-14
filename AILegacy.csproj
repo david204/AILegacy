@@ -7,14 +7,14 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.41.0</Version>
+    <Version>0.42.0</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <DebugType>portable</DebugType>
     <NoWarn>$(NoWarn);NU1701</NoWarn>
 
-    <!-- Carpeta del juego (este proyecto vive dentro de ella) -->
+    <!-- Game folder (this project lives inside it) -->
     <GameDir Condition="'$(GameDir)' == ''">$(MSBuildProjectDirectory)\..</GameDir>
     <GameBin>$(GameDir)\bin\Win64_Shipping_Client</GameBin>
     <ModuleDir>$(GameDir)\Modules\AILegacy</ModuleDir>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Permite compilar net472 sin Visual Studio -->
+    <!-- Lets net472 build without Visual Studio -->
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
   </ItemGroup>
 
@@ -61,7 +61,7 @@
     <Reference Include="TaleWorlds.DotNet"><HintPath>$(GameBin)\TaleWorlds.DotNet.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
-  <!-- Copia SubModule.xml y, solo si no existe, la config de ejemplo -->
+  <!-- Copy module files. config.json, world_data and world.txt are only copied if they don't exist yet -->
   <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /></ItemGroup>
   <Target Name="CopyModuleFiles" AfterTargets="Build">
     <Copy SourceFiles="Module\SubModule.xml" DestinationFolder="$(ModuleDir)" />
@@ -69,7 +69,7 @@
     <Copy SourceFiles="@(GuiBrushes)" DestinationFolder="$(ModuleDir)\GUI\Brushes" />
     <Copy SourceFiles="Module\web\editor.html" DestinationFolder="$(ModuleDir)\web" />
     <Copy SourceFiles="@(LangFiles)" DestinationFiles="@(LangFiles->'$(ModuleDir)\ModuleData\AILegacyTexts\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <!-- Hasta la v0.29.1 iban en ModuleData\Languages y el juego los cargaba por su cuenta: fuera -->
+    <!-- Old builds put these in ModuleData\Languages, where the game loads them by itself. Remove that folder -->
     <RemoveDir Directories="$(ModuleDir)\ModuleData\Languages" />
     <Copy SourceFiles="libs\webview2\WebView2Loader.dll" DestinationFolder="$(OutputPath)" />
     <Copy SourceFiles="libs\webview2\runtimes\win-x64\native\WebView2Loader.dll" DestinationFolder="$(OutputPath)runtimes\win-x64\native" />

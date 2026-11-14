@@ -15,8 +15,8 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Lo que se dice durante una pelea o un duelo en una escena: tu rival cuando recibe, cuando te da, cuando se ve perdido,
-    /// y los mirones de alrededor. Se pide TODO de una vez al empezar (una sola petición) y se va soltando según va la pelea.
+    /// Lines during a scene fight or duel, from the opponent and the onlookers. Everything is requested at once when the
+    /// fight starts (one request) and handed out as the fight goes.
     /// </summary>
     internal static class FightBanter
     {
@@ -106,7 +106,7 @@ Answer ONLY with JSON: { ""opening"": ""as it starts"", ""when_hit"": [""on taki
             try
             {
                 if (Mission.Current != _mission || Agent.Main == null) { Clear(); return; }
-                if (!_opp.IsActive() || !Agent.Main.IsActive()) return;      // el final lo anuncia End()
+                if (!_opp.IsActive() || !Agent.Main.IsActive()) return;      // End() announces the outcome
                 _gap -= dt; _crowd -= dt;
                 float oh = _opp.Health, mh = Agent.Main.Health;
                 bool oppHurt = oh < _oppHp - 1f, meHurt = mh < _myHp - 1f;

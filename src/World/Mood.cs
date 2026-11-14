@@ -16,31 +16,31 @@ using TaleWorlds.Core;
 
 namespace AILegacy.World
 {
-    /// <summary>Algo que le ha pasado a alguien (o a un reino entero) y le pesa en el ánimo unos días.</summary>
+    /// <summary>Something that happened to someone (or to a whole realm) and affects their mood for a few days.</summary>
     public class MoodEvent
     {
-        /// <summary>Id del héroe, o «f:» + id de la facción cuando afecta a todos los suyos (una guerra recién declarada).</summary>
+        /// <summary>Hero id, or "f:" + faction id when it affects the whole faction (a war just declared).</summary>
         [JsonProperty("who")] public string Who;
         [JsonProperty("kind")] public string Kind;
-        /// <summary>Qué ha pasado, en inglés y en segunda persona, para el prompt.</summary>
+        /// <summary>What happened, in English and second person, for the prompt.</summary>
         [JsonProperty("text")] public string Text;
-        [JsonProperty("sign")] public int Sign;            // -1 pesa, +1 anima, 0 inquieta
+        [JsonProperty("sign")] public int Sign;            // -1 weighs down, +1 lifts, 0 unsettles
         [JsonProperty("strength")] public int Strength;    // 1..3
         [JsonProperty("day")] public double Day;
-        /// <summary>Hasta cuándo se nota.</summary>
+        /// <summary>Campaign day until the effect lasts.</summary>
         [JsonProperty("until")] public double Until;
-        /// <summary>Hasta cuándo no puede volver a contar otra del mismo tipo (para que diez batallas seguidas no sean diez alegrías).</summary>
+        /// <summary>No other event of the same kind counts until this day, so ten battles in a row aren't ten separate joys.</summary>
         [JsonProperty("cool")] public double CoolUntil;
-        /// <summary>Con quién tiene que ver (el muerto, el vencedor…), para no repetir.</summary>
+        /// <summary>Who it's about (the dead, the winner...), used to avoid duplicates.</summary>
         [JsonProperty("about")] public string About;
     }
 
     /// <summary>
-    /// Ánimo hecho de varias causas a la vez. Unas llegan con los sucesos del mundo (una batalla ganada o perdida, un torneo,
-    /// la liberación, una guerra recién declarada, un parto) y duran unos días; otras se leen en vivo mientras duren (estar
-    /// preso, herido, con la partida deshecha, un duelo por un familiar o un amigo muerto, un familiar cautivo, el embarazo
-    /// y el ciclo). Cada una lleva signo, fuerza y antigüedad, y al prompt llegan como mucho cinco. Lo que la IA dijo sentir
-    /// al acabar la última charla cuenta como una causa más: no fija el ánimo ella sola.
+    /// Mood built from several causes at once. Some come from world events (a battle won or lost, a tournament, release
+    /// from captivity, a new war, a birth) and last a few days. Others are read live while they hold (prisoner, wounded,
+    /// party wrecked, mourning a dead relative or friend, a relative held captive, pregnancy, the cycle). Each cause has a
+    /// sign, a strength and an age, and at most five reach the prompt. What the AI said it felt at the end of the last
+    /// talk is just one more cause, it doesn't set the mood on its own.
     /// </summary>
     internal static class Mood
     {
@@ -59,7 +59,7 @@ namespace AILegacy.World
         private static double Now => CampaignTime.Now.ToDays;
         private static double Scale => Math.Max(10, S.Get.MoodDurationPercent) / 100.0;
 
-        // ============================================================ sucesos que dejan huella
+        // ============================================================ events that leave a mark
 
         private static void Add(string who, string kind, int sign, int strength, double days, double coolDays, string text, string about = null)
         {
@@ -68,7 +68,7 @@ namespace AILegacy.World
                 if (!S.Get.EnableMoodCauses || string.IsNullOrEmpty(who) || St == null) return;
                 double now = Now;
                 var list = St.MoodEvents;
-                // En pausa: ya hubo una del mismo tipo hace poco
+                // Cooling down: one of the same kind happened recently
                 if (list.Any(e => e.Who == who && e.Kind == kind && (e.CoolUntil > now || (about != null && e.About == about && e.Until > now)))) return;
                 list.Add(new MoodEvent { Who = who, Kind = kind, Sign = sign, Strength = strength, Day = now, Until = now + days * Scale, CoolUntil = now + coolDays * Scale, Text = text, About = about });
                 if (list.Count > 600) list.RemoveRange(0, list.Count - 600);
@@ -76,7 +76,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: apuntar causa", ex); }
         }
 
-        /// <summary>Una causa de ánimo que apunta otro mod por la API.</summary>
+        /// <summary>A mood cause added by another mod through the API.</summary>
         internal static bool AddFromMod(string heroId, string text, int sign, int strength, int days)
         {
             if (!S.Get.EnableMoodCauses || St == null) return false;
@@ -97,7 +97,7 @@ namespace AILegacy.World
             catch { }
         }
 
-        /// <summary>Batalla: quien manda una partida la gana o la pierde (3 días la victoria, 4 la derrota; pausa de 14).</summary>
+        /// <summary>Battle, for each party leader: a win lasts 3 days, a loss 4, with a 14-day cooldown.</summary>
         public static void OnMapEventEnded(MapEvent e)
         {
             try
@@ -133,7 +133,7 @@ namespace AILegacy.World
             return list;
         }
 
-        /// <summary>Torneo: el ganador lo saborea 5 días (pausa de 30).</summary>
+        /// <summary>Tournament: the winner enjoys it for 5 days (30-day cooldown).</summary>
         public static void OnTournamentFinished(CharacterObject winner, TaleWorlds.Library.MBReadOnlyList<CharacterObject> participants, Town town, ItemObject prize)
         {
             try
@@ -145,7 +145,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: torneo", ex); }
         }
 
-        /// <summary>Capturar a un noble: satisfacción durante 3 días (pausa de 14).</summary>
+        /// <summary>Capturing a noble: satisfied for 3 days (14-day cooldown).</summary>
         public static void OnPrisonerTaken(PartyBase captor, Hero prisoner)
         {
             try
@@ -157,7 +157,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: prisionero", ex); }
         }
 
-        /// <summary>Salir del cautiverio: alivio durante 4 días.</summary>
+        /// <summary>Released from captivity: relieved for 4 days.</summary>
         public static void OnPrisonerReleased(Hero h, PartyBase captor, IFaction faction, EndCaptivityDetail detail, bool show)
         {
             try
@@ -168,7 +168,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: liberación", ex); }
         }
 
-        /// <summary>Una guerra recién declarada tensa a los dos bandos durante 5 días.</summary>
+        /// <summary>A new war puts both sides on edge for 5 days.</summary>
         public static void OnWarDeclared(IFaction a, IFaction b, DeclareWarAction.DeclareWarDetail detail)
         {
             try
@@ -180,7 +180,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: guerra", ex); }
         }
 
-        /// <summary>Un parto: alegría (o pena, si nació muerto) durante 10 días. También marca que no hay ciclo tras el parto.</summary>
+        /// <summary>A birth: joy (or grief if stillborn) for 10 days.</summary>
         public static void OnGivenBirth(Hero mother, List<Hero> children, int stillborn)
         {
             try
@@ -196,13 +196,13 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: parto", ex); }
         }
 
-        /// <summary>Concepción: se apunta el día. Ella no lo sabe hasta pasados entre 7 y 11 días (cada una, los suyos).</summary>
+        /// <summary>Records the conception day. She only finds out 7 to 11 days later (fixed per woman).</summary>
         public static void OnChildConceived(Hero mother)
         {
             try { if (mother != null && St != null) St.Conceived[mother.StringId] = Now; } catch { }
         }
 
-        /// <summary>¿Sabe ya que está embarazada? (los embarazos de antes de apuntar el día se dan por sabidos)</summary>
+        /// <summary>Pregnancies with no recorded conception day (older saves) count as known.</summary>
         public static bool KnowsSheIsPregnant(Hero h)
         {
             try
@@ -214,7 +214,7 @@ namespace AILegacy.World
             catch { return true; }
         }
 
-        /// <summary>Quién mató a quién, para que el asesino no llore a su víctima.</summary>
+        /// <summary>Records who killed whom, so the killer doesn't mourn the victim.</summary>
         public static void OnHeroKilled(Hero victim, Hero killer)
         {
             try
@@ -225,7 +225,7 @@ namespace AILegacy.World
             catch { }
         }
 
-        // ============================================================ lo que siente ahora
+        // ============================================================ current mood
 
         private class Cause { public string Text; public int Sign; public int Strength; public double Age; }
 
@@ -239,7 +239,7 @@ namespace AILegacy.World
                 var h = s.Hero;
                 void Live(string text, int sign, int strength) => list.Add(new Cause { Text = text, Sign = sign, Strength = strength, Age = 0 });
 
-                // --- estados que duran mientras duren
+                // --- live states, they last as long as the condition holds
                 try
                 {
                     if (h.IsPrisoner)
@@ -263,7 +263,7 @@ namespace AILegacy.World
                 }
                 catch { }
 
-                // --- duelo: solo por los suyos y por sus amigos; el enemigo muerto se celebra en silencio; quien mató no llora
+                // --- mourning: only for family and friends. A dead enemy is a quiet satisfaction, and the killer never mourns
                 try
                 {
                     var kinOf = Family(h).ToList();
@@ -289,7 +289,7 @@ namespace AILegacy.World
                 }
                 catch { }
 
-                // --- sucesos apuntados (los suyos y los de su reino)
+                // --- recorded events (their own and their realm's)
                 try
                 {
                     if (St != null)
@@ -303,10 +303,10 @@ namespace AILegacy.World
                 catch { }
             }
 
-            // --- el ciclo, una causa más
+            // --- the cycle is just another cause
             try { var c = CycleCause(s); if (c != null) list.Add(c); } catch { }
 
-            // --- cómo le dejó la última charla (lo que dijo sentir): cuenta, pero no manda
+            // --- how the last talk left them (what the AI said they felt). It counts, but doesn't dominate
             var mem = s.Memory;
             if (!string.IsNullOrWhiteSpace(mem.Mood) && mem.MoodDay >= 0 && now - mem.MoodDay <= 3)
                 list.Add(new Cause
@@ -317,14 +317,14 @@ namespace AILegacy.World
             return list;
         }
 
-        /// <summary>Su ánimo, para el prompt. Si no hay nada que le pese, no se escribe nada.</summary>
+        /// <summary>Writes the mood into the prompt. Writes nothing if there are no causes.</summary>
         public static void AppendTo(StringBuilder sys, Speaker s)
         {
             try
             {
                 var list = CausesFor(s).OrderByDescending(c => c.Strength).ThenBy(c => c.Age).Take(MaxCauses).ToList();
                 if (list.Count == 0) return;
-                // Con una sola causa y sin el sistema de causas, basta la línea de siempre
+                // Causes system off and only one cause: the plain one-line mood is enough
                 if (!S.Get.EnableMoodCauses && list.Count == 1) { sys.AppendLine("Your mood lately: " + list[0].Text); return; }
                 sys.AppendLine();
                 sys.AppendLine(THeader.Text);
@@ -334,7 +334,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Ánimo: texto", ex); }
         }
 
-        /// <summary>Resumen corto para la interfaz y el editor (en inglés: son las mismas causas que ve la IA).</summary>
+        /// <summary>Short list for the UI and the editor. In English, since these are the same causes the AI sees.</summary>
         public static List<string> Describe(Speaker s)
         {
             try { return CausesFor(s).OrderByDescending(c => c.Strength).ThenBy(c => c.Age).Take(MaxCauses).Select(c => (c.Sign > 0 ? "+ " : c.Sign < 0 ? "− " : "· ") + c.Text).ToList(); }
@@ -350,7 +350,7 @@ namespace AILegacy.World
                 A(h.Spouse); A(h.Father); A(h.Mother);
                 foreach (var c in h.Children) A(c);
                 foreach (var b in h.Siblings) A(b);
-                foreach (var x in h.ExSpouses) if (x != null && x.IsDead) A(x);      // el cónyuge muerto pasa a esta lista
+                foreach (var x in h.ExSpouses) if (x != null && x.IsDead) A(x);      // a dead spouse moves to this list
             }
             catch { }
             return set;
@@ -371,24 +371,24 @@ namespace AILegacy.World
 
         private static string Ago(double days) => days < 1 ? "today" : days < 2 ? "yesterday" : $"{(int)days} days ago";
 
-        // ============================================================ ciclo
-        // Mismo modelo que AIInfluence 7.0.1 (cinco fases; cada mujer tiene su duración, sus días de regla y cuánto le
-        // afecta, y salen de ella misma, sin guardar nada), escrito aquí de cero.
+        // ============================================================ cycle
+        // Five phases. Each woman's cycle length, period length and how much it affects her are derived from her id,
+        // so nothing has to be saved.
 
         public enum CyclePhase { Menstruation, Follicular, Fertile, Luteal, Premenstrual }
 
         public class CycleState
         {
             public CyclePhase Phase;
-            public int Length;            // días de su ciclo (la media de los ajustes, ±2)
+            public int Length;            // days, the settings average +/-2
             public int Day;               // 1..Length
-            public int PeriodLength;      // días de regla
+            public int PeriodLength;      // days
             public int DaysUntilPeriod;
-            public int Severity;          // 0 casi no lo nota · 1 lo nota · 2 lo lleva mal
-            public float Fertility;       // por cuánto se multiplica la probabilidad de embarazo
+            public int Severity;          // 0 barely notices, 1 notices, 2 has a hard time
+            public float Fertility;       // pregnancy chance multiplier
         }
 
-        /// <summary>El ciclo de una mujer en un día dado. Depende solo de quién es y del día: no se guarda nada.</summary>
+        /// <summary>A woman's cycle on a given day. Depends only on her id and the day, nothing is saved.</summary>
         public static CycleState Compute(string id, double nowDays, int baseLength)
         {
             uint h = Stable(id ?? "");
@@ -413,7 +413,7 @@ namespace AILegacy.World
             return st;
         }
 
-        /// <summary>Su ciclo hoy, o null si no tiene: fuera de edad, embarazada, recién parida o apagado en los ajustes.</summary>
+        /// <summary>Today's cycle, or null if she has none: wrong age, pregnant, just gave birth, or turned off in settings.</summary>
         public static CycleState Cycle(string key, bool female, float age, Hero hero)
         {
             try
@@ -422,7 +422,7 @@ namespace AILegacy.World
                 if (hero != null)
                 {
                     if (hero.IsPregnant || !hero.IsAlive) return null;
-                    // Tras el parto no hay ciclo durante un tiempo
+                    // No cycle for a while after giving birth
                     foreach (var c in hero.Children)
                         if (c != null && c.Mother == hero && c.BirthDay.ElapsedDaysUntilNow < 12f) return null;
                 }
@@ -456,14 +456,14 @@ namespace AILegacy.World
             return new Cause { Text = TCycle.Format("day", c.Day, "length", c.Length, "phase", phase, "strength", how), Sign = sign, Strength = weight, Age = 0 };
         }
 
-        /// <summary>Por cuánto se multiplica la probabilidad de embarazo según el día del ciclo (1 si no tiene ciclo o está apagado).</summary>
+        /// <summary>Pregnancy chance multiplier for the current cycle day (1 if there's no cycle or it's turned off).</summary>
         public static float FertilityFactor(Hero mother)
         {
             try { return mother == null ? 1f : Cycle(mother.StringId, mother.IsFemale, mother.Age, mother)?.Fertility ?? 1f; }
             catch { return 1f; }
         }
 
-        /// <summary>Hash estable entre sesiones (string.GetHashCode no lo es).</summary>
+        /// <summary>FNV-1a hash, stable across sessions (string.GetHashCode isn't).</summary>
         private static uint Stable(string text)
         {
             uint h = 2166136261;

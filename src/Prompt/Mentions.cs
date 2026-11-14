@@ -17,10 +17,9 @@ using TaleWorlds.Library;
 namespace AILegacy.Prompt
 {
     /// <summary>
-    /// Contexto por menciones: si en los últimos mensajes se nombra un lugar, una casa, un reino, una persona o una
-    /// mercancía, sus datos públicos entran en el prompt de ese turno. Así el personaje sabe de qué le hablan («¿quién
-    /// tiene ahora Sargot?», «¿a cuánto está el grano?») sin cargar el mundo entero en cada petición.
-    /// Solo datos que cualquiera podría saber; lo que sabe o calla el personaje lo decide él.
+    /// When the last few messages name a place, clan, kingdom, person or trade good, its public facts go into that turn's
+    /// prompt. That way the character knows what you mean ("who holds Sargot now?", "what's grain going for?") without
+    /// sending the whole world on every request. Public facts only; the character decides what to say or keep quiet.
     /// </summary>
     internal static class Mentions
     {
@@ -30,7 +29,7 @@ namespace AILegacy.Prompt
 
         private class Entry { public string Key; public object What; }
 
-        // Índice de nombres del mundo (se rehace una vez por día de campaña: los héroes nacen, mueren y cambian)
+        // Name index, rebuilt once per campaign day since heroes are born, die and change
         private static List<Entry> _index;
         private static int _indexDay = -1;
         private static int _indexSession = -1;
@@ -72,13 +71,13 @@ namespace AILegacy.Prompt
             }
             catch { }
             try { foreach (var it in TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObjectTypeList<ItemObject>()) if (it != null && it.IsTradeGood) Add(it.Name?.ToString(), it); } catch { }
-            // Los nombres largos primero: «Clan dey Meroc» antes que «Meroc»
+            // Longest names first, so "Clan dey Meroc" matches before "Meroc"
             _index = list.OrderByDescending(e => e.Key.Length).ToList();
             _indexDay = day; _indexSession = World.WorldSim.Session;
             return _index;
         }
 
-        /// <summary>Lo nombrado en los últimos mensajes, con sus datos. Cadena vacía si no hay nada.</summary>
+        /// <summary>Facts about whatever the last messages named. Empty string if nothing.</summary>
         public static string Describe(Speaker s)
         {
             try
@@ -240,7 +239,7 @@ namespace AILegacy.Prompt
             return sb.ToString();
         }
 
-        /// <summary>Partidas que hay cerca ahora mismo (solo si el personaje está en el mapa, a la vista del jugador).</summary>
+        /// <summary>Parties nearby right now. Only when the character is on the map, within the player's sight.</summary>
         public static string NearbyParties(Speaker s)
         {
             try

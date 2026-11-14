@@ -11,21 +11,20 @@ using Newtonsoft.Json.Linq;
 namespace AILegacy.Memory
 {
     /// <summary>
-    /// Datos de AI Legacy en archivos, por campaña: Modules\AILegacy\save_data\[Id de campaña]\
-    ///   Nombre (id_del_héroe).json   → un archivo por personaje (memoria, personalidad, confianza, romance…)
-    ///   ailegacy_news.json           → noticias y rumores
-    ///   ailegacy_letters.json        → cartas en camino
-    ///   ailegacy_orders.json         → órdenes en el mapa
-    ///   ailegacy_quests.json         → encargos
-    ///   ailegacy_items.json          → documentos y objetos de rol
-    ///   ailegacy_campaign.json       → datos sueltos de la campaña
-    ///   _escritos.json               → huella de lo que escribió el mod (para saber qué has editado tú a mano)
-    ///   _ramas\AAAAMMDD_HHMMSS\      → archivos de una rama descartada al cargar un guardado anterior (las 5 últimas)
-    ///   _papelera\                   → archivos que sobraban (personajes olvidados, archivos desconocidos), en vez de borrarlos
-    ///   _copias_editor\              → copia de toda la memoria antes de importar o borrar desde el editor
-    /// Se escriben al momento (tras cada respuesta, carta, orden…) y al guardar la partida.
-    /// Al cargar una partida manda la copia que va dentro de ella,
-    /// salvo los archivos que hayas editado a mano, que se respetan.
+    /// AI Legacy data on disk, per campaign: Modules\AILegacy\save_data\[campaign id]\
+    ///   Name (hero_id).json          one file per character (memory, personality, trust, romance...)
+    ///   ailegacy_news.json           news and rumors
+    ///   ailegacy_letters.json        letters on the way
+    ///   ailegacy_orders.json         orders on the map
+    ///   ailegacy_quests.json         quests
+    ///   ailegacy_items.json          documents and roleplay items
+    ///   ailegacy_campaign.json       loose campaign data
+    ///   _escritos.json               hashes of what the mod wrote (to spot files you edited by hand)
+    ///   _ramas\YYYYMMDD_HHMMSS\      files from a branch dropped when loading an older save (last 5 kept)
+    ///   _papelera\                   leftover files (forgotten characters, unknown files) moved here instead of deleted
+    ///   _copias_editor\              full memory backup before an import or delete from the editor
+    /// Written right away (after each reply, letter, order...) and when the game saves.
+    /// On load, the copy inside the save wins, except for files you edited by hand.
     /// </summary>
     internal static class SaveFiles
     {
@@ -39,15 +38,15 @@ namespace AILegacy.Memory
         private const string WorldFile = "ailegacy_world.json";
         private const string MessagesFile = "ailegacy_messages.json";
 
-        // Huella de lo último escrito en cada archivo (clave = nombre de archivo) de la campaña en curso
+        // Hash of the last content written to each file of the current campaign (key = file name)
         private static Dictionary<string, string> _written = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static string _writtenDir;
 
-        // Sello del estado de los archivos: cambia cada vez que el mod escribe algo nuevo y va también dentro de la partida.
-        // Si al cargar no coincide con el de la partida, los archivos son de otra rama (posterior) y se archivan antes de pisarlos.
+        // Stamp of the files' state. It changes every time the mod writes something new, and it also goes into the save.
+        // If it doesn't match the save's stamp on load, the files come from another (later) branch and get archived first.
         private static string _stamp;
 
-        // Subcarpetas de la campaña
+        // Campaign subfolders
         private const string BranchesDir = "_ramas";
         private const string TrashDir = "_papelera";
         private const string EditorBackupsDir = "_copias_editor";
@@ -63,7 +62,7 @@ namespace AILegacy.Memory
             [JsonProperty("stamp")] public string Stamp;
         }
 
-        /// <summary>Sello actual de los archivos de la campaña en curso (se guarda dentro de la partida).</summary>
+        /// <summary>Current files stamp for this campaign (stored inside the save).</summary>
         public static string Stamp => _stamp;
 
         private static string NewStamp() => Guid.NewGuid().ToString("N").Substring(0, 16);
@@ -83,7 +82,7 @@ namespace AILegacy.Memory
 
         private static string HeroFileName(HeroMemory m) => $"{Safe(m.HeroName ?? "npc").Replace(' ', '_')} ({Safe(m.HeroId)}).json";
 
-        /// <summary>Huella estable (no cambia entre sesiones) del texto, sin contar saltos de línea ni BOM.</summary>
+        /// <summary>FNV-1a hash that stays the same across sessions (unlike GetHashCode). Ignores \r and the BOM.</summary>
         private static string Hash(string s)
         {
             unchecked
@@ -129,8 +128,8 @@ namespace AILegacy.Memory
             return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        /// <summary>Escribe el archivo solo si su contenido ha cambiado (primero a .tmp para no dejarlo a medias).
-        /// Si no se puede escribir, se salta con aviso en el log (se reintentará en el siguiente volcado).</summary>
+        /// <summary>Writes the file only if its content changed. If it can't be written, it's skipped with a log warning
+        /// and retried on the next flush.</summary>
         private static bool WriteIfChanged(string dir, string name, string content)
         {
             var path = Path.Combine(dir, name);
@@ -142,9 +141,9 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Escribe en .tmp y lo cambia por el archivo de una vez (File.Replace, atómico en NTFS): un corte a medias
-        /// nunca deja el archivo bueno borrado. Unos pocos reintentos (antivirus, el archivo abierto en un editor…);
-        /// si aun así falla, aviso en el log y false, sin lanzar nada (no debe romper el guardado del juego).
+        /// Writes to .tmp and swaps it in one go (File.Replace is atomic on NTFS), so a crash halfway never leaves the
+        /// good file deleted. A few retries for antivirus or the file being open in an editor. If it still fails, logs a
+        /// warning and returns false without throwing, so it can't break the game's save.
         /// </summary>
         private static bool WriteAtomic(string path, string content)
         {
@@ -161,7 +160,7 @@ namespace AILegacy.Memory
                         try { File.Replace(tmp, path, null, true); }
                         catch (PlatformNotSupportedException)
                         {
-                            // Unidades sin Replace (FAT, red): el original se aparta y solo se borra cuando el nuevo ya está en su sitio
+                            // Drives without Replace (FAT, network): move the original aside and delete it only once the new one is in place
                             var old = path + ".old";
                             if (File.Exists(old)) File.Delete(old);
                             File.Move(path, old);
@@ -181,8 +180,8 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Restos de un corte: un .tmp sin su archivo principal pasa a ser el principal (si es JSON válido);
-        /// un .tmp junto a su principal sobra (el principal está entero gracias a File.Replace).
+        /// Cleans up after a crash. A .tmp with no main file becomes the main file (if it's valid JSON).
+        /// A .tmp next to its main file is dropped, since File.Replace keeps the main one whole.
         /// </summary>
         private static void RecoverTemp(string dir)
         {
@@ -194,7 +193,7 @@ namespace AILegacy.Memory
                     try
                     {
                         if (File.Exists(main)) { File.Delete(tmp); continue; }
-                        JToken.Parse(File.ReadAllText(tmp, Encoding.UTF8));   // solo si está entero
+                        JToken.Parse(File.ReadAllText(tmp, Encoding.UTF8));   // throws if it's cut short
                         File.Move(tmp, main);
                         Log.Warn("Recuperado de un corte: " + Path.GetFileName(main));
                     }
@@ -204,7 +203,7 @@ namespace AILegacy.Memory
             catch { }
         }
 
-        /// <summary>Mueve un archivo a _papelera (con fecha delante) en vez de borrarlo; se conservan los últimos MaxTrash.</summary>
+        /// <summary>Moves a file to _papelera (date prefixed) instead of deleting it. Keeps the last MaxTrash.</summary>
         private static bool MoveToTrash(string dir, string file)
         {
             try
@@ -221,20 +220,19 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Warn($"No se pudo mover a la papelera {Path.GetFileName(file)}: {ex.Message}"); return false; }
         }
 
-        /// <summary>Deja solo las <paramref name="keep"/> entradas más nuevas (los nombres empiezan por la fecha).</summary>
+        /// <summary>Keeps only the <paramref name="keep"/> newest entries (names start with the date).</summary>
         private static void Prune(IEnumerable<string> entries, int keep, Action<string> delete)
         {
             foreach (var old in entries.OrderByDescending(x => Path.GetFileName(x), StringComparer.Ordinal).Skip(keep))
                 try { delete(old); } catch { }
         }
 
-        // ============================================================ guardar
+        // ============================================================ save
 
         private static double _lastPumpHour = -1;
 
         /// <summary>
-        /// Escribe ya lo que haya cambiado. Se llama tras cada respuesta de un NPC, al cerrar una charla, con cada carta
-        /// y cada orden.
+        /// Writes whatever changed, now. Called after each NPC reply, when a chat closes, and with every letter and order.
         /// </summary>
         public static void Flush(bool heroes = true, bool keepStamp = false)
         {
@@ -247,7 +245,7 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Error("Volcado de archivos de la campaña", ex); }
         }
 
-        /// <summary>Llamar a menudo: cada 6 horas de juego vuelca noticias, cartas y órdenes; una vez al día, también los personajes.</summary>
+        /// <summary>Call often. Every 6 game hours it flushes news, letters and orders; once a day, the characters too.</summary>
         public static void Pump()
         {
             var c = TaleWorlds.CampaignSystem.Campaign.Current;
@@ -260,8 +258,8 @@ namespace AILegacy.Memory
             Flush(heroes: newDay);
         }
 
-        /// <param name="keepStamp">true solo en el volcado justo tras cargar: los archivos pasan a ser los de esa partida
-        /// y conservan su sello (así, recargarla otra vez no se toma por otra rama).</param>
+        /// <param name="keepStamp">true only for the flush right after loading: the files become that save's files and
+        /// keep its stamp, so reloading it again isn't taken as another branch.</param>
         public static void Save(string campaignId, double campaignDay, bool heroes = true, bool keepStamp = false)
         {
             if (string.IsNullOrEmpty(campaignId)) return;
@@ -277,8 +275,8 @@ namespace AILegacy.Memory
                 if (WriteIfChanged(dir, WorldFile, JsonConvert.SerializeObject(WorldSim.State, Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, QuestsFile, JsonConvert.SerializeObject(QuestSystem.Quests, Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, ItemsFile, JsonConvert.SerializeObject(Belongings.Items, Formatting.Indented))) written++;
-                // Solo se serializa a quien le ha cambiado algo desde el último volcado (con cientos de personajes, serializarlos
-                // todos tras cada respuesta daba tirones). Cada 12 volcados se repasan todos, por si la huella se deja algo.
+                // Only serialize characters that changed since the last flush (with hundreds of them, serializing all after
+                // every reply caused stutters). Every 12 flushes check them all, in case the signature misses something.
                 if (_sigDir != dir) { _sigDir = dir; _sig.Clear(); _flushes = 0; }
                 bool all = _flushes++ % 12 == 0;
                 foreach (var m in heroes ? MemoryStore.AllHeroes.ToList() : new List<HeroMemory>())
@@ -289,19 +287,18 @@ namespace AILegacy.Memory
                     long sig = 0;
                     try { sig = Signature(m); } catch { all = true; }
                     if (!all && _sig.TryGetValue(m.HeroId, out long old) && old == sig && _written.ContainsKey(name)) continue;
-                    // Un personaje que no se pueda escribir no detiene a los demás
                     try { if (WriteIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented))) written++; _sig[m.HeroId] = sig; }
                     catch (Exception ex) { Log.Warn($"Se salta el archivo de {m.HeroName} ({m.HeroId}): {ex.Message}"); }
                 }
                 if (WriteIfChanged(dir, NewsFile, JsonConvert.SerializeObject(NewsStore.All.ToList(), Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, LettersFile, JsonConvert.SerializeObject(MemoryStore.Letters, Formatting.Indented))) written++;
                 if (WriteIfChanged(dir, OrdersFile, JsonConvert.SerializeObject(OrderSystem.Orders, Formatting.Indented))) written++;
-                // Algo ha cambiado: nuevo sello (salvo en el volcado de después de cargar, que adopta el de la partida)
+                // Something changed, so new stamp (except on the flush after loading, which takes the save's stamp)
                 if (string.IsNullOrEmpty(_stamp) || (written > 0 && !keepStamp)) _stamp = NewStamp();
                 if (WriteIfChanged(dir, CampaignFile, JsonConvert.SerializeObject(
                         new CampaignInfo { LastLetterDay = MemoryStore.LastLetterDay, SavedDay = campaignDay, Stamp = _stamp }, Formatting.Indented))) written++;
 
-                // Personajes olvidados (/olvidar) o renombrados, o archivos que no conocemos: no se borran, van a _papelera
+                // Forgotten (/olvidar) or renamed characters and unknown files go to _papelera, never deleted
                 int removed = 0;
                 foreach (var f in heroes ? Directory.GetFiles(dir, "*.json") : new string[0])
                 {
@@ -322,10 +319,10 @@ namespace AILegacy.Memory
         private static string _sigDir;
         private static int _flushes;
 
-        /// <summary>Algo se ha cambiado por fuera de lo habitual (el editor, una importación): el próximo volcado los repasa todos.</summary>
+        /// <summary>Something changed outside the usual paths (the editor, an import), so the next flush checks every character.</summary>
         public static void Dirty() { _sig.Clear(); _flushes = 0; }
 
-        /// <summary>Huella barata de lo que cambia en la memoria de un personaje, para no serializarlo si sigue igual.</summary>
+        /// <summary>Cheap signature of what changes in a character's memory, so we skip serializing it if nothing did.</summary>
         private static long Signature(HeroMemory m)
         {
             unchecked
@@ -340,7 +337,7 @@ namespace AILegacy.Memory
                 A((long)(m.LastConversationDay * 100)); A((long)(m.MoodDay * 100)); T(m.Mood); T(m.MoodReason); T(m.KnownPlayerName); T(m.HeroName);
                 A(m.Pages.Count); if (m.Pages.Count > 0) T(m.Pages[m.Pages.Count - 1].Text);
                 A(m.Archive.Count); A(m.ArchivedTotal); A(m.Heard.Count);
-                // Las listas con tope cambian sin cambiar de tamaño (sale la más vieja y entra una nueva): cuenta también la última
+                // Capped lists can change without changing size (oldest out, new one in), so hash the last item too
                 if (m.Heard.Count > 0) { var hd = m.Heard[m.Heard.Count - 1]; T(hd.Text); T(hd.FromName); A((long)(hd.Day * 100)); } A(m.KnownSecretIds.Count); A(m.KnownInfoIds.Count); A(m.KnowledgeRolled ? 1 : 0);
                 A(m.Others.Count); foreach (var o in m.Others.Values) { A(o.Trust); A(o.Notes.Count); A((long)(o.Day * 100)); if (o.Notes.Count > 0) T(o.Notes[o.Notes.Count - 1]); }
                 A(m.ProfileRevision); A(m.Profile == null ? 0 : 1);
@@ -352,11 +349,11 @@ namespace AILegacy.Memory
             }
         }
 
-        // ============================================================ cargar
+        // ============================================================ load
 
         /// <summary>
-        /// Personajes cuyo archivo has editado tú a mano (su contenido ya no coincide con lo que escribió el mod).
-        /// Hay que llamarlo ANTES de volver a escribir nada.
+        /// Characters whose file you edited by hand (its content no longer matches what the mod wrote).
+        /// Call it BEFORE writing anything again.
         /// </summary>
         public static List<HeroMemory> ManualEdits(string campaignId)
         {
@@ -367,7 +364,7 @@ namespace AILegacy.Memory
                 var dir = DirFor(campaignId);
                 RecoverTemp(dir);
                 var manifest = ReadManifest(dir);
-                if (manifest.Count == 0) return list;   // sin huellas no se puede saber: no se asume nada
+                if (manifest.Count == 0) return list;   // no hashes, no way to tell, so assume nothing
                 foreach (var f in Directory.GetFiles(dir, "*.json"))
                 {
                     var name = Path.GetFileName(f);
@@ -375,7 +372,7 @@ namespace AILegacy.Memory
                     try
                     {
                         var text = File.ReadAllText(f, Encoding.UTF8);
-                        if (!manifest.TryGetValue(name, out var h) || h == Hash(text)) continue;   // solo los que escribió el mod y luego cambiaron
+                        if (!manifest.TryGetValue(name, out var h) || h == Hash(text)) continue;   // only files the mod wrote that changed afterwards
                         var m = JsonConvert.DeserializeObject<HeroMemory>(text);
                         if (m != null && !string.IsNullOrEmpty(m.HeroId)) list.Add(m);
                     }
@@ -427,10 +424,10 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Al cargar una partida cuya memoria va a pisar los archivos: si estos son de otra rama (has seguido jugando
-        /// después de ese guardado, o vienes de otro guardado distinto), se copian antes a _ramas\AAAAMMDD_HHMMSS\
-        /// (se conservan las MaxBranches últimas). Se compara el sello de la partida con el de los archivos; con partidas
-        /// de antes del sello, el día guardado en los archivos con el de la partida.
+        /// Runs when loading a save whose memory is about to overwrite the files. If the files belong to another branch
+        /// (you kept playing after that save, or came from a different save), copy them first to _ramas\YYYYMMDD_HHMMSS\
+        /// (last MaxBranches kept). Compares the save's stamp with the files' stamp. For saves older than the stamp,
+        /// compares the day stored in the files with the save's day.
         /// </summary>
         public static string ArchiveIfDiverged(string campaignId, string savedStamp, double campaignDay)
         {
@@ -473,7 +470,7 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Error("Archivando la rama descartada", ex); return null; }
         }
 
-        /// <summary>Tras cargar una partida, los archivos pasan a llevar su sello (el siguiente volcado debe usar keepStamp).</summary>
+        /// <summary>After loading a save, the files take its stamp (the next flush must use keepStamp).</summary>
         public static void AdoptStamp(string campaignId, string stamp)
         {
             if (string.IsNullOrEmpty(campaignId) || string.IsNullOrEmpty(stamp)) return;
@@ -482,8 +479,8 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Copia de toda la memoria (lo mismo que exporta el editor) en _copias_editor\, antes de importar o borrar.
-        /// Se conservan las MaxEditorBackups últimas. Devuelve la ruta, o null si no se pudo.
+        /// Backs up the whole memory (same as the editor export) to _copias_editor\ before an import or delete.
+        /// Keeps the last MaxEditorBackups. Returns the path, or null on failure.
         /// </summary>
         public static string BackupMemory(string campaignId, string label)
         {
@@ -501,7 +498,7 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Error("Copia de la memoria", ex); return null; }
         }
 
-        /// <summary>Aparta a una subcarpeta los archivos de los personajes indicados (para deshacer una importación sin perder nada).</summary>
+        /// <summary>Moves the given characters' files to a subfolder, so an import can be undone without losing anything.</summary>
         public static string BackupHeroFiles(string campaignId, IEnumerable<HeroMemory> heroes, string label)
         {
             try
@@ -530,7 +527,7 @@ namespace AILegacy.Memory
             try { return JsonConvert.DeserializeObject<T>(File.ReadAllText(path, Encoding.UTF8)); }
             catch (Exception ex)
             {
-                // Se guarda aparte tal cual: lo que traía se puede recuperar a mano
+                // Keep an untouched copy so the data can be recovered by hand
                 try
                 {
                     string keep = Path.Combine(dir, "_ilegibles");

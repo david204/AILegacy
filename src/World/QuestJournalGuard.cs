@@ -8,9 +8,9 @@ using TaleWorlds.CampaignSystem;
 namespace AILegacy.World
 {
     /// <summary>
-    /// Red de seguridad del diario de misiones: CampaignUIHelper.GetQuestsRelatedToSettlement (la usan los rótulos de los
-    /// asentamientos en el mapa) puede lanzar un NullReferenceException si queda marcado algo de una misión rota
-    /// (un dador muerto, una partida destruida…). Si falla, en vez de romper la interfaz devuelve una lista vacía.
+    /// CampaignUIHelper.GetQuestsRelatedToSettlement (used by the settlement nameplates on the map) can throw a
+    /// NullReferenceException when a broken quest still tracks something, like a dead giver or a destroyed party.
+    /// If it throws, return an empty list instead of breaking the UI.
     /// </summary>
     [HarmonyPatch]
     internal static class QuestsRelatedToSettlementGuard
@@ -35,7 +35,7 @@ namespace AILegacy.World
         }
     }
 
-    /// <summary>Lo mismo para CampaignUIHelper.IsQuestRelatedToSettlement: si falla, «no está relacionada».</summary>
+    /// <summary>Same for CampaignUIHelper.IsQuestRelatedToSettlement. If it throws, return false.</summary>
     [HarmonyPatch]
     internal static class IsQuestRelatedToSettlementGuard
     {

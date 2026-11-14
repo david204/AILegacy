@@ -15,8 +15,8 @@ using TaleWorlds.Core;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Acciones que la IA puede pedir en el array "actions" de su respuesta.
-    /// Solo se ofrecen las que tienen sentido ahora mismo y todas se validan antes de ejecutarse.
+    /// Actions the AI can ask for in the "actions" array of its reply.
+    /// Only the ones that make sense right now are offered, and all of them are validated before they run.
     /// </summary>
     internal static class NpcActions
     {
@@ -26,9 +26,9 @@ namespace AILegacy.Dialogue
             public int RelationDelta;
             public int TrustDelta;
             public int TensionDelta;
-            /// <summary>La acción llega por carta: el NPC no está delante del jugador.</summary>
+            /// <summary>The action came by letter, so the NPC isn't in front of the player.</summary>
             public bool ViaLetter;
-            /// <summary>El jefe de una partida hostil ha decidido dejar pasar al jugador.</summary>
+            /// <summary>The leader of a hostile party decided to let the player pass.</summary>
             public bool LetPass;
         }
 
@@ -38,17 +38,17 @@ namespace AILegacy.Dialogue
             public string Usage;
             public string Description;
             public Func<Speaker, bool> IsAvailable;
-            /// <summary>También se puede decidir al contestar una carta (no hace falta estar cara a cara).</summary>
+            /// <summary>Can also be chosen when answering a letter (no need to be face to face).</summary>
             public bool Letter;
-            /// <summary>Texto extra que depende del momento (por ejemplo, los enemigos que hay cerca).</summary>
+            /// <summary>Extra text that depends on the moment (for example, enemies nearby).</summary>
             public Func<Speaker, string> Extra;
-            /// <summary>Devuelve un texto para el registro del juego, o null.</summary>
+            /// <summary>Returns a line for the game log, or null.</summary>
             public Func<Speaker, string, ActionContext, string> Execute;
         }
 
         private static Hero P => Hero.MainHero;
 
-        /// <summary>El personaje con el que hablas ahora, si estáis en una escena y lo mueve la IA.</summary>
+        /// <summary>The character you're talking to, if you're in a scene and the game AI controls them.</summary>
         private static TaleWorlds.MountAndBlade.Agent SceneAgent()
         {
             try
@@ -60,9 +60,9 @@ namespace AILegacy.Dialogue
             catch { return null; }
         }
 
-        // Antirrepetición: la IA a veces repite en la respuesta siguiente lo que ya hizo (cobrar, dar un objeto, ceder tropas…).
-        // La misma acción, sobre lo mismo, con la misma cantidad y la misma persona no se repite en pocos minutos.
-        // Vale para oro, objetos, tropas, prisioneros, comercio y documentos.
+        // Repeat guard: the AI sometimes repeats in its next reply what it already did (take payment, hand over an item,
+        // give troops...). The same action on the same thing, same amount and same person won't run again within a few
+        // minutes. Covers gold, items, troops, prisoners, trade and documents.
         private static readonly Dictionary<string, (int amount, DateTime at)> LastDone = new Dictionary<string, (int, DateTime)>();
 
         public static void ResetSession() => LastDone.Clear();
@@ -78,7 +78,7 @@ namespace AILegacy.Dialogue
             return false;
         }
 
-        /// <summary>Apunta lo hecho y se lo deja en su historial (en inglés, para el modelo), para que no lo repita ni lo pida otra vez.</summary>
+        /// <summary>Records what was done and leaves it in their history (in English, for the model) so they don't repeat it or ask again.</summary>
         private static void NoteDone(Speaker s, string what, int amount, string doneText)
         {
             LastDone[s.Key + "|" + what] = (amount, DateTime.UtcNow);
@@ -92,21 +92,21 @@ namespace AILegacy.Dialogue
 
         private static bool RepeatedGold(Speaker s, string dir, int amount) => Repeated(s, "gold|" + dir, amount);
 
-        // Resultado de la acción en curso (todo esto corre en el hilo principal, una acción cada vez)
-        private static bool _repeated;      // no se ha hecho porque ya se hizo hace un momento
-        private static string _why;         // motivo, en inglés, por el que NO ha ocurrido (aunque se enseñe un mensaje al jugador)
+        // Outcome of the current action (all of this runs on the main thread, one action at a time)
+        private static bool _repeated;      // skipped because it was just done
+        private static string _why;         // reason in English why it did NOT happen (even if the player is shown a message)
 
-        /// <summary>La acción no ha ocurrido: «shown» es lo que ve el jugador (o null) y «why» lo que se le dice al personaje.</summary>
+        /// <summary>The action didn't happen. "shown" is what the player sees (or null) and "why" is what the character is told.</summary>
         private static string Nope(string shown, string why) { _why = why; return shown; }
 
-        /// <summary>Deja en el historial del personaje lo que de verdad ha pasado con su acción, para que su siguiente frase parta de ahí.</summary>
+        /// <summary>Puts what really happened with their action into the character's history, so their next line starts from there.</summary>
         private static void NoteOutcome(Speaker s, string text)
         {
             try { s.Memory.Turns.Add(new Memory.ChatTurn { Role = "player", Day = CampaignTime.Now.ToDays, Text = text }); }
             catch { }
         }
 
-        // Nombres que los modelos traen de otros sitios para acciones que sí tenemos
+        // Names models bring from elsewhere for actions we do have
         private static readonly Dictionary<string, string> Aliases = new Dictionary<string, string>
         {
             { "transfer_gold", "give_gold" }, { "pay_gold", "give_gold" }, { "give_money", "give_gold" }, { "pay", "give_gold" },
@@ -120,7 +120,7 @@ namespace AILegacy.Dialogue
             { "give_items", "give_item" }, { "take_items", "take_item" }, { "transfer_troops", "give_troops" },
         };
 
-        // De cada uno de estos grupos solo vale una acción por respuesta: pelear, rendirse, morir o soltar no van juntas
+        // Only one action per group per reply: fighting, surrendering, dying and letting go can't be combined
         private static readonly string[][] Exclusive =
         {
             new[] { "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "die", "let_pass", "call_guards", "arrest", "let_go" },
@@ -129,9 +129,9 @@ namespace AILegacy.Dialogue
             new[] { "declare_war", "make_peace" },
         };
 
-        // RAG de acciones. Estas son las que dependen del tema (órdenes, economía, reino): con vectores disponibles solo se
-        // describen enteras las que tienen que ver con lo que se habla; las demás quedan nombradas en una línea, y siguen
-        // valiendo si el personaje las usa. Las básicas (dinero, trato, pelea, irse) van siempre enteras.
+        // Action RAG. These depend on the topic (orders, economy, kingdom). With vectors available, only the ones related to
+        // the conversation get a full description. The rest are just named on one line and still work if the character
+        // uses them. The basic ones (money, relations, fighting, leaving) are always described in full.
         private static readonly HashSet<string> ByTopic = new HashSet<string>
         {
             "sell_goods", "buy_goods", "give_item", "take_item", "give_document", "take_document", "sell_workshop",
@@ -144,43 +144,49 @@ namespace AILegacy.Dialogue
 
         private static readonly Dictionary<string, sbyte[]> ActionVecs = new Dictionary<string, sbyte[]>();
         private static bool _actionVecsBusy;
+        private static string _actionVecsModel;
 
-        /// <summary>Pide (una vez por sesión) el vector de cada acción que depende del tema. En el hilo principal.</summary>
+        /// <summary>Embeds each topic-dependent action once per session, and again if the vector model changes. Main thread.</summary>
         public static void EnsureActionVectors()
         {
-            if (_actionVecsBusy || ActionVecs.Count > 0 || !S.Get.EnableActionRag || !Llm.Embeddings.Available) return;
+            if (_actionVecsBusy || !S.Get.EnableActionRag || !Llm.Embeddings.Available) return;
+            string working = Llm.Embeddings.Working;
+            if (ActionVecs.Count > 0 && (working == null || Llm.Embeddings.SameModel(_actionVecsModel, working))) return;
             var list = All.Where(a => ByTopic.Contains(a.Name)).ToList();
             if (list.Count == 0) return;
             _actionVecsBusy = true;
             var texts = list.Select(a => a.Name.Replace('_', ' ') + ": " + a.Description).ToList();
             Llm.Embeddings.EmbedAsync(texts, "embed").ContinueWith(t =>
             {
-                var v = t.IsFaulted ? null : t.Result;
+                var r = t.IsFaulted ? null : t.Result;
+                var v = r?.Vecs;
                 MainThread.Post(() =>
                 {
                     _actionVecsBusy = false;
                     if (v == null || v.Length != list.Count) return;
+                    ActionVecs.Clear();
+                    _actionVecsModel = r.Model;
                     for (int i = 0; i < list.Count; i++) ActionVecs[list[i].Name] = v[i];
                     Log.Info($"Acciones por tema: {list.Count} acciones con vector");
                 });
             });
         }
 
-        // Acciones sin efecto que haya que recordar: no dejan nota de resultado
+        // Actions with no effect worth remembering: they leave no outcome note
         private static readonly HashSet<string> NoNote = new HashSet<string> { "leave", "suspect_lie" };
 
         private static void NoteGold(Speaker s, string dir, int amount) =>
             NoteDone(s, "gold|" + dir, amount, dir == "take" ? $"they have handed you {amount} denars. It is paid in full — do not take or ask for it again."
                                                              : $"you have handed them {amount} denars. It is given — do not give it again.");
 
-        // --- comercio con la gente del lugar
+        // --- trade with local people
         private static Settlement Market()
         {
             var st = Settlement.CurrentSettlement;
             return st != null && (st.IsTown || st.IsVillage) ? st : null;
         }
 
-        /// <summary>¿Es alguien que vende y compra? (mercaderes, artesanos, taberneros, aldeanos; no guardias ni nobles)</summary>
+        /// <summary>Someone who buys and sells (merchants, artisans, tavern keepers, villagers; not guards or nobles).</summary>
         private static bool Trader(Speaker s)
         {
             if (!S.Get.AllowRealTrade || s.IsHero || s.Character == null || Market() == null || TaleWorlds.MountAndBlade.Mission.Current == null) return false;
@@ -193,7 +199,7 @@ namespace AILegacy.Dialogue
             return false;
         }
 
-        /// <summary>Precio de esa mercancía aquí. selling = lo que te pagan a ti (algo menos que lo que cuesta comprarla).</summary>
+        /// <summary>Price of that item here. selling = what they pay you (a bit less than the buying price).</summary>
         private static int PriceOf(ItemObject item, bool selling)
         {
             try
@@ -207,7 +213,7 @@ namespace AILegacy.Dialogue
 
         private static bool HeldByPlayer(Speaker s) => s.IsHero && s.Hero.IsPrisoner && s.Hero.PartyBelongedToAsPrisoner == PartyBase.MainParty;
 
-        /// <summary>En el mapa, frente a su partida: una pelea o un duelo se libra en la escena del terreno.</summary>
+        /// <summary>On the map, facing their party: a fight or duel happens in a terrain scene.</summary>
         private static bool MapFight(Speaker s) => s.IsHero && TaleWorlds.MountAndBlade.Mission.Current == null && Scenes.MapTalk.CanOffer(s.Hero);
 
         private static string StartMapFight(Speaker s, string kind)
@@ -221,19 +227,18 @@ namespace AILegacy.Dialogue
         private static int Rel(Speaker s) => s.IsHero ? (int)s.Hero.GetRelationWithPlayer() : 0;
         private static bool IsPlayersPrisoner(Hero h) => h.IsPrisoner && h.PartyBelongedToAsPrisoner == MobileParty.MainParty?.Party;
 
-        // --- órdenes en el mapa
-        // Con una orden en curso solo se ofrece dejarla (resume_duties): así no encadena órdenes a medias
+        // --- orders on the map
+        // With an order running, only resume_duties is offered, so half-finished orders don't pile up
         private static bool CanOrder(Speaker s) => s.IsHero && OrderSystem.CanTakeOrders(s.Hero) && OrderSystem.Find(s.Hero) == null;
         private static bool AtWarWithPlayer(Speaker s) => s.Faction != null && P.MapFaction != null && s.Faction != P.MapFaction && s.Faction.IsAtWarWith(P.MapFaction);
         private static bool HasWars(Speaker s) { try { return s.Faction != null && s.Faction.FactionsAtWarWith.Any(f => f != null && f.IsKingdomFaction); } catch { return false; } }
         private static bool Hostile(Speaker s, Settlement st) => st?.MapFaction != null && s.Faction != null && st.MapFaction != s.Faction && st.MapFaction.IsAtWarWith(s.Faction);
 
-        // --- traspasos
+        // --- transfers
         private static MobileParty Led(Speaker s) => s.IsHero ? OrderSystem.PartyLedBy(s.Hero) : null;
         private static bool CanTransfer(Speaker s) => S.Get.AllowTransfers && Led(s) != null && !s.Hero.IsPrisoner && MobileParty.MainParty != null && !AtWarWithPlayer(s);
 
-        /// <summary>Mueve soldados rasos (los de menor rango primero; con sanos basta). Devuelve cuántos.</summary>
-        /// <summary>¿Es de esa clase de tropa? (infantería, arqueros, caballería, arqueros a caballo, o parte del nombre de la tropa)</summary>
+        /// <summary>Matches a troop class (infantry, archers, cavalry, horse archers) or part of the troop name. Accepts English and Spanish.</summary>
         private static bool OfKind(CharacterObject c, string kind)
         {
             string k = new string((kind ?? "").ToLowerInvariant().Where(char.IsLetter).ToArray());
@@ -247,7 +252,7 @@ namespace AILegacy.Dialogue
             return name.Contains(k) || k.Contains(name);
         }
 
-        /// <summary>«20:archers» → 20 y «archers».</summary>
+        /// <summary>"20:archers" -> 20 and "archers".</summary>
         private static void SplitTroops(string arg, out int count, out string kind)
         {
             arg = arg ?? "";
@@ -273,7 +278,7 @@ namespace AILegacy.Dialogue
             return moved;
         }
 
-        /// <summary>Prisionero con nombre (un héroe) dentro de un grupo.</summary>
+        /// <summary>A named prisoner (a hero) inside a party.</summary>
         private static CharacterObject FindHeroPrisoner(MobileParty party, string name)
         {
             string n = new string((name ?? "").ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
@@ -289,13 +294,13 @@ namespace AILegacy.Dialogue
 
         private static bool Tense(Speaker s) => !S.Get.EnableTension || Bonds.Tension(s.Memory) >= S.Get.TensionForViolence;
 
-        /// <summary>"Sargot:3" → nombre "Sargot", 3 días. "5" → sin nombre, 5 días.</summary>
+        /// <summary>"Sargot:3" -> name "Sargot", 3 days. "5" -> no name, 5 days.</summary>
         private static void SplitArg(string arg, out string name, out double days)
         {
             name = (arg ?? "").Trim(); days = 0;
             int c = name.LastIndexOf(':');
             string tail = (c >= 0 ? name.Substring(c + 1) : name).Trim();
-            // Solo el primer número del final («1.000», «3 días»…), nunca todas las cifras juntas
+            // Only the first number at the end ("1.000", "3 days"...), never all the digits glued together
             if (tail.Length > 0 && tail.Length <= 10 && char.IsDigit(tail[0]) && tail.All(ch => char.IsLetterOrDigit(ch) || char.IsWhiteSpace(ch) || ch == '.' || ch == ','))
             {
                 days = ParseAmount(tail);
@@ -305,7 +310,7 @@ namespace AILegacy.Dialogue
 
         private static readonly List<ActionDef> All = new List<ActionDef>
         {
-            // ----------------------------------------------------------- dinero
+            // ----------------------------------------------------------- money
             new ActionDef
             {
                 Name = "give_gold", Usage = "give_gold:<amount>  or  give_gold:<amount>:<name of someone else who is here>",
@@ -319,7 +324,7 @@ namespace AILegacy.Dialogue
                     int purse = s.IsHero ? s.Hero.Gold : s.Band.PartyTradeGold;
                     int amount = Math.Min(ParseAmount(arg), Math.Min(purse, S.Get.MaxGoldPerAction));
                     if (amount <= 0) return Nope(null, "no valid amount was given, or your purse is empty");
-                    // ¿Para un tercero que está aquí? («give_gold:200:Nombre»)
+                    // For a third person who is here? ("give_gold:200:Name")
                     int sep = (arg ?? "").IndexOf(':');
                     string toName = sep >= 0 ? arg.Substring(sep + 1).Trim() : "";
                     if (toName.Length > 0 && s.IsHero && NormName(toName) != NormName(P.Name.ToString()) && NormName(toName) != NormName(P.FirstName?.ToString()))
@@ -358,7 +363,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- compañeros
+            // ----------------------------------------------------------- companions
             new ActionDef
             {
                 Name = "join_party", Usage = "join_party",
@@ -374,7 +379,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- prisioneros
+            // ----------------------------------------------------------- prisoners
             new ActionDef
             {
                 Name = "set_free", Usage = "set_free",
@@ -389,7 +394,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- política
+            // ----------------------------------------------------------- politics
             new ActionDef
             {
                 Name = "swear_fealty", Usage = "swear_fealty",
@@ -400,7 +405,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var clan = s.Hero.Clan;
-                    AILegacy.World.Banished.Pardon(clan, PlayerKingdom);      // lo admites tú: queda perdonado
+                    AILegacy.World.Banished.Pardon(clan, PlayerKingdom);      // you took them in, so they're pardoned
                     if (clan.Kingdom != null) ChangeKingdomAction.ApplyByJoinToKingdomByDefection(clan, clan.Kingdom, PlayerKingdom);
                     else ChangeKingdomAction.ApplyByJoinToKingdom(clan, PlayerKingdom);
                     return L.F("AIL_bdc30505", $"El clan {clan.Name} jura lealtad a {PlayerKingdom.Name}.");
@@ -447,7 +452,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- matrimonio y romance
+            // ----------------------------------------------------------- marriage and romance
             new ActionDef
             {
                 Name = "propose_marriage", Usage = "propose_marriage",
@@ -485,11 +490,11 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var h = s.Hero;
-                    // Ya casados: nada que hacer (y antes de tocar ningún matrimonio)
+                    // Already married: nothing to do (checked before touching any marriage)
                     if (P.Spouse == h || h.Spouse == P) return null;
                     if (Repeated(s, "accept_marriage", 1)) return null;
                     LastDone[s.Key + "|accept_marriage"] = (1, DateTime.UtcNow);
-                    // Segundo paso: la boda solo se celebra con la palabra del jugador (una frase suelta no casa a nadie)
+                    // Second step: the wedding needs the player's explicit yes (a stray line doesn't marry anyone)
                     NoteOutcome(s, "[Pending: you have said yes to marrying them. The wedding takes place only if they confirm it now.]");
                     Ask(L.F("AIL_b8f2e6a7", $"{s.Name} acepta casarse contigo"),
                         L.F("AIL_b8f2e6a2", $"Si aceptas, la boda se celebra ahora y es para siempre: {s.Name} pasará a ser de tu casa."),
@@ -505,7 +510,7 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
-                // Uso interno: no se ofrece a la IA. La boda en sí, cuando el jugador la confirma.
+                // Internal, never offered to the AI. The wedding itself, once the player confirms.
                 Name = "wed_now", Usage = "wed_now", Description = "(internal)",
                 IsAvailable = s => false,
                 Execute = (s, arg, ctx) =>
@@ -514,7 +519,7 @@ namespace AILegacy.Dialogue
                     if (P.Spouse == h || h.Spouse == P) return null;
                     try
                     {
-                        // Quien no es noble (compañero, errante, notable sin casa) entra antes en tu casa como noble
+                        // A non-noble (companion, wanderer, notable without a clan) joins your clan as a noble first
                         if (!SafeSuitable(h))
                         {
                             if (h.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(h);
@@ -522,7 +527,7 @@ namespace AILegacy.Dialogue
                             if (h.Occupation != Occupation.Lord) h.SetNewOccupation(Occupation.Lord);
                             if (h.Clan == null || h.Clan != Clan.PlayerClan && h.Clan.Leader != h) h.Clan = Clan.PlayerClan;
                         }
-                        // Si alguno seguía casado (ajuste «romance con casados»), ese matrimonio termina
+                        // If either one was still married (the "romance with married" setting), that marriage ends
                         if (h.Spouse != null && h.Spouse != P) { var ex = h.Spouse; h.Spouse = null; if (ex.Spouse == h) ex.Spouse = null; }
                         if (P.Spouse != null && P.Spouse != h) { var ex = P.Spouse; P.Spouse = null; if (ex.Spouse == P) ex.Spouse = null; }
                     }
@@ -543,7 +548,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) => Bonds.Intimacy(s)
             },
 
-            // ----------------------------------------------------------- comercio de verdad con la gente del lugar
+            // ----------------------------------------------------------- real trade with local people
             new ActionDef
             {
                 Name = "sell_goods", Usage = "sell_goods:<item name>:<amount>",
@@ -601,7 +606,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- de figurante a personaje
+            // ----------------------------------------------------------- from extra to character
             new ActionDef
             {
                 Name = "be_remembered", Usage = "be_remembered",
@@ -616,7 +621,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- dentro de una escena: ir contigo andando
+            // ----------------------------------------------------------- in a scene: walk with you
             new ActionDef
             {
                 Name = "come_along", Usage = "come_along",
@@ -645,7 +650,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- órdenes en el mapa
+            // ----------------------------------------------------------- orders on the map
             new ActionDef
             {
                 Name = "escort", Usage = "escort:<name of the party or of its leader>:<days>", Letter = true,
@@ -704,7 +709,7 @@ namespace AILegacy.Dialogue
                     SplitArg(arg, out var name, out var days);
                     var st = OrderSystem.FindSettlement(name, x => !Hostile(s, x));
                     if (st == null) return null;
-                    // tiempo de sobra para llegar; la espera empieza a contar al llegar
+                    // plenty of time to get there; the wait only starts counting on arrival
                     if (!OrderSystem.Give(s.Hero, "meet", st.StringId, st.Name.ToString(), S.Get.OrderMaxDays)) return null;
                     return L.F("AIL_6a69d3fd", $"{s.Name} irá a {st.Name} y te esperará allí.");
                 }
@@ -811,7 +816,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) => OrderSystem.Cancel(s.Hero, silent: true) ? L.F("AIL_7cd9f263", $"{s.Name} vuelve a sus asuntos.") : null
             },
 
-            // ----------------------------------------------------------- traspaso de tropas y prisioneros
+            // ----------------------------------------------------------- troop and prisoner transfers
             new ActionDef
             {
                 Name = "give_troops", Usage = "give_troops:<number>  or  give_troops:<number>:<infantry | archers | cavalry | horse archers | a troop name>",
@@ -919,7 +924,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- objetos, documentos y talleres
+            // ----------------------------------------------------------- items, documents and workshops
             new ActionDef
             {
                 Name = "give_item", Usage = "give_item:<item name>:<amount>",
@@ -931,7 +936,7 @@ namespace AILegacy.Dialogue
                 {
                     SplitArg(arg, out var name, out var amount);
                     int asked = Math.Max(1, (int)amount), n = asked;
-                    // Siempre de un inventario real: su partida o las existencias del lugar; si no lo tiene, no hay nada que dar
+                    // Always from a real inventory (their party or the local stock). If they don't have it, there's nothing to give
                     var src = GiveSource(s, out _);
                     if (src == null) return null;
                     var item = FindInRoster(src, name, out int have);
@@ -1024,7 +1029,7 @@ namespace AILegacy.Dialogue
                     var mine = s.Hero.OwnedWorkshops.Where(w => w.Settlement == s.Settlement).ToList();
                     string wanted = NormName(name);
                     var ws = wanted.Length < 2 ? null : mine.FirstOrDefault(w => NormName(w.Name.ToString()).Contains(wanted) || wanted.Contains(NormName(w.Name.ToString())));
-                    if (ws == null && mine.Count == 1) ws = mine[0];          // solo tiene uno aquí: no hay duda de cuál es
+                    if (ws == null && mine.Count == 1) ws = mine[0];          // only one here, so no doubt which
                     if (ws == null) return Nope(null, "you did not name which of your workshops; write its exact name");
                     if (price <= 0) return Nope(null, "no price was given; write sell_workshop:<name>:<price>");
                     int worth = Campaign.Current.Models.WorkshopModel.GetCostForPlayer(ws);
@@ -1037,7 +1042,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- reino y clan
+            // ----------------------------------------------------------- kingdom and clan
             new ActionDef
             {
                 Name = "grant_fief", Usage = "grant_fief:<town or castle of yours>",
@@ -1119,7 +1124,7 @@ namespace AILegacy.Dialogue
                 {
                     var k = KingdomOf(s);
                     if (PlayerMercenary) ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(PC);
-                    else { ChangeKingdomAction.ApplyByLeaveKingdom(PC); if (PC.Kingdom != k) AILegacy.World.Banished.Ban(PC, k); }    // un vasallo echado queda desterrado
+                    else { ChangeKingdomAction.ApplyByLeaveKingdom(PC); if (PC.Kingdom != k) AILegacy.World.Banished.Ban(PC, k); }    // an expelled vassal stays banished
                     return L.F("AIL_5a577403", $"{s.Name} expulsa a tu clan de {k.Name}.");
                 }
             },
@@ -1174,7 +1179,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var old = s.Hero.Clan;
-                    // Un gobernador que cambia de casa a pelo deja la ciudad con un gobernador ajeno (y el juego se cae al abrirla)
+                    // A governor who just switches clan leaves the town with a foreign governor (and the game crashes when you open it)
                     try { if (s.Hero.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(s.Hero); }
                     catch (Exception ex) { Log.Error("Quitar la gobernación antes de cambiar de clan", ex); }
                     s.Hero.Clan = PC;
@@ -1194,7 +1199,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- combate
+            // ----------------------------------------------------------- combat
             new ActionDef
             {
                 Name = "brawl", Usage = "brawl",
@@ -1240,7 +1245,7 @@ namespace AILegacy.Dialogue
                 Description = "You end the parley and attack them with your party right now: there will be a battle. Use it when you have decided to fight (you are at war and see no reason to let them go).",
                 IsAvailable = s => Combat.EnemyOnMap(s),
                 Extra = s => $"Your party: {Combat.Men(Combat.MapFoeParty(s))} fighting men. Theirs: {Combat.Men(MobileParty.MainParty)}.",
-                // La batalla empieza sola al cerrar la charla (con señores y con partidas sin señor)
+                // The battle starts on its own when the chat closes (with lords and with lordless parties)
                 Execute = (s, arg, ctx) => { Combat.QueueMapAttack(s); ctx.EndConversation = true; return L.F("AIL_53ea433d", $"{s.Name} da la charla por terminada y se lanza al ataque."); }
             },
             new ActionDef
@@ -1261,7 +1266,7 @@ namespace AILegacy.Dialogue
                 {
                     ctx.LetPass = true; ctx.EndConversation = true;
                     Combat.KeepEncounter = false;
-                    // Palabra dada: durante un día nadie de los suyos (ni nadie) se echa encima del jugador
+                    // Their word is given: for one day nobody (theirs or anyone else) goes after the player
                     try { if (s.IsHero) MobileParty.MainParty.IgnoreByOtherPartiesTill(CampaignTime.HoursFromNow(24)); } catch { }
                     return L.F("AIL_7a3f52c8", $"{s.Name} aparta a los suyos y os deja pasar.");
                 }
@@ -1300,7 +1305,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     ctx.RelationDelta -= 3; ctx.TrustDelta -= 10; ctx.EndConversation = true;
-                    // Si hay un guardia que pueda oírlo, acude y decide él; si no, queda la denuncia
+                    // If a guard is in earshot, they come over and decide. If not, the report stands
                     bool came = Justice.Summon($"Moments ago {(s.IsHero ? s.Name : "a local")} shouted for the guard, accusing the armed person in front of you of threatening them.", null, true);
                     if (came) return L.F("AIL_c8741a3a", $"{s.Name} llama a gritos a la guardia.");
                     ChangeCrimeRatingAction.Apply(s.Settlement.MapFaction, 15f, true);
@@ -1308,7 +1313,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- gente corriente que pasa a ser alguien
+            // ----------------------------------------------------------- common people becoming someone
             new ActionDef
             {
                 Name = "join_their_company", Usage = "join_their_company",
@@ -1327,7 +1332,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- recados a otros NPC
+            // ----------------------------------------------------------- messages to other NPCs
             new ActionDef
             {
                 Name = "send_word", Usage = "send_word:<name of a real person>|<what you tell them, one or two sentences in English>|<public, private or secret>",
@@ -1344,7 +1349,7 @@ namespace AILegacy.Dialogue
                 }
             },
 
-            // ----------------------------------------------------------- la guardia decide (solo el guardia que lleva el caso)
+            // ----------------------------------------------------------- the guard decides (only the guard handling the case)
             new ActionDef
             {
                 Name = "let_go", Usage = "let_go",
@@ -1372,7 +1377,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) => { ctx.EndConversation = true; return Justice.Arrest(s); }
             },
 
-            // ----------------------------------------------------------- ejércitos
+            // ----------------------------------------------------------- armies
             new ActionDef
             {
                 Name = "join_army", Usage = "join_army", Letter = true,
@@ -1406,7 +1411,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) => OrderSystem.LeaveArmy(s.Hero)
             },
 
-            // ----------------------------------------------------------- conversación
+            // ----------------------------------------------------------- conversation
             new ActionDef
             {
                 Name = "suspect_lie", Usage = "suspect_lie",
@@ -1425,14 +1430,14 @@ namespace AILegacy.Dialogue
         };
 
         /// <summary>
-        /// ¿Podéis casaros? Las reglas del juego valen entre nobles; aquí se abre también a compañeros, errantes y notables,
-        /// con las mismas condiciones de fondo: adultos, vivos, sin parentesco cercano, y solteros (salvo el ajuste de casados).
+        /// Can you two marry? The game's rules only cover nobles. Here it's also open to companions, wanderers and notables,
+        /// with the same basic conditions: adults, alive, not close kin, and unmarried (unless the married setting is on).
         /// </summary>
         private static bool CanWed(Hero h)
         {
             try
             {
-                // Ya es tu cónyuge: no hay otra boda que celebrar
+                // Already your spouse, no second wedding
                 if (h == null || h == P || P.Spouse == h || h.Spouse == P) return false;
                 if (SafeSuitable(h)) return true;
                 var cfg = S.Get;
@@ -1440,7 +1445,7 @@ namespace AILegacy.Dialogue
                 if (h == null || !h.IsAlive || h.IsChild || h.Age < 18 || P.Age < 18 || h == P || Bonds.IsCloseFamily(h)) return false;
                 if (h.IsFemale == P.IsFemale && !cfg.RomanceSameSex) return false;
                 if ((h.Spouse != null && h.Spouse != P || P.Spouse != null && P.Spouse != h) && !cfg.RomanceWithMarried) return false;
-                if (h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan) return false;      // el jefe de otra casa no la deja por una boda
+                if (h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan) return false;      // another clan's leader won't leave it for a wedding
                 if (h.MapFaction is Kingdom k && k.Leader == h) return false;
                 return h.IsLord || h.IsWanderer || h.IsNotable || h.IsPlayerCompanion;
             }
@@ -1454,8 +1459,8 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// Un vecino cualquiera pasa a ser un personaje de verdad (héroe) y compañero tuyo, conservando su nombre,
-        /// su carácter y todo lo que habéis hablado.
+        /// A plain townsperson becomes a real character (a hero) and your companion, keeping their name,
+        /// their personality and everything you talked about.
         /// </summary>
         private static Hero Promote(Speaker s)
         {
@@ -1481,7 +1486,7 @@ namespace AILegacy.Dialogue
                 AddCompanionAction.Apply(Clan.PlayerClan, hero);
                 AddHeroToPartyAction.Apply(hero, MobileParty.MainParty);
 
-                // Su memoria de vecino pasa a su ficha de héroe
+                // Move their resident memory over to the new hero record
                 var old = s.Memory;
                 var mem = Memory.MemoryStore.Get(hero.StringId, hero.Name.ToString());
                 mem.Profile = old.Profile; mem.Turns = old.Turns.ToList(); mem.Notes = old.Notes.ToList(); mem.Summary = old.Summary;
@@ -1497,13 +1502,13 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Convertir a un vecino en compañero", ex); return null; }
         }
 
-        /// <summary>Registra una plantilla editable por cada acción (prompts\actions\).</summary>
+        /// <summary>Registers one editable template per action (prompts\actions\).</summary>
         public static void RegisterTemplates()
         {
             foreach (var a in All) Prompt.Templates.GetOrAdd("actions/" + a.Name + ".txt", a.Description);
         }
 
-        // --- objetos
+        // --- items
         private static string NormName(string s) => new string((s ?? "").ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
 
         private static ItemObject FindInRoster(ItemRoster roster, string name, out int have)
@@ -1525,9 +1530,9 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// De dónde sale lo que da el NPC: siempre de un inventario real. Su partida (o la de su clan en la que viaja);
-        /// sin partida, las existencias del lugar donde está, si es suyo (su clan es el dueño, o es uno de sus notables)
-        /// o si vive de venderlas (mercader, artesano, aldeano…). Si no hay nada de eso, null: no puede dar nada.
+        /// Where the NPC's gifts come from: always a real inventory. Their party (or the clan party they travel with).
+        /// With no party, the stock of the place they're in, if it's theirs (their clan owns it, or they're one of its notables)
+        /// or if they live off selling it (merchant, artisan, villager...). Otherwise null, so they can't give anything.
         /// </summary>
         private static ItemRoster GiveSource(Speaker s, out string where)
         {
@@ -1581,15 +1586,14 @@ namespace AILegacy.Dialogue
             catch { return ""; }
         }
 
-        // --- reino y clan
+        // --- kingdom and clan
         private static Clan PC => Clan.PlayerClan;
         private static Kingdom KingdomOf(Speaker s) => s.IsHero ? s.Hero.MapFaction as Kingdom : null;
         private static bool NpcIsRuler(Speaker s) => s.IsHero && KingdomOf(s) != null && KingdomOf(s).Leader == s.Hero && !s.Hero.IsPrisoner;
         private static bool PlayerMercenary => PC != null && PC.IsUnderMercenaryService;
         private static List<Settlement> FiefsOf(Clan c) => c == null ? new List<Settlement>() : c.Settlements.Where(x => x.IsTown || x.IsCastle).ToList();
 
-        /// <summary>Texto con las acciones disponibles ahora mismo (para el prompt).</summary>
-        // ---- acciones que registran otros mods (AILegacy.Api.AILegacyApi.RegisterAction)
+        // ---- actions registered by other mods (AILegacy.Api.AILegacyApi.RegisterAction)
         internal static bool RegisterModAction(string name, string description, string argumentHint, Func<Hero, bool> isAvailable, Func<Hero, string, string> execute)
         {
             if (string.IsNullOrEmpty(name) || !name.StartsWith("mod_") || execute == null) return false;
@@ -1599,7 +1603,7 @@ namespace AILegacy.Dialogue
                 Name = name,
                 Usage = string.IsNullOrEmpty(argumentHint) ? name : name + ":<" + argumentHint + ">",
                 Description = description,
-                // El fallo de otro mod se queda en el log: para la conversación, la acción no está o no ha ocurrido
+                // Another mod's failure stays in the log. For the conversation, the action is just unavailable or didn't happen
                 IsAvailable = s =>
                 {
                     try { return s.IsHero && (isAvailable == null || isAvailable(s.Hero)); }
@@ -1619,7 +1623,7 @@ namespace AILegacy.Dialogue
 
         internal static int UnregisterModActions(string prefix) => string.IsNullOrEmpty(prefix) || !prefix.StartsWith("mod_") ? 0 : All.RemoveAll(a => a.Name.StartsWith(prefix));
 
-        /// <summary>Las acciones abiertas a ese personaje, en corto (cómo se escribe y su primera frase): para los corros.</summary>
+        /// <summary>Short list of actions open to that character (syntax and first sentence), for group chats.</summary>
         public static string DescribeBrief(Speaker s, int max)
         {
             if (!S.Get.EnableActions || s == null || !s.IsHero) return "";
@@ -1628,7 +1632,7 @@ namespace AILegacy.Dialogue
             {
                 bool ok;
                 try { ok = a.IsAvailable(s); } catch { ok = false; }
-                if (!ok || NoNote.Contains(a.Name)) continue;          // las que no cambian nada (irse, sospechar) no hacen falta aquí
+                if (!ok || NoNote.Contains(a.Name)) continue;          // actions that change nothing (leave, suspect) aren't needed here
                 string d = Prompt.Templates.GetOrAdd("actions/" + a.Name + ".txt", a.Description).Text ?? "";
                 int dot = d.IndexOf(". ", StringComparison.Ordinal);
                 if (dot > 20) d = d.Substring(0, dot);
@@ -1643,21 +1647,21 @@ namespace AILegacy.Dialogue
         {
             if (!S.Get.EnableActions) return "";
             var open = new List<ActionDef>();
-            foreach (var a in All.ToList())      // copia: la condición de una acción de otro mod podría registrar o quitar acciones
+            foreach (var a in All.ToList())      // copy: another mod's availability check could register or remove actions
             {
                 if (viaLetter && !a.Letter) continue;
                 bool ok;
                 try { ok = a.IsAvailable(s); } catch { ok = false; }
                 if (ok) open.Add(a);
             }
-            // Por tema: de las que dependen de lo que se habla, enteras solo las más cercanas; el resto, nombradas
+            // By topic: of the topic-dependent actions, only the closest get full text; the rest are just named
             var brief = new List<ActionDef>();
             try
             {
                 var q = s.Memory.QueryVec;
                 int top = Math.Max(1, S.Get.ActionRagTopK);
                 var topical = open.Where(a => ByTopic.Contains(a.Name) && ActionVecs.ContainsKey(a.Name)).ToList();
-                if (!viaLetter && S.Get.EnableActionRag && q != null && topical.Count > top)
+                if (!viaLetter && S.Get.EnableActionRag && q != null && topical.Count > top && Llm.Embeddings.SameModel(_actionVecsModel, s.Memory.QueryModel))
                 {
                     var keep = new HashSet<string>(topical.OrderByDescending(a => Llm.Embeddings.Cosine(q, ActionVecs[a.Name])).Take(top).Select(a => a.Name));
                     brief = topical.Where(a => !keep.Contains(a.Name)).ToList();
@@ -1670,7 +1674,7 @@ namespace AILegacy.Dialogue
                 if (brief.Contains(a)) continue;
                 string extra = "";
                 try { if (a.Extra != null) extra = " " + a.Extra(s); } catch { }
-                // La descripción sale de la plantilla editable prompts\actions\<acción>.txt
+                // The description comes from the editable template prompts\actions\<action>.txt
                 sb.AppendLine($"- {a.Usage}: {Prompt.Templates.GetOrAdd("actions/" + a.Name + ".txt", a.Description).Text}{extra}");
             }
             if (brief.Count > 0)
@@ -1678,23 +1682,23 @@ namespace AILegacy.Dialogue
             return sb.ToString().TrimEnd();
         }
 
-        /// <summary>Ejecuta las acciones pedidas (en el hilo principal). Devuelve los mensajes a enseñar.</summary>
+        /// <summary>Runs the requested actions (main thread). Returns the messages to show.</summary>
         public static List<string> Execute(Speaker s, IEnumerable<string> commands, ActionContext ctx)
         {
             var messages = new List<string>();
             if (!S.Get.EnableActions || commands == null) return messages;
 
-            // Orden lógico: primero el dinero, luego lo demás (ej: take_gold antes de join_party)
+            // Money first, then the rest (e.g. take_gold before join_party)
             var ordered = commands.Where(c => !string.IsNullOrWhiteSpace(c)).Take(5)
                 .OrderBy(c => c.Trim().StartsWith("take_gold") || c.Trim().StartsWith("give_gold") ? 0 : 1).ToList();
 
             var done = new HashSet<string>();
-            var executed = new HashSet<string>();      // las que de verdad han ocurrido: solo esas excluyen a otras de su grupo
+            var executed = new HashSet<string>();      // only actions that really happened block others in their group
             int failNotes = 0;
-            // El personaje se entera de lo que NO ha pasado (como mucho tres avisos por respuesta)
+            // The character is told what did NOT happen (at most three notices per reply)
             void Failed(string cmd, string why)
             {
-                // Las acciones sin efecto (irse, sospechar) no merecen aviso; y como mucho tres por respuesta
+                // No-effect actions (leave, suspect) get no notice
                 string n = cmd.Split(':')[0].Trim().ToLowerInvariant();
                 if (NoNote.Contains(n) || (Aliases.TryGetValue(n, out var an) && NoNote.Contains(an)) || failNotes++ >= 3) return;
                 NoteOutcome(s, $"[Did not happen: you tried «{Clip(cmd, 90)}» but {why}. Whatever your words announced about it has NOT happened: do not speak or act as if it had. " +
@@ -1722,15 +1726,15 @@ namespace AILegacy.Dialogue
                     var msg = def.Execute(s, arg, ctx);
                     bool happened = msg != null && _why == null;
                     Log.Info($"Acción {cmd} de {s.Name}" + (msg != null ? ": " + msg : "") + (happened ? "" : _repeated ? " (repetida)" : " (no ha ocurrido" + (_why != null ? ": " + _why : "") + ")"));
-                    if (!string.IsNullOrEmpty(msg)) messages.Add(msg);          // cadena vacía: ha ocurrido, pero no hay nada que enseñar
+                    if (!string.IsNullOrEmpty(msg)) messages.Add(msg);          // empty string: it happened, but there's nothing to show
                     else if (msg == null && def.Usage.Contains(":")) Log.Warn($"La acción {cmd} no se pudo cumplir (objetivo no encontrado o no válido)");
                     if (happened)
                     {
                         executed.Add(name);
                         if (s.IsHero) AILegacy.Api.AILegacyApi.RaiseActionExecuted(s.Hero, name, arg, msg);
-                        // Noticia solo si de verdad ha salido bien (si no, por ejemplo, una boda que no ha pasado)
+                        // News only if it really worked (otherwise you'd get, say, a wedding that never happened)
                         RecordAsNews(s, name);
-                        // Las que ya dejan su propia nota (oro, objetos, tropas…) no se apuntan dos veces
+                        // Actions that already leave their own note (gold, items, troops...) aren't noted twice
                         if (!NoNote.Contains(name) && s.Memory.Turns.Count == turnsBefore)
                             NoteOutcome(s, $"[Done: your action «{Clip(cmd, 90)}» has really taken effect in the world — do not do it again.]");
                     }
@@ -1745,7 +1749,7 @@ namespace AILegacy.Dialogue
 
         private static string Clip(string t, int max) => t == null ? "" : t.Length <= max ? t : t.Substring(0, max) + "…";
 
-        /// <summary>«…:return» al final: se acordó volver junto al jugador después. Lo quita del argumento.</summary>
+        /// <summary>A trailing ":return" means they agreed to come back to the player afterwards. Strips it from the argument.</summary>
         private static bool TakeReturn(ref string arg)
         {
             arg = (arg ?? "").Trim();
@@ -1754,7 +1758,7 @@ namespace AILegacy.Dialogue
             return false;
         }
 
-        /// <summary>Alguien con nombre que está aquí mismo: en el mismo sitio que el jugador, en su partida o en la del personaje.</summary>
+        /// <summary>A named hero who is right here: same place as the player, in the player's party, or in the character's.</summary>
         private static Hero FindPresent(Speaker s, string name)
         {
             string n = NormName(name);
@@ -1779,7 +1783,7 @@ namespace AILegacy.Dialogue
 
         private static void Say(string msg) => TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage(msg, TaleWorlds.Library.Colors.Yellow));
 
-        /// <summary>Una decisión que solo vale con la palabra del jugador: ventana de sí o no, por encima del diálogo.</summary>
+        /// <summary>A decision that needs the player's word: a yes/no popup over the dialogue.</summary>
         private static void Ask(string title, string text, string yes, string no, Action onYes, Action onNo)
         {
             int session = WorldSim.Session;
@@ -1795,12 +1799,12 @@ namespace AILegacy.Dialogue
             });
         }
 
-        /// <summary>La boda, ya con el sí de los dos.</summary>
+        /// <summary>The wedding, once both have said yes.</summary>
         private static void FinishWedding(Speaker s)
         {
             try
             {
-                // Entre el sí y la confirmación puede haber cambiado algo: se vuelve a mirar que la boda sigue siendo posible
+                // Something may have changed between the yes and the confirmation, so check the wedding is still possible
                 if (!s.IsHero || !s.Hero.IsAlive || s.Hero.IsPrisoner || !CanWed(s.Hero))
                 {
                     NoteOutcome(s, "[Did not happen: the wedding could not take place after all. You are not married.]");
@@ -1821,7 +1825,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Boda", ex); }
         }
 
-        /// <summary>Un duelo con armas no empieza porque sí: el jugador lo acepta o se echa atrás.</summary>
+        /// <summary>An armed duel doesn't just start: the player accepts or backs out.</summary>
         private static string Challenge(Speaker s, string kind)
         {
             if (Repeated(s, "challenge|" + kind, 1)) return null;
@@ -1833,7 +1837,7 @@ namespace AILegacy.Dialogue
                 L.T("AIL_b8f2e6b3", "Luchar"), L.T("AIL_b8f2e6b4", "Echarse atrás"),
                 () =>
                 {
-                    // Se mira en el momento de aceptar: la charla tiene que seguir abierta con él y el sitio tiene que permitirlo
+                    // Checked when accepting: the chat with them must still be open and the place must allow it
                     string msg = null;
                     var talk = ChatSession.Active;
                     if (talk != null && talk.Who != null && talk.Who.Key == s.Key && !(s.IsHero && (!s.Hero.IsAlive || s.Hero.IsPrisoner)))
@@ -1853,7 +1857,7 @@ namespace AILegacy.Dialogue
             return L.F("AIL_b8f2e6b6", $"{s.Name} está dispuesto a batirse contigo.");
         }
 
-        // Guerra y paz decididas en una charla: entre una y otra con el mismo reino tienen que pasar unos días
+        // War and peace decided in a chat: a few days must pass between one and the other with the same kingdom
         private const double WarPeaceCooldownDays = 7;
         private static string WarPeaceKey(IFaction f) => f == null || PlayerKingdom == null ? null : string.CompareOrdinal(f.StringId, PlayerKingdom.StringId) < 0 ? f.StringId + "|" + PlayerKingdom.StringId : PlayerKingdom.StringId + "|" + f.StringId;
         private static bool WarPeaceSettled(IFaction f)
@@ -1863,18 +1867,18 @@ namespace AILegacy.Dialogue
         }
         private static void MarkWarPeace(IFaction f) { try { var k = WarPeaceKey(f); if (k != null && WorldSim.State != null) WorldSim.State.WarPeaceDay[k] = CampaignTime.Now.ToDays; } catch { } }
 
-        /// <summary>¿Son del mismo bando? (mismo clan o mismo reino o facción): a uno de los suyos no se le tiene preso.</summary>
+        /// <summary>Same side (same clan, kingdom or faction). You don't keep one of your own as a prisoner.</summary>
         private static bool SameSide(Hero a, Hero b)
         {
             try { return a != null && b != null && (a == b || (a.Clan != null && a.Clan == b.Clan) || (a.MapFaction != null && a.MapFaction == b.MapFaction)); }
             catch { return false; }
         }
 
-        /// <summary>Las acciones gordas se convierten en noticia (el juego no siempre las anuncia).</summary>
+        /// <summary>Big actions become news (the game doesn't always announce them).</summary>
         private static void RecordAsNews(Speaker s, string action)
         {
             if (!s.IsHero) return;
-            // Comprobar en el mundo que ha pasado de verdad
+            // Check in the world that it really happened
             try
             {
                 bool happened = action == "join_party" ? s.Hero.CompanionOf == Clan.PlayerClan
@@ -1902,8 +1906,8 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// Solo el PRIMER número del texto («100 ahora y 100 después» → 100; «200-300» → 200).
-        /// Acepta separador de miles («1.000», «1,000», «1 000» → 1000) y «5k» → 5000; los decimales se descartan («2.5» → 2).
+        /// Only the FIRST number in the text ("100 now and 100 later" -> 100, "200-300" -> 200).
+        /// Accepts thousands separators ("1.000", "1,000", "1 000" -> 1000) and "5k" -> 5000. Decimals are dropped ("2.5" -> 2).
         /// </summary>
         internal static int ParseAmount(string arg)
         {
@@ -1914,25 +1918,25 @@ namespace AILegacy.Dialogue
             long v = 0;
             int j = i;
             while (j < s.Length && char.IsDigit(s[j])) { v = v * 10 + (s[j] - '0'); j++; if (v > int.MaxValue) return int.MaxValue; }
-            // Grupos de miles: solo si el primer grupo tiene 1-3 cifras y cada grupo siguiente exactamente 3, con el mismo separador
+            // Thousands groups: only if the first group has 1-3 digits and each later group exactly 3, with the same separator
             if (j - i <= 3)
             {
                 char sep = '\0';
-                // j es el separador; hacen falta s[j+1..j+3]
+                // j is the separator; s[j+1..j+3] must be digits
                 while (j + 3 < s.Length)
                 {
                     char c = s[j];
                     bool isSep = c == '.' || c == ',' || c == ' ' || c == ' ' || c == ' ' || c == '\'';
                     if (!isSep || (sep != '\0' && c != sep)) break;
                     if (!char.IsDigit(s[j + 1]) || !char.IsDigit(s[j + 2]) || !char.IsDigit(s[j + 3])) break;
-                    if (j + 4 < s.Length && char.IsDigit(s[j + 4])) break;              // cuatro o más cifras: no es un grupo de miles
+                    if (j + 4 < s.Length && char.IsDigit(s[j + 4])) break;              // four or more digits: not a thousands group
                     sep = c;
                     v = v * 1000 + (s[j + 1] - '0') * 100 + (s[j + 2] - '0') * 10 + (s[j + 3] - '0');
                     if (v > int.MaxValue) return int.MaxValue;
                     j += 4;
                 }
             }
-            // «5k» = 5000
+            // "5k" = 5000
             if (j < s.Length && (s[j] == 'k' || s[j] == 'K') && (j + 1 >= s.Length || !char.IsLetter(s[j + 1]))) v *= 1000;
             return v > int.MaxValue ? int.MaxValue : (int)v;
         }

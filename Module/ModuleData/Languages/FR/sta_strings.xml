@@ -333,7 +333,7 @@
     <string id="AIL_44de911b" text="Société" />
     <string id="AIL_4514967a" text=", du clan " />
     <string id="AIL_454cbf99" text="{0} se rend : {1} hommes deviennent tes prisonniers." />
-    <string id="AIL_454f39f4" text="Les fournisseurs sont testés dans l'ordre (1, 2, 3, 4) : si le premier échoue ou n'a plus de quota, on passe au suivant. Les clés sont enregistrées dans Documents, dans Mount and Blade II Bannerlord / Configs / ModSettings, pas dans le dossier du mod." />
+    <string id="AIL_454f39f4" text="Les fournisseurs sont testés dans l'ordre (1 à 6) : si le premier échoue ou n'a plus de quota, on passe au suivant. Les emplacements 1 à 4 sont préremplis pour Gemini, OpenAI, DeepSeek et Ollama à titre d'exemple : ajoutez votre clé et activez-les, ou changez ce que vous voulez. Les clés sont enregistrées dans Documents, dans Mount and Blade II Bannerlord / Configs / ModSettings, pas dans le dossier du mod." />
     <string id="AIL_458e1b5a" text="Chaque décision est une requête à l'IA par camp. Si un camp perd d'un coup beaucoup de monde, il décide plus tôt." />
     <string id="AIL_45d4f33e" text="Gardes par vague" />
     <string id="AIL_463eb3a3" text="Sans titre" />
@@ -464,7 +464,7 @@
     <string id="AIL_5da6bc58" text="Armées (rejoindre la tienne, réunir la sienne, la quitter)" />
     <string id="AIL_5dca951d" text="Description (ce que liront les NPC ; mieux en anglais, mais toute langue convient)" />
     <string id="AIL_5de8b992" text="&#10;Impliqués : " />
-    <string id="AIL_5e0df453" text="Adresse de base compatible avec OpenAI, p. ex. https://mi-servidor/v1. Pour les services connus, elle se remplit toute seule." />
+    <string id="AIL_5e0df453" text="Adresse de base compatible avec OpenAI, sans /chat/completions à la fin (le mod l'ajoute), p. ex. https://mon-serveur/v1. Pour les services connus, elle se remplit toute seule." />
     <string id="AIL_5e2efb51" text="Restaurer depuis un fichier" />
     <string id="AIL_5e479046" text="Humeur : " />
     <string id="AIL_5e55369d" text="Nombre maximum de foyers simultanés" />
@@ -1313,7 +1313,11 @@
     <string id="AIL_d4b8a2f7" text="Les actions qui dépendent du sujet (ordres, commerce, royaume) ne sont expliquées en entier que lorsqu'elles sont pertinentes ; les autres sont nommées sur une ligne et restent valables. Économise des tokens à chaque réplique. Nécessite les vecteurs du souvenir par le sens." />
     <string id="AIL_d4b8a2f8" text="Actions expliquées en entier" />
     <string id="AIL_d4b8a2f9" text="Modèle de vecteurs (vide = automatique)" />
-    <string id="AIL_d4b8a2fa" text="Vide : gemini-embedding-001 avec Gemini, text-embedding-3-small avec OpenAI, nomic-embed-text avec Ollama. N'en indiquez un autre que si votre fournisseur utilise un nom différent." />
+    <string id="AIL_d4b8a2fa" text="Pour les fournisseurs sans modèle de vecteurs propre et dont le mod ne connaît pas le service. Vide : gemini-embedding-001 avec Gemini, text-embedding-3-small avec OpenAI, embedding-3 avec GLM, nomic-embed-text avec Ollama ; DeepSeek et Groq ne donnent pas de vecteurs. N'en indiquez un autre que si votre fournisseur utilise un nom différent." />
+    <string id="AIL_e7b1c4d1" text="Modèle de vecteurs (vide = automatique, - = aucun)" />
+    <string id="AIL_e7b1c4d2" text="Modèle que ce fournisseur utilise pour le rappel par le sens (vecteurs). Vide : celui habituel du service s'il en a un (embedding-3 avec GLM), ou celui de 4. Mémoire. Tapez - pour ne jamais demander de vecteurs à ce fournisseur." />
+    <string id="AIL_e7b1c4d5" text="Fournisseur 5" />
+    <string id="AIL_e7b1c4d6" text="Fournisseur 6" />
     <string id="AIL_e5c9b3a1" text="Nouvelles" />
     <string id="AIL_e5c9b3a2" text="Souvenirs" />
     <string id="AIL_e5c9b3a3" text="Confirmer" />

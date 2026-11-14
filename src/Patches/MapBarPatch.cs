@@ -9,10 +9,10 @@ using TaleWorlds.Localization;
 
 namespace AILegacy.Patches
 {
-    /// <summary>Botón "Memorias" dentro de la barra del mapa, entre Misiones y Clan.</summary>
+    /// <summary>"Memories" button in the map bar, between Quests and Clan.</summary>
     public class MemoriesNavigationElement : MapNavigationElementBase
     {
-        public const string Id = "ailegacy_memories"; // también es el nombre de la capa del icono en GUI/Brushes/AILegacyMapBar.xml
+        public const string Id = "ailegacy_memories"; // also the icon layer name in GUI/Brushes/AILegacyMapBar.xml
 
         public MemoriesNavigationElement(MapNavigationHandler handler) : base(handler) { }
 

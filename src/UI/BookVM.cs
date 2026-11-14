@@ -22,7 +22,7 @@ namespace AILegacy.UI
         [DataSourceProperty] public string Subtitle { get => _subtitle; set { if (value != _subtitle) { _subtitle = value; OnPropertyChangedWithValue(value, nameof(Subtitle)); } } }
     }
 
-    /// <summary>Ventana de "libro": lista a la izquierda, detalle a la derecha (Noticias, Memorias).</summary>
+    /// <summary>"Book" window: list on the left, details on the right.</summary>
     public class BookVM : ViewModel
     {
         private string _title = "", _detailTitle = "", _detailText = "", _actionText = "", _closeText = L.T("AIL_e8438e2a", "Cerrar");
@@ -51,12 +51,11 @@ namespace AILegacy.UI
         [DataSourceProperty] public bool HasAction { get => _hasAction; set { if (value != _hasAction) { _hasAction = value; OnPropertyChangedWithValue(value, nameof(HasAction)); } } }
     }
 
-    /// <summary>Una noticia en la ventana de Noticias: título, a quién toca, lo ocurrido, efectos, tipo y fecha.</summary>
     public class NewsCardVM : ViewModel
     {
         public NewsCardVM(string title, string participants, string text, string effects, string tag, string when, int tagKind = 2)
         { Title = title; Participants = participants ?? ""; Text = text; Effects = effects ?? ""; Tag = tag; When = when; TagKind = tagKind; }
-        /// <summary>Color de la etiqueta: 0 = local (pardo), 1 = política (azul), 2 = lo demás (verde).</summary>
+        /// <summary>Tag color: 0 = local (brown), 1 = political (blue), 2 = anything else (green).</summary>
         public int TagKind { get; }
         [DataSourceProperty] public bool IsLocal => TagKind == 0;
         [DataSourceProperty] public bool IsPolitical => TagKind == 1;
@@ -68,12 +67,11 @@ namespace AILegacy.UI
         [DataSourceProperty] public string Tag { get; }
         [DataSourceProperty] public string When { get; }
         [DataSourceProperty] public bool HasParticipants => Participants.Length > 0;
-        /// <summary>La fila de etiquetas (tipo y fecha) solo sale en noticias de verdad, no en el aviso de «no hay nada».</summary>
+        /// <summary>The tag row (type and date) only shows on real news, not on the "nothing here" card.</summary>
         [DataSourceProperty] public bool HasTags => !string.IsNullOrEmpty(Tag) || !string.IsNullOrEmpty(When);
         [DataSourceProperty] public bool HasEffects => Effects.Length > 0;
     }
 
-    /// <summary>Ventana de Noticias: una columna para leer de arriba abajo.</summary>
     public class NewsFeedVM : ViewModel
     {
         public Action OnClose, OnAction, OnToggle;

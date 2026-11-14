@@ -4,7 +4,7 @@ using AILegacy.Core;
 
 namespace AILegacy.Prompt
 {
-    /// <summary>Texto libre sobre el mundo (Modules\AILegacy\world.txt). Se recarga si cambia.</summary>
+    /// <summary>Free-form world text from Modules\AILegacy\world.txt. Reloaded when the file changes.</summary>
     internal static class WorldLore
     {
         private static string _text = "";

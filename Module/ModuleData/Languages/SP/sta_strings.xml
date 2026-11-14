@@ -333,7 +333,7 @@
     <string id="AIL_44de911b" text="Sociedad" />
     <string id="AIL_4514967a" text=", del clan " />
     <string id="AIL_454cbf99" text="{0} se rinde: {1} hombres pasan a ser tus prisioneros." />
-    <string id="AIL_454f39f4" text="Los proveedores se prueban en orden (1, 2, 3, 4): si el primero falla o se queda sin cupo, se pasa al siguiente. Las claves se guardan en Documentos, en Mount and Blade II Bannerlord " />
+    <string id="AIL_454f39f4" text="Los proveedores se prueban en orden (del 1 al 6): si el primero falla o se queda sin cupo, se pasa al siguiente. Los huecos 1 a 4 vienen rellenos para Gemini, OpenAI, DeepSeek y Ollama como ejemplo: pon tu clave y enciéndelos, o cambia lo que quieras. Las claves se guardan en Documentos, en Mount and Blade II Bannerlord / Configs / ModSettings, no en la carpeta del mod." />
     <string id="AIL_458e1b5a" text="Cada decisión es una petición a la IA por bando. Si un bando pierde de golpe mucha gente, decide antes." />
     <string id="AIL_45d4f33e" text="Guardias por oleada" />
     <string id="AIL_463eb3a3" text="Sin título" />
@@ -464,7 +464,7 @@
     <string id="AIL_5da6bc58" text="Ejércitos (unirse al tuyo, reunir el suyo, dejarlo)" />
     <string id="AIL_5dca951d" text="Descripción (lo que leerán los NPC; mejor en inglés, pero vale cualquier idioma)" />
     <string id="AIL_5de8b992" text="&#10;Implicados: " />
-    <string id="AIL_5e0df453" text="Dirección base compatible con OpenAI, p. ej. https:" />
+    <string id="AIL_5e0df453" text="Dirección base compatible con OpenAI, sin /chat/completions al final (lo añade el mod), p. ej. https://mi-servidor/v1. En los servicios conocidos se rellena sola." />
     <string id="AIL_5e2efb51" text="Restaurar desde archivo" />
     <string id="AIL_5e479046" text="Ánimo: " />
     <string id="AIL_5e55369d" text="Brotes a la vez como máximo" />
@@ -702,7 +702,7 @@
     <string id="AIL_8f57f4c0" text="{0} ha puesto sitio a {1}." />
     <string id="AIL_8fb29764" text="{0} te da {1} × {2}." />
     <string id="AIL_8fdf1238" text="otoño (riesgo medio)" />
-    <string id="AIL_8ff3713b" text="Diplomacia (guerra " />
+    <string id="AIL_8ff3713b" text="Diplomacia (guerra / paz entre reyes)" />
     <string id="AIL_9003236d" text="Confianza (-100 a 100)" />
     <string id="AIL_901ece79" text="Nuevo soberano" />
     <string id="AIL_90212ba8" text="Se publica al momento como noticia: los NPC se enteran según la importancia (1 = el lugar, 2 = la corte, 3 = todo el reino, 4 = todo el mundo). Los implicados y su clan lo saben siempre." />
@@ -1222,7 +1222,7 @@
     <string id="AIL_f8647bfd" text="Tipo: {0}   ·   Hace {1} día(s)   ·   Importancia {2} ({3})" />
     <string id="AIL_f8823100" text="Enseñar las órdenes de la IA" />
     <string id="AIL_f8ac2cac" text="Crónica de {0}" />
-    <string id="AIL_f8db9623" text="Botones en el mapa (Noticias " />
+    <string id="AIL_f8db9623" text="Botones en el mapa (Noticias / Memorias)" />
     <string id="AIL_f8fff764" text="Un vecino con el que has hablado de verdad puede dejar su vida y unirse a tu compañía: pasa a ser un personaje permanente, con su nombre, su carácter y su memoria. Su aspecto cambia al del nuevo personaje." />
     <string id="AIL_f90050f2" text="Social" />
     <string id="AIL_f92abc25" text="Sin encargos" />
@@ -1313,7 +1313,11 @@
     <string id="AIL_d4b8a2f7" text="Las acciones que dependen de lo que se habla (órdenes, comercio, reino) solo se explican enteras cuando vienen a cuento; las demás quedan nombradas en una línea y siguen valiendo. Ahorra tokens en cada frase. Necesita los vectores del recuerdo por significado." />
     <string id="AIL_d4b8a2f8" text="Acciones explicadas enteras" />
     <string id="AIL_d4b8a2f9" text="Modelo de vectores (vacío = automático)" />
-    <string id="AIL_d4b8a2fa" text="Vacío: gemini-embedding-001 con Gemini, text-embedding-3-small con OpenAI, nomic-embed-text con Ollama. Escribe otro solo si tu proveedor usa un nombre distinto." />
+    <string id="AIL_d4b8a2fa" text="Para los proveedores que no tienen su propio modelo de vectores escrito y cuyo servicio el mod no conoce. Vacío: gemini-embedding-001 con Gemini, text-embedding-3-small con OpenAI, embedding-3 con GLM, nomic-embed-text con Ollama; DeepSeek y Groq no dan vectores. Escribe otro solo si tu proveedor usa un nombre distinto." />
+    <string id="AIL_e7b1c4d1" text="Modelo de vectores (vacío = automático, - = ninguno)" />
+    <string id="AIL_e7b1c4d2" text="Modelo que usa este proveedor para el recuerdo por significado (vectores). Vacío: el habitual del servicio si tiene (embedding-3 con GLM), o el de 4. Memoria. Escribe - para que a este proveedor no se le pidan nunca vectores." />
+    <string id="AIL_e7b1c4d5" text="Proveedor 5" />
+    <string id="AIL_e7b1c4d6" text="Proveedor 6" />
     <string id="AIL_e5c9b3a1" text="Noticias" />
     <string id="AIL_e5c9b3a2" text="Memorias" />
     <string id="AIL_e5c9b3a3" text="Confirmar" />

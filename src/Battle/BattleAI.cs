@@ -20,9 +20,9 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Battle
 {
     /// <summary>
-    /// IA de táctica en batallas campales. El jefe de cada bando que no mandas tú recibe cada cierto tiempo una foto de la
-    /// batalla (formaciones, bajas, distancias) y da órdenes reales a sus formaciones. Mientras decide, o si la IA falla,
-    /// siguen las tácticas del juego. Con Alt+B das tú órdenes a tus tropas escribiéndolas con tus palabras.
+    /// Field battle tactics AI. Every so often, the leader of each side you don't command gets a snapshot of the
+    /// battle (formations, casualties, distances) and gives real orders to their formations. While it decides, or if the AI fails,
+    /// the game's own tactics keep running. Alt+B lets the player type orders to their troops in their own words.
     /// </summary>
     internal static class BattleAI
     {
@@ -73,7 +73,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             public int Gen, StartMen, MenAtLastDecision;
             public bool Waiting;
             public readonly List<string> History = new List<string>();
-            public readonly HashSet<Formation> Held = new HashSet<Formation>();      // formaciones a las que les hemos quitado el mando al juego
+            public readonly HashSet<Formation> Held = new HashSet<Formation>();      // formations we took control of from the game AI
             public readonly Dictionary<Formation, string> Doing = new Dictionary<Formation, string>();
         }
 
@@ -81,9 +81,9 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
         private static readonly List<Side> Sides = new List<Side>();
         private static int _requests;
         private static bool _playerWaiting;
-        /// <summary>Una orden que llega más tarde que esto (segundos de batalla) ya no vale: la situación ha cambiado.</summary>
+        /// <summary>Orders arriving later than this (battle seconds) are dropped, the situation has changed.</summary>
         private const float MaxLateSeconds = 20f;
-        /// <summary>Un jefe de la IA solo abandona el campo si le superan de verdad (sus hombres &lt; 35 % de los del enemigo).</summary>
+        /// <summary>An AI leader only leaves the field when badly outnumbered (their men &lt; 35% of the enemy's).</summary>
         private const float RetreatRatio = 0.35f;
 
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
@@ -118,7 +118,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
 
         private static string Name(Formation f) => f.FormationIndex.ToString();
 
-        /// <summary>Dónde está algo respecto a un punto y una dirección de frente: «120 m ahead, to the left».</summary>
+        /// <summary>Position relative to a point and facing direction, e.g. "120 m ahead, to the left".</summary>
         private static string Where(Vec2 from, Vec2 front, Vec2 what)
         {
             var d = what - from;
@@ -170,7 +170,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                  + $"{(tactics >= 150 ? "a master tactician" : tactics >= 80 ? "a competent tactician" : "no great tactician: plain, direct orders")}.";
         }
 
-        // ============================================================ aplicar órdenes
+        // ============================================================ apply orders
 
         private static int Apply(Team team, Side side, JArray orders, Vec2 centre, Vec2 front, Formation mainEnemy, bool playerOrder, StringBuilder shown)
         {
@@ -178,7 +178,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             if (orders == null) return 0;
             var mine = team.FormationsIncludingEmpty.Where(f => f.CountOfUnits > 0).ToList();
             var theirs = EnemiesOf(team).SelectMany(t => t.FormationsIncludingEmpty).Where(f => f.CountOfUnits > 0).ToList();
-            // Retirarse del campo solo si todo está perdido; si no, se queda en replegarse (tus órdenes, Alt+B, no se tocan)
+            // Leave the field only if all is lost, otherwise fall back instead (player orders via Alt+B are left alone)
             bool mayRetreat = playerOrder || Men(team) < RetreatRatio * EnemiesOf(team).Sum(Men);
             foreach (var o in orders.OfType<JObject>())
             {
@@ -186,7 +186,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 var f = mine.FirstOrDefault(x => string.Equals(Name(x), fname, StringComparison.OrdinalIgnoreCase));
                 if (f == null) continue;
                 bool players = f.PlayerOwner != null && f.PlayerOwner == Agent.Main;
-                if (players != playerOrder && !(playerOrder && team.IsPlayerGeneral)) continue;      // cada cual manda en lo suyo
+                if (players != playerOrder && !(playerOrder && team.IsPlayerGeneral)) continue;      // each side only commands its own formations
                 string move = ((string)o["move"] ?? "").Trim().ToLowerInvariant(), shape = ((string)o["shape"] ?? "").Trim().ToLowerInvariant(), fire = ((string)o["fire"] ?? "").Trim().ToLowerInvariant();
                 if (move == "retreat" && !mayRetreat) { Log.Info($"[batalla] retirada de {Name(f)} rechazada: no están en clara inferioridad"); move = "fall_back"; }
                 MovementOrder? mo = null;
@@ -211,7 +211,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     if (slash > 0) en = en.Substring(0, slash);
                     var pos = f.CurrentPosition;
                     var target = theirs.Where(x => string.Equals(Name(x), en, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.CurrentPosition.Distance(pos)).FirstOrDefault();
-                    if (target != null) mo = MovementOrder.MovementOrderChargeToTarget(target);      // un objetivo que no existe se rechaza
+                    if (target != null) mo = MovementOrder.MovementOrderChargeToTarget(target);      // unknown targets are ignored
                 }
                 if (mo == null && shape.Length == 0 && fire.Length == 0) continue;
 
@@ -244,7 +244,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             s.Held.Clear(); s.Doing.Clear();
         }
 
-        // ============================================================ decisión de un jefe
+        // ============================================================ a leader's decision
 
         private static void Decide(Side s, float now)
         {
@@ -283,7 +283,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a < 0 || b <= a) return;
                         var j = JObject.Parse(res.Text.Substring(a, b - a + 1));
-                        // La foto es de hace unos segundos: se vuelve a tomar la posición para los flancos
+                        // The snapshot is a few seconds old, so re-read positions for the flanks
                         Snapshot(team, s, out _, out _, out var c2, out var f2, out var me2);
                         var shown = new StringBuilder();
                         int done = Apply(team, s, j["orders"] as JArray, c2, f2, me2, false, shown);
@@ -304,7 +304,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             });
         }
 
-        // ============================================================ órdenes del jugador (Alt+B)
+        // ============================================================ player orders (Alt+B)
 
         private static void PlayerOrder()
         {
@@ -368,16 +368,15 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 }
                 float now = m.CurrentTime;
 
-                // Alt+B: tus órdenes con tus palabras
                 if (cfg.BattleAITextOrders && (Input.IsKeyDown(InputKey.LeftAlt) || Input.IsKeyDown(InputKey.RightAlt)) && Input.IsKeyPressed(InputKey.B) && Agent.Main.IsActive() && !_playerWaiting)
                     PlayerOrder();
 
-                if (!cfg.EnableBattleAI) return;        // la IA de los jefes, aparte
+                if (!cfg.EnableBattleAI) return;        // leader AI is a separate toggle
                 foreach (var team in m.Teams)
                 {
                     if (team == null || team.Side == BattleSideEnum.None || team.ActiveAgents.Count == 0) continue;
                     bool friendly = team.IsPlayerTeam || team.IsPlayerAlly;
-                    if (team.IsPlayerTeam && team.IsPlayerGeneral) continue;                 // ahí mandas tú
+                    if (team.IsPlayerTeam && team.IsPlayerGeneral) continue;                 // player commands this team
                     if (friendly ? !cfg.BattleAIAllies : !cfg.BattleAIEnemy) continue;
                     var s = Sides.FirstOrDefault(x => x.Team == team);
                     if (s == null)
@@ -387,10 +386,10 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                         Sides.Add(s);
                     }
                     int men = Men(team);
-                    if (men > s.StartMen) s.StartMen = men;      // refuerzos
+                    if (men > s.StartMen) s.StartMen = men;      // reinforcements
                     if (men == 0) continue;
 
-                    // Si la IA lleva mucho sin dar órdenes válidas, las formaciones vuelven a las tácticas del juego (con intervalos largos, no más de 45 s de margen)
+                    // If the AI hasn't given valid orders in a while, hand formations back to the game's tactics (with long intervals, at most 45 s of slack)
                     if (s.Held.Count > 0 && s.LastOkAt >= 0f && now - s.LastOkAt > Math.Min(cfg.BattleAIInterval * 2.5f, cfg.BattleAIInterval + 45f)) { Release(s); Log.Info("[batalla] sin decisiones recientes: mando devuelto a las tácticas del juego"); }
 
                     if (s.Waiting || _requests >= 2) continue;

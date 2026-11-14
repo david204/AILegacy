@@ -14,12 +14,12 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.World
 {
     /// <summary>
-    /// De figurante a personaje: un vecino de una escena, o uno de tus soldados, pasa a ser alguien con nombre que sigue
-    /// existiendo (un errante del lugar) o entra a tu servicio como compañero. Conserva la cara, la edad y lo vivido contigo.
+    /// Turns an extra (a scene resident or one of your soldiers) into a named hero who stays in the world as a local
+    /// wanderer or joins you as a companion. They keep their face, age and memory of you.
     /// </summary>
     internal static class People
     {
-        /// <summary>Crea un personaje con nombre a partir de ese figurante. companion = entra en tu clan y tu partida.</summary>
+        /// <summary>companion = joins the player's clan and party.</summary>
         public static Hero Promote(Speaker s, Agent agent, bool companion, out string error)
         {
             error = null;
@@ -33,7 +33,7 @@ namespace AILegacy.World
 
                 bool female = s.IsFemale;
                 var culture = s.Culture ?? st.Culture;
-                // Molde: un errante de su cultura y su sexo (le da habilidades y equipo de partida razonables)
+                // Template: a wanderer of the same culture and sex, which gives sensible starting skills and gear
                 var templates = CharacterObject.All.Where(c => c.IsTemplate && c.Occupation == Occupation.Wanderer && c.IsFemale == female).ToList();
                 var template = templates.Where(c => c.Culture == culture).OrderBy(_ => Guid.NewGuid()).FirstOrDefault() ?? templates.OrderBy(_ => Guid.NewGuid()).FirstOrDefault();
                 if (template == null) { error = L.T("AIL_b2d8f675", "el juego no tiene un molde de errante para crear al personaje"); return null; }
@@ -47,7 +47,6 @@ namespace AILegacy.World
                 hero.SetNewOccupation(Occupation.Wanderer);
                 hero.ChangeState(Hero.CharacterStates.Active);
 
-                // Lo vivido contigo pasa a su ficha de personaje
                 try
                 {
                     var old = s.Memory;
@@ -66,7 +65,7 @@ namespace AILegacy.World
                 {
                     AddCompanionAction.Apply(Clan.PlayerClan, hero);
                     AddHeroToPartyAction.Apply(hero, MobileParty.MainParty, true);
-                    // Si era uno de tus soldados, sale de la tropa (es el mismo hombre)
+                    // If they were one of your soldiers, take one off the roster (it's the same man)
                     try { if (MobileParty.MainParty.MemberRoster.GetTroopCount(s.Character) > 0) MobileParty.MainParty.MemberRoster.AddToCounts(s.Character, -1); } catch { }
                 }
                 else EnterSettlementAction.ApplyForCharacterOnly(hero, st);
@@ -78,7 +77,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Convertir a un figurante en personaje", ex); error = ex.Message; return null; }
         }
 
-        /// <summary>Crea un familiar tuyo a medida (desde el editor): cónyuge, hijo, hermano o progenitor, con el parentesco de verdad en el juego.</summary>
+        /// <summary>Creates a relative of the player from the editor, with real in-game kinship.</summary>
         public static Hero CreateFamily(string relation, string name, bool female, int age, string cultureId, out string error)
         {
             error = null;
@@ -129,7 +128,6 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Crear familiar", ex); error = ex.Message; return null; }
         }
 
-        /// <summary>Crea un compañero a medida (desde el editor).</summary>
         public static Hero CreateCompanion(string name, bool female, int age, string cultureId, out string error)
         {
             error = null;

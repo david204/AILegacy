@@ -12,7 +12,7 @@ using TaleWorlds.Localization;
 
 namespace AILegacy.Behaviors
 {
-    /// <summary>Engancha AI Legacy a la campaña: diálogos, noticias, cartas y guardado.</summary>
+    /// <summary>Hooks AI Legacy into the campaign: dialogue, news, letters and saving.</summary>
     public class AILegacyBehavior : CampaignBehaviorBase
     {
         private const string SaveKey = "AILegacy_Memory_v1";
@@ -27,27 +27,27 @@ namespace AILegacy.Behaviors
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, QuestSystem.OnDailyTick);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, QuestObjectives.OnSettlementEntered);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, Diseases.OnSettlementEntered);
-            // Cuarentena que cierra de verdad: la IA del mapa no va, y a ti te paran en la puerta
+            // Quarantine really closes the place: map AI parties stay away and the player is stopped at the gate
             CampaignEvents.AiHourlyTickEvent.AddNonSerializedListener(this, QuarantineRules.OnAiHourlyTick);
             CampaignEvents.GameMenuOpened.AddNonSerializedListener(this, QuarantineRules.OnGameMenuOpened);
             CampaignEvents.OnSettlementLeftEvent.AddNonSerializedListener(this, QuarantineRules.OnSettlementLeft);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, InfoExchange.OnHourlyTick);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, Diplomacy.OnHourlyTick);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MapInitiative.OnHourlyTick);
-            // El mundo que se mueve solo: eventos, efectos económicos, cansancio de guerra y diplomacia de reyes
+            // World simulation
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, WorldSim.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Dialogue.Verdict.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.StorySecrets.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.UniqueCharacters.OnDailyTick);
             CampaignEvents.MapEventEnded.AddNonSerializedListener(this, WorldSim.OnMapEventEnded);
-            // Ánimo por causas: lo que les pasa les dura unos días
+            // Mood causes (each one lasts a few days)
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.Mood.OnDailyTick);
             CampaignEvents.TournamentFinished.AddNonSerializedListener(this, World.Mood.OnTournamentFinished);
             CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener(this, World.Mood.OnPrisonerReleased);
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, World.Mood.OnWarDeclared);
             CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(this, World.Mood.OnGivenBirth);
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
-            // Memoria política: soberanos y dueños de cada feudo
+            // Political history: rulers and fief owners
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.History.OnRulingClanChanged);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, World.History.OnSettlementOwnerChanged);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, WorldSim.OnHeroKilled);
@@ -60,11 +60,11 @@ namespace AILegacy.Behaviors
 
         public override void SyncData(IDataStore dataStore)
         {
-            // Los datos viven en archivos por campaña (Memory/SaveFiles.cs): se escriben al guardar
-            // y se leen al cargar (en OnSessionLaunched). Dentro de la partida solo va una copia de respaldo.
-            // OJO: el guardado del juego apunta el tamaño de cada cadena en un "short". Una sola cadena de más de
-            // ~32 KB corrompe la partida ("Las dimensiones de la matriz superaron el intervalo admitido" al cargar).
-            // Por eso la copia va comprimida y troceada en cadenas pequeñas (clave v2); la clave vieja se deja vacía.
+            // The data lives in per-campaign files (Memory/SaveFiles.cs), written on save and read on load
+            // (in OnSessionLaunched). The save itself only carries a backup copy.
+            // The game's save format stores each string's length in a short. One string over ~32 KB corrupts the
+            // save ("Array dimensions exceeded supported range" on load). So the copy is gzipped and split into
+            // small strings (v2 key), and the old key is left empty.
             string legacy = null;
             List<string> chunks = null;
             string stamp = null;
@@ -75,7 +75,7 @@ namespace AILegacy.Behaviors
                     legacy = "";
                     chunks = Pack(MemoryStore.Serialize());
                     SaveFiles.Save(Campaign.Current?.UniqueGameId, CampaignTime.Now.ToDays);
-                    stamp = SaveFiles.Stamp ?? "";   // sello de los archivos en este momento (para saber al cargar si son de otra rama)
+                    stamp = SaveFiles.Stamp ?? "";   // current files stamp, so on load we can tell if the files come from another branch
                 }
                 dataStore.SyncData(SaveKey, ref legacy);
                 dataStore.SyncData(SaveKeyChunks, ref chunks);
@@ -92,9 +92,9 @@ namespace AILegacy.Behaviors
             }
         }
 
-        /// <summary>Copia que venía dentro de la partida; solo se usa si no existen los archivos de la campaña.</summary>
+        /// <summary>Copy that came inside the save. Used when the save should own the memory or the campaign files are missing.</summary>
         private string _inSaveCopy;
-        /// <summary>Sello de los archivos en el momento de guardar esa partida (null en partidas de versiones anteriores).</summary>
+        /// <summary>Files stamp at the moment that save was made (null for saves from older versions).</summary>
         private string _inSaveStamp;
 
         private void LoadCampaignData()
@@ -102,17 +102,16 @@ namespace AILegacy.Behaviors
             try
             {
                 var id = Campaign.Current?.UniqueGameId;
-                // Plantillas de instrucciones editables de esta campaña (save_data\<id>\prompts)
+                // Editable prompt templates for this campaign (save_data\<id>\prompts)
                 Prompt.PromptBuilder.Touch();
                 Prompt.Templates.UseCampaign(id);
                 bool hasCopy = !string.IsNullOrEmpty(_inSaveCopy);
                 bool adopt = false;
                 if (hasCopy && S.Get.MemoryFollowsSave)
                 {
-                    // La memoria es la de ESTA partida guardada (sin recuerdos de otra rama).
-                    // Lo que hayas editado a mano en los archivos se respeta.
+                    // Memory comes from THIS save, with nothing from another branch. Hand edits to the files are kept.
                     var edited = SaveFiles.ManualEdits(id);
-                    // Si los archivos son de otra rama (seguiste jugando tras este guardado), se archivan antes de pisarlos
+                    // If the files belong to another branch (you kept playing after this save), archive them before overwriting
                     SaveFiles.ArchiveIfDiverged(id, _inSaveStamp, CampaignTime.Now.ToDays);
                     MemoryStore.Deserialize(_inSaveCopy);
                     foreach (var m in edited) MemoryStore.Put(m);
@@ -131,15 +130,15 @@ namespace AILegacy.Behaviors
                 _inSaveStamp = null;
                 SeedCharacters();
                 GameJournal.Reconcile();
-                // Los archivos quedan como los de esta partida y con su sello: recargarla no se toma por otra rama
+                // The files now match this save and carry its stamp, so reloading it isn't taken as another branch
                 SaveFiles.Flush(keepStamp: adopt);
             }
             catch (Exception ex) { Log.Error("Error cargando los datos de la campaña", ex); }
         }
 
         /// <summary>
-        /// Al empezar o cargar la campaña ya existen los archivos de los personajes importantes
-        /// (reyes, tu familia y tu clan, y los de la historia), con su conocimiento del mundo repartido, sin haber hablado con ellos.
+        /// On new game or load, creates the files for important characters (rulers, your family and clan, story characters)
+        /// with their share of world knowledge, before you ever talk to them.
         /// </summary>
         private static void SeedCharacters()
         {
@@ -161,13 +160,13 @@ namespace AILegacy.Behaviors
                 int created = 0;
                 foreach (var h in wanted)
                 {
-                    if (h == null || h == p || !h.IsAlive) continue;   // los niños también (tus hermanos pequeños de la historia)
+                    if (h == null || h == p || !h.IsAlive) continue;   // children too (your little siblings in the story)
                     bool isNew = MemoryStore.Find(h.StringId) == null;
                     var s = Speaker.FromHero(h);
                     if (isNew) { s.Memory.Seeded = true; created++; }
                     s.Memory.Snapshot = Prompt.ContextBuilder.Snapshot(h);
                     try { Knowledge.EnsureRolled(s); } catch { }
-                    try { World.Lore.EnsureArchetype(s); } catch { }      // su molde de carácter, sin esperar a hablar con él
+                    try { World.Lore.EnsureArchetype(s); } catch { }      // character archetype, without waiting for a first talk
                     Bonds.EnsureTrust(s);
                     Bonds.EnsureRomance(s);
                 }
@@ -178,7 +177,7 @@ namespace AILegacy.Behaviors
 
         private const string SaveKeyChunks = "AILegacy_Memory_v2";
         private const string SaveKeyStamp = "AILegacy_FilesStamp";
-        private const int ChunkSize = 12000;   // caracteres ASCII (base64) = bytes; muy por debajo del límite
+        private const int ChunkSize = 12000;   // base64 is ASCII, so chars = bytes; well under the limit
 
         private static List<string> Pack(string json)
         {
@@ -213,16 +212,16 @@ namespace AILegacy.Behaviors
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             LoadCampaignData();
-            World.NewsTracker.Live = true;       // a partir de aquí, lo que pase es noticia
+            World.NewsTracker.Live = true;       // from here on, what happens counts as news
             World.History.Snapshot();
-            QuarantineRules.NotePlayerInside();   // si cargas dentro de un sitio en cuarentena, no te echan
+            QuarantineRules.NotePlayerInside();   // loading a save inside a quarantined place doesn't kick you out
             AddDialogStyleLines(starter);
             LetterSystem.AddMenu(starter);
             Diseases.AddMenus(starter);
             try { World.ArenaTraining.AddMenus(starter); } catch (Exception ex) { Log.Error("Menú de entrenamiento en la arena", ex); }
             try { World.Activities.AddMenus(starter); } catch (Exception ex) { Log.Error("Menús de actividades", ex); }
 
-            // --- Héroes: lores, notables, compañeros, vagabundos (estilo ventana de chat)
+            // --- Heroes (lords, notables, companions, wanderers), chat window style
             starter.AddPlayerLine(
                 "ailegacy_talk_start", "hero_main_options", "ailegacy_npc_listen",
                 L.T("AIL_d1c3cda0", "{=!}Quiero hablar contigo de algo. [Charla libre]"),
@@ -230,8 +229,8 @@ namespace AILegacy.Behaviors
                 () => MainThread.Post(() => ChatSession.Start(Speaker.FromHero(Hero.OneToOneConversationHero))),
                 priority: 110);
             starter.AddDialogLine("ailegacy_npc_listen", "ailegacy_npc_listen", "hero_main_options", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
-            // Héroes que llevas presos en tu partida: el juego no pasa por hero_main_options sino por su rama de presos
-            // (PrisonerRecruitCampaignBehavior: "start" → "prisoner_recruit_start_player", cuya única salida es la amenaza y cerrar)
+            // Heroes held prisoner in your party: the game skips hero_main_options and uses its prisoner branch
+            // (PrisonerRecruitCampaignBehavior: "start" -> "prisoner_recruit_start_player", whose only exit is the threat line and close)
             starter.AddPlayerLine(
                 "ailegacy_talk_start_p", PrisonerOptions, "ailegacy_npc_listen_p",
                 L.T("AIL_d1c3cda0", "{=!}Quiero hablar contigo de algo. [Charla libre]"),
@@ -240,7 +239,7 @@ namespace AILegacy.Behaviors
                 priority: 110);
             starter.AddDialogLine("ailegacy_npc_listen_p", "ailegacy_npc_listen_p", PrisonerOptions, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
-            // --- Gente corriente de ciudades y aldeas
+            // --- Common people in towns and villages
             starter.AddPlayerLine(
                 "ailegacy_res_start", "town_or_village_player", "ailegacy_res_listen",
                 L.T("AIL_73c1647d", "{=!}Oye, ¿tienes un momento? [Charla libre]"),
@@ -254,7 +253,7 @@ namespace AILegacy.Behaviors
                 priority: 110);
             starter.AddDialogLine("ailegacy_res_listen", "ailegacy_res_listen", "town_or_village_player", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
-            // --- Partidas sin señor en el mapa (bandidos, caravanas, aldeanos de camino), con la ventana de charla
+            // --- Lordless parties on the map (bandits, caravans, villagers on the road), chat window style
             foreach (var token in BandTokens)
             {
                 string back = token;
@@ -270,14 +269,14 @@ namespace AILegacy.Behaviors
         }
 
         /// <summary>
-        /// La charla vive en el cuadro de diálogo del juego.
-        /// Hablar → escribes → "(espera)" → "Ver su respuesta" → respuesta → Decir algo más / Volver / Marcharse.
+        /// The chat inside the game's own dialogue box.
+        /// Talk -> you type -> "(wait)" -> "See their reply" -> reply -> Say something else / Back / Leave.
         /// </summary>
         private void AddDialogStyleLines(CampaignGameStarter starter)
         {
             ChatSession Cur() => ChatSession.Active != null && ChatSession.IsBusy ? ChatSession.Active : null;
 
-            // Iniciativa: el NPC se ha acercado él (un guardia tras una pelea…) y su primera frase ya está lista
+            // Initiative: the NPC walked up to you (a guard after a fight, say) and their first line is already written
             starter.AddDialogLine("ailegacy_init_start", "start", "ailegacy_d_opts", "{=!}{AIL_DLG}",
                 () =>
                 {
@@ -289,7 +288,7 @@ namespace AILegacy.Behaviors
                 },
                 () => Initiative.Done(), priority: 10000);
 
-            // Entrada desde héroes y desde gente del pueblo
+            // Entry points from heroes and from townsfolk
             starter.AddPlayerLine("ailegacy_d_start_h", "hero_main_options", "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
                 () => S.Get.UseDialogStyle && CanTalkHero(),
                 () =>
@@ -299,7 +298,7 @@ namespace AILegacy.Behaviors
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
-            // Lo mismo desde la rama de presos de tu partida; «Volver» regresa a esa rama (ailegacy_d_ret_p)
+            // Same from your party's prisoner branch. "Back" returns to that branch (ailegacy_d_ret_p)
             starter.AddPlayerLine("ailegacy_d_start_p", PrisonerOptions, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
                 () => S.Get.UseDialogStyle && CanTalkHero(),
                 () =>
@@ -309,7 +308,7 @@ namespace AILegacy.Behaviors
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
-            // En el mapa: bajar del caballo y hablar cara a cara, en una escena del terreno
+            // On the map: dismount and talk face to face in a terrain scene
             starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),
                 () => Scenes.MapTalk.Queue(Hero.OneToOneConversationHero), priority: 119);
@@ -323,8 +322,8 @@ namespace AILegacy.Behaviors
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
 
-            // Partidas sin señor en el mapa: el jefe de unos bandidos (te asalten ellos o los abordes tú), de una caravana
-            // o de unos aldeanos. Cada una tiene su rama en el juego; «Volver» regresa a ella.
+            // Lordless parties on the map: the leader of some bandits (whether they attack you or you approach them),
+            // a caravan or villagers. Each has its own branch in the game, and "Back" returns to it.
             foreach (var token in BandTokens)
             {
                 string back = token;
@@ -341,8 +340,8 @@ namespace AILegacy.Behaviors
                     () => _bandReturn == back && Hero.OneToOneConversationHero == null && BandParty() != null, null, priority: 126);
             }
 
-            // El NPC "espera" mientras escribes. Las opciones de aquí se calculan ANTES de que escribas,
-            // así que solo puede haber "Ver su respuesta" / "Volver".
+            // The NPC "waits" while you type. The options here are evaluated BEFORE you type,
+            // so they can only be "See their reply" / "Back".
             starter.AddDialogLine("ailegacy_d_wait", "ailegacy_d_wait", "ailegacy_d_optw", "{=!}{AIL_DLG}",
                 () => { MBTextManager.SetTextVariable("AIL_DLG", new TextObject(L.T("AIL_58ce073f", "{=!}(Envía tu mensaje y espera su respuesta)"))); return true; },
                 null, priority: 120);
@@ -351,11 +350,11 @@ namespace AILegacy.Behaviors
             starter.AddPlayerLine("ailegacy_d_backw", "ailegacy_d_optw", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
                 () => true, null, priority: 110);
 
-            // Tras ver la respuesta
+            // After seeing the reply
             starter.AddPlayerLine("ailegacy_d_say", "ailegacy_d_opts", "ailegacy_d_wait", L.T("AIL_92eb34bb", "{=!}Decir algo más"),
                 () => { var c = Cur(); return c != null && !c.Ended; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.AskInput); }, priority: 125);
-            // Repasar toda la conversación en una ventana con barra de desplazamiento
+            // Whole conversation in a scrollable window
             starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_cdf7046b", "{=!}Repasar lo hablado"),
                 () => { var c = Cur(); return c != null && c.Who != null && c.Who.Memory.Turns.Count > 2; },
                 () => { var c = Cur(); if (c != null) { var who = c.Who; MainThread.Post(() => UI.Books.OpenTranscript(who)); } }, priority: 109);
@@ -369,7 +368,7 @@ namespace AILegacy.Behaviors
             starter.AddPlayerLine("ailegacy_d_back", "ailegacy_d_opts", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
                 () => { var c = Cur(); return c == null || !c.Ended; }, null, priority: 110);
 
-            // La respuesta en el cuadro de diálogo. Si aún piensa, se vuelve a "Ver su respuesta".
+            // The reply in the dialogue box. If they're still thinking, loop back to "See their reply".
             starter.AddDialogLine("ailegacy_d_think", "ailegacy_d_show", "ailegacy_d_optw", "{=!}{AIL_DLG}",
                 () =>
                 {
@@ -386,8 +385,8 @@ namespace AILegacy.Behaviors
                     return true;
                 }, null, priority: 120);
 
-            // Volver a las opciones normales del juego
-            // (a la rama de presos si se entró por ella: allí está la salida del juego, «No hagas ninguna estupidez…» → cerrar)
+            // Back to the game's normal options
+            // (to the prisoner branch if we came from there, since the game's exit lives in it: "Don't do anything stupid..." -> close)
             starter.AddDialogLine("ailegacy_d_ret_p", "ailegacy_d_ret", PrisonerOptions, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => _fromPrisonerBranch && IsMainPartyPrisoner(), null, priority: 125);
             starter.AddDialogLine("ailegacy_d_ret_h", "ailegacy_d_ret", "hero_main_options", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
@@ -396,12 +395,12 @@ namespace AILegacy.Behaviors
                 () => Hero.OneToOneConversationHero == null, null, priority: 110);
         }
 
-        /// <summary>Opciones del jugador al hablar con un preso de su partida (TaleWorlds.CampaignSystem, PrisonerRecruitCampaignBehavior).</summary>
+        /// <summary>Player options when talking to a prisoner in your party (PrisonerRecruitCampaignBehavior).</summary>
         private const string PrisonerOptions = "prisoner_recruit_start_player";
-        /// <summary>La charla de AI Legacy en curso empezó desde la rama de presos.</summary>
+        /// <summary>The current AI Legacy chat was started from the prisoner branch.</summary>
         private static bool _fromPrisonerBranch;
 
-        /// <summary>El héroe con el que hablas va preso en tu partida (la misma condición que usa el juego para su rama).</summary>
+        /// <summary>The hero you're talking to is a prisoner in your party (same check the game uses for its branch).</summary>
         private static bool IsMainPartyPrisoner()
         {
             try
@@ -420,20 +419,20 @@ namespace AILegacy.Behaviors
         }
 
         /// <summary>
-        /// Ramas del juego para partidas sin señor (TaleWorlds.CampaignSystem 1.4.8): BanditInteractionsCampaignBehavior
-        /// («bandit_attacker» si los abordas tú, «bandit_defender» si te asaltan), CaravansCampaignBehavior y VillagerCampaignBehavior.
+        /// Game dialogue branches for lordless parties (TaleWorlds.CampaignSystem 1.4.8): BanditInteractionsCampaignBehavior
+        /// ("bandit_attacker" if you approach them, "bandit_defender" if they attack you), CaravansCampaignBehavior and VillagerCampaignBehavior.
         /// </summary>
         private static readonly string[] BandTokens = { "bandit_attacker", "bandit_defender", "caravan_talk", "village_farmer_talk" };
-        /// <summary>Rama a la que vuelve «Volver» cuando la charla en curso es con el jefe de una partida sin señor.</summary>
+        /// <summary>Branch that "Back" returns to when the current chat is with the leader of a lordless party.</summary>
         private static string _bandReturn;
 
-        /// <summary>La partida sin señor con la que hablas ahora en el mapa.</summary>
+        /// <summary>The lordless party you're talking to on the map right now.</summary>
         private static TaleWorlds.CampaignSystem.Party.MobileParty BandParty()
         {
             try
             {
                 if (TaleWorlds.MountAndBlade.Mission.Current != null) return null;
-                // En el asalto de unos bandidos la partida de la charla puede venir solo por el encuentro
+                // When bandits attack you, the conversation party may only be reachable through the encounter
                 var p = TaleWorlds.CampaignSystem.Party.MobileParty.ConversationParty ?? (PlayerEncounter.Current != null ? PlayerEncounter.EncounteredMobileParty : null);
                 return p != null && p.IsActive && !p.IsMainParty && p.LeaderHero == null ? p : null;
             }

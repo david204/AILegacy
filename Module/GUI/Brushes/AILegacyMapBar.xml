@@ -1,5 +1,5 @@
 <Brushes>
-  <!-- Fondo e icono del botón "Memorias" de la barra del mapa (la capa se llama como el StringId del elemento) -->
+  <!-- Background and icon for the map bar "Memories" button. The layer name must match the element's StringId -->
   <Brush Name="AILegacy.MapBar.Left.Button.Backgrounds" OverrideBrush="MapBar.Left.Button.Backgrounds">
     <Layers>
       <BrushLayer Name="ailegacy_memories" Sprite="MapBar\bottom_left_button5_quest" />

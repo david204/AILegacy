@@ -8,15 +8,15 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Gesto y cara de quien habla en una escena (charlas entre personajes, de grupo, lo que te dicen al pasar).
-    /// Se usan las animaciones de conversación del propio juego; quien está sentado, montado, ocupado o andando solo cambia la cara.
+    /// Body gesture and facial expression for whoever speaks in a scene. Uses the game's own conversation animations.
+    /// Anyone sitting, mounted, busy or walking only gets the face change.
     /// </summary>
     internal static class Gestures
     {
-        /// <summary>Los estados de ánimo que puede elegir la IA para una frase.</summary>
+        /// <summary>Moods the AI can pick for a line.</summary>
         public const string Moods = "neutral, pleased, delighted, amused, mocking, unsure, worried, annoyed, stern, angry, shocked, dismissive";
 
-        // ánimo → (gesto del cuerpo, cara)
+        // mood -> (body gesture, face)
         private static readonly Dictionary<string, (string act, string face)> Map = new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase)
         {
             { "neutral",    ("",              "convo_normal") },
@@ -33,7 +33,7 @@ namespace AILegacy.Dialogue
             { "dismissive", ("trivial",       "convo_nonchalant") },
         };
 
-        private static readonly HashSet<Agent> Moved = new HashSet<Agent>();     // a quién le hemos puesto un gesto de cuerpo
+        private static readonly HashSet<Agent> Moved = new HashSet<Agent>();     // agents we gave a body gesture
         private static bool _broken;
 
         public static void Play(Agent a, string mood)
@@ -55,7 +55,6 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { _broken = true; Log.Error("Gestos (se desactivan en esta sesión)", ex); }
         }
 
-        /// <summary>Al acabar la frase: vuelve la cara normal y se suelta el gesto.</summary>
         public static void End(Agent a)
         {
             if (a == null) return;

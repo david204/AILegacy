@@ -18,8 +18,8 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Violencia que nace de una charla: pelea a puñetazos y duelos dentro de la escena (con el gestor de peleas del juego),
-    /// ataque y rendición en el mapa, y llamar a la guardia. Todo empieza cuando el diálogo ya se ha cerrado.
+    /// Violence that comes out of a chat: fist fights and duels in the scene (through the game's fight handler),
+    /// attack and surrender on the map, and calling the guards. It all starts after the dialogue has closed.
     /// </summary>
     internal static class Combat
     {
@@ -29,20 +29,20 @@ namespace AILegacy.Dialogue
             public Agent Opponent;
             public string Kind;      // brawl | duel | death
             public float Wait;
-            public bool Unprovoked;                              // le has pegado tú sin mediar palabra
-            public List<Agent> Helpers = new List<Agent>();      // los que salen en su defensa
+            public bool Unprovoked;                              // you hit them out of nowhere
+            public List<Agent> Helpers = new List<Agent>();      // people who step in to defend them
         }
 
         private static PendingFight _fight;
         private static Speaker _surrender;
         private static readonly List<Hero> ToKill = new List<Hero>();
 
-        /// <summary>El NPC ha decidido atacar: al cerrar la charla NO se sale del encuentro (aparece el menú de batalla).</summary>
+        /// <summary>The NPC decided to attack, so closing the chat does NOT leave the encounter (the battle menu shows up).</summary>
         public static bool KeepEncounter;
 
         private static Hero P => Hero.MainHero;
 
-        // ============================================================ pelea y duelo en la escena
+        // ============================================================ fights and duels in the scene
 
         private static Agent TalkingAgent()
         {
@@ -50,7 +50,7 @@ namespace AILegacy.Dialogue
             catch { return null; }
         }
 
-        /// <summary>¿Se puede pelear aquí y ahora? (hay escena, el NPC está delante y el juego tiene gestor de peleas).</summary>
+        /// <summary>True when there's a scene, the NPC is in it, and the mission has a fight handler.</summary>
         public static bool CanFightHere()
         {
             try
@@ -80,8 +80,6 @@ namespace AILegacy.Dialogue
             }
         }
 
-        /// <summary>Pelea con alguien concreto de la escena, fuera de una charla (resistirse a la guardia). Empieza enseguida.</summary>
-        /// <summary>Hay una pelea a punto de empezar o en marcha.</summary>
         public static bool Fighting => _fight != null || _active != null;
 
         public static bool QueueFightWith(Speaker s, Agent opponent, string kind, IEnumerable<Agent> helpers = null)
@@ -106,8 +104,8 @@ namespace AILegacy.Dialogue
                     Log.Warn("La pelea no ha podido empezar (la escena ha cambiado)");
                     return;
                 }
-                // No se usa StartFistFight del juego: al acabar devuelve las armas sin mirar si el agente sigue activo
-                // y el motor revienta (crash al terminar una pelea en la calle). Aquí se quitan y devuelven a mano.
+                // Not using the game's StartFistFight: when it ends it gives weapons back without checking the agent is
+                // still active, and the engine crashes (after a street fight). We strip and restore weapons by hand.
                 List<Stripped> stripped = null;
                 var foes = new List<Agent> { f.Opponent };
                 foes.AddRange(f.Helpers.Where(h => h != null && h.IsActive() && h != f.Opponent));
@@ -123,7 +121,7 @@ namespace AILegacy.Dialogue
                     catch (Exception ex) { Log.Error("Devolver armas tras la pelea", ex); }
                     MainThread.Post(() => OnFightEnded(f, won));
                 });
-                // Puños y duelo amistoso: nadie muere; a media vida se rinde y la pelea acaba
+                // Fist fight or friendly duel: nobody dies. At half health they yield and the fight ends
                 if (IsFriendly(f)) Guard(f, new List<Agent> { Agent.Main }.Concat(foes));
                 _active = f; _wave = 6f; _waves = 0; _alarm = false;
                 ActiveFoes.Clear(); ActiveFoes.AddRange(foes); _unleash = 0f;
@@ -135,11 +133,11 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Empezar la pelea", ex); }
         }
 
-        // ============================================================ peleas amistosas: sin muertes
+        // ============================================================ friendly fights: no deaths
 
-        // Puños (siempre) y duelo que no es a muerte ni una agresión armada: quien baja a la mitad de la vida con la que empezó
-        // se rinde y la pelea termina; nadie muere. En el duelo amistoso el daño se reduce a la mitad. Al acabar, todos vuelven
-        // a la vida que tenían antes de pelear. Solo el duelo a muerte (y la agresión con acero) puede matar.
+        // Fist fights (always) and duels that aren't to the death or an armed assault: whoever drops to half their starting
+        // health yields and the fight ends. Nobody dies. Friendly duels deal half damage. Afterwards everyone gets back
+        // the health they had before. Only a duel to the death (or an assault with steel) can kill.
         private class Guarded
         {
             public Agent Agent;
@@ -150,7 +148,7 @@ namespace AILegacy.Dialogue
 
         private static readonly List<Guarded> GuardedAgents = new List<Guarded>();
         private static PendingFight _friendly;
-        private static int _yield;              // 0 = nadie se ha rendido; 1 = se rinde el rival (ganas); 2 = te rindes tú
+        private static int _yield;              // 0 = nobody yielded, 1 = opponent yields (you win), 2 = you yield
         private static bool _inHealthFix;
         private const float FriendlyDuelDamage = 0.5f;
         private const float YieldAt = 0.5f;
@@ -173,7 +171,7 @@ namespace AILegacy.Dialogue
             }
         }
 
-        /// <summary>Se llama justo después de cada golpe y antes de que el juego mire si muere: aquí se corrige la vida.</summary>
+        /// <summary>Runs right after each hit and before the game checks for death, so health can be fixed here.</summary>
         private static void OnGuardedHealth(Agent a, float oldHealth, float newHealth)
         {
             if (_inHealthFix || newHealth >= oldHealth || _friendly == null) return;
@@ -192,7 +190,7 @@ namespace AILegacy.Dialogue
                     try { a.Health = h; } finally { _inHealthFix = false; }
                 }
                 if (!yields || g.Yielded) return;
-                // Se rinde: ya no recibe más daño hasta que acabe
+                // Yielded: takes no more damage until the end
                 g.Yielded = true;
                 a.SetMortalityState(Agent.MortalityState.Immortal);
                 if (_yield == 0)
@@ -204,7 +202,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Vida en la pelea amistosa", ex); }
         }
 
-        /// <summary>Fin de la pelea amistosa: cada uno vuelve a la vida (y a la mortalidad) que tenía antes.</summary>
+        /// <summary>End of a friendly fight: everyone gets back the health (and mortality state) they had before.</summary>
         private static void Unguard()
         {
             foreach (var g in GuardedAgents)
@@ -224,7 +222,7 @@ namespace AILegacy.Dialogue
             _friendly = null; _yield = 0;
         }
 
-        /// <summary>Alguien se ha rendido en una pelea amistosa: se cierra con el resultado (fuera del golpe, en el tick).</summary>
+        /// <summary>Someone yielded in a friendly fight. Closes it with the result, from the tick rather than inside the hit callback.</summary>
         private static void EndFriendlyOnYield()
         {
             int y = _yield;
@@ -239,9 +237,9 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Terminar la pelea amistosa", ex); }
         }
 
-        // ============================================================ pegar a alguien sin mediar palabra
+        // ============================================================ hitting someone out of nowhere
 
-        /// <summary>Partida nueva o cargada: nada pendiente de la anterior.</summary>
+        /// <summary>New or loaded campaign: drop anything pending from the previous one.</summary>
         public static void ResetSession()
         {
             _fight = null; _active = null; _surrender = null; _surrenderParty = null; KeepEncounter = false; _autoAttack = 0f;
@@ -249,7 +247,7 @@ namespace AILegacy.Dialogue
             ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear();
         }
 
-        /// <summary>Pelea que empieza sola al abrirse una escena (duelo acordado en el mapa).</summary>
+        /// <summary>Fight that starts by itself when a scene opens (a duel agreed on the map).</summary>
         public static void QueueSceneFight(Speaker s, Agent opponent, string kind, float wait)
         {
             if (s == null || opponent == null) return;
@@ -257,7 +255,7 @@ namespace AILegacy.Dialogue
             Log.Info($"Pelea en la escena del mapa con {s.Name}: {kind}");
         }
 
-        // Muerte por rol: se cumple al cerrar la charla y salir de la escena
+        // Roleplay deaths: applied once the chat closes and the scene ends
         private static readonly List<(Hero who, bool executed, string how)> RoleDeaths = new List<(Hero, bool, string)>();
 
         public static void QueueDeath(Hero h, bool executedByPlayer, string how)
@@ -267,13 +265,13 @@ namespace AILegacy.Dialogue
             Log.Info($"Muerte por rol pendiente: {h.Name} ({(executedByPlayer ? "ejecución" : "por su mano o sus heridas")}: {how})");
         }
 
-        // Quien se va contigo desaparece de la escena al acabar de hablar
+        // Whoever leaves with you fades out of the scene when the talk ends
         private static readonly List<Agent> ToFade = new List<Agent>();
         public static void FadeAfterTalk(Agent a) { if (a != null && !ToFade.Contains(a)) ToFade.Add(a); }
 
         private static float _streetCool;
 
-        // ============================================================ la pelea crece: guardia por oleadas, alarma, y tus hombres
+        // ============================================================ the fight grows: guard waves, alarm, your men
 
         private static PendingFight _active;
         private static float _wave;
@@ -287,7 +285,7 @@ namespace AILegacy.Dialogue
             return c != null && !c.IsHero && (c.Occupation == Occupation.Guard || c.Occupation == Occupation.Soldier || c.Occupation == Occupation.PrisonGuard);
         }
 
-        /// <summary>Mete a alguien en la pelea en curso, de un bando u otro, y le pone a pelear de verdad.</summary>
+        /// <summary>Adds someone to the current fight on either side and makes them actually fight.</summary>
         private static bool JoinFight(MissionFightHandler fh, Agent a, bool playerSide)
         {
             try
@@ -306,7 +304,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Sumar a la pelea", ex); return false; }
         }
 
-        /// <summary>Mientras dura una agresión armada tuya: la guardia va llegando por oleadas; con muchos caídos, suena la alarma.</summary>
+        /// <summary>During an armed assault by the player, guards arrive in waves. With many down, the alarm goes off.</summary>
         private static void GrowFight(float dt)
         {
             var f = _active;
@@ -316,9 +314,9 @@ namespace AILegacy.Dialogue
             if (fh == null || !fh.IsThereActiveFight()) return;
             var cfg = S.Get;
 
-            // Ctrl+X: llamas a los tuyos (de diez en diez); Ctrl+Alt+X: a todos los que caben
+            // Ctrl+X calls your troops ten at a time, Ctrl+Alt+X calls as many as fit
             bool ctrl = TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.LeftControl) || TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.RightControl);
-            // En una pelea amistosa no entran tus soldados
+            // No troops in a friendly fight
             if (ctrl && TaleWorlds.InputSystem.Input.IsKeyPressed(TaleWorlds.InputSystem.InputKey.X) && cfg.StreetSummonTroops && !IsFriendly(f))
             {
                 bool alt = TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.LeftAlt) || TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.RightAlt);
@@ -350,7 +348,7 @@ namespace AILegacy.Dialogue
             }
         }
 
-        /// <summary>Tus soldados entran en la pelea, apareciendo a tu espalda. Solo en la calle o en la aldea, nunca en interiores.</summary>
+        /// <summary>Your troops join the fight, spawning behind you. Streets and villages only, never indoors.</summary>
         private static void SummonTroops(MissionFightHandler fh, int want)
         {
             try
@@ -396,7 +394,7 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Llamar a tus tropas", ex); }
         }
 
-        /// <summary>Acabada la pelea, tus hombres salen de la escena (los caídos quedan heridos en tu partida).</summary>
+        /// <summary>After the fight your men leave the scene (those knocked down stay wounded in your party).</summary>
         private static void DismissSummoned()
         {
             foreach (var a in Summoned.ToList())
@@ -408,7 +406,7 @@ namespace AILegacy.Dialogue
                     else if (a.Character is CharacterObject c && MobileParty.MainParty.MemberRoster.GetTroopCount(c) > 0)
                     {
                         if (a.State == AgentState.Killed) MobileParty.MainParty.MemberRoster.AddToCounts(c, -1);
-                        else MobileParty.MainParty.MemberRoster.AddToCounts(c, 0, false, 1);      // queda herido
+                        else MobileParty.MainParty.MemberRoster.AddToCounts(c, 0, false, 1);      // wounded
                     }
                 }
                 catch { }
@@ -416,7 +414,7 @@ namespace AILegacy.Dialogue
             Summoned.Clear();
         }
 
-        // Los que pelean contra ti: se les quita el paso de paseo y lo que estuvieran haciendo, para que corran a por ti
+        // Agents fighting you: clear their walk mode and whatever they were doing so they run at you
         private static readonly List<Agent> ActiveFoes = new List<Agent>();
         private static float _unleash;
 
@@ -436,9 +434,9 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>
-        /// En una escena de asentamiento, si sueltas un golpe (puño o arma) teniendo a alguien justo delante, empieza la pelea
-        /// con él: a puñetazos si vas con las manos vacías, en serio si llevas el arma fuera. Salen en su defensa sus parientes
-        /// y, si hay acero, los guardias que estén cerca.
+        /// In a settlement scene, swinging (fist or weapon) at someone right in front of you starts a fight with them:
+        /// a fist fight if your hands are empty, a real one if your weapon is out. Their relatives step in, and if
+        /// steel is drawn, so do nearby guards.
         /// </summary>
         private static void StreetCheck(float dt)
         {
@@ -457,7 +455,7 @@ namespace AILegacy.Dialogue
                 var look = me.LookDirection.AsVec2;
                 if (look.Length < 0.01f) return;
                 look = look.Normalized();
-                // Tiene que estar a tu alcance de verdad y justo delante: un golpe al aire cerca de alguien no cuenta
+                // They must be really in reach and right in front. A swing at the air near someone doesn't count
                 bool armedNow = !me.WieldedWeapon.IsEmpty;
                 float reach = armedNow ? 1.9f : 1.25f, cone = armedNow ? 0.86f : 0.9f;
                 Agent victim = null; float best = reach;
@@ -471,7 +469,7 @@ namespace AILegacy.Dialogue
                     if (Vec2.DotProduct(look, d * (1f / dist)) < cone) continue;
                     best = dist; victim = a;
                 }
-                // Golpe al aire: no se vuelve a mirar en un momento (si no, se recorrería a toda la gente en cada fotograma del golpe)
+                // Missed swing: wait a bit before checking again, or we'd scan everyone on every frame of the swing
                 if (victim == null) { _streetCool = 0.4f; return; }
                 _streetCool = 3f;
 
@@ -479,7 +477,7 @@ namespace AILegacy.Dialogue
                 var sp = vc.IsHero && vc.HeroObject != null ? Speaker.FromHero(vc.HeroObject) : Speaker.FromResident(vc, victim);
                 bool armed = !me.WieldedWeapon.IsEmpty;
                 var f = new PendingFight { Who = sp, Opponent = victim, Kind = armed ? "duel" : "brawl", Wait = 0f, Unprovoked = true };
-                // Quién sale en su defensa: los de su casa que estén al lado; y si hay acero, la guardia cercana
+                // Defenders: their household nearby, plus nearby guards if steel is drawn
                 foreach (var a in m.Agents)
                 {
                     if (f.Helpers.Count >= cfg.StreetFightHelpers) break;
@@ -505,7 +503,6 @@ namespace AILegacy.Dialogue
             public List<(EquipmentIndex slot, MissionWeapon weapon)> Weapons = new List<(EquipmentIndex, MissionWeapon)>();
         }
 
-        /// <summary>Guarda y quita las armas del agente para pelear a puñetazos.</summary>
         private static Stripped Strip(Agent a)
         {
             var s = new Stripped { Agent = a };
@@ -525,7 +522,7 @@ namespace AILegacy.Dialogue
             return s;
         }
 
-        /// <summary>Devuelve las armas solo si el agente sigue en pie en la escena.</summary>
+        /// <summary>Gives weapons back only if the agent is still standing in the scene.</summary>
         private static void Restore(Stripped s)
         {
             var a = s?.Agent;
@@ -551,13 +548,13 @@ namespace AILegacy.Dialogue
                 string what = f.Kind == "brawl" ? "a fist fight" : f.Kind == "death" ? "a duel to the death" : "a duel";
                 Log.Info($"Pelea con {s.Name} ({f.Kind}): {(playerWon ? "gana el jugador" : "pierde el jugador")}");
 
-                // Lo recuerda, y la próxima charla lo sabe
+                // They remember it, so the next chat knows
                 mem.Turns.Add(new ChatTurn
                 {
                     Role = "player", Day = CampaignTime.Now.ToDays,
                     Text = $"[What happened: {(f.Unprovoked ? $"{you} attacked you without a word of warning, and you fought {what}" : $"you and {you} fought {what}")}. " + (playerWon ? "They beat you." : "You beat them.") + "]"
                 });
-                // Testigos: una agresión solo te pasa factura si alguien vivo la ha visto, y con tu nombre solo si te conocen
+                // Witnesses: an assault only costs you if someone alive saw it, and only by name if they know you
                 Witness.Result seen = null;
                 if (f.Unprovoked)
                 {
@@ -577,9 +574,9 @@ namespace AILegacy.Dialogue
 
                 if (s.IsHero)
                 {
-                    // Quien pelea bien se gana respeto (más entre valientes); perder un duelo serio escuece
+                    // Fighting well earns respect, losing a serious duel stings
                     int rel = f.Unprovoked ? (f.Kind == "brawl" ? -4 : -10) : f.Kind == "brawl" ? 1 : playerWon ? 2 : 0;
-                    if (seen != null && !(f.Opponent != null && (f.Opponent.IsActive() || f.Opponent.State == AgentState.Unconscious))) rel = 0;      // un muerto no guarda rencor
+                    if (seen != null && !(f.Opponent != null && (f.Opponent.IsActive() || f.Opponent.State == AgentState.Unconscious))) rel = 0;      // the dead hold no grudge
                     if (rel != 0) ChangeRelationAction.ApplyPlayerRelation(s.Hero, rel, affectRelatives: false, showQuickNotification: true);
                 }
 
@@ -592,14 +589,14 @@ namespace AILegacy.Dialogue
                     }
                     else
                     {
-                        // El jugador no muere (se acabaría la partida): queda malherido
+                        // The player can't die (it would end the campaign), so leave them badly hurt
                         try { P.HitPoints = 1; } catch { }
                         Say(L.F("AIL_080a0e95", $"{s.Name} te deja por muerto. Sobrevives de milagro."), Colors.Red);
                     }
                 }
                 else Say(playerWon ? L.F("AIL_d0109f54", $"Has vencido a {s.Name}.") : L.F("AIL_805db527", $"{s.Name} te ha vencido."), Colors.Yellow);
 
-                // El mundo lo cuenta a su manera: lo que se sabe depende de quién lo vio
+                // The news depends on who saw it
                 if (f.Unprovoked && seen != null && (f.Kind != "brawl" || s.IsHero))
                 {
                     bool victimDead = !(f.Opponent != null && (f.Opponent.IsActive() || f.Opponent.State == AgentState.Unconscious));
@@ -613,12 +610,12 @@ namespace AILegacy.Dialogue
                                         Settlement.CurrentSettlement, f.Kind != "brawl");
                 }
 
-                // Si hay un guardia cerca, viene a pedir cuentas (si nadie lo ha visto, no viene nadie)
+                // A nearby guard comes to ask questions (nobody comes if nobody saw it)
                 if (seen == null || seen.Level > 0) Justice.OnFightEnded(s, f.Opponent, f.Kind, playerWon, f.Unprovoked);
 
                 if (seen != null && seen.Level < 2)
                 {
-                    // Sin tu nombre: se cuenta lo ocurrido, no quién lo hizo
+                    // Without your name: the story spreads, not who did it
                     if (s.IsHero || f.Kind != "brawl")
                     {
                         string victimName = s.IsHero ? s.Name : (s.IsFemale ? "a local woman" : "a local man"), victimEs = s.IsHero ? s.Name : (s.IsFemale ? L.T("AIL_53ab6227", "una vecina") : L.T("AIL_1c6f47d4", "un vecino"));
@@ -656,11 +653,11 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Fin de la pelea", ex); }
         }
 
-        // ============================================================ mapa: ataque y rendición
+        // ============================================================ map: attack and surrender
 
         /// <summary>
-        /// La partida con la que hablas en el mapa: la que manda el héroe, o, si quien habla no es un héroe (bandidos,
-        /// partidas sin señor), la partida de la charla en curso.
+        /// The party you're talking to on the map: the one the hero leads, or for a non-hero speaker (bandits,
+        /// lordless parties), the party of the current conversation.
         /// </summary>
         public static MobileParty MapFoeParty(Speaker s)
         {
@@ -669,7 +666,7 @@ namespace AILegacy.Dialogue
                 if (s == null) return null;
                 if (s.IsHero) return OrderSystem.PartyLedBy(s.Hero);
                 if (Mission.Current != null) return null;
-                // El jefe de una partida sin señor con la que se abrió la charla (bandidos, caravana, aldeanos)
+                // Leader of the lordless party the chat was opened with (bandits, caravan, villagers)
                 if (s.Band != null) return s.Band.IsActive && !s.Band.IsMainParty ? s.Band : null;
                 var p = MobileParty.ConversationParty ?? PlayerEncounter.EncounteredMobileParty;
                 return p != null && p.IsActive && !p.IsMainParty && p.LeaderHero == null ? p : null;
@@ -692,11 +689,11 @@ namespace AILegacy.Dialogue
 
         public static int Men(MobileParty p) => p?.MemberRoster.TotalHealthyCount ?? 0;
 
-        // ============================================================ mapa: la batalla empieza sola
+        // ============================================================ map: the battle starts by itself
 
-        // El jefe de la partida ha decidido atacar en la charla: al cerrarla, en vez de dejar al jugador en el menú del
-        // encuentro (donde tendría que pulsar «Atacar»), la batalla empieza sola. Igual con señores que con bandidos.
-        private static float _autoAttack;        // segundos (reales, fuera de la charla) que se espera al menú del encuentro
+        // The party leader decided in the chat to attack. When the chat closes, instead of leaving the player on the
+        // encounter menu (where they'd have to click "Attack"), the battle starts on its own. Same for lords and bandits.
+        private static float _autoAttack;        // real seconds (outside the chat) to wait for the encounter menu
         private static string _autoAttackWho;
 
         public static void QueueMapAttack(Speaker s)
@@ -712,15 +709,15 @@ namespace AILegacy.Dialogue
             try
             {
                 if ((_autoAttack -= dt) <= 0f) { _autoAttack = 0f; Log.Warn($"La batalla con {_autoAttackWho} no ha empezado sola: queda el menú del encuentro"); return; }
-                if (PlayerEncounter.Current == null) { _autoAttack = 0f; return; }       // el encuentro ya se ha resuelto
+                if (PlayerEncounter.Current == null) { _autoAttack = 0f; return; }       // encounter already resolved
                 var mc = Campaign.Current?.CurrentMenuContext;
-                if (mc?.GameMenu == null || mc.GameMenu.StringId != "encounter") return;   // aún no ha salido el menú
+                if (mc?.GameMenu == null || mc.GameMenu.StringId != "encounter") return;   // menu not up yet
                 if (PlayerEncounter.Battle == null || TaleWorlds.CampaignSystem.MapEvents.MapEvent.PlayerMapEvent == null) return;
                 _autoAttack = 0f;
                 var args = new TaleWorlds.CampaignSystem.GameMenus.MenuCallbackArgs(mc, null);
                 if (!global::Helpers.MenuHelper.EncounterAttackCondition(args) || !args.IsEnabled)
                 {
-                    // Herido, en una balsa…: el juego no deja atacar; el jugador decide en el menú
+                    // Wounded, on a raft, etc.: the game won't allow an attack, so the player decides in the menu
                     Log.Info($"La batalla con {_autoAttackWho} no puede empezar sola (el juego no deja atacar ahora)");
                     return;
                 }
@@ -730,11 +727,11 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { _autoAttack = 0f; Log.Error("Empezar la batalla del mapa", ex); }
         }
 
-        /// <summary>El NPC se rinde con todo su grupo: se resuelve al cerrar la charla.</summary>
+        /// <summary>The NPC surrenders with their whole party. Resolved when the chat closes.</summary>
         public static string QueueSurrender(Speaker s)
         {
             _surrender = s;
-            _surrenderParty = MapFoeParty(s);      // al cerrar la charla ya no hay partida de la charla
+            _surrenderParty = MapFoeParty(s);      // once the chat closes the conversation party is gone
             return L.F("AIL_807992a5", $"{s.Name} rinde las armas.");
         }
 
@@ -758,7 +755,7 @@ namespace AILegacy.Dialogue
                     main.PrisonRoster.AddToCounts(e.Character, e.Number);
                     taken += e.Number;
                 }
-                // Sus prisioneros pasan a ti; los de tu bando quedan libres
+                // Their prisoners become yours, and those from your side go free
                 foreach (var e in party.PrisonRoster.GetTroopRoster().ToList())
                 {
                     if (e.Character == null) continue;
@@ -784,7 +781,7 @@ namespace AILegacy.Dialogue
 
         private static float _playerSurrender;
 
-        /// <summary>El jugador se rinde a quien tiene delante en el mapa: se hace efectivo al cerrarse la charla.</summary>
+        /// <summary>The player surrenders to whoever they face on the map. Takes effect when the chat closes.</summary>
         public static void QueuePlayerSurrender() { KeepEncounter = true; _playerSurrender = 12f; }
 
         private static void TickPlayerSurrender(float dt)
@@ -800,7 +797,7 @@ namespace AILegacy.Dialogue
                 if (PlayerEncounter.InsideSettlement || foe == null || foe.MapFaction == null || Hero.MainHero.MapFaction == null
                     || !(foe.MapFaction.IsBanditFaction || foe.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction)))
                 { Log.Warn("Rendición del jugador: el encuentro ya no es con un enemigo en el mapa; no se hace nada"); return; }
-                // Lo mismo que hace la opción «Rendirse» del menú del encuentro
+                // Same as the "Surrender" option in the encounter menu
                 PlayerEncounter.PlayerSurrender = true;
                 PlayerEncounter.Update();
                 Log.Info("El jugador se rinde: queda prisionero");
@@ -836,7 +833,7 @@ namespace AILegacy.Dialogue
                 }
 
                 if (_surrender != null && !talking && Mission.Current == null) DoSurrender();
-                if (_autoAttack > 0f && Mission.Current != null) _autoAttack = 0f;      // la batalla (u otra escena) ya ha empezado
+                if (_autoAttack > 0f && Mission.Current != null) _autoAttack = 0f;      // the battle (or another scene) already started
                 if (_autoAttack > 0f && !talking && !ChatSession.IsBusy) TickMapAttack(dt);
 
                 if (ToFade.Count > 0 && !talking)

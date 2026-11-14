@@ -4,8 +4,8 @@ using TaleWorlds.GauntletUI.BaseTypes;
 namespace AILegacy.UI
 {
     /// <summary>
-    /// Barra de scroll que baja sola al final cada vez que cambia ScrollVersion (nuevo mensaje en el chat).
-    /// Se usa desde GUI/Prefabs/AILegacyChat.xml como &lt;AILegacyScrollbarWidget ScrollVersion="@ScrollVersion" .../&gt;
+    /// Scrollbar that jumps to the bottom whenever ScrollVersion changes (new chat message).
+    /// Used from GUI/Prefabs/AILegacyChat.xml as &lt;AILegacyScrollbarWidget ScrollVersion="@ScrollVersion" .../&gt;
     /// </summary>
     public class AILegacyScrollbarWidget : ScrollbarWidget
     {
@@ -21,7 +21,7 @@ namespace AILegacy.UI
             {
                 if (_version == value) return;
                 _version = value;
-                _pendingFrames = 4; // el panel recalcula el tamaño durante unos frames
+                _pendingFrames = 4; // the panel keeps resizing for a few frames
             }
         }
 

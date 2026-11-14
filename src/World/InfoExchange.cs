@@ -15,21 +15,21 @@ using TaleWorlds.Library;
 
 namespace AILegacy.World
 {
-    /// <summary>Algo que un NPC le cuenta a otro sobre el jugador. Viaja: no llega al instante.</summary>
+    /// <summary>Something one NPC tells another about the player. It travels, so it doesn't arrive instantly.</summary>
     public class NpcMessage
     {
         [JsonProperty("id")] public string Id;
         [JsonProperty("from")] public string FromId;
         [JsonProperty("from_name")] public string FromName;
         [JsonProperty("to")] public string ToId;
-        [JsonProperty("text")] public string Text;          // en inglés: lo leerá otro NPC
-        /// <summary>public = lo irá contando · private = solo para él · secret = bajo palabra de callar</summary>
+        [JsonProperty("text")] public string Text;          // English, another NPC's prompt reads it
+        /// <summary>public = will spread it, private = just for them, secret = sworn to silence</summary>
         [JsonProperty("secrecy")] public string Secrecy = "private";
         [JsonProperty("day")] public double Day;
         [JsonProperty("arrive")] public double ArriveDay;
     }
 
-    /// <summary>Lo que un NPC ha sabido por boca de otro.</summary>
+    /// <summary>Something an NPC heard from another one.</summary>
     public class HeardItem
     {
         [JsonProperty("from")] public string FromName;
@@ -39,8 +39,8 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// Intercambio de información entre NPC: lo que le cuentas a uno (o lo que haces delante de él) puede llegar a otro,
-    /// con retraso según la distancia y con un grado de secreto. Lo que llega es una afirmación, no un hecho.
+    /// What you tell one NPC (or do in front of them) can reach another, delayed by distance and with a secrecy level.
+    /// What arrives is a claim, not a fact.
     /// </summary>
     internal static class InfoExchange
     {
@@ -48,7 +48,7 @@ namespace AILegacy.World
         private static readonly Random Rng = new Random();
         private static Hero P => Hero.MainHero;
 
-        /// <summary>A quién tiene sentido que este NPC le cuente algo: los suyos (familia, señor, jefe de clan, amigos).</summary>
+        /// <summary>People this NPC would plausibly tell things to: family, liege, clan leader, friends.</summary>
         public static List<Hero> Confidants(Hero h, int max = 8)
         {
             var list = new List<Hero>();
@@ -72,7 +72,7 @@ namespace AILegacy.World
             return c.Count == 0 ? "" : "People you could send word to: " + string.Join(", ", c.Select(x => x.Name.ToString())) + ".";
         }
 
-        /// <summary>El NPC decide mandar recado a otro. Devuelve el texto para enseñar al jugador, o null.</summary>
+        /// <summary>The NPC sends word to another one. Returns the text to show the player, "" for nothing to show, or null on failure.</summary>
         public static string Send(Speaker from, string toName, string text, string secrecy)
         {
             if (!from.IsHero || string.IsNullOrWhiteSpace(text)) return null;
@@ -94,9 +94,8 @@ namespace AILegacy.World
                 Day = CampaignTime.Now.ToDays, ArriveDay = CampaignTime.Now.ToDays + hours / 24.0,
             });
             Log.Info($"Recado de {from.Name} para {to.Name} ({secrecy}, llega en {hours:0} h): {text}");
-            // Lo que le cuenta a otro en privado o en secreto no se le anuncia al jugador: no tiene cómo saberlo, y además
-            // delataba a quién se lo contaba. Solo se avisa de lo que piensa ir contando abiertamente.
-            // (Cadena vacía = hecho, sin nada que enseñar; null = no se ha podido.)
+            // Private or secret messages aren't announced to the player. They'd have no way to know, and it gave away
+            // who was being told. Only public ones get a notice.
             return secrecy == "public" ? L.F("AIL_c009f7dc", $"{from.Name} hará llegar noticia de esto a {to.Name}.") : "";
         }
 
@@ -109,7 +108,7 @@ namespace AILegacy.World
                 if (pa.HasValue && pb.HasValue)
                 {
                     float d = pa.Value.Distance(pb.Value);
-                    if (d < 3f) return 1;                                   // están juntos: se lo dice en persona
+                    if (d < 3f) return 1;                                   // together, tells them in person
                     return Math.Max(2, d * S.Get.MessengerHoursPerDistanceX10 / 10.0);
                 }
             }
@@ -132,7 +131,7 @@ namespace AILegacy.World
                     AddHeard(mem, new HeardItem { FromName = m.FromName, Text = m.Text, Secrecy = m.Secrecy, Day = now });
                     Log.Info($"Recado entregado a {to.Name} (de {m.FromName}): {m.Text}");
 
-                    // Lo público corre de boca en boca
+                    // Public news spreads by word of mouth
                     if (m.Secrecy == "public")
                         NewsStore.Add(new NewsItem
                         {
@@ -147,13 +146,13 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Recados entre NPC", ex); }
         }
 
-        /// <summary>Temas de charlas ambientales que guardaban partidas antiguas: no tratan del jugador.</summary>
+        /// <summary>Ambient chat topics that old saves stored. They aren't about the player.</summary>
         public static bool IsAmbientTopic(HeardItem x) => x == null || string.IsNullOrWhiteSpace(x.Text) || x.Text.StartsWith("(talking together)", StringComparison.Ordinal);
 
-        /// <summary>Lo que sí trata del jugador (recados y lo oído de pasada).</summary>
+        /// <summary>Messages and overheard things that are actually about the player.</summary>
         public static IEnumerable<HeardItem> AboutPlayer(HeroMemory mem) => mem?.Heard == null ? Enumerable.Empty<HeardItem>() : mem.Heard.Where(x => !IsAmbientTopic(x));
 
-        /// <summary>Añade algo oído: antes limpia los temas ambientales viejos para que no echen a los recados reales.</summary>
+        /// <summary>Clears old ambient topics first so they don't push out real messages.</summary>
         public static void AddHeard(HeroMemory mem, HeardItem item)
         {
             if (mem == null || item == null) return;
@@ -163,7 +162,7 @@ namespace AILegacy.World
             while (mem.Heard.Count > S.Get.MaxHeardPerHero) mem.Heard.RemoveAt(0);
         }
 
-        /// <summary>Para el prompt: lo que este NPC ha sabido del jugador por otros.</summary>
+        /// <summary>For the prompt: what this NPC heard about the player from others.</summary>
         public static string DescribeHeard(HeroMemory mem)
         {
             var list = AboutPlayer(mem).ToList();
@@ -180,8 +179,8 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// Iniciativa en el mapa: un noble que te conoce y pasa cerca puede cabalgar hasta ti para hablar,
-    /// si tiene un motivo (un encargo abierto, algo que ha oído de ti, una deuda de carta, afecto o rencor).
+    /// A noble who knows you and passes nearby can ride up to talk if they have a reason
+    /// (an open task, something they heard about you, an unanswered letter, affection or a grudge).
     /// </summary>
     internal static class MapInitiative
     {
@@ -204,7 +203,7 @@ namespace AILegacy.World
                 float range = Math.Max(4f, main.SeeingRange * 0.9f);
                 var here = main.GetPosition2D;
                 var candidates = new List<(Hero h, double w, string why)>();
-                // Los que cabalgan contigo: no tienen que acercarse, te piden un momento
+                // People riding with you don't need to approach, they just ask for a moment
                 try
                 {
                     foreach (var e in main.MemberRoster.GetTroopRoster())
@@ -229,8 +228,8 @@ namespace AILegacy.World
                     var h = p.LeaderHero;
                     if (h.MapFaction != null && P.MapFaction != null && h.MapFaction != P.MapFaction && h.MapFaction.IsAtWarWith(P.MapFaction))
                     {
-                        // Un enemigo que te conoce, te la tiene guardada y se sabe más fuerte: te da alcance para decírtelo a la cara
-                        // antes de nada (como mucho cada tres días por personaje)
+                        // An enemy who knows you, holds a grudge and knows they're stronger rides you down to say it to your face
+                        // first (at most every three days per character)
                         var hm = MemoryStore.Find(h.StringId);
                         if (hm == null || hm.ConversationCount == 0 || !OrderSystem.CanTakeOrders(h) || OrderSystem.Find(h) != null) continue;
                         if (hm.LastInitiativeDay >= 0 && now - hm.LastInitiativeDay < 3) continue;
@@ -242,7 +241,7 @@ namespace AILegacy.World
                     }
                     if (!OrderSystem.CanTakeOrders(h) || OrderSystem.Find(h) != null) continue;
                     var mem = MemoryStore.Find(h.StringId);
-                    if (mem == null || mem.ConversationCount == 0) continue;                // solo quien ya te conoce
+                    if (mem == null || mem.ConversationCount == 0) continue;                // only people who already know you
                     if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < cfg.MapInitiativeDaysPerNpc) continue;
                     if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay < 1) continue;
 
@@ -273,7 +272,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Iniciativa en el mapa", ex); }
         }
 
-        /// <summary>¿Tiene algo que decirte? Peso y motivo (en inglés, va a su prompt).</summary>
+        /// <summary>Does the NPC have something to say? Weight and reason (English, goes into their prompt).</summary>
         private static (double w, string why) Motive(Hero h, HeroMemory mem)
         {
             var reasons = new List<string>(); double w = 0;
@@ -304,14 +303,14 @@ Open with it, in your own voice: a demand, a taunt, an offer of terms, or a last
 
         public static void Touch() { var _ = TMapApproach.Key; }
 
-        /// <summary>El grupo del NPC ha llegado junto al del jugador.</summary>
+        /// <summary>The NPC's party reached the player's.</summary>
         public static void Arrived(Hero h)
         {
             var mem = MemoryStore.Find(h.StringId);
             string why = string.IsNullOrWhiteSpace(mem?.InitiativeReason) ? "you wanted a word with them" : mem.InitiativeReason;
             if (why.StartsWith("HOSTILE|"))
             {
-                // Sigue siendo enemigo y sigue pudiendo: si no, lo deja estar
+                // Only if still at war and still able, otherwise drop it
                 bool still = h.MapFaction != null && P.MapFaction != null && h.MapFaction.IsAtWarWith(P.MapFaction);
                 if (still) Initiative.StartMap(h, THostile.Format("reasons", why.Substring(8)), hostile: true);
                 return;

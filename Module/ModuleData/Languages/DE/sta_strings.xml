@@ -333,7 +333,7 @@
     <string id="AIL_44de911b" text="Gesellschaft" />
     <string id="AIL_4514967a" text=", vom Clan " />
     <string id="AIL_454cbf99" text="{0} ergibt sich: {1} Männer werden zu deinen Gefangenen." />
-    <string id="AIL_454f39f4" text="Die Anbieter werden der Reihe nach getestet (1, 2, 3, 4): Wenn der erste ausfällt oder sein Kontingent erschöpft ist, wird der nächste verwendet. Die Schlüssel werden in Dokumente, unter Mount and Blade II Bannerlord / Configs / ModSettings gespeichert, nicht im Mod-Ordner." />
+    <string id="AIL_454f39f4" text="Die Anbieter werden der Reihe nach getestet (1 bis 6): Wenn der erste ausfällt oder sein Kontingent erschöpft ist, wird der nächste verwendet. Die Plätze 1 bis 4 sind als Beispiel für Gemini, OpenAI, DeepSeek und Ollama vorausgefüllt: Schlüssel eintragen und einschalten, oder beliebig ändern. Die Schlüssel werden in Dokumente, unter Mount and Blade II Bannerlord / Configs / ModSettings gespeichert, nicht im Mod-Ordner." />
     <string id="AIL_458e1b5a" text="Jede Entscheidung ist eine Anfrage an die KI pro Seite. Wenn eine Seite plötzlich viele Leute verliert, entscheidet sie früher." />
     <string id="AIL_45d4f33e" text="Wachen pro Welle" />
     <string id="AIL_463eb3a3" text="Ohne Titel" />
@@ -464,7 +464,7 @@
     <string id="AIL_5da6bc58" text="Heere (deinem beitreten, ein eigenes aufstellen, es verlassen)" />
     <string id="AIL_5dca951d" text="Beschreibung (was die NPCs lesen werden; am besten auf Englisch, aber jede Sprache geht)" />
     <string id="AIL_5de8b992" text="&#10;Beteiligte: " />
-    <string id="AIL_5e0df453" text="OpenAI-kompatible Basisadresse, z. B. https://mi-servidor/v1. Für die bekannten Dienste wird sie automatisch gesetzt." />
+    <string id="AIL_5e0df453" text="OpenAI-kompatible Basisadresse, ohne /chat/completions am Ende (das ergänzt die Mod), z. B. https://mein-server/v1. Für die bekannten Dienste wird sie automatisch gesetzt." />
     <string id="AIL_5e2efb51" text="Aus Datei wiederherstellen" />
     <string id="AIL_5e479046" text="Stimmung: " />
     <string id="AIL_5e55369d" text="Höchstanzahl gleichzeitiger Ausbrüche" />
@@ -1313,7 +1313,11 @@
     <string id="AIL_d4b8a2f7" text="Aktionen, die vom Gesprächsthema abhängen (Befehle, Handel, Reich), werden nur dann vollständig erklärt, wenn sie passen; die übrigen stehen in einer Zeile und funktionieren weiterhin. Spart Token bei jedem Satz. Benötigt die Vektoren der Erinnerung nach Bedeutung." />
     <string id="AIL_d4b8a2f8" text="Vollständig erklärte Aktionen" />
     <string id="AIL_d4b8a2f9" text="Vektormodell (leer = automatisch)" />
-    <string id="AIL_d4b8a2fa" text="Leer: gemini-embedding-001 bei Gemini, text-embedding-3-small bei OpenAI, nomic-embed-text bei Ollama. Trage nur dann etwas anderes ein, wenn dein Anbieter einen anderen Namen verwendet." />
+    <string id="AIL_d4b8a2fa" text="Für Anbieter ohne eigenes Vektormodell, deren Dienst die Mod nicht kennt. Leer: gemini-embedding-001 bei Gemini, text-embedding-3-small bei OpenAI, embedding-3 bei GLM, nomic-embed-text bei Ollama; DeepSeek und Groq liefern keine Vektoren. Trage nur dann etwas anderes ein, wenn dein Anbieter einen anderen Namen verwendet." />
+    <string id="AIL_e7b1c4d1" text="Vektormodell (leer = automatisch, - = keins)" />
+    <string id="AIL_e7b1c4d2" text="Modell, das dieser Anbieter für die Erinnerung nach Bedeutung (Vektoren) nutzt. Leer: das übliche des Dienstes, falls vorhanden (embedding-3 bei GLM), sonst das aus 4. Gedächtnis. Gib - ein, damit dieser Anbieter nie nach Vektoren gefragt wird." />
+    <string id="AIL_e7b1c4d5" text="Anbieter 5" />
+    <string id="AIL_e7b1c4d6" text="Anbieter 6" />
     <string id="AIL_e5c9b3a1" text="Neuigkeiten" />
     <string id="AIL_e5c9b3a2" text="Erinnerungen" />
     <string id="AIL_e5c9b3a3" text="Bestätigen" />

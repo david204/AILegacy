@@ -14,8 +14,8 @@ using TaleWorlds.Library;
 namespace AILegacy.Import
 {
     /// <summary>
-    /// Trae tus propios datos de partida de AIInfluence (save_data/[ID de campaña]/*.json) a la memoria de AI Legacy:
-    /// resúmenes, últimas líneas, personalidad, recuerdos, nombre con el que te conocen e instrucciones tuyas.
+    /// Imports your own AIInfluence campaign data (save_data/[campaign id]/*.json, one file per hero) into AI Legacy memory:
+    /// summaries, last lines, personality, memories, the name they know you by, and your custom instructions.
     /// </summary>
     internal static class AIInfluenceImporter
     {
@@ -36,7 +36,7 @@ namespace AILegacy.Import
                     var dir = SaveDataRoots().Select(r => Path.Combine(r, id)).FirstOrDefault(Directory.Exists);
                     if (dir != null) { Import(dir, true); return; }
 
-                    // No hay carpeta para esta campaña: ofrecer las que existen
+                    // No folder for this campaign id: let the player pick one of the existing ones
                     var options = new List<InquiryElement>();
                     foreach (var root in SaveDataRoots().Where(Directory.Exists))
                         foreach (var d in Directory.GetDirectories(root))
@@ -59,7 +59,7 @@ namespace AILegacy.Import
             });
         }
 
-        /// <summary>Quita de esta campaña todo lo importado de AIInfluence (los archivos se apartan a una subcarpeta, no se borran).</summary>
+        /// <summary>Removes everything imported from AIInfluence in this campaign. Files are moved to a subfolder, not deleted.</summary>
         public static void UndoImport()
         {
             MainThread.Post(() =>
@@ -121,7 +121,7 @@ namespace AILegacy.Import
         {
             var m = new HeroMemory { HeroId = hero.StringId, HeroName = hero.Name.ToString() };
 
-            // Historial: líneas "MEMORY (day N): ..." = resúmenes; el resto, turnos
+            // ConversationHistory: "MEMORY (day N): ..." lines are summaries, the rest are turns
             var summaries = new List<string>();
             foreach (var t in (j["ConversationHistory"] as JArray ?? new JArray()).Select(x => x?.ToString() ?? ""))
             {
@@ -133,10 +133,10 @@ namespace AILegacy.Import
                     summaries.Add((c > 0 ? line.Substring(c + 2) : line).Trim());
                     continue;
                 }
-                if (line.StartsWith("[")) continue; // notas de sistema/eventos
-                // "David (`main_hero`): texto" / "I (Rhagaea, `lord_1_14`): texto" / "Rhagaea: texto"
+                if (line.StartsWith("[")) continue; // system and event notes
+                // "Player (`main_hero`): text" / "I (Rhagaea, `lord_1_14`): text" / "Rhagaea: text"
                 int sep2 = line.IndexOf(": ", StringComparison.Ordinal);
-                if (sep2 <= 0 || sep2 > 80) continue; // no parece una línea de diálogo
+                if (sep2 <= 0 || sep2 > 80) continue; // doesn't look like a dialogue line
                 string head = line.Substring(0, sep2);
                 string text = line.Substring(sep2 + 2);
                 bool player = head.Contains("main_hero");
@@ -149,7 +149,7 @@ namespace AILegacy.Import
             }
             if (m.Turns.Count > 16) m.Turns = m.Turns.Skip(m.Turns.Count - 16).ToList();
 
-            // Personalidad
+            // Personality (AIGenerated* fields)
             string P(string k) => ((string)j[k] ?? "").Trim();
             var prof = new CharacterProfile
             {
@@ -167,7 +167,7 @@ namespace AILegacy.Import
             };
             if (!prof.IsEmpty) m.Profile = prof;
 
-            // Recuerdos (Memory Book)
+            // Memories (their Memory Book) become notes
             foreach (var mem in (j["Memories"] as JArray ?? new JArray()).OfType<JObject>())
             {
                 var title = ((string)mem["title"] ?? "").Trim();
@@ -179,7 +179,7 @@ namespace AILegacy.Import
             int maxNotes = S.Get.MaxNotesPerHero;
             if (m.Notes.Count > maxNotes) m.Notes = m.Notes.Skip(m.Notes.Count - maxNotes).ToList();
 
-            // Cómo te conoce
+            // How they know the player
             var social = j["CounterpartySocial"]?["main_hero"];
             if (social != null)
             {
@@ -192,12 +192,12 @@ namespace AILegacy.Import
             if (m.LastConversationDay < 0) m.LastConversationDay = (double?)j["LastInteractionTimeDays"] ?? -1;
             if (m.ConversationCount == 0 && (m.Turns.Count > 0 || summaries.Count > 0)) m.ConversationCount = 1;
 
-            // Instrucciones tuyas (no los contextos automáticos)
+            // Player-written instructions only, skip the auto-generated [CONTEXT: ...] ones
             var extra = P("AdditionalContext");
             if (extra.Length > 0 && !extra.StartsWith("[CONTEXT:", StringComparison.OrdinalIgnoreCase))
                 m.CustomInstructions.Add(extra.Length > 1500 ? extra.Substring(0, 1500) : extra);
 
-            // Ánimo
+            // Mood
             var mood = j["EmotionalState"];
             if (mood != null)
             {

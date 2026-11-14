@@ -10,10 +10,9 @@ using TaleWorlds.Localization;
 namespace AILegacy.Patches
 {
     /// <summary>
-    /// Los efectos diarios de los sucesos del mundo y de las leyes sobre una ciudad o castillo (prosperidad, comida, seguridad,
-    /// lealtad) entran en la cuenta que hace el propio juego, cada uno con su motivo. Así salen en el desglose al pasar el
-    /// ratón por la cifra, y el juego los suma una sola vez con el resto. Antes se sumaban a mano por detrás y no se veían.
-    /// Si otro mod sustituye estos modelos y la cuenta deja de pasar por aquí, WorldSim vuelve a aplicarlos a mano.
+    /// Daily effects of world events and laws on a town or castle go into the game's own ExplainedNumber, each with its
+    /// reason, so they show up in the tooltip breakdown and get added once with everything else.
+    /// If another mod replaces these models and the calculation no longer passes through here, WorldSim applies them by hand.
     /// </summary>
     internal static class TownEffects
     {
