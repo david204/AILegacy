@@ -67,6 +67,14 @@ namespace AILegacy.Behaviors
             CampaignEvents.OnGameLoadedEvent.AddNonSerializedListener(this, Diplomacy.OnGameLoaded);
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(this, Diplomacy.OnCharacterCreationIsOver);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Diplomacy.PeaceAtStart);
+            // Dates the game does not keep: when a kingdom was founded and when an alliance began
+            CampaignEvents.KingdomCreatedEvent.AddNonSerializedListener(this, Diplomacy.OnKingdomCreated);
+            CampaignEvents.OnAllianceStartedEvent.AddNonSerializedListener(this, Diplomacy.OnAllianceStarted);
+            CampaignEvents.OnAllianceEndedEvent.AddNonSerializedListener(this, Diplomacy.OnAllianceEnded);
+            // The lists of who serves whom are built once a day: a clan changing crown rebuilds them at once
+            CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, World.Facts.OnClanChangedKingdom);
+            CampaignEvents.KingdomDestroyedEvent.AddNonSerializedListener(this, World.Facts.OnKingdomChanged);
+            CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.Facts.OnRulingClanChanged);
         }
 
         public override void SyncData(IDataStore dataStore)

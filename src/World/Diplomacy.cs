@@ -53,18 +53,40 @@ namespace AILegacy.World
         public static int AllianceCount(Kingdom k) => WorldSim.Kingdoms.Count(o => o != k && Allied(k, o));
         public static int TradeCount(Kingdom k) => WorldSim.Kingdoms.Count(o => o != k && HasTrade(k, o));
 
+        // A peace forced by exhaustion carries a truce of its own, even with the house rule at 0: without it the
+        // same war could be declared again the next day. One year of Calradia, or the house rule if that is longer.
+        private const int ForcedTruceDays = 84;
+        private static int ForcedTruceLength => Math.Max(ForcedTruceDays, S.Get.MinTruceDays);
+
         /// <summary>Days left before either may declare war on the other again after their last peace. 0 = no truce in force.</summary>
         public static int TruceDaysLeft(Kingdom a, Kingdom b)
         {
             try
             {
-                int min = S.Get.MinTruceDays;
-                if (min <= 0 || a == null || b == null || a == b || a.IsAtWarWith(b)) return 0;
-                var link = a.GetStanceWith(b);
-                if (link == null) return 0;
-                // the game stamps the day a war between two factions ends, however it ended
-                double since = CampaignTime.Now.ToDays - link.PeaceDeclarationDate.ToDays;
-                return since >= 0 && since < min ? (int)Math.Ceiling(min - since) : 0;
+                if (a == null || b == null || a == b || a.IsAtWarWith(b)) return 0;
+                int left = 0, min = S.Get.MinTruceDays;
+                var link = min > 0 ? a.GetStanceWith(b) : null;
+                if (link != null)
+                {
+                    // the game stamps the day a war between two factions ends, however it ended
+                    double since = CampaignTime.Now.ToDays - link.PeaceDeclarationDate.ToDays;
+                    if (since >= 0 && since < min) left = (int)Math.Ceiling(min - since);
+                }
+                return Math.Max(left, ForcedTruceDaysLeft(a, b));
+            }
+            catch { return 0; }
+        }
+
+        /// <summary>Days left of the truce that a peace forced by exhaustion left between these two. 0 = none.</summary>
+        private static int ForcedTruceDaysLeft(Kingdom a, Kingdom b)
+        {
+            try
+            {
+                if (a == null || b == null || a == b || St?.ForcedTruceUntil == null) return 0;
+                if (!St.ForcedTruceUntil.TryGetValue(FactCheck.Pair(a.StringId, b.StringId), out double until)) return 0;
+                double left = until - CampaignTime.Now.ToDays;
+                // longer than any truce we set: the date comes from a later save
+                return left > 0 && left <= 400 ? (int)Math.Ceiling(left) : 0;
             }
             catch { return 0; }
         }
@@ -76,7 +98,9 @@ namespace AILegacy.World
         /// </summary>
         public static string WarBlocked(Kingdom k, Kingdom o)
         {
-            if (k == null || o == null || PlayerRules(k) || PlayerRules(o)) return null;
+            // The player is never stopped from declaring war. As a target the realm the player rules is covered like any
+            // other: no AI king breaks a truce with it or piles onto it.
+            if (k == null || o == null || PlayerRules(k)) return null;
             int truce = TruceDaysLeft(k, o);
             if (truce > 0) return $"tregua tras la paz con {o.Name}: faltan {truce} días";
             int max = S.Get.MaxWarsPerKingdom;
@@ -89,8 +113,491 @@ namespace AILegacy.World
         {
             int max = S.Get.MaxAlliancesPerKingdom;
             if (max <= 0 || k == null || o == null || PlayerRules(k) || PlayerRules(o)) return null;
-            if (AllianceCount(k) >= max) return $"{k.Name} ya tiene {AllianceCount(k)} alianzas (límite {max})";
-            return AllianceCount(o) >= max ? $"{o.Name} ya tiene {AllianceCount(o)} alianzas (límite {max})" : null;
+            // with "a new alliance replaces the old one" a kingdom at its limit still has room: once the new one is
+            // sealed, its oldest one goes
+            bool swap = S.Get.AllianceReplacesOldest;
+            if (AllianceCount(k) >= max && !(swap && OldestAlly(k, o) != null)) return $"{k.Name} ya tiene {AllianceCount(k)} alianzas (límite {max})";
+            return AllianceCount(o) >= max && !(swap && OldestAlly(o, k) != null) ? $"{o.Name} ya tiene {AllianceCount(o)} alianzas (límite {max})" : null;
+        }
+
+        /// <summary>The ally this kingdom has had longest, leaving out <paramref name="except"/> and any kingdom the player rules. null when it has none to drop.</summary>
+        private static Kingdom OldestAlly(Kingdom k, Kingdom except)
+        {
+            Kingdom best = null;
+            double bestDay = double.MaxValue;
+            foreach (var o in WorldSim.Kingdoms.Where(x => x != k && x != except && !PlayerRules(x) && Allied(k, x)))
+            {
+                // An alliance made before we kept dates is older than any we dated. Among those, the game only knows
+                // when each runs out, and they all last the same.
+                if (!St.AllianceSince.TryGetValue(FactCheck.Pair(k.StringId, o.StringId), out double day))
+                {
+                    try { day = Alli.GetAllianceEndDate(k, o).ToDays - 1e7; } catch { day = -1e7; }
+                }
+                if (day < bestDay) { best = o; bestDay = day; }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// Once a new alliance between these two is sealed and seen to exist: each AI kingdom it left over its limit
+        /// ends its oldest other alliance. Never called before the new one stands, so a failed alliance costs nobody
+        /// an old one. Returns what was done, to show. The kingdom the player rules is never touched.
+        /// </summary>
+        private static List<string> DropOldestAlliances(Kingdom k, Kingdom o)
+        {
+            var done = new List<string>();
+            int max = S.Get.MaxAlliancesPerKingdom;
+            if (max <= 0 || !S.Get.AllianceReplacesOldest || !Allied(k, o)) return done;
+            foreach (var pair in new[] { new[] { k, o }, new[] { o, k } })
+            {
+                Kingdom who = pair[0], partner = pair[1];
+                if (PlayerRules(who)) continue;
+                for (int guard = 0; guard < 10 && AllianceCount(who) > max; guard++)
+                {
+                    var old = OldestAlly(who, partner);
+                    if (old == null) break;
+                    EndAlliance(who, old);
+                    if (Allied(who, old)) break;
+                    WorldSim.ChangeStance(old.StringId, who.StringId, -20);
+                    Log.Info($"[diplomacia] {who.Name} deja su alianza con {old.Name} para aliarse con {partner.Name}");
+                    string text = L.F("AIL_e7b1c761", $"{who.Name} pone fin a su alianza con {old.Name} para sellar una nueva con {partner.Name}.");
+                    done.Add(text);
+                    NewsStore.Add(new NewsItem
+                    {
+                        Type = "alliance", Importance = 3, Kingdoms = new List<string> { who.StringId, old.StringId, partner.StringId },
+                        Heroes = new[] { who.Leader, old.Leader }.Where(h => h != null).Select(h => h.StringId).ToList(),
+                        Text = $"{who.Name} has ended its alliance with {old.Name}, its oldest, to make room for a new alliance with {partner.Name}.",
+                        TitleEs = L.F("AIL_e7b1c760", $"{who.Name} deja a {old.Name}"), TextEs = text,
+                    });
+                }
+            }
+            return done;
+        }
+
+        public static void OnAllianceStarted(Kingdom a, Kingdom b)
+        {
+            try { if (a != null && b != null && St != null) St.AllianceSince[FactCheck.Pair(a.StringId, b.StringId)] = CampaignTime.Now.ToDays; } catch { }
+        }
+
+        public static void OnAllianceEnded(Kingdom a, Kingdom b)
+        {
+            try { if (a != null && b != null && St != null) St.AllianceSince.Remove(FactCheck.Pair(a.StringId, b.StringId)); } catch { }
+        }
+
+        /// <summary>With the setting off, AI rulers do not open alliances or trade with the kingdom the player rules. A vassal player changes nothing.</summary>
+        private static string PactOfferBlocked(Kingdom k, Kingdom o) =>
+            !S.Get.AiOffersPactsToPlayer && !PlayerRules(k) && PlayerRules(o) ? "las ofertas de alianza y comercio al reino del jugador están desactivadas" : null;
+
+        // ============================================================ a refused proposal has to wait
+
+        private static readonly string[] CooledTypes = { "peace", "alliance", "trade" };
+        private static string RefusalKey(string type, string a, string b) => type + "|" + FactCheck.Pair(a, b);
+
+        private static void MarkRefused(string type, string from, string to, double now)
+        {
+            if (from == null || to == null || !CooledTypes.Contains(type)) return;
+            St.Refused[RefusalKey(type, from, to)] = now;
+        }
+
+        /// <summary>Days left before that kind of proposal may be made again between these two. 0 = free.</summary>
+        public static int RefusalDaysLeft(string type, Kingdom a, Kingdom b)
+        {
+            try
+            {
+                int wait = S.Get.RefusedProposalCooldownDays;
+                if (wait <= 0 || a == null || b == null || a == b) return 0;
+                if (!St.Refused.TryGetValue(RefusalKey(type, a.StringId, b.StringId), out double day)) return 0;
+                double since = CampaignTime.Now.ToDays - day;
+                if (since < 0 || since >= wait) return 0;
+                // a refusal from an earlier war says nothing about this one
+                if (type == "peace") { int war = WarDays(a, b); if (war >= 0 && since > war + 1) return 0; }
+                return (int)Math.Ceiling(wait - since);
+            }
+            catch { return 0; }
+        }
+
+        /// <summary>Why this ruler may not make that proposal yet, or null. AI rulers only: the player may insist.</summary>
+        private static string ProposalBlocked(string type, Kingdom k, Kingdom o)
+        {
+            if (PlayerRules(k)) return null;
+            int left = RefusalDaysLeft(type, k, o);
+            return left > 0 ? $"esa propuesta ({type}) entre {k.Name} y {o.Name} se rechazó o caducó hace poco: faltan {left} días" : null;
+        }
+
+        /// <summary>
+        /// Ids of the kingdoms that still exist. The game keeps a destroyed kingdom in its list, flagged; a kingdom
+        /// that has no ruler for the moment still exists, which is why this is wider than WorldSim.Kingdoms.
+        /// </summary>
+        private static HashSet<string> ExistingKingdomIds() =>
+            new HashSet<string>(Campaign.Current.Kingdoms.Where(k => k != null && !k.IsEliminated && k.StringId != null).Select(k => k.StringId));
+
+        private static void PruneRefusals(double now)
+        {
+            int wait = Math.Max(0, S.Get.RefusedProposalCooldownDays);
+            foreach (var key in St.Refused.Where(kv => kv.Key == null || now - kv.Value >= wait || kv.Value > now).Select(kv => kv.Key).ToList()) St.Refused.Remove(key);
+            // captures, alliance dates and truces of kingdoms that are gone
+            var alive = ExistingKingdomIds();
+            if (alive.Count == 0) return;
+            bool Gone(string pairKey) { var ids = (pairKey ?? "").Split('|'); return ids.Length != 2 || !alive.Contains(ids[0]) || !alive.Contains(ids[1]); }
+            foreach (var key in St.WarLastCapture.Keys.Where(Gone).ToList()) St.WarLastCapture.Remove(key);
+            foreach (var key in St.AllianceSince.Keys.Where(Gone).ToList()) St.AllianceSince.Remove(key);
+            foreach (var key in St.ForcedTruceUntil.Where(kv => Gone(kv.Key) || kv.Value <= now).Select(kv => kv.Key).ToList()) St.ForcedTruceUntil.Remove(key);
+        }
+
+        // ============================================================ time: how long a war has lasted, the last peace, how old a kingdom is
+
+        // A stance that never changed carries day zero of the calendar, a thousand years back
+        private const double SaneDays = 84 * 100;
+        private const int RecentChangeDays = 21, StalemateShownFrom = 42;
+
+        /// <summary>Whole days this war has lasted, from the game's own date. -1 = not at war, or no date.</summary>
+        public static int WarDays(Kingdom a, Kingdom b)
+        {
+            try
+            {
+                if (a == null || b == null || a == b || !a.IsAtWarWith(b)) return -1;
+                double d = CampaignTime.Now.ToDays - a.GetStanceWith(b).WarStartDate.ToDays;
+                return d >= 0 && d < SaneDays ? (int)d : -1;
+            }
+            catch { return -1; }
+        }
+
+        /// <summary>Whole days since these two last made peace. -1 = at war, never fought, or no date.</summary>
+        public static int PeaceDays(Kingdom a, Kingdom b)
+        {
+            try
+            {
+                if (a == null || b == null || a == b || a.IsAtWarWith(b)) return -1;
+                double d = CampaignTime.Now.ToDays - a.GetStanceWith(b).PeaceDeclarationDate.ToDays;
+                return d >= 0 && d < SaneDays ? (int)d : -1;
+            }
+            catch { return -1; }
+        }
+
+        /// <summary>"40 day(s)" under a year, "200 days, 2.4 years" over it. Years are years of this world.</summary>
+        public static string Span(int days)
+        {
+            int year = Math.Max(1, CampaignTime.DaysInYear);
+            return days < year ? $"{days} day(s)" : $"{days} days, {(days / (double)year).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)} years";
+        }
+
+        public static string WarSpan(Kingdom a, Kingdom b)
+        {
+            int days = WarDays(a, b);
+            return days < 0 ? "" : $" (for {Span(days)})";
+        }
+
+        /// <summary>Kingdoms this one made peace with in the last <paramref name="within"/> days, most recent first.</summary>
+        public static List<string> RecentPeaces(Kingdom k, int within)
+        {
+            var list = new List<KeyValuePair<int, string>>();
+            foreach (var o in WorldSim.Kingdoms.Where(x => x != k))
+            {
+                int d = PeaceDays(k, o);
+                if (d >= 0 && d <= within) list.Add(new KeyValuePair<int, string>(d, $"{o.StringId} ({d} day(s) ago)"));
+            }
+            return list.OrderBy(x => x.Key).Select(x => x.Value).ToList();
+        }
+
+        private static readonly Tpl TNewKingdom = new Tpl("world/kingdom_newly_founded.txt",
+            "NEWLY FOUNDED {days} day(s) ago (a young realm that is only beginning: holding little land is where it starts, not a sign that it is collapsing or has lost a war)");
+
+        /// <summary>How old the kingdom is, for the fact sheets. The game keeps no founding date, so it is the day we first saw it.</summary>
+        public static string Age(Kingdom k)
+        {
+            try
+            {
+                if (k == null || !St.KingdomSeenDay.TryGetValue(k.StringId, out double day) || day < 0) return "an old, long-established realm";
+                int d = Math.Max(0, (int)(CampaignTime.Now.ToDays - day));
+                return d < Math.Max(1, CampaignTime.DaysInYear) ? TNewKingdom.Format("days", d) : $"founded {Span(d)} ago";
+            }
+            catch { return "an old, long-established realm"; }
+        }
+
+        /// <summary>
+        /// Notes the day each kingdom is first seen. The first time ever, every kingdom already there is marked as
+        /// old: nothing says when it was founded, and calling it new would be the worse mistake.
+        /// </summary>
+        public static void TrackKingdoms()
+        {
+            try
+            {
+                if (Campaign.Current == null || St == null) return;
+                Heal();
+                var seen = St.KingdomSeenDay;
+                bool first = seen.Count == 0;
+                double now = CampaignTime.Now.ToDays;
+                // every kingdom that exists, with or without a ruler today: one that is only waiting for an heir
+                // must not come back later as newly founded
+                var ids = ExistingKingdomIds();
+                if (ids.Count == 0) return;
+                foreach (var id in ids) if (!seen.ContainsKey(id)) seen[id] = first ? -1 : now;
+                // destroyed, or no longer in the game at all (a mod took it out)
+                foreach (var id in seen.Keys.Where(x => !ids.Contains(x)).ToList()) seen.Remove(id);
+                SeedCaptures();
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] edad de los reinos", ex); }
+        }
+
+        private static int _seededSession = -1;
+
+        /// <summary>
+        /// Once per loaded campaign: a save from before captures were dated still has them in the history of each
+        /// town and castle (World/History.cs). Without this, every old war would look like a stalemate from its
+        /// first day and the forced peace would end wars in which towns are still falling.
+        /// </summary>
+        private static void SeedCaptures()
+        {
+            if (_seededSession == WorldSim.Session) return;
+            _seededSession = WorldSim.Session;
+            try
+            {
+                var byName = new Dictionary<string, string>();
+                foreach (var k in WorldSim.Kingdoms) byName[k.Name.ToString()] = k.StringId;
+                if (St.Owners == null) return;
+                foreach (var list in St.Owners.Values)
+                    for (int i = 1; list != null && i < list.Count; i++)
+                    {
+                        var before = list[i - 1]; var after = list[i];
+                        if (before == null || after == null) continue;
+                        if (after.FromDay < 0 || string.IsNullOrEmpty(before.Of) || string.IsNullOrEmpty(after.Of) || before.Of == after.Of) continue;
+                        if (!byName.TryGetValue(before.Of, out var a) || !byName.TryGetValue(after.Of, out var b)) continue;
+                        string key = FactCheck.Pair(a, b);
+                        if (!St.WarLastCapture.TryGetValue(key, out double day) || after.FromDay > day) St.WarLastCapture[key] = after.FromDay;
+                    }
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] capturas anteriores", ex); }
+        }
+
+        public static void OnKingdomCreated(Kingdom k)
+        {
+            try
+            {
+                if (k == null || Campaign.Current == null || St == null) return;
+                TrackKingdoms();
+                St.KingdomSeenDay[k.StringId] = CampaignTime.Now.ToDays;
+                Facts.Invalidate();
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] reino nuevo", ex); }
+        }
+
+        // ============================================================ wars that wear a realm down
+
+        /// <summary>Days since a town or castle last changed hands between two kingdoms at war, or since the war began. -1 = not at war or no date.</summary>
+        public static int StalemateDays(Kingdom a, Kingdom b)
+        {
+            try
+            {
+                if (a == null || b == null || a == b || !a.IsAtWarWith(b)) return -1;
+                string key = FactCheck.Pair(a.StringId, b.StringId);
+                double now = CampaignTime.Now.ToDays;
+                int war = WarDays(a, b);
+                if (war < 0)
+                {
+                    // The game has no usable date for this war (WarDays). It is counted from the day we first saw
+                    // it (TrackWars), never from the game's date: that one would make it centuries old at once.
+                    if (!St.WarSeenDay.TryGetValue(key, out double seen)) return -1;
+                    double known = now - seen;
+                    if (known < 0 || known >= SaneDays) return -1;
+                    war = (int)known;
+                }
+                // a capture from before this war began belongs to an earlier one and says nothing here
+                if (St.WarLastCapture.TryGetValue(key, out double day))
+                {
+                    double since = now - day;
+                    if (since >= 0 && since < war) return (int)since;
+                }
+                return war;
+            }
+            catch { return -1; }
+        }
+
+        /// <summary>Notes the day a war with no usable start date is first seen, and forgets the ones that are over.</summary>
+        private static void TrackWars(double now)
+        {
+            var seen = St.WarSeenDay;
+            var ks = WorldSim.Kingdoms.ToList();
+            var open = new HashSet<string>();
+            for (int i = 0; i < ks.Count; i++)
+                for (int j = i + 1; j < ks.Count; j++)
+                {
+                    if (!ks[i].IsAtWarWith(ks[j])) continue;
+                    string key = FactCheck.Pair(ks[i].StringId, ks[j].StringId);
+                    open.Add(key);
+                    if (WarDays(ks[i], ks[j]) >= 0) seen.Remove(key);
+                    else if (!seen.TryGetValue(key, out double day) || day > now) seen[key] = now;      // day > now: an older save was loaded
+                }
+            // A kingdom without a ruler for the moment is not in the list above: its wars keep their date.
+            var alive = ExistingKingdomIds();
+            var ruled = new HashSet<string>(ks.Select(x => x.StringId));
+            foreach (var key in seen.Keys.ToList())
+            {
+                if (open.Contains(key)) continue;
+                var ids = (key ?? "").Split('|');
+                bool waiting = ids.Length == 2 && alive.Contains(ids[0]) && alive.Contains(ids[1]) && !(ruled.Contains(ids[0]) && ruled.Contains(ids[1]));
+                if (!waiting) seen.Remove(key);
+            }
+        }
+
+        /// <summary>Daily chance (0-60) that a ruler takes a turn about his wars: a tired realm, too many fronts, a war that drags on.</summary>
+        private static int PeaceUrge(Kingdom k)
+        {
+            var foes = WorldSim.Kingdoms.Where(o => o != k && k.IsAtWarWith(o)).ToList();
+            if (foes.Count == 0) return 0;
+            // nothing to decide while every war already has his offer on the table or a refusal still cooling
+            if (!foes.Any(o => Pending("peace", k, o) == null && RefusalDaysLeft("peace", k, o) == 0)) return 0;
+            float f = WorldSim.Fatigue(k);
+            int urge = f < 35 ? 0 : f < 60 ? 10 : f < 85 ? 25 : 40;
+            if (foes.Count >= 3) urge += 10 * (foes.Count - 2);
+            if (foes.Max(o => WarDays(k, o)) >= 2 * Math.Max(1, CampaignTime.DaysInYear)) urge += 10;
+            return Math.Min(60, urge);
+        }
+
+        /// <summary>
+        /// The hard stop. A war between two AI crowns in which nothing has changed hands for the set number of days
+        /// ends here, whatever their rulers say: the longest stalemate first, one a day. The realm the player rules is
+        /// left alone; a realm the player only serves is not.
+        /// </summary>
+        private static void ForcedPeace(double now)
+        {
+            try
+            {
+                int limit = S.Get.ForcedPeaceStalemateDays;
+                if (limit <= 0) return;
+                var ks = WorldSim.Kingdoms.Where(k => !PlayerRules(k)).ToList();
+                Kingdom a = null, b = null;
+                int worst = -1;
+                for (int i = 0; i < ks.Count; i++)
+                    for (int j = i + 1; j < ks.Count; j++)
+                    {
+                        int stale = StalemateDays(ks[i], ks[j]);
+                        if (stale >= limit && stale > worst) { a = ks[i]; b = ks[j]; worst = stale; }
+                    }
+                if (a == null) return;
+                int lasted = Math.Max(0, WarDays(a, b));
+                // our own news tells it better than the plain "they made peace"
+                bool live = NewsTracker.Live;
+                NewsTracker.Live = false;
+                try { Ours(() => MakePeaceAction.Apply(a, b)); }
+                finally { NewsTracker.Live = live; }
+                if (a.IsAtWarWith(b)) { Log.Warn($"[diplomacia] paz forzosa entre {a.Name} y {b.Name}: el juego no la ha aplicado"); return; }
+                St.Proposals.RemoveAll(p => p.Type == "peace" && ((p.From == a.StringId && p.To == b.StringId) || (p.From == b.StringId && p.To == a.StringId)));
+                St.Refused.Remove(RefusalKey("peace", a.StringId, b.StringId));
+                St.WarSeenDay.Remove(FactCheck.Pair(a.StringId, b.StringId));
+                // its own truce, enforced in WarBlocked and told to both rulers (DescribeHouseRules)
+                int truce = ForcedTruceLength;
+                St.ForcedTruceUntil[FactCheck.Pair(a.StringId, b.StringId)] = now + truce;
+                Log.Info($"[diplomacia] paz forzosa entre {a.Name} y {b.Name}: {lasted} días de guerra, {worst} sin que nada cambie de manos (límite {limit}); tregua de {truce} días");
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "peace", Importance = 3, Kingdoms = new List<string> { a.StringId, b.StringId }, Heroes = new List<string> { a.Leader.StringId, b.Leader.StringId },
+                    Text = TForcedPeaceNews.Format("a", a.Name, "b", b.Name, "lasted", lasted, "stale", worst, "truce", truce),
+                    TitleEs = L.F("AIL_e7b1c75d", $"Paz por agotamiento entre {a.Name} y {b.Name}"),
+                    TextEs = L.F("AIL_e7b1c75e", $"Tras {lasted} días de guerra, y {worst} sin que una sola ciudad o castillo cambiara de manos, {a.Name} y {b.Name} han depuesto las armas. Ninguno ha vencido y no hay condiciones: ya no podían sostenerla."),
+                });
+                WorldSim.Say(L.F("AIL_e7b1c75f", $"{a.Name} y {b.Name} firman la paz por agotamiento, tras {lasted} días de una guerra estancada."), Colors.Yellow);
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] paz forzosa", ex); }
+        }
+
+        // The English line of the news item, which is what the AI reads of it later
+        private static readonly Tpl TForcedPeaceNews = new Tpl("world/forced_peace_news.txt",
+            "{a} and {b} have laid down their arms out of sheer exhaustion, after {lasted} days of war and {stale} days in which no town or castle changed hands. Neither won and no terms were set. Neither may declare war on the other again for {truce} days.");
+
+        private static readonly Tpl TWeariness = new Tpl("kingdom_statement/war_weariness.txt",
+@"## Your wars and how tired your realm is (exact, right now)
+- War weariness of {kingdom}: {level}, {score} out of 100. {plain}
+{fronts}
+{wars}
+{forced}");
+
+        // One line per level, picked by the word before the colon
+        private static readonly Tpl TWearinessLevels = new Tpl("kingdom_statement/war_weariness_levels.txt",
+@"fresh: Your realm is rested. War costs you little yet.
+strained: The strain is beginning to show: the levies grumble and coin runs thinner. You can go on, but not for ever.
+weary: Your realm is weary of war. Your lords and your towns want at least some of the fighting to end: find the wars you gain least from and close them.
+exhausted: Your realm is exhausted. It cannot keep these wars going: you should be asking for peace now, and taking a fair offer when one comes.
+breaking: Your realm is at breaking point. Every further week of war risks ruin and revolt: make peace wherever it can be had, even on poor terms, and take any peace offered that does not destroy you.");
+
+        private static readonly Tpl TWarFronts = new Tpl("kingdom_statement/war_fronts.txt",
+            "- You are fighting {count} kingdoms at once. No realm holds that many fronts for long: every extra war makes all of them wear you down faster. Closing some of them comes before everything else.");
+
+        private static readonly Tpl TWarLine = new Tpl("kingdom_statement/war_line.txt",
+            "- War with {enemy} [id: {id}]: it has lasted {span}. Strength: yours {mine}, theirs {theirs}. Towns and castles taken in this war: you {won}, they {lost}. Their weariness: {their_level}.");
+
+        private static readonly Tpl TWarStale = new Tpl("kingdom_statement/war_stalemate.txt",
+            " No town or castle has changed hands between you for {days} days: a stalemate that gains you nothing.");
+
+        private static readonly Tpl TWarForcedSoon = new Tpl("kingdom_statement/war_forced_soon.txt",
+            " In {left} more day(s) like that, exhaustion ends this war by itself with no terms for either side: better to make your own peace first.");
+
+        private static readonly Tpl TWarPeaceRefused = new Tpl("kingdom_statement/war_peace_refused.txt",
+            " A peace between you was refused or left unanswered not long ago: you may not propose it again for {left} more day(s).");
+
+        private static readonly Tpl TForcedRule = new Tpl("kingdom_statement/forced_peace_rule.txt",
+            "- A war in which no town or castle changes hands for {days} days ends by itself, from exhaustion on both sides, with no terms.");
+
+        private static readonly Tpl TTaskWars = new Tpl("kingdom_statement/task_wars.txt",
+            "No event calls you today: you speak because of your wars. Read «Your wars and how tired your realm is» and decide, war by war, whether to fight on, to propose peace (asking for it without demands if you are the one who needs it) or to answer an offer. If your realm is weary or worse, or you are fighting several kingdoms at once, a statement that closes no war and offers no peace fails your realm. Issue your statement now.");
+
+        private static readonly Tpl TRecentChanges = new Tpl("kingdom_statement/recent_changes.txt",
+            "- Changed in the last {days} days: {changes}. A chronicle, a rumour or an earlier statement of yours from before a change may speak of a peace or a war that is no longer so: the lines above are what is true today.");
+
+        private static readonly Tpl TRuleAllianceSwap = new Tpl("kingdom_statement/rule_alliance_swap.txt",
+            "- A kingdom at its limit of alliances may still seal a new one: its oldest alliance is then ended to make room.{oldest}");
+        private static readonly Tpl TRuleAllianceSwapYours = new Tpl("kingdom_statement/rule_alliance_swap_yours.txt", " You are at your limit: yours to end would be the one with {ally}.");
+        private static readonly Tpl TRuleAllianceFull = new Tpl("kingdom_statement/rule_alliance_full.txt",
+            "- A kingdom at its limit of alliances cannot make a new one until an old one ends: such a proposal is thrown away.");
+        private static readonly Tpl TRuleNoPactsToPlayer = new Tpl("kingdom_statement/rule_no_pacts_to_player.txt",
+            "- You may NOT propose an alliance or a trade agreement to {kingdom}, the realm ruled by {ruler}: wait for them to propose it. You may still answer what they propose.");
+        private static readonly Tpl TRuleForcedTruce = new Tpl("kingdom_statement/rule_forced_truce.txt",
+            "- A war that ends by itself from exhaustion leaves a truce of {days} days: until it is over neither side may declare war on the other.");
+        private static readonly Tpl TRuleForcedTruceEntry = new Tpl("kingdom_statement/rule_forced_truce_entry.txt",
+            "{id} (truce after your war with them ended from exhaustion, {days} more days)");
+        private static readonly Tpl TWantedPlain = new Tpl("kingdom_statement/proposal_wanted_plain.txt",
+            " You asked them for a peace with no terms and they hold to these: a plain peace is not on offer from them. Accept these terms, reject them, or fight on.");
+        private static readonly Tpl TRuleRefused = new Tpl("kingdom_statement/rule_refused.txt",
+            "- A proposal of peace, alliance or trade that was refused, or left unanswered until it ran out, may not be made again between the same two kingdoms for {days} days. Right now you may NOT propose: {barred}.");
+
+        private static string PlainWeariness(float f)
+        {
+            string key = (f < 15 ? "fresh" : f < 35 ? "strained" : f < 60 ? "weary" : f < 85 ? "exhausted" : "breaking") + ":";
+            foreach (var raw in TWearinessLevels.Text.Split('\n'))
+            {
+                string line = raw.Trim();
+                if (line.StartsWith(key, StringComparison.OrdinalIgnoreCase)) return line.Substring(key.Length).Trim();
+            }
+            return "";
+        }
+
+        /// <summary>The ruler's wars one by one and how tired the realm is, in plain words. Empty when at peace and rested.</summary>
+        private static string DescribeWarsFor(Kingdom k)
+        {
+            var cfg = S.Get;
+            float f = WorldSim.Fatigue(k);
+            var foes = WorldSim.Kingdoms.Where(o => o != k && k.IsAtWarWith(o)).OrderByDescending(o => WarDays(k, o)).ToList();
+            if (foes.Count == 0 && f < 15) return "";
+            var lines = new List<string>();
+            foreach (var o in foes)
+            {
+                int days = WarDays(k, o), stale = StalemateDays(k, o), won = 0, lost = 0;
+                try { var link = k.GetStanceWith(o); won = link.GetSuccessfulSieges(k); lost = link.GetSuccessfulSieges(o); } catch { }
+                string line = TWarLine.Format("enemy", o.Name, "id", o.StringId, "span", days >= 0 ? Span(days) : "longer than anyone has counted",
+                    "mine", (int)k.CurrentTotalStrength, "theirs", (int)o.CurrentTotalStrength, "won", won, "lost", lost, "their_level", WorldSim.FatigueWord(o));
+                if (stale >= StalemateShownFrom)
+                {
+                    line += TWarStale.Format("days", stale);
+                    if (cfg.ForcedPeaceStalemateDays > 0 && !PlayerRules(k) && !PlayerRules(o)) line += TWarForcedSoon.Format("left", Math.Max(1, cfg.ForcedPeaceStalemateDays - stale));
+                }
+                int wait = PlayerRules(k) ? 0 : RefusalDaysLeft("peace", k, o);
+                if (wait > 0) line += TWarPeaceRefused.Format("left", wait);
+                lines.Add(line);
+            }
+            string text = TWeariness.Format("kingdom", k.Name, "level", WorldSim.FatigueWord(k), "score", (int)f, "plain", PlainWeariness(f),
+                "fronts", foes.Count >= 3 ? TWarFronts.Format("count", foes.Count) : "",
+                "wars", string.Join("\n", lines),
+                "forced", cfg.ForcedPeaceStalemateDays > 0 && foes.Count > 0 ? TForcedRule.Format("days", cfg.ForcedPeaceStalemateDays) : "");
+            return string.Join("\n", text.Split('\n').Where(l => l.Trim().Length > 0));
         }
 
         private static string TradeBlocked(Kingdom k, Kingdom o)
@@ -108,28 +615,50 @@ namespace AILegacy.World
             var lines = new List<string>();
             if (cfg.MaxWarsPerKingdom > 0) lines.Add($"- No kingdom may be at war with more than {cfg.MaxWarsPerKingdom} kingdom(s) at once. You are at war with {WarCount(k)}.");
             if (cfg.MinTruceDays > 0) lines.Add($"- After a peace, neither side may declare war on the other for {cfg.MinTruceDays} days.");
-            if (cfg.MaxWarsPerKingdom > 0 || cfg.MinTruceDays > 0)
+            if (cfg.ForcedPeaceStalemateDays > 0 && !PlayerRules(k)) lines.Add(TRuleForcedTruce.Format("days", ForcedTruceLength));
             {
                 var no = new List<string>();
-                // the realm the player rules is outside the house rules (WarBlocked), so it is never listed as barred
-                foreach (var o in WorldSim.Kingdoms.Where(x => x != k && !k.IsAtWarWith(x) && !PlayerRules(x)))
+                // the realm the player rules is protected like any other target (WarBlocked); nothing is listed for the player himself
+                foreach (var o in WorldSim.Kingdoms.Where(x => x != k && !k.IsAtWarWith(x) && !PlayerRules(k)))
                 {
-                    int truce = TruceDaysLeft(k, o);
-                    if (truce > 0) no.Add($"{o.StringId} (truce, {truce} more days)");
+                    int truce = TruceDaysLeft(k, o), forced = ForcedTruceDaysLeft(k, o);
+                    if (truce > 0 && forced >= truce) no.Add(TRuleForcedTruceEntry.Format("id", o.StringId, "days", truce));
+                    else if (truce > 0) no.Add($"{o.StringId} (truce, {truce} more days)");
                     else if (cfg.MaxWarsPerKingdom > 0 && WarCount(k) >= cfg.MaxWarsPerKingdom) no.Add($"{o.StringId} (you are at your limit of wars)");
                     else if (cfg.MaxWarsPerKingdom > 0 && WarCount(o) >= cfg.MaxWarsPerKingdom) no.Add($"{o.StringId} (it is already fighting {WarCount(o)}: no piling on)");
                 }
-                lines.Add("- Right now you may NOT declare war on: " + (no.Count > 0 ? string.Join(", ", no) : "nobody is barred") + ".");
+                // a truce left by a forced peace is listed even with every house rule off
+                if (cfg.MaxWarsPerKingdom > 0 || cfg.MinTruceDays > 0 || no.Count > 0)
+                    lines.Add("- Right now you may NOT declare war on: " + (no.Count > 0 ? string.Join(", ", no) : "nobody is barred") + ".");
             }
             if (cfg.MaxAlliancesPerKingdom > 0)
             {
                 var full = WorldSim.Kingdoms.Where(x => x != k && !PlayerRules(x) && AllianceCount(x) >= cfg.MaxAlliancesPerKingdom).Select(x => x.StringId).ToList();
                 lines.Add($"- At most {cfg.MaxAlliancesPerKingdom} alliance(s) per kingdom. You have {AllianceCount(k)}." + (full.Count > 0 ? " Already at their limit: " + string.Join(", ", full) + "." : ""));
+                if (cfg.AllianceReplacesOldest)
+                {
+                    var old = AllianceCount(k) >= cfg.MaxAlliancesPerKingdom ? OldestAlly(k, null) : null;
+                    lines.Add(TRuleAllianceSwap.Format("oldest", old != null ? TRuleAllianceSwapYours.Format("ally", old.StringId) : ""));
+                }
+                else lines.Add(TRuleAllianceFull.Text);
             }
             if (cfg.MaxTradePactsPerKingdom > 0)
             {
                 var full = WorldSim.Kingdoms.Where(x => x != k && !PlayerRules(x) && TradeCount(x) >= cfg.MaxTradePactsPerKingdom).Select(x => x.StringId).ToList();
                 lines.Add($"- At most {cfg.MaxTradePactsPerKingdom} trade agreement(s) per kingdom. You have {TradeCount(k)}." + (full.Count > 0 ? " Already at their limit: " + string.Join(", ", full) + "." : ""));
+            }
+            var mine = PlayerRealm;
+            if (!cfg.AiOffersPactsToPlayer && PlayerRules(mine) && mine != k) lines.Add(TRuleNoPactsToPlayer.Format("kingdom", mine.StringId, "ruler", Hero.MainHero.Name));
+            if (cfg.RefusedProposalCooldownDays > 0)
+            {
+                var barred = new List<string>();
+                foreach (var o in WorldSim.Kingdoms.Where(x => x != k))
+                    foreach (var type in CooledTypes)
+                    {
+                        int left = RefusalDaysLeft(type, k, o);
+                        if (left > 0) barred.Add($"{TypeEn(type)} with {o.StringId} ({left} more days)");
+                    }
+                lines.Add(TRuleRefused.Format("days", cfg.RefusedProposalCooldownDays, "barred", barred.Count > 0 ? string.Join(", ", barred) : "nothing is barred"));
             }
             return lines.Count == 0 ? "" : "House rules of this world (enforced: an action that breaks one is thrown away, so do not try):\n" + string.Join("\n", lines);
         }
@@ -240,56 +769,209 @@ namespace AILegacy.World
 
         // ============================================================ daily tick
 
+        /// <summary>One step of the daily tick. Whatever it throws is logged and the next step still runs: nothing reaches the campaign tick.</summary>
+        private static void Step(string what, Action act)
+        {
+            try { act(); }
+            catch (Exception ex) { Log.Error("[diplomacia] tick diario, " + what, ex); }
+        }
+
+        /// <summary>
+        /// A state read from a damaged or hand-edited file can carry null where a list belongs, or null entries.
+        /// Everything in this file takes those lists for granted, so they are put right here, once a day.
+        /// </summary>
+        private static void Heal()
+        {
+            var st = St;
+            if (st == null) return;
+            if (st.Proposals == null) st.Proposals = new List<Proposal>();
+            st.Proposals.RemoveAll(p => p == null || p.Type == null || p.From == null || p.To == null);
+            if (st.StatementQueue == null) st.StatementQueue = new List<QueuedStatement>();
+            st.StatementQueue.RemoveAll(q => q == null || q.KingdomId == null);
+            if (st.Statements == null) st.Statements = new List<RulerStatement>();
+            st.Statements.RemoveAll(s => s == null);
+            if (st.Events == null) st.Events = new List<WorldEvent>();
+            st.Events.RemoveAll(e => e == null);
+            foreach (var e in st.Events) if (e.Engagement == null) e.Engagement = new Dictionary<string, int>();
+            if (st.Tributes == null) st.Tributes = new List<Tribute>();
+            st.Tributes.RemoveAll(t => t == null);
+            if (st.Refused == null) st.Refused = new Dictionary<string, double>();
+            if (st.WarLastCapture == null) st.WarLastCapture = new Dictionary<string, double>();
+            if (st.AllianceSince == null) st.AllianceSince = new Dictionary<string, double>();
+            if (st.KingdomSeenDay == null) st.KingdomSeenDay = new Dictionary<string, double>();
+            if (st.WarSeenDay == null) st.WarSeenDay = new Dictionary<string, double>();
+            if (st.ForcedTruceUntil == null) st.ForcedTruceUntil = new Dictionary<string, double>();
+            if (st.LastStatementDay == null) st.LastStatementDay = new Dictionary<string, double>();
+            if (st.WarFatigue == null) st.WarFatigue = new Dictionary<string, float>();
+            if (st.Stance == null) st.Stance = new Dictionary<string, int>();
+        }
+
         public static void OnDailyTick(double now)
+        {
+            if (Campaign.Current == null || St == null) return;
+            Step("estado cargado", Heal);
+            Step("propuestas caducadas", () => ExpireProposals(now));
+            Step("esperas y fechas de reinos que ya no están", () => PruneRefusals(now));
+            Step("guerras sin fecha", () => TrackWars(now));
+            bool on = false;
+            Step("ajustes", () => on = Enabled);
+            if (!on) return;
+            ForcedPeace(now);       // catches and logs by itself
+            Step("propuestas al jugador", NotifyPlayer);
+            Step("turnos de declaración", () => QueueStatements(now));
+        }
+
+        private static void ExpireProposals(double now)
         {
             foreach (var p in St.Proposals.Where(x => now >= x.ExpiresDay).ToList())
             {
                 St.Proposals.Remove(p);
-                Log.Info($"[diplomacia] propuesta caducada: {p.From} → {p.To} ({p.Type})");
+                // Left unanswered by someone who had a turn (or, for the player, was shown it): the same wait as a
+                // refusal before it can be made again. One whose ruler never got to speak was not refused.
+                bool hadTurn = p.Seen || p.Notified;
+                if (hadTurn) MarkRefused(p.Type, p.From, p.To, now);
+                Log.Info($"[diplomacia] propuesta caducada{(hadTurn ? "" : " sin que su destinatario llegara a tener turno (no cuenta como rechazo)")}: {p.From} → {p.To} ({p.Type})");
             }
-            if (!Enabled) return;
+        }
 
-            // Proposals aimed at the player as ruler: the player decides through a popup
+        /// <summary>Proposals aimed at the player as ruler: the player decides through a popup.</summary>
+        private static void NotifyPlayer()
+        {
             var mine = PlayerRealm;
-            if (PlayerRules(mine) && WorldSim.OnMap())
-                foreach (var p in St.Proposals.Where(x => x.To == mine.StringId && !x.Notified).ToList())
-                {
-                    p.Notified = true;
-                    AskPlayer(p);
-                }
+            if (!PlayerRules(mine) || !WorldSim.OnMap()) return;
+            foreach (var p in St.Proposals.Where(x => x.To == mine.StringId && !x.Notified).ToList())
+            {
+                p.Notified = true;
+                AskPlayer(p);
+            }
+        }
 
-            // Who speaks today. Several rulers can respond to the same thing: they get queued and speak one at a time,
-            // a few game hours apart, and each one knows what the earlier ones said (OnHourlyTick).
+        // A proposal this close to running out, whose ruler has not had a turn yet, no longer waits on the dice
+        private const int LastCallDays = 3;
+
+        private static bool IsAnswer(QueuedStatement q) => q.EventId == null && q.Why != "wars";
+
+        /// <summary>Whole days since this ruler last spoke. One who never has waits longest of all.</summary>
+        private static int Waited(Kingdom k, double now) =>
+            St.LastStatementDay.TryGetValue(k.StringId, out var d) && d <= now ? (int)(now - d) : int.MaxValue;
+
+        /// <summary>
+        /// Who speaks today. Several rulers can respond to the same thing: they get queued and speak one at a time,
+        /// a few game hours apart, and each one knows what the earlier ones said (OnHourlyTick).
+        /// </summary>
+        private static void QueueStatements(double now)
+        {
             var cfg = S.Get;
             var queue = St.StatementQueue;
             queue.RemoveAll(q => now * 24 - q.DueHour > 48);       // turns that never got to go out
-            var candidates = new List<(Kingdom k, WorldEvent ev, int weight)>();
+            var rulers = WorldSim.Kingdoms.Where(x => !PlayerRules(x)).ToList();
+            var answers = new List<(Kingdom k, double expires)>();
+            var candidates = new List<(Kingdom k, WorldEvent ev, int weight, string why)>();
 
-            // 1) Pressure to answer: rulers with an unanswered proposal go first
-            foreach (var k in WorldSim.Kingdoms.Where(x => !PlayerRules(x)))
-                if (St.Proposals.Any(p => p.To == k.StringId) && Ready(k, now, 1) && Rng.Next(100) < cfg.ResponsePressurePercent)
-                    candidates.Add((k, null, 1000));
+            // 1) Pressure to answer: rulers with an unanswered proposal go first, the one closest to running out ahead
+            foreach (var k in rulers)
+            {
+                var waiting = St.Proposals.Where(p => p.To == k.StringId).ToList();
+                if (waiting.Count == 0 || !Ready(k, now, 1)) continue;
+                bool lastCall = waiting.Any(p => !p.Seen && p.ExpiresDay - now <= LastCallDays);
+                if (lastCall || Rng.Next(100) < cfg.ResponsePressurePercent) answers.Add((k, waiting.Min(p => p.ExpiresDay)));
+            }
 
-            // 2) Events that call for a ruler to speak out
+            // 2) Wars that wear a realm down. Nothing else gives a ruler a turn to think about his wars: without it a
+            // king only speaks when an event or a proposal calls him, and a war nobody mentions goes on for years.
+            if (cfg.WearyKingsSeekPeace)
+                foreach (var k in rulers)
+                {
+                    int urge = PeaceUrge(k);
+                    if (urge > 0 && Ready(k, now, cfg.MinDaysBetweenStatements) && Rng.Next(100) < urge) candidates.Add((k, null, 900 + urge, "wars"));
+                }
+
+            // 3) Events that call for a ruler to speak out
             foreach (var ev in St.Events.Where(e => now - e.Day <= cfg.EngagementDays && e.Engagement.Count > 0).OrderByDescending(e => e.Importance))
                 foreach (var kv in ev.Engagement.ToList())
                 {
                     var k = WorldSim.FindKingdom(kv.Key);
                     if (k == null || PlayerRules(k) || !Ready(k, now, cfg.MinDaysBetweenStatements)) continue;
-                    if (Rng.Next(100) < kv.Value) candidates.Add((k, ev, ev.Importance * 100 + kv.Value));
+                    if (Rng.Next(100) < kv.Value) candidates.Add((k, ev, ev.Importance * 100 + kv.Value, null));
                 }
 
             int room = Math.Max(1, cfg.MaxStatementsPerDay) - queue.Count;
             double due = Math.Max(now * 24 + 1, queue.Count == 0 ? 0 : queue.Max(q => q.DueHour) + cfg.HoursBetweenStatements);
-            foreach (var c in candidates.OrderByDescending(c => c.weight + Rng.Next(50)))
+            // one turn per ruler, and none while their previous statement is still in flight
+            bool Taken(Kingdom k) => queue.Any(q => q.KingdomId == k.StringId) || WorldSim.IsReserved("statement:" + k.StringId);
+            void Add(Kingdom k, WorldEvent ev, string why)
             {
-                if (room <= 0) break;
-                if (queue.Any(q => q.KingdomId == c.k.StringId)) continue;       // one turn per ruler
-                if (WorldSim.IsReserved("statement:" + c.k.StringId)) continue;  // their previous statement is still in flight
-                queue.Add(new QueuedStatement { KingdomId = c.k.StringId, EventId = c.ev?.Id, DueHour = due });
+                queue.Add(new QueuedStatement { KingdomId = k.StringId, EventId = ev?.Id, DueHour = due, Why = why });
                 due += Math.Max(1, cfg.HoursBetweenStatements);
                 room--;
             }
+
+            // Answers are outside the world-wide gap: held back by it they ran out unanswered, and that counted as
+            // a refusal. They still share the cap per day and go out hours apart like everyone.
+            foreach (var c in answers.OrderBy(c => c.expires))
+            {
+                if (room <= 0) return;
+                if (!Taken(c.k)) Add(c.k, null, null);
+            }
+            if (room <= 0) return;
+
+            if (cfg.MinDaysBetweenAnyStatements > 0)
+            {
+                // A gap for the whole world: one ruler at a time, and nobody until it has passed. The single turn
+                // goes to whoever has waited longest since he last spoke, so no kingdom can keep it; how pressing
+                // the matter is only breaks ties.
+                if (queue.Any(q => !IsAnswer(q)) || !WorldGapPassed(now)) return;
+                var open = candidates.Where(c => !Taken(c.k)).ToList();
+                if (open.Count == 0) return;
+                var pick = open.OrderByDescending(c => Waited(c.k, now)).ThenByDescending(c => c.weight).ThenBy(c => Rng.Next()).First();
+                Add(pick.k, pick.ev, pick.why);
+                return;
+            }
+            foreach (var c in candidates.OrderByDescending(c => c.weight + Rng.Next(50)))
+            {
+                if (room <= 0) break;
+                if (!Taken(c.k)) Add(c.k, c.ev, c.why);
+            }
+        }
+
+        // A statement asked for and not yet back. With a world-wide gap nobody else speaks until it lands, or two
+        // rulers could speak an hour apart. It stops counting after ten real minutes or a change of campaign, in
+        // case the reply never comes.
+        private static DateTime _askedAt = DateTime.MinValue;
+        private static int _askedSession = -1;
+        private static bool _askedAnswer;
+        private static bool InFlight => _askedSession == WorldSim.Session && (DateTime.UtcNow - _askedAt).TotalMinutes < 10;
+
+        /// <summary>New or loaded campaign: nothing asked in the previous one counts here.</summary>
+        public static void ResetSession()
+        {
+            _askedAt = DateTime.MinValue;
+            _askedSession = -1;
+            _askedAnswer = false;
+            _seededSession = -1;
+            // the state just loaded is put right before anything reads it
+            try { Heal(); } catch (Exception ex) { Log.Error("[diplomacia] estado cargado", ex); }
+        }
+
+        /// <summary>
+        /// The minimum days between two AI statements have passed, and none that counts is on its way. Answers to
+        /// a pending proposal neither wait for this gap nor restart it. Always true with the setting at 0.
+        /// </summary>
+        private static bool WorldGapPassed(double now)
+        {
+            int gap = S.Get.MinDaysBetweenAnyStatements;
+            if (gap <= 0) return true;
+            if (InFlight && !_askedAnswer) return false;
+            double last = St.LastStatementAnyDay;
+            return last < 0 || last > now || now - last >= gap;      // last > now: an older save was loaded
+        }
+
+        /// <summary>Game hours since any AI ruler last spoke, answer or not. A huge number when nobody has.</summary>
+        private static double HoursSinceAnyone(double hour)
+        {
+            double last = -1;
+            foreach (var d in St.LastStatementDay.Values) if (d * 24 <= hour && d > last) last = d;
+            return last < 0 ? double.MaxValue : hour - last * 24;
         }
 
         /// <summary>Every game hour: if a ruler's turn is due and the request queue is free, they speak.</summary>
@@ -301,20 +983,35 @@ namespace AILegacy.World
                 if (!Enabled) { St.StatementQueue.Clear(); return; }
                 if (!WorldSim.CanCall) return;
                 double hour = CampaignTime.Now.ToHours, now = CampaignTime.Now.ToDays;
-                var next = St.StatementQueue.OrderBy(q => q.DueHour).First();
-                if (next.DueHour > hour) return;
+                St.StatementQueue.RemoveAll(q => q == null || q.KingdomId == null);
+                QueuedStatement next = null;
+                if (S.Get.MinDaysBetweenAnyStatements <= 0) next = St.StatementQueue.OrderBy(q => q.DueHour).FirstOrDefault(q => q.DueHour <= hour);
+                else
+                {
+                    // Enforced here whatever was queued and whatever the AI asked for: one at a time, hours apart,
+                    // and the gap in days for everyone who is not answering a proposal.
+                    if (InFlight || HoursSinceAnyone(hour) < S.Get.HoursBetweenStatements) return;
+                    bool gapPassed = WorldGapPassed(now);
+                    next = St.StatementQueue.OrderBy(q => q.DueHour).FirstOrDefault(q => q.DueHour <= hour && (gapPassed || IsAnswer(q)));
+                }
+                if (next == null) return;
                 if (WorldSim.IsReserved("statement:" + next.KingdomId)) return;   // previous one hasn't landed yet, wait
                 St.StatementQueue.Remove(next);
                 var k = WorldSim.FindKingdom(next.KingdomId);
                 if (k == null || k.IsEliminated || k.Leader == null || PlayerRules(k) || !Ready(k, now, 1)) return;
                 WorldEvent ev = null;
-                if (next.EventId != null)
+                bool wars = next.Why == "wars";
+                if (wars)
+                {
+                    if (WarCount(k) == 0) return;                                          // the wars ended meanwhile
+                }
+                else if (next.EventId != null)
                 {
                     ev = St.Events.FirstOrDefault(e => e.Id == next.EventId);
                     if (ev == null || !ev.Engagement.ContainsKey(k.StringId)) return;      // event is gone or they already spoke about it
                 }
                 else if (!St.Proposals.Any(p => p.To == k.StringId)) return;               // nothing left waiting for them
-                MakeStatement(k, ev);     // the occasion is used up when the reply is applied (ApplyStatement)
+                MakeStatement(k, ev, wars);     // the occasion is used up when the reply is applied (ApplyStatement)
             }
             catch (Exception ex) { Log.Error("[diplomacia] turno de declaraciones", ex); }
         }
@@ -331,14 +1028,15 @@ How a sovereign acts:
 - The technical data below is the truth right now. Chronicles and earlier statements are only context: what was said may never have happened.
 - Words are not actions. Announcing war, peace, an alliance or a demand changes NOTHING unless you put the matching action in ""actions"". If you only want to speak, use no actions.
 - Every decision must serve your realm: its safety, its treasury, its honour, or your grip on the throne. Weigh strength, war weariness, who is already fighting whom, and your stance towards each crown. A weary or losing realm seeks peace; a strong and rested one presses its advantage.
+- Your wars are listed one by one, with how long each has lasted and how tired your realm is. Tiredness is not a mood to be talked away: a weary realm that keeps every war going loses its lords, its towns and in the end its throne. When you are weary or worse, or fighting several kingdoms at once, seek peace in the wars you gain least from. When a weary enemy offers a fair peace and you have little left to gain, take it.
 - If a proposal or demand is addressed to you, answer it now: accept it or reject it (and say why). Accepting a peace means accepting its terms.
 - You speak as yourself: your character and culture show in the words. No modern language, no game terms, no numbers of troops or percentages.
 - Your people are exactly the clans listed as yours in the hard facts about your realm. A lord of another realm, of a minor clan or of a mercenary company you did not hire is not yours, whatever his culture: do not call him yours, mourn him as yours, answer for him or fear him as a rival inside your realm. The mercenaries you did hire are paid swords, not vassals and not kin.
-- Speak only of wars, truces and alliances that the data shows. An action aimed at a crown you cannot aim it at is thrown away: war on someone you are already fighting, peace with someone you are not at war with, anything the house rules forbid.
+- Speak only of wars, truces and alliances that the data shows. Never say you are at peace, or that a truce holds, with a crown the data lists you as at war with: a statement that does is not published. An action aimed at a crown you cannot aim it at is thrown away: war on someone you are already fighting, peace with someone you are not at war with, anything the house rules forbid.
 
 Actions you may take (each is an object in ""actions""; target_kingdom is always a kingdom id from the data):
 - declare_war (target_kingdom): war, at once, no consent needed. It breaks any alliance or trade agreement with them.
-- propose_peace (target_kingdom) with optional terms you DEMAND from them: daily_tribute + tribute_days (or tribute_years, in years of this world), reparations, settlement (a town or castle of theirs). Only against a realm you are at war with.
+- propose_peace (target_kingdom) with optional terms you DEMAND from them: daily_tribute + tribute_days (or tribute_years, in years of this world), reparations, settlement (a town or castle of theirs). Only against a realm you are at war with. Demands are for the side that is winning: a realm that needs the peace asks for it with none. If they have already offered you a peace with no terms, proposing one back signs it.
 - accept_peace / reject_peace (target_kingdom): answer THEIR pending peace proposal.
 - propose_alliance / accept_alliance / reject_alliance / break_alliance (target_kingdom): allies stand together in war. Propose only to a crown you are on good terms with and share an enemy or an interest with.
 - propose_trade / accept_trade / reject_trade / end_trade (target_kingdom, trade_years 1-5): only between realms at peace.
@@ -376,7 +1074,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
 - You are at war with: {wars}.
 - You are allied with: {allies}.
 - You have trade agreements with: {trade}.
-- Peace signed lately: {truces}.
+- Last peace signed with each crown you have fought: {truces}.
 - With every other kingdom you are simply at peace: {peace}.
 {limits}");
 
@@ -427,29 +1125,33 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             string Join(IEnumerable<string> xs, string none) { var l = xs.ToList(); return l.Count > 0 ? string.Join(", ", l) : none; }
             var clans = k.Clans.Where(c => !c.IsEliminated).ToList();
             var others = WorldSim.Kingdoms.Where(o => o != k).ToList();
-            double now = CampaignTime.Now.ToDays;
             var truces = new List<string>();
             foreach (var o in others.Where(o => !k.IsAtWarWith(o)))
             {
-                try
-                {
-                    double since = now - k.GetStanceWith(o).PeaceDeclarationDate.ToDays;
-                    if (since < 0 || since > CampaignTime.DaysInYear) continue;
-                    int left = TruceDaysLeft(k, o);
-                    truces.Add($"{o.StringId} ({(int)since} day(s) ago{(left > 0 ? $"; truce, no war for {left} more days" : "")})");
-                }
-                catch { }
+                int since = PeaceDays(k, o);
+                if (since < 0) continue;
+                int left = TruceDaysLeft(k, o);
+                truces.Add($"{o.StringId} ({since} day(s) ago{(left > 0 ? $"; truce, no war for {left} more days" : "")})");
             }
-            return TRealmFacts.Format(
+            // what changed lately, spelled out: older chronicles and statements still speak of how things were
+            var changes = new List<string>();
+            foreach (var o in others)
+            {
+                int war = WarDays(k, o), peace = PeaceDays(k, o);
+                if (war >= 0 && war <= RecentChangeDays) changes.Add($"your war with {o.StringId} began {war} day(s) ago");
+                else if (peace >= 0 && peace <= RecentChangeDays) changes.Add($"your peace with {o.StringId} was made {peace} day(s) ago");
+            }
+            string facts = TRealmFacts.Format(
                 "ruling", k.RulingClan != null ? Led(k.RulingClan) : "none",
                 "vassals", Join(clans.Where(c => c != k.RulingClan && !c.IsUnderMercenaryService).OrderByDescending(c => c.Tier).Select(Led), "none"),
                 "mercenaries", Join(clans.Where(c => c.IsUnderMercenaryService).Select(Led), "none"),
-                "wars", Join(others.Where(o => k.IsAtWarWith(o)).Select(o => o.StringId), "nobody"),
+                "wars", Join(others.Where(o => k.IsAtWarWith(o)).Select(o => o.StringId + WarSpan(k, o)), "nobody"),
                 "allies", Join(others.Where(o => Allied(k, o)).Select(o => o.StringId), "nobody"),
                 "trade", Join(others.Where(o => HasTrade(k, o)).Select(o => o.StringId), "nobody"),
                 "truces", Join(truces, "none"),
                 "peace", Join(others.Where(o => !k.IsAtWarWith(o)).Select(o => o.StringId), "nobody"),
                 "limits", DescribeHouseRules(k)).TrimEnd();
+            return changes.Count == 0 ? facts : facts + "\n" + TRecentChanges.Format("days", RecentChangeDays, "changes", string.Join("; ", changes));
         }
 
         /// <summary>Every name this ruler may rightly call their own: their clans (vassals and hired) and the people in them.</summary>
@@ -489,10 +1191,18 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                         if (o == null || o == k) continue;
                         if (type == "declare_war") model.AddWar(k.StringId, o.StringId);
                         else if (type == "accept_alliance") model.AddAlliance(k.StringId, o.StringId);
+                        // a peace this statement really signs: it accepts their offer, or both ask for a plain one
+                        else if (type == "accept_peace" || type == "propose_peace")
+                        {
+                            var theirs = Pending("peace", o, k);
+                            bool signs = theirs != null && (type == "accept_peace" || (IsPlain(theirs) && I(a, "daily_tribute", 0, 1) == 0 && I(a, "reparations", 0, 1) == 0
+                                && OrderSystem.FindSettlement((string)(a["settlement"]?.Type == JTokenType.String ? a["settlement"] : null), x => (x.IsTown || x.IsCastle) && x.MapFaction == o) == null));
+                            if (signs) model.Wars.Remove(FactCheck.Pair(k.StringId, o.StringId));
+                        }
                     }
                 var named = j["own_people"] is JArray arr ? arr.Where(x => x != null && x.Type == JTokenType.String).Select(x => (string)x).Take(20).ToList() : new List<string>();
                 return FactCheck.CheckOwnPeople(named, OwnNames(k), model)
-                       ?? FactCheck.CheckSummary((string)(j["summary"]?.Type == JTokenType.String ? j["summary"] : null), model);
+                       ?? FactCheck.CheckSummary((string)(j["summary"]?.Type == JTokenType.String ? j["summary"] : null), model, k.StringId);
             }
             catch (Exception ex) { Log.Error("[diplomacia] comprobando una declaración", ex); return null; }
         }
@@ -504,10 +1214,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return list.Count == 0 ? "(none)" : string.Join("\n", list.Select(p =>
                 $"- {WorldSim.FindKingdom(p.From)?.Name} [id: {p.From}] {(IsDemand(p.Type) ? "DEMANDS" : "PROPOSES")} {TypeEn(p.Type)}{Terms(p)}, {(int)(now - p.Day)} day(s) ago → answer with " +
                 (p.Type == "peace" ? "accept_peace or reject_peace" : p.Type == "alliance" ? "accept_alliance or reject_alliance" : p.Type == "trade" ? "accept_trade or reject_trade"
-                 : p.Type == "tribute" ? "accept_tribute or reject_tribute" : p.Type == "reparations" ? "accept_reparations or reject_reparations" : "transfer_territory or reject_territory")));
+                 : p.Type == "tribute" ? "accept_tribute or reject_tribute" : p.Type == "reparations" ? "accept_reparations or reject_reparations" : "transfer_territory or reject_territory")
+                + (p.Type == "peace" && p.WantedPlain && !IsPlain(p) ? "." + TWantedPlain.Text : "")));
         }
 
-        public static void MakeStatement(Kingdom k, WorldEvent about)
+        /// <param name="wars">Nothing called this ruler: the realm is worn by its wars and the turn is to decide about them.</param>
+        public static void MakeStatement(Kingdom k, WorldEvent about, bool wars = false)
         {
             var cfg = S.Get;
             var ruler = k.Leader;
@@ -518,12 +1230,17 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             if (!string.IsNullOrWhiteSpace(lore)) { sys.AppendLine(); sys.AppendLine("## The world"); sys.AppendLine(lore); }
             sys.AppendLine(); sys.AppendLine("## Who you are"); sys.AppendLine(DescribeRuler(ruler));
             sys.AppendLine(); sys.AppendLine($"## Your realm, {k.Name} [id: {k.StringId}] — clans and their fiefs"); sys.AppendLine(DescribeRealm(k));
+            sys.AppendLine(); sys.AppendLine(Facts.Today());
             sys.AppendLine(); sys.AppendLine(DescribeFacts(k));
+            var warsText = DescribeWarsFor(k);
+            if (warsText.Length > 0) { sys.AppendLine(); sys.AppendLine(warsText); }
             sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth, right now)"); sys.AppendLine(WorldSim.DescribeKingdoms(k));
             sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap(new[] { k.StringId }));
             var lawsText = Laws.ForRuler(k);
             if (lawsText.Length > 0) { sys.AppendLine(); sys.AppendLine(lawsText); }
             sys.AppendLine(); sys.AppendLine("## PENDING PROPOSALS DIRECTED AT YOU (answer them)"); sys.AppendLine(DescribeProposalsTo(k));
+            // the ones this ruler is shown now: he has had his turn on them, whatever he does with it
+            var shown = St.Proposals.Where(p => p.To == k.StringId).ToList();
             var own = St.Proposals.Where(p => p.From == k.StringId).ToList();
             if (own.Count > 0)
             {
@@ -546,25 +1263,33 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 sys.AppendLine(); sys.AppendLine("## What other rulers have said in the last two days (you have heard it: answer it, back it or set yourself apart, but do not echo it)");
                 foreach (var s in others) sys.AppendLine($"- {s.RulerName} of {WorldSim.FindKingdom(s.KingdomId)?.Name}: {s.SummaryEn}");
             }
-            string task = about != null
+            string task = wars ? TTaskWars.Text
+                : about != null
                 ? $"Speak out now about this development: {(string.IsNullOrWhiteSpace(about.SummaryEn) ? about.Title : about.SummaryEn)}"
                 : "Proposals are waiting for your answer. Issue your statement now.";
 
-            WorldSim.Ask(L.F("AIL_3b33d5b8", $"declaración de {ruler.Name}"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", task) }, 1100,
+            // a turn given only to answer proposals: outside the world-wide gap, and it does not restart it
+            bool answer = about == null && !wars;
+            bool asked = WorldSim.Ask(L.F("AIL_3b33d5b8", $"declaración de {ruler.Name}"), new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", task) }, 1100,
                 j =>
                 {
                     // Only use up the turn when a reply arrives. If the call fails, the ruler can speak another day
+                    _askedSession = -1;
                     St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
+                    if (!answer) St.LastStatementAnyDay = CampaignTime.Now.ToDays;
                     if (about != null) about.Engagement.Remove(k.StringId);
-                    ApplyStatement(k, j, null);
-                }, key: "statement:" + k.StringId);
+                    // a statement thrown away for contradicting the world answered nothing: those proposals still wait for a turn
+                    if (ApplyStatement(k, j, null)) foreach (var p in shown) p.Seen = true;
+                }, key: "statement:" + k.StringId, failed: () => _askedSession = -1);
+            if (asked) { _askedAt = DateTime.UtcNow; _askedSession = WorldSim.Session; _askedAnswer = answer; }
         }
 
         // ============================================================ applying a statement
 
-        private static void ApplyStatement(Kingdom k, JObject j, string playerText)
+        /// <summary>Publishes a statement and carries out its actions. False when it was thrown away and nothing was done.</summary>
+        private static bool ApplyStatement(Kingdom k, JObject j, string playerText)
         {
-            if (k == null || k.IsEliminated || k.Leader == null) return;
+            if (k == null || k.IsEliminated || k.Leader == null) return false;
             var cfg = S.Get;
             var s = new RulerStatement
             {
@@ -572,14 +1297,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 Text = playerText ?? WorldSim.Clean((string)j["statement"], 1600), SummaryEn = WorldSim.Clean((string)j["summary"], 350),
                 Importance = Math.Max(1, Math.Min(4, (int?)j["importance"] ?? 2)),
             };
-            if (s.Text.Length < 5) return;
+            if (s.Text.Length < 5) return false;
             var thoughts = (string)j["thoughts"];
             if (!string.IsNullOrWhiteSpace(thoughts)) Log.Info($"[diplomacia] [piensa] {s.RulerName}: {thoughts}");
             // An AI ruler who claims someone else's lord, or a war that does not exist, is not heard. The player's words are theirs
             if (playerText == null)
             {
                 string wrong = StatementContradiction(k, j);
-                if (wrong != null) { Log.Warn($"[diplomacia] declaración de {s.RulerName} descartada por contradecir el mundo: {wrong} | {s.SummaryEn}"); return; }
+                if (wrong != null) { Log.Warn($"[diplomacia] declaración de {s.RulerName} descartada por contradecir el mundo: {wrong} | {s.SummaryEn}"); return false; }
             }
 
             if (j["actions"] is JArray acts)
@@ -625,6 +1350,34 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             });
             Log.Info($"[diplomacia] {s.RulerName}: {s.SummaryEn} | {string.Join(" | ", s.Results)}");
             WorldSim.Say(L.F("AIL_bd7dfc75", $"{s.RulerName}, de {k.Name}, ha hecho una declaración") + (s.Results.Count > 0 ? ": " + s.Results[0] : "."), s.Results.Count > 0 ? Colors.Yellow : Colors.Cyan);
+            return true;
+        }
+
+        private static bool IsPlain(Proposal p) => p.DailyTribute == 0 && p.Reparations == 0 && string.IsNullOrEmpty(p.SettlementId);
+
+        /// <summary>
+        /// War between two kingdoms, declared by the first: the pacts between them end, what was pending between
+        /// them is dropped, and the game's own action runs as ours so the patch that guards AI wars lets it through.
+        /// Main thread only. The caller has already decided the declaration is allowed.
+        /// </summary>
+        public static void DeclareWar(Kingdom k, Kingdom o)
+        {
+            if (k == null || o == null || k == o || k.IsAtWarWith(o)) return;
+            EndAlliance(k, o); EndTrade(k, o);
+            if (St?.Proposals != null)
+                St.Proposals.RemoveAll(p => p != null && ((p.From == k.StringId && p.To == o.StringId) || (p.From == o.StringId && p.To == k.StringId)));
+            Ours(() => DeclareWarAction.ApplyByDefault(k, o));
+        }
+
+        /// <summary>
+        /// Why an AI ruler may not declare war on that kingdom right now, or null: the setting that shields the
+        /// kingdom the player rules, then the house rules. A declaration the player makes is never stopped.
+        /// </summary>
+        public static string AiWarBlocked(Kingdom k, Kingdom o)
+        {
+            if (k == null || o == null || PlayerRules(k)) return null;
+            if (PlayerRules(o) && !S.Get.AllowAiWarOnPlayer) return "guerra contra el jugador desactivada";
+            return WarBlocked(k, o);
         }
 
         private static int I(JObject a, string key, int min, int max)
@@ -673,9 +1426,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (k.IsAtWarWith(o)) return Bad(L.T("AIL_acfa98a8", "ya están en guerra"));
                     if (PlayerRules(o) && !cfg.AllowAiWarOnPlayer) return Bad(L.T("AIL_b809052a", "guerra contra el jugador desactivada"));
                     { string no = WarBlocked(k, o); if (no != null) return Bad(no); }
-                    EndAlliance(k, o); EndTrade(k, o);
-                    St.Proposals.RemoveAll(p => (p.From == k.StringId && p.To == o.StringId) || (p.From == o.StringId && p.To == k.StringId));
-                    Diplomacy.Ours(() => DeclareWarAction.ApplyByDefault(k, o));
+                    DeclareWar(k, o);
+                    if (!k.IsAtWarWith(o)) return Bad("el juego no ha aplicado la declaración de guerra");
                     WorldSim.ChangeStance(o.StringId, k.StringId, -30);
                     return L.F("AIL_75b4abfe", $"{kn} declara la guerra a {o.Name}.");
 
@@ -683,11 +1435,45 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "propose_peace":
                 {
                     if (o == null || o == k || !k.IsAtWarWith(o)) return Bad(L.T("AIL_a305fa83", "no están en guerra"));
-                    var p = AddProposal("peace", k, o);
-                    p.DailyTribute = I(a, "daily_tribute", 0, cfg.MaxDailyTribute); p.TributeDays = p.DailyTribute > 0 ? TributeLength(a) : 0;
-                    p.Reparations = I(a, "reparations", 0, cfg.MaxReparations);
+                    { string no = ProposalBlocked("peace", k, o); if (no != null) return Bad(no); }
+                    int daily = I(a, "daily_tribute", 0, cfg.MaxDailyTribute), reparations = I(a, "reparations", 0, cfg.MaxReparations);
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == o);
+                    bool plain = daily == 0 && reparations == 0 && st == null, counter = false;
+                    var theirs = Pending("peace", o, k);
+                    if (theirs != null && plain && IsPlain(theirs))
+                    {
+                        // The player proposing a peace that is already offered to them has not accepted it: the
+                        // offer is put in front of them again and they decide there. Nothing is signed for them.
+                        if (PlayerRules(k))
+                        {
+                            theirs.Notified = true;
+                            AskPlayer(theirs);
+                            return L.F("AIL_e7b1c763", $"{o.Name} ya te había ofrecido la paz sin condiciones: tú decides si la aceptas.");
+                        }
+                        // Both asking for a plain peace is a peace. Before, each offer sat waiting for the other side to
+                        // say "accept" in so many words, and two rulers who wanted the same thing never got it. When
+                        // the offer on the table is the player's, this is an AI ruler accepting what the player proposed.
+                        return Resolve(k, new JObject { ["type"] = "accept_peace", ["target_kingdom"] = o.StringId });
+                    }
+                    if (theirs != null && plain)
+                    {
+                        // They want terms and this side asks for none. Theirs stays as the one offer on the table,
+                        // no second proposal is left beside it, and this side is told so on its next turn.
+                        theirs.WantedPlain = true;
+                        return L.F("AIL_e7b1c764", $"{kn} pide la paz a {o.Name}, que mantiene sus condiciones{TermsEs(theirs)}.");
+                    }
+                    if (theirs != null && IsPlain(theirs))
+                    {
+                        // This side wants terms where they asked for none: its offer takes the place of theirs, and
+                        // they are told why. Not a refusal: nothing has to wait.
+                        St.Proposals.Remove(theirs);
+                        counter = true;
+                    }
+                    var p = AddProposal("peace", k, o);
+                    p.DailyTribute = daily; p.TributeDays = p.DailyTribute > 0 ? TributeLength(a) : 0;
+                    p.Reparations = reparations;
                     p.SettlementId = st?.StringId;
+                    p.WantedPlain = counter;
                     return L.F("AIL_cab1eaa4", $"{kn} propone la paz a {o.Name}{TermsEs(p)}.");
                 }
                 case "accept_peace":
@@ -698,6 +1484,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (!k.IsAtWarWith(o)) { St.Proposals.Remove(p); return Bad(L.T("AIL_e904786b", "ya no están en guerra")); }
                     St.Proposals.Remove(p);
                     St.Proposals.RemoveAll(x => x.Type == "peace" && x.From == k.StringId && x.To == o.StringId);
+                    St.Refused.Remove(RefusalKey("peace", k.StringId, o.StringId));
                     // whoever accepts pays what was demanded of them
                     if (p.DailyTribute > 0) Diplomacy.Ours(() => MakePeaceAction.ApplyByKingdomDecision(k, o, p.DailyTribute, p.TributeDays));
                     else Diplomacy.Ours(() => MakePeaceAction.Apply(k, o));
@@ -715,7 +1502,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 // ---------------------------------------------------- alliances
                 case "propose_alliance":
                     if (o == null || o == k || k.IsAtWarWith(o) || Allied(k, o)) return Bad("alianza no posible");
-                    { string no = AllianceBlocked(k, o); if (no != null) return Bad(no); }
+                    { string no = PactOfferBlocked(k, o) ?? ProposalBlocked("alliance", k, o) ?? AllianceBlocked(k, o); if (no != null) return Bad(no); }
                     AddProposal("alliance", k, o);
                     return L.F("AIL_f1ae2294", $"{kn} propone una alianza a {o.Name}.");
                 case "accept_alliance":
@@ -726,9 +1513,21 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     St.Proposals.Remove(p);
                     if (k.IsAtWarWith(o) || Alli == null) return Bad(L.T("AIL_1d0a19e2", "alianza imposible ahora"));
                     { string no = AllianceBlocked(k, o); if (no != null) return Bad(no); }
-                    Alli.StartAlliance(o, k);
+                    // The new alliance is sealed and seen to exist before anything else: only then, with "a new
+                    // alliance replaces the old one", does a kingdom left over its limit end its oldest other one.
+                    try { Alli.StartAlliance(o, k); }
+                    catch (Exception ex) { Log.Error($"[diplomacia] sellando la alianza entre {kn} y {o.Name}", ex); }
+                    if (!Allied(k, o)) return Bad("el juego no ha sellado la alianza: no se rompe ninguna otra");
+                    {
+                        // normally set by the game's own event (OnAllianceStarted)
+                        string pair = FactCheck.Pair(k.StringId, o.StringId);
+                        if (!St.AllianceSince.ContainsKey(pair)) St.AllianceSince[pair] = CampaignTime.Now.ToDays;
+                    }
+                    St.Refused.Remove(RefusalKey("alliance", k.StringId, o.StringId));
                     WorldSim.ChangeStance(k.StringId, o.StringId, 15); WorldSim.ChangeStance(o.StringId, k.StringId, 15);
-                    return L.F("AIL_47c0f5a2", $"{kn} y {o.Name} sellan una alianza.");
+                    var done = new List<string> { L.F("AIL_47c0f5a2", $"{kn} y {o.Name} sellan una alianza.") };
+                    done.AddRange(DropOldestAlliances(k, o));
+                    return string.Join(" ", done);
                 }
                 case "reject_alliance":
                     return Reject("alliance", k, o, L.F("AIL_ba80efa7", $"{kn} rechaza la alianza que proponía {o?.Name}."));
@@ -742,7 +1541,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "propose_trade":
                 {
                     if (o == null || o == k || k.IsAtWarWith(o) || HasTrade(k, o)) return Bad("acuerdo comercial no posible");
-                    { string no = TradeBlocked(k, o); if (no != null) return Bad(no); }
+                    { string no = PactOfferBlocked(k, o) ?? ProposalBlocked("trade", k, o) ?? TradeBlocked(k, o); if (no != null) return Bad(no); }
                     var p = AddProposal("trade", k, o);
                     p.TradeYears = I(a, "trade_years", 1, 5);
                     return L.F("AIL_6e09fc5c", $"{kn} propone a {o.Name} un acuerdo comercial de {p.TradeYears} año(s).");
@@ -756,6 +1555,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (k.IsAtWarWith(o) || Trade == null) return Bad(L.T("AIL_6ee119bd", "comercio imposible ahora"));
                     { string no = TradeBlocked(k, o); if (no != null) return Bad(no); }
                     Trade.MakeTradeAgreement(o, k, CampaignTime.YearsFromNow(Math.Max(1, p.TradeYears)));
+                    St.Refused.Remove(RefusalKey("trade", k.StringId, o.StringId));
                     WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
                     return L.F("AIL_4e5e61ea", $"{kn} y {o.Name} firman un acuerdo comercial de {Math.Max(1, p.TradeYears)} año(s).");
                 }
@@ -983,6 +1783,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             var p = Pending(type, o, k);
             if (p == null) return null;
             St.Proposals.Remove(p);
+            // the same proposal between these two now has to wait (RefusedProposalCooldownDays)
+            MarkRefused(type, o.StringId, k.StringId, CampaignTime.Now.ToDays);
             WorldSim.ChangeStance(o.StringId, k.StringId, -5);
             return text;
         }
@@ -1067,6 +1869,7 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
                     var sys = new StringBuilder();
                     sys.AppendLine(TPlayerStatement.Format("ruler", Hero.MainHero.Name, "kingdom", k.Name, "kingdom_id", k.StringId));
                     sys.AppendLine(); sys.AppendLine($"## The realm of {k.Name}: clans and fiefs"); sys.AppendLine(DescribeRealm(k));
+                    sys.AppendLine(); sys.AppendLine(Facts.Today());
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
                     sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap(new[] { k.StringId }));
                     var lawsText = Laws.ForRuler(k);

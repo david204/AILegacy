@@ -67,6 +67,8 @@ namespace AILegacy.World
         [JsonProperty("kingdom")] public string KingdomId;
         [JsonProperty("event")] public string EventId;       // null: answers proposals
         [JsonProperty("due")] public double DueHour;          // campaign hour from which they speak
+        /// <summary>"wars": nothing called them, their realm is worn by its wars and they decide about them.</summary>
+        [JsonProperty("why", NullValueHandling = NullValueHandling.Ignore)] public string Why;
     }
 
     public class RulerStatement
@@ -98,6 +100,10 @@ namespace AILegacy.World
         [JsonProperty("years")] public int TradeYears;
         /// <summary>Already shown to the player (when it's aimed at their kingdom).</summary>
         [JsonProperty("notified")] public bool Notified;
+        /// <summary>Its recipient has had a turn to answer it. One that runs out without that was never refused.</summary>
+        [JsonProperty("seen", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Seen;
+        /// <summary>A peace with terms whose recipient asked for a plain one: they are told the terms stand.</summary>
+        [JsonProperty("wanted_plain", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool WantedPlain;
     }
 
     public class Tribute
@@ -172,6 +178,20 @@ namespace AILegacy.World
         [JsonProperty("next_event_day")] public double NextEventGenerationDay = -1;
         [JsonProperty("last_reactive_hour")] public double LastReactiveHour = -1;
         [JsonProperty("last_statement_day")] public Dictionary<string, double> LastStatementDay = new Dictionary<string, double>();
+        /// <summary>Last day any AI ruler spoke, for the world-wide gap between statements.</summary>
+        [JsonProperty("last_statement_any")] public double LastStatementAnyDay = -1;
+        /// <summary>Day each kingdom was first seen. -1 = it was already there when the mod first looked: an old realm, not a new one.</summary>
+        [JsonProperty("kingdom_seen")] public Dictionary<string, double> KingdomSeenDay = new Dictionary<string, double>();
+        /// <summary>Day each alliance in force began ("a|b"). The game only keeps when it runs out.</summary>
+        [JsonProperty("alliance_since")] public Dictionary<string, double> AllianceSince = new Dictionary<string, double>();
+        /// <summary>Last day a town or castle changed hands between two kingdoms ("a|b"), to tell a stalemate.</summary>
+        [JsonProperty("last_capture")] public Dictionary<string, double> WarLastCapture = new Dictionary<string, double>();
+        /// <summary>Day a proposal between two kingdoms was last refused or left unanswered ("type|a|b").</summary>
+        [JsonProperty("refused")] public Dictionary<string, double> Refused = new Dictionary<string, double>();
+        /// <summary>Day we first saw a war whose start date the game does not have ("a|b").</summary>
+        [JsonProperty("war_seen")] public Dictionary<string, double> WarSeenDay = new Dictionary<string, double>();
+        /// <summary>Day until which neither may declare war on the other after a peace forced by exhaustion ("a|b").</summary>
+        [JsonProperty("forced_truce")] public Dictionary<string, double> ForcedTruceUntil = new Dictionary<string, double>();
     }
 
     // ===================================================================== engine
@@ -262,6 +282,7 @@ namespace AILegacy.World
             try { Dialogue.TalkMusic.ResetSession(); } catch { }
             try { NewsStore.ResetSession(); } catch { }
             try { Laws.Invalidate(); } catch { }
+            try { Diplomacy.ResetSession(); } catch { }
             Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
         }
 
@@ -374,9 +395,11 @@ namespace AILegacy.World
 
         // ============================================================ world state for prompts
 
+        public static float Fatigue(Kingdom k) => k != null && State.WarFatigue.TryGetValue(k.StringId, out var f) ? f : 0f;
+
         public static string FatigueWord(Kingdom k)
         {
-            State.WarFatigue.TryGetValue(k.StringId, out var f);
+            float f = Fatigue(k);
             return f < 15 ? "fresh" : f < 35 ? "strained" : f < 60 ? "weary" : f < 85 ? "exhausted" : "at breaking point";
         }
 
@@ -397,12 +420,16 @@ namespace AILegacy.World
             {
                 var towns = k.Fiefs.Where(f => f.IsTown).Select(f => f.Name.ToString()).ToList();
                 int castles = k.Fiefs.Count(f => f.IsCastle);
-                var wars = Kingdoms.Where(o => o != k && k.IsAtWarWith(o)).Select(o => o.StringId).ToList();
+                // each war with how long it has lasted, and the peaces of the last year: without them a new war reads
+                // like an old one and a kingdom founded last season reads like one that has lost everything
+                var wars = Kingdoms.Where(o => o != k && k.IsAtWarWith(o)).Select(o => o.StringId + Diplomacy.WarSpan(k, o)).ToList();
                 var allies = Kingdoms.Where(o => o != k && Diplomacy.Allied(k, o)).Select(o => o.StringId).ToList();
                 var trade = Kingdoms.Where(o => o != k && Diplomacy.HasTrade(k, o)).Select(o => o.StringId).ToList();
-                sb.Append($"- {k.Name} [id: {k.StringId}]{(k == Hero.MainHero.MapFaction ? " (the realm of " + Hero.MainHero.Name + ")" : "")}: ruler {k.Leader.Name}; ")
+                var peaces = Diplomacy.RecentPeaces(k, Math.Max(1, CampaignTime.DaysInYear));
+                sb.Append($"- {k.Name} [id: {k.StringId}]{(k == Hero.MainHero.MapFaction ? " (the realm of " + Hero.MainHero.Name + ")" : "")}: ruler {k.Leader.Name}; {Diplomacy.Age(k)}; ")
                   .Append($"strength {(int)k.CurrentTotalStrength}; towns ({towns.Count}): {(towns.Count > 0 ? string.Join(", ", towns.Take(8)) : "none")}; castles {castles}; ")
                   .Append($"AT WAR with: {(wars.Count > 0 ? string.Join(", ", wars) : "nobody")}; ")
+                  .Append(peaces.Count > 0 ? $"peace made lately with: {string.Join(", ", peaces)}; " : "")
                   .Append(allies.Count > 0 ? $"allied with: {string.Join(", ", allies)}; " : "")
                   .Append(trade.Count > 0 ? $"trade agreement with: {string.Join(", ", trade)}; " : "")
                   .Append($"war weariness: {FatigueWord(k)}");
@@ -438,6 +465,7 @@ Rules:
 - Ground every event in the data below: a real kingdom, real towns, a real war, a real recent event. Structure: cause (from the data) → what is happening → what it threatens or promises. Continue existing stories when it makes sense.
 - NEVER state as done anything only the world itself can do: a war declared, a peace signed, a town changing hands, a ruler or lord dead, a clan expelled, a law or tax enacted. You may write pressure, rumours, accusations, demands, unrest, shortages, omens, plots: the real outcome, if any, will come later from the rulers.
 - Do not involve the person named as ""the realm of ..."" personally unless the data does.
+- Mind the dates in the data. A kingdom marked NEWLY FOUNDED is young and growing: holding little land is its beginning, so never write it as collapsing, dying or fallen. Each war says how long it has lasted and each recent peace when it was made: a war of a few days is new, one of years is old and wearing, and where a peace was made lately the war before it is over.
 - Use readable names in title and text, never ids. Never put a double-quote character inside a text value; use «» if you must quote.
 - importance: 1 = one town or village talks about it, 2 = nobles of the realm, 3 = the whole realm, 4 = the whole world (rare).
 - kingdom_engagement: for events that call for a response from a crown, the daily chance (0-100) that the ruler of that kingdom speaks out about it. Only kingdoms listed in kingdoms_involved. Leave empty for events nobody needs to answer.
@@ -585,12 +613,13 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 "max_morale", cfg.DiseaseMaxMoralePenalty, "max_skill", cfg.DiseaseMaxPhysicalSkillPenalty));
             var lore = WorldLore.Text;
             if (!string.IsNullOrWhiteSpace(lore)) { sys.AppendLine(); sys.AppendLine("## The world"); sys.AppendLine(lore); }
-            var now = CampaignTime.Now;
             sys.AppendLine();
-            sys.AppendLine($"## Date: day {now.GetDayOfSeason + 1} of {now.GetSeasonOfYear}, year {now.GetYear}");
+            sys.AppendLine(Facts.Today());
             sys.AppendLine("## Kingdoms (technical truth, right now)");
             sys.AppendLine(DescribeKingdoms());
             sys.AppendLine("## Who serves whom (exact, right now; nobody else belongs to these kingdoms)");
+            // what happened may be hours old by now: who is at war with whom is read again, not taken from then
+            if (reactive) foreach (var tr in reactTo) Facts.Refresh(tr);
             // the kingdoms of what happened are never the ones left out when the lists run over their budget
             var tied = reactive ? new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)) : null;
             sys.AppendLine(Facts.Roster(tied));
@@ -954,8 +983,10 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 Diseases.OnDailyTick();
                 Banished.OnDailyTick();
                 NpcRomance.OnDailyTick();
-                TickFatigue();
-                Diplomacy.OnDailyTick(now);
+                // each on its own: one that fails must not take the others with it
+                try { TickFatigue(); } catch (Exception ex) { Log.Error("[mundo] cansancio de guerra", ex); }
+                Diplomacy.TrackKingdoms();
+                try { Diplomacy.OnDailyTick(now); } catch (Exception ex) { Log.Error("[diplomacia] tick diario", ex); }
 
                 // Background batch: things brewing even when nothing big happened. Reactions to real events are separate (TryReact).
                 if (Enabled && cfg.BackgroundEvents)
@@ -1133,14 +1164,28 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             State.WarFatigue[k.StringId] = Math.Max(0f, Math.Min(100f, f + amount));
         }
 
-        private static void TickFatigue()
+        /// <summary>
+        /// What a day of war costs a kingdom. Each war weighs more the longer it has lasted (half as much again per
+        /// year, up to three times), and every war beyond the first makes all of them a quarter heavier, so a realm
+        /// fighting many at once wears out far faster than the sum of its wars. Recovery only comes at full peace.
+        /// </summary>
+        public static float DailyFatigue(Kingdom k)
         {
             var cfg = S.Get;
-            foreach (var k in Kingdoms)
+            var foes = Kingdoms.Where(o => o != k && k.IsAtWarWith(o)).ToList();
+            if (foes.Count == 0) return -cfg.FatigueRecoveryPerDayX10 / 10f;
+            float year = Math.Max(1, CampaignTime.DaysInYear), sum = 0f;
+            foreach (var o in foes) sum += 1f + Math.Min(2f, Math.Max(0, Diplomacy.WarDays(k, o)) / year * 0.5f);
+            return sum * (1f + 0.25f * (foes.Count - 1)) * cfg.FatiguePerWarDayX10 / 10f;
+        }
+
+        private static void TickFatigue()
+        {
+            if (State.WarFatigue == null) State.WarFatigue = new Dictionary<string, float>();
+            foreach (var k in Kingdoms.ToList())
             {
-                int wars = Kingdoms.Count(o => o != k && k.IsAtWarWith(o));
-                if (wars == 0) AddFatigue(k, -cfg.FatigueRecoveryPerDayX10 / 10f);
-                else AddFatigue(k, wars * cfg.FatiguePerWarDayX10 / 10f);
+                try { AddFatigue(k, DailyFatigue(k)); }
+                catch (Exception ex) { Log.Error($"[mundo] cansancio de guerra de {k?.StringId}", ex); }
             }
         }
 
@@ -1178,6 +1223,10 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             {
                 var oldK = oldOwner?.MapFaction as Kingdom; var newK = newOwner?.MapFaction as Kingdom;
                 if (oldK != null && oldK != newK && s != null && (s.IsTown || s.IsCastle)) AddFatigue(oldK, S.Get.FatiguePerSettlementLost);
+                // a town or castle passing from one crown to another: their war, if they have one, is not a stalemate
+                if (oldK != null && newK != null && oldK != newK && s != null && (s.IsTown || s.IsCastle))
+                    State.WarLastCapture[FactCheck.Pair(oldK.StringId, newK.StringId)] = CampaignTime.Now.ToDays;
+                Facts.Invalidate();
             }
             catch { }
         }

@@ -17,6 +17,10 @@ namespace AILegacy.World
         public string Text;
         public List<string> Facts = new List<string>();
         public HashSet<string> Kingdoms = new HashSet<string>();
+        // Where the facts came from, so they can be read again from the game when the reaction is finally written
+        public NewsItem News;
+        public Settlement Where;
+        public bool Incident;
     }
 
     /// <summary>
@@ -151,7 +155,7 @@ namespace AILegacy.World
         /// <summary>The fact sheet of a real news item, from the ids it carries.</summary>
         public static Trigger ForNews(NewsItem n)
         {
-            var t = new Trigger { Text = n.Text };
+            var t = new Trigger { Text = n.Text, News = n };
             var factions = new HashSet<IFaction>();
             try
             {
@@ -171,7 +175,7 @@ namespace AILegacy.World
         /// <summary>The fact sheet of something the player did: the place, and the player when the text names them.</summary>
         public static Trigger ForIncident(string text, Settlement where)
         {
-            var t = new Trigger { Text = text };
+            var t = new Trigger { Text = text, Where = where, Incident = true };
             var factions = new HashSet<IFaction>();
             try
             {
@@ -182,6 +186,42 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Hechos de un suceso", ex); }
             return t;
         }
+
+        /// <summary>
+        /// A trigger waits for hours before its reaction is written, and a war can start or end meanwhile. Its facts
+        /// are read from the game again right before they are sent.
+        /// </summary>
+        public static void Refresh(Trigger t)
+        {
+            try
+            {
+                if (t == null) return;
+                var fresh = t.News != null ? ForNews(t.News) : t.Incident ? ForIncident(t.Text, t.Where) : null;
+                if (fresh == null) return;
+                t.Facts = fresh.Facts;
+                t.Kingdoms = fresh.Kingdoms;
+            }
+            catch (Exception ex) { Log.Error("Hechos de un suceso, al releerlos", ex); }
+        }
+
+        /// <summary>The date in the words of this world, for every prompt that reasons about time.</summary>
+        public static string Today()
+        {
+            try
+            {
+                var now = CampaignTime.Now;
+                return TToday.Format("day", now.GetDayOfSeason + 1, "season", now.GetSeasonOfYear, "year", now.GetYear);
+            }
+            catch { return ""; }
+        }
+
+        private static readonly Tpl TToday = new Tpl("world/today.txt", "## Today: day {day} of {season}, year {year}");
+
+        /// <summary>The day caches below hold who serves whom and where the kingdoms lie. When either changes they are rebuilt at once.</summary>
+        public static void Invalidate() { _rosterDay = -1; _geoDay = -1; }
+        public static void OnClanChangedKingdom(Clan clan, Kingdom oldKingdom, Kingdom newKingdom, TaleWorlds.CampaignSystem.Actions.ChangeKingdomAction.ChangeKingdomActionDetail detail, bool show) => Invalidate();
+        public static void OnKingdomChanged(Kingdom k) => Invalidate();
+        public static void OnRulingClanChanged(Kingdom k, Clan c) => Invalidate();
 
         // ============================================================ the world as plain data, for the checks
 
@@ -310,7 +350,7 @@ namespace AILegacy.World
 {geography}
 - Armies, envoys and merchants travel by road. An alliance or a trade agreement makes sense between neighbours, or between two crowns with a common neighbour they both have reason to fear. Crowns far apart, with other realms between them, have no reason to ally, to trade, to demand anything of each other or to go to war, and a distant war is not their concern.");
 
-        public static void Touch() { var _ = TCalendarMap.Key; }
+        public static void Touch() { var _ = TCalendarMap.Key + TToday.Key; }
 
         private static Dictionary<string, float> _gap = new Dictionary<string, float>();
         private static float _span;

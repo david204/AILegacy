@@ -451,16 +451,23 @@ namespace AILegacy.Dialogue
             new ActionDef
             {
                 Name = "declare_war", Usage = "declare_war",
-                Description = "As ruler, you declare war on the other person's kingdom, effective immediately. Only for grave insults, threats or when it truly serves your realm.",
+                Description = "As ruler, you declare war on the other person's kingdom, effective immediately. Only for grave insults, threats or when it truly serves your realm. " +
+                              "Also use it when THEY declare war on you to your face in this talk and you take up the challenge: a war that is only spoken of does not exist, and nobody in either realm will know of it unless this action is used.",
                 IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction != PlayerKingdom
-                                   && !s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction)
-                                   && World.Diplomacy.WarBlocked(s.Hero.MapFaction as Kingdom, PlayerKingdom as Kingdom) == null,
+                                   && s.Hero.MapFaction is Kingdom && !s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction)
+                                   && World.Diplomacy.AiWarBlocked(s.Hero.MapFaction as Kingdom, PlayerKingdom) == null,
                 Execute = (s, arg, ctx) =>
                 {
-                    MarkWarPeace(s.Hero.MapFaction);
-                    World.Diplomacy.Ours(() => DeclareWarAction.ApplyByDefault(s.Hero.MapFaction, PlayerKingdom));
+                    // An AI ruler declaring war on the kingdom the player rules: the setting and the house rules are
+                    // checked again here, in case something changed since the action was offered.
+                    var theirs = s.Hero.MapFaction as Kingdom;
+                    string no = theirs == null ? "no kingdom" : World.Diplomacy.AiWarBlocked(theirs, PlayerKingdom);
+                    if (no != null) return Nope(L.F("AIL_e7b1c765", $"{s.Hero.MapFaction?.Name} no puede declarar la guerra a {PlayerKingdom.Name} ahora."), "war on them is not allowed right now: " + no);
+                    World.Diplomacy.DeclareWar(theirs, PlayerKingdom);
+                    if (!theirs.IsAtWarWith(PlayerKingdom)) return Nope(L.F("AIL_e7b1c765", $"{s.Hero.MapFaction?.Name} no puede declarar la guerra a {PlayerKingdom.Name} ahora."), "the declaration of war did not take effect");
+                    MarkWarPeace(theirs);
                     ctx.EndConversation = true;
-                    return L.F("AIL_ae73db8a", $"¡{s.Hero.MapFaction.Name} declara la guerra a {PlayerKingdom.Name}!");
+                    return L.F("AIL_ae73db8a", $"¡{theirs.Name} declara la guerra a {PlayerKingdom.Name}!");
                 }
             },
             new ActionDef

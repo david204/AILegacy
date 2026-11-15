@@ -441,6 +441,7 @@ namespace AILegacy.UI
             {
                 case "war": return L.T("AIL_13afe103", "Guerra");
                 case "peace": return L.T("AIL_c05b0270", "Paz");
+                case "alliance": return L.T("AIL_e7b1c762", "Alianza");
                 case "capture": return L.T("AIL_cf4c4fba", "Conquista");
                 case "fief": return L.T("AIL_c52373ae", "Feudo");
                 case "battle": return L.T("AIL_eb66dabe", "Batalla");

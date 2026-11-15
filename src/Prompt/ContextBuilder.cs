@@ -744,6 +744,20 @@ namespace AILegacy.Prompt
             catch { return ""; }
         }
 
+        // Memories and summaries from before a war broke out still speak of peace: a war of a few days is flagged as new
+        private static readonly Tpl TNewWar = new Tpl("context/new_war.txt",
+            " (NEW: this war broke out {days} day(s) ago; whatever you remember of peace with them is from before)");
+
+        private static string NewWar(IFaction f, IFaction foe)
+        {
+            try
+            {
+                double days = CampaignTime.Now.ToDays - f.GetStanceWith(foe).WarStartDate.ToDays;
+                return days >= 0 && days <= 14 ? TNewWar.Format("days", (int)days) : "";
+            }
+            catch { return ""; }
+        }
+
         private static string DescribeWars(IFaction f)
         {
             if (f == null) return "";
@@ -752,7 +766,7 @@ namespace AILegacy.Prompt
                 return string.Join(", ", f.FactionsAtWarWith
                     .Where(x => x != null && x.IsKingdomFaction)
                     .Take(8)
-                    .Select(x => x.Name.ToString()));
+                    .Select(x => x.Name.ToString() + NewWar(f, x)));
             }
             catch { return ""; }
         }

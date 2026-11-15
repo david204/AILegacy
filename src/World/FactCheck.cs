@@ -243,14 +243,45 @@ namespace AILegacy.World
             return false;
         }
 
+        // Next to a peace or truce phrase the same words hedge it, except the ones that are the claim itself
+        // ("truce", "peace", "its truce with"), plus the ways a peace is refused, broken or only longed for.
+        private static readonly HashSet<string> NotPeaceHedges = new HashSet<string> { "peace", "truce", "weary", "tired", "its", "their", "his", "her" };
+        private static readonly string[] PeaceOnlyHedges =
+        {
+            "refus", "reject", "declin", "spurn", "denounc", "violat", "void", "renounc", "abandon", "imposs", "collaps", "shatter", "fail", "fell", "dead",
+            "gone", "lost", "distant", "elusive", "unlikely", "war", "fight", "fought", "battle", "sieg", "raid", "attack", "invad", "sue", "sues", "sued",
+            "yearn", "crav", "need", "longs", "longed", "longing", "dream", "pray", "restor", "return", "lasting", "terms", "price",
+            // a peace still to be made: "let there be peace between", "time for a truce with", "to make peace between"
+            "let", "lets", "time", "path", "road", "way", "chance", "bring", "make", "making", "achiev", "secur", "forg",
+        };
+        private static readonly HashSet<string> ExactPeaceHedges = new HashSet<string>
+        {
+            "war", "sue", "sues", "sued", "fell", "dead", "gone", "lost", "longs", "longed", "longing", "need", "terms", "price",
+            "let", "lets", "time", "path", "road", "way", "chance", "make", "making",
+        };
+
+        // "a truce with X", "any truce with X": one that is wished for, offered or refused, not one in force
+        // ("the truce with X", "our truce with X").
+        private static readonly HashSet<string> OpenTruce = new HashSet<string> { "a", "any", "another", "new", "some", "no" };
+
+        private static bool IsPeaceHedge(string w)
+        {
+            foreach (var h in Hedges)
+                if (!NotPeaceHedges.Contains(h) && (ExactHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal))) return true;
+            foreach (var h in PeaceOnlyHedges)
+                if (ExactPeaceHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
         private static readonly char[] Space = { ' ' };
         private static string[] Words(string soft) => soft.Split(Space, StringSplitOptions.RemoveEmptyEntries);
 
         /// <summary>A hedge among the last <paramref name="max"/> words of this stretch, going back no further than its last clause mark.</summary>
-        private static bool HedgeBefore(string stretch, int max)
+        private static bool HedgeBefore(string stretch, int max, Func<string, bool> hedge = null)
         {
+            hedge = hedge ?? IsHedge;
             var w = Words(stretch.Substring(stretch.LastIndexOf('|') + 1));
-            for (int i = Math.Max(0, w.Length - max); i < w.Length; i++) if (IsHedge(w[i])) return true;
+            for (int i = Math.Max(0, w.Length - max); i < w.Length; i++) if (hedge(w[i])) return true;
             return false;
         }
 
@@ -258,19 +289,20 @@ namespace AILegacy.World
         private static readonly HashSet<string> ClauseOpeners = new HashSet<string> { "and", "but", "while", "as", "so", "yet", "because", "which", "who", "whose", "where", "when" };
 
         /// <summary>A hedge among the first <paramref name="max"/> words of this stretch, stopping where the clause ends.</summary>
-        private static bool HedgeAfter(string stretch, int max)
+        private static bool HedgeAfter(string stretch, int max, Func<string, bool> hedge = null)
         {
+            hedge = hedge ?? IsHedge;
             var w = Words(stretch);
             for (int i = 0; i < w.Length && i < max; i++)
             {
                 if (w[i] == "|" || ClauseOpeners.Contains(w[i])) break;
-                if (IsHedge(w[i])) return true;
+                if (hedge(w[i])) return true;
             }
             return false;
         }
 
         /// <summary>A hedge anywhere in this stretch: the claim's own words, between its subject and its object.</summary>
-        private static bool HedgeIn(string stretch) => Words(stretch).Any(IsHedge);
+        private static bool HedgeIn(string stretch, Func<string, bool> hedge = null) => Words(stretch).Any(hedge ?? IsHedge);
 
         // A sentence opening with one of these is a condition or a supposition from its first word to its last
         private static readonly HashSet<string> Suppositions = new HashSet<string> { "if", "unless", "should", "suppose", "imagine", "whether", "were", "had" };
@@ -306,12 +338,16 @@ namespace AILegacy.World
         private static readonly string[] WarBetween = { " war between ", " wars between " };
         private static readonly string[] AllyWords = { " allied with ", " allied to ", " ally of ", " allies of ", " alliance with ", " in league with " };
         private static readonly string[] AllyBetween = { " alliance between ", " alliance of " };
+        private static readonly string[] PeaceWords = { " at peace with ", " truce with ", " no quarrel with ", " not at war with ", " no war with ", " peace holds with " };
+        private static readonly string[] PeaceBetween = { " peace between ", " truce between ", " peace holds between ", " truce holds between " };
 
         /// <summary>
         /// Plain statements in an English text: "NAME of KINGDOM" for a lord or a clan that is not of that kingdom, and
-        /// a war or an alliance between two kingdoms that does not exist. Text in another language simply finds nothing.
+        /// a war or an alliance between two kingdoms that does not exist, or a peace or truce between two that are at
+        /// war. Text in another language simply finds nothing. <paramref name="speaker"/> is the kingdom whose ruler
+        /// is talking, when there is one: "the truce with Vlandia holds" is then read as theirs.
         /// </summary>
-        public static string CheckSummary(string text, FactModel m)
+        public static string CheckSummary(string text, FactModel m, string speaker = null)
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
             foreach (var part in Sentences(text))
@@ -321,6 +357,9 @@ namespace AILegacy.World
                 if (soft.Length < 8) continue;
                 var ms = Mentions(soft, m);
                 if (ms.Count == 0) continue;
+                bool states = part.Value != '?' && sentence.IndexOfAny(Quotes) < 0;
+                var opener = Words(soft).FirstOrDefault(w => w != "|");
+                if (opener != null && Suppositions.Contains(opener)) states = false;
 
                 // "Hakon of the Aserai", "clan Wolfskins of Battania"
                 foreach (var k in ms)
@@ -343,16 +382,19 @@ namespace AILegacy.World
                     }
                 }
 
-                if (ms.Select(x => x.Id).Distinct().Count() < 2) continue;
                 // A question, quoted speech or an outright supposition states nothing. Anything else is read phrase by
                 // phrase, and only the words around each phrase can hedge it (see Between).
-                if (part.Value == '?' || sentence.IndexOfAny(Quotes) >= 0) continue;
-                var first = Words(soft).FirstOrDefault(w => w != "|");
-                if (first != null && Suppositions.Contains(first)) continue;
-                string bad = Between(soft, ms, WarWords, WarBetween, m.Wars);
-                if (bad != null) return $"speaks of a war between {bad}, and they are not at war";
-                bad = Between(soft, ms, AllyWords, AllyBetween, m.Alliances);
-                if (bad != null) return $"speaks of an alliance between {bad}, and they are not allied";
+                if (!states) continue;
+                string bad;
+                if (ms.Select(x => x.Id).Distinct().Count() >= 2)
+                {
+                    bad = Between(soft, ms, WarWords, WarBetween, m.Wars);
+                    if (bad != null) return $"speaks of a war between {bad}, and they are not at war";
+                    bad = Between(soft, ms, AllyWords, AllyBetween, m.Alliances);
+                    if (bad != null) return $"speaks of an alliance between {bad}, and they are not allied";
+                }
+                bad = Peace(soft, ms, m.Wars, speaker != null && m.KingdomNames.ContainsKey(speaker) ? speaker : null);
+                if (bad != null) return $"speaks of peace between {bad}, and they are at war";
             }
             return null;
         }
@@ -411,6 +453,57 @@ namespace AILegacy.World
                     if (HedgeIn(soft.Substring(phraseEnd, after[0].Start - phraseEnd)) || HedgeIn(soft.Substring(after[0].End, after[1].Start - after[0].End))) continue;
                     if (HedgeBefore(soft.Substring(0, at + 1), HedgeLeadBetween) || HedgeAfter(soft.Substring(after[1].End), HedgeTail)) continue;
                     if (!truth.Contains(Pair(after[0].Id, after[1].Id))) return after[0].Id + " and " + after[1].Id;
+                }
+            return null;
+        }
+
+        /// <summary>
+        /// The two kingdoms a peace or truce phrase joins, when they are at war. null when fine. Read like Between,
+        /// with the hedges that fit a peace. When no kingdom stands before the phrase as its subject, the kingdom
+        /// speaking is the subject; a subject too far away, or some other kingdom named earlier in the sentence,
+        /// leaves it unclear and it is let through.
+        /// </summary>
+        private static string Peace(string soft, List<Mention> ms, HashSet<string> wars, string speaker)
+        {
+            Func<string, bool> hedge = IsPeaceHedge;
+            foreach (var w in PeaceWords)
+                for (int at = soft.IndexOf(w, StringComparison.Ordinal); at >= 0; at = soft.IndexOf(w, at + 1, StringComparison.Ordinal))
+                {
+                    int phraseEnd = at + w.Length - 1;
+                    var b = ms.FirstOrDefault(x => x.Start >= phraseEnd && x.Start <= at + w.Length + NearChars);
+                    if (b.Id == null) continue;
+                    if (w == " truce with ")
+                    {
+                        var lead = Words(soft.Substring(0, at + 1));
+                        if (lead.Length > 0 && OpenTruce.Contains(lead[lead.Length - 1])) continue;
+                    }
+                    if (HedgeIn(soft.Substring(phraseEnd, b.Start - phraseEnd), hedge) || HedgeAfter(soft.Substring(b.End), HedgeTail, hedge)) continue;
+                    var a = ms.LastOrDefault(x => x.End <= at + 1);
+                    string subject;
+                    if (a.Id != null && Words(soft.Substring(a.End, at + 1 - a.End)).Count(x => x != "|") <= SubjectReach)
+                    {
+                        if (HedgeIn(soft.Substring(a.End, at + 1 - a.End), hedge) || HedgeBefore(soft.Substring(0, a.Start), HedgeLead, hedge)) continue;
+                        subject = a.Id;
+                    }
+                    else
+                    {
+                        // no kingdom close enough to be the subject: it is the speaker's own peace, unless the
+                        // sentence has already named some other kingdom
+                        if (speaker == null || ms.Any(x => x.End <= at + 1 && x.Id != speaker)) continue;
+                        if (HedgeBefore(soft.Substring(0, at + 1), SubjectReach, hedge)) continue;
+                        subject = speaker;
+                    }
+                    if (subject != b.Id && wars.Contains(Pair(subject, b.Id))) return subject + " and " + b.Id;
+                }
+            foreach (var w in PeaceBetween)
+                for (int at = soft.IndexOf(w, StringComparison.Ordinal); at >= 0; at = soft.IndexOf(w, at + 1, StringComparison.Ordinal))
+                {
+                    int phraseEnd = at + w.Length - 1;
+                    var after = ms.Where(x => x.Start >= phraseEnd && x.Start <= at + w.Length + NearChars * 3).ToList();
+                    if (after.Count < 2 || after[0].Id == after[1].Id) continue;
+                    if (HedgeIn(soft.Substring(phraseEnd, after[0].Start - phraseEnd), hedge) || HedgeIn(soft.Substring(after[0].End, after[1].Start - after[0].End), hedge)) continue;
+                    if (HedgeBefore(soft.Substring(0, at + 1), HedgeLeadBetween, hedge) || HedgeAfter(soft.Substring(after[1].End), HedgeTail, hedge)) continue;
+                    if (wars.Contains(Pair(after[0].Id, after[1].Id))) return after[0].Id + " and " + after[1].Id;
                 }
             return null;
         }

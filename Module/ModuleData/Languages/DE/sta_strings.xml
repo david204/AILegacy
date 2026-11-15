@@ -68,7 +68,7 @@
     <string id="AIL_0b677944" text="Im Vorbeigehen: Entfernung, aus der man dich anspricht (Meter)" />
     <string id="AIL_0b9bdfcf" text="Die Ärzte wissen derzeit von keiner Krankheit in Calradia." />
     <string id="AIL_0bc1afa9" text="{=!}Du bist gesund." />
-    <string id="AIL_0be30312" text="Steht am Anfang jedes Gesprächs. Schreib es auf Englisch (die Antworten kommen in deiner Sprache). Wird beim nächsten Satz angewendet." />
+    <string id="AIL_0be30312" text="Steht am Anfang jedes Gesprächs und wird auch an den Schreiber der Weltereignisse und an die Könige geschickt, wenn sie eine Erklärung abgeben. Schreib es auf Englisch (die Antworten kommen in deiner Sprache). Wird beim nächsten Satz angewendet." />
     <string id="AIL_0bfa167c" text="Maximalwert der Gegenstände, die ein NPC auf einmal gibt" />
     <string id="AIL_0ca5ee01" text="Höchstanzahl Sätze in einem Gespräch zwischen Charakteren" />
     <string id="AIL_0cd6f2e1" text="{0}: deaktiviert oder ohne api_key" />
@@ -1934,5 +1934,28 @@
     <string id="AIL_e7b1c74c" text="Die Datei {0} ist zu groß, um sie im Editor zu öffnen." />
     <string id="AIL_e7b1c74d" text="Die Belagerung von {0} endet" />
     <string id="AIL_e7b1c74e" text="Die Belagerung von {0} ist beendet, und {1} bleibt in der Hand von {2}." />
+    <string id="AIL_e7b1c74f" text="Kampagnenregeln" />
+    <string id="AIL_e7b1c750" text="Erzwungener Frieden nach so vielen Tagen festgefahrenen Krieges (0 = aus)" />
+    <string id="AIL_e7b1c751" text="Wenn zwei KI-Reiche so lange im Krieg sind, ohne dass in der ganzen Zeit eine einzige Stadt oder Burg zwischen ihnen den Besitzer gewechselt hat, endet der Krieg von selbst, mit einer Nachricht: Keiner kann ihn weiterführen. Höchstens ein solcher Frieden pro Tag. Ein Jahr in Calradia hat 84 Tage. Gilt nie für ein Reich, das du regierst. Den Königen wird gesagt, wie nah jeder ihrer Kriege daran ist. Danach darf keines der beiden dem anderen 84 Tage lang den Krieg erklären, oder so lange wie der oben festgelegte Waffenstillstand, falls der länger ist." />
+    <string id="AIL_e7b1c752" text="Ein neues Bündnis ersetzt das alte" />
+    <string id="AIL_e7b1c753" text="Nur von Bedeutung, wenn es eine Obergrenze für Bündnisse gibt. Aus: Ein KI-König an seiner Grenze kann kein neues Bündnis schließen. An: Er kann es, und wenn das neue besiegelt wird, endet danach das älteste jedes KI-Reichs, das an seiner Grenze war, mit einer Nachricht, die den verlassenen Verbündeten nennt. Deine eigenen Bündnisse werden so nie beendet." />
+    <string id="AIL_e7b1c754" text="KI-Könige dürfen einem Reich, das du regierst, Bündnisse und Handelsabkommen anbieten" />
+    <string id="AIL_e7b1c755" text="Aus: Kein KI-König schlägt dem Reich, das du regierst, ein Bündnis oder ein Handelsabkommen vor; du kannst sie weiterhin selbst vorschlagen, und sie antworten. Friedensangebote und Forderungen sind nicht betroffen. Solange du nur Vasall bist, ändert sich nichts." />
+    <string id="AIL_e7b1c756" text="Tage, bis ein abgelehnter Vorschlag erneut gemacht werden kann (0 = keine Wartezeit)" />
+    <string id="AIL_e7b1c757" text="Nachdem ein Vorschlag für Frieden, Bündnis oder Handel zwischen zwei Reichen abgelehnt wurde oder unbeantwortet verfallen ist, darf kein KI-König dieselbe Art von Vorschlag zwischen diesen beiden machen, bevor so viele Tage vergangen sind. Bindet nur KI-Könige: Du darfst darauf bestehen. Ein Jahr in Calradia hat 84 Tage." />
+    <string id="AIL_e7b1c758" text="Mindesttage zwischen Erklärungen in der ganzen Welt (0 = keine Grenze)" />
+    <string id="AIL_e7b1c759" text="Nachdem ein KI-König gesprochen hat, spricht kein anderer, bevor so viele Tage vergangen sind, egal wie sehr die KI es will. Das heißt auch: eine Erklärung zur Zeit. Bei 0 gelten nur die Grenzen pro Tag und pro König oben. Deine eigenen Erklärungen werden nie zurückgehalten. Antworten auf einen offenen Vorschlag werden dadurch nicht zurückgehalten, damit Vorschläge nicht unbeantwortet verfallen." />
+    <string id="AIL_e7b1c75a" text="Der Grundwert. Jeder Krieg wiegt schwerer, je länger er dauert (um die Hälfte mehr pro Jahr, bis zum Dreifachen), und jeder Krieg über den ersten hinaus macht alle um ein Viertel schwerer: Ein Reich, das viele zugleich führt, erschöpft sich schnell." />
+    <string id="AIL_e7b1c75b" text="Kriegsmüde Könige äußern sich zu ihren Kriegen" />
+    <string id="AIL_e7b1c75c" text="Ein König, dessen Reich müde ist oder der gegen mehrere Reiche zugleich kämpft, nimmt sich das Wort, um über seine Kriege zu entscheiden, auch wenn sonst nichts eine Erklärung verlangt: je müder und je mehr Kriege, desto wahrscheinlicher. Ohne dies spricht ein König nur, wenn ein Ereignis oder ein Vorschlag ihn ruft, und Kriege können Jahre dauern, ohne dass jemand um Frieden bittet. Eine KI-Anfrage pro Wortmeldung, innerhalb der Grenzen für Erklärungen oben." />
+    <string id="AIL_e7b1c75d" text="Erschöpfungsfrieden zwischen {0} und {1}" />
+    <string id="AIL_e7b1c75e" text="Nach {0} Tagen Krieg, davon {1}, ohne dass eine einzige Stadt oder Burg den Besitzer wechselte, haben {2} und {3} die Waffen niedergelegt. Keiner hat gesiegt, und es gibt keine Bedingungen: Sie konnten ihn nicht länger führen." />
+    <string id="AIL_e7b1c75f" text="{0} und {1} schließen aus Erschöpfung Frieden, nach {2} Tagen eines festgefahrenen Krieges." />
+    <string id="AIL_e7b1c760" text="{0} verlässt {1}" />
+    <string id="AIL_e7b1c761" text="{0} beendet sein Bündnis mit {1}, um ein neues mit {2} zu besiegeln." />
+    <string id="AIL_e7b1c762" text="Bündnis" />
+    <string id="AIL_e7b1c763" text="{0} hatte dir bereits einen Frieden ohne Bedingungen angeboten: Du entscheidest, ob du ihn annimmst." />
+    <string id="AIL_e7b1c764" text="{0} bittet {1} um Frieden; {1} hält an seinen Bedingungen fest{2}." />
+    <string id="AIL_e7b1c765" text="{0} kann {1} im Moment nicht den Krieg erklären." />
   </strings>
 </base>

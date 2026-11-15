@@ -68,7 +68,7 @@
     <string id="AIL_0b677944" text="In passing: distance at which they speak to you (meters)" />
     <string id="AIL_0b9bdfcf" text="The physicians have no news of any disease in Calradia right now." />
     <string id="AIL_0bc1afa9" text="{=!}You are healthy." />
-    <string id="AIL_0be30312" text="It goes at the start of every conversation. Write it in English (replies come out in your language). It applies from the next sentence." />
+    <string id="AIL_0be30312" text="It goes at the start of every conversation, and it is also sent to whoever writes the world's events and to the kings when they make a declaration. Write it in English (replies come out in your language). It applies from the next sentence." />
     <string id="AIL_0bfa167c" text="Maximum value of the items an NPC gives at once" />
     <string id="AIL_0ca5ee01" text="Maximum sentences in a chat between characters" />
     <string id="AIL_0cd6f2e1" text="{0}: disabled or no api_key" />
@@ -1934,5 +1934,28 @@
     <string id="AIL_e7b1c74c" text="The file {0} is too large to open in the editor." />
     <string id="AIL_e7b1c74d" text="The siege of {0} ends" />
     <string id="AIL_e7b1c74e" text="The siege of {0} has ended and {1} remains in the hands of {2}." />
+    <string id="AIL_e7b1c74f" text="Campaign rules" />
+    <string id="AIL_e7b1c750" text="Forced peace after this many days of a stalemate war (0 = off)" />
+    <string id="AIL_e7b1c751" text="When two AI kingdoms have been at war this long and no town or castle has changed hands between them in all that time, the war ends by itself, with a news item: nobody can keep it up. One such peace a day at most. A year of Calradia is 84 days. Never applied to a kingdom you rule. Kings are told how close each of their wars is to this. Afterwards neither of the two may declare war on the other for 84 days, or for the truce set above if that is longer." />
+    <string id="AIL_e7b1c752" text="A new alliance replaces the old one" />
+    <string id="AIL_e7b1c753" text="Only matters with a limit on alliances. Off: an AI king at his limit cannot make a new alliance. On: he can, and when the new alliance is sealed the oldest one of each AI kingdom that was at its limit is then ended, with a news item naming the ally left behind. Your own alliances are never ended this way." />
+    <string id="AIL_e7b1c754" text="AI kings may offer alliances and trade agreements to a kingdom you rule" />
+    <string id="AIL_e7b1c755" text="Off: no AI king proposes an alliance or a trade agreement to the kingdom you rule; you can still propose them yourself and they answer. Peace offers and demands are not affected. While you are only a vassal nothing changes." />
+    <string id="AIL_e7b1c756" text="Days before a refused proposal can be made again (0 = no wait)" />
+    <string id="AIL_e7b1c757" text="After a proposal of peace, alliance or trade between two kingdoms is refused, or runs out unanswered, no AI king may make the same kind of proposal between those two until this many days have passed. It binds AI kings only: you may insist. A year of Calradia is 84 days." />
+    <string id="AIL_e7b1c758" text="Minimum days between declarations in the whole world (0 = no limit)" />
+    <string id="AIL_e7b1c759" text="After any AI king speaks, no other AI king does until this many days have passed, however much the AI wants them to. It also means one declaration at a time. With 0 only the limits per day and per king above apply. Your own declarations are never held back. Answers to a pending proposal are not held back by this, so that proposals do not run out unanswered." />
+    <string id="AIL_e7b1c75a" text="The base amount. Each war weighs more the longer it has lasted (half as much again per year, up to three times), and every war beyond the first makes all of them a quarter heavier: a kingdom fighting many at once wears out fast." />
+    <string id="AIL_e7b1c75b" text="War-weary kings speak up about their wars" />
+    <string id="AIL_e7b1c75c" text="A king whose realm is weary, or who is fighting several kingdoms at once, takes a turn to decide what to do about his wars even when nothing else calls for a declaration: the wearier and the more wars, the likelier. Without this a king only speaks when an event or a proposal calls him, and wars can go on for years with nobody asking for peace. One AI request per turn, within the limits on declarations above." />
+    <string id="AIL_e7b1c75d" text="Peace from exhaustion between {0} and {1}" />
+    <string id="AIL_e7b1c75e" text="After {0} days of war, and {1} without a single town or castle changing hands, {2} and {3} have laid down their arms. Neither has won and there are no terms: they could not keep it up any longer." />
+    <string id="AIL_e7b1c75f" text="{0} and {1} make peace out of exhaustion, after {2} days of a war going nowhere." />
+    <string id="AIL_e7b1c760" text="{0} leaves {1}" />
+    <string id="AIL_e7b1c761" text="{0} ends its alliance with {1} to seal a new one with {2}." />
+    <string id="AIL_e7b1c762" text="Alliance" />
+    <string id="AIL_e7b1c763" text="{0} had already offered you peace with no terms: it is for you to decide whether you accept it." />
+    <string id="AIL_e7b1c764" text="{0} asks {1} for peace; {1} holds to its terms{2}." />
+    <string id="AIL_e7b1c765" text="{0} cannot declare war on {1} right now." />
   </strings>
 </base>

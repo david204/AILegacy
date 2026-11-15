@@ -68,7 +68,7 @@
     <string id="AIL_0b677944" text="Ao passar: distância a que falam com você (metros)" />
     <string id="AIL_0b9bdfcf" text="Os médicos não têm notícia de nenhuma doença em Calradia no momento." />
     <string id="AIL_0bc1afa9" text="{=!}Você está saudável." />
-    <string id="AIL_0be30312" text="Vai no começo de cada conversa. Escreva em inglês (as respostas saem no seu idioma). É aplicado na frase seguinte." />
+    <string id="AIL_0be30312" text="Vai no começo de cada conversa, e também é enviado a quem escreve os acontecimentos do mundo e aos reis quando fazem uma declaração. Escreva em inglês (as respostas saem no seu idioma). É aplicado na frase seguinte." />
     <string id="AIL_0bfa167c" text="Valor máximo dos objetos que um NPC dá de uma vez" />
     <string id="AIL_0ca5ee01" text="Máximo de frases numa conversa entre personagens" />
     <string id="AIL_0cd6f2e1" text="{0}: desativado ou sem api_key" />
@@ -1934,5 +1934,28 @@
     <string id="AIL_e7b1c74c" text="O arquivo {0} é grande demais para ser aberto no editor." />
     <string id="AIL_e7b1c74d" text="Termina o cerco de {0}" />
     <string id="AIL_e7b1c74e" text="O cerco de {0} terminou e {1} continua nas mãos de {2}." />
+    <string id="AIL_e7b1c74f" text="Regras da campanha" />
+    <string id="AIL_e7b1c750" text="Paz forçada após estes dias de guerra empatada (0 = desativado)" />
+    <string id="AIL_e7b1c751" text="Quando dois reinos da IA estão em guerra há todo este tempo sem que uma única cidade ou castelo tenha mudado de mãos entre eles, a guerra acaba sozinha, com a sua notícia: ninguém consegue sustentá-la. No máximo uma paz assim por dia. Um ano de Calradia tem 84 dias. Nunca se aplica a um reino que você governa. Os reis ficam sabendo quanto falta para cada uma das suas guerras chegar a isso. Depois, nenhum dos dois pode declarar guerra ao outro durante 84 dias, ou durante a trégua definida acima se for mais longa." />
+    <string id="AIL_e7b1c752" text="Uma aliança nova substitui a antiga" />
+    <string id="AIL_e7b1c753" text="Só importa se houver um limite de alianças. Desativado: um rei da IA que está no limite não pode fazer uma aliança nova. Ativado: pode, e quando a nova é selada termina-se em seguida a mais antiga de cada reino da IA que estava no limite, com uma notícia que nomeia o aliado deixado para trás. As suas próprias alianças nunca são encerradas assim." />
+    <string id="AIL_e7b1c754" text="Os reis da IA podem oferecer alianças e acordos comerciais a um reino que você governa" />
+    <string id="AIL_e7b1c755" text="Desativado: nenhum rei da IA propõe uma aliança nem um acordo comercial ao reino que você governa; você ainda pode propor e eles respondem. As ofertas de paz e as exigências não mudam. Enquanto você for apenas vassalo, nada muda." />
+    <string id="AIL_e7b1c756" text="Dias antes de poder repetir uma proposta recusada (0 = sem espera)" />
+    <string id="AIL_e7b1c757" text="Depois que uma proposta de paz, aliança ou comércio entre dois reinos é recusada, ou expira sem resposta, nenhum rei da IA pode fazer o mesmo tipo de proposta entre esses dois até passarem estes dias. Só obriga os reis da IA: você pode insistir. Um ano de Calradia tem 84 dias." />
+    <string id="AIL_e7b1c758" text="Dias mínimos entre declarações no mundo inteiro (0 = sem limite)" />
+    <string id="AIL_e7b1c759" text="Depois que qualquer rei da IA fala, nenhum outro fala até passarem estes dias, por mais que a IA queira. Também significa uma declaração de cada vez. Com 0 só valem os limites por dia e por rei acima. As suas próprias declarações nunca são retidas. As respostas a uma proposta pendente não são retidas por isto, para que as propostas não expirem sem resposta." />
+    <string id="AIL_e7b1c75a" text="A quantidade base. Cada guerra pesa mais quanto mais dura (metade a mais por ano, até o triplo), e cada guerra além da primeira faz todas pesarem um quarto a mais: um reino que luta contra muitos ao mesmo tempo se esgota depressa." />
+    <string id="AIL_e7b1c75b" text="Os reis cansados da guerra se pronunciam sobre as suas guerras" />
+    <string id="AIL_e7b1c75c" text="Um rei cujo reino está cansado, ou que luta contra vários reinos ao mesmo tempo, toma a vez para decidir o que fazer com as suas guerras mesmo quando nada mais pede uma declaração: quanto mais cansado e mais guerras, mais provável. Sem isto um rei só fala quando um acontecimento ou uma proposta o chama, e as guerras podem durar anos sem ninguém pedir a paz. Um pedido à IA por vez, dentro dos limites de declarações acima." />
+    <string id="AIL_e7b1c75d" text="Paz por esgotamento entre {0} e {1}" />
+    <string id="AIL_e7b1c75e" text="Após {0} dias de guerra, e {1} sem que uma única cidade ou castelo mudasse de mãos, {2} e {3} depuseram as armas. Nenhum venceu e não há condições: já não conseguiam sustentá-la." />
+    <string id="AIL_e7b1c75f" text="{0} e {1} fazem a paz por esgotamento, após {2} dias de uma guerra empatada." />
+    <string id="AIL_e7b1c760" text="{0} deixa {1}" />
+    <string id="AIL_e7b1c761" text="{0} põe fim à sua aliança com {1} para selar uma nova com {2}." />
+    <string id="AIL_e7b1c762" text="Aliança" />
+    <string id="AIL_e7b1c763" text="{0} já havia oferecido a você a paz sem condições: cabe a você decidir se aceita." />
+    <string id="AIL_e7b1c764" text="{0} pede a paz a {1}, que mantém as suas condições{2}." />
+    <string id="AIL_e7b1c765" text="{0} não pode declarar guerra a {1} agora." />
   </strings>
 </base>

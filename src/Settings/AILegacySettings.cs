@@ -1865,7 +1865,7 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int EffectMaxDays { get; set; } = 20;
 
-        [SettingPropertyBool("{=AIL_d86408df}AI diplomacy of kings (replaces the game's own)", Order = 20, RequireRestart = false,
+        [SettingPropertyBool("{=AIL_d86408df}AI diplomacy of kings (replaces the game's own)", Order = 16, RequireRestart = false,
             HintText = "{=AIL_6c0f99f2}The game's clans stop proposing wars, peace, alliances and trade on their own. Kings decide them through public declarations. Requires world events to be enabled.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool EnableDiplomacy { get; set; } = true;
@@ -1875,18 +1875,23 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool BlockForeignWarPeace { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_c3e1a901}Kings who may speak out per day", 1, 8, Order = 21, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_c3e1a901}Kings who may speak out per day", 1, 8, Order = 17, RequireRestart = false,
             HintText = "{=AIL_c3e1a902}When something big happens, several kings can speak about it. They take turns, each one knowing what the others said. Every declaration is one AI request.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int MaxStatementsPerDay { get; set; } = 3;
 
-        [SettingPropertyInteger("{=AIL_c3e1a903}Game hours between one king's declaration and the next", 1, 24, Order = 21, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_c3e1a903}Game hours between one king's declaration and the next", 1, 24, Order = 18, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int HoursBetweenStatements { get; set; } = 4;
 
-        [SettingPropertyInteger("{=AIL_4ae4ed78}Minimum days between declarations by the same king", 1, 60, Order = 21, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_4ae4ed78}Minimum days between declarations by the same king", 1, 60, Order = 19, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int MinDaysBetweenStatements { get; set; } = 3;
+
+        [SettingPropertyInteger("{=AIL_e7b1c758}Minimum days between declarations in the whole world (0 = no limit)", 0, 30, Order = 21, RequireRestart = false,
+            HintText = "{=AIL_e7b1c759}After any AI king speaks, no other AI king does until this many days have passed, however much the AI wants them to. It also means one declaration at a time. With 0 only the limits per day and per king above apply. Your own declarations are never held back. Answers to a pending proposal are not held back by this, so that proposals do not run out unanswered.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public int MinDaysBetweenAnyStatements { get; set; } = 1;
 
         [SettingPropertyInteger("{=AIL_abd77d03}Days during which an event can provoke declarations", 1, 60, Order = 22, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
@@ -1937,30 +1942,51 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool FactCheckEvents { get; set; } = true;
 
-        [SettingPropertyBool("{=AIL_e7b1c73f}New campaigns start with every kingdom at peace", Order = 34, RequireRestart = false,
+        // The house rules. They bind AI kings only, never the kingdom the player rules.
+        [SettingPropertyBool("{=AIL_e7b1c73f}New campaigns start with every kingdom at peace", Order = 0, RequireRestart = false,
             HintText = "{=AIL_e7b1c740}Only when a new campaign is created, once, after the game has set up its starting wars: every war between two kingdoms ends. Never on a campaign that already exists and never when loading. Set it before starting the campaign. If a truce length is set below, it counts from that first day.")]
-        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
         public bool PeaceAtCampaignStart { get; set; } = false;
 
-        [SettingPropertyInteger("{=AIL_e7b1c741}House rule: most kingdoms one kingdom may fight at once (0 = no limit)", 0, 10, Order = 35, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_e7b1c741}House rule: most kingdoms one kingdom may fight at once (0 = no limit)", 0, 10, Order = 1, RequireRestart = false,
             HintText = "{=AIL_e7b1c742}An AI king may not declare war if his kingdom, or the kingdom he aims at, is already at war with this many: no piling on. It binds AI kings only. You are never stopped from declaring war yourself, but the rule protects you too: no AI king will declare war on you once you are at the limit. Wars that start by themselves (a rebellion, a new kingdom) are not stopped.")]
-        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
         public int MaxWarsPerKingdom { get; set; } = 0;
 
-        [SettingPropertyInteger("{=AIL_e7b1c743}House rule: days of truce after a peace (0 = none)", 0, 336, Order = 36, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_e7b1c743}House rule: days of truce after a peace (0 = none)", 0, 336, Order = 2, RequireRestart = false,
             HintText = "{=AIL_e7b1c744}After two kingdoms make peace, no AI king of either may declare war on the other until this many days have passed. A year of Calradia is 84 days. It binds AI kings only, in their declarations and when you talk to them: you may break a truce yourself.")]
-        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
         public int MinTruceDays { get; set; } = 0;
 
-        [SettingPropertyInteger("{=AIL_e7b1c745}House rule: most alliances per kingdom (0 = no limit)", 0, 10, Order = 37, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_e7b1c750}Forced peace after this many days of a stalemate war (0 = off)", 0, 840, Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c751}When two AI kingdoms have been at war this long and no town or castle has changed hands between them in all that time, the war ends by itself, with a news item: nobody can keep it up. One such peace a day at most. A year of Calradia is 84 days. Never applied to a kingdom you rule. Kings are told how close each of their wars is to this. Afterwards neither of the two may declare war on the other for 84 days, or for the truce set above if that is longer.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
+        public int ForcedPeaceStalemateDays { get; set; } = 168;
+
+        [SettingPropertyInteger("{=AIL_e7b1c745}House rule: most alliances per kingdom (0 = no limit)", 0, 10, Order = 4, RequireRestart = false,
             HintText = "{=AIL_e7b1c746}An AI king will not propose or accept an alliance if his kingdom or the other one already has this many. It binds AI kings only: what you propose or accept as ruler is never blocked, but an AI king at his limit will not ally with you.")]
-        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
         public int MaxAlliancesPerKingdom { get; set; } = 0;
 
-        [SettingPropertyInteger("{=AIL_e7b1c747}House rule: most trade agreements per kingdom (0 = no limit)", 0, 10, Order = 38, RequireRestart = false,
+        [SettingPropertyBool("{=AIL_e7b1c752}A new alliance replaces the old one", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c753}Only matters with a limit on alliances. Off: an AI king at his limit cannot make a new alliance. On: he can, and when the new alliance is sealed the oldest one of each AI kingdom that was at its limit is then ended, with a news item naming the ally left behind. Your own alliances are never ended this way.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
+        public bool AllianceReplacesOldest { get; set; } = false;
+
+        [SettingPropertyInteger("{=AIL_e7b1c747}House rule: most trade agreements per kingdom (0 = no limit)", 0, 10, Order = 6, RequireRestart = false,
             HintText = "{=AIL_e7b1c748}An AI king will not propose or accept a trade agreement if his kingdom or the other one already has this many. It binds AI kings only, the same way as the limit on alliances.")]
-        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
         public int MaxTradePactsPerKingdom { get; set; } = 0;
+
+        [SettingPropertyBool("{=AIL_e7b1c754}AI kings may offer alliances and trade agreements to a kingdom you rule", Order = 7, RequireRestart = false,
+            HintText = "{=AIL_e7b1c755}Off: no AI king proposes an alliance or a trade agreement to the kingdom you rule; you can still propose them yourself and they answer. Peace offers and demands are not affected. While you are only a vassal nothing changes.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
+        public bool AiOffersPactsToPlayer { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c756}Days before a refused proposal can be made again (0 = no wait)", 0, 336, Order = 8, RequireRestart = false,
+            HintText = "{=AIL_e7b1c757}After a proposal of peace, alliance or trade between two kingdoms is refused, or runs out unanswered, no AI king may make the same kind of proposal between those two until this many days have passed. It binds AI kings only: you may insist. A year of Calradia is 84 days.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
+        public int RefusedProposalCooldownDays { get; set; } = 42;
 
         [SettingPropertyBool("{=AIL_b7d2f023}An expelled clan is banished", Order = 60, RequireRestart = false,
             HintText = "{=AIL_b7d2f024}A clan cast out of a kingdom cannot swear to it, defect to it or serve it as mercenaries until its ruler pardons it. Applies to you too.")]
@@ -2173,7 +2199,8 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int FatigueRecoveryPerDayX10 { get; set; } = 10;
 
-        [SettingPropertyInteger("{=AIL_7948ed38}War weariness: per day and open war (x10)", 0, 100, Order = 41, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_7948ed38}War weariness: per day and open war (x10)", 0, 100, Order = 41, RequireRestart = false,
+            HintText = "{=AIL_e7b1c75a}The base amount. Each war weighs more the longer it has lasted (half as much again per year, up to three times), and every war beyond the first makes all of them a quarter heavier: a kingdom fighting many at once wears out fast.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int FatiguePerWarDayX10 { get; set; } = 3;
 
@@ -2189,6 +2216,11 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_0e578525}War weariness: per lost town or castle", 0, 50, Order = 44, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int FatiguePerSettlementLost { get; set; } = 6;
+
+        [SettingPropertyBool("{=AIL_e7b1c75b}War-weary kings speak up about their wars", Order = 45, RequireRestart = false,
+            HintText = "{=AIL_e7b1c75c}A king whose realm is weary, or who is fighting several kingdoms at once, takes a turn to decide what to do about his wars even when nothing else calls for a declaration: the wearier and the more wars, the likelier. Without this a king only speaks when an event or a proposal calls him, and wars can go on for years with nobody asking for peace. One AI request per turn, within the limits on declarations above.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public bool WearyKingsSeekPeace { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_a4b23033}Minimum real seconds between world requests", 5, 600, Order = 50, RequireRestart = false,
             HintText = "{=AIL_2924e794}So as not to spend quota when you advance time quickly.")]
