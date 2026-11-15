@@ -41,6 +41,10 @@ namespace AILegacy.World
         [JsonProperty("prices")] public float PricePercent;
         /// <summary>Which goods the price change touches: food, goods, weapons, armor, horses. Empty = everything.</summary>
         [JsonProperty("price_of", NullValueHandling = NullValueHandling.Ignore)] public string PriceCategory;
+        /// <summary>Several price changes at once, by our group or by the game's item category id (grain, wine, iron...), in percent.</summary>
+        [JsonProperty("price_list", NullValueHandling = NullValueHandling.Ignore)] public Dictionary<string, float> PriceByCategory;
+        /// <summary>The place's tax income goes up or down by this percent while it lasts (trade dried up, a fair, a tax revolt).</summary>
+        [JsonProperty("tax", DefaultValueHandling = DefaultValueHandling.Ignore)] public float TaxPercent;
     }
 
     public class WorldEvent
@@ -59,6 +63,8 @@ namespace AILegacy.World
         [JsonProperty("source")] public string Source = "world";      // world | statement | player
         /// <summary>Earlier stages of the same story, oldest first: "day|what was told then" in English.</summary>
         [JsonProperty("history", NullValueHandling = NullValueHandling.Ignore)] public List<string> History;
+        /// <summary>For a next chapter: what in the world moved the story on, in English.</summary>
+        [JsonProperty("why_now", NullValueHandling = NullValueHandling.Ignore)] public string UpdateReason;
     }
 
     /// <summary>A ruler whose turn it is to speak, about an event or because a proposal is waiting for them.</summary>
@@ -496,10 +502,10 @@ Rules:
 - Use readable names in title and text, never ids. Never put a double-quote character inside a text value; use «» if you must quote.
 - importance: 1 = one town or village talks about it, 2 = nobles of the realm, 3 = the whole realm, 4 = the whole world (rare).
 - kingdom_engagement: for events that call for a response from a crown, the daily chance (0-100) that the ruler of that kingdom speaks out about it. Only kingdoms listed in kingdoms_involved. Leave empty for events nobody needs to answer.
-- continues (optional): the stories below are still open. When the state of the world has plainly moved one of them forward (it worsened, it was settled, someone answered it), write its next chapter and set continues to its id. Otherwise leave it empty and write something new. At most one continuation per answer.
+- continues (optional): the stories below are still open. When the state of the world has plainly moved one of them forward (it worsened, it was settled, someone answered it), write its next chapter and set continues to its id, and say in update_reason, in a few English words, what in the data moved it on. Otherwise leave both empty and write something new. At most one continuation per answer.
 Open stories:
 {open}
-- economic_effects (optional, only when the event really touches daily life in a real town, castle or village): small daily changes for a number of days. Limits per day: prosperity ±{max_prosperity}, food ±{max_food}, security ±{max_security}, loyalty ±{max_loyalty}; duration up to {max_days} days. For a town or village you may also set price_percent (±{max_price}): how much dearer or cheaper its market is meanwhile (a shortage, a panic, a glut), and price_of to say which goods: food, goods, weapons, armor, horses, or empty for everything. A sudden blow that lands at once (a sack, a fire, a flood, a plague arriving, a great fair) goes in the _now fields, each at most {max_now} times the daily limit; most events have none. To touch every town of a realm use kingdom (its id) and leave settlement empty: only for things that truly reach the whole realm, and with small numbers.
+- economic_effects (optional, only when the event really touches daily life in a real town, castle or village): small daily changes for a number of days. Limits per day: prosperity ±{max_prosperity}, food ±{max_food}, security ±{max_security}, loyalty ±{max_loyalty}; duration up to {max_days} days. For a town or village you may also set price_changes: how much dearer or cheaper its market is meanwhile (a shortage, a panic, a glut), as a list of { ""of"": what, ""percent"": ±{max_price} } with up to 4 entries. ""of"" is a broad group (food, goods, weapons, armor, horses, all) or one of the game's own goods: {price_categories}. A failed harvest makes grain dear and bread dearer; a siege nearby raises weapons and horses; a glut of wine makes wine cheap. For a town or castle, tax_percent (±{max_clan}) is how much its tax income rises or falls meanwhile (trade dried up, a busy fair, people refusing to pay). A sudden blow that lands at once (a sack, a fire, a flood, a plague arriving, a great fair) goes in the _now fields, each at most {max_now} times the daily limit; most events have none. To touch every town of a realm use kingdom (its id) and leave settlement empty: only for things that truly reach the whole realm, and with small numbers.
 - clan_effects (optional): when the event is about the name of ONE specific clan being stained or raised (a scandal, an outrage committed by one of its members, a feat that brings it honour), how its income changes while people remember: income_percent from -{max_clan}% to +{max_clan}%, for up to {max_days} days, with the reason in a few words. Merchants and allies avoid a disgraced house; they court an honoured one.
 - secret (optional, for about one event in three): the hidden truth behind this event that only a few people know and that the public version leaves out (who really paid for it, who is lying, what was covered up). ""known_by"": 1 to 3 REAL named nobles from the data who would know. ""access"": low | medium | high (how hard it is to get it out of them).
 - clan_rebellion (rare, optional): the name of ONE vassal clan that rises against its own crown right now. Only when the data shows a real break between that clan and its ruler; never the ruling clan and never a clan of ""the realm of ..."". The world will carry it out.
@@ -508,10 +514,10 @@ Open stories:
 - title: 3-8 words in {language}. text: {min_len}-{max_len} characters in {language}, written like a chronicle. summary: the same in ONE English sentence.
 
 Answer ONLY with JSON:
-{ ""events"": [ { ""type"": ""political|military|economic|social|mysterious"", ""title"": ""..."", ""text"": ""..."", ""summary"": ""..."", ""importance"": 1-4, ""continues"": """",
+{ ""events"": [ { ""type"": ""political|military|economic|social|mysterious"", ""title"": ""..."", ""text"": ""..."", ""summary"": ""..."", ""importance"": 1-4, ""continues"": """", ""update_reason"": """",
   ""kingdoms_involved"": [""kingdom ids""], ""settlements_involved"": [""settlement names""], ""kingdom_engagement"": { ""kingdom_id"": 0-100 },
   ""claims"": [ { ""who"": ""name"", ""kingdom"": ""id or none"", ""mercenary"": false }, { ""war"": [""id"", ""id""] }, { ""allies"": [""id"", ""id""] } ],
-  ""economic_effects"": [ { ""settlement"": ""name"", ""prosperity_per_day"": 0, ""food_per_day"": 0, ""security_per_day"": 0, ""loyalty_per_day"": 0, ""price_percent"": 0, ""price_of"": """", ""prosperity_now"": 0, ""food_now"": 0, ""security_now"": 0, ""loyalty_now"": 0, ""kingdom"": """", ""duration_days"": 0, ""reason"": ""..."" } ],
+  ""economic_effects"": [ { ""settlement"": ""name"", ""prosperity_per_day"": 0, ""food_per_day"": 0, ""security_per_day"": 0, ""loyalty_per_day"": 0, ""price_changes"": [ { ""of"": ""grain"", ""percent"": 0 } ], ""tax_percent"": 0, ""prosperity_now"": 0, ""food_now"": 0, ""security_now"": 0, ""loyalty_now"": 0, ""kingdom"": """", ""duration_days"": 0, ""reason"": ""..."" } ],
   ""clan_effects"": [ { ""clan"": ""clan name"", ""income_percent"": 0, ""duration_days"": 0, ""reason"": ""..."" } ],
   ""secret"": { ""text"": ""one or two English sentences"", ""text_local"": ""the same in {language}"", ""about"": [""names""], ""known_by"": [""names""], ""access"": ""high"" },
   ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30, ""spread_rate"": 0.3, ""death_chance"": 0, ""combat_modifier"": 0.9, ""map_speed_modifier"": 0.9, ""morale_penalty"": -5, ""skill_penalty"": -6 } } ] }
@@ -634,7 +640,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             sys.AppendLine(TEventGen.Format("count", count, "language", Lang, "min_len", cfg.WorldEventMinLength, "max_len", cfg.WorldEventMaxLength,
                 "open", OpenStories(), "max_now", InstantFactor,
                 "max_prosperity", cfg.EffectMaxProsperityPerDay, "max_food", cfg.EffectMaxFoodPerDay, "max_security", cfg.EffectMaxSecurityPerDay,
-                "max_loyalty", cfg.EffectMaxLoyaltyPerDay, "max_days", cfg.EffectMaxDays, "max_severity", cfg.DiseaseMaxSeverity, "max_clan", cfg.ClanEffectMaxPercent, "max_price", cfg.EffectMaxPricePercent,
+                "max_loyalty", cfg.EffectMaxLoyaltyPerDay, "max_days", cfg.EffectMaxDays, "max_severity", cfg.DiseaseMaxSeverity, "max_clan", cfg.ClanEffectMaxPercent, "max_price", cfg.EffectMaxPricePercent, "price_categories", GameCategoryList(),
                 "max_spread", cfg.DiseaseMaxSpreadRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "max_death", cfg.DiseaseMaxDeathChance.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture),
                 "min_combat", cfg.DiseaseMinCombatModifier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "min_speed", cfg.DiseaseMinMapSpeedModifier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture),
                 "max_morale", cfg.DiseaseMaxMoralePenalty, "max_skill", cfg.DiseaseMaxPhysicalSkillPenalty));
@@ -763,6 +769,8 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     {
                         continued = true;
                         e.Id = old.Id;
+                        string why = Clean((string)(x["update_reason"]?.Type == JTokenType.String ? x["update_reason"] : null), 160);
+                        if (why.Length > 2) e.UpdateReason = why;
                         e.History = old.History ?? new List<string>();
                         e.History.Add((int)old.Day + "|" + (string.IsNullOrWhiteSpace(old.SummaryEn) ? old.Title : old.SummaryEn));
                         while (e.History.Count > 5) e.History.RemoveAt(0);
@@ -830,6 +838,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 foreach (var e in open)
                 {
                     sb.Append($"- id {e.Id}, {(int)(now - e.Day)} day(s) ago: {(string.IsNullOrWhiteSpace(e.SummaryEn) ? e.Title : e.SummaryEn)}");
+                    if (!string.IsNullOrWhiteSpace(e.UpdateReason)) sb.Append($" (this chapter came because: {e.UpdateReason})");
                     if (e.History != null && e.History.Count > 0)
                         sb.Append(" Before that: " + string.Join(" Then: ", e.History.Select(h => h.Substring(h.IndexOf('|') + 1))));
                     sb.AppendLine();
@@ -901,13 +910,27 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             string group = null;
             foreach (var fx in State.Effects)
             {
-                if (fx.PricePercent == 0f || fx.SettlementId != st.StringId || fx.UntilDay <= now) continue;
-                if (!string.IsNullOrEmpty(fx.PriceCategory))
+                if (fx.SettlementId != st.StringId || fx.UntilDay <= now) continue;
+                if (fx.PricePercent != 0f)
                 {
-                    if (group == null) group = PriceGroup(item);
-                    if (group != fx.PriceCategory) continue;
+                    bool hit = true;
+                    if (!string.IsNullOrEmpty(fx.PriceCategory))
+                    {
+                        if (group == null) group = PriceGroup(item);
+                        hit = group == fx.PriceCategory;
+                    }
+                    if (hit) sum += fx.PricePercent;
                 }
-                sum += fx.PricePercent;
+                if (fx.PriceByCategory != null && fx.PriceByCategory.Count > 0 && item != null)
+                {
+                    // the item's own category first, then its broad group
+                    if (item.ItemCategory != null && fx.PriceByCategory.TryGetValue(item.ItemCategory.StringId, out float own)) sum += own;
+                    else
+                    {
+                        if (group == null) group = PriceGroup(item);
+                        if (group.Length > 0 && fx.PriceByCategory.TryGetValue(group, out float broad)) sum += broad;
+                    }
+                }
             }
             int max = S.Get.EffectMaxPricePercent;
             return Math.Max(-max, Math.Min(max, sum)) / 100f;
@@ -931,6 +954,52 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         }
 
         private static readonly HashSet<string> PriceCategories = new HashSet<string> { "food", "goods", "weapons", "armor", "horses" };
+
+        /// <summary>How much current events push that town's tax income up or down (0.2 = +20%).</summary>
+        public static float SettlementTaxFactor(Settlement st)
+        {
+            if (st == null || State.Effects.Count == 0) return 0f;
+            double now = CampaignTime.Now.ToDays;
+            float sum = 0f;
+            foreach (var fx in State.Effects)
+                if (fx.TaxPercent != 0f && fx.SettlementId == st.StringId && fx.UntilDay > now) sum += fx.TaxPercent;
+            int max = S.Get.ClanEffectMaxPercent;
+            return Math.Max(-max, Math.Min(max, sum)) / 100f;
+        }
+
+        private static List<ItemCategory> _tradeCategories;
+        private static List<ItemCategory> TradeCategories()
+        {
+            if (_tradeCategories != null && _tradeCategories.Count > 0) return _tradeCategories;
+            try
+            {
+                _tradeCategories = TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObjectTypeList<ItemCategory>()
+                    .Where(c => c != null && c.IsValid && c.IsTradeGood && !string.IsNullOrEmpty(c.StringId)).ToList();
+            }
+            catch { _tradeCategories = new List<ItemCategory>(); }
+            return _tradeCategories;
+        }
+
+        /// <summary>The game's trade goods, as ids the chronicler can use in price_changes.</summary>
+        private static string GameCategoryList()
+        {
+            var ids = TradeCategories().Select(c => c.StringId).Distinct().Take(40).ToList();
+            return ids.Count == 0 ? "(none listed)" : string.Join(", ", ids);
+        }
+
+        /// <summary>A price key the chronicler wrote, as a broad group, "all", a game category id, or null.</summary>
+        private static string PriceKey(string raw)
+        {
+            string k = (raw ?? "").Trim().ToLowerInvariant().Replace(' ', '_');
+            if (k.Length == 0) return null;
+            if (k == "all" || k == "everything") return "all";
+            if (PriceCategories.Contains(k)) return k;
+            if (k == "horse" || k == "weapon") return k + "s";
+            var cats = TradeCategories();
+            var hit = cats.FirstOrDefault(c => c.StringId.ToLowerInvariant() == k)
+                      ?? cats.FirstOrDefault(c => string.Equals(c.GetName()?.ToString(), raw?.Trim(), StringComparison.OrdinalIgnoreCase));
+            return hit?.StringId;
+        }
 
         /// <param name="allowed">For a reaction to a real event: the only kingdoms a realm-wide effect may fall on. null for the scheduled batch.</param>
         private static void AddEffect(WorldEvent e, JObject f, HashSet<string> allowed = null)
@@ -972,6 +1041,21 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             };
             string cat = ((string)(f["price_of"]?.Type == JTokenType.String ? f["price_of"] : null) ?? "").Trim().ToLowerInvariant();
             if (fx.PricePercent != 0 && PriceCategories.Contains(cat)) fx.PriceCategory = cat;
+            // A list of price changes, each for a broad group or one of the game's goods
+            if ((st.IsTown || st.IsVillage) && f["price_changes"] is JArray pcs)
+            {
+                foreach (var pc in pcs.OfType<JObject>().Take(4))
+                {
+                    string of = PriceKey((string)(pc["of"]?.Type == JTokenType.String ? pc["of"] : null));
+                    float pct = Math.Max(-cfg.EffectMaxPricePercent, Math.Min(cfg.EffectMaxPricePercent, (float?)(pc["percent"]?.Type == JTokenType.Integer || pc["percent"]?.Type == JTokenType.Float ? pc["percent"] : null) ?? 0f));
+                    if (of == null || Math.Abs(pct) < 1f) continue;
+                    if (of == "all") { fx.PricePercent += pct; continue; }
+                    if (fx.PriceByCategory == null) fx.PriceByCategory = new Dictionary<string, float>();
+                    fx.PriceByCategory[of] = pct;
+                }
+                fx.PricePercent = Math.Max(-cfg.EffectMaxPricePercent, Math.Min(cfg.EffectMaxPricePercent, fx.PricePercent));
+            }
+            if (st.Town != null) fx.TaxPercent = C("tax_percent", cfg.ClanEffectMaxPercent);
             // The sudden blow lands now, once, straight on the place
             try
             {
@@ -995,9 +1079,11 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 }
             }
             catch (Exception ex) { Log.Error("Efecto instantáneo", ex); }
-            if (fx.ProsperityPerDay == 0 && fx.FoodPerDay == 0 && fx.SecurityPerDay == 0 && fx.LoyaltyPerDay == 0 && fx.PricePercent == 0) return;
+            if (fx.ProsperityPerDay == 0 && fx.FoodPerDay == 0 && fx.SecurityPerDay == 0 && fx.LoyaltyPerDay == 0 && fx.PricePercent == 0
+                && (fx.PriceByCategory == null || fx.PriceByCategory.Count == 0) && fx.TaxPercent == 0) return;
             State.Effects.Add(fx);
-            Log.Info($"[mundo] efecto en {st.Name}: prosperidad {fx.ProsperityPerDay:+0.#;-0.#;0}/día, comida {fx.FoodPerDay:+0.#;-0.#;0}, seguridad {fx.SecurityPerDay:+0.#;-0.#;0}, lealtad {fx.LoyaltyPerDay:+0.#;-0.#;0} ({fx.Reason})");
+            string prices = fx.PriceByCategory == null ? "" : ", precios " + string.Join(", ", fx.PriceByCategory.Select(kv => $"{kv.Key} {kv.Value:+0;-0}%"));
+            Log.Info($"[mundo] efecto en {st.Name}: prosperidad {fx.ProsperityPerDay:+0.#;-0.#;0}/día, comida {fx.FoodPerDay:+0.#;-0.#;0}, seguridad {fx.SecurityPerDay:+0.#;-0.#;0}, lealtad {fx.LoyaltyPerDay:+0.#;-0.#;0}{prices}{(fx.TaxPercent != 0 ? $", impuestos {fx.TaxPercent:+0;-0}%" : "")} ({fx.Reason})");
         }
 
         // ============================================================ ticks
@@ -1134,6 +1220,13 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     void Add(string name, float v) { if (Math.Abs(v) >= 0.01f) bits.Add(L.F("AIL_4d99daae", $"{name} {(v > 0 ? "+" : "−")}{Math.Abs(v):0.##} al día")); }
                     Add(L.T("AIL_e4a9f3a0", "prosperidad"), f.ProsperityPerDay); Add(L.T("AIL_d93015a6", "comida"), f.FoodPerDay); Add(L.T("AIL_5fd22751", "seguridad"), f.SecurityPerDay); Add(L.T("AIL_e3f5b714", "lealtad"), f.LoyaltyPerDay);
                     if (Math.Abs(f.PricePercent) >= 1f) bits.Add(L.F("AIL_9d381c5c", $"precios del mercado {(f.PricePercent > 0 ? "+" : "−")}{Math.Abs(f.PricePercent):0} %"));
+                    if (f.PriceByCategory != null)
+                        foreach (var kv in f.PriceByCategory.Where(kv => Math.Abs(kv.Value) >= 1f))
+                        {
+                            string what = CategoryName(kv.Key);
+                            bits.Add(L.F("AIL_e7b1c7a8", $"precio de {what} {(kv.Value > 0 ? "+" : "−")}{Math.Abs(kv.Value):0} %"));
+                        }
+                    if (Math.Abs(f.TaxPercent) >= 1f) bits.Add(L.F("AIL_e7b1c7a9", $"impuestos {(f.TaxPercent > 0 ? "+" : "−")}{Math.Abs(f.TaxPercent):0} %"));
                     if (bits.Count == 0) continue;
                     parts.Add(L.F("AIL_01e11e81", $"{st?.Name?.ToString() ?? L.T("AIL_c8ad772b", "El lugar")}: {string.Join(", ", bits)} (quedan {Math.Max(1, (int)Math.Ceiling(f.UntilDay - now))} días)"));
                 }
@@ -1146,8 +1239,33 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         public static string DescribeEffectsAt(Settlement st)
         {
             if (st == null) return "";
-            var list = State.Effects.Where(f => f.SettlementId == st.StringId && !string.IsNullOrWhiteSpace(f.Reason)).Select(f => f.Reason).Distinct().Take(3).ToList();
-            return list.Count == 0 ? "" : "Life here is being affected by: " + string.Join("; ", list) + ".";
+            double now = CampaignTime.Now.ToDays;
+            var here = State.Effects.Where(f => f.SettlementId == st.StringId && f.UntilDay > now).ToList();
+            var list = here.Where(f => !string.IsNullOrWhiteSpace(f.Reason)).Select(f => f.Reason).Distinct().Take(3).ToList();
+            if (list.Count == 0) return "";
+            // what the market feels like, so a trader can speak of it
+            var prices = new List<string>();
+            foreach (var f in here)
+            {
+                if (Math.Abs(f.PricePercent) >= 1f) prices.Add($"{(string.IsNullOrEmpty(f.PriceCategory) ? "everything" : f.PriceCategory)} {f.PricePercent:+0;-0}%");
+                if (f.PriceByCategory != null) prices.AddRange(f.PriceByCategory.Where(kv => Math.Abs(kv.Value) >= 1f).Select(kv => $"{kv.Key} {kv.Value:+0;-0}%"));
+            }
+            return "Life here is being affected by: " + string.Join("; ", list) + "."
+                   + (prices.Count > 0 ? " Market prices meanwhile: " + string.Join(", ", prices.Distinct().Take(6)) + "." : "");
+        }
+
+        /// <summary>A price key in the player's language: our broad groups, or the game's own name for the goods.</summary>
+        private static string CategoryName(string key)
+        {
+            switch (key)
+            {
+                case "food": return L.T("AIL_d93015a6", "comida");
+                case "goods": return L.T("AIL_e7b1c7aa", "mercancías");
+                case "weapons": return L.T("AIL_e7b1c7ab", "armas");
+                case "armor": return L.T("AIL_e7b1c7ac", "armaduras");
+                case "horses": return L.T("AIL_e7b1c7ad", "caballos");
+            }
+            try { return TradeCategories().FirstOrDefault(c => c.StringId == key)?.GetName()?.ToString() ?? key; } catch { return key; }
         }
 
         // A tribute agreed outside a peace that goes this many days in a row without being paid in full is over

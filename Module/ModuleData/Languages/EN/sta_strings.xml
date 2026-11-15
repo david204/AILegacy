@@ -2023,5 +2023,11 @@
     <string id="AIL_e7b1c7a5" text="After getting over a seasonal illness, a hero cannot catch another one for this many days. Recommended: 14 to 30." />
     <string id="AIL_e7b1c7a6" text="Seasonal: most cases at once in the campaign (0 = no limit)" />
     <string id="AIL_e7b1c7a7" text="Seasonal illnesses alive at the same time across the whole map, counting each sick hero and each sick band once. At the limit no lord or caravan catches a new one until someone recovers; you and your party still can. Outbreaks in towns do not count. Recommended: 20 to 60." />
+    <string id="AIL_e7b1c7a8" text="price of {0} {1}{2:0} %" />
+    <string id="AIL_e7b1c7a9" text="taxes {0}{1:0} %" />
+    <string id="AIL_e7b1c7aa" text="goods" />
+    <string id="AIL_e7b1c7ab" text="weapons" />
+    <string id="AIL_e7b1c7ac" text="armour" />
+    <string id="AIL_e7b1c7ad" text="horses" />
   </strings>
 </base>

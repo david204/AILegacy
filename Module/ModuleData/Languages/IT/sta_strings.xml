@@ -2023,5 +2023,11 @@
     <string id="AIL_e7b1c7a5" text="Dopo essere guarito da un malanno di stagione, un eroe non può prenderne un altro per questi giorni. Consigliato: da 14 a 30." />
     <string id="AIL_e7b1c7a6" text="Stagione: casi contemporanei al massimo nella campagna (0 = nessun limite)" />
     <string id="AIL_e7b1c7a7" text="Malanni di stagione attivi nello stesso momento su tutta la mappa; ogni eroe malato e ogni truppa malata contano una volta. Al limite nessun signore né carovana ne prende uno nuovo finché qualcuno non guarisce; tu e il tuo gruppo sì. Le epidemie nelle città non contano. Consigliato: da 20 a 60." />
+    <string id="AIL_e7b1c7a8" text="prezzo di {0} {1}{2:0} %" />
+    <string id="AIL_e7b1c7a9" text="tasse {0}{1:0} %" />
+    <string id="AIL_e7b1c7aa" text="merci" />
+    <string id="AIL_e7b1c7ab" text="armi" />
+    <string id="AIL_e7b1c7ac" text="armature" />
+    <string id="AIL_e7b1c7ad" text="cavalli" />
   </strings>
 </base>

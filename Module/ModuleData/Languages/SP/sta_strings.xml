@@ -2023,5 +2023,11 @@
     <string id="AIL_e7b1c7a5" text="Después de pasar un mal de temporada, un héroe no puede coger otro durante estos días. Recomendado: de 14 a 30." />
     <string id="AIL_e7b1c7a6" text="Temporada: casos a la vez en la campaña como máximo (0 = sin límite)" />
     <string id="AIL_e7b1c7a7" text="Males de temporada vivos a la vez en todo el mapa; cada héroe enfermo y cada tropa enferma cuentan una vez. En el límite ningún señor ni caravana coge uno nuevo hasta que alguien se cure; tú y tu partida sí podéis. Los brotes de las ciudades no cuentan. Recomendado: de 20 a 60." />
+    <string id="AIL_e7b1c7a8" text="precio de {0} {1}{2:0} %" />
+    <string id="AIL_e7b1c7a9" text="impuestos {0}{1:0} %" />
+    <string id="AIL_e7b1c7aa" text="mercancías" />
+    <string id="AIL_e7b1c7ab" text="armas" />
+    <string id="AIL_e7b1c7ac" text="armaduras" />
+    <string id="AIL_e7b1c7ad" text="caballos" />
   </strings>
 </base>

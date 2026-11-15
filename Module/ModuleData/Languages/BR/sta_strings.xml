@@ -2023,5 +2023,11 @@
     <string id="AIL_e7b1c7a5" text="Depois de se recuperar de um mal sazonal, um herói não pode pegar outro por estes dias. Recomendado: de 14 a 30." />
     <string id="AIL_e7b1c7a6" text="Sazonal: máximo de casos ao mesmo tempo na campanha (0 = sem limite)" />
     <string id="AIL_e7b1c7a7" text="Males sazonais ativos ao mesmo tempo em todo o mapa; cada herói doente e cada tropa doente contam uma vez. No limite nenhum senhor nem caravana pega um novo até alguém se curar; você e seu grupo ainda podem. Surtos nas cidades não contam. Recomendado: de 20 a 60." />
+    <string id="AIL_e7b1c7a8" text="preço de {0} {1}{2:0} %" />
+    <string id="AIL_e7b1c7a9" text="impostos {0}{1:0} %" />
+    <string id="AIL_e7b1c7aa" text="mercadorias" />
+    <string id="AIL_e7b1c7ab" text="armas" />
+    <string id="AIL_e7b1c7ac" text="armaduras" />
+    <string id="AIL_e7b1c7ad" text="cavalos" />
   </strings>
 </base>

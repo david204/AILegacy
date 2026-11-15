@@ -2023,5 +2023,11 @@
     <string id="AIL_e7b1c7a5" text="Après s’être remis d’un mal de saison, un héros ne peut en attraper un autre pendant ce nombre de jours. Recommandé : de 14 à 30." />
     <string id="AIL_e7b1c7a6" text="Saison : cas simultanés au plus dans la campagne (0 = sans limite)" />
     <string id="AIL_e7b1c7a7" text="Maux de saison actifs en même temps sur toute la carte ; chaque héros malade et chaque troupe malade comptent une fois. À la limite, aucun seigneur ni caravane n’en attrape de nouveau tant que personne ne guérit ; vous et votre groupe, si. Les épidémies des villes ne comptent pas. Recommandé : de 20 à 60." />
+    <string id="AIL_e7b1c7a8" text="prix de {0} {1}{2:0} %" />
+    <string id="AIL_e7b1c7a9" text="impôts {0}{1:0} %" />
+    <string id="AIL_e7b1c7aa" text="marchandises" />
+    <string id="AIL_e7b1c7ab" text="armes" />
+    <string id="AIL_e7b1c7ac" text="armures" />
+    <string id="AIL_e7b1c7ad" text="chevaux" />
   </strings>
 </base>

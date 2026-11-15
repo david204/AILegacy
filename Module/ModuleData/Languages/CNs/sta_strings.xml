@@ -2023,5 +2023,11 @@
     <string id="AIL_e7b1c7a5" text="英雄病愈后，在这些天内不会再染上时令病。建议：14 至 30。" />
     <string id="AIL_e7b1c7a6" text="时令病：战役中同时存在的病例上限（0 = 无上限）" />
     <string id="AIL_e7b1c7a7" text="整个地图上同时存在的时令病；每位患病英雄和每支患病部队各算一次。达到上限后，在有人痊愈之前领主和商队不会再染上新的；你和你的队伍仍会。城镇中的疫情不计入。建议：20 至 60。" />
+    <string id="AIL_e7b1c7a8" text="{0}价格 {1}{2:0} %" />
+    <string id="AIL_e7b1c7a9" text="税收 {0}{1:0} %" />
+    <string id="AIL_e7b1c7aa" text="货物" />
+    <string id="AIL_e7b1c7ab" text="武器" />
+    <string id="AIL_e7b1c7ac" text="护甲" />
+    <string id="AIL_e7b1c7ad" text="马匹" />
   </strings>
 </base>

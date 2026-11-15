@@ -258,7 +258,12 @@ namespace AILegacy.Patches
     {
         private static void Postfix(Town town, ref float __result)
         {
-            try { if (WorldSim.State.KingdomTaxPercent.Count > 0) __result *= WorldSim.TaxFactor(town); }
+            try
+            {
+                if (WorldSim.State.KingdomTaxPercent.Count > 0) __result *= WorldSim.TaxFactor(town);
+                // a world event that hurts or helps this town's trade
+                if (WorldSim.State.Effects.Count > 0 && town?.Settlement != null) __result *= 1f + WorldSim.SettlementTaxFactor(town.Settlement);
+            }
             catch (Exception ex) { Log.Error("Impuesto de la corona", ex); }
         }
     }
