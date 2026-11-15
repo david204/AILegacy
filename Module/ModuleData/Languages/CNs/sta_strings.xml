@@ -529,7 +529,7 @@
     <string id="AIL_6a695bcb" text="{0}，已获释" />
     <string id="AIL_6a69d3fd" text="{0} 会前往 {1} 并在那里等你。" />
     <string id="AIL_6a6bf769" text="此外，NPC一次绝不会交出超过其队伍三分之一的人。" />
-    <string id="AIL_6ac2e619" text="仅限夫妻之间（游戏需要一个已知的父亲）。" />
+    <string id="AIL_6ac2e619" text="每次与配偶亲密时。与非配偶亲密时，见下方的“婚外子女”。" />
     <string id="AIL_6b1ca542" text="怀孕概率（%）" />
     <string id="AIL_6b587fde" text="{0} 的新统治者" />
     <string id="AIL_6b899a92" text="分页的回忆之书" />
@@ -2127,5 +2127,37 @@
     <string id="AIL_e7b1c813" text="{0}不顾停战协议向{1}宣战。其他王国与其断绝盟约，在这份耻辱消散之前不愿与其往来。" />
     <string id="AIL_e7b1c814" text="规则：撕毁停战者被孤立的天数（0 = 从不）" />
     <string id="AIL_e7b1c815" text="在与该敌人的停战协议仍然有效时宣战的王国（你，或其他模组允许这样做的任何人）会被孤立这么多天：其他王室终止与其的同盟和贸易，没人会与其缔结新盟约，并视其为正当目标。建议：42 至 84；0 为关闭。" />
+    <string id="AIL_e7b1c816" text="婚外之子" />
+    <string id="AIL_e7b1c817" text="{0}生下了孩子：{1}，是你们俩的骨肉。你要把孩子当作自己的，在你家里抚养吗？否则孩子留给{2}，知道此事的人不会忘记。" />
+    <string id="AIL_e7b1c818" text="在你家中抚养" />
+    <string id="AIL_e7b1c819" text="让孩子留在其母亲或父亲身边" />
+    <string id="AIL_e7b1c81a" text="{0}不是{1}的孩子：真正的父亲是{2}。" />
+    <string id="AIL_e7b1c81b" text="{0}的私生子" />
+    <string id="AIL_e7b1c81c" text="{0}生下了{1}，人人都知道父亲是{2}。" />
+    <string id="AIL_e7b1c81d" text="{0}现在是合法子嗣了。" />
+    <string id="AIL_e7b1c81e" text="{0}失去了她怀着的你的孩子。" />
+    <string id="AIL_e7b1c81f" text="怀着你的孩子" />
+    <string id="AIL_e7b1c820" text="{0}个婚外共同子女" />
+    <string id="AIL_e7b1c821" text="私生女" />
+    <string id="AIL_e7b1c822" text="私生子" />
+    <string id="AIL_e7b1c823" text="{=!}我承认你是我的孩子，在众人面前名正言顺。" />
+    <string id="AIL_e7b1c824" text="{=!}*久久地望着你* 我等这句话等了一辈子。" />
+    <string id="AIL_e7b1c825" text="婚外子女" />
+    <string id="AIL_e7b1c826" text="两个彼此未婚的人亲密后可能留下孩子。游戏会以真正的父亲进行怀孕。出生时：如果你是父母之一，你可以选择是否在你家中抚养；已婚的母亲可能把孩子当作丈夫的孩子（只有亲生父母知道的秘密）；否则孩子会按母亲的文化取一个私生子姓氏，她的丈夫和家主会很不满。若父母结婚、孩子本人结婚或成为家主，或你承认他，孩子就成为合法子嗣。" />
+    <string id="AIL_e7b1c827" text="婚外：与情人生子的几率（%）" />
+    <string id="AIL_e7b1c828" text="每次与非配偶亲密时。她处于周期的哪一天会使几率成倍变化，与配偶之间相同。建议：10 至 25。" />
+    <string id="AIL_e7b1c829" text="婚外：其他角色之间的私情（每年%）" />
+    <string id="AIL_e7b1c82a" text="一位贵族女子每年与她常相处的其他家族男子（同城、同军或同队）怀孕的几率，以未满30岁的普通未婚女子为准。不讲名誉、婚姻不幸和彼此倾慕会让几率提高，最多三倍；已婚且重名誉的人从不越轨。0 = 关闭。建议：0 至 3。" />
+    <string id="AIL_e7b1c82b" text="婚外：保护你的家族" />
+    <string id="AIL_e7b1c82c" text="开启：你家族的女性不会因AI私情而怀孕。" />
+    <string id="AIL_e7b1c82d" text="婚外：已婚母亲保守秘密的几率（%）" />
+    <string id="AIL_e7b1c82e" text="孩子留在已婚母亲身边时：被当作其丈夫孩子的几率。建议：50 至 80。" />
+    <string id="AIL_e7b1c82f" text="婚外：后果" />
+    <string id="AIL_e7b1c830" text="若秘密未能保住，过错方（父亲，或不愿抚养孩子的你）会与抚养者的配偶和家主关系下降。" />
+    <string id="AIL_e7b1c831" text="婚外：与配偶的关系下降" />
+    <string id="AIL_e7b1c832" text="婚外：与家主的关系下降" />
+    <string id="AIL_e7b1c833" text="婚外：结婚即获合法身份" />
+    <string id="AIL_e7b1c834" text="开启：私生子女结婚后获得合法身份。父母彼此成婚则总能使其合法。" />
+    <string id="AIL_e7b1c835" text="你生下了孩子：{0}，是你和{1}的骨肉。你要在你家中抚养吗？否则孩子留给{2}，知道此事的人不会忘记。" />
   </strings>
 </base>

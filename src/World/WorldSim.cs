@@ -157,6 +157,8 @@ namespace AILegacy.World
         /// <summary>Schemes under way, and recently ended ones for a while.</summary>
         [JsonProperty("plots")] public List<Plot> Plots = new List<Plot>();
         [JsonProperty("next_plot_day")] public double NextPlotDay;
+        /// <summary>Children conceived out of wedlock: the true parents and what became of them.</summary>
+        [JsonProperty("bastards")] public List<Bastard> Bastards = new List<Bastard>();
         /// <summary>Day until which paid hospital prevention lasts (your men get sick much less).</summary>
         [JsonProperty("prevention_until")] public double PreventionUntilDay = -1;
         /// <summary>Secrets born from this campaign's story, and the kingdoms whose origin secrets are already written.</summary>

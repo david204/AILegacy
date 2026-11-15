@@ -692,7 +692,7 @@ namespace AILegacy.Settings
         public int RomanceForIntimacy { get; set; } = 70;
 
         [SettingPropertyInteger("{=AIL_6b1ca542}Pregnancy chance (%)", 0, 100, Order = 13, RequireRestart = false,
-            HintText = "{=AIL_6ac2e619}Only between spouses (the game needs a known father).")]
+            HintText = "{=AIL_6ac2e619}Each time you share intimacy with your spouse. With someone you are not married to, see «Children out of wedlock» below.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public int PregnancyChancePercent { get; set; } = 25;
 
@@ -880,6 +880,50 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_ab464755}Tension that drops each day", 1, 100, Order = 17, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public int TensionDecayPerDay { get; set; } = 15;
+
+        // Children out of wedlock
+        [SettingPropertyBool("{=AIL_e7b1c825}Children out of wedlock", Order = 50, RequireRestart = false,
+            HintText = "{=AIL_e7b1c826}Intimacy between two people who are not married to each other can leave a child. The game carries the pregnancy with the true father. At birth: if you are a parent, you choose whether to raise the child in your house; a married mother may pass it off as her husband's (a secret only the two parents know); otherwise the child carries a baseborn surname after the mother's culture, and her husband and head of house take it badly. The child becomes legitimate if the parents marry, if the child marries or heads a house, or if you acknowledge them.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public bool EnableBastards { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c827}Out of wedlock: chance of a child with a lover (%)", 0, 100, Order = 51, RequireRestart = false,
+            HintText = "{=AIL_e7b1c828}Each time you share intimacy with someone you are not married to. The day of her cycle multiplies it, as between spouses. Recommended: 10 to 25.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int BastardChancePercent { get; set; } = 15;
+
+        [SettingPropertyInteger("{=AIL_e7b1c829}Out of wedlock: affairs between other characters (% a year)", 0, 20, Order = 52, RequireRestart = false,
+            HintText = "{=AIL_e7b1c82a}Chance a year that a noblewoman conceives by a man of another house she is spending time with (same town, army or party), for an ordinary unmarried woman under 30. Dishonest people, unhappy marriages and liking each other raise it, up to three times; an honourable married person never strays. 0 = off. Recommended: 0 to 3.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int BastardNpcYearlyPercent { get; set; } = 0;
+
+        [SettingPropertyBool("{=AIL_e7b1c82b}Out of wedlock: protect your own clan", Order = 53, RequireRestart = false,
+            HintText = "{=AIL_e7b1c82c}On: women of your clan never conceive by an affair of the AI.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public bool BastardProtectPlayerClan { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c82d}Out of wedlock: chance a married mother keeps it secret (%)", 0, 100, Order = 54, RequireRestart = false,
+            HintText = "{=AIL_e7b1c82e}When the child stays with a married mother: the chance it passes for her husband's. Recommended: 50 to 80.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int BastardSecretKeptPercent { get; set; } = 70;
+
+        [SettingPropertyBool("{=AIL_e7b1c82f}Out of wedlock: consequences", Order = 55, RequireRestart = false,
+            HintText = "{=AIL_e7b1c830}When it is not kept secret, whoever is to blame (the father, or you if you would not raise the child) loses relation with the guardian's spouse and head of house.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public bool BastardConsequences { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c831}Out of wedlock: relation lost with the spouse", 0, 100, Order = 56, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int BastardSpouseRelationLoss { get; set; } = 60;
+
+        [SettingPropertyInteger("{=AIL_e7b1c832}Out of wedlock: relation lost with the head of house", 0, 100, Order = 57, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int BastardClanLeaderRelationLoss { get; set; } = 40;
+
+        [SettingPropertyBool("{=AIL_e7b1c833}Out of wedlock: marrying makes one legitimate", Order = 58, RequireRestart = false,
+            HintText = "{=AIL_e7b1c834}On: a baseborn child who marries becomes legitimate. The parents marrying each other always does.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public bool BastardLegitimizeOnMarriage { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_cae619f6}Tasks (quests created by the AI)", Order = 15, RequireRestart = false,
             HintText = "{=AIL_745a654d}NPCs can give you tasks, note your progress, and mark them fulfilled (with reward) or failed. They appear in the game's quest log. Careful: a saved game with tasks needs AI Legacy to load.")]

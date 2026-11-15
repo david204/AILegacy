@@ -529,7 +529,7 @@
     <string id="AIL_6a695bcb" text="{0}, liberado" />
     <string id="AIL_6a69d3fd" text="{0} irá a {1} y te esperará allí." />
     <string id="AIL_6a6bf769" text="Además, un NPC nunca cede más de un tercio de su grupo de una vez." />
-    <string id="AIL_6ac2e619" text="Solo entre cónyuges (el juego necesita un padre conocido)." />
+    <string id="AIL_6ac2e619" text="Cada vez que compartes intimidad con tu cónyuge. Con alguien con quien no estás casado, mira «Hijos fuera del matrimonio» más abajo." />
     <string id="AIL_6b1ca542" text="Probabilidad de embarazo (%)" />
     <string id="AIL_6b587fde" text="Nuevo soberano en {0}" />
     <string id="AIL_6b899a92" text="Libro de memorias por páginas" />
@@ -2127,5 +2127,37 @@
     <string id="AIL_e7b1c813" text="{0} ha declarado la guerra a {1} sin respetar la tregua. Los demás reinos rompen sus pactos con él y no quieren tratos mientras dure la vergüenza." />
     <string id="AIL_e7b1c814" text="Regla de la casa: días que se margina a quien rompe una tregua (0 = nunca)" />
     <string id="AIL_e7b1c815" text="Un reino que declara la guerra mientras sigue en vigor su tregua con ese enemigo (tú, o cualquiera al que otro mod se lo permita) queda marginado estos días: las demás coronas rompen sus alianzas y su comercio con él, ninguna hace un pacto nuevo con él y lo tienen por objetivo legítimo. Recomendado: de 42 a 84; 0 lo desactiva." />
+    <string id="AIL_e7b1c816" text="Un hijo fuera del matrimonio" />
+    <string id="AIL_e7b1c817" text="{0} ha dado a luz: {1}, hijo de los dos. ¿Lo crías como tuyo, en tu casa? Si no, se queda con {2}, y quien se entere no lo olvidará." />
+    <string id="AIL_e7b1c818" text="Criarlo en tu casa" />
+    <string id="AIL_e7b1c819" text="Que se quede con su madre o su padre" />
+    <string id="AIL_e7b1c81a" text="{0} no es hijo de {1}: su verdadero padre es {2}." />
+    <string id="AIL_e7b1c81b" text="Un hijo ilegítimo de {0}" />
+    <string id="AIL_e7b1c81c" text="{0} ha dado a luz a {1}, y todos saben que el padre es {2}." />
+    <string id="AIL_e7b1c81d" text="{0} es ahora hijo legítimo." />
+    <string id="AIL_e7b1c81e" text="{0} ha perdido el hijo que esperaba de ti." />
+    <string id="AIL_e7b1c81f" text="Espera un hijo tuyo" />
+    <string id="AIL_e7b1c820" text="{0} hijo(s) en común fuera del matrimonio" />
+    <string id="AIL_e7b1c821" text="hija bastarda" />
+    <string id="AIL_e7b1c822" text="hijo bastardo" />
+    <string id="AIL_e7b1c823" text="{=!}Te reconozco como hijo mío, legítimo ante todos." />
+    <string id="AIL_e7b1c824" text="{=!}*se te queda mirando un largo momento* Toda la vida esperando oír eso." />
+    <string id="AIL_e7b1c825" text="Hijos fuera del matrimonio" />
+    <string id="AIL_e7b1c826" text="La intimidad entre dos personas que no están casadas entre sí puede dejar un hijo. El juego lleva el embarazo con el padre verdadero. Al nacer: si eres uno de los padres, eliges si lo crías en tu casa; una madre casada puede hacerlo pasar por hijo de su marido (un secreto que solo saben los dos); si no, lleva un apellido de bastardo según la cultura de la madre, y su marido y su jefe de casa se lo toman mal. Pasa a ser legítimo si sus padres se casan, si se casa o encabeza una casa, o si tú lo reconoces." />
+    <string id="AIL_e7b1c827" text="Fuera del matrimonio: probabilidad de un hijo con un amante (%)" />
+    <string id="AIL_e7b1c828" text="Cada vez que compartes intimidad con alguien con quien no estás casado. El día de su ciclo lo multiplica, como entre cónyuges. Recomendado: de 10 a 25." />
+    <string id="AIL_e7b1c829" text="Fuera del matrimonio: aventuras entre otros personajes (% al año)" />
+    <string id="AIL_e7b1c82a" text="Probabilidad al año de que una noble conciba de un hombre de otra casa con quien pasa tiempo (misma ciudad, ejército o partida), para una mujer soltera corriente de menos de 30. La falta de honor, los matrimonios infelices y gustarse la suben, hasta el triple; una persona casada y honrada nunca se descarría. 0 = desactivado. Recomendado: de 0 a 3." />
+    <string id="AIL_e7b1c82b" text="Fuera del matrimonio: proteger a tu clan" />
+    <string id="AIL_e7b1c82c" text="Activado: las mujeres de tu clan nunca conciben por una aventura de la IA." />
+    <string id="AIL_e7b1c82d" text="Fuera del matrimonio: probabilidad de que una madre casada lo mantenga en secreto (%)" />
+    <string id="AIL_e7b1c82e" text="Cuando el niño se queda con una madre casada: la probabilidad de que pase por hijo de su marido. Recomendado: de 50 a 80." />
+    <string id="AIL_e7b1c82f" text="Fuera del matrimonio: consecuencias" />
+    <string id="AIL_e7b1c830" text="Cuando no se guarda el secreto, quien tiene la culpa (el padre, o tú si no quisiste criar al niño) pierde relación con el cónyuge y el jefe de casa de quien lo cría." />
+    <string id="AIL_e7b1c831" text="Fuera del matrimonio: relación perdida con el cónyuge" />
+    <string id="AIL_e7b1c832" text="Fuera del matrimonio: relación perdida con el jefe de casa" />
+    <string id="AIL_e7b1c833" text="Fuera del matrimonio: casarse legitima" />
+    <string id="AIL_e7b1c834" text="Activado: un hijo bastardo que se casa pasa a ser legítimo. Que sus padres se casen entre sí siempre lo legitima." />
+    <string id="AIL_e7b1c835" text="Has dado a luz: {0}, hijo tuyo y de {1}. ¿Lo crías en tu casa? Si no, se queda con {2}, y quien se entere no lo olvidará." />
   </strings>
 </base>

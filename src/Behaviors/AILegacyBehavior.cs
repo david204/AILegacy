@@ -50,6 +50,12 @@ namespace AILegacy.Behaviors
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, World.Mood.OnWarDeclared);
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, Diplomacy.OnWarDeclared);
             CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(this, World.Mood.OnGivenBirth);
+            CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(this, Bastards.OnGivenBirth);
+            CampaignEvents.BeforeHeroesMarried.AddNonSerializedListener(this, Bastards.OnMarried);
+            CampaignEvents.OnClanLeaderChangedEvent.AddNonSerializedListener(this, Bastards.OnClanLeaderChanged);
+            CampaignEvents.BeforeHeroKilledEvent.AddNonSerializedListener(this, Bastards.OnHeroKilled);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Bastards.OnDailyTick);
+            CampaignEvents.DailyTickHeroEvent.AddNonSerializedListener(this, Bastards.OnDailyTickHero);
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             // Political history: rulers and fief owners
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.History.OnRulingClanChanged);
@@ -402,6 +408,12 @@ namespace AILegacy.Behaviors
                     var s = ChatSession.StartDialog(Speaker.FromResident(cm.OneToOneConversationCharacter, cm.OneToOneConversationAgent));
                     if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
                 }, priority: 119);
+            // An adult child of yours born out of wedlock: you acknowledge them before everyone
+            starter.AddPlayerLine("ailegacy_acknowledge", "hero_main_options", "ailegacy_acknowledge_reply", L.T("AIL_e7b1c823", "{=!}Te reconozco como hijo mío, legítimo ante todos."),
+                () => Bastards.CanAcknowledge(Hero.OneToOneConversationHero),
+                () => Bastards.Acknowledge(Hero.OneToOneConversationHero), priority: 101);
+            starter.AddDialogLine("ailegacy_acknowledge_reply", "ailegacy_acknowledge_reply", "lord_pretalk", L.T("AIL_e7b1c824", "{=!}*se te queda mirando un largo momento* Toda la vida esperando oír eso."),
+                null, null, priority: 100);
             // On the map: dismount and talk face to face in a terrain scene
             starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),

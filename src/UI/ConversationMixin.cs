@@ -150,6 +150,9 @@ namespace AILegacy.UI
                     if (h.Spouse == pc) family = L.T("AIL_e7b1c4e4", "Tu cónyuge");
                     int kids = h.Children.Count(c => c != null && (c.Father == pc || c.Mother == pc));
                     if (kids > 0) family += (family.Length > 0 ? " · " : "") + L.F("AIL_e7b1c4e5", $"{kids} hijo(s) en común");
+                    // expecting your child, or children of yours out of wedlock that pass for someone else's
+                    string outside = AILegacy.World.Bastards.PanelLine(h);
+                    if (outside.Length > 0) family += (family.Length > 0 ? " · " : "") + outside;
                 }
                 catch { }
                 AilFamilyText = family; AilFamilyVisible = family.Length > 0;

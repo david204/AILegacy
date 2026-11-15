@@ -529,7 +529,7 @@
     <string id="AIL_6a695bcb" text="{0}, libéré" />
     <string id="AIL_6a69d3fd" text="{0} ira à {1} et t'y attendra." />
     <string id="AIL_6a6bf769" text="De plus, un NPC ne cède jamais plus d'un tiers de son groupe en une fois." />
-    <string id="AIL_6ac2e619" text="Seulement entre époux (le jeu a besoin d'un père connu)." />
+    <string id="AIL_6ac2e619" text="Chaque fois que vous partagez une intimité avec votre conjoint. Avec quelqu’un que vous n’avez pas épousé, voir « Enfants hors mariage » plus bas." />
     <string id="AIL_6b1ca542" text="Probabilité de grossesse (%)" />
     <string id="AIL_6b587fde" text="Nouveau souverain à {0}" />
     <string id="AIL_6b899a92" text="Livre de mémoires par pages" />
@@ -2127,5 +2127,37 @@
     <string id="AIL_e7b1c813" text="{0} a déclaré la guerre à {1} sans respecter la trêve. Les autres royaumes rompent leurs pactes avec lui et ne veulent aucun échange tant que dure la honte." />
     <string id="AIL_e7b1c814" text="Règle de la maison : jours de mise à l’écart pour qui rompt une trêve (0 = jamais)" />
     <string id="AIL_e7b1c815" text="Un royaume qui déclare la guerre alors que sa trêve avec cet ennemi court encore (vous, ou quiconque un autre mod laisse faire) est mis à l’écart pendant ce nombre de jours : les autres couronnes mettent fin à leurs alliances et à leur commerce avec lui, aucune ne conclut de nouveau pacte avec lui, et elles le tiennent pour une cible légitime. Recommandé : de 42 à 84 ; 0 le désactive." />
+    <string id="AIL_e7b1c816" text="Un enfant hors mariage" />
+    <string id="AIL_e7b1c817" text="{0} a donné naissance : {1}, votre enfant à tous les deux. L’élèverez-vous comme le vôtre, dans votre maison ? Sinon, l’enfant reste avec {2}, et qui l’apprendra ne l’oubliera pas." />
+    <string id="AIL_e7b1c818" text="L’élever dans votre maison" />
+    <string id="AIL_e7b1c819" text="Qu’il reste avec sa mère ou son père" />
+    <string id="AIL_e7b1c81a" text="{0} n’est pas l’enfant de {1} : le vrai père est {2}." />
+    <string id="AIL_e7b1c81b" text="Un enfant illégitime de {0}" />
+    <string id="AIL_e7b1c81c" text="{0} a donné naissance à {1}, et tout le monde sait que le père est {2}." />
+    <string id="AIL_e7b1c81d" text="{0} est désormais un enfant légitime." />
+    <string id="AIL_e7b1c81e" text="{0} a perdu l’enfant qu’elle attendait de vous." />
+    <string id="AIL_e7b1c81f" text="Attend un enfant de vous" />
+    <string id="AIL_e7b1c820" text="{0} enfant(s) ensemble hors mariage" />
+    <string id="AIL_e7b1c821" text="fille bâtarde" />
+    <string id="AIL_e7b1c822" text="fils bâtard" />
+    <string id="AIL_e7b1c823" text="{=!}Je te reconnais comme mon enfant, légitime aux yeux de tous." />
+    <string id="AIL_e7b1c824" text="{=!}*vous fixe un long moment* Toute ma vie, j’ai attendu d’entendre cela." />
+    <string id="AIL_e7b1c825" text="Enfants hors mariage" />
+    <string id="AIL_e7b1c826" text="L’intimité entre deux personnes qui ne sont pas mariées ensemble peut laisser un enfant. Le jeu mène la grossesse avec le vrai père. À la naissance : si vous êtes l’un des parents, vous choisissez de l’élever ou non dans votre maison ; une mère mariée peut le faire passer pour l’enfant de son mari (un secret que seuls les deux parents connaissent) ; sinon l’enfant porte un nom de bâtard selon la culture de la mère, et son mari et son chef de maison le prennent mal. L’enfant devient légitime si ses parents se marient, s’il se marie ou dirige une maison, ou si vous le reconnaissez." />
+    <string id="AIL_e7b1c827" text="Hors mariage : chance d’un enfant avec un amant (%)" />
+    <string id="AIL_e7b1c828" text="Chaque fois que vous partagez une intimité avec quelqu’un que vous n’avez pas épousé. Le jour de son cycle la multiplie, comme entre époux. Recommandé : de 10 à 25." />
+    <string id="AIL_e7b1c829" text="Hors mariage : liaisons entre autres personnages (% par an)" />
+    <string id="AIL_e7b1c82a" text="Chance par an qu’une noble conçoive d’un homme d’une autre maison qu’elle fréquente (même ville, armée ou groupe), pour une femme célibataire ordinaire de moins de 30 ans. Le manque d’honneur, les mariages malheureux et l’attirance la font monter, jusqu’au triple ; une personne mariée et honorable ne s’égare jamais. 0 = désactivé. Recommandé : de 0 à 3." />
+    <string id="AIL_e7b1c82b" text="Hors mariage : protéger votre clan" />
+    <string id="AIL_e7b1c82c" text="Activé : les femmes de votre clan ne conçoivent jamais d’une liaison de l’IA." />
+    <string id="AIL_e7b1c82d" text="Hors mariage : chance qu’une mère mariée garde le secret (%)" />
+    <string id="AIL_e7b1c82e" text="Quand l’enfant reste avec une mère mariée : la chance qu’il passe pour celui de son mari. Recommandé : de 50 à 80." />
+    <string id="AIL_e7b1c82f" text="Hors mariage : conséquences" />
+    <string id="AIL_e7b1c830" text="Quand le secret n’est pas gardé, le coupable (le père, ou vous si vous refusez d’élever l’enfant) perd de la relation avec le conjoint et le chef de maison de celui qui l’élève." />
+    <string id="AIL_e7b1c831" text="Hors mariage : relation perdue avec le conjoint" />
+    <string id="AIL_e7b1c832" text="Hors mariage : relation perdue avec le chef de maison" />
+    <string id="AIL_e7b1c833" text="Hors mariage : se marier légitime" />
+    <string id="AIL_e7b1c834" text="Activé : un enfant bâtard qui se marie devient légitime. Le mariage de ses parents le légitime toujours." />
+    <string id="AIL_e7b1c835" text="Vous avez donné naissance : {0}, votre enfant et celui de {1}. L’élèverez-vous dans votre maison ? Sinon, l’enfant reste avec {2}, et qui l’apprendra ne l’oubliera pas." />
   </strings>
 </base>

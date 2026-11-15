@@ -529,7 +529,7 @@
     <string id="AIL_6a695bcb" text="{0}, freigelassen" />
     <string id="AIL_6a69d3fd" text="{0} geht nach {1} und wartet dort auf dich." />
     <string id="AIL_6a6bf769" text="Außerdem überlässt ein NPC nie mehr als ein Drittel seiner Gruppe auf einmal." />
-    <string id="AIL_6ac2e619" text="Nur zwischen Ehepartnern (das Spiel braucht einen bekannten Vater)." />
+    <string id="AIL_6ac2e619" text="Jedes Mal, wenn du mit deinem Ehepartner intim bist. Mit jemandem, mit dem du nicht verheiratet bist, siehe «Kinder außerhalb der Ehe» weiter unten." />
     <string id="AIL_6b1ca542" text="Wahrscheinlichkeit einer Schwangerschaft (%)" />
     <string id="AIL_6b587fde" text="Neuer Herrscher in {0}" />
     <string id="AIL_6b899a92" text="Erinnerungsbuch nach Seiten" />
@@ -2127,5 +2127,37 @@
     <string id="AIL_e7b1c813" text="{0} hat {1} den Krieg erklärt, ohne den Waffenstillstand zu achten. Die anderen Reiche brechen ihre Bündnisse mit ihm und wollen nichts mit ihm zu tun haben, solange die Schande währt." />
     <string id="AIL_e7b1c814" text="Hausregel: Tage der Ächtung für Waffenstillstandsbrecher (0 = nie)" />
     <string id="AIL_e7b1c815" text="Ein Reich, das den Krieg erklärt, während sein Waffenstillstand mit diesem Feind noch gilt (du, oder jeder, dem eine andere Mod das erlaubt), wird so viele Tage geächtet: Die anderen Kronen beenden Bündnisse und Handel mit ihm, keine schließt einen neuen Pakt mit ihm, und sie sehen es als legitimes Ziel. Empfohlen: 42 bis 84; 0 schaltet es ab." />
+    <string id="AIL_e7b1c816" text="Ein Kind außerhalb der Ehe" />
+    <string id="AIL_e7b1c817" text="{0} hat entbunden: {1}, euer beider Kind. Ziehst du es als deines in deinem Haus groß? Wenn nicht, bleibt es bei {2}, und wer davon erfährt, wird es nicht vergessen." />
+    <string id="AIL_e7b1c818" text="In deinem Haus großziehen" />
+    <string id="AIL_e7b1c819" text="Bei Mutter oder Vater lassen" />
+    <string id="AIL_e7b1c81a" text="{0} ist nicht das Kind von {1}: Der wahre Vater ist {2}." />
+    <string id="AIL_e7b1c81b" text="Ein uneheliches Kind von {0}" />
+    <string id="AIL_e7b1c81c" text="{0} hat {1} zur Welt gebracht, und alle wissen, dass der Vater {2} ist." />
+    <string id="AIL_e7b1c81d" text="{0} ist jetzt ein eheliches Kind." />
+    <string id="AIL_e7b1c81e" text="{0} hat das Kind verloren, das sie von dir erwartete." />
+    <string id="AIL_e7b1c81f" text="Erwartet ein Kind von dir" />
+    <string id="AIL_e7b1c820" text="{0} gemeinsame(s) Kind(er) außerhalb der Ehe" />
+    <string id="AIL_e7b1c821" text="uneheliche Tochter" />
+    <string id="AIL_e7b1c822" text="unehelicher Sohn" />
+    <string id="AIL_e7b1c823" text="{=!}Ich erkenne dich als mein Kind an, ehelich vor allen." />
+    <string id="AIL_e7b1c824" text="{=!}*sieht dich lange an* Mein ganzes Leben habe ich darauf gewartet, das zu hören." />
+    <string id="AIL_e7b1c825" text="Kinder außerhalb der Ehe" />
+    <string id="AIL_e7b1c826" text="Intimität zwischen zwei Menschen, die nicht miteinander verheiratet sind, kann ein Kind hinterlassen. Das Spiel führt die Schwangerschaft mit dem wahren Vater. Bei der Geburt: Bist du ein Elternteil, entscheidest du, ob das Kind in deinem Haus aufwächst; eine verheiratete Mutter kann es als Kind ihres Mannes ausgeben (ein Geheimnis, das nur die beiden Eltern kennen); sonst trägt es einen Bastardnamen nach der Kultur der Mutter, und ihr Mann und ihr Hausoberhaupt nehmen es übel. Das Kind wird ehelich, wenn die Eltern heiraten, wenn es heiratet oder ein Haus anführt, oder wenn du es anerkennst." />
+    <string id="AIL_e7b1c827" text="Außerhalb der Ehe: Chance auf ein Kind mit einer Liebschaft (%)" />
+    <string id="AIL_e7b1c828" text="Jedes Mal, wenn du mit jemandem intim bist, mit dem du nicht verheiratet bist. Der Tag ihres Zyklus vervielfacht sie, wie unter Ehepartnern. Empfohlen: 10 bis 25." />
+    <string id="AIL_e7b1c829" text="Außerhalb der Ehe: Affären zwischen anderen Figuren (% im Jahr)" />
+    <string id="AIL_e7b1c82a" text="Chance im Jahr, dass eine Adlige von einem Mann eines anderen Hauses empfängt, mit dem sie Zeit verbringt (gleiche Stadt, Armee oder Gruppe), für eine gewöhnliche unverheiratete Frau unter 30. Unehrlichkeit, unglückliche Ehen und Zuneigung erhöhen sie bis aufs Dreifache; eine verheiratete ehrenhafte Person geht nie fremd. 0 = aus. Empfohlen: 0 bis 3." />
+    <string id="AIL_e7b1c82b" text="Außerhalb der Ehe: deinen Clan schützen" />
+    <string id="AIL_e7b1c82c" text="An: Frauen deines Clans empfangen nie durch eine Affäre der KI." />
+    <string id="AIL_e7b1c82d" text="Außerhalb der Ehe: Chance, dass eine verheiratete Mutter es geheim hält (%)" />
+    <string id="AIL_e7b1c82e" text="Wenn das Kind bei einer verheirateten Mutter bleibt: die Chance, dass es als Kind ihres Mannes gilt. Empfohlen: 50 bis 80." />
+    <string id="AIL_e7b1c82f" text="Außerhalb der Ehe: Folgen" />
+    <string id="AIL_e7b1c830" text="Wird das Geheimnis nicht gewahrt, verliert der Schuldige (der Vater, oder du, wenn du das Kind nicht aufziehen wolltest) Beziehung zum Ehepartner und Hausoberhaupt dessen, der es aufzieht." />
+    <string id="AIL_e7b1c831" text="Außerhalb der Ehe: verlorene Beziehung zum Ehepartner" />
+    <string id="AIL_e7b1c832" text="Außerhalb der Ehe: verlorene Beziehung zum Hausoberhaupt" />
+    <string id="AIL_e7b1c833" text="Außerhalb der Ehe: Heirat macht ehelich" />
+    <string id="AIL_e7b1c834" text="An: Ein uneheliches Kind, das heiratet, wird ehelich. Heiraten die Eltern einander, wird es das immer." />
+    <string id="AIL_e7b1c835" text="Du hast entbunden: {0}, dein Kind und das von {1}. Ziehst du es in deinem Haus groß? Wenn nicht, bleibt es bei {2}, und wer davon erfährt, wird es nicht vergessen." />
   </strings>
 </base>

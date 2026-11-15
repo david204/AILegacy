@@ -134,6 +134,38 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
             catch (Exception ex) { Log.Error("Guardar secreto", ex); return null; }
         }
 
+        /// <summary>A secret born of something that happened (a child's true father, say), with its people given directly.</summary>
+        public static StorySecret AddEvent(string text, string textLocal, IEnumerable<Hero> about, IEnumerable<Hero> knownBy, string access = "high")
+        {
+            try
+            {
+                text = WorldSim.Clean(text, 400);
+                if (text.Length < 15) return null;
+                var s = new StorySecret { Id = WorldSim.NewId("sec"), Text = text, TextLocal = WorldSim.Clean(textLocal ?? "", 400), Day = CampaignTime.Now.ToDays, Source = "event", Access = access ?? "high" };
+                foreach (var h in about ?? Enumerable.Empty<Hero>()) if (h != null && !s.About.Contains(h.StringId)) s.About.Add(h.StringId);
+                foreach (var h in knownBy ?? Enumerable.Empty<Hero>()) if (h != null && h != Hero.MainHero && !s.KnownBy.Contains(h.StringId)) s.KnownBy.Add(h.StringId);
+                if (s.KnownBy.Count == 0) return null;
+                All.Add(s);
+                while (All.Count > S.Get.StorySecretsMax) All.RemoveAt(0);
+                Log.Info($"[secretos] nuevo (suceso): {text}");
+                return s;
+            }
+            catch (Exception ex) { Log.Error("Guardar secreto de un suceso", ex); return null; }
+        }
+
+        /// <summary>The secret has come out: everyone it names may now speak of it, and these people know it too.</summary>
+        public static void Reveal(string id, IEnumerable<Hero> nowKnownBy)
+        {
+            try
+            {
+                var s = All.FirstOrDefault(x => x.Id == id);
+                if (s == null) return;
+                foreach (var h in nowKnownBy ?? Enumerable.Empty<Hero>()) if (h != null && h != Hero.MainHero && !s.KnownBy.Contains(h.StringId)) s.KnownBy.Add(h.StringId);
+                s.Access = "low";
+            }
+            catch { }
+        }
+
         /// <summary>One kingdom per in-game day until all are done, so the cost is spread out and there's no stall at the start.</summary>
         public static void OnDailyTick()
         {

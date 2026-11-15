@@ -163,6 +163,8 @@ namespace AILegacy.Dialogue
                         Log.Info($"Embarazo: {mother.Name}");
                     }
                 }
+                // Not married to each other: the child, if there is one, is born out of wedlock
+                else if (h.Spouse != P && h.IsFemale != P.IsFemale) World.Bastards.TryWithPlayer(h);
             }
             catch (Exception ex) { Log.Error("Intimidad: embarazo", ex); }
             return L.F("AIL_8c0a210d", $"Pasas un rato a solas con {s.Name}.");
