@@ -2037,5 +2037,28 @@
     <string id="AIL_e7b1c7b3" text="3. Saisonale Krankheiten" />
     <string id="AIL_e7b1c7b4" text="4. Behandlung und Heilung" />
     <string id="AIL_e7b1c7b5" text="5. KI-Trupps und Garnisonen" />
+    <string id="AIL_e7b1c7b6" text="{=!}Einen Fehler der KI melden" />
+    <string id="AIL_e7b1c7b7" text="Einen Fehler der KI melden" />
+    <string id="AIL_e7b1c7b8" text="Sag, was die letzte Antwort falsch gemacht hat. Diese Antwort wird geprüft, und wenn es ein echter Fehler war, wird eine Lehre vorgeschlagen, damit es nicht wieder passiert. Nichts wird gespeichert, ohne dass du zustimmst." />
+    <string id="AIL_e7b1c7b9" text="Die letzte Antwort wird geprüft…" />
+    <string id="AIL_e7b1c7ba" text="Vorgeschlagene Lehre" />
+    <string id="AIL_e7b1c7bb" text="{0}&#10;&#10;Vorgeschlagene Lehre:&#10;{1}" />
+    <string id="AIL_e7b1c7bc" text="Speichern" />
+    <string id="AIL_e7b1c7bd" text="Verwerfen" />
+    <string id="AIL_e7b1c7be" text="Lehre gespeichert ({0} von {1})." />
+    <string id="AIL_e7b1c7bf" text="{0}&#10;&#10;Der Fehler liegt bei der Mod: Ihr fehlten Informationen. Es ist im Protokoll vermerkt, damit es behoben werden kann." />
+    <string id="AIL_e7b1c7c0" text="{0}&#10;&#10;Das klingt nicht nach einer Beschwerde über die letzte Antwort, also wird nichts gespeichert." />
+    <string id="AIL_e7b1c7c1" text="Die Prüfung ist nicht angekommen (die KI hat nicht geantwortet)." />
+    <string id="AIL_e7b1c7c2" text="In diesem Gespräch gibt es noch keine Antwort zum Prüfen." />
+    <string id="AIL_e7b1c7c3" text="Gespeicherte Lehren ({0} von {1}):" />
+    <string id="AIL_e7b1c7c4" text="Keine Lehren gespeichert." />
+    <string id="AIL_e7b1c7c5" text="Lehre {0} gelöscht." />
+    <string id="AIL_e7b1c7c6" text="Verwendung: /error &lt;was die letzte Antwort falsch gemacht hat&gt;   ·   /lecciones   ·   /borrarleccion &lt;Nummer&gt;" />
+    <string id="AIL_e7b1c7c8" text="Einen Fehler der KI melden" />
+    <string id="AIL_e7b1c7c9" text="Fügt dem Gespräch «Einen Fehler der KI melden» hinzu (und /error im Chatfenster). Du sagst, was die letzte Antwort falsch gemacht hat, die KI prüft genau diese Antwort und schlägt, wenn es ein echter Fehler war, eine kurze Lehre vor. Nichts wird gespeichert, bis du zustimmst. Gespeicherte Lehren fließen von da an in jedes Gespräch ein. Jede Prüfung ist eine zusätzliche KI-Anfrage. /lecciones listet sie auf, /borrarleccion löscht eine." />
+    <string id="AIL_e7b1c7ca" text="Höchstzahl gespeicherter Lehren" />
+    <string id="AIL_e7b1c7cb" text="Geht eine neue Lehre über diese Zahl, fällt die älteste weg. Jede Lehre macht jede Gesprächsanfrage etwas länger. Empfohlen: 10 bis 20." />
+    <string id="AIL_e7b1c7cc" text="Lehren für alle Kampagnen" />
+    <string id="AIL_e7b1c7cd" text="Aus: Jede Kampagne behält ihre eigenen Lehren, mit ihr gespeichert. An: eine Liste für alle Kampagnen, in der Datei lessons.txt im Mod-Ordner, die du auch von Hand bearbeiten kannst (eine Lehre pro Zeile). Umschalten verschiebt keine Lehren von einer Liste in die andere. Empfohlen: aus." />
   </strings>
 </base>

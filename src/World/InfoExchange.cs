@@ -346,6 +346,7 @@ urgent: they meant it as urgent");
                 var target = Hero.Find(m.RelayToId);
                 var from = Hero.Find(m.FromId);
                 if (target == null || !target.IsAlive || target == holder) return;
+                if (m.Hops >= S.Get.ErrandMaxHops || (m.Chain != null && m.Chain.Contains(target.StringId))) return;
                 if (from != null && holder.GetRelation(from) < -10 && Rng.Next(100) < 60)
                 {
                     NoteSender(m, TRelayRefused.Format("to", holder.Name.ToString(), "relay", target.Name.ToString()));

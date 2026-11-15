@@ -2037,5 +2037,28 @@
     <string id="AIL_e7b1c7b3" text="3. Males sazonais" />
     <string id="AIL_e7b1c7b4" text="4. Tratamento e cura" />
     <string id="AIL_e7b1c7b5" text="5. Grupos da IA e guarnições" />
+    <string id="AIL_e7b1c7b6" text="{=!}Apontar um erro da IA" />
+    <string id="AIL_e7b1c7b7" text="Apontar um erro da IA" />
+    <string id="AIL_e7b1c7b8" text="Diga o que a última resposta fez de errado. Essa resposta é revisada e, se foi um erro de verdade, uma lição é proposta para que não aconteça de novo. Nada é salvo sem que você aceite." />
+    <string id="AIL_e7b1c7b9" text="Revisando a última resposta…" />
+    <string id="AIL_e7b1c7ba" text="Lição proposta" />
+    <string id="AIL_e7b1c7bb" text="{0}&#10;&#10;Lição proposta:&#10;{1}" />
+    <string id="AIL_e7b1c7bc" text="Salvar" />
+    <string id="AIL_e7b1c7bd" text="Descartar" />
+    <string id="AIL_e7b1c7be" text="Lição salva ({0} de {1})." />
+    <string id="AIL_e7b1c7bf" text="{0}&#10;&#10;A falha é do mod: faltava informação. Fica anotado no registro para ser corrigido." />
+    <string id="AIL_e7b1c7c0" text="{0}&#10;&#10;Isso não parece uma reclamação sobre a última resposta, então nada é salvo." />
+    <string id="AIL_e7b1c7c1" text="A revisão não chegou (a IA não respondeu)." />
+    <string id="AIL_e7b1c7c2" text="Ainda não há nenhuma resposta para revisar nesta conversa." />
+    <string id="AIL_e7b1c7c3" text="Lições salvas ({0} de {1}):" />
+    <string id="AIL_e7b1c7c4" text="Não há lições salvas." />
+    <string id="AIL_e7b1c7c5" text="Lição {0} apagada." />
+    <string id="AIL_e7b1c7c6" text="Uso: /error &lt;o que a última resposta fez de errado&gt;   ·   /lecciones   ·   /borrarleccion &lt;número&gt;" />
+    <string id="AIL_e7b1c7c8" text="Apontar um erro da IA" />
+    <string id="AIL_e7b1c7c9" text="Adiciona «Apontar um erro da IA» à conversa (e /error na janela de conversa). Você diz o que a última resposta fez de errado, a IA revisa essa mesma resposta e, se foi um erro de verdade, propõe uma lição curta. Nada é salvo até você aceitar. As lições salvas entram em todas as conversas a partir daí. Cada revisão é um pedido a mais à IA. /lecciones as lista e /borrarleccion apaga uma." />
+    <string id="AIL_e7b1c7ca" text="Máximo de lições guardadas" />
+    <string id="AIL_e7b1c7cb" text="Quando uma lição nova passa deste número, a mais antiga sai. Cada lição deixa cada pedido de conversa um pouco mais longo. Recomendado: de 10 a 20." />
+    <string id="AIL_e7b1c7cc" text="Lições comuns a todas as campanhas" />
+    <string id="AIL_e7b1c7cd" text="Desativado: cada campanha guarda as próprias lições, salvas com ela. Ativado: uma lista só para todas as campanhas, no arquivo lessons.txt da pasta do mod, que você também pode editar à mão (uma lição por linha). Mudar não passa as lições de uma lista para a outra. Recomendado: desativado." />
   </strings>
 </base>

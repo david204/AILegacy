@@ -408,6 +408,10 @@ namespace AILegacy.Behaviors
             starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_cdf7046b", "{=!}Repasar lo hablado"),
                 () => { var c = Cur(); return c != null && c.Who != null && c.Who.Memory.Turns.Count > 2; },
                 () => { var c = Cur(); if (c != null) { var who = c.Who; MainThread.Post(() => UI.Books.OpenTranscript(who)); } }, priority: 109);
+            // The last reply went wrong: the player says how, and it may become a lesson
+            starter.AddPlayerLine("ailegacy_d_flag", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c7b6", "{=!}Señalar un error de la IA"),
+                () => { var c = Cur(); return c != null && c.CanReport; },
+                () => { var c = Cur(); if (c != null) MainThread.Post(c.ReportMistake); }, priority: 108);
             starter.AddPlayerLine("ailegacy_d_leave", "ailegacy_d_opts", "close_window", L.T("AIL_41e43789", "{=!}Marcharse"),
                 () => { var c = Cur(); return c != null && c.Ended; },
                 () =>

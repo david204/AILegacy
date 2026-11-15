@@ -520,8 +520,43 @@ namespace AILegacy.Dialogue
             Ask(messages, text);
         }
 
+        // The exact prompt and raw answer of the last reply shown, for "flag a mistake"
+        private List<ChatMessage> _pendingAsked, _lastAsked;
+        private string _lastRaw;
+
+        public bool CanReport => S.Get.EnablePlayerLessons && _lastAsked != null && !_waiting && !_closed;
+
+        /// <summary>The player says what the last reply got wrong; the review runs and may propose a lesson.</summary>
+        public void ReportMistake() => ReportMistake(null);
+
+        private void ReportMistake(string complaint)
+        {
+            if (!S.Get.EnablePlayerLessons) return;
+            if (_lastAsked == null) { UiSystem(L.T("AIL_e7b1c7c2", "Todavía no hay ninguna respuesta que revisar en esta charla.")); return; }
+            var asked = _lastAsked; string raw = _lastRaw, name = _s.Name;
+            // The answer comes later, maybe after the dialogue moved on: a window of its own, not the dialogue box
+            void Show(string msg, bool error)
+            {
+                if (UseWindow && !_closed) { if (error) _win.VM.AddError(msg); else _win.VM.AddSystem(msg); return; }
+                InformationManager.ShowInquiry(new InquiryData("AI Legacy", msg, true, false, L.T("AIL_1df7d173", "Volver"), "", null, null), true);
+            }
+            void Run(string c)
+            {
+                if (string.IsNullOrWhiteSpace(c)) return;
+                Notify(L.T("AIL_e7b1c7b9", "Revisando la última respuesta…"), Colors.Gray);
+                Lessons.Review(asked, raw, c.Trim(), name, Show);
+            }
+            if (!string.IsNullOrWhiteSpace(complaint)) { Run(complaint); return; }
+            InformationManager.ShowTextInquiry(new TextInquiryData(
+                L.T("AIL_e7b1c7b7", "Señalar un error de la IA"),
+                L.T("AIL_e7b1c7b8", "Di qué hizo mal en su última respuesta. Se revisa esa respuesta y, si procede, se propone una lección para que no vuelva a pasar. Nada se guarda sin que lo aceptes."),
+                true, true, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e5c9b3a4", "Cancelar"), t => Run(t), null, false,
+                t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
+        }
+
         private void Ask(List<ChatMessage> messages, string text)
         {
+            _pendingAsked = messages;
             _waiting = true;
             UiWaiting(true);
 
@@ -605,6 +640,7 @@ namespace AILegacy.Dialogue
                 catch (Exception ex) { Log.Error("Reintento por repetición", ex); }
             }
             Mem.Turns.Add(new ChatTurn { Role = "npc", Text = reply.Reply, Day = CampaignTime.Now.ToDays });
+            _lastAsked = _pendingAsked; _lastRaw = res.Text;
             if (_s.IsHero) AILegacy.Api.AILegacyApi.RaiseNpcReplied(_s.Hero, reply.Reply);
             UiNpc(reply.Reply);
             _lines++;
@@ -876,6 +912,23 @@ namespace AILegacy.Dialogue
                     SaveFiles.Flush();
                     UiSystem(L.F("AIL_84e9a594", $"Instrucción guardada para {_s.Name}."));
                     return;
+
+                case "/error": case "/mistake":
+                    if (arg.Length == 0) { UiSystem(L.T("AIL_e7b1c7c6", "Uso: /error <qué hizo mal en su última respuesta>   ·   /lecciones   ·   /borrarleccion <número>")); return; }
+                    ReportMistake(arg);
+                    return;
+
+                case "/lecciones": case "/lessons":
+                    UiSystem(Lessons.Listing());
+                    return;
+
+                case "/borrarleccion": case "/deletelesson":
+                {
+                    int.TryParse(new string(arg.Where(char.IsDigit).ToArray()), out int n);
+                    if (n > 0 && Lessons.Remove(n)) UiSystem(L.F("AIL_e7b1c7c5", $"Lección {n} borrada."));
+                    else UiSystem(Lessons.Listing());
+                    return;
+                }
 
                 case "/borrarnotas": case "/clearnotes":
                     Mem.CustomInstructions.Clear();

@@ -223,7 +223,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
         /// <summary>Forces every template (static fields) to register before they are written to disk.</summary>
-        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); InfoExchange.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
+        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); InfoExchange.Touch(); Lessons.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
 
         // =========================================================== dialogue
 
@@ -257,6 +257,8 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
                 "gesture_rule", (cfg.UseAsterisks ? TGestureOn : TGestureOff).Text));
             if (cfg.EnableActions) { sys.AppendLine(); sys.AppendLine(TActionRules.Text); }
             if (cfg.TestCompliantMode) { sys.AppendLine(); sys.AppendLine(TTestMode.Text); }
+            // Lessons the player saved: shared by every character, so they stay in the cached part
+            try { string lessons = Lessons.Block(); if (lessons.Length > 0) { sys.AppendLine(); sys.AppendLine(lessons); } } catch { }
 
             // ---------- 1b. this character
             sys.AppendLine();

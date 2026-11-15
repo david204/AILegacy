@@ -2037,5 +2037,28 @@
     <string id="AIL_e7b1c7b3" text="3. 时令病" />
     <string id="AIL_e7b1c7b4" text="4. 治疗与康复" />
     <string id="AIL_e7b1c7b5" text="5. AI队伍与驻军" />
+    <string id="AIL_e7b1c7b6" text="{=!}指出AI的错误" />
+    <string id="AIL_e7b1c7b7" text="指出AI的错误" />
+    <string id="AIL_e7b1c7b8" text="说说它上一句回复哪里出了错。系统会复查那句回复，如果确实是错误，就会提出一条教训，避免再次发生。未经你同意不会保存任何内容。" />
+    <string id="AIL_e7b1c7b9" text="正在复查上一句回复……" />
+    <string id="AIL_e7b1c7ba" text="建议的教训" />
+    <string id="AIL_e7b1c7bb" text="{0}&#10;&#10;建议的教训：&#10;{1}" />
+    <string id="AIL_e7b1c7bc" text="保存" />
+    <string id="AIL_e7b1c7bd" text="放弃" />
+    <string id="AIL_e7b1c7be" text="教训已保存（第{0}条，共{1}条）。" />
+    <string id="AIL_e7b1c7bf" text="{0}&#10;&#10;问题出在模组：它缺少信息。已记录在日志中以便修正。" />
+    <string id="AIL_e7b1c7c0" text="{0}&#10;&#10;这看起来不像是针对上一句回复的投诉，因此不保存任何内容。" />
+    <string id="AIL_e7b1c7c1" text="复查没有返回（AI没有回应）。" />
+    <string id="AIL_e7b1c7c2" text="本次对话中还没有可以复查的回复。" />
+    <string id="AIL_e7b1c7c3" text="已保存的教训（{0}/{1}）：" />
+    <string id="AIL_e7b1c7c4" text="没有已保存的教训。" />
+    <string id="AIL_e7b1c7c5" text="第{0}条教训已删除。" />
+    <string id="AIL_e7b1c7c6" text="用法：/error &lt;上一句回复哪里错了&gt;   ·   /lecciones   ·   /borrarleccion &lt;编号&gt;" />
+    <string id="AIL_e7b1c7c8" text="指出AI的错误" />
+    <string id="AIL_e7b1c7c9" text="在对话中加入“指出AI的错误”（聊天窗口中为 /error）。你说明上一句回复哪里错了，AI会复查那句回复，如果确实是错误，就提出一条简短的教训。在你同意之前不会保存。保存的教训从此会进入每一次对话。每次复查都会多一次AI请求。/lecciones 列出教训，/borrarleccion 删除一条。" />
+    <string id="AIL_e7b1c7ca" text="最多保存的教训数" />
+    <string id="AIL_e7b1c7cb" text="新教训超过这个数量时，最早的一条会被移除。每条教训都会让每次对话请求稍长一些。建议：10 至 20。" />
+    <string id="AIL_e7b1c7cc" text="所有战役共用教训" />
+    <string id="AIL_e7b1c7cd" text="关闭：每个战役保存自己的教训，随战役存档。开启：所有战役共用一个列表，保存在模组文件夹的 lessons.txt 中，也可以手动编辑（每行一条）。切换不会把教训从一个列表移到另一个。建议：关闭。" />
   </strings>
 </base>

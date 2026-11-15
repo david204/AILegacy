@@ -144,6 +144,8 @@ namespace AILegacy.World
         [JsonProperty("proposals")] public List<Proposal> Proposals = new List<Proposal>();
         [JsonProperty("tributes")] public List<Tribute> Tributes = new List<Tribute>();
         [JsonProperty("effects")] public List<EconomicEffect> Effects = new List<EconomicEffect>();
+        /// <summary>Lessons the player saved after flagging a mistake of the AI, oldest first, in English.</summary>
+        [JsonProperty("lessons")] public List<string> Lessons = new List<string>();
         /// <summary>Day until which paid hospital prevention lasts (your men get sick much less).</summary>
         [JsonProperty("prevention_until")] public double PreventionUntilDay = -1;
         /// <summary>Secrets born from this campaign's story, and the kingdoms whose origin secrets are already written.</summary>

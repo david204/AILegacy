@@ -2343,6 +2343,21 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
         public bool StreamReplies { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c7c8}Flag a mistake of the AI", Order = 15, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7c9}Adds «Flag a mistake of the AI» to the conversation (and /error in the chat window). You say what the last reply got wrong, the AI reviews that exact reply and, when it was a real mistake, proposes one short lesson. Nothing is saved until you accept it. Saved lessons go into every conversation from then on. Each review is one extra AI request. /lecciones lists them and /borrarleccion deletes one.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
+        public bool EnablePlayerLessons { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c7ca}Lessons kept at most", 5, 50, Order = 16, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7cb}When a new lesson goes past this number, the oldest one is dropped. Every lesson makes each conversation request a little longer. Recommended: 10 to 20.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
+        public int PlayerLessonsMax { get; set; } = 20;
+
+        [SettingPropertyBool("{=AIL_e7b1c7cc}Lessons shared by every campaign", Order = 17, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7cd}Off: each campaign keeps its own lessons, saved with it. On: one list for every campaign, in the file lessons.txt in the mod folder, which you can also edit by hand (one lesson per line). Switching does not move lessons from one list to the other. Recommended: off.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
+        public bool PlayerLessonsGlobal { get; set; } = false;
+
         [SettingPropertyBool("{=AIL_e7b1c64c}Dialogue box shows only their words", Order = 13, RequireRestart = false,
             HintText = "{=AIL_e7b1c64d}The dialogue box shows only what the character says, without your own line above it and without their name in front. Turn it on if you use a voice mod that reads the dialogue box aloud, so it does not read your line too. Your line is still in the History panel.")]
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]

@@ -2037,5 +2037,28 @@
     <string id="AIL_e7b1c7b3" text="3. Males de temporada" />
     <string id="AIL_e7b1c7b4" text="4. Tratamiento y curación" />
     <string id="AIL_e7b1c7b5" text="5. Partidas de la IA y guarniciones" />
+    <string id="AIL_e7b1c7b6" text="{=!}Señalar un error de la IA" />
+    <string id="AIL_e7b1c7b7" text="Señalar un error de la IA" />
+    <string id="AIL_e7b1c7b8" text="Di qué hizo mal en su última respuesta. Se revisa esa respuesta y, si procede, se propone una lección para que no vuelva a pasar. Nada se guarda sin que lo aceptes." />
+    <string id="AIL_e7b1c7b9" text="Revisando la última respuesta…" />
+    <string id="AIL_e7b1c7ba" text="Lección propuesta" />
+    <string id="AIL_e7b1c7bb" text="{0}&#10;&#10;Lección propuesta:&#10;{1}" />
+    <string id="AIL_e7b1c7bc" text="Guardar" />
+    <string id="AIL_e7b1c7bd" text="Descartar" />
+    <string id="AIL_e7b1c7be" text="Lección guardada ({0} de {1})." />
+    <string id="AIL_e7b1c7bf" text="{0}&#10;&#10;El fallo es del mod: le faltaba información. Queda anotado en el registro para corregirlo." />
+    <string id="AIL_e7b1c7c0" text="{0}&#10;&#10;No parece una queja sobre su última respuesta, así que no se guarda nada." />
+    <string id="AIL_e7b1c7c1" text="La revisión no ha llegado (la IA no ha respondido)." />
+    <string id="AIL_e7b1c7c2" text="Todavía no hay ninguna respuesta que revisar en esta charla." />
+    <string id="AIL_e7b1c7c3" text="Lecciones guardadas ({0} de {1}):" />
+    <string id="AIL_e7b1c7c4" text="No hay lecciones guardadas." />
+    <string id="AIL_e7b1c7c5" text="Lección {0} borrada." />
+    <string id="AIL_e7b1c7c6" text="Uso: /error &lt;qué hizo mal en su última respuesta&gt;   ·   /lecciones   ·   /borrarleccion &lt;número&gt;" />
+    <string id="AIL_e7b1c7c8" text="Señalar un error de la IA" />
+    <string id="AIL_e7b1c7c9" text="Añade «Señalar un error de la IA» a la conversación (y /error en la ventana de charla). Dices qué hizo mal la última respuesta, la IA revisa esa misma respuesta y, si fue un error de verdad, propone una lección corta. No se guarda nada hasta que la aceptas. Las lecciones guardadas entran en todas las conversaciones desde entonces. Cada revisión es una petición más a la IA. /lecciones las lista y /borrarleccion borra una." />
+    <string id="AIL_e7b1c7ca" text="Lecciones que se guardan como máximo" />
+    <string id="AIL_e7b1c7cb" text="Cuando una lección nueva pasa de este número, se quita la más antigua. Cada lección hace un poco más larga cada petición de charla. Recomendado: de 10 a 20." />
+    <string id="AIL_e7b1c7cc" text="Lecciones comunes a todas las campañas" />
+    <string id="AIL_e7b1c7cd" text="Desactivado: cada campaña guarda sus propias lecciones, con ella. Activado: una sola lista para todas las campañas, en el archivo lessons.txt de la carpeta del mod, que también puedes editar a mano (una lección por línea). Cambiarlo no pasa las lecciones de una lista a la otra. Recomendado: desactivado." />
   </strings>
 </base>

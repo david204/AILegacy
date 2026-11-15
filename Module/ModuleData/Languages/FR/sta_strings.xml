@@ -2037,5 +2037,28 @@
     <string id="AIL_e7b1c7b3" text="3. Maux de saison" />
     <string id="AIL_e7b1c7b4" text="4. Traitement et guérison" />
     <string id="AIL_e7b1c7b5" text="5. Groupes de l’IA et garnisons" />
+    <string id="AIL_e7b1c7b6" text="{=!}Signaler une erreur de l’IA" />
+    <string id="AIL_e7b1c7b7" text="Signaler une erreur de l’IA" />
+    <string id="AIL_e7b1c7b8" text="Dites ce que sa dernière réponse a mal fait. Cette réponse est relue et, si c’était une vraie erreur, une leçon est proposée pour que cela ne se reproduise pas. Rien n’est enregistré sans votre accord." />
+    <string id="AIL_e7b1c7b9" text="Relecture de la dernière réponse…" />
+    <string id="AIL_e7b1c7ba" text="Leçon proposée" />
+    <string id="AIL_e7b1c7bb" text="{0}&#10;&#10;Leçon proposée :&#10;{1}" />
+    <string id="AIL_e7b1c7bc" text="Enregistrer" />
+    <string id="AIL_e7b1c7bd" text="Abandonner" />
+    <string id="AIL_e7b1c7be" text="Leçon enregistrée ({0} sur {1})." />
+    <string id="AIL_e7b1c7bf" text="{0}&#10;&#10;La faute vient du mod : il lui manquait des informations. C’est noté dans le journal pour être corrigé." />
+    <string id="AIL_e7b1c7c0" text="{0}&#10;&#10;Cela ne ressemble pas à une plainte sur sa dernière réponse, donc rien n’est enregistré." />
+    <string id="AIL_e7b1c7c1" text="La relecture n’est pas arrivée (l’IA n’a pas répondu)." />
+    <string id="AIL_e7b1c7c2" text="Il n’y a encore aucune réponse à relire dans cette conversation." />
+    <string id="AIL_e7b1c7c3" text="Leçons enregistrées ({0} sur {1}) :" />
+    <string id="AIL_e7b1c7c4" text="Aucune leçon enregistrée." />
+    <string id="AIL_e7b1c7c5" text="Leçon {0} supprimée." />
+    <string id="AIL_e7b1c7c6" text="Usage : /error &lt;ce que sa dernière réponse a mal fait&gt;   ·   /lecciones   ·   /borrarleccion &lt;numéro&gt;" />
+    <string id="AIL_e7b1c7c8" text="Signaler une erreur de l’IA" />
+    <string id="AIL_e7b1c7c9" text="Ajoute « Signaler une erreur de l’IA » à la conversation (et /error dans la fenêtre de discussion). Vous dites ce que la dernière réponse a mal fait, l’IA relit cette réponse précise et, si c’était une vraie erreur, propose une courte leçon. Rien n’est enregistré tant que vous ne l’acceptez pas. Les leçons enregistrées entrent ensuite dans chaque conversation. Chaque relecture est une requête de plus à l’IA. /lecciones les liste et /borrarleccion en supprime une." />
+    <string id="AIL_e7b1c7ca" text="Nombre maximal de leçons gardées" />
+    <string id="AIL_e7b1c7cb" text="Quand une nouvelle leçon dépasse ce nombre, la plus ancienne est retirée. Chaque leçon allonge un peu chaque requête de conversation. Recommandé : de 10 à 20." />
+    <string id="AIL_e7b1c7cc" text="Leçons communes à toutes les campagnes" />
+    <string id="AIL_e7b1c7cd" text="Désactivé : chaque campagne garde ses propres leçons, enregistrées avec elle. Activé : une seule liste pour toutes les campagnes, dans le fichier lessons.txt du dossier du mod, que vous pouvez aussi modifier à la main (une leçon par ligne). Changer ne déplace pas les leçons d’une liste à l’autre. Recommandé : désactivé." />
   </strings>
 </base>

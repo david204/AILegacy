@@ -2037,5 +2037,28 @@
     <string id="AIL_e7b1c7b3" text="3. Seasonal illnesses" />
     <string id="AIL_e7b1c7b4" text="4. Treatment and healing" />
     <string id="AIL_e7b1c7b5" text="5. AI parties and garrisons" />
+    <string id="AIL_e7b1c7b6" text="{=!}Flag a mistake of the AI" />
+    <string id="AIL_e7b1c7b7" text="Flag a mistake of the AI" />
+    <string id="AIL_e7b1c7b8" text="Say what their last reply got wrong. That reply is reviewed and, if it was a real mistake, a lesson is proposed so it does not happen again. Nothing is saved unless you accept it." />
+    <string id="AIL_e7b1c7b9" text="Reviewing the last reply…" />
+    <string id="AIL_e7b1c7ba" text="Proposed lesson" />
+    <string id="AIL_e7b1c7bb" text="{0}&#10;&#10;Proposed lesson:&#10;{1}" />
+    <string id="AIL_e7b1c7bc" text="Save" />
+    <string id="AIL_e7b1c7bd" text="Discard" />
+    <string id="AIL_e7b1c7be" text="Lesson saved ({0} of {1})." />
+    <string id="AIL_e7b1c7bf" text="{0}&#10;&#10;The fault is the mod's: it was missing information. It is noted in the log so it can be fixed." />
+    <string id="AIL_e7b1c7c0" text="{0}&#10;&#10;This does not read as a complaint about their last reply, so nothing is saved." />
+    <string id="AIL_e7b1c7c1" text="The review did not arrive (the AI did not answer)." />
+    <string id="AIL_e7b1c7c2" text="There is no reply to review in this conversation yet." />
+    <string id="AIL_e7b1c7c3" text="Saved lessons ({0} of {1}):" />
+    <string id="AIL_e7b1c7c4" text="No lessons saved." />
+    <string id="AIL_e7b1c7c5" text="Lesson {0} deleted." />
+    <string id="AIL_e7b1c7c6" text="Usage: /error &lt;what their last reply got wrong&gt;   ·   /lecciones   ·   /borrarleccion &lt;number&gt;" />
+    <string id="AIL_e7b1c7c8" text="Flag a mistake of the AI" />
+    <string id="AIL_e7b1c7c9" text="Adds «Flag a mistake of the AI» to the conversation (and /error in the chat window). You say what the last reply got wrong, the AI reviews that exact reply and, when it was a real mistake, proposes one short lesson. Nothing is saved until you accept it. Saved lessons go into every conversation from then on. Each review is one extra AI request. /lecciones lists them and /borrarleccion deletes one." />
+    <string id="AIL_e7b1c7ca" text="Lessons kept at most" />
+    <string id="AIL_e7b1c7cb" text="When a new lesson goes past this number, the oldest one is dropped. Every lesson makes each conversation request a little longer. Recommended: 10 to 20." />
+    <string id="AIL_e7b1c7cc" text="Lessons shared by every campaign" />
+    <string id="AIL_e7b1c7cd" text="Off: each campaign keeps its own lessons, saved with it. On: one list for every campaign, in the file lessons.txt in the mod folder, which you can also edit by hand (one lesson per line). Switching does not move lessons from one list to the other. Recommended: off." />
   </strings>
 </base>

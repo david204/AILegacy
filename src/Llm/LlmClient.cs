@@ -103,7 +103,7 @@ namespace AILegacy.Llm
         {
             switch (task)
             {
-                case "dialogue": case "initiative": case "group": case "verdict": case "order": case "editor": case "test":
+                case "dialogue": case "initiative": case "group": case "verdict": case "order": case "editor": case "test": case "lesson":
                     return 0;
                 case "letter": case "banter": case "passby":
                     return 1;

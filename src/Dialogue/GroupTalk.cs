@@ -223,7 +223,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             {
                 while (i < obj.Length && obj[i] != ',' && obj[i] != '}' && !char.IsWhiteSpace(obj[i])) sb.Append(obj[i++]);
                 finished = i < obj.Length;
-                return finished ? sb.ToString() : null;      // a bare number may still be growing
+                return sb.Length > 0 ? sb.ToString() : null;      // a bare number that is still growing is good enough for a speaker index
             }
             for (i++; i < obj.Length; i++)
             {
@@ -467,6 +467,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             string prompt = TGroup.Format("manner", manner, "bystanders", byText, "actions", (cfg.SceneErrands ? SceneActions.HelpFor(playerName) : "(nothing else)") + deeds, "moods", Gestures.Moods,
                 "place", st?.Name?.ToString() ?? "the camp", "player", playerName, "members", members.ToString().TrimEnd(), "context", context, "elsewhere", elsewhere,
                 "transcript", transcript, "said", text.Replace("«", "\"").Replace("»", "\""), "max_lines", cfg.GroupMaxLines, "max_chars", cfg.GroupMaxChars, "language", cfg.Language);
+            try { string lessons = Lessons.Block(); if (lessons.Length > 0) prompt += "\n\n" + lessons; } catch { }
 
             if (!silent)
             {
