@@ -103,7 +103,7 @@ namespace AILegacy.Core
             var c = Parse(raw);
             if (c == null)
             {
-                Log.Warn($"Tecla no reconocida en MCM ({(Id)i}): «{raw}». Se usa {Defaults[i]}.");
+                Log.Warn($"Unrecognised key in MCM ({(Id)i}): '{raw}'. Using {Defaults[i]}.");
                 c = Parse(Defaults[i]);
                 c.Raw = raw;
             }
@@ -133,7 +133,7 @@ namespace AILegacy.Core
                 c.Dup = first >= 0;
                 c.DupOf = first;
                 if (c.Dup && !told)
-                    Log.Warn($"Tecla repetida en MCM: {(Id)i} y {(Id)first} usan {c.Label}. Se queda con ella {(Id)first}; {(Id)i} queda sin tecla hasta que cambies una de las dos.");
+                    Log.Warn($"Duplicate key in MCM: {(Id)i} and {(Id)first} both use {c.Label}. {(Id)first} keeps it; {(Id)i} has no key until you change one of them.");
             }
         }
 

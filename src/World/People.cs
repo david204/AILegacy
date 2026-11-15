@@ -33,7 +33,7 @@ namespace AILegacy.World
                 var f = HarmonyLib.AccessTools.Field(typeof(CharacterObject), "_occupation");
                 if (f != null) f.SetValue(co, Occupation.Lord);
             }
-            catch (Exception ex) { Log.Warn("No se pudo igualar la ocupación de " + h?.Name + ": " + ex.Message); }
+            catch (Exception ex) { Log.Warn("Could not match the occupation of " + h?.Name + ": " + ex.Message); }
         }
 
         public static Hero Promote(Speaker s, Agent agent, bool companion, out string error)
@@ -59,7 +59,7 @@ namespace AILegacy.World
                 string name = s.Name;
                 var full = new TextObject("{=!}" + name);
                 hero.SetName(full, full);
-                try { if (agent != null) hero.StaticBodyProperties = agent.BodyPropertiesValue.StaticProperties; } catch (Exception ex) { Log.Warn("No se pudo copiar la cara: " + ex.Message); }
+                try { if (agent != null) hero.StaticBodyProperties = agent.BodyPropertiesValue.StaticProperties; } catch (Exception ex) { Log.Warn("Could not copy the face: " + ex.Message); }
                 hero.SetNewOccupation(Occupation.Wanderer);
                 hero.ChangeState(Hero.CharacterStates.Active);
 
@@ -75,7 +75,7 @@ namespace AILegacy.World
                         Text = companion ? "[What happened: you left your old life and entered their service as a sworn companion. You ride with them now.]"
                                          : "[What happened: they made it plain they will seek you out again. You are now someone they know by name.]" });
                 }
-                catch (Exception ex) { Log.Error("Pasar la memoria al nuevo personaje", ex); }
+                catch (Exception ex) { Log.Error("Transfer memory to the new character", ex); }
 
                 if (companion)
                 {
@@ -89,10 +89,10 @@ namespace AILegacy.World
                 ResidentFaces.Forget(s.Key);
 
                 SaveFiles.Flush();
-                Log.Info($"[gente] {name} pasa a ser un personaje con nombre ({hero.StringId}){(companion ? ", compañero tuyo" : $", errante de {st.Name}")}");
+                Log.Info($"[people] {name} becomes a named character ({hero.StringId}){(companion ? ", your companion" : $", wanderer from {st.Name}")}");
                 return hero;
             }
-            catch (Exception ex) { Log.Error("Convertir a un figurante en personaje", ex); error = ex.Message; return null; }
+            catch (Exception ex) { Log.Error("Turn an extra into a character", ex); error = ex.Message; return null; }
         }
 
         /// <summary>Creates a relative of the player from the editor, with real in-game kinship.</summary>
@@ -140,10 +140,10 @@ namespace AILegacy.World
                 }
                 MemoryStore.Get(hero.StringId, name);
                 SaveFiles.Flush();
-                Log.Info($"[gente] familiar creado desde el editor: {name} ({relation}, {hero.StringId})");
+                Log.Info($"[people] relative created from the editor: {name} ({relation}, {hero.StringId})");
                 return hero;
             }
-            catch (Exception ex) { Log.Error("Crear familiar", ex); error = null; return null; }   // the editor shows its own text; the detail stays in the log
+            catch (Exception ex) { Log.Error("Create relative", ex); error = null; return null; }   // the editor shows its own text; the detail stays in the log
         }
 
         public static Hero CreateCompanion(string name, bool female, int age, string cultureId, out string error)
@@ -168,10 +168,10 @@ namespace AILegacy.World
                 AddHeroToPartyAction.Apply(hero, MobileParty.MainParty, true);
                 MemoryStore.Get(hero.StringId, name);
                 SaveFiles.Flush();
-                Log.Info($"[gente] compañero creado desde el editor: {name} ({hero.StringId})");
+                Log.Info($"[people] companion created from the editor: {name} ({hero.StringId})");
                 return hero;
             }
-            catch (Exception ex) { Log.Error("Crear compañero", ex); error = null; return null; }   // the editor shows its own text; the detail stays in the log
+            catch (Exception ex) { Log.Error("Create companion", ex); error = null; return null; }   // the editor shows its own text; the detail stays in the log
         }
     }
 }

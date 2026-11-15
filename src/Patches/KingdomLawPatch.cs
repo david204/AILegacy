@@ -19,7 +19,7 @@ namespace AILegacy.Patches
     {
         private static int _shown;
         // These run many times a second: a broken one must not flood the log
-        public static void Error(string what, Exception ex) { if (_shown++ < 5) Log.Error("[leyes] " + what, ex); }
+        public static void Error(string what, Exception ex) { if (_shown++ < 5) Log.Error("[laws] " + what, ex); }
     }
 
     [HarmonyPatch(typeof(DefaultSettlementMilitiaModel), nameof(DefaultSettlementMilitiaModel.CalculateMilitiaChange))]
@@ -28,7 +28,7 @@ namespace AILegacy.Patches
         private static void Postfix(Settlement settlement, ref ExplainedNumber __result)
         {
             try { if (settlement != null && !Laws.Idle) Laws.AddForSettlement(settlement, Laws.Militia, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("milicia", ex); }
+            catch (Exception ex) { LawPatchLog.Error("militia", ex); }
         }
     }
 
@@ -38,7 +38,7 @@ namespace AILegacy.Patches
         private static void Postfix(Settlement settlement, ref ExplainedNumber __result)
         {
             try { if (settlement != null && !Laws.Idle) Laws.AddForSettlement(settlement, Laws.Veterans, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("milicia veterana", ex); }
+            catch (Exception ex) { LawPatchLog.Error("veteran militia", ex); }
         }
     }
 
@@ -48,7 +48,7 @@ namespace AILegacy.Patches
         private static void Postfix(Village village, ref ExplainedNumber __result)
         {
             try { if (village != null && !Laws.Idle) Laws.AddForSettlement(village.Settlement, Laws.Hearth, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("hogares", ex); }
+            catch (Exception ex) { LawPatchLog.Error("households", ex); }
         }
     }
 
@@ -58,7 +58,7 @@ namespace AILegacy.Patches
         private static void Postfix(Workshop workshop, ref ExplainedNumber __result)
         {
             try { if (workshop != null && !Laws.Idle) Laws.AddForSettlement(workshop.Settlement, Laws.Workshops, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("talleres", ex); }
+            catch (Exception ex) { LawPatchLog.Error("workshops", ex); }
         }
     }
 
@@ -68,7 +68,7 @@ namespace AILegacy.Patches
         private static void Postfix(Town town, ref ExplainedNumber __result)
         {
             try { if (town != null && !Laws.Idle) Laws.AddForSettlement(town.Settlement, Laws.Construction, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("construcción", ex); }
+            catch (Exception ex) { LawPatchLog.Error("construction", ex); }
         }
     }
 
@@ -78,7 +78,7 @@ namespace AILegacy.Patches
         private static void Postfix(Town town, ref ExplainedNumber __result)
         {
             try { if (town != null && !Laws.Idle) Laws.AddForSettlement(town.Settlement, Laws.Tax, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("impuestos", ex); }
+            catch (Exception ex) { LawPatchLog.Error("taxes", ex); }
         }
     }
 
@@ -94,7 +94,7 @@ namespace AILegacy.Patches
                 float f = Laws.SumForSettlement(settlement, Laws.Recruitment);
                 if (f != 0f) __result = Math.Max(0f, Math.Min(1f, __result * (1f + f)));
             }
-            catch (Exception ex) { LawPatchLog.Error("reclutas", ex); }
+            catch (Exception ex) { LawPatchLog.Error("recruits", ex); }
         }
     }
 
@@ -104,7 +104,7 @@ namespace AILegacy.Patches
         private static void Postfix(Clan clan, ref ExplainedNumber __result)
         {
             try { if (clan != null && !Laws.Idle) Laws.AddForClan(clan, Laws.Influence, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("influencia", ex); }
+            catch (Exception ex) { LawPatchLog.Error("influence", ex); }
         }
     }
 
@@ -114,7 +114,7 @@ namespace AILegacy.Patches
         private static void Postfix(Clan clan, ref ExplainedNumber __result)
         {
             try { if (clan != null && !Laws.Idle) Laws.AddForClan(clan, Laws.ClanIncome, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("ingresos de clan", ex); }
+            catch (Exception ex) { LawPatchLog.Error("clan income", ex); }
         }
     }
 
@@ -124,7 +124,7 @@ namespace AILegacy.Patches
         private static void Postfix(PartyBase party, ref ExplainedNumber __result)
         {
             try { if (party?.MobileParty != null && !Laws.Idle) Laws.AddForParty(party.MobileParty, Laws.PartySize, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("tamaño de partida", ex); }
+            catch (Exception ex) { LawPatchLog.Error("party size", ex); }
         }
     }
 
@@ -144,7 +144,7 @@ namespace AILegacy.Patches
                 }
                 else Laws.AddForParty(mobileParty, Laws.Wages, ref __result);
             }
-            catch (Exception ex) { LawPatchLog.Error("salarios", ex); }
+            catch (Exception ex) { LawPatchLog.Error("wages", ex); }
         }
     }
 
@@ -154,7 +154,7 @@ namespace AILegacy.Patches
         private static void Postfix(MobileParty mobileParty, ref ExplainedNumber __result)
         {
             try { if (mobileParty != null && !Laws.Idle) Laws.AddForParty(mobileParty, Laws.Morale, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("moral", ex); }
+            catch (Exception ex) { LawPatchLog.Error("morale", ex); }
         }
     }
 
@@ -164,7 +164,7 @@ namespace AILegacy.Patches
         private static void Postfix(MobileParty mobileParty, ref ExplainedNumber __result)
         {
             try { if (mobileParty != null && !Laws.Idle) Laws.AddForParty(mobileParty, Laws.Speed, ref __result); }
-            catch (Exception ex) { LawPatchLog.Error("velocidad", ex); }
+            catch (Exception ex) { LawPatchLog.Error("speed", ex); }
         }
     }
 
@@ -180,7 +180,7 @@ namespace AILegacy.Patches
                 float f = Laws.SumForParty(armyLeaderParty, Laws.ArmyCost);
                 if (f != 0f) __result = Math.Max(1, (int)Math.Round(__result * (1f + f)));
             }
-            catch (Exception ex) { LawPatchLog.Error("coste de ejército", ex); }
+            catch (Exception ex) { LawPatchLog.Error("army cost", ex); }
         }
     }
 }

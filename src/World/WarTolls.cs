@@ -375,7 +375,7 @@ namespace AILegacy.World
                             "mine_change", Change(va.Value, k.CurrentTotalStrength), "theirs_change", Change(vb.Value, o.CurrentTotalStrength)));
                 }
             }
-            catch (Exception ex) { Log.Error("[diplomacia] tendencia de una guerra", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] war trend", ex); }
             return sb.ToString();
         }
 

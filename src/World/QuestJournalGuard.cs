@@ -29,7 +29,7 @@ namespace AILegacy.World
         private static Exception Finalizer(Exception __exception, ref List<(bool isHeroQuestGiver, QuestBase quest)> __result)
         {
             if (__exception == null) return null;
-            if (!_warned) { _warned = true; Log.Error("Diario de misiones: GetQuestsRelatedToSettlement ha fallado (se ignora)", __exception); }
+            if (!_warned) { _warned = true; Log.Error("Quest journal: GetQuestsRelatedToSettlement failed (ignored)", __exception); }
             __result = new List<(bool, QuestBase)>();
             return null;
         }
@@ -53,7 +53,7 @@ namespace AILegacy.World
         private static Exception Finalizer(Exception __exception, ref bool __result)
         {
             if (__exception == null) return null;
-            if (!_warned) { _warned = true; Log.Error("Diario de misiones: IsQuestRelatedToSettlement ha fallado (se ignora)", __exception); }
+            if (!_warned) { _warned = true; Log.Error("Quest journal: IsQuestRelatedToSettlement failed (ignored)", __exception); }
             __result = false;
             return null;
         }

@@ -59,7 +59,7 @@ namespace AILegacy.Voice
                 EnsureWorker();
                 Lines.TryAdd((_gen, key ?? "", female, t));
             }
-            catch (Exception ex) { Log.Error("Voz: encolar", ex); }
+            catch (Exception ex) { Log.Error("Voice: enqueue", ex); }
         }
 
         /// <summary>Whatever is playing or waiting is dropped (a new conversation, the game closing it).</summary>
@@ -107,7 +107,7 @@ namespace AILegacy.Voice
                         lock (PlayerGate) { if (job.gen != _gen) { try { player.Stop(); } catch { } } _player = null; }
                     }
                 }
-                catch (Exception ex) { Log.Warn("Voz: no se pudo decir la frase: " + ex.GetBaseException().Message); }
+                catch (Exception ex) { Log.Warn("Voice: could not speak the sentence: " + ex.GetBaseException().Message); }
             }
         }
 
@@ -145,7 +145,7 @@ namespace AILegacy.Voice
                 {
                     ProviderConfig p = null;
                     try { p = LegacyConfig.Current.Providers.FirstOrDefault(x => x.IsUsable && (x.BaseUrl ?? "").IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0); } catch { }
-                    if (p == null) { Log.Warn("Voz: no hay ningún proveedor de OpenAI con clave en 0. Claves de IA"); return null; }
+                    if (p == null) { Log.Warn("Voice: no OpenAI provider with a key in 0. AI Keys"); return null; }
                     return FromSpeechApi(p.BaseUrl, p.ApiKey, cfg.VoiceModel.Length > 0 ? cfg.VoiceModel : "gpt-4o-mini-tts",
                         Pick(female ? cfg.VoiceFemaleVoices : cfg.VoiceMaleVoices, key, female ? "nova" : "onyx"), text, cfg);
                 }
@@ -163,7 +163,7 @@ namespace AILegacy.Voice
             using (var synth = new System.Speech.Synthesis.SpeechSynthesizer())
             {
                 var installed = synth.GetInstalledVoices().Where(v => v.Enabled).Select(v => v.VoiceInfo).ToList();
-                if (installed.Count == 0) { Log.Warn("Voz: Windows no tiene ninguna voz instalada"); return null; }
+                if (installed.Count == 0) { Log.Warn("Voice: Windows has no voice installed"); return null; }
                 var gender = female ? System.Speech.Synthesis.VoiceGender.Female : System.Speech.Synthesis.VoiceGender.Male;
                 // the language the characters speak in, so a Spanish line is not read by an English voice
                 string lang = LanguageCode(cfg.Language);
@@ -192,7 +192,7 @@ namespace AILegacy.Voice
         // OpenAI's /audio/speech, or any server that copies it
         private static byte[] FromSpeechApi(string baseUrl, string apiKey, string model, string voice, string text, AILegacySettings cfg)
         {
-            if (string.IsNullOrWhiteSpace(baseUrl)) { Log.Warn("Voz: falta la dirección del servidor de voz"); return null; }
+            if (string.IsNullOrWhiteSpace(baseUrl)) { Log.Warn("Voice: voice server address is missing"); return null; }
             var body = new JObject { ["model"] = model, ["voice"] = voice, ["input"] = text, ["response_format"] = "wav" };
             if (cfg.VoiceRate != 0) body["speed"] = Math.Max(0.5, Math.Min(2.0, 1.0 + cfg.VoiceRate / 10.0));
             using (var req = new HttpRequestMessage(HttpMethod.Post, baseUrl.TrimEnd('/') + "/audio/speech"))
@@ -202,7 +202,7 @@ namespace AILegacy.Voice
                 req.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
                 var resp = LlmClient.HttpShared.SendAsync(req, cts.Token).GetAwaiter().GetResult();
                 var bytes = resp.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
-                if (!resp.IsSuccessStatusCode) { Log.Warn($"Voz: HTTP {(int)resp.StatusCode} {Encoding.UTF8.GetString(bytes, 0, Math.Min(200, bytes.Length))}"); return null; }
+                if (!resp.IsSuccessStatusCode) { Log.Warn($"Voice: HTTP {(int)resp.StatusCode} {Encoding.UTF8.GetString(bytes, 0, Math.Min(200, bytes.Length))}"); return null; }
                 return bytes;
             }
         }
@@ -212,7 +212,7 @@ namespace AILegacy.Voice
         {
             string exe = (cfg.VoicePiperPath ?? "").Trim().Trim('"');
             string model = Pick(female ? cfg.VoiceFemaleVoices : cfg.VoiceMaleVoices, key, null);
-            if (exe.Length == 0 || !File.Exists(exe) || model == null || !File.Exists(model)) { Log.Warn("Voz: Piper necesita su ejecutable y un modelo .onnx en las listas de voces"); return null; }
+            if (exe.Length == 0 || !File.Exists(exe) || model == null || !File.Exists(model)) { Log.Warn("Voice: Piper needs its executable and an .onnx model in the voice lists"); return null; }
             string outFile = Path.Combine(Path.GetTempPath(), "ailegacy_voice_" + Guid.NewGuid().ToString("N") + ".wav");
             try
             {

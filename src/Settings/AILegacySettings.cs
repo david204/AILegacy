@@ -2594,7 +2594,7 @@ namespace AILegacy.Settings
             get
             {
                 try { return AILegacySettings.Instance ?? Defaults; }
-                catch (Exception ex) { Log.Warn("MCM no disponible, uso valores por defecto: " + ex.Message); return Defaults; }
+                catch (Exception ex) { Log.Warn("MCM not available, using default values: " + ex.Message); return Defaults; }
             }
         }
     }

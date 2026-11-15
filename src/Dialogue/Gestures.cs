@@ -52,7 +52,7 @@ namespace AILegacy.Dialogue
                 a.SetActionChannel(0, in act, forceFaceMorphRestart: true);
                 Moved.Add(a);
             }
-            catch (Exception ex) { _broken = true; Log.Error("Gestos (se desactivan en esta sesión)", ex); }
+            catch (Exception ex) { _broken = true; Log.Error("Gestures (disabled for this session)", ex); }
         }
 
         public static void End(Agent a)

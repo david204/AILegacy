@@ -39,7 +39,7 @@ namespace AILegacy.Patches
                     if (id != null && id.ToString() == "QuickConversation") list.RemoveAt(i);
                 }
             }
-            catch (Exception ex) { Log.Error("Quitar «Hablar» del menú de personajes", ex); }
+            catch (Exception ex) { Log.Error("Removing 'Talk' from the character menu", ex); }
         }
     }
 }

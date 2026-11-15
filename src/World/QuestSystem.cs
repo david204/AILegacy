@@ -142,9 +142,9 @@ namespace AILegacy.World
             {
                 case "create":
                 {
-                    if (ActiveFrom(h.StringId) != null) { Log.Warn($"{s.Name} ya tiene un encargo activo: no se crea otro"); break; }
-                    if (Quests.Count(q => q.Active) >= cfg.MaxActiveQuests) { Log.Warn("Demasiados encargos activos"); break; }
-                    if (r.Name.Length < 3 || (r.Description.Length < 10 && r.Brief.Length < 10)) { Log.Warn("Encargo sin nombre o descripción: ignorado"); break; }
+                    if (ActiveFrom(h.StringId) != null) { Log.Warn($"{s.Name} already has an active quest: not creating another"); break; }
+                    if (Quests.Count(q => q.Active) >= cfg.MaxActiveQuests) { Log.Warn("Too many active quests"); break; }
+                    if (r.Name.Length < 3 || (r.Description.Length < 10 && r.Brief.Length < 10)) { Log.Warn("Quest without name or description: ignored"); break; }
                     int days = Math.Max(3, Math.Min(60, r.Days <= 0 ? 15 : r.Days));
                     int reward = Math.Max(0, Math.Min(r.Reward, Math.Min(cfg.MaxGoldPerAction, Math.Max(0, h.Gold))));
                     EnsureHooks();
@@ -164,7 +164,7 @@ namespace AILegacy.World
                     if (r.Note.Length > 0) q.Log.Add(Clip(r.Note, 200));
                     QuestObjectives.Resolve(q, r, s);
                     Quests.Add(q);
-                    Log.Info($"Encargo creado por {s.Name}: {q.Name} ({days} días, {reward} denarios) [{q.Id}]");
+                    Log.Info($"Quest created by {s.Name}: {q.Name} ({days} days, {reward} denars) [{q.Id}]");
                     GameJournal.Create(q);
                     shown.Add(L.F("AIL_2bd6ef00", $"Nuevo encargo: «{q.Name}» ({days} días") + (reward > 0 ? L.F("AIL_de098566", $", {reward} denarios") : "") + ")");
                     break;
@@ -178,7 +178,7 @@ namespace AILegacy.World
                     if (r.SetProgress >= 0 && q.ProgressTarget > 0 && !QuestObjectives.HasObjective(q)) q.Progress = Math.Min(q.ProgressTarget, r.SetProgress);
                     while (q.Log.Count > 8) q.Log.RemoveAt(0);
                     GameJournal.Update(q, r.Note);
-                    Log.Info($"Encargo {q.Id} actualizado por {s.Name}: {r.Note} {(q.ProgressTarget > 0 ? q.Progress + "/" + q.ProgressTarget : "")}");
+                    Log.Info($"Quest {q.Id} updated by {s.Name}: {r.Note} {(q.ProgressTarget > 0 ? q.Progress + "/" + q.ProgressTarget : "")}");
                     shown.Add(L.F("AIL_0681e274", $"Encargo «{q.Name}»: ") + (q.ProgressTarget > 0 ? $"{q.Progress}/{q.ProgressTarget} {q.ProgressLabel}" : "anotado"));
                     break;
                 }
@@ -190,7 +190,7 @@ namespace AILegacy.World
                     if (!QuestObjectives.Met(q))
                     {
                         // The NPC says it's done but the game says no, so no completion and no reward
-                        Log.Warn($"{s.Name} quiso dar por cumplido {q.Id}, pero falta: {QuestObjectives.MissingEs(q)}");
+                        Log.Warn($"{s.Name} tried to mark {q.Id} complete, but is missing: {QuestObjectives.MissingEs(q)}");
                         shown.Add(L.F("AIL_390cb390", $"«{q.Name}» aún no está cumplido: {QuestObjectives.MissingEs(q)}"));
                         break;
                     }
@@ -237,7 +237,7 @@ namespace AILegacy.World
         {
             var mine = Quests.Where(q => q.Active && (q.GiverId == h.StringId || (allowTarget && q.Targets.Contains(h.StringId)))).ToList();
             var q2 = mine.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase)) ?? (mine.Count == 1 ? mine[0] : null);
-            if (q2 == null) Log.Warn($"Encargo no encontrado para {h.Name}: '{id}'");
+            if (q2 == null) Log.Warn($"Quest not found for {h.Name}: '{id}'");
             return q2;
         }
 
@@ -247,7 +247,7 @@ namespace AILegacy.World
             q.EndDay = CampaignTime.Now.ToDays;
             q.Reason = Clip(reason, 200);
             QuestObjectives.OnEnded(q);
-            Log.Info($"Encargo {q.Id} «{q.Name}»: {state} ({reason})");
+            Log.Info($"Quest {q.Id} «{q.Name}»: {state} ({reason})");
         }
 
         private static void Fail(AiQuest q, Speaker s, string state, string reason)
@@ -310,9 +310,9 @@ namespace AILegacy.World
                 if (ev == null || (_hookedOn != null && ReferenceEquals(_hookedOn.Target, ev))) return;
                 ev.AddNonSerializedListener(HookOwner, OnHeroKilled);
                 _hookedOn = new WeakReference(ev);
-                Log.Info("Encargos: escuchando las muertes de héroes");
+                Log.Info("Quests: listening for hero deaths");
             }
-            catch (Exception ex) { Log.Error("Encargos: enganchar muertes", ex); }
+            catch (Exception ex) { Log.Error("Quests: hook deaths", ex); }
         }
 
         private static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification)
@@ -322,7 +322,7 @@ namespace AILegacy.World
                 if (victim == null) return;
                 CloseForDeath(victim.StringId);
             }
-            catch (Exception ex) { Log.Error("Encargos: muerte de un héroe", ex); }
+            catch (Exception ex) { Log.Error("Quests: hero death", ex); }
         }
 
         private static void CloseForDeath(string heroId)
@@ -365,7 +365,7 @@ namespace AILegacy.World
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Encargos: muertos al cargar", ex); }
+            catch (Exception ex) { Log.Error("Quests: dead on load", ex); }
         }
 
         // ============================================================ time
@@ -394,7 +394,7 @@ namespace AILegacy.World
                 var old = Quests.Where(x => !x.Active).OrderByDescending(x => x.EndDay).Skip(60).ToList();
                 foreach (var x in old) Quests.Remove(x);
             }
-            catch (Exception ex) { Log.Error("Encargos: tick diario", ex); }
+            catch (Exception ex) { Log.Error("Quests: daily tick", ex); }
         }
     }
 

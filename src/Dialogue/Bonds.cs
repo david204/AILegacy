@@ -140,7 +140,7 @@ namespace AILegacy.Dialogue
                     if (mem.Romance > floor) mem.Romance--;
                 }
             }
-            catch (Exception ex) { Log.Error("Romance: tick diario", ex); }
+            catch (Exception ex) { Log.Error("Romance: daily tick", ex); }
         }
 
         /// <summary>A night together. Spouses can get pregnant. Returns the text to show.</summary>
@@ -160,13 +160,13 @@ namespace AILegacy.Dialogue
                     if (!mother.IsPregnant && mother.Age < 46 && Rng.Next(1000) < Math.Min(1000f, S.Get.PregnancyChancePercent * 10 * World.Mood.FertilityFactor(mother)))
                     {
                         MakePregnantAction.Apply(mother);
-                        Log.Info($"Embarazo: {mother.Name}");
+                        Log.Info($"Pregnancy: {mother.Name}");
                     }
                 }
                 // Not married to each other: the child, if there is one, is born out of wedlock
                 else if (h.Spouse != P && h.IsFemale != P.IsFemale) World.Bastards.TryWithPlayer(h);
             }
-            catch (Exception ex) { Log.Error("Intimidad: embarazo", ex); }
+            catch (Exception ex) { Log.Error("Intimacy: pregnancy", ex); }
             return L.F("AIL_8c0a210d", $"Pasas un rato a solas con {s.Name}.");
         }
 
@@ -359,7 +359,7 @@ namespace AILegacy.Dialogue
                 while (mem.Others.Count > cfg.NpcBondMaxPeople)
                     mem.Others.Remove(mem.Others.OrderBy(kv => kv.Value.Day).First().Key);
             }
-            catch (Exception ex) { Log.Error("Vínculo entre personajes", ex); }
+            catch (Exception ex) { Log.Error("Bond between characters", ex); }
         }
 
         /// <summary>The bond as a sees it, for a and b's own conversations.</summary>

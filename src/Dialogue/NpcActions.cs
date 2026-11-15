@@ -107,7 +107,7 @@ namespace AILegacy.Dialogue
         {
             if (LastDone.TryGetValue(s.Key + "|" + what, out var last) && last.amount == amount && (DateTime.UtcNow - last.at).TotalSeconds < S.Get.GoldRepeatGuardSeconds)
             {
-                Log.Warn($"Acción repetida ignorada: {what} x{amount} con {s.Name} (ya se hizo hace {(int)(DateTime.UtcNow - last.at).TotalSeconds} s)");
+                Log.Warn($"Repeated action ignored: {what} x{amount} with {s.Name} (already done {(int)(DateTime.UtcNow - last.at).TotalSeconds} s ago)");
                 _repeated = true;
                 return true;
             }
@@ -203,7 +203,7 @@ namespace AILegacy.Dialogue
                     ActionVecs.Clear();
                     _actionVecsModel = r.Model;
                     for (int i = 0; i < list.Count; i++) ActionVecs[list[i].Name] = v[i];
-                    Log.Info($"Acciones por tema: {list.Count} acciones con vector");
+                    Log.Info($"Actions by topic: {list.Count} actions with vector");
                 });
             });
         }
@@ -273,11 +273,11 @@ namespace AILegacy.Dialogue
             try
             {
                 if (h == null || !h.IsPrisoner) return;
-                Log.Info($"{h.Name} estaba preso al unirse al jugador: se le da la libertad primero");
+                Log.Info($"{h.Name} was imprisoned when joining the player: freed first");
                 if (Captivity.HeldByPlayer(h)) EndCaptivityAction.ApplyByReleasedByChoice(h, P);
                 else EndCaptivityAction.ApplyByEscape(h, null, false);
             }
-            catch (Exception ex) { Log.Error("Liberar antes de unirse", ex); }
+            catch (Exception ex) { Log.Error("Free before joining", ex); }
         }
 
         // --- deals forced out of a prisoner
@@ -334,7 +334,7 @@ namespace AILegacy.Dialogue
                     if (h.IsPrisoner && !AtWarWithPlayer(s))
                     {
                         try { EndCaptivityAction.ApplyByReleasedByChoice(h, P); }
-                        catch (Exception ex) { Log.Error("Soltar al prisionero tras el trato", ex); }
+                        catch (Exception ex) { Log.Error("Release the prisoner after the deal", ex); }
                     }
                     if (!h.IsPrisoner)
                     {
@@ -354,7 +354,7 @@ namespace AILegacy.Dialogue
                                ". You did it to save your life, not out of loyalty: the resentment stays with you.]");
                 Say(L.F("AIL_e7b1c786", $"Arrancado bajo amenaza: {s.Name} no lo olvidará."));
             }
-            catch (Exception ex) { Log.Error("Trato forzado con un prisionero", ex); }
+            catch (Exception ex) { Log.Error("Forced deal with a prisoner", ex); }
         }
 
         // --- orders on the map
@@ -664,7 +664,7 @@ namespace AILegacy.Dialogue
                     }
                     catch (Exception ex)
                     {
-                        Log.Error("Tratado de paz en una charla", ex);
+                        Log.Error("Peace treaty in a talk", ex);
                         return Nope(null, "the treaty could not be drawn up; nothing was signed, paid or handed over");
                     }
                 }
@@ -771,7 +771,7 @@ namespace AILegacy.Dialogue
                         // leader who now belongs to yours.
                         StepDownAsClanLeader(h);
                     }
-                    catch (Exception ex) { Log.Error("Preparar la boda", ex); }
+                    catch (Exception ex) { Log.Error("Prepare the wedding", ex); }
                     Marry(P, h);
                     if (P.Spouse != h)
                     {
@@ -781,8 +781,8 @@ namespace AILegacy.Dialogue
                             if (hadH != null && hadH.IsAlive && h.Spouse == null && hadH.Spouse == null) { h.Spouse = hadH; RemoveExSpouse(h, hadH); RemoveExSpouse(hadH, h); }
                             if (hadP != null && hadP.IsAlive && P.Spouse == null && hadP.Spouse == null) { P.Spouse = hadP; RemoveExSpouse(P, hadP); RemoveExSpouse(hadP, P); }
                         }
-                        catch (Exception ex) { Log.Error("Deshacer la boda fallida", ex); }
-                        Log.Warn($"La boda con {s.Name} no se ha podido celebrar");
+                        catch (Exception ex) { Log.Error("Undo the failed wedding", ex); }
+                        Log.Warn($"The wedding with {s.Name} could not be held");
                         return null;
                     }
                     Bonds.ChangeRomance(s, 10);
@@ -809,7 +809,7 @@ namespace AILegacy.Dialogue
                 {
                     var h = s.Hero;
                     try { FreeBeforeJoining(h); StepDownAsClanLeader(h); if (h.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(h); }
-                    catch (Exception ex) { Log.Error("Concubina: preparar", ex); }
+                    catch (Exception ex) { Log.Error("Concubine: prepare", ex); }
                     return World.Concubines.Take(h);
                 }
             },
@@ -889,7 +889,7 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var h = World.People.Promote(s, SceneAgent(), false, out string err);
-                    if (h == null) { Log.Warn("No se pudo convertir en personaje: " + err); return null; }
+                    if (h == null) { Log.Warn("Could not turn into a character: " + err); return null; }
                     return L.F("AIL_24fc64b9", $"{h.Name} ya es alguien que conoces: podrás volver a encontrarle en {s.ResidentSettlement.Name}.");
                 }
             },
@@ -971,7 +971,7 @@ namespace AILegacy.Dialogue
                         ctx.EndConversation = true;
                         return L.F("AIL_411fbc76", $"{s.Name} toma el mando de una partida propia del clan.");
                     }
-                    catch (Exception ex) { Log.Error("Crear partida del clan", ex); return null; }
+                    catch (Exception ex) { Log.Error("Create clan party", ex); return null; }
                 }
             },
             new ActionDef
@@ -1400,7 +1400,7 @@ namespace AILegacy.Dialogue
                                     SettlementId = mine.StringId,
                                 });
                             }
-                            catch (Exception ex) { Log.Error("Noticia de la cesión forzada", ex); }
+                            catch (Exception ex) { Log.Error("News of the forced cession", ex); }
                         }
                         AfterForcedDeal(s, ctx, $"you signed {mine.Name} over to them" + (others ? $", taking it from clan {from.Name} of your own realm, who now hold it against you and against them" : "") +
                                                 (last ? $". It was the last holding of {holder}: there is no town or castle left to it" : ""), false);
@@ -1539,7 +1539,7 @@ namespace AILegacy.Dialogue
                     var old = s.Hero.Clan;
                     // A governor who just switches clan leaves the town with a foreign governor (and the game crashes when you open it)
                     try { if (s.Hero.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(s.Hero); }
-                    catch (Exception ex) { Log.Error("Quitar la gobernación antes de cambiar de clan", ex); }
+                    catch (Exception ex) { Log.Error("Remove governorship before changing clan", ex); }
                     FreeBeforeJoining(s.Hero);
                     if (s.Hero.IsPrisoner) return Nope(null, "you are still held prisoner and could not join their clan");
                     s.Hero.Clan = PC;
@@ -1720,10 +1720,10 @@ namespace AILegacy.Dialogue
                         if (yours && troop != null && !troop.IsHero && MobileParty.MainParty.MemberRoster.GetTroopCount(troop) > 0)
                         {
                             MobileParty.MainParty.MemberRoster.AddToCounts(troop, -1);
-                            Log.Info($"{hero.Name} sale de filas ({troop.Name}) y pasa a ser compañero");
+                            Log.Info($"{hero.Name} leaves the ranks ({troop.Name}) and becomes a companion");
                         }
                     }
-                    catch (Exception ex) { Log.Warn("Sacar de filas al soldado ascendido: " + ex.Message); }
+                    catch (Exception ex) { Log.Warn("Take the promoted soldier out of the ranks: " + ex.Message); }
                     ctx.EndConversation = true;
                     try { if (agent != null) Combat.FadeAfterTalk(agent); } catch { }
                     return L.F("AIL_f65463d8", $"{hero.Name} deja su vida aquí y se une a tu compañía.");
@@ -1916,7 +1916,7 @@ namespace AILegacy.Dialogue
                 var list = HarmonyLib.AccessTools.Field(typeof(Hero), "_exSpouses")?.GetValue(of) as System.Collections.IList;
                 if (list != null && !list.Contains(ex)) list.Add(ex);
             }
-            catch (Exception e) { Log.Warn("No se pudo anotar al ex cónyuge: " + e.Message); }
+            catch (Exception e) { Log.Warn("Could not record the ex-spouse: " + e.Message); }
         }
 
         private static void RemoveExSpouse(Hero of, Hero ex)
@@ -1934,9 +1934,9 @@ namespace AILegacy.Dialogue
                 var heir = clan.Heroes.Where(x => x != h && x.IsAlive && !x.IsChild && x.IsLord).OrderByDescending(x => x.Age).FirstOrDefault();
                 if (heir != null) ChangeClanLeaderAction.ApplyWithSelectedNewLeader(clan, heir);
                 else ChangeClanLeaderAction.ApplyWithoutSelectedNewLeader(clan);
-                Log.Info($"{h.Name} deja la jefatura del clan {clan.Name} antes de casarse{(heir != null ? ": pasa a " + heir.Name : "")}");
+                Log.Info($"{h.Name} steps down as head of clan {clan.Name} before marrying{(heir != null ? ": passes to " + heir.Name : "")}");
             }
-            catch (Exception e) { Log.Error("Dejar la jefatura del clan antes de la boda", e); }
+            catch (Exception e) { Log.Error("Step down as clan head before the wedding", e); }
         }
 
         /// <summary>
@@ -1949,9 +1949,9 @@ namespace AILegacy.Dialogue
             bool sameClan = a.Clan != null && a.Clan == b.Clan;
             if (!sameClan)
             {
-                try { MarriageAction.Apply(a, b); } catch (Exception e) { Log.Warn("Boda, primer intento: " + e.Message); }
+                try { MarriageAction.Apply(a, b); } catch (Exception e) { Log.Warn("Wedding, first attempt: " + e.Message); }
                 if (a.Spouse == b) return;
-                try { MarriageAction.Apply(b, a); } catch (Exception e) { Log.Warn("Boda, segundo intento: " + e.Message); }
+                try { MarriageAction.Apply(b, a); } catch (Exception e) { Log.Warn("Wedding, second attempt: " + e.Message); }
                 if (a.Spouse == b) return;
             }
             try
@@ -1960,9 +1960,9 @@ namespace AILegacy.Dialogue
                 a.Spouse = b;
                 if (b.Spouse != a) b.Spouse = a;
                 if (b.Clan != a.Clan && a.Clan != null && (b.Clan == null || b.Clan.Leader != b)) b.Clan = a.Clan;
-                Log.Info($"Boda de {a.Name} y {b.Name} hecha a mano: el juego no la aceptó por su vía normal");
+                Log.Info($"Wedding of {a.Name} and {b.Name} done manually: the game did not accept it the normal way");
             }
-            catch (Exception e) { Log.Error("Boda a mano", e); }
+            catch (Exception e) { Log.Error("Manual wedding", e); }
         }
 
         private static bool CanWed(Hero h)
@@ -2003,7 +2003,7 @@ namespace AILegacy.Dialogue
                 if (template == null)
                     template = CharacterObject.All.FirstOrDefault(t => t.IsTemplate && t.Occupation == Occupation.Wanderer && t.IsFemale == s.IsFemale && t.Culture == culture)
                                ?? CharacterObject.All.FirstOrDefault(t => t.IsTemplate && t.Occupation == Occupation.Wanderer && t.IsFemale == s.IsFemale);
-                if (template == null) { Log.Warn("No hay plantilla de compañero para convertir a " + s.Name); return null; }
+                if (template == null) { Log.Warn("No companion template to convert " + s.Name); return null; }
 
                 var born = s.ResidentSettlement ?? Settlement.CurrentSettlement;
                 var hero = HeroCreator.CreateSpecialHero(template, born, null, null, Math.Max(18, (int)s.Age));
@@ -2029,10 +2029,10 @@ namespace AILegacy.Dialogue
                 if (mem.Profile != null)
                     mem.Profile.Backstory = ((mem.Profile.Backstory ?? "") + $" I left {born?.Name} to follow {Hero.MainHero.Name}.").Trim();
                 World.ResidentFaces.Forget(s.Key);
-                Log.Info($"{name} deja de ser un vecino de {born?.Name} y pasa a ser héroe ({hero.StringId}) y compañero");
+                Log.Info($"{name} stops being a neighbour of {born?.Name} and becomes a hero ({hero.StringId}) and companion");
                 return hero;
             }
-            catch (Exception ex) { Log.Error("Convertir a un vecino en compañero", ex); return null; }
+            catch (Exception ex) { Log.Error("Turn a neighbour into a companion", ex); return null; }
         }
 
         /// <summary>Registers one editable template per action (prompts\actions\).</summary>
@@ -2141,17 +2141,17 @@ namespace AILegacy.Dialogue
                 IsAvailable = s =>
                 {
                     try { return s.IsHero && (isAvailable == null || isAvailable(s.Hero)); }
-                    catch (Exception ex) { Log.Error("API: fallo en la condición de la acción " + name, ex); return false; }
+                    catch (Exception ex) { Log.Error("API: failure in the condition of action " + name, ex); return false; }
                 },
                 Execute = (s, arg, ctx) =>
                 {
                     string shown;
                     try { shown = execute(s.Hero, arg ?? ""); }
-                    catch (Exception ex) { Log.Error("API: fallo al ejecutar la acción " + name, ex); shown = null; }
+                    catch (Exception ex) { Log.Error("API: failure running action " + name, ex); shown = null; }
                     return shown ?? Nope(null, "it could not be done");
                 },
             });
-            Log.Info("API: acción registrada por otro mod: " + name);
+            Log.Info("API: action registered by another mod: " + name);
             return true;
         }
 
@@ -2286,25 +2286,25 @@ If the talk turns to one of them, say plainly and in character that it is not in
                 int colon = cmd.IndexOf(':');
                 var name = (colon >= 0 ? cmd.Substring(0, colon) : cmd).Trim().ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
                 var arg = colon >= 0 ? cmd.Substring(colon + 1).Trim() : "";
-                if (Aliases.TryGetValue(name, out var real) && All.All(a => a.Name != name)) { Log.Info($"Acción «{name}» entendida como «{real}»"); name = real; }
+                if (Aliases.TryGetValue(name, out var real) && All.All(a => a.Name != name)) { Log.Info($"Action «{name}» understood as «{real}»"); name = real; }
                 if (!done.Add(name)) continue;
                 ctx.Tried.Add(name);
 
                 var def = All.FirstOrDefault(a => a.Name == name);
-                if (def == null) { Log.Warn($"Acción desconocida ignorada: {cmd}"); Failed(cmd, "there is no such action: only the actions listed in your briefing exist"); continue; }
-                if (ctx.ViaLetter && !def.Letter) { Log.Warn($"Acción no válida por carta, ignorada: {cmd}"); Failed(cmd, "that cannot be done by letter: you are not there in person"); continue; }
+                if (def == null) { Log.Warn($"Unknown action ignored: {cmd}"); Failed(cmd, "there is no such action: only the actions listed in your briefing exist"); continue; }
+                if (ctx.ViaLetter && !def.Letter) { Log.Warn($"Action not valid by letter, ignored: {cmd}"); Failed(cmd, "that cannot be done by letter: you are not there in person"); continue; }
                 var clash = Exclusive.FirstOrDefault(g => g.Contains(name) && g.Any(o => o != name && executed.Contains(o)));
-                if (clash != null) { Log.Warn($"Acción incompatible con otra de la misma respuesta, ignorada: {cmd}"); continue; }
+                if (clash != null) { Log.Warn($"Action incompatible with another in the same reply, ignored: {cmd}"); continue; }
                 try
                 {
-                    if (!def.IsAvailable(s)) { Log.Warn($"Acción no disponible ahora, ignorada: {cmd}"); Failed(cmd, "it is not possible right now (it was not among the actions open to you)"); continue; }
+                    if (!def.IsAvailable(s)) { Log.Warn($"Action not available now, ignored: {cmd}"); Failed(cmd, "it is not possible right now (it was not among the actions open to you)"); continue; }
                     _why = null; _repeated = false;
                     int turnsBefore = s.Memory.Turns.Count;
                     var msg = def.Execute(s, arg, ctx);
                     bool happened = msg != null && _why == null;
-                    Log.Info($"Acción {cmd} de {s.Name}" + (msg != null ? ": " + msg : "") + (happened ? "" : _repeated ? " (repetida)" : " (no ha ocurrido" + (_why != null ? ": " + _why : "") + ")"));
+                    Log.Info($"Action {cmd} by {s.Name}" + (msg != null ? ": " + msg : "") + (happened ? "" : _repeated ? " (repeated)" : " (did not happen" + (_why != null ? ": " + _why : "") + ")"));
                     if (!string.IsNullOrEmpty(msg)) messages.Add(msg);          // empty string: it happened, but there's nothing to show
-                    else if (msg == null && def.Usage.Contains(":")) Log.Warn($"La acción {cmd} no se pudo cumplir (objetivo no encontrado o no válido)");
+                    else if (msg == null && def.Usage.Contains(":")) Log.Warn($"Action {cmd} could not be carried out (target not found or invalid)");
                     if (happened)
                     {
                         executed.Add(name);
@@ -2319,7 +2319,7 @@ If the talk turns to one of them, say plainly and in character that it is not in
                     else if (!_repeated)
                         Failed(cmd, _why ?? (def.Usage.Contains(":") ? "what you named could not be found or is not valid for it" : "the conditions for it were not met"));
                 }
-                catch (Exception ex) { Log.Error($"Error ejecutando la acción {cmd}", ex); Failed(cmd, "something went wrong and it could not be carried out"); }
+                catch (Exception ex) { Log.Error($"Error running action {cmd}", ex); Failed(cmd, "something went wrong and it could not be carried out"); }
                 finally { _why = null; _repeated = false; }
             }
             return messages;
@@ -2427,12 +2427,12 @@ leave: renounced your ruler");
                     // said twice in a row: one note is enough
                     if (turns.Skip(Math.Max(0, turns.Count - 6)).Any(t => t.Text == note)) continue;
                     NoteOutcome(s, note);
-                    Log.Warn($"{s.Name} da por hecho algo que no ha hecho ({d.Kind}: «{d.Quote}»), sin acción" + (open.Count > 0 ? $"; podía hacerlo con {open[0].Name}" : "; no tenía acción para ello"));
+                    Log.Warn($"{s.Name} claims to have done something they did not ({d.Kind}: «{d.Quote}»), no action" + (open.Count > 0 ? $"; could have done it with {open[0].Name}" : "; had no action for it"));
                     if (nudge == null && open.Count > 0 && nudged != null && nudged.Add(d.Kind))
                         nudge = TPromiseNudge.Format("deed", deed, "usage", string.Join("  or  ", open.Take(2).Select(a => a.Usage.Split(new[] { "  or  " }, StringSplitOptions.None)[0])));
                 }
             }
-            catch (Exception ex) { Log.Error("Promesas sin acción", ex); }
+            catch (Exception ex) { Log.Error("Promises without action", ex); }
             return nudge;
         }
 
@@ -2479,10 +2479,10 @@ leave: renounced your ruler");
                 try
                 {
                     TaleWorlds.Library.InformationManager.ShowInquiry(new TaleWorlds.Library.InquiryData(title, text, true, true, yes, no,
-                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onYes?.Invoke(); } catch (Exception ex) { Log.Error("Decisión del jugador", ex); } }),
-                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onNo?.Invoke(); } catch (Exception ex) { Log.Error("Decisión del jugador", ex); } })), true);
+                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onYes?.Invoke(); } catch (Exception ex) { Log.Error("Player decision", ex); } }),
+                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onNo?.Invoke(); } catch (Exception ex) { Log.Error("Player decision", ex); } })), true);
                 }
-                catch (Exception ex) { Log.Error("Ventana de decisión", ex); }
+                catch (Exception ex) { Log.Error("Decision window", ex); }
             });
         }
 
@@ -2509,7 +2509,7 @@ leave: renounced your ruler");
                 RecordAsNews(s, "accept_marriage");
                 Memory.SaveFiles.Flush();
             }
-            catch (Exception ex) { Log.Error("Boda", ex); }
+            catch (Exception ex) { Log.Error("Wedding", ex); }
         }
 
         /// <summary>An armed duel doesn't just start: the player accepts or backs out.</summary>
@@ -2634,7 +2634,7 @@ leave: renounced your ruler");
             }
             catch (Exception ex)
             {
-                Log.Error("Condiciones de una paz hablada", ex);
+                Log.Error("Conditions of a spoken peace", ex);
                 bad = "the terms could not be read";
                 return null;
             }
@@ -2709,7 +2709,7 @@ leave: renounced your ruler");
                               : action == "set_free" ? !s.Hero.IsPrisoner
                               : action == "accept_marriage" ? P.Spouse == s.Hero
                               : true;
-                if (!happened) { Log.Warn($"Noticia de {action} con {s.Name} descartada: no ha ocurrido"); return; }
+                if (!happened) { Log.Warn($"News of {action} with {s.Name} discarded: it did not happen"); return; }
             }
             catch { return; }
             string text = null, es = null, title = null; int imp = 1;

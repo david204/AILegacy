@@ -143,7 +143,7 @@ namespace AILegacy.Memory
                     result.Add(when + x.u.Text);
                 }
             }
-            catch (Exception ex) { Core.Log.Error("Recuerdo relevante", ex); }
+            catch (Exception ex) { Core.Log.Error("Relevant recall", ex); }
             return result;
         }
     }

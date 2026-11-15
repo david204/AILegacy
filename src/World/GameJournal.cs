@@ -45,7 +45,7 @@ namespace AILegacy.World
 
         protected override void OnTimedOut()
         {
-            try { QuestSystem.OnJournalTimedOut(AiQuestId); } catch (Exception ex) { Log.Error("Misión caducada", ex); }
+            try { QuestSystem.OnJournalTimedOut(AiQuestId); } catch (Exception ex) { Log.Error("Quest expired", ex); }
         }
 
         public void Note(string text) { if (!string.IsNullOrWhiteSpace(text)) AddLog(T(text)); }
@@ -83,9 +83,9 @@ namespace AILegacy.World
                 gq.Note(q.Description + (goal.Length > 0 ? "\n\n" + goal : "") + (q.RewardGold > 0 ? L.F("AIL_41b3740a", $"\n\nRecompensa prometida: {q.RewardGold} denarios.") : ""));
                 foreach (var obj in QuestObjectives.Trackables(q)) { try { gq.AddTrackedObject(obj); } catch { } }
                 if (q.ProgressTarget > 0) gq.SetProgress(q.ProgressLabel, q.Progress, q.ProgressTarget);
-                Log.Info($"Misión añadida al diario: {q.Name} [{q.Id}]");
+                Log.Info($"Quest added to journal: {q.Name} [{q.Id}]");
             }
-            catch (Exception ex) { Log.Error("No se pudo crear la misión en el diario", ex); }
+            catch (Exception ex) { Log.Error("Could not create the quest in the journal", ex); }
         }
 
         public static void Update(AiQuest q, string note)
@@ -97,7 +97,7 @@ namespace AILegacy.World
                 gq.Note(note);
                 if (q.ProgressTarget > 0) gq.SetProgress(q.ProgressLabel, q.Progress, q.ProgressTarget);
             }
-            catch (Exception ex) { Log.Error("Actualizar misión del diario", ex); }
+            catch (Exception ex) { Log.Error("Update journal quest", ex); }
         }
 
         public static void Untrack(AiQuest q, string heroId) => Untrack(q, Hero.Find(heroId));
@@ -111,7 +111,7 @@ namespace AILegacy.World
                 if (gq == null || obj == null || ReferenceEquals(obj, gq.QuestGiver)) return;
                 if (gq.IsTracked(obj)) gq.RemoveTrackedObject(obj);
             }
-            catch (Exception ex) { Log.Error("Quitar seguimiento de la misión", ex); }
+            catch (Exception ex) { Log.Error("Remove quest tracking", ex); }
         }
 
         public static void Close(AiQuest q, string state, string text)
@@ -126,7 +126,7 @@ namespace AILegacy.World
                 else if (state == "cancelled") gq.CompleteQuestWithCancel(log);
                 else gq.CompleteQuestWithFail(log);
             }
-            catch (Exception ex) { Log.Error("Cerrar misión del diario", ex); }
+            catch (Exception ex) { Log.Error("Close journal quest", ex); }
         }
 
         /// <summary>On load: every open AI quest gets its journal entry, and orphaned journal quests are closed.</summary>
@@ -144,7 +144,7 @@ namespace AILegacy.World
                     if (!QuestSystem.Quests.Any(x => x.Active && x.Id == gq.AiQuestId))
                         gq.CompleteQuestWithCancel(new TextObject(L.T("AIL_175eb081", "{=!}Este encargo ya no está en pie.")));
             }
-            catch (Exception ex) { Log.Error("Sincronizando el diario de misiones", ex); }
+            catch (Exception ex) { Log.Error("Syncing quest journal", ex); }
         }
     }
 }

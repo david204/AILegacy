@@ -62,7 +62,7 @@ namespace AILegacy.UI
                 _engine = engine;
                 _texture = new Texture(new EngineTexture(engine));
             }
-            catch (Exception ex) { _failed = true; Log.Error("Imagen: cargar " + _imagePath, ex); }
+            catch (Exception ex) { _failed = true; Log.Error("Image: loading " + _imagePath, ex); }
         }
 
         protected override void OnRender(TwoDimensionContext twoDimensionContext, TwoDimensionDrawContext drawContext)
@@ -86,7 +86,7 @@ namespace AILegacy.UI
                 drawObject.Scale = _scaleToUse;
                 drawContext.Draw(material, in drawObject);
             }
-            catch (Exception ex) { _failed = true; Drop(); Log.Error("Imagen: dibujar", ex); }
+            catch (Exception ex) { _failed = true; Drop(); Log.Error("Image: drawing", ex); }
         }
     }
 }

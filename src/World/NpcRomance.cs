@@ -148,11 +148,11 @@ namespace AILegacy.World
                     All.Add(new Courtship { A = a.StringId, B = b.StringId, Level = 10, Since = now, LastTogether = now });
                     Remember(a, $"You have begun to court {b.Name} of {b.Clan?.Name}: you seek their company and they do not turn you away.");
                     Remember(b, $"{a.Name} of {a.Clan?.Name} has begun to court you, and you have not turned them away.");
-                    Log.Info($"[cortejo] {a.Name} empieza a cortejar a {b.Name}");
+                    Log.Info($"[courtship] {a.Name} starts courting {b.Name}");
                     return;
                 }
             }
-            catch (Exception ex) { Log.Error("Cortejos entre personajes", ex); }
+            catch (Exception ex) { Log.Error("Courtships between characters", ex); }
         }
 
         /// <summary>Not in the middle of a battle or a siege, and not in chains.</summary>
@@ -165,12 +165,12 @@ namespace AILegacy.World
                 All.Remove(c);
                 // The one who is not head of a clan moves; with two heads, the game decides and may refuse
                 MarriageAction.Apply(a, b, true);
-                if (a.Spouse != b) { Log.Warn($"[cortejo] el juego no ha casado a {a.Name} y {b.Name}"); return; }
+                if (a.Spouse != b) { Log.Warn($"[courtship] the game did not marry {a.Name} and {b.Name}"); return; }
                 Remember(a, $"You married {b.Name}, after courting them.");
                 Remember(b, $"You married {a.Name}, who courted you.");
-                Log.Info($"[cortejo] boda de {a.Name} y {b.Name}");
+                Log.Info($"[courtship] wedding of {a.Name} and {b.Name}");
             }
-            catch (Exception ex) { Log.Error("Boda entre personajes", ex); }
+            catch (Exception ex) { Log.Error("Wedding between characters", ex); }
         }
 
         private static void Remember(Hero h, string note)

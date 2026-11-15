@@ -47,7 +47,7 @@ namespace AILegacy.Dialogue
                 Ours.Add(a);
                 return true;
             }
-            catch (Exception ex) { Log.Error("Mover a un personaje por la escena", ex); return false; }
+            catch (Exception ex) { Log.Error("Move a character in the scene", ex); return false; }
         }
 
         public static void Release(Agent a)
@@ -59,7 +59,7 @@ namespace AILegacy.Dialogue
                 if (g != null && g.ScriptedBehavior is FollowAgentBehavior) g.DisableScriptedBehavior();
                 a.DisableScriptedMovement();
             }
-            catch (Exception ex) { Log.Error("Soltar a un personaje", ex); }
+            catch (Exception ex) { Log.Error("Release a character", ex); }
         }
 
         /// <summary>Takes charge of someone the game itself set following (brought into the scene behind the player), so they can be released.</summary>

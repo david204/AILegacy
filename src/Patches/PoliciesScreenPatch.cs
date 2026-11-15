@@ -49,7 +49,7 @@ namespace AILegacy.Patches
                 // A kingdom with no voted policy would open the active list with nothing selected
                 if (__instance.CurrentSelectedPolicy == null && !__instance.IsInProposeMode) __instance.SelectPolicy(laws[0]);
             }
-            catch (Exception ex) { Log.Error("Leyes en la pantalla de políticas", ex); }
+            catch (Exception ex) { Log.Error("Laws on the policies screen", ex); }
         }
     }
 
@@ -76,7 +76,7 @@ namespace AILegacy.Patches
                 __instance.IsAcceptableItemSelected = true;
                 return false;
             }
-            catch (Exception ex) { Log.Error("Elegir una ley en la pantalla de políticas", ex); return false; }
+            catch (Exception ex) { Log.Error("Choosing a law on the policies screen", ex); return false; }
         }
     }
 

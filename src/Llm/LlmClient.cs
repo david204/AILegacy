@@ -66,7 +66,7 @@ namespace AILegacy.Llm
                 // requests sat waiting for a connection and timed out before they were even sent.
                 if (ServicePointManager.DefaultConnectionLimit < 16) ServicePointManager.DefaultConnectionLimit = 16;
             }
-            catch (Exception ex) { Log.Warn("No se pudo ajustar la red: " + ex.Message); }
+            catch (Exception ex) { Log.Warn("Could not tune the network: " + ex.Message); }
 
             Http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
             Http.DefaultRequestHeaders.UserAgent.ParseAdd("AILegacy/0.1");
@@ -266,7 +266,7 @@ namespace AILegacy.Llm
         {
             var st = StateOf(p);
             lock (st) { st.BlockedUntil = DateTime.UtcNow.AddSeconds(seconds); st.BlockReason = reason; }
-            Log.Warn($"Proveedor {p.Name} en pausa {(int)seconds} s: {reason}");
+            Log.Warn($"Provider {p.Name} paused for {(int)seconds} s: {reason}");
         }
 
         /// <summary>Counts a failure and pauses the provider when needed.</summary>
@@ -379,11 +379,11 @@ namespace AILegacy.Llm
                     if (r.Ok)
                     {
                         // Asked for JSON and got prose: try the next one, and fall back to this if nobody returns JSON
-                        if (wantJson && r.Text.IndexOf('{') < 0) { if (prose == null) prose = r; errors.Add($"{p.Name}: respuesta sin JSON"); Log.Warn($"Proveedor {p.Name}: se pidió JSON y ha contestado en prosa, pruebo el siguiente"); continue; }
+                        if (wantJson && r.Text.IndexOf('{') < 0) { if (prose == null) prose = r; errors.Add($"{p.Name}: response without JSON"); Log.Warn($"Provider {p.Name}: JSON was requested but it answered in prose, trying the next one"); continue; }
                         return r;
                     }
                     errors.Add($"{p.Name}: {r.Error}");
-                    Log.Warn($"Proveedor {p.Name} falló, paso al siguiente: {r.Error}");
+                    Log.Warn($"Provider {p.Name} failed, moving to the next: {r.Error}");
                 }
                 if (anyTried || prose != null) break;
                 // All paused or over quota. If the player is waiting, hold on a bit for the first one to come back
@@ -430,7 +430,7 @@ namespace AILegacy.Llm
                         // The stream broke halfway: ask again the normal way, and stop streaming with this provider
                         UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
                         Flag(NoStream, key);
-                        Log.Warn($"{p.Name}: la respuesta en streaming se cortó ({err}); repito la petición sin streaming y no vuelvo a pedírselo en esta sesión");
+                        Log.Warn($"{p.Name}: streaming response was cut off ({err}); retrying without streaming and won't ask for it again this session");
                         lastError = "streaming cortado: " + err;
                         stream = false; usageOpt = false;
                         level--;
@@ -452,7 +452,7 @@ namespace AILegacy.Llm
                         if (droppedUsage && !IsFlagged(NoStreamUsage, key))
                         {
                             Flag(NoStreamUsage, key);
-                            Log.Warn($"{p.Name}: no acepta stream_options; el consumo de sus respuestas en streaming se estimará");
+                            Log.Warn($"{p.Name}: does not accept stream_options; usage of its streaming responses will be estimated");
                         }
                     }
                 }
@@ -467,7 +467,7 @@ namespace AILegacy.Llm
                         if (status == 200 && streamNamed)
                         {
                             Flag(NoStream, key);
-                            Log.Warn($"{p.Name}: rechaza las peticiones en streaming; no vuelvo a pedírselo en esta sesión");
+                            Log.Warn($"{p.Name}: rejects streaming requests; won't ask for it again this session");
                         }
                     }
                 }
@@ -480,12 +480,12 @@ namespace AILegacy.Llm
                     if (r.Ok)
                     {
                         NoteOk(p);
-                        Log.Info($"OK {r.Provider} [{opts.Task}] en {secs:0.0}s (in={r.PromptTokens}" + (r.CachedTokens > 0 ? $", caché={r.CachedTokens}" : "") + $" out={r.CompletionTokens})" + (level > 0 ? $" [nivel {level}]" : ""));
+                        Log.Info($"OK {r.Provider} [{opts.Task}] in {secs:0.0}s (in={r.PromptTokens}" + (r.CachedTokens > 0 ? $", cache={r.CachedTokens}" : "") + $" out={r.CompletionTokens})" + (level > 0 ? $" [level {level}]" : ""));
                         if (level != start)
                         {
                             lock (WorkingLevel) WorkingLevel[p.Name + "|" + p.Model] = level;
-                            Log.Warn($"{p.Name}: no acepta todos los parámetros; desde ahora se le envía el nivel {level} " +
-                                     (level == 1 ? L.T("AIL_967c929e", "(sin los \"extra\" de config.json: revisa ese bloque)") : level == 2 ? L.T("AIL_d02be029", "(sin modo JSON)") : L.T("AIL_db9c0e6a", "(mínimo)")) + $". Motivo: {lastError}");
+                            Log.Warn($"{p.Name}: does not accept all parameters; from now on it gets level {level} " +
+                                     (level == 1 ? L.T("AIL_967c929e", "(sin los \"extra\" de config.json: revisa ese bloque)") : level == 2 ? L.T("AIL_d02be029", "(sin modo JSON)") : L.T("AIL_db9c0e6a", "(mínimo)")) + $". Reason: {lastError}");
                         }
                         return r;
                     }
@@ -495,7 +495,7 @@ namespace AILegacy.Llm
                     {
                         grown = true;
                         maxTokens = Math.Min(4000, Math.Max(maxTokens * 2, 1200));
-                        Log.Warn($"{p.Name}: respuesta cortada por el tope de tokens; reintento con {maxTokens}");
+                        Log.Warn($"{p.Name}: response cut by the token limit; retrying with {maxTokens}");
                         level--;            // the loop bumps it back up, so this same level runs again (once, see grown)
                         continue;
                     }
@@ -533,7 +533,7 @@ namespace AILegacy.Llm
             if (opts.OnPartial == null) return true;
             opts.PartialSent = text.Length > 0;
             try { return opts.OnPartial(text); }
-            catch (Exception ex) { Log.Error("Texto parcial de la respuesta", ex); return true; }
+            catch (Exception ex) { Log.Error("Partial response text", ex); return true; }
         }
 
         /// <summary>Before a new attempt: what the previous one showed is no longer valid.</summary>

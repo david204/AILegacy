@@ -128,7 +128,7 @@ namespace AILegacy.World
                                 && p.MemberRoster.TotalManCount > 0 && p.GetPosition2D.Distance(here) <= radius)
                     .OrderBy(p => p.GetPosition2D.Distance(here)).Take(max).ToList();
             }
-            catch (Exception ex) { Log.Error("Órdenes: buscando enemigos", ex); }
+            catch (Exception ex) { Log.Error("Orders: looking for enemies", ex); }
             return result;
         }
 
@@ -173,13 +173,13 @@ namespace AILegacy.World
             if (type == "follow") o.UntilDay = CampaignTime.Now.ToDays + Math.Max(days, cfg.OrderMaxDays);
             if (type == "meet") o.StayDays = cfg.OrderDefaultDays;
             Orders.Add(o);
-            Log.Info(auto && reason == "care" ? $"[enfermedad] {h.Name} ({h.Clan?.Name}) lleva a su partida a {targetName} para que la traten"
-                   : auto ? $"[sin tierra] {h.Name} ({h.Clan?.Name}) patrulla por su cuenta alrededor de {targetName} ({days:0.#} días)" : $"Orden para {h.Name}: {type} {targetName} ({days:0.#} días)");
+            Log.Info(auto && reason == "care" ? $"[disease] {h.Name} ({h.Clan?.Name}) takes their party to {targetName} for treatment"
+                   : auto ? $"[landless] {h.Name} ({h.Clan?.Name}) patrols on their own around {targetName} ({days:0.#} days)" : $"Order for {h.Name}: {type} {targetName} ({days:0.#} days)");
             // Don't move the party while inside a scene (pulling it out of the settlement while you talk breaks the scene).
             // The order starts on the first tick after you leave.
             if (TaleWorlds.MountAndBlade.Mission.Current == null)
             {
-                try { Apply(o, h, PartyLedBy(h)); } catch (Exception ex) { Log.Error("Órdenes: aplicar", ex); }
+                try { Apply(o, h, PartyLedBy(h)); } catch (Exception ex) { Log.Error("Orders: apply", ex); }
             }
             return true;
         }
@@ -200,9 +200,9 @@ namespace AILegacy.World
                 var p = h?.PartyBelongedTo;
                 if (p != null && !p.IsMainParty && p.LeaderHero == h) p.Ai.SetDoNotMakeNewDecisions(false);
             }
-            catch (Exception ex) { Log.Error("Órdenes: liberar", ex); }
+            catch (Exception ex) { Log.Error("Orders: release", ex); }
             if (message != null && !o.Auto) Say(message);
-            Log.Info($"Orden terminada ({o.Type} {o.TargetName}) de {h?.Name}");
+            Log.Info($"Order finished ({o.Type} {o.TargetName}) of {h?.Name}");
         }
 
         private static void Say(string msg) => InformationManager.DisplayMessage(new InformationMessage(msg, Colors.Yellow));
@@ -230,7 +230,7 @@ namespace AILegacy.World
                 string state = L.F("AIL_d7c17160", $"{o.Type} {o.TargetName} | en={p.CurrentSettlement?.Name?.ToString() ?? "-"} def={p.DefaultBehavior} corto={p.ShortTermBehavior} obj={p.TargetSettlement?.Name?.ToString() ?? p.TargetParty?.Name?.ToString() ?? "-"} llegó={o.Arrived} batalla={p.MapEvent != null}");
                 if (LastState.TryGetValue(o.HeroId, out var old) && old == state) return;
                 LastState[o.HeroId] = state;
-                Log.Info($"[orden] {h.Name}: {state}");
+                Log.Info($"[order] {h.Name}: {state}");
             }
             catch { }
         }
@@ -270,7 +270,7 @@ namespace AILegacy.World
                     Apply(o, h, p);
                     if (Orders.Contains(o)) Trace(o, h, p);
                 }
-                catch (Exception ex) { Log.Error("Órdenes: tick", ex); }
+                catch (Exception ex) { Log.Error("Orders: tick", ex); }
             }
         }
 
@@ -298,7 +298,7 @@ namespace AILegacy.World
                 if (h.MapFaction != null && mine != null && h.MapFaction != mine && h.MapFaction.IsAtWarWith(mine)) return;
                 if (Give(h, "follow", null, Hero.MainHero.Name.ToString(), 0)) Say(L.F("AIL_c7a9d5e1", $"{h.Name} vuelve contigo, como acordasteis."));
             }
-            catch (Exception ex) { Log.Error("Órdenes: volver", ex); }
+            catch (Exception ex) { Log.Error("Orders: return", ex); }
         }
 
         private static string EndText(PartyOrder o, Hero h)

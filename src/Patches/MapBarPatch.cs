@@ -45,7 +45,7 @@ namespace AILegacy.Patches
                 list.Insert(quest >= 0 ? quest + 1 : list.Count, new MemoriesNavigationElement(__instance));
                 __result = list.ToArray();
             }
-            catch (Exception ex) { Log.Error("Barra del mapa", ex); }
+            catch (Exception ex) { Log.Error("Map bar", ex); }
         }
     }
 }

@@ -66,14 +66,14 @@ namespace AILegacy.Dialogue
                 SceneMove.GoTo(a, Agent.Main);
                 Followers.Add(a);
             }
-            catch (Exception ex) { Log.Error("Seguir en la escena nueva", ex); }
+            catch (Exception ex) { Log.Error("Follow in the new scene", ex); }
         }
 
         /// <summary>Stops walking with the player, with no message and without touching who crosses doors.</summary>
         internal static void Unfollow(Agent a)
         {
             try { Followers.Remove(a); SceneMove.Release(a); }
-            catch (Exception ex) { Log.Error("Dejar de seguir", ex); }
+            catch (Exception ex) { Log.Error("Stop following", ex); }
         }
 
         private static void Sync()
@@ -108,7 +108,7 @@ namespace AILegacy.Dialogue
                         Followers.Add(who);
                         SceneTravel.Follow(who);
                         Say(L.F("AIL_dd2f52c0", $"{who.Name} te acompaña."));
-                        Log.Info($"[escena] {who.Name} te acompaña");
+                        Log.Info($"[scene] {who.Name} accompanies you");
                         return false;
                     case "stay":
                     {
@@ -135,7 +135,7 @@ namespace AILegacy.Dialogue
                         Guides.RemoveAll(g => g.Who == who);
                         Guides.Add(new Guide { Who = who, To = to, Left = 240f });
                         Say(L.F("AIL_5f595733", $"{who.Name} te lleva hasta {to.Name}. Síguele."));
-                        Log.Info($"[escena] {who.Name} guía al jugador hasta {to.Name}");
+                        Log.Info($"[scene] {who.Name} guides the player to {to.Name}");
                         return true;
                     }
                     case "call":
@@ -144,7 +144,7 @@ namespace AILegacy.Dialogue
                         if (target == null || target == who || Busy(target) || !SceneMove.GoTo(target, Agent.Main)) return false;
                         Calls.Add(new Call { Who = target, Left = 120f });
                         Say(L.F("AIL_7f71ac3a", $"{who.Name} llama a {target.Name}."));
-                        Log.Info($"[escena] {who.Name} llama a {target.Name}");
+                        Log.Info($"[scene] {who.Name} calls {target.Name}");
                         return false;
                     }
                     case "draw_weapon":
@@ -180,7 +180,7 @@ namespace AILegacy.Dialogue
                             who.AIMoveToGameObjectEnable(best, bestChair, Agent.AIScriptedFrameFlags.NoAttack);
                             Say(L.F("AIL_67c8cba8", $"{who.Name} va a sentarse."));
                         }
-                        catch (Exception ex) { Log.Error("Sentarse", ex); }
+                        catch (Exception ex) { Log.Error("Sit down", ex); }
                         return false;
                     case "stand_up":
                         try { if (who.IsUsingGameObject) who.StopUsingGameObject(); StandFromGround(who); who.SetLookAgent(Agent.Main); } catch { }
@@ -197,9 +197,9 @@ namespace AILegacy.Dialogue
                                       $"ordered you in front of everyone to remove the armed person now in front of you from their presence, with these words: \"{(line ?? "").Replace("\"", "'")}\". " +
                                       "No blood was shed: the offence is insolence in a noble's hall. You carry out the order. They either come away quietly with you (let_go, once they agree to leave), " +
                                       "pay for the insult (fine), or go to the cells (arrest) if they argue with the order, mock or resist.";
-                        if (!Justice.Summon(what, who, true)) { Log.Info($"[escena] {who.Name} llama a la guardia, pero no hay ningún guardia cerca (o la justicia está apagada)"); return false; }
+                        if (!Justice.Summon(what, who, true)) { Log.Info($"[scene] {who.Name} calls the guard, but there is no guard nearby (or justice is off)"); return false; }
                         InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_95594522", $"{who.Name} llama a la guardia: entrégate, convéncele o resístete."), Colors.Red));
-                        Log.Info($"[escena] {who.Name} llama a la guardia contra el jugador");
+                        Log.Info($"[scene] {who.Name} calls the guard on the player");
                         return false;
                     }
                     case "arrest":
@@ -226,7 +226,7 @@ namespace AILegacy.Dialogue
                         Leaving.Add((target, 7f));
                         SceneMove.GoTo(who, target);
                         InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_ff0ad962", $"{who.Name} detiene a {th.Name}: se la llevan a los calabozos de {st.Name}."), Colors.Red));
-                        Log.Info($"[escena] {who.Name} detiene a {th.Name} en {st.Name}. Motivo dicho: {line}");
+                        Log.Info($"[scene] {who.Name} arrests {th.Name} in {st.Name}. Stated reason: {line}");
                         try
                         {
                             // The prisoner remembers who pointed the finger
@@ -245,7 +245,7 @@ namespace AILegacy.Dialogue
                                 Heroes = new List<string> { th.StringId, TaleWorlds.CampaignSystem.Hero.MainHero.StringId },
                             });
                         }
-                        catch (Exception ex) { Log.Error("Arresto: memoria", ex); }
+                        catch (Exception ex) { Log.Error("Arrest: memory", ex); }
                         try { if (wh != null) Bonds.TouchOther(Speaker.FromHero(th), Speaker.FromHero(wh), -40, $"{wh.Name} had me arrested and thrown in the cells of {st.Name}"); } catch { }
                         World.WorldSim.OnIncident($"{th.Name}{(th.IsLord ? $", a noble of clan {th.Clan?.Name}," : "")} was arrested by the guard and taken to the cells after {TaleWorlds.CampaignSystem.Hero.MainHero.Name} accused them in front of witnesses. What was said as they were taken: \"{(line ?? "").Replace("\"", "'")}\"", st, false);
                         return false;
@@ -258,7 +258,7 @@ namespace AILegacy.Dialogue
                         return true;
                 }
             }
-            catch (Exception ex) { Log.Error("Acción en la escena", ex); }
+            catch (Exception ex) { Log.Error("Scene action", ex); }
             return false;
         }
 
@@ -307,9 +307,9 @@ namespace AILegacy.Dialogue
                 if (!who.SetActionChannel(0, in fall, ignorePriority: true)) { Unpause(who); return; }
                 Grounded.Add((who, 0f, false));
                 DownUntil[who] = m.CurrentTime + Math.Max(5f, seconds);
-                Log.Info($"[pelea] {who.Name} queda en el suelo");
+                Log.Info($"[fight] {who.Name} is on the ground");
             }
-            catch (Exception ex) { Log.Error("Caer tras la pelea", ex); }
+            catch (Exception ex) { Log.Error("Fall after the fight", ex); }
         }
 
         /// <summary>No free seat nearby: they sit down where they stand. False if this scene or agent can't do it.</summary>
@@ -321,7 +321,7 @@ namespace AILegacy.Dialogue
                 if (who == null || m == null || !who.IsActive() || who.MountAgent != null || who.IsSitting() || m.Mode == TaleWorlds.Core.MissionMode.Battle || Combat.Fighting) return false;
                 if (Grounded.Any(g => g.who == who)) return false;
                 var down = ActionIndexCache.Create(SitDownOnFloor);
-                if (down.Index < 0 || ActionIndexCache.Create(SitIdleOnFloor).Index < 0) { Log.Warn("Sentarse en el suelo: el juego no tiene esa animación"); return false; }
+                if (down.Index < 0 || ActionIndexCache.Create(SitIdleOnFloor).Index < 0) { Log.Warn("Sit on the floor: the game does not have that animation"); return false; }
                 Followers.Remove(who); SceneTravel.Drop(who); SceneMove.Release(who);
                 try { who.DisableScriptedMovement(); } catch { }
                 // Hold them in place with the game's own idle behavior, or their routine walks them off mid-animation
@@ -337,7 +337,7 @@ namespace AILegacy.Dialogue
                 Say(L.F("AIL_e7b1c644", $"{who.Name} se sienta en el suelo."));
                 return true;
             }
-            catch (Exception ex) { Log.Error("Sentarse en el suelo", ex); return false; }
+            catch (Exception ex) { Log.Error("Sit on the floor", ex); return false; }
         }
 
         private static void Unpause(Agent a)
@@ -348,7 +348,7 @@ namespace AILegacy.Dialogue
                 if (g != null && g.ScriptedBehavior is SandBox.Missions.AgentBehaviors.IdleAgentBehavior) g.DisableScriptedBehavior();
                 a.SetIsAIPaused(false);
             }
-            catch (Exception ex) { Log.Error("Reanudar la rutina", ex); }
+            catch (Exception ex) { Log.Error("Resume routine", ex); }
         }
 
         /// <summary>Gets up someone we sat on the ground and gives them back their routine. Does nothing for anyone else.</summary>
@@ -368,7 +368,7 @@ namespace AILegacy.Dialogue
                 }
                 Unpause(a);
             }
-            catch (Exception ex) { Log.Error("Levantarse del suelo", ex); }
+            catch (Exception ex) { Log.Error("Get up from the floor", ex); }
         }
 
         private static void TickGrounded(float dt)
@@ -394,7 +394,7 @@ namespace AILegacy.Dialogue
                     a.SetActionChannel(0, in idle, ignorePriority: true);
                     Grounded[i] = (a, 0f, true);
                 }
-                catch (Exception ex) { Log.Error("Sentados en el suelo", ex); Grounded.RemoveAt(i); }
+                catch (Exception ex) { Log.Error("Seated on the floor", ex); Grounded.RemoveAt(i); }
             }
         }
 
@@ -434,7 +434,7 @@ namespace AILegacy.Dialogue
                     Ring.Add((a, slot, 8f));
                 }
             }
-            catch (Exception ex) { Log.Error("Colocar el corro", ex); }
+            catch (Exception ex) { Log.Error("Place the circle", ex); }
         }
 
         private static readonly List<(Agent who, float left)> Away = new List<(Agent, float)>();
@@ -461,7 +461,7 @@ namespace AILegacy.Dialogue
                 Away.RemoveAll(x => x.who == a);
                 Away.Add((a, 7f));
             }
-            catch (Exception ex) { Log.Error("Salir de la conversación", ex); }
+            catch (Exception ex) { Log.Error("Leave the conversation", ex); }
         }
 
         /// <summary>Walks the agent over to the player with no message. Used when someone joins the conversation.</summary>
@@ -473,7 +473,7 @@ namespace AILegacy.Dialogue
                 if (a == null || Busy(a) || Agent.Main == null || a.Position.Distance(Agent.Main.Position) <= 3.5f) return;
                 if (SceneMove.GoTo(a, Agent.Main)) Calls.Add(new Call { Who = a, Left = 60f, Quiet = true });
             }
-            catch (Exception ex) { Log.Error("Acercarse al jugador", ex); }
+            catch (Exception ex) { Log.Error("Approach the player", ex); }
         }
 
         public static void Tick(float dt)
@@ -502,10 +502,10 @@ namespace AILegacy.Dialogue
                             if (j.who != null && j.who.IsAlive && !j.who.IsPrisoner && j.where?.Party != null)
                             {
                                 TaleWorlds.CampaignSystem.Actions.TakePrisonerAction.Apply(j.where.Party, j.who);
-                                Log.Info($"{j.who.Name} queda presa en {j.where.Name}");
+                                Log.Info($"{j.who.Name} is jailed in {j.where.Name}");
                             }
                         }
-                        catch (Exception ex) { Log.Error("Encerrar al detenido", ex); }
+                        catch (Exception ex) { Log.Error("Lock up the detainee", ex); }
                     }
                 }
                 for (int i = Away.Count - 1; i >= 0; i--)
@@ -566,7 +566,7 @@ namespace AILegacy.Dialogue
                     if (!c.Quiet) { GroupTalk.Join(c.Who); Say(L.F("AIL_2215a755", $"{c.Who.Name} se une a la conversación.")); }
                 }
             }
-            catch (Exception ex) { Log.Error("Acciones en la escena", ex); Guides.Clear(); Calls.Clear(); }
+            catch (Exception ex) { Log.Error("Scene actions", ex); Guides.Clear(); Calls.Clear(); }
         }
     }
 }

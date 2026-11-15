@@ -69,7 +69,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                 }
                 return best;
             }
-            catch (Exception ex) { Log.Error("Buscando guardia", ex); return null; }
+            catch (Exception ex) { Log.Error("Finding guard", ex); return null; }
         }
 
         private static string Standing(Settlement st)
@@ -114,7 +114,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                 { _guard = null; return false; }
                 return true;
             }
-            catch (Exception ex) { Log.Error("Llamando a la guardia", ex); _guard = null; return false; }
+            catch (Exception ex) { Log.Error("Calling the guard", ex); _guard = null; return false; }
         }
 
         public static void OnFightEnded(Speaker opponent, Agent opponentAgent, string kind, bool playerWon, bool unprovoked = false)
@@ -196,7 +196,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     items, false, 1, 1, L.T("AIL_e1f3b7a9", "Decidir"), "",
                     sel => MainThread.Post(() => OnArrestChoice(st, sel != null && sel.Count > 0 ? sel[0].Identifier as string : "yield")), null, "", false), true);
             }
-            catch (Exception ex) { Log.Error("Detención: ventana", ex); _asking = false; _jailIn = st; }
+            catch (Exception ex) { Log.Error("Arrest: window", ex); _asking = false; _jailIn = st; }
         }
 
         private static void OnArrestChoice(Settlement st, string choice)
@@ -244,7 +244,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                         return;
                 }
             }
-            catch (Exception ex) { Log.Error("Detención: decisión", ex); _jailIn = st; }
+            catch (Exception ex) { Log.Error("Arrest: decision", ex); _jailIn = st; }
         }
 
         private static Settlement _escapeFrom;
@@ -275,7 +275,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     Text = playerWon ? $"{P.Name} fought the guard of {st.Name} to avoid arrest and got away." : $"{P.Name} fought the guard of {st.Name} to avoid arrest and was overpowered.",
                 });
             }
-            catch (Exception ex) { Log.Error("Detención: tras la pelea", ex); }
+            catch (Exception ex) { Log.Error("Arrest: after the fight", ex); }
         }
 
         /// <summary>The guard never got to talk (player left the scene, the AI didn't answer...).</summary>
@@ -355,14 +355,14 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                             PlayerEncounter.LeaveSettlement();
                             PlayerEncounter.Finish();
                             TakePrisonerAction.Apply(st.Party, P);
-                            Log.Info($"El jugador queda preso en {st.Name}");
+                            Log.Info($"Player is jailed in {st.Name}");
                             Verdict.Judge(st, _case, _jailGuard, _jailStanding, _jailCrime);
                             _jailGuard = null;
                         }
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Justicia: tick", ex); _guard = null; _jailIn = null; _arrestIn = null; _escapeFrom = null; }
+            catch (Exception ex) { Log.Error("Justice: tick", ex); _guard = null; _jailIn = null; _arrestIn = null; _escapeFrom = null; }
         }
     }
 }

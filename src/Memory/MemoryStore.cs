@@ -380,12 +380,12 @@ namespace AILegacy.Memory
             try { Apply(s); return true; }
             catch (Exception ex)
             {
-                Log.Error("No se pudo cambiar la memoria; se deja como estaba", ex);
+                Log.Error("Could not switch memory; leaving it as it was", ex);
                 try { Apply(before); }
                 catch (Exception ex2)
                 {
                     rollbackFailed = true;
-                    Log.Error("NO se pudo volver a la memoria anterior: la memoria en uso ha quedado a medias entre la anterior y la nueva. Carga la partida de nuevo", ex2);
+                    Log.Error("Could NOT roll back to the previous memory: the memory in use is a mix of the old and the new. Reload the save", ex2);
                 }
                 return false;
             }
@@ -461,15 +461,15 @@ namespace AILegacy.Memory
             }
             catch (Exception ex)
             {
-                Log.Error("No se pudo leer la memoria guardada en la partida; NO se vacía la memoria, se buscará en los archivos de la campaña y en las copias", ex);
+                Log.Error("Could not read the memory stored in the save; memory is NOT cleared, will look in the campaign files and backups", ex);
                 return false;
             }
             if (s == null || !Replace(s))
             {
-                Log.Error("La memoria guardada en la partida no se pudo poner en uso; NO se vacía la memoria, se buscará en los archivos de la campaña y en las copias");
+                Log.Error("The memory stored in the save could not be put in use; memory is NOT cleared, will look in the campaign files and backups");
                 return false;
             }
-            Log.Info($"Memoria cargada de la partida: {_byHero.Count} personajes, {NewsStore.All.Count()} noticias");
+            Log.Info($"Memory loaded from the save: {_byHero.Count} characters, {NewsStore.All.Count()} news items");
             return true;
         }
 

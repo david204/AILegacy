@@ -126,7 +126,7 @@ namespace AILegacy.Behaviors
             }
             catch (Exception ex)
             {
-                Log.Error("Error guardando/cargando la memoria de AI Legacy", ex);
+                Log.Error("Error saving/loading AI Legacy memory", ex);
             }
         }
 
@@ -156,7 +156,7 @@ namespace AILegacy.Behaviors
                         foreach (var m in edited) MemoryStore.Put(m);
                         SaveFiles.AdoptStamp(id, _inSaveStamp);
                         adopt = !string.IsNullOrEmpty(_inSaveStamp);
-                        Log.Info($"Memoria restaurada de la partida guardada" + (edited.Count > 0 ? $" ({edited.Count} personajes editados a mano se conservan)" : ""));
+                        Log.Info($"Memory restored from the save" + (edited.Count > 0 ? $" ({edited.Count} hand-edited characters kept)" : ""));
                     }
                     // Unreadable copy in the save: the files or a backup, and whatever is on disk is set aside before
                     // anything gets written over it. The files keep their own stamp
@@ -168,7 +168,7 @@ namespace AILegacy.Behaviors
                     {
                         SaveFiles.AdoptStamp(id, _inSaveStamp);
                         adopt = !string.IsNullOrEmpty(_inSaveStamp);
-                        Log.Info($"La campaña {id} no tenía archivos: memoria recuperada de la copia de la partida");
+                        Log.Info($"Campaign {id} had no files: memory recovered from the save copy");
                     }
                     // Files that are there but did not load, or a copy that did not read: same fallback
                     else if (hasCopy || SaveFiles.Exists(id)) SaveFiles.Recover(id);
@@ -180,7 +180,7 @@ namespace AILegacy.Behaviors
                 // The files now match this save and carry its stamp, so reloading it isn't taken as another branch
                 SaveFiles.Flush(keepStamp: adopt, wait: true);
             }
-            catch (Exception ex) { Log.Error("Error cargando los datos de la campaña", ex); }
+            catch (Exception ex) { Log.Error("Error loading campaign data", ex); }
         }
 
         private static bool _seedAfterCreation, _creationDone;
@@ -192,7 +192,7 @@ namespace AILegacy.Behaviors
             if (!_seedAfterCreation) return;
             _seedAfterCreation = false;
             SeedCharacters(afterCreation: true);
-            try { SaveFiles.Flush(); } catch (Exception ex) { Log.Error("Archivos", ex); }
+            try { SaveFiles.Flush(); } catch (Exception ex) { Log.Error("Files", ex); }
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace AILegacy.Behaviors
             try { newGame = Campaign.Current?.CampaignGameLoadingType == Campaign.GameLoadingType.NewCampaign; } catch { }
             // (the event of its end comes while that screen is still the active one)
             if (!afterCreation && !_creationDone && (SubModule.InCharacterCreation || newGame))
-            { _seedAfterCreation = true; Log.Info("Personajes importantes: se preparan al acabar la creación del personaje"); return; }
+            { _seedAfterCreation = true; Log.Info("Important characters: will be prepared once character creation ends"); return; }
             try
             {
                 var p = Hero.MainHero;
@@ -235,9 +235,9 @@ namespace AILegacy.Behaviors
                     Bonds.EnsureTrust(s);
                     Bonds.EnsureRomance(s);
                 }
-                if (created > 0) Log.Info($"Personajes importantes preparados sin hablar con ellos: {created} nuevos de {wanted.Count}");
+                if (created > 0) Log.Info($"Important characters prepared without talking to them: {created} new of {wanted.Count}");
             }
-            catch (Exception ex) { Log.Error("Preparando personajes importantes", ex); }
+            catch (Exception ex) { Log.Error("Preparing important characters", ex); }
         }
 
         private const string SaveKeyChunks = "AILegacy_Memory_v2";
@@ -258,7 +258,7 @@ namespace AILegacy.Behaviors
             }
             for (int i = 0; i < b64.Length; i += ChunkSize)
                 list.Add(b64.Substring(i, Math.Min(ChunkSize, b64.Length - i)));
-            Log.Info($"Guardado: memoria de {raw.Length / 1024} KB comprimida en {list.Count} trozos");
+            Log.Info($"Saved: {raw.Length / 1024} KB of memory compressed into {list.Count} chunks");
             return list;
         }
 
@@ -284,8 +284,8 @@ namespace AILegacy.Behaviors
             AddDialogStyleLines(starter);
             LetterSystem.AddMenu(starter);
             Diseases.AddMenus(starter);
-            try { World.ArenaTraining.AddMenus(starter); } catch (Exception ex) { Log.Error("Menú de entrenamiento en la arena", ex); }
-            try { World.Activities.AddMenus(starter); } catch (Exception ex) { Log.Error("Menús de actividades", ex); }
+            try { World.ArenaTraining.AddMenus(starter); } catch (Exception ex) { Log.Error("Arena training menu", ex); }
+            try { World.Activities.AddMenus(starter); } catch (Exception ex) { Log.Error("Activities menus", ex); }
 
             // --- Heroes (lords, notables, companions, wanderers), chat window style
             starter.AddPlayerLine(
@@ -331,7 +331,7 @@ namespace AILegacy.Behaviors
                 starter.AddDialogLine("ailegacy_band_listen_" + token, "ailegacy_band_listen_" + token, back, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
             }
 
-            Log.Info($"AI Legacy listo: diálogos añadidos, {MemoryStore.Count} personajes en memoria, {System.Linq.Enumerable.Count(NewsStore.All)} noticias");
+            Log.Info($"AI Legacy ready: dialogues added, {MemoryStore.Count} characters in memory, {System.Linq.Enumerable.Count(NewsStore.All)} news items");
         }
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace AILegacy.Behaviors
                         MBTextManager.SetTextVariable("AIL_DLG", new TextObject("{=!}" + L.F("AIL_e7b1c7d8", $"*{who.Name} se adelanta con los suyos y os corta el paso…*")));
                         return true;
                     }
-                    catch (Exception ex) { Log.Error("Bandidos que hablan primero", ex); return false; }
+                    catch (Exception ex) { Log.Error("Bandits who speak first", ex); return false; }
                 }, null, priority: 9000);
 
             // Entry points from heroes and from townsfolk
@@ -523,7 +523,7 @@ namespace AILegacy.Behaviors
                 () =>
                 {
                     try { if (PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement && !Combat.KeepEncounter) PlayerEncounter.LeaveEncounter = true; }
-                    catch (Exception ex) { Log.Error("Marcharse", ex); }
+                    catch (Exception ex) { Log.Error("Leaving", ex); }
                 }, priority: 124);
             starter.AddPlayerLine("ailegacy_d_back", "ailegacy_d_opts", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
                 () => { var c = Cur(); return c == null || !c.Ended; }, null, priority: 110);
@@ -634,7 +634,7 @@ How it ends is decided by what is said, with your actions: take their money (tak
                 if (behavior == null || cond == null) return false;      // without its texts, its own lines would come out empty
                 return (bool)cond.Invoke(behavior, null);
             }
-            catch (Exception ex) { Log.Error("¿Asalto de bandidos?", ex); return false; }
+            catch (Exception ex) { Log.Error("Bandit ambush?", ex); return false; }
         }
 
         private static Speaker BandSpeaker()

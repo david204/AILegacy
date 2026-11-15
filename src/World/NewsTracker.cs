@@ -49,7 +49,7 @@ namespace AILegacy.World
         private static void Safe(string what, Action a)
         {
             if (!On) return;
-            try { a(); } catch (Exception ex) { Log.Error("Noticia " + what, ex); }
+            try { a(); } catch (Exception ex) { Log.Error("News " + what, ex); }
         }
 
         private static void OnWarDeclared(IFaction f1, IFaction f2, DeclareWarAction.DeclareWarDetail detail) => Safe("guerra", () =>
@@ -313,8 +313,8 @@ namespace AILegacy.World
         private static void OnHourlyTick()
         {
             if (!On) { Captures.Clear(); SiegeEnds.Clear(); return; }
-            try { FlushCaptures(); } catch (Exception ex) { Log.Error("Noticia prisioneros", ex); }
-            try { FlushSieges(); } catch (Exception ex) { Log.Error("Noticia fin de asedio", ex); }
+            try { FlushCaptures(); } catch (Exception ex) { Log.Error("News prisoners", ex); }
+            try { FlushSieges(); } catch (Exception ex) { Log.Error("News siege end", ex); }
         }
 
         private static string Short(Hero h)
@@ -353,12 +353,12 @@ namespace AILegacy.World
                     if (!groups.TryGetValue(key, out var same)) groups[key] = same = new List<Capture>();
                     same.Add(c);
                 }
-                catch (Exception ex) { Log.Error("Noticia prisioneros: una captura descartada", ex); }
+                catch (Exception ex) { Log.Error("News prisoners: one capture discarded", ex); }
             }
             foreach (var g in groups.Values)
             {
                 try { FlushCaptureGroup(g, mode); }
-                catch (Exception ex) { Log.Error("Noticia prisioneros: un grupo descartado", ex); }
+                catch (Exception ex) { Log.Error("News prisoners: one party discarded", ex); }
             }
         }
 
@@ -430,7 +430,7 @@ namespace AILegacy.World
             if (!_siegeFieldWarned)
             {
                 _siegeFieldWarned = true;
-                Log.Warn("Noticias: no se puede leer SiegeEvent._isBesiegerDefeated en esta versión del juego; el fin de un asedio se contará sin decir si fue roto o levantado");
+                Log.Warn("News: cannot read SiegeEvent._isBesiegerDefeated in this game version; a siege end will be reported without saying whether it was broken or lifted");
             }
             return null;
         }
@@ -460,7 +460,7 @@ namespace AILegacy.World
             {
                 SiegeEnds.Remove(e);
                 try { TellSiegeEnd(e); }
-                catch (Exception ex) { Log.Error("Noticia fin de asedio: una descartada", ex); }
+                catch (Exception ex) { Log.Error("News siege end: one discarded", ex); }
             }
         }
 

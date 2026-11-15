@@ -84,7 +84,7 @@ namespace AILegacy.World
             if (keep.Count == had) return;
             saved.Clear();
             saved.AddRange(keep);
-            Log.Info($"[vecinos] lista de vecinos recordados saneada al cargar: {had} -> {keep.Count}");
+            Log.Info($"[neighbours] remembered neighbours list sanitized on load: {had} -> {keep.Count}");
         }
 
         // Child, teenager and adult bodies are not interchangeable. An adult's exact age comes back with the face.
@@ -139,7 +139,7 @@ namespace AILegacy.World
                 }
                 Met[mem.HeroId] = mem;
             }
-            catch (Exception ex) { Log.Error("Caras de vecinos: guardar", ex); }
+            catch (Exception ex) { Log.Error("Neighbour faces: save", ex); }
         }
 
         /// <summary>Once a second: residents the player has now talked to join the saved list, the oldest making room.</summary>
@@ -158,7 +158,7 @@ namespace AILegacy.World
                     saved.RemoveAll(m => m == null || m.HeroId == mem.HeroId);
                     saved.Add(mem);
                     added = true;
-                    Log.Info($"[vecinos] se recuerda a {(string.IsNullOrWhiteSpace(mem.Profile?.GivenName) ? mem.HeroName : mem.Profile.GivenName)} ({mem.HeroId})");
+                    Log.Info($"[neighbours] remembering {(string.IsNullOrWhiteSpace(mem.Profile?.GivenName) ? mem.HeroName : mem.Profile.GivenName)} ({mem.HeroId})");
                 }
                 int cap = Math.Max(1, S.Get.ResidentsRemembered);
                 if (added && saved.Count > cap)
@@ -168,7 +168,7 @@ namespace AILegacy.World
                     saved.AddRange(keep);
                 }
             }
-            catch (Exception ex) { Log.Error("Caras de vecinos: recordar", ex); }
+            catch (Exception ex) { Log.Error("Neighbour faces: remember", ex); }
         }
 
         /// <summary>A resident who became a named hero no longer exists as a resident.</summary>
@@ -235,9 +235,9 @@ namespace AILegacy.World
                     present.Add(hash);
                     put++;
                 }
-                if (put > 0) Log.Info($"[vecinos] {settlement.Name} ({here.StringId}): {put} conocido(s) vuelven con su cara");
+                if (put > 0) Log.Info($"[neighbours] {settlement.Name} ({here.StringId}): {put} acquaintance(s) restored with their face");
             }
-            catch (Exception ex) { Log.Error("Caras de vecinos: aplicar", ex); }
+            catch (Exception ex) { Log.Error("Neighbour faces: apply", ex); }
         }
     }
 }

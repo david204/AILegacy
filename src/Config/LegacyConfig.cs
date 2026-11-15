@@ -87,7 +87,7 @@ namespace AILegacy.Config
                                 if (sig2 != sig) { mcm = Settings.S.Get.McmProviders(); sig = Settings.S.Get.McmProvidersSignature(); }
                                 merged.Providers.AddRange(mcm);
                             }
-                            catch (Exception ex) { Log.Error("Proveedores de MCM", ex); }
+                            catch (Exception ex) { Log.Error("MCM providers", ex); }
                             int fromMcm = merged.Providers.FindAll(p => p.IsUsable).Count;
                             // Names must be unique across MCM and the file; a duplicate is skipped
                             foreach (var p in file.Providers)
@@ -95,19 +95,19 @@ namespace AILegacy.Config
                                 string n = (p.Name ?? "").Trim();
                                 if (n.Length == 0) { n = "proveedor" + (merged.Providers.Count + 1); p.Name = n; }
                                 if (merged.Providers.Exists(x => string.Equals((x.Name ?? "").Trim(), n, StringComparison.OrdinalIgnoreCase)))
-                                { Log.Warn($"Proveedor repetido en config.json, se ignora: {n}"); continue; }
+                                { Log.Warn($"Duplicate provider in config.json, ignored: {n}"); continue; }
                                 merged.Providers.Add(p);
                             }
                             if (!hasFile) LastLoadError = fromMcm > 0 ? null : L.T("AIL_bb646884", "No hay ninguna clave: ponla en Opciones, Mod Options, AI Legacy, 0. Claves de IA.");
                             if (sig != _mcmSig || _current == null)
-                                Log.Info($"Proveedores de IA: {fromMcm} utilizable(s) desde MCM, {file.Providers.FindAll(p => p.IsUsable).Count} desde config.json");
+                                Log.Info($"AI providers: {fromMcm} usable from MCM, {file.Providers.FindAll(p => p.IsUsable).Count} from config.json");
                             _current = merged;
                             _loadedStamp = stamp; _mcmSig = sig;
                         }
                     }
                     catch (Exception ex)
                     {
-                        Log.Error("No se pudo comprobar config.json", ex);
+                        Log.Error("Could not check config.json", ex);
                         if (_current == null) _current = new LegacyConfig();
                     }
                     return _current;
@@ -123,7 +123,7 @@ namespace AILegacy.Config
             {
                 var cfg = JsonConvert.DeserializeObject<LegacyConfig>(File.ReadAllText(Paths.ConfigFile)) ?? new LegacyConfig();
                 var usable = cfg.Providers.FindAll(p => p.IsUsable);
-                Log.Info($"config.json cargado: {cfg.Providers.Count} proveedores, {usable.Count} utilizables ({string.Join(", ", usable.ConvertAll(p => p.Name + "/" + p.Model))})");
+                Log.Info($"config.json loaded: {cfg.Providers.Count} providers, {usable.Count} usable ({string.Join(", ", usable.ConvertAll(p => p.Name + "/" + p.Model))})");
                 return cfg;
             }
             catch (Exception ex)

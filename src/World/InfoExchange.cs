@@ -131,7 +131,7 @@ namespace AILegacy.World
         {
             if (!from.IsHero || string.IsNullOrWhiteSpace(text)) return null;
             var to = FindPerson(from.Hero, toName);
-            if (to == null) { Log.Warn($"Recado de {from.Name}: destinatario '{toName}' no encontrado"); return null; }
+            if (to == null) { Log.Warn($"Errand from {from.Name}: recipient '{toName}' not found"); return null; }
             secrecy = (secrecy ?? "").Trim().ToLowerInvariant();
             if (secrecy != "public" && secrecy != "secret") secrecy = "private";
             if (text.Length > 600) text = text.Substring(0, 600);
@@ -147,7 +147,7 @@ namespace AILegacy.World
                 Chain = new List<string> { from.Hero.StringId },
                 About = AboutName(about), RelayToId = relay?.StringId, Importance = Math.Max(1, Math.Min(3, importance)),
             });
-            Log.Info($"Recado de {from.Name} para {to.Name} ({secrecy}, llega en {hours:0} h{(relay != null ? ", para que lo pase a " + relay.Name : "")}): {text}");
+            Log.Info($"Errand from {from.Name} to {to.Name} ({secrecy}, arrives in {hours:0} h{(relay != null ? ", to be relayed to " + relay.Name : "")}): {text}");
             // Private or secret messages aren't announced to the player. They'd have no way to know, and it gave away
             // who was being told. Only public ones get a notice.
             return secrecy == "public" ? L.F("AIL_c009f7dc", $"{from.Name} hará llegar noticia de esto a {to.Name}.") : "";
@@ -168,7 +168,7 @@ namespace AILegacy.World
         {
             if (!from.IsHero || string.IsNullOrWhiteSpace(text)) return null;
             var to = FindPerson(from.Hero, toName);
-            if (to == null) { Log.Warn($"Recado en mano de {from.Name}: destinatario '{toName}' no encontrado"); return null; }
+            if (to == null) { Log.Warn($"Hand-delivered errand from {from.Name}: recipient '{toName}' not found"); return null; }
             if (text.Length > 600) text = text.Substring(0, 600);
             if (Messages.Count(x => x.ByPlayer) >= 12) return null;
             double now = CampaignTime.Now.ToDays;
@@ -178,7 +178,7 @@ namespace AILegacy.World
                 Day = now, ArriveDay = double.MaxValue, DeliveryDueDay = now + CourierDays, ByPlayer = true, Confidence = 95,
                 Chain = new List<string> { from.Hero.StringId },
             });
-            Log.Info($"Recado en mano: {from.Name} da al jugador un recado para {to.Name}: {text}");
+            Log.Info($"Hand-delivered errand: {from.Name} gives the player an errand for {to.Name}: {text}");
             return L.F("AIL_e7b1c7ae", $"{from.Name} te pide que lleves en mano un recado a {to.Name}.");
         }
 
@@ -201,11 +201,11 @@ namespace AILegacy.World
                     AddHeard(s.Memory, new HeardItem { FromName = m.FromName, Text = m.Text, Secrecy = m.Secrecy, Day = now, About = m.About, Confidence = m.Confidence, Importance = m.Importance, ByPlayer = true });
                     NoteSender(m, TByHand.Format("player", P.Name.ToString(), "to", s.Name));
                     shown.Add(L.F("AIL_e7b1c7af", $"Entregas a {s.Name} el recado de {m.FromName}."));
-                    Log.Info($"Recado en mano entregado a {s.Name} (de {m.FromName}): {m.Text}");
+                    Log.Info($"Hand-delivered errand delivered to {s.Name} (from {m.FromName}): {m.Text}");
                 }
                 return string.Join(" ", shown);
             }
-            catch (Exception ex) { Log.Error("Entregar un recado en mano", ex); return ""; }
+            catch (Exception ex) { Log.Error("Deliver a hand-delivered errand", ex); return ""; }
         }
 
         /// <summary>The sender learns what became of their word, as a note in their history.</summary>
@@ -279,7 +279,7 @@ urgent: they meant it as urgent");
                         Messages.Remove(m);
                         m.Status = "lost"; m.FailureReason = "dead";
                         if (!m.IsAnswer) NoteSender(m, TLostDead.Format("to", to?.Name?.ToString() ?? "?"));
-                        Log.Info($"Recado de {m.FromName} perdido: el destinatario ha muerto");
+                        Log.Info($"Errand from {m.FromName} lost: recipient is dead");
                         continue;
                     }
                     // A rider needs time to get word into a cell
@@ -289,7 +289,7 @@ urgent: they meant it as urgent");
                     var mem = MemoryStore.Get(to.StringId, to.Name.ToString());
                     AddHeard(mem, new HeardItem { FromName = m.FromName, Text = m.Text, Secrecy = m.Secrecy, Day = now, OriginName = m.OriginName, Hops = m.Hops,
                                                   About = m.About, Confidence = m.Confidence, Importance = m.Importance, IsDistorted = m.IsDistorted });
-                    Log.Info($"Recado entregado a {to.Name} (de {m.FromName}{(m.OriginName != null ? ", que lo supo por " + m.OriginName : "")}): {m.Text}");
+                    Log.Info($"Errand delivered to {to.Name} (from {m.FromName}{(m.OriginName != null ? ", who learned it from " + m.OriginName : "")}): {m.Text}");
                     if (!m.IsAnswer)
                     {
                         if (m.RelayToId != null) Relay(m, to, now);
@@ -309,7 +309,7 @@ urgent: they meant it as urgent");
                         });
                 }
             }
-            catch (Exception ex) { Log.Error("Recados entre NPC", ex); }
+            catch (Exception ex) { Log.Error("NPC errands", ex); }
         }
 
         /// <summary>
@@ -335,7 +335,7 @@ urgent: they meant it as urgent");
                 var next = Confidants(holder, 12).Where(h => !chain.Contains(h.StringId) && h.StringId != m.ToId && !Messages.Any(x => x.ToId == h.StringId && x.Text == m.Text)).Take(many).ToList();
                 foreach (var to in next) Pass(m, holder, to, secrecy, now, honor);
             }
-            catch (Exception ex) { Log.Error("Reenviar recado", ex); }
+            catch (Exception ex) { Log.Error("Forward errand", ex); }
         }
 
         /// <summary>The recipient was asked to hand it on to one named person: they do, unless they bear the sender ill will.</summary>
@@ -350,14 +350,14 @@ urgent: they meant it as urgent");
                 if (from != null && holder.GetRelation(from) < -10 && Rng.Next(100) < 60)
                 {
                     NoteSender(m, TRelayRefused.Format("to", holder.Name.ToString(), "relay", target.Name.ToString()));
-                    Log.Info($"Recado: {holder.Name} no lo pasa a {target.Name} (mala relación con {m.FromName})");
+                    Log.Info($"Errand: {holder.Name} does not pass it to {target.Name} (bad relation with {m.FromName})");
                     return;
                 }
                 int honor = 0;
                 try { honor = holder.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor); } catch { }
                 Pass(m, holder, target, m.Secrecy, now, honor);
             }
-            catch (Exception ex) { Log.Error("Pasar un recado", ex); }
+            catch (Exception ex) { Log.Error("Pass an errand", ex); }
         }
 
         /// <summary>One more hand: it loses some trust, and a dishonest or distant teller may bend it.</summary>
@@ -376,9 +376,9 @@ urgent: they meant it as urgent");
                     Day = now, ArriveDay = now + hours / 24.0, DeliveryDueDay = now + hours / 24.0, OriginName = m.OriginName ?? m.FromName, Chain = newChain, Hops = m.Hops + 1,
                     About = m.About, Importance = m.Importance, Confidence = conf, IsDistorted = twisted,
                 });
-                Log.Info($"Recado reenviado por {holder.Name} a {to.Name} ({secrecy}, mano {m.Hops + 1}, confianza {conf}{(twisted ? ", deformado" : "")}, llega en {hours:0} h)");
+                Log.Info($"Errand forwarded by {holder.Name} to {to.Name} ({secrecy}, hop {m.Hops + 1}, trust {conf}{(twisted ? ", distorted" : "")}, arrives in {hours:0} h)");
             }
-            catch (Exception ex) { Log.Error("Reenviar recado", ex); }
+            catch (Exception ex) { Log.Error("Forward errand", ex); }
         }
 
         private static readonly Tpl TAnswer = new Tpl("info_exchange/errand_answer.txt",
@@ -401,7 +401,7 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
                 if (!cfg.ErrandAnswers || from == null || !from.IsAlive) return;
                 double today = Math.Floor(CampaignTime.Now.ToDays);
                 if (today != _answerDay) { _answerDay = today; _answersToday = 0; }
-                if (_answersToday >= cfg.ErrandAnswersPerDay) { Log.Info($"Recado: {to.Name} no contesta hoy (tope diario de respuestas)"); return; }
+                if (_answersToday >= cfg.ErrandAnswersPerDay) { Log.Info($"Errand: {to.Name} does not reply today (daily reply cap)"); return; }
                 _answersToday++;
                 var s = Speaker.FromHero(to);
                 var mem = s.Memory;
@@ -434,13 +434,13 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
                                 Text = $"In answer to your word about {m.About ?? P.Name.ToString()}: {ans}", Secrecy = m.Secrecy == "public" ? "private" : m.Secrecy,
                                 Day = now, ArriveDay = now + hours / 24.0, DeliveryDueDay = now + hours / 24.0, IsAnswer = true, Chain = new List<string> { to.StringId }, About = m.About,
                             });
-                            Log.Info($"Respuesta de {to.Name} a {from.Name} (llega en {hours:0} h): {ans}");
+                            Log.Info($"Reply from {to.Name} to {from.Name} (arrives in {hours:0} h): {ans}");
                         }
-                        catch (Exception ex) { Log.Error("Respuesta a un recado", ex); }
+                        catch (Exception ex) { Log.Error("Errand reply", ex); }
                     });
                 });
             }
-            catch (Exception ex) { Log.Error("Contestar un recado", ex); }
+            catch (Exception ex) { Log.Error("Answer an errand", ex); }
         }
 
         /// <summary>Ambient chat topics that old saves stored. They aren't about the player.</summary>
@@ -613,16 +613,16 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
                     MemoryStore.LastInitiativeDay = now;
                     if (c.h.PartyBelongedTo == main)
                     {
-                        Log.Info($"Iniciativa en el mapa: {c.h.Name}, de tu partida, pide hablar ({c.why})");
+                        Log.Info($"Map initiative: {c.h.Name}, from your party, asks to talk ({c.why})");
                         Initiative.StartMap(c.h, TPartyAsk.Format("reasons", c.why));
                         return;
                     }
                     OrderSystem.Give(c.h, "approach", null, P.Name.ToString(), 0.5);
-                    Log.Info($"Iniciativa en el mapa: {c.h.Name} va hacia el jugador ({c.why})");
+                    Log.Info($"Map initiative: {c.h.Name} heads for the player ({c.why})");
                     return;
                 }
             }
-            catch (Exception ex) { Log.Error("Iniciativa en el mapa", ex); }
+            catch (Exception ex) { Log.Error("Map initiative", ex); }
         }
 
         /// <summary>
@@ -662,7 +662,7 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
             mem.InitiativeReason = "CAPTOR|" + mood;
             MemoryStore.LastInitiativeDay = now;
             string days = held < 1 ? "since earlier today" : "for " + (int)held + " day(s)";
-            Log.Info($"Iniciativa en el mapa: {h.Name} va a ver a su prisionero ({mood})");
+            Log.Info($"Map initiative: {h.Name} goes to see their prisoner ({mood})");
             Initiative.StartCaptor(h, TCaptorVisit.Format("place", place, "days", days, "mood", mood));
         }
 

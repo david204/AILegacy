@@ -27,7 +27,7 @@ namespace AILegacy.Patches
             {
                 var m = AccessTools.Method(t, name);
                 if (m != null) yield return m;
-                else Log.Warn("Diplomacia: no encuentro " + name + " en esta versión del juego");
+                else Log.Warn("Diplomacy: cannot find " + name + " in this game version");
             }
         }
 
@@ -45,7 +45,7 @@ namespace AILegacy.Patches
                 __result = null;      // no proposal
                 return false;
             }
-            catch (Exception ex) { Log.Error("Bloqueo de la diplomacia del juego", ex); return true; }
+            catch (Exception ex) { Log.Error("Blocking vanilla diplomacy", ex); return true; }
         }
     }
 
@@ -62,8 +62,8 @@ namespace AILegacy.Patches
         {
             var w = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.DeclareWarAction), "ApplyInternal");
             var p = AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.MakePeaceAction), "ApplyInternal");
-            if (w != null) yield return w; else Log.Warn("Diplomacia: no encuentro DeclareWarAction.ApplyInternal en esta versión del juego");
-            if (p != null) yield return p; else Log.Warn("Diplomacia: no encuentro MakePeaceAction.ApplyInternal en esta versión del juego");
+            if (w != null) yield return w; else Log.Warn("Diplomacy: cannot find DeclareWarAction.ApplyInternal in this game version");
+            if (p != null) yield return p; else Log.Warn("Diplomacy: cannot find MakePeaceAction.ApplyInternal in this game version");
         }
 
         private static bool Prepare() =>
@@ -84,12 +84,12 @@ namespace AILegacy.Patches
                     bool political = detail == TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail.Default || detail == TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail.CausedByKingdomDecision
                                      || detail == TaleWorlds.CampaignSystem.Actions.DeclareWarAction.DeclareWarDetail.CausedByCallToWarAgreement;
                     if (!political) return true;
-                    Log.Info($"[diplomacia] guerra de {a.Name} contra {b.Name} ({detail}) parada: la deciden sus soberanos");
+                    Log.Info($"[diplomacy] war of {a.Name} against {b.Name} ({detail}) stopped: their rulers decide");
                 }
-                else Log.Info($"[diplomacia] paz entre {a.Name} y {b.Name} parada: la deciden sus soberanos");
+                else Log.Info($"[diplomacy] peace between {a.Name} and {b.Name} stopped: their rulers decide");
                 return false;
             }
-            catch (Exception ex) { Log.Error("Bloqueo de guerra y paz ajenas", ex); return true; }
+            catch (Exception ex) { Log.Error("Blocking other factions' war and peace", ex); return true; }
         }
     }
 
@@ -116,7 +116,7 @@ namespace AILegacy.Patches
                 var t = AccessTools.TypeByName(target[0]);
                 var m = t != null ? AccessTools.Method(t, target[1]) : null;
                 if (m != null) yield return m;
-                else Log.Warn("Diplomacia: no encuentro " + target[1] + " en esta versión del juego");
+                else Log.Warn("Diplomacy: cannot find " + target[1] + " in this game version");
             }
         }
 
@@ -138,10 +138,10 @@ namespace AILegacy.Patches
                 if (__args == null || __args.Length < 2 || !(__args[0] is Kingdom a) || !(__args[1] is Kingdom b)) return true;
                 var mine = Hero.MainHero?.MapFaction;
                 if (mine != null && (a == mine || b == mine)) return true;
-                Log.Info($"[diplomacia] {__originalMethod.Name} entre {a.Name} y {b.Name} parado: lo deciden sus soberanos");
+                Log.Info($"[diplomacy] {__originalMethod.Name} between {a.Name} and {b.Name} stopped: their rulers decide");
                 return false;
             }
-            catch (Exception ex) { Log.Error("Bloqueo de pactos ajenos", ex); return true; }
+            catch (Exception ex) { Log.Error("Blocking other factions' pacts", ex); return true; }
         }
     }
 
@@ -169,7 +169,7 @@ namespace AILegacy.Patches
                 var t = AccessTools.TypeByName(target[0]);
                 var m = t != null ? AccessTools.Method(t, target[1]) : null;
                 if (m != null) yield return m;
-                else Log.Warn("Diplomacia: no encuentro " + target[1] + " en esta versión del juego");
+                else Log.Warn("Diplomacy: cannot find " + target[1] + " in this game version");
             }
         }
 
@@ -192,12 +192,12 @@ namespace AILegacy.Patches
                 {
                     if (!(arg is Kingdom k)) continue;
                     if (!k.IsEliminated && k.Leader != null && k.RulingClan != null) continue;
-                    Log.Info($"[diplomacia] {__originalMethod.Name} con {k.Name}, destruido o sin soberano: no se ejecuta");
+                    Log.Info($"[diplomacy] {__originalMethod.Name} with {k.Name}, destroyed or without a ruler: not executed");
                     return false;
                 }
                 return true;
             }
-            catch (Exception ex) { Log.Error("Guarda de alianzas", ex); return true; }
+            catch (Exception ex) { Log.Error("Alliance guard", ex); return true; }
         }
     }
 
@@ -234,7 +234,7 @@ namespace AILegacy.Patches
                 float f = WorldSim.PriceFactor(merchant.Settlement, itemRosterElement.Item);
                 if (Math.Abs(f) >= 0.005f) __result = Math.Max(1, (int)Math.Round(__result * (1f + f)));
             }
-            catch (Exception ex) { Log.Error("Precios por sucesos", ex); }
+            catch (Exception ex) { Log.Error("Event prices", ex); }
         }
     }
 
@@ -251,7 +251,7 @@ namespace AILegacy.Patches
                 if (Math.Abs(f) < 0.005f) return;
                 __result.AddFactor(f, new TaleWorlds.Localization.TextObject("{=!}" + (string.IsNullOrWhiteSpace(reason) ? L.T("AIL_94517b9a", "El nombre del clan (sucesos del mundo)") : reason)));
             }
-            catch (Exception ex) { Log.Error("Ingresos del clan por sucesos", ex); }
+            catch (Exception ex) { Log.Error("Clan income from events", ex); }
         }
     }
 
@@ -267,7 +267,7 @@ namespace AILegacy.Patches
                 // a world event that hurts or helps this town's trade
                 if (WorldSim.State.Effects.Count > 0 && town?.Settlement != null) __result *= 1f + WorldSim.SettlementTaxFactor(town.Settlement);
             }
-            catch (Exception ex) { Log.Error("Impuesto de la corona", ex); }
+            catch (Exception ex) { Log.Error("Crown tax", ex); }
         }
     }
 }

@@ -44,7 +44,7 @@ namespace AILegacy.World
                     if (list.Count == 0) list.Add(new TenureRecord { Who = k.Leader.Name.ToString(), Of = k.RulingClan?.Name?.ToString() });
                 }
             }
-            catch (Exception ex) { Log.Error("Historia: foto inicial", ex); }
+            catch (Exception ex) { Log.Error("History: initial snapshot", ex); }
         }
 
         public static void OnRulingClanChanged(Kingdom k, Clan c)
@@ -58,7 +58,7 @@ namespace AILegacy.World
                 list.Add(new TenureRecord { Who = name, Of = c.Name?.ToString(), FromDay = CampaignTime.Now.ToDays });
                 while (list.Count > Keep) list.RemoveAt(0);
             }
-            catch (Exception ex) { Log.Error("Historia: soberano", ex); }
+            catch (Exception ex) { Log.Error("History: ruler", ex); }
         }
 
         public static void OnSettlementOwnerChanged(Settlement s, bool openToClaim, Hero newOwner, Hero oldOwner, Hero capturer,
@@ -78,7 +78,7 @@ namespace AILegacy.World
                 list.Add(new TenureRecord { Who = name, Of = (newOwner.MapFaction as Kingdom)?.Name?.ToString(), OfId = (newOwner.MapFaction as Kingdom)?.StringId, FromDay = CampaignTime.Now.ToDays, How = detail.ToString() });
                 while (list.Count > Keep) list.RemoveAt(0);
             }
-            catch (Exception ex) { Log.Error("Historia: feudo", ex); }
+            catch (Exception ex) { Log.Error("History: fief", ex); }
         }
 
         private static string Ago(double fromDay)

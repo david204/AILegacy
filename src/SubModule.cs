@@ -18,9 +18,9 @@ namespace AILegacy
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
-            Log.Info("AI Legacy cargado desde " + Paths.ModuleDir);
+            Log.Info("AI Legacy loaded from " + Paths.ModuleDir);
             var cfg = LegacyConfig.Current; // first read, so it shows up in the log
-            try { new HarmonyLib.Harmony("com.ailegacy").PatchAll(typeof(SubModule).Assembly); Log.Info("Parches de Harmony aplicados"); }
+            try { new HarmonyLib.Harmony("com.ailegacy").PatchAll(typeof(SubModule).Assembly); Log.Info("Harmony patches applied"); }
             catch (Exception ex) { Log.Error("Harmony", ex); }
             // Additions to vanilla screens (bars next to the name, history in conversations)
             try
@@ -28,7 +28,7 @@ namespace AILegacy
                 var ui = Bannerlord.UIExtenderEx.UIExtender.Create("AILegacy");
                 ui.Register(typeof(SubModule).Assembly);
                 ui.Enable();
-                Log.Info("Extensiones de interfaz registradas");
+                Log.Info("UI extensions registered");
             }
             catch (Exception ex) { Log.Error("UIExtenderEx", ex); }
         }
@@ -76,11 +76,11 @@ namespace AILegacy
                 t = Perf.Begin();
                 Core.L.SyncGameTexts();          // "{=AIL_...}" texts, in the language picked in the mod
                 _letterCheck = 0f;
-                try { if (Campaign.Current != null) LetterSystem.TryShowPending(); } catch (Exception ex) { Log.Error("Cartas", ex); }
-                try { World.OrderSystem.Pump(); } catch (Exception ex) { Log.Error("Órdenes", ex); }
-                try { SaveFiles.Pump(); } catch (Exception ex) { Log.Error("Archivos", ex); }
-                try { World.WorldSim.Pump(); } catch (Exception ex) { Log.Error("Mundo", ex); }
-                try { if (Campaign.Current != null) World.ResidentFaces.Sweep(); } catch (Exception ex) { Log.Error("Vecinos", ex); }
+                try { if (Campaign.Current != null) LetterSystem.TryShowPending(); } catch (Exception ex) { Log.Error("Letters", ex); }
+                try { World.OrderSystem.Pump(); } catch (Exception ex) { Log.Error("Orders", ex); }
+                try { SaveFiles.Pump(); } catch (Exception ex) { Log.Error("Files", ex); }
+                try { World.WorldSim.Pump(); } catch (Exception ex) { Log.Error("World", ex); }
+                try { if (Campaign.Current != null) World.ResidentFaces.Sweep(); } catch (Exception ex) { Log.Error("Neighbours", ex); }
                 Perf.End("tick:cada segundo (textos, cartas, órdenes, archivos, mundo)", t);
                 Perf.Pump();
             }

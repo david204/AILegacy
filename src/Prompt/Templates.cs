@@ -151,9 +151,9 @@ namespace AILegacy.Prompt
                         L.T("AIL_94c21a0a", "Los que hayas editado no se tocan nunca.\r\n"), new UTF8Encoding(false));
 
                 _campaignDir = dir;
-                Log.Info($"Plantillas: {all.Count} en {dir} ({created} creadas, {updated} actualizadas, {custom} editadas por ti)");
+                Log.Info($"Templates: {all.Count} in {dir} ({created} created, {updated} updated, {custom} edited by you)");
             }
-            catch (Exception ex) { Log.Error("No se pudo preparar la carpeta de plantillas", ex); _campaignDir = null; }
+            catch (Exception ex) { Log.Error("Could not prepare the templates folder", ex); _campaignDir = null; }
         }
     }
 }

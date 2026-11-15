@@ -128,10 +128,10 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
                 if (s.KnownBy.Count == 0) return null;      // a secret nobody knows is useless
                 All.Add(s);
                 while (All.Count > cfg.StorySecretsMax) All.RemoveAt(0);
-                Log.Info($"[secretos] nuevo ({source}, {s.Access}): {text} — lo saben: {string.Join(", ", s.KnownBy.Select(id => Hero.Find(id)?.Name?.ToString() ?? id))}");
+                Log.Info($"[secrets] new ({source}, {s.Access}): {text} — known by: {string.Join(", ", s.KnownBy.Select(id => Hero.Find(id)?.Name?.ToString() ?? id))}");
                 return s;
             }
-            catch (Exception ex) { Log.Error("Guardar secreto", ex); return null; }
+            catch (Exception ex) { Log.Error("Save secret", ex); return null; }
         }
 
         /// <summary>A secret born of something that happened (a child's true father, say), with its people given directly.</summary>
@@ -147,10 +147,10 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
                 if (s.KnownBy.Count == 0) return null;
                 All.Add(s);
                 while (All.Count > S.Get.StorySecretsMax) All.RemoveAt(0);
-                Log.Info($"[secretos] nuevo (suceso): {text}");
+                Log.Info($"[secrets] new (event): {text}");
                 return s;
             }
-            catch (Exception ex) { Log.Error("Guardar secreto de un suceso", ex); return null; }
+            catch (Exception ex) { Log.Error("Save event secret", ex); return null; }
         }
 
         /// <summary>The secret has come out: everyone it names may now speak of it, and these people know it too.</summary>
@@ -181,11 +181,11 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
                 {
                     int n = 0;
                     if (j["secrets"] is JArray arr) foreach (var x in arr.OfType<JObject>().Take(cfg.StorySecretsPerKingdom + 1)) if (Add(x, k, "origin") != null) n++;
-                    Log.Info($"[secretos] {k.Name}: {n} secreto(s) nacidos de su gente");
+                    Log.Info($"[secrets] {k.Name}: {n} secret(s) born among their people");
                     if (n > 0 && !WorldSim.State.SecretKingdoms.Contains(k.StringId)) { WorldSim.State.SecretKingdoms.Add(k.StringId); Memory.SaveFiles.Flush(); }
                 }, key: "secrets:" + k.StringId);
             }
-            catch (Exception ex) { Log.Error("Secretos por historia", ex); }
+            catch (Exception ex) { Log.Error("Secrets by story", ex); }
         }
 
         /// <summary>Secrets this character knows, for their prompt. Their own secrets are flagged as such.</summary>

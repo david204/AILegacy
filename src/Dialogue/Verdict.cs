@@ -70,7 +70,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 if (st.OwnerClan == Clan.PlayerClan || (st.MapFaction != null && st.MapFaction == P.MapFaction && P.MapFaction is Kingdom)) return;     // no trial in your own fief or kingdom
                 var judge = Speaker.FromHero(lord);
                 string player = ContextBuilder.PlayerNameFor(judge) ?? (guard != null ? ContextBuilder.PlayerNameFor(guard) : null);
-                if (player == null) { Log.Info($"[juicio] nadie en {st.Name} sabe quién eres: no hay sentencia con tu nombre"); return; }
+                if (player == null) { Log.Info($"[trial] nobody in {st.Name} knows who you are: no sentence under your name"); return; }
 
                 var p = judge.Memory.Profile;
                 string desc = $"{(lord.IsFemale ? "woman" : "man")}, {(int)lord.Age}, {lord.Culture?.Name}" + (p != null && !p.IsEmpty ? $". {p.Personality}" : "")
@@ -95,17 +95,17 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                         _busy = false;
                         try
                         {
-                            if (session != WorldSim.Session) { Log.Info("[juicio] sentencia de otra partida, descartada"); return; }
-                            if (res == null || !res.Ok) { Log.Warn("[juicio] la IA no ha dado sentencia: " + res?.Error); return; }
+                            if (session != WorldSim.Session) { Log.Info("[trial] sentence from another game, discarded"); return; }
+                            if (res == null || !res.Ok) { Log.Warn("[trial] the AI gave no sentence: " + res?.Error); return; }
                             int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                             if (a < 0 || b <= a) return;
                             Apply(st, lord, judge, player, JObject.Parse(res.Text.Substring(a, b - a + 1)));
                         }
-                        catch (Exception ex) { Log.Error("Sentencia", ex); }
+                        catch (Exception ex) { Log.Error("Sentence", ex); }
                     });
                 });
             }
-            catch (Exception ex) { Log.Error("Juicio", ex); _busy = false; }
+            catch (Exception ex) { Log.Error("Trial", ex); _busy = false; }
         }
 
         private static int Int(JToken t, int min, int max)
@@ -168,7 +168,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 }
                 if (rel != 0) ChangeRelationAction.ApplyPlayerRelation(lord, rel, affectRelatives: false, showQuickNotification: true);
             }
-            catch (Exception ex) { Log.Error("Sentencia: efectos", ex); }
+            catch (Exception ex) { Log.Error("Sentence: effects", ex); }
 
             if (decree.Length < 5) decree = outcome;
             if (decreeEn.Length < 5) decreeEn = $"{lord.Name} judged {player} at {st.Name}: {sentence}.";
@@ -181,7 +181,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 Kingdoms = st.MapFaction != null ? new List<string> { st.MapFaction.StringId } : new List<string>(), Heroes = new List<string> { lord.StringId, P.StringId },
             });
             SaveFiles.Flush();
-            Log.Info($"[juicio] {lord.Name} en {st.Name}: {sentence} (multa {fine}, días {days}, fama {crime:+0;-0}, relación {rel:+0;-0})");
+            Log.Info($"[trial] {lord.Name} in {st.Name}: {sentence} (fine {fine}, days {days}, fame {crime:+0;-0}, relationship {rel:+0;-0})");
             InformationManager.ShowInquiry(new InquiryData(L.F("AIL_6c33ff94", $"Sentencia de {lord.Name}"), $"«{decree}»\n\n{outcome}", true, false, L.T("AIL_265409ff", "Entendido"), null, null, null), true);
         }
 
@@ -197,7 +197,7 @@ Answer ONLY with JSON: { ""sentence"": ""release|fine|prison"", ""fine"": 0, ""d
                 PlayerCaptivity.EndCaptivity();
                 Say(L.F("AIL_56a8023e", $"Has cumplido tu condena: te sueltan de la mazmorra de {st.Name}."), Colors.Yellow);
             }
-            catch (Exception ex) { Log.Error("Fin de condena", ex); _releaseDay = -1; _in = null; }
+            catch (Exception ex) { Log.Error("End of sentence", ex); _releaseDay = -1; _in = null; }
         }
     }
 }

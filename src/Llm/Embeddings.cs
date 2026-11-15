@@ -131,7 +131,7 @@ namespace AILegacy.Llm
                         string host = src.P.BaseUrl ?? "";
                         try { host = new Uri(host).Authority; } catch { }
                         string id = host.ToLowerInvariant() + "|" + src.Model;
-                        if (_working != id) { _working = id; Log.Info($"Vectores de significado: se usa {id}"); }
+                        if (_working != id) { _working = id; Log.Info($"Embeddings: using {id}"); }
                         return new Result { Vecs = all.ToArray(), Model = id };
                     }
                     lock (Fails) Fails[src.P.Name] = fails + 1;
@@ -139,10 +139,10 @@ namespace AILegacy.Llm
                 // Every provider failed: back off for ten minutes before trying again
                 _retryAt = DateTime.UtcNow.AddMinutes(10);
                 lock (Fails) Fails.Clear();
-                Log.Warn("Vectores de significado: ningún proveedor los ha dado; se sigue con la búsqueda por palabras (se reintentará en 10 minutos)");
+                Log.Warn("Embeddings: no provider returned them; continuing with keyword search (will retry in 10 minutes)");
                 return null;
             }
-            catch (Exception ex) { Log.Error("Vectores de significado", ex); return null; }
+            catch (Exception ex) { Log.Error("Embeddings", ex); return null; }
             finally { Gate.Release(); }
         }
 
@@ -171,7 +171,7 @@ namespace AILegacy.Llm
                             {
                                 var j = JObject.Parse(text);
                                 var data = j["data"] as JArray;
-                                if (data == null || data.Count != batch.Count) { Log.Warn($"Vectores ({p.Name}): respuesta con {data?.Count ?? 0} vectores para {batch.Count} textos"); return null; }
+                                if (data == null || data.Count != batch.Count) { Log.Warn($"Embeddings ({p.Name}): response with {data?.Count ?? 0} vectors for {batch.Count} texts"); return null; }
                                 var list = new List<sbyte[]>();
                                 foreach (var d in data.OrderBy(x => (int?)x["index"] ?? 0))
                                 {
@@ -186,12 +186,12 @@ namespace AILegacy.Llm
                             UsageMeter.Record(p.Name, task, false, 0, 0, 0, secs, 0, 0);
                             // Provider rejected the dimensions parameter: retry without it and cut the vectors here
                             if ((status == 400 || status == 422) && !noDims) { noDims = true; lock (NoDimensions) NoDimensions[p.Name] = true; continue; }
-                            Log.Warn($"Vectores ({p.Name}/{src.Model}): HTTP {status} {Clip(text, 200)}");
+                            Log.Warn($"Embeddings ({p.Name}/{src.Model}): HTTP {status} {Clip(text, 200)}");
                             return null;
                         }
                     }
                 }
-                catch (Exception ex) { Log.Warn($"Vectores ({p.Name}): {ex.GetBaseException().Message}"); return null; }
+                catch (Exception ex) { Log.Warn($"Embeddings ({p.Name}): {ex.GetBaseException().Message}"); return null; }
             }
             return null;
         }

@@ -82,7 +82,7 @@ namespace AILegacy.Memory
                         if (f != null) foreach (var c in f.Chunks) c.V = Embeddings.FromText(c.Vec);
                     }
                 }
-                catch (Exception ex) { Log.Warn($"Índice de recuerdos de {key} ilegible, se rehace: {ex.Message}"); f = null; }
+                catch (Exception ex) { Log.Warn($"Memory index of {key} unreadable, rebuilding: {ex.Message}"); f = null; }
                 if (f == null && !create) { Loaded[key] = null; return null; }
                 if (f == null) f = new RagFile { Npc = key };
                 Loaded[key] = f;
@@ -102,7 +102,7 @@ namespace AILegacy.Memory
                 if (File.Exists(path)) File.Delete(path);
                 File.Move(tmp, path);
             }
-            catch (Exception ex) { Log.Warn($"No se pudo escribir el índice de recuerdos de {key}: {ex.Message}"); }
+            catch (Exception ex) { Log.Warn($"Could not write the memory index of {key}: {ex.Message}"); }
         }
 
         private static string Print(ChatTurn t) => t == null ? "" : ((t.Text ?? "").Length + ":" + (t.Text ?? "").GetHashCode().ToString("x") + ":" + (int)(t.Day * 10));
@@ -142,7 +142,7 @@ namespace AILegacy.Memory
                 if (rebuild)
                 {
                     f.Chunks.Clear(); f.Indexed = Math.Max(0, total - have); f.Tail = null; f.ChunkSize = size;
-                    Log.Info($"Índice de recuerdos de {s.Name}: se rehace");
+                    Log.Info($"Memory index of {s.Name}: rebuilding");
                 }
                 // If more was archived than the archive keeps, the missing lines can't be indexed, skip them
                 if (total - f.Indexed > have) f.Indexed = total - have;
@@ -185,11 +185,11 @@ namespace AILegacy.Memory
                         int max = Math.Max(50, S.Get.RagMaxChunks);
                         if (f.Chunks.Count > max) f.Chunks.RemoveRange(0, f.Chunks.Count - max);
                         Write(key, f);
-                        Log.Info($"Índice de recuerdos de {s.Name}: {chunks.Count} trozo(s) nuevos, {f.Chunks.Count} en total");
+                        Log.Info($"Memory index of {s.Name}: {chunks.Count} new chunk(s), {f.Chunks.Count} in total");
                     });
                 });
             }
-            catch (Exception ex) { Log.Error("Índice de recuerdos", ex); }
+            catch (Exception ex) { Log.Error("Memory index", ex); }
         }
 
         /// <summary>Re-embeds every stored chunk with the model now in use. The texts are kept, so no memory is lost.</summary>
@@ -277,7 +277,7 @@ namespace AILegacy.Memory
                     result.Add(when + x.c.Text);
                 }
             }
-            catch (Exception ex) { Log.Error("Recuerdo por significado", ex); }
+            catch (Exception ex) { Log.Error("Semantic recall", ex); }
             return result;
         }
     }

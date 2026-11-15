@@ -26,10 +26,10 @@ namespace AILegacy.Prompt
                     {
                         _text = File.ReadAllText(path).Trim();
                         _stamp = s; _path = path;
-                        Log.Info($"world.txt cargado ({_text.Length} caracteres)");
+                        Log.Info($"world.txt loaded ({_text.Length} characters)");
                     }
                 }
-                catch (Exception ex) { Log.Error("No se pudo leer world.txt", ex); }
+                catch (Exception ex) { Log.Error("Could not read world.txt", ex); }
                 return _text;
             }
         }

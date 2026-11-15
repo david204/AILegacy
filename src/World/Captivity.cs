@@ -115,7 +115,7 @@ A threat of death from them is credible: take it as real, and each time it is re
                 Seed();
                 Add(victim, d == "Murdered" ? "killed" : "executed", CampaignTime.Now.ToDays);
             }
-            catch (Exception ex) { Log.Error("Registro de ejecuciones", ex); }
+            catch (Exception ex) { Log.Error("Execution log", ex); }
         }
 
         /// <summary>Once per save: the executions the game's own log remembers from before this record existed.</summary>
@@ -140,7 +140,7 @@ A threat of death from them is credible: take it as real, and each time it is re
                 }
                 st.Executions = Records(st).OrderBy(x => x.Day).ToList();
             }
-            catch (Exception ex) { Log.Error("Ejecuciones anteriores, leídas del registro del juego", ex); }
+            catch (Exception ex) { Log.Error("Past executions, read from the game log", ex); }
         }
 
         public static int Count { get { try { Seed(); return Records(WorldSim.State)?.Count ?? 0; } catch { return 0; } } }
@@ -181,7 +181,7 @@ A threat of death from them is credible: take it as real, and each time it is re
                 sb.AppendLine();
                 sb.AppendLine(TCaptive.Format("player_name", ContextBuilder.PlayerNameFor(s) ?? "your captor", "record", Record(), "temper", Temper(s.Hero)));
             }
-            catch (Exception ex) { Log.Error("Situación del prisionero", ex); }
+            catch (Exception ex) { Log.Error("Prisoner status", ex); }
         }
     }
 }

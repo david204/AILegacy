@@ -266,7 +266,7 @@ namespace AILegacy.World
                             Refresh();
                             ShowHerbShop(st);
                         }
-                        catch (Exception ex) { Log.Error("[enfermedad] compra de hierbas", ex); }
+                        catch (Exception ex) { Log.Error("[disease] herb purchase", ex); }
                     });
                 }, null, "", false), true);
         }
@@ -305,7 +305,7 @@ namespace AILegacy.World
                             if (pick.Value) TreatWithHerb(pick.Key); else TakeAsGuard(pick.Key);
                             if (Settlement.CurrentSettlement != null && Campaign.Current.CurrentMenuContext?.GameMenu?.StringId == "ailegacy_hospital") Refresh();
                         }
-                        catch (Exception ex) { Log.Error("[enfermedad] uso de hierbas", ex); }
+                        catch (Exception ex) { Log.Error("[disease] herb use", ex); }
                     });
                 }, null, "", false), true);
         }
@@ -323,7 +323,7 @@ namespace AILegacy.World
         {
             starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_herbs_buy", L.T("AIL_e7b1c6fb", "{=!}Comprar hierbas curativas"),
                 args => { args.optionLeaveType = GameMenuOption.LeaveType.Trade; return HerbsOn; },
-                args => { try { ShowHerbShop(Settlement.CurrentSettlement); } catch (Exception ex) { Log.Error("[enfermedad] tienda de hierbas", ex); } }, false, -1);
+                args => { try { ShowHerbShop(Settlement.CurrentSettlement); } catch (Exception ex) { Log.Error("[disease] herb shop", ex); } }, false, -1);
 
             starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_herbs_use", L.T("AIL_e7b1c728", "{=!}Usar tus hierbas curativas"),
                 args =>
@@ -333,7 +333,7 @@ namespace AILegacy.World
                     if (!Herbs.Any(h => HerbCount(h) > 0)) { args.IsEnabled = false; args.Tooltip = new TextObject("{=!}" + L.T("AIL_e7b1c70a", "No llevas hierbas curativas.")); }
                     return true;
                 },
-                args => { try { ShowHerbUse(); } catch (Exception ex) { Log.Error("[enfermedad] uso de hierbas", ex); } }, false, -1);
+                args => { try { ShowHerbUse(); } catch (Exception ex) { Log.Error("[disease] herb use", ex); } }, false, -1);
         }
 
         // ============================================================ garrisons and militias
@@ -435,7 +435,7 @@ namespace AILegacy.World
                 Count = Math.Max(1f, total * 0.05f), StartDay = now, CareDay = now,
             });
             _forceIndex = null;
-            Log.Info($"[enfermedad] {(kind == ForceSickness.Militia ? "la milicia" : "la guarnición")} de {st.Name} enferma de {o.NameEn}");
+            Log.Info($"[disease] {(kind == ForceSickness.Militia ? "the militia" : "the garrison")} of {st.Name} falls ill with {o.NameEn}");
             if (st.OwnerClan != null && st.OwnerClan == Clan.PlayerClan)
                 WorldSim.Say(kind == ForceSickness.Militia ? L.F("AIL_e7b1c714", $"La milicia de {st.Name} ha enfermado de {o.Name}.") : L.F("AIL_e7b1c713", $"La guarnición de {st.Name} ha enfermado de {o.Name}."), Colors.Red);
         }
@@ -453,7 +453,7 @@ namespace AILegacy.World
             foreach (var f in Forces.ToList())
             {
                 try { TickForce(f, now, cfg, viaModel); }
-                catch (Exception ex) { Log.Error("[enfermedad] día de una guarnición", ex); }
+                catch (Exception ex) { Log.Error("[disease] garrison day", ex); }
             }
         }
 
@@ -647,7 +647,7 @@ namespace AILegacy.World
                     else d.Remove(kv.Key);
                 }
             }
-            catch (Exception ex) { Log.Error("[enfermedad] repaso de muertes anotadas", ex); }
+            catch (Exception ex) { Log.Error("[disease] review of recorded deaths", ex); }
         }
 
         private const double DeathWindowDays = 3.0;
@@ -700,7 +700,7 @@ namespace AILegacy.World
             // Added wide and capped: the whole debt goes into one day's expenses
             int total = (int)Math.Min(MaxDebt, Math.Max(0L, had) + amount);
             d[c.StringId] = total;
-            Log.Info($"[enfermedad] {c.Name} queda a deber {amount} denarios de tratamiento (total {total})");
+            Log.Info($"[disease] {c.Name} owes {amount} denars for treatment (total {total})");
         }
 
         private const long MaxDebt = 1000000;
@@ -823,7 +823,7 @@ namespace AILegacy.World
                         CareRest[h.StringId] = now + 5;
                     }
                 }
-                catch (Exception ex) { Log.Error("[enfermedad] partida en tratamiento", ex); }
+                catch (Exception ex) { Log.Error("[disease] party in treatment", ex); }
             }
             if (!search || !cfg.DiseaseAiSeekTreatment || !AnySick) return;
 
@@ -842,9 +842,9 @@ namespace AILegacy.World
                     if (places == null) places = Settlement.All.Where(x => x != null && (x.IsTown || x.IsCastle)).ToList();
                     if (SendToCare(p, now, cfg, places)) sent++;
                 }
-                catch (Exception ex) { Log.Error("[enfermedad] enviar una partida a tratarse", ex); }
+                catch (Exception ex) { Log.Error("[disease] send a party for treatment", ex); }
             }
-            if (sent > 0) Log.Info($"[enfermedad] {sent} partida(s) enferma(s) van a que las traten");
+            if (sent > 0) Log.Info($"[disease] {sent} sick part(ies) going for treatment");
         }
 
         // Urgency runs from 3 to 10. Below this, a party whose faction is at war stays with its war

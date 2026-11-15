@@ -31,7 +31,7 @@ namespace AILegacy.Core
             while (budget-- > 0 && Queue.TryDequeue(out var action))
             {
                 try { action(); }
-                catch (Exception ex) { Log.Error("Error ejecutando acción en hilo principal", ex); }
+                catch (Exception ex) { Log.Error("Error running action on main thread", ex); }
             }
         }
     }

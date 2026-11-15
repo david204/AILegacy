@@ -346,12 +346,12 @@ namespace AILegacy.World
                     StartDay = now, UntilDay = Math.Max(now + 5, untilDay), Progress = Math.Max(1f, 15f - 15f * MedEff(Medicine(h), sev) * 2f),
                 };
                 Sick.Add(s); Touch();
-                Log.Info($"[enfermedad] {h.Name} enferma de {nameEn} (gravedad {sev})");
+                Log.Info($"[disease] {h.Name} falls ill with {nameEn} (severity {sev})");
                 if (h == Hero.MainHero) WorldSim.Say(L.F("AIL_e7b1c5ee", $"Has caído enfermo: {s.Name}."), Colors.Red);
                 else if (Close(h)) WorldSim.Say(L.F("AIL_e7b1c5ef", $"{h.Name} ha caído enfermo: {s.Name}."), Colors.Red);
                 return s;
             }
-            catch (Exception ex) { Log.Error("[enfermedad] contagio de un personaje", ex); return null; }
+            catch (Exception ex) { Log.Error("[disease] character infection", ex); return null; }
         }
 
         private static bool Close(Hero h) => h != null && (h.PartyBelongedTo == MobileParty.MainParty || (h.Clan != null && h.Clan == Clan.PlayerClan));
@@ -400,7 +400,7 @@ namespace AILegacy.World
                 }
                 return added;
             }
-            catch (Exception ex) { Log.Error("[enfermedad] contagio de una tropa", ex); return 0; }
+            catch (Exception ex) { Log.Error("[disease] troop infection", ex); return 0; }
         }
 
         /// <summary>Soldiers of the player just laid low by an outbreak (already wounded and announced by the caller).</summary>
@@ -630,13 +630,13 @@ namespace AILegacy.World
             {
                 if (Campaign.Current == null || !Enabled) return;
                 bool round = (long)CampaignTime.Now.ToHours % 6 == 0;
-                try { CareRound(CampaignTime.Now.ToDays, round); } catch (Exception ex) { Log.Error("[enfermedad] partidas que van a tratarse", ex); }
+                try { CareRound(CampaignTime.Now.ToDays, round); } catch (Exception ex) { Log.Error("[disease] parties going for treatment", ex); }
                 if (!round) return;
                 SeasonalRound();
                 PlaceRound();
-                try { ForceRound(); } catch (Exception ex) { Log.Error("[enfermedad] contagio de guarniciones", ex); }
+                try { ForceRound(); } catch (Exception ex) { Log.Error("[disease] garrison infection", ex); }
             }
-            catch (Exception ex) { Log.Error("[enfermedad] ronda de contagio", ex); }
+            catch (Exception ex) { Log.Error("[disease] infection round", ex); }
         }
 
         // ---- walking around inside (missions)
@@ -675,7 +675,7 @@ namespace AILegacy.World
                 _walkClock = 0f;
                 CatchAt(Hero.MainHero, o, st, cfg.MissionInfectionBaseChance, 0.2f);
             }
-            catch (Exception ex) { Log.Error("[enfermedad] contagio en la escena", ex); }
+            catch (Exception ex) { Log.Error("[disease] infection in the scene", ex); }
         }
 
         // ---- a sick party arrives somewhere
@@ -699,7 +699,7 @@ namespace AILegacy.World
             double now = CampaignTime.Now.ToDays;
             int days = (int)Math.Max(10, (carried.UntilDay - now) * S.Get.DiseaseSpreadInheritFactor);
             var n = Start(st, carried.Name, carried.NameEn, Math.Max(1, carried.Severity - (Rng.Next(2) == 0 ? 1 : 0)), days, true, carried.Fx);
-            if (n != null) Log.Info($"[enfermedad] {party.Name} lleva {carried.NameEn} a {st.Name}");
+            if (n != null) Log.Info($"[disease] {party.Name} carries {carried.NameEn} to {st.Name}");
         }
 
         private static float CareQuality(Settlement st)
@@ -770,7 +770,7 @@ namespace AILegacy.World
                         InfectBand(winner, Sickness.Prisoners, worst.Name, worst.NameEn, worst.Severity, worst.Seasonal, worst.Fx, worst.UntilDay, Math.Max(1, (int)(held * Math.Max(0.05f, worstShare))));
                 }
             }
-            catch (Exception ex) { Log.Error("[enfermedad] contagio en batalla", ex); }
+            catch (Exception ex) { Log.Error("[disease] infection in battle", ex); }
         }
 
         // ============================================================ day by day
@@ -784,9 +784,9 @@ namespace AILegacy.World
                     if (s == null || s.TargetId == null) { Sick.Remove(s); Touch(); continue; }
                     if (s.Kind == Sickness.Hero) TickHero(s, now); else TickBand(s, now);
                 }
-                catch (Exception ex) { Log.Error("[enfermedad] día de un enfermo", ex); }
+                catch (Exception ex) { Log.Error("[disease] sick person's day", ex); }
             }
-            try { SpreadInParties(now); } catch (Exception ex) { Log.Error("[enfermedad] contagio en las partidas", ex); }
+            try { SpreadInParties(now); } catch (Exception ex) { Log.Error("[disease] infection in parties", ex); }
             foreach (var k in Immune.Where(x => x.Value <= now).Select(x => x.Key).ToList()) Immune.Remove(k);
         }
 
@@ -846,7 +846,7 @@ namespace AILegacy.World
             if (h.IsAlive) { ForgetDeath(h); s.Progress = 95f; return; }
             ConfirmDeath(h);
             Remove(s);
-            Log.Info($"[enfermedad] {who} muere de {s.NameEn}");
+            Log.Info($"[disease] {who} dies of {s.NameEn}");
             if (close && !ownTexts) WorldSim.Say(L.F("AIL_e7b1c5f8", $"{who} ha muerto de {s.Name}."), Colors.Red);
             if (known)
                 NewsStore.Add(new NewsItem

@@ -102,14 +102,14 @@ namespace AILegacy.World
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Objetivo del encargo", ex); q.ObjType = "none"; }
+            catch (Exception ex) { Log.Error("Quest objective", ex); q.ObjType = "none"; }
 
             if (q.ObjType == "none")
             {
-                Log.Warn($"Objetivo '{type}' con destino '{r.ObjTarget}' {r.ObjItem} no encontrado: el encargo queda libre (lo juzga quien lo dio)");
+                Log.Warn($"Objective '{type}' with target '{r.ObjTarget}' {r.ObjItem} not found: quest left open (judged by the giver)");
                 Say(L.T("AIL_1191e28d", "(Este encargo nombra a alguien o algo que no existe en el mundo: no se puede comprobar solo y lo juzgará quien te lo dio.)"), Colors.Gray);
             }
-            else Log.Info($"Objetivo del encargo {q.Id}: {q.ObjType} → {q.ObjTargetName}" + (q.ObjAmount > 0 ? $" x{q.ObjAmount}" : ""));
+            else Log.Info($"Quest {q.Id} objective: {q.ObjType} → {q.ObjTargetName}" + (q.ObjAmount > 0 ? $" x{q.ObjAmount}" : ""));
         }
 
         private static ItemObject FindItem(string name)
@@ -156,8 +156,8 @@ namespace AILegacy.World
                 party.SetPartyUsedByQuest(true);
                 party.SetMovePatrolAroundSettlement(st, MobileParty.NavigationType.Default, false);
             }
-            catch (Exception ex) { Log.Error("Preparando la banda del encargo", ex); }
-            Log.Info($"Banda creada junto a {st.Name} para el encargo {q.Id}: {party.MemberRoster.TotalManCount} hombres");
+            catch (Exception ex) { Log.Error("Preparing the quest band", ex); }
+            Log.Info($"Band created near {st.Name} for quest {q.Id}: {party.MemberRoster.TotalManCount} men");
             return party;
         }
 
@@ -211,7 +211,7 @@ namespace AILegacy.World
                     else { GameJournal.Update(q, note); Say($"{q.Name}: {note}", Colors.Green); }
                 }
             }
-            catch (Exception ex) { Log.Error("Encargos: objeto entregado", ex); }
+            catch (Exception ex) { Log.Error("Quests: item delivered", ex); }
         }
 
         /// <summary>
@@ -299,7 +299,7 @@ namespace AILegacy.World
             if (q.ProgressTarget > 0) q.Progress = q.ProgressTarget;
             GameJournal.Update(q, note);
             Say($"{q.Name}: {note}", Colors.Green);
-            Log.Info($"Objetivo cumplido del encargo {q.Id}: {note}");
+            Log.Info($"Quest {q.Id} objective completed: {note}");
         }
 
         // ============================================================ game events
@@ -312,7 +312,7 @@ namespace AILegacy.World
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active && x.ObjType == "visit" && x.ObjTargetId == st.StringId).ToList())
                     MarkMet(q, L.F("AIL_ff5c778e", $"Has llegado a {st.Name}. Vuelve con {q.GiverName}."));
             }
-            catch (Exception ex) { Log.Error("Encargos: entrada en asentamiento", ex); }
+            catch (Exception ex) { Log.Error("Quests: settlement entry", ex); }
         }
 
         public static void OnPartyDestroyed(MobileParty destroyed, PartyBase destroyer)
@@ -329,7 +329,7 @@ namespace AILegacy.World
                                     : L.F("AIL_8525c8a9", $"Otros han acabado con la banda de {q.ObjTargetName} antes que tú. Vuelve con {q.GiverName}."));
                 }
             }
-            catch (Exception ex) { Log.Error("Encargos: grupo destruido", ex); }
+            catch (Exception ex) { Log.Error("Quests: party destroyed", ex); }
         }
 
         /// <summary>The player really talked with this hero (at least one exchange).</summary>
@@ -341,7 +341,7 @@ namespace AILegacy.World
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active && x.ObjType == "talk_to" && x.ObjTargetId == h.StringId).ToList())
                     MarkMet(q, L.F("AIL_a615d39e", $"Has hablado con {h.Name}. Vuelve con {q.GiverName}."));
             }
-            catch (Exception ex) { Log.Error("Encargos: charla", ex); }
+            catch (Exception ex) { Log.Error("Quests: conversation", ex); }
         }
 
         public static void OnDocumentTaken(Speaker taker, RpItem item)
@@ -353,7 +353,7 @@ namespace AILegacy.World
                                                               && Belongings.Norm(x.DocName) == Belongings.Norm(item.Name)).ToList())
                     MarkMet(q, L.F("AIL_8281a6ef", $"{taker.Name} ha recibido «{item.Name}». Vuelve con {q.GiverName}."));
             }
-            catch (Exception ex) { Log.Error("Encargos: documento", ex); }
+            catch (Exception ex) { Log.Error("Quests: document", ex); }
         }
 
         /// <summary>Refreshes carried items for the journal and catches bands that vanished without an event.</summary>
@@ -372,7 +372,7 @@ namespace AILegacy.World
                         MarkMet(q, L.F("AIL_cf0db558", $"La banda de {q.ObjTargetName} ya no existe. Vuelve con {q.GiverName}."));
                 }
             }
-            catch (Exception ex) { Log.Error("Encargos: objetivos, tick diario", ex); }
+            catch (Exception ex) { Log.Error("Quests: objectives, daily tick", ex); }
         }
 
         // ============================================================ close
@@ -395,7 +395,7 @@ namespace AILegacy.World
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Encargos: entrega", ex); }
+            catch (Exception ex) { Log.Error("Quests: delivery", ex); }
             return null;
         }
 
@@ -409,7 +409,7 @@ namespace AILegacy.World
                 if (q.ObjType == "deliver_document" && !q.ObjMet && !string.IsNullOrEmpty(q.DocName))
                     Belongings.Items.RemoveAll(i => Belongings.Norm(i.Name) == Belongings.Norm(q.DocName));
             }
-            catch (Exception ex) { Log.Error("Encargos: limpieza", ex); }
+            catch (Exception ex) { Log.Error("Quests: cleanup", ex); }
         }
 
         public static IEnumerable<ITrackableCampaignObject> Trackables(AiQuest q)

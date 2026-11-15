@@ -58,7 +58,7 @@ namespace AILegacy.World
                 bool own = e.About != null && e.About.Any(tags.Contains);   // tags carry the hero's own id
                 bool fits = own || e.Who == null || e.Who.Count == 0 || e.Who.Any(tags.Contains);
                 if (!fits) continue;
-                if (own || Rng.Next(100) < e.Chance) { known.Add(e.Id); Log.Info($"{who} sabe [{e.Id}]"); }
+                if (own || Rng.Next(100) < e.Chance) { known.Add(e.Id); Log.Info($"{who} knows [{e.Id}]"); }
                 else known.Add("-" + e.Id); // failed roll, never rolled again
             }
         }
@@ -102,10 +102,10 @@ namespace AILegacy.World
                         {
                             _entries = JsonConvert.DeserializeObject<List<KnowledgeEntry>>(File.ReadAllText(path)) ?? new List<KnowledgeEntry>();
                             _stamp = st; _path = path;
-                            Log.Info($"world_data/{_name}: {_entries.Count} entradas");
+                            Log.Info($"world_data/{_name}: {_entries.Count} entries");
                         }
                     }
-                    catch (Exception ex) { Log.Error($"world_data/{_name} tiene un error", ex); }
+                    catch (Exception ex) { Log.Error($"world_data/{_name} has an error", ex); }
                     return _entries;
                 }
             }

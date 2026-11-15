@@ -116,7 +116,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                     TryStart(now);
                 }
             }
-            catch (Exception ex) { Log.Error("[intriga] día", ex); }
+            catch (Exception ex) { Log.Error("[plot] day", ex); }
         }
 
         private static int Trait(Hero h, TraitObject t) { try { return h.GetTraitLevel(t); } catch { return 0; } }
@@ -203,7 +203,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
             }
             catch { }
             St.Plots.Add(p);
-            Log.Info($"[intriga] {plotter.Name} empieza a tramar contra {target.Name} ({kind}; {why}; cómplices: {p.Accomplices.Count})");
+            Log.Info($"[plot] {plotter.Name} starts plotting against {target.Name} ({kind}; {why}; accomplices: {p.Accomplices.Count})");
             SaveFiles.Dirty();
             return p;
         }
@@ -256,7 +256,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
             {
                 string text = L.F("AIL_e7b1c7e1", $"Un aviso, y que no salga de nosotros: {plotter.Name} trama algo contra ti: {what}. Ten cuidado con lo que comes y por dónde cabalgas.");
                 if (!LetterNotice.Add(friend, text)) LetterSystem.Open(friend, text);
-                Log.Info($"[intriga] {friend.Name} avisa al jugador de la conjura de {plotter.Name}");
+                Log.Info($"[plot] {friend.Name} warns the player of {plotter.Name}'s plot");
             }
             else WorldSim.Say(L.T("AIL_e7b1c7e2", "Tienes la sensación de que alguien sigue tus pasos y pregunta por ti. Mejor andarse con cuidado estos días."), Colors.Yellow);
         }
@@ -297,7 +297,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                     else ChangeRelationAction.ApplyRelationChangeBetweenHeroes(h, target, -amount, false);
                 }
             }
-            catch (Exception ex) { Log.Error("[intriga] daño al nombre", ex); }
+            catch (Exception ex) { Log.Error("[plot] reputation damage", ex); }
         }
 
         /// <summary>The one AI request of a smear: the lie itself. It goes round as a rumour with no author.</summary>
@@ -342,9 +342,9 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                                     FromName = "talk at court", Text = sum, Secrecy = "public", Day = CampaignTime.Now.ToDays,
                                     About = target == P ? null : target.Name.ToString(), Confidence = 45, IsDistorted = true, Importance = 2,
                                 });
-                            Log.Info($"[intriga] rumor contra {target.Name}: {sum}");
+                            Log.Info($"[plot] rumour against {target.Name}: {sum}");
                         }
-                        catch (Exception ex) { Log.Error("[intriga] rumor", ex); }
+                        catch (Exception ex) { Log.Error("[plot] rumour", ex); }
                     });
                 });
         }
@@ -412,10 +412,10 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                 if (troop != null && have < want) party.MemberRoster.AddToCounts(troop, want - have);
                 party.Party.SetCustomName(new TextObject("{=!}" + L.T("AIL_e7b1c7ed", "Asesinos a sueldo")));
                 party.SetMoveEngageParty(main, MobileParty.NavigationType.Default);
-                Log.Info($"[intriga] asesinos de {plotter.Name} junto al jugador: {party.MemberRoster.TotalManCount} hombres");
+                Log.Info($"[plot] assassins of {plotter.Name} next to the player: {party.MemberRoster.TotalManCount} men");
                 return party;
             }
-            catch (Exception ex) { Log.Error("[intriga] asesinos", ex); return null; }
+            catch (Exception ex) { Log.Error("[plot] assassins", ex); return null; }
         }
 
         private static void AttemptOnNpc(Plot p, Hero plotter, Hero target)
@@ -434,7 +434,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
             if (Rng.Next(100) < chance)
             {
                 try { KillCharacterAction.ApplyByMurder(target, null, false); }
-                catch (Exception ex) { Log.Error("[intriga] asesinato", ex); End(p, "failed"); return; }
+                catch (Exception ex) { Log.Error("[plot] assassination", ex); End(p, "failed"); return; }
                 News(L.F("AIL_e7b1c7ee", $"Muerte de {target.Name}"),
                      L.F("AIL_e7b1c7ef", $"{target.Name} ha aparecido muerto. Nadie sabe quién lo hizo.") + (blamed ? " " + L.F("AIL_e7b1c7f0", $"Se murmura que detrás está {plotter.Name}.") : ""),
                      $"{target.Name} was murdered.{(blamed ? $" People whisper that {plotter.Name} was behind it." : "")}", 3, plotter, target);
@@ -473,7 +473,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
         private static void End(Plot p, string why)
         {
             p.Over = true;
-            Log.Info($"[intriga] {p.Id} termina: {why}");
+            Log.Info($"[plot] {p.Id} ends: {why}");
             SaveFiles.Dirty();
         }
 
@@ -491,7 +491,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                 });
                 if (importance >= S.Get.WorldEventNotifyImportance || target == P) WorldSim.Say(text, target == P ? Colors.Red : Colors.Cyan);
             }
-            catch (Exception ex) { Log.Error("[intriga] noticia", ex); }
+            catch (Exception ex) { Log.Error("[plot] news", ex); }
         }
 
         public static string KindWordEs(string kind) =>
@@ -568,7 +568,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
             // with no hands left to do it, a murder or a smear stalls
             if (p.Accomplices.Count == 0 && p.Kind != "seduce") End(p, "betrayed");
             string what = target == P ? KindWordEs(p.Kind) : KindWordOtherEs(p.Kind);
-            Log.Info($"[intriga] {accomplice.Name} delata la conjura de {plotter.Name}");
+            Log.Info($"[plot] {accomplice.Name} betrays {plotter.Name}'s plot");
             return L.F("AIL_e7b1c7fc", $"{accomplice.Name} te lo cuenta todo: {plotter.Name} trama contra {(target == P ? L.T("AIL_e7b1c7fb", "ti") : target.Name.ToString())} ({what}).");
         }
 

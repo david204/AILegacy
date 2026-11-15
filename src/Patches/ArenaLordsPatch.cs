@@ -35,7 +35,7 @@ namespace AILegacy.Patches
                 var arena = settlement.LocationComplex?.GetLocationWithId("arena");
                 if (arena != null) __result = arena;
             }
-            catch (Exception ex) { Log.Error("Señores en la arena", ex); }
+            catch (Exception ex) { Log.Error("Lords in the arena", ex); }
         }
 
         /// <summary>The same answer all day for the same lord: some go in the morning, some in the afternoon, most not at all.</summary>

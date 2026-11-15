@@ -72,7 +72,7 @@ namespace AILegacy.World
             if (n.Heroes.Contains(Hero.MainHero?.StringId)) n.PlayerInvolved = true;
             _items.Add(n);
             if (_items.Count > MaxItems) _items.RemoveRange(0, _items.Count - MaxItems);
-            Core.Log.Info($"Noticia [{n.Type}, imp {n.Importance}]: {n.Text}");
+            Core.Log.Info($"News [{n.Type}, imp {n.Importance}]: {n.Text}");
             try { WorldSim.OnRealNews(n); } catch { }
         }
 

@@ -99,7 +99,7 @@ namespace AILegacy.UI
 
         private static void Fail(string where, Exception ex)
         {
-            Log.Error("Texto sobre la cabeza: " + where, ex);
+            Log.Error("Overhead text: " + where, ex);
             _broken = true;
             Detach();
         }
@@ -132,7 +132,7 @@ namespace AILegacy.UI
                     if (!it.Logged)
                     {
                         it.Logged = true;
-                        Log.Info($"[texto] «{(it.VM.Text.Length > 40 ? it.VM.Text.Substring(0, 40) + "…" : it.VM.Text)}» → pantalla x={x:0} y={y:0} w={w:0.00} (resolución {Screen.RealScreenResolutionWidth:0}x{Screen.RealScreenResolutionHeight:0}, escala {scale:0.00})");
+                        Log.Info($"[text] '{(it.VM.Text.Length > 40 ? it.VM.Text.Substring(0, 40) + "…" : it.VM.Text)}' -> screen x={x:0} y={y:0} w={w:0.00} (resolution {Screen.RealScreenResolutionWidth:0}x{Screen.RealScreenResolutionHeight:0}, scale {scale:0.00})");
                     }
                     bool visible = w > 0f && x > -200f && y > -200f && x < Screen.RealScreenResolutionWidth + 200f && y < Screen.RealScreenResolutionHeight + 200f
                                    && (Agent.Main == null || it.Agent.Position.Distance(Agent.Main.Position) <= S.Get.BubbleMaxDistance);

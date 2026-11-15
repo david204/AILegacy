@@ -63,7 +63,7 @@ namespace AILegacy.Dialogue
                 string shown = World.InfoExchange.DeliverCarried(s);
                 if (shown.Length > 0) Notify(shown, Colors.Green);
             }
-            catch (Exception ex) { Log.Error("Recados en mano", ex); }
+            catch (Exception ex) { Log.Error("Errands in hand", ex); }
         }
 
         public static void Start(Speaker s)
@@ -79,7 +79,7 @@ namespace AILegacy.Dialogue
 
             var session = new ChatSession(s);
             Active = session;
-            Log.Info($"Conversación iniciada con {s.Name} ({s.Key})");
+            Log.Info($"Conversation started with {s.Name} ({s.Key})");
             HandOverCarried(s);
 
             var vm = new ChatVM(s.Name, session.OnPlayerSaid, () => session.Close(session._npcEnded));
@@ -102,7 +102,7 @@ namespace AILegacy.Dialogue
         {
             ChatWindow.Current?.Tick();
             try { Active?.PaintLive(); }
-            catch (Exception ex) { Log.Error("Texto de la respuesta mientras llega", ex); }
+            catch (Exception ex) { Log.Error("Reply text while it arrives", ex); }
         }
 
         // ====================================================== reply shown while it is being written
@@ -236,10 +236,10 @@ namespace AILegacy.Dialogue
             }
             var session = new ChatSession(s) { _dialogMode = true };
             Active = session;
-            Log.Info($"Conversación (diálogo) iniciada con {s.Name} ({s.Key})");
+            Log.Info($"Conversation (dialogue) started with {s.Name} ({s.Key})");
             HandOverCarried(s);
             try { Campaign.Current.ConversationManager.ConversationEndOneShot += () => session.Close(false); }
-            catch (Exception ex) { Log.Error("No pude engancharme al final de la conversación", ex); }
+            catch (Exception ex) { Log.Error("Could not hook into the end of the conversation", ex); }
             return session;
         }
 
@@ -311,7 +311,7 @@ namespace AILegacy.Dialogue
                 if (!cm.CurOptions.Any(o => o.Id == "ailegacy_d_view")) return;
                 cm.DoOption("ailegacy_d_view");
             }
-            catch (Exception ex) { Log.Error("Enseñar la respuesta sola", ex); }
+            catch (Exception ex) { Log.Error("Show the reply on its own", ex); }
         }
 
         /// <summary>One-line status: relation, trust, tension and romance.</summary>
@@ -515,7 +515,7 @@ namespace AILegacy.Dialogue
             }
             catch (Exception ex)
             {
-                Log.Error("Error construyendo el prompt", ex);
+                Log.Error("Error building the prompt", ex);
                 _waiting = false;
                 UiWaiting(false);
                 RemoveLastPlayerTurn(text);
@@ -591,7 +591,7 @@ namespace AILegacy.Dialogue
                     else Notify(L.T("AIL_e7b1c7cf", "La imagen de la escena está lista: elige «Ver la escena»."), Colors.Gray);
                 });
             }
-            catch (Exception ex) { Log.Error("Imagen de la charla", ex); }
+            catch (Exception ex) { Log.Error("Talk image", ex); }
         }
 
         /// <summary>The player says what the last reply got wrong; the review runs and may propose a lesson.</summary>
@@ -632,7 +632,7 @@ namespace AILegacy.Dialogue
                 var messages = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk, instruction);
                 Ask(messages, "");
             }
-            catch (Exception ex) { Log.Error("Primera frase del personaje", ex); }
+            catch (Exception ex) { Log.Error("Character first line", ex); }
         }
 
         private void Ask(List<ChatMessage> messages, string text)
@@ -662,7 +662,7 @@ namespace AILegacy.Dialogue
                 MainThread.Post(() =>
                 {
                     // Another save was loaded in the meantime: this reply belongs to it, so don't apply or store it
-                    if (session != World.WorldSim.Session) { _waiting = false; _closed = true; Log.Info("Respuesta de una charla de otra partida, descartada"); return; }
+                    if (session != World.WorldSim.Session) { _waiting = false; _closed = true; Log.Info("Reply to a talk from another game, discarded"); return; }
                     OnNpcAnswered(res, text);
                 });
             });
@@ -687,7 +687,7 @@ namespace AILegacy.Dialogue
             {
                 // an opening line has no player turn of its own to take back
                 if (!string.IsNullOrEmpty(playerText)) RemoveLastPlayerTurn(playerText);
-                Log.Error("Sin respuesta: " + res.Error);
+                Log.Error("No reply: " + res.Error);
                 UiSystem(L.T("AIL_4073a6cc", "No ha llegado respuesta de ninguna IA. Pulsa Decir para reintentar.\n") + res.Error, true);
                 return;
             }
@@ -700,12 +700,12 @@ namespace AILegacy.Dialogue
             if (reply.Profile != null && Mem.Profile != null && !Mem.Profile.IsEmpty && Mem.Profile.IsIncomplete)
             {
                 int filled = Mem.Profile.FillMissingFrom(reply.Profile);
-                if (filled > 0) { Mem.ProfileRevision++; Log.Info($"Ficha de {_s.Name} completada: {filled} parte(s) que faltaban"); }
+                if (filled > 0) { Mem.ProfileRevision++; Log.Info($"Profile of {_s.Name} completed: {filled} missing part(s)"); }
             }
             if (reply.Profile != null && (Mem.Profile == null || Mem.Profile.IsEmpty))
             {
                 Mem.Profile = reply.Profile;
-                Log.Info($"Personalidad creada para {_s.Name}: {reply.Profile.Personality} | Secreto: {reply.Profile.Secret}");
+                Log.Info($"Personality created for {_s.Name}: {reply.Profile.Personality} | Secret: {reply.Profile.Secret}");
             }
 
             // Nearly the same line as a moment ago: don't show it, ask for another one (once per turn)
@@ -719,7 +719,7 @@ namespace AILegacy.Dialogue
                     Ask(again, playerText);
                     return;
                 }
-                catch (Exception ex) { Log.Error("Reintento por repetición", ex); }
+                catch (Exception ex) { Log.Error("Retry due to repetition", ex); }
             }
             Mem.Turns.Add(new ChatTurn { Role = "npc", Text = reply.Reply, Day = CampaignTime.Now.ToDays });
             _lastAsked = _pendingAsked; _lastRaw = res.Text;
@@ -731,7 +731,7 @@ namespace AILegacy.Dialogue
 
             List<string> effects = new List<string>();
             try { effects = ApplyConsequences(reply); }
-            catch (Exception ex) { Log.Error("Error aplicando consecuencias", ex); }
+            catch (Exception ex) { Log.Error("Error applying consequences", ex); }
             foreach (var e in effects) { if (UseWindow) _win.VM.AddSystem("» " + e); else if (_dialogMode) _dialogNotes.Add(e); }
 
             // Very long talk: summarize what no longer fits in the prompt now, without waiting for the close
@@ -740,14 +740,14 @@ namespace AILegacy.Dialogue
                 int window = S.Get.HistoryTurnsInPrompt;
                 if (Mem.Turns.Count >= Math.Max(S.Get.SummarizeAfterTurns + 1, window + 12)) MemorySummarizer.MaybeSummarize(_s, window);
             }
-            catch (Exception ex) { Log.Error("Resumen a mitad de charla", ex); }
+            catch (Exception ex) { Log.Error("Mid-talk summary", ex); }
 
             SaveFiles.Flush();   // write it now, whether or not the game gets saved
 
             if (reply.EndConversation)
             {
                 _npcEnded = true;
-                Log.Info($"{_s.Name} termina la conversación");
+                Log.Info($"{_s.Name} ends the conversation");
                 if (UseWindow)
                 {
                     _win.VM.AddSystem(L.F("AIL_42b37383", $"({_s.Name} da la conversación por terminada)"));
@@ -788,10 +788,10 @@ namespace AILegacy.Dialogue
                     Text = "[Did not happen: they had already walked away and did not hear that last answer" +
                            (reply.Actions != null && reply.Actions.Any(a => !string.IsNullOrWhiteSpace(a)) ? "; nothing you meant to do with it was done (" + string.Join(", ", reply.Actions.Take(3)) + ")" : "") + ".]",
                 });
-                Log.Info($"Respuesta de {_s.Name} llegada con la charla cerrada: guardada sin aplicar acciones");
+                Log.Info($"Reply from {_s.Name} arrived after the talk closed: saved without applying actions");
                 SaveFiles.Flush();
             }
-            catch (Exception ex) { Log.Error("Respuesta tardía", ex); }
+            catch (Exception ex) { Log.Error("Late reply", ex); }
         }
 
         /// <summary>Logs and returns true if the reply is nearly the same as a recent one from this character.</summary>
@@ -806,7 +806,7 @@ namespace AILegacy.Dialogue
                     var old = Tokens(t.Text);
                     if (old.Count < 6) continue;
                     double sim = now.Intersect(old).Count() / (double)now.Union(old).Count();
-                    if (sim >= 0.8) { Log.Warn($"{_s.Name} se repite: su respuesta se parece un {(int)(sim * 100)} % a una reciente"); return true; }
+                    if (sim >= 0.8) { Log.Warn($"{_s.Name} repeats itself: reply is {(int)(sim * 100)} % similar to a recent one"); return true; }
                 }
             }
             catch { }
@@ -821,7 +821,7 @@ namespace AILegacy.Dialogue
             var cfg = S.Get;
             var shown = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(reply.Thoughts)) Log.Info($"[piensa] {_s.Name}: {reply.Thoughts}");
+            if (!string.IsNullOrWhiteSpace(reply.Thoughts)) Log.Info($"[thinks] {_s.Name}: {reply.Thoughts}");
             if (!string.IsNullOrWhiteSpace(reply.Mood) && reply.Mood.Length <= 30)
             {
                 Mem.Mood = reply.Mood;
@@ -834,7 +834,7 @@ namespace AILegacy.Dialogue
                 && !string.Equals(Mem.KnownPlayerName, reply.PlayerIntroducedAs, StringComparison.OrdinalIgnoreCase))
             {
                 Mem.KnownPlayerName = reply.PlayerIntroducedAs;
-                Log.Info($"{_s.Name} ahora te conoce como \"{reply.PlayerIntroducedAs}\"");
+                Log.Info($"{_s.Name} now knows you as \"{reply.PlayerIntroducedAs}\"");
             }
             // What you say you are, kept apart from what you really are (only while they can't know better)
             if (reply.PlayerClaims.Length > 8 && reply.PlayerClaims.Length <= 220 && ContextBuilder.WhyKnowsPlayer(_s) == null)
@@ -844,7 +844,7 @@ namespace AILegacy.Dialogue
                 {
                     string all = had.Length == 0 ? reply.PlayerClaims : had + " " + reply.PlayerClaims;
                     Mem.KnownPlayerClaims = all.Length > 400 ? all.Substring(all.Length - 400) : all;
-                    Log.Info($"{_s.Name} anota lo que dices ser: {reply.PlayerClaims}");
+                    Log.Info($"{_s.Name} notes what you claim to be: {reply.PlayerClaims}");
                 }
             }
             // Named people standing close hear the answer too
@@ -870,14 +870,14 @@ namespace AILegacy.Dialogue
                     shown.Add(L.F("AIL_53ea433d", $"{_s.Name} da la charla por terminada y se lanza al ataque."));
                 }
             }
-            catch (Exception ex) { Log.Error("Fin del parlamento con una banda", ex); }
+            catch (Exception ex) { Log.Error("End of the parley with a band", ex); }
 
             if (_s.IsHero && reply.SignificantEvent.Length > 12) Lore.Develop(_s, reply.SignificantEvent);
 
             if (reply.Quest != null)
             {
                 try { shown.AddRange(QuestSystem.Apply(_s, reply.Quest)); }
-                catch (Exception ex) { Log.Error("Error aplicando el encargo", ex); }
+                catch (Exception ex) { Log.Error("Error applying the task", ex); }
             }
 
             if (cfg.EnableTrust)
@@ -887,7 +887,7 @@ namespace AILegacy.Dialogue
                 if (td < 0) _trustLostThisTalk -= td;
                 if (td != 0)
                 {
-                    Log.Info($"Confianza de {_s.Name}: {(td > 0 ? "+" : "")}{td} (ahora {Mem.Trust})");
+                    Log.Info($"Trust of {_s.Name}: {(td > 0 ? "+" : "")}{td} (now {Mem.Trust})");
                     shown.Add(L.F("AIL_c78d48c5", $"Confianza {(td > 0 ? "+" : "")}{td}"));
                 }
             }
@@ -897,7 +897,7 @@ namespace AILegacy.Dialogue
                 xd = xd != 0 ? Bonds.ChangeTension(_s, xd) : 0;
                 if (xd != 0)
                 {
-                    Log.Info($"Tensión con {_s.Name}: {(xd > 0 ? "+" : "")}{xd} (ahora {Mem.Tension})");
+                    Log.Info($"Tension with {_s.Name}: {(xd > 0 ? "+" : "")}{xd} (now {Mem.Tension})");
                     shown.Add(L.F("AIL_23b67cad", $"Tensión {(xd > 0 ? "+" : "")}{xd}"));
                 }
             }
@@ -907,7 +907,7 @@ namespace AILegacy.Dialogue
                 rd = rd != 0 ? Bonds.ChangeRomance(_s, rd) : 0;
                 if (rd != 0)
                 {
-                    Log.Info($"Romance con {_s.Name}: {(rd > 0 ? "+" : "")}{rd} (ahora {Mem.Romance})");
+                    Log.Info($"Romance with {_s.Name}: {(rd > 0 ? "+" : "")}{rd} (now {Mem.Romance})");
                     shown.Add(L.F("AIL_d09068cf", $"Romance {(rd > 0 ? "+" : "")}{rd}"));
                 }
             }
@@ -930,7 +930,7 @@ namespace AILegacy.Dialogue
                     _relationChangedThisTalk += delta;
                     _relationMovedThisTalk += Math.Abs(delta);
                     Mem.RelationChangedTotal += delta;
-                    Log.Info($"Relación con {_s.Name}: {(delta > 0 ? "+" : "")}{delta}");
+                    Log.Info($"Relationship with {_s.Name}: {(delta > 0 ? "+" : "")}{delta}");
                     shown.Add(L.F("AIL_a190aec6", $"Relación {(delta > 0 ? "+" : "")}{delta}"));
                 }
             }
@@ -952,7 +952,7 @@ namespace AILegacy.Dialogue
                     _lastRumor.TitleEs = reply.RumorTitleLocal;
                     _lastRumor.TextEs = reply.RumorTextLocal;
                     _lastRumor.Importance = Math.Max(_lastRumor.Importance, imp);
-                    Log.Info($"Rumor de la charla con {_s.Name}, actualizado: {text}");
+                    Log.Info($"Rumor from the talk with {_s.Name}, updated: {text}");
                 }
                 else
                 {
@@ -991,7 +991,7 @@ namespace AILegacy.Dialogue
                 case "/instruccion": case "/instruction":
                     if (arg.Length == 0) { UiSystem(L.T("AIL_3ff4d651", "Uso: /nota <instrucción>   Ej: /nota Es mi esposa y está embarazada; nunca me sermonea sobre el peligro.")); return; }
                     Mem.CustomInstructions.Add(arg.Length > 600 ? arg.Substring(0, 600) : arg);
-                    Log.Info($"Instrucción para {_s.Name}: {arg}");
+                    Log.Info($"Instruction for {_s.Name}: {arg}");
                     SaveFiles.Flush();
                     UiSystem(L.F("AIL_84e9a594", $"Instrucción guardada para {_s.Name}."));
                     return;
@@ -1061,7 +1061,7 @@ namespace AILegacy.Dialogue
             if (mem.Notes.Any(n => string.Equals(n, note, StringComparison.OrdinalIgnoreCase))) return;
             mem.Notes.Add(note);
             while (mem.Notes.Count > max) mem.Notes.RemoveAt(0);
-            Log.Info($"{who} recuerda: {note}");
+            Log.Info($"{who} remembers: {note}");
         }
 
         // ============================================================ closing
@@ -1070,7 +1070,7 @@ namespace AILegacy.Dialogue
         public static void EndFromOutside()
         {
             try { var a = Active; if (a != null && !a._closed) { a._npcEnded = true; a.Close(true); } }
-            catch (Exception ex) { Log.Error("Cerrar la charla", ex); }
+            catch (Exception ex) { Log.Error("Close the talk", ex); }
         }
 
         private void Close(bool npcEnded)
@@ -1095,7 +1095,7 @@ namespace AILegacy.Dialogue
                 }
                 catch { }
             }
-            Log.Info($"Conversación con {_s.Name} cerrada ({_lines} líneas, relación {(_relationChangedThisTalk >= 0 ? "+" : "")}{_relationChangedThisTalk})");
+            Log.Info($"Conversation with {_s.Name} closed ({_lines} lines, relationship {(_relationChangedThisTalk >= 0 ? "+" : "")}{_relationChangedThisTalk})");
 
             MemorySummarizer.MaybeSummarize(_s);
             try { RagIndex.Schedule(_s); } catch { }
@@ -1112,7 +1112,7 @@ namespace AILegacy.Dialogue
                     if (Campaign.Current?.ConversationManager != null && Campaign.Current.ConversationManager.IsConversationInProgress)
                         Campaign.Current.ConversationManager.EndConversation();
                 }
-                catch (Exception ex) { Log.Error("No se pudo cerrar la conversación del juego", ex); }
+                catch (Exception ex) { Log.Error("Could not close the game conversation", ex); }
             }
         }
 

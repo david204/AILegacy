@@ -93,7 +93,7 @@ namespace AILegacy.World
             catch (Exception ex) { why = ex.GetType().Name + ": " + ex.Message; }
             list = null;
             if (PactListsUnread.Add(field))
-                Log.Warn($"[diplomacia] la lista {field} del juego no se puede leer ({why}): los pactos con reinos destruidos se buscan par a par con las consultas públicas");
+                Log.Warn($"[diplomacy] game list {field} cannot be read ({why}): pacts with destroyed kingdoms are looked up pair by pair via public queries");
             return null;
         }
 
@@ -143,7 +143,7 @@ namespace AILegacy.World
                         try { allied = alli.IsAllyWithKingdom(p.Key, p.Value); } catch { }
                         if (!allied) continue;
                         try { alli.EndAlliance(p.Key, p.Value); ended++; }
-                        catch (Exception ex) { Log.Error($"[diplomacia] terminando la alianza entre {p.Key.StringId} y {p.Value.StringId}", ex); }
+                        catch (Exception ex) { Log.Error($"[diplomacy] ending alliance between {p.Key.StringId} y {p.Value.StringId}", ex); }
                     }
                 }
                 var trade = Trade;
@@ -162,11 +162,11 @@ namespace AILegacy.World
                         try { agreed = trade.HasTradeAgreement(p.Key, p.Value, out _); } catch { }
                         if (!agreed) continue;
                         try { trade.EndTradeAgreement(p.Key, p.Value); ended++; }
-                        catch (Exception ex) { Log.Error($"[diplomacia] terminando el acuerdo comercial entre {p.Key.StringId} y {p.Value.StringId}", ex); }
+                        catch (Exception ex) { Log.Error($"[diplomacy] ending trade agreement between {p.Key.StringId} y {p.Value.StringId}", ex); }
                     }
-                if (ended > 0) Log.Info($"[diplomacia] {ended} pacto(s) con reinos destruidos o sin soberano, terminados");
+                if (ended > 0) Log.Info($"[diplomacy] {ended} pact(s) with destroyed or rulerless kingdoms ended");
             }
-            catch (Exception ex) { Log.Error("[diplomacia] limpiando pactos de reinos que ya no están", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] cleaning up pacts of kingdoms that no longer exist", ex); }
         }
 
         private static readonly Tpl TAllianceBrokenByWar = new Tpl("world/alliance_broken_by_war.txt",
@@ -192,7 +192,7 @@ namespace AILegacy.World
                         EndAlliance(a, b);
                         if (!Allied(a, b))
                         {
-                            Log.Info($"[diplomacia] {a.Name} y {b.Name} están en guerra: su alianza queda rota");
+                            Log.Info($"[diplomacy] {a.Name} and {b.Name} are at war: their alliance is broken");
                             NewsStore.Add(new NewsItem
                             {
                                 Type = "alliance", Importance = 3, Kingdoms = new List<string> { a.StringId, b.StringId }, Heroes = heroes,
@@ -207,7 +207,7 @@ namespace AILegacy.World
                         EndTrade(a, b);
                         if (!HasTrade(a, b))
                         {
-                            Log.Info($"[diplomacia] {a.Name} y {b.Name} están en guerra: su acuerdo comercial queda sin efecto");
+                            Log.Info($"[diplomacy] {a.Name} and {b.Name} are at war: their trade agreement is void");
                             NewsStore.Add(new NewsItem
                             {
                                 Type = "custom", Importance = 2, Kingdoms = new List<string> { a.StringId, b.StringId }, Heroes = heroes,
@@ -263,9 +263,9 @@ namespace AILegacy.World
             if (Campaign.Current == null || St == null) return;
             CleanPacts();
             try { Heal(); PruneGone(k?.StringId); }
-            catch (Exception ex) { Log.Error("[diplomacia] reino destruido", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] destroyed kingdom", ex); }
             try { WarTolls.OnKingdomGone(k?.StringId); }
-            catch (Exception ex) { Log.Error("[diplomacia] bajas de un reino destruido", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] losses of a destroyed kingdom", ex); }
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace AILegacy.World
                     St.WarFatigue.Remove(gone);
                     St.LastStatementDay.Remove(gone);
                     foreach (var key in St.Stance.Keys.Where(pair).ToList()) St.Stance.Remove(key);
-                    if (n > 0) Log.Info($"[diplomacia] {n} propuesta(s), turno(s) o tributo(s) del reino destruido {gone}, retirados");
+                    if (n > 0) Log.Info($"[diplomacy] {n} proposal(s), turn(s) or tribute(s) of destroyed kingdom {gone} removed");
                     return;
                 }
             }
@@ -303,7 +303,7 @@ namespace AILegacy.World
             foreach (var id in St.WarFatigue.Keys.Where(x => !alive.Contains(x)).ToList()) St.WarFatigue.Remove(id);
             foreach (var id in St.LastStatementDay.Keys.Where(x => !alive.Contains(x)).ToList()) St.LastStatementDay.Remove(id);
             foreach (var key in St.Stance.Keys.Where(x => { var ids = (x ?? "").Split('|'); return ids.Length != 2 || !alive.Contains(ids[0]) || !alive.Contains(ids[1]); }).ToList()) St.Stance.Remove(key);
-            if (dropped > 0) Log.Info($"[diplomacia] {dropped} propuesta(s), turno(s) o tributo(s) de reinos que ya no existen, retirados");
+            if (dropped > 0) Log.Info($"[diplomacy] {dropped} proposal(s), turn(s) or tribute(s) of kingdoms that no longer exist removed");
         }
 
         // ============================================================ house rules (limits set by the player, 0 = none)
@@ -419,7 +419,7 @@ namespace AILegacy.World
                     EndAlliance(who, old);
                     if (Allied(who, old)) break;
                     WorldSim.ChangeStance(old.StringId, who.StringId, -20);
-                    Log.Info($"[diplomacia] {who.Name} deja su alianza con {old.Name} para aliarse con {partner.Name}");
+                    Log.Info($"[diplomacy] {who.Name} leaves their alliance with {old.Name} to ally with {partner.Name}");
                     string text = L.F("AIL_e7b1c761", $"{who.Name} pone fin a su alianza con {old.Name} para sellar una nueva con {partner.Name}.");
                     done.Add(text);
                     NewsStore.Add(new NewsItem
@@ -597,7 +597,7 @@ namespace AILegacy.World
                 foreach (var id in seen.Keys.Where(x => !ids.Contains(x)).ToList()) seen.Remove(id);
                 SeedCaptures();
             }
-            catch (Exception ex) { Log.Error("[diplomacia] edad de los reinos", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] kingdom ages", ex); }
         }
 
         private static int _seededSession = -1;
@@ -627,7 +627,7 @@ namespace AILegacy.World
                         if (!St.WarLastCapture.TryGetValue(key, out double day) || after.FromDay > day) St.WarLastCapture[key] = after.FromDay;
                     }
             }
-            catch (Exception ex) { Log.Error("[diplomacia] capturas anteriores", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] earlier captures", ex); }
         }
 
         public static void OnKingdomCreated(Kingdom k)
@@ -639,7 +639,7 @@ namespace AILegacy.World
                 St.KingdomSeenDay[k.StringId] = CampaignTime.Now.ToDays;
                 Facts.Invalidate();
             }
-            catch (Exception ex) { Log.Error("[diplomacia] reino nuevo", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] new kingdom", ex); }
         }
 
         // ============================================================ wars that wear a realm down
@@ -741,14 +741,14 @@ namespace AILegacy.World
                 NewsTracker.Live = false;
                 try { Ours(() => MakePeaceAction.Apply(a, b)); }
                 finally { NewsTracker.Live = live; }
-                if (a.IsAtWarWith(b)) { Log.Warn($"[diplomacia] paz forzosa entre {a.Name} y {b.Name}: el juego no la ha aplicado"); return; }
+                if (a.IsAtWarWith(b)) { Log.Warn($"[diplomacy] forced peace between {a.Name} and {b.Name}: the game did not apply it"); return; }
                 St.Proposals.RemoveAll(p => p.Type == "peace" && ((p.From == a.StringId && p.To == b.StringId) || (p.From == b.StringId && p.To == a.StringId)));
                 St.Refused.Remove(RefusalKey("peace", a.StringId, b.StringId));
                 St.WarSeenDay.Remove(FactCheck.Pair(a.StringId, b.StringId));
                 // its own truce, enforced in WarBlocked and told to both rulers (DescribeHouseRules)
                 int truce = ForcedTruceLength;
                 St.ForcedTruceUntil[FactCheck.Pair(a.StringId, b.StringId)] = now + truce;
-                Log.Info($"[diplomacia] paz forzosa entre {a.Name} y {b.Name}: {lasted} días de guerra, {worst} sin que nada cambie de manos (límite {limit}); tregua de {truce} días");
+                Log.Info($"[diplomacy] forced peace between {a.Name} and {b.Name}: {lasted} days of war, {worst} with nothing changing hands (limit {limit}); {truce}-day truce");
                 NewsStore.Add(new NewsItem
                 {
                     Type = "peace", Importance = 3, Kingdoms = new List<string> { a.StringId, b.StringId }, Heroes = new List<string> { a.Leader.StringId, b.Leader.StringId },
@@ -758,7 +758,7 @@ namespace AILegacy.World
                 });
                 WorldSim.Say(L.F("AIL_e7b1c75f", $"{a.Name} y {b.Name} firman la paz por agotamiento, tras {lasted} días de una guerra estancada."), Colors.Yellow);
             }
-            catch (Exception ex) { Log.Error("[diplomacia] paz forzosa", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] forced peace", ex); }
         }
 
         // The English line of the news item, which is what the AI reads of it later
@@ -958,7 +958,7 @@ siege: far away, but under your siege right now");
                 return within.Count == 0 ? TWarReachNone.Text
                     : TWarReach.Format("list", string.Join(", ", within.OrderBy(x => x.Item1).ThenBy(x => x.Item2).Take(20).Select(x => x.Item3)));
             }
-            catch (Exception ex) { Log.Error("[diplomacia] plazas al alcance", ex); return ""; }
+            catch (Exception ex) { Log.Error("[diplomacy] settlements in reach", ex); return ""; }
         }
 
         /// <summary>The ruler's wars one by one and how tired the realm is, in plain words. Empty when at peace and rested.</summary>
@@ -1043,11 +1043,11 @@ siege: far away, but under your siege right now");
                         foreach (var x in WorldSim.Kingdoms.Where(x => x != k && x != o).ToList())
                         {
                             if (PlayerRules(x)) continue;
-                            if (Allied(k, x)) { EndAlliance(k, x); Log.Info($"[diplomacia] {x.Name} rompe su alianza con {k.Name}, que rompió una tregua"); }
+                            if (Allied(k, x)) { EndAlliance(k, x); Log.Info($"[diplomacy] {x.Name} breaks their alliance with {k.Name}, who broke a truce"); }
                             if (HasTrade(k, x)) EndTrade(k, x);
                         }
                     }
-                    catch (Exception ex) { Log.Error("[diplomacia] pactos del que rompió la tregua", ex); }
+                    catch (Exception ex) { Log.Error("[diplomacy] pacts of the truce breaker", ex); }
                 });
                 WorldSim.Say(L.F("AIL_e7b1c811", $"{k.Name} ha roto la tregua con {o.Name}: los demás reinos le dan la espalda."), PlayerRules(k) ? Colors.Red : Colors.Yellow);
                 NewsStore.Add(new NewsItem
@@ -1056,9 +1056,9 @@ siege: far away, but under your siege right now");
                     TitleEs = L.F("AIL_e7b1c812", $"{k.Name} rompe la tregua"), TextEs = L.F("AIL_e7b1c813", $"{k.Name} ha declarado la guerra a {o.Name} sin respetar la tregua. Los demás reinos rompen sus pactos con él y no quieren tratos mientras dure la vergüenza."),
                     Kingdoms = new List<string> { k.StringId, o.StringId },
                 });
-                Log.Info($"[diplomacia] {k.Name} rompe la tregua con {o.Name}: paria {S.Get.PariahDays} días");
+                Log.Info($"[diplomacy] {k.Name} breaks the truce with {o.Name}: pariah for {S.Get.PariahDays} days");
             }
-            catch (Exception ex) { Log.Error("[diplomacia] tregua rota", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] broken truce", ex); }
         }
 
         private static string TradeBlocked(Kingdom k, Kingdom o)
@@ -1179,14 +1179,14 @@ siege: far away, but under your siege right now");
                         }
                 }
                 finally { NewsTracker.Live = live; }
-                Log.Info($"[diplomacia] partida nueva en paz: {made} guerras entre reinos terminadas al empezar");
+                Log.Info($"[diplomacy] new game at peace: {made} wars between kingdoms ended at start");
                 // a world that starts at peace starts rested
                 if (St?.WarFatigue != null) foreach (var k in ks.Where(x => WarCount(x) == 0)) St.WarFatigue.Remove(k.StringId);
                 if (made == 0) return;
                 // "no kingdom is at war" is only said when it is true: a war left alone (the player's realm) or one that
                 // would not end keeps it quiet
                 var all = WorldSim.Kingdoms.ToList();
-                if (all.Any(a => all.Any(b => a != b && a.IsAtWarWith(b)))) { Log.Info("[diplomacia] quedan guerras entre reinos (las del reino del jugador no se tocan): no se anuncia la paz general"); return; }
+                if (all.Any(a => all.Any(b => a != b && a.IsAtWarWith(b)))) { Log.Info("[diplomacy] wars between kingdoms remain (the player kingdom's are left alone): general peace not announced"); return; }
                 NewsStore.Add(new NewsItem
                 {
                     Type = "custom", Importance = 3, Kingdoms = ks.Select(x => x.StringId).ToList(),
@@ -1196,7 +1196,7 @@ siege: far away, but under your siege right now");
                 });
                 WorldSim.Say(L.T("AIL_e7b1c73a", "AI Legacy: la partida empieza con todos los reinos en paz."), Colors.Cyan);
             }
-            catch (Exception ex) { Log.Error("Paz al empezar la partida", ex); }
+            catch (Exception ex) { Log.Error("Peace at game start", ex); }
         }
 
         // ============================================================ proposals
@@ -1304,7 +1304,7 @@ siege: far away, but under your siege right now");
         private static void Step(string what, Action act)
         {
             try { act(); }
-            catch (Exception ex) { Log.Error("[diplomacia] tick diario, " + what, ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] daily tick, " + what, ex); }
         }
 
         /// <summary>
@@ -1365,7 +1365,7 @@ siege: far away, but under your siege right now");
                 // refusal before it can be made again. One whose ruler never got to speak was not refused.
                 bool hadTurn = p.Seen || p.Notified;
                 if (hadTurn) MarkRefused(p.Type, p.From, p.To, now);
-                Log.Info($"[diplomacia] propuesta caducada{(hadTurn ? "" : " sin que su destinatario llegara a tener turno (no cuenta como rechazo)")}: {p.From} → {p.To} ({p.Type})");
+                Log.Info($"[diplomacy] proposal expired{(hadTurn ? "" : " before its recipient got a turn (does not count as a rejection)")}: {p.From} → {p.To} ({p.Type})");
             }
         }
 
@@ -1488,7 +1488,7 @@ siege: far away, but under your siege right now");
             _askedAnswer = false;
             _seededSession = -1;
             // the state just loaded is put right before anything reads it
-            try { Heal(); } catch (Exception ex) { Log.Error("[diplomacia] estado cargado", ex); }
+            try { Heal(); } catch (Exception ex) { Log.Error("[diplomacy] loaded state", ex); }
         }
 
         /// <summary>
@@ -1545,8 +1545,8 @@ siege: far away, but under your siege right now");
                 {
                     // Not queued again: nothing is used up by dropping it. The event keeps his name on it and his
                     // wars are weighed again every day (QueueStatements), so he gets his turn once he is free.
-                    Log.Info($"[diplomacia] turno de {k.Leader.Name} ({k.Name}) retirado: está preso{(Captor(k.Leader) is string c0 ? " de " + c0 : "")}. " +
-                             (wars ? "Sus guerras se vuelven a sopesar cada día" : "El suceso sigue abierto para él") + " y hablará cuando quede libre.");
+                    Log.Info($"[diplomacy] turn of {k.Leader.Name} ({k.Name}) removed: is imprisoned{(Captor(k.Leader) is string c0 ? " by " + c0 : "")}. " +
+                             (wars ? "Their wars are re-weighed every day" : "The event stays open for them") + " and they will speak when freed.");
                     return;
                 }
                 if (wars)
@@ -1561,7 +1561,7 @@ siege: far away, but under your siege right now");
                 else if (!St.Proposals.Any(p => p.To == k.StringId && (!held || p.Type == "peace"))) return;   // nothing left waiting for them
                 MakeStatement(k, ev, wars);     // the occasion is used up when the reply is applied (ApplyStatement)
             }
-            catch (Exception ex) { Log.Error("[diplomacia] turno de declaraciones", ex); }
+            catch (Exception ex) { Log.Error("[diplomacy] declaration turn", ex); }
         }
 
         private static bool Ready(Kingdom k, double now, int minDays) =>
@@ -1758,7 +1758,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 return FactCheck.CheckOwnPeople(named, OwnNames(k), model)
                        ?? FactCheck.CheckSummary((string)(j["summary"]?.Type == JTokenType.String ? j["summary"] : null), model, k.StringId);
             }
-            catch (Exception ex) { Log.Error("[diplomacia] comprobando una declaración", ex); return null; }
+            catch (Exception ex) { Log.Error("[diplomacy] checking a declaration", ex); return null; }
         }
 
         /// <param name="peaceOnly">For a ruler held prisoner: only the peace proposals, the ones he may answer.</param>
@@ -1845,9 +1845,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     // unspent, and whatever called him (a proposal, an event, his wars) calls him again as he is now.
                     if (k.IsEliminated || k.Leader != ruler || RulerCaptive(k) != held)
                     {
-                        Log.Info($"[diplomacia] declaración de {ruler.Name} ({k.Name}) descartada: " +
-                                 (k.IsEliminated ? "el reino ya no existe" : k.Leader != ruler ? "ya no es el soberano"
-                                  : held ? "se pidió estando preso y ya está libre" : "ha caído preso mientras se escribía") + ". Su turno no se gasta.");
+                        Log.Info($"[diplomacy] declaration by {ruler.Name} ({k.Name}) discarded: " +
+                                 (k.IsEliminated ? "the kingdom no longer exists" : k.Leader != ruler ? "is no longer the ruler"
+                                  : held ? "requested while imprisoned and now free" : "was imprisoned while it was being written") + ". Their turn is not spent.");
                         return;
                     }
                     St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
@@ -1879,12 +1879,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             };
             if (s.Text.Length < 5) return false;
             var thoughts = (string)j["thoughts"];
-            if (!string.IsNullOrWhiteSpace(thoughts)) Log.Info($"[diplomacia] [piensa] {s.RulerName}: {thoughts}");
+            if (!string.IsNullOrWhiteSpace(thoughts)) Log.Info($"[diplomacy] [thinks] {s.RulerName}: {thoughts}");
             // An AI ruler who claims someone else's lord, or a war that does not exist, is not heard. The player's words are theirs
             if (playerText == null)
             {
                 string wrong = StatementContradiction(k, j);
-                if (wrong != null) { Log.Warn($"[diplomacia] declaración de {s.RulerName} descartada por contradecir el mundo: {wrong} | {s.SummaryEn}"); return false; }
+                if (wrong != null) { Log.Warn($"[diplomacy] declaration by {s.RulerName} discarded for contradicting the world: {wrong} | {s.SummaryEn}"); return false; }
             }
 
             // an AI ruler held prisoner can answer a peace and nothing more
@@ -1898,12 +1898,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                         {
                             string type = (Str(a["type"]) ?? "").Trim().ToLowerInvariant();
                             if (type != "accept_peace" && type != "reject_peace" && type != "propose_peace")
-                            { Log.Warn($"[diplomacia] {s.RulerName} está preso: acción {type} ignorada"); continue; }
+                            { Log.Warn($"[diplomacy] {s.RulerName} is imprisoned: action {type} ignored"); continue; }
                         }
                         var r = Resolve(k, a);
                         if (r != null) { s.Results.Add(r); if (s.Importance < 3) s.Importance = 3; }
                     }
-                    catch (Exception ex) { Log.Error($"[diplomacia] acción de {s.RulerName}", ex); }
+                    catch (Exception ex) { Log.Error($"[diplomacy] action by {s.RulerName}", ex); }
                 }
 
             if (j["relation_changes"] is JArray rc)
@@ -1936,7 +1936,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 Type = "statement", Importance = s.Importance, Text = $"{s.RulerName}, ruler of {k.Name}, declared: {s.SummaryEn}",
                 TitleEs = L.F("AIL_96136d3a", $"Declaración de {s.RulerName} ({k.Name})"), TextEs = body, Kingdoms = involved, Heroes = new List<string> { k.Leader.StringId },
             });
-            Log.Info($"[diplomacia] {s.RulerName}: {s.SummaryEn} | {string.Join(" | ", s.Results)}");
+            Log.Info($"[diplomacy] {s.RulerName}: {s.SummaryEn} | {string.Join(" | ", s.Results)}");
             WorldSim.Say(L.F("AIL_bd7dfc75", $"{s.RulerName}, de {k.Name}, ha hecho una declaración") + (s.Results.Count > 0 ? ": " + s.Results[0] : "."), s.Results.Count > 0 ? Colors.Yellow : Colors.Cyan);
             return true;
         }
@@ -2138,7 +2138,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
         private static string DropBrokenPeace(Proposal p, Kingdom k, Kingdom o, Why broken)
         {
             St.Proposals.Remove(p);
-            Log.Warn($"[diplomacia] la paz que {o.Name} proponía a {k.Name} no se firma y queda sin efecto: {broken.Es}");
+            Log.Warn($"[diplomacy] the peace {o.Name} proposed to {k.Name} is not signed and is void: {broken.Es}");
             string text = L.F("AIL_e7b1c77f", $"La paz entre {k.Name} y {o.Name} no se firma y la propuesta queda sin efecto: {broken.Es}. No cuenta como rechazo: cualquiera de los dos puede volver a proponerla.");
             void Tell(Kingdom side, Kingdom other)
             {
@@ -2176,7 +2176,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             else if (p.OfferDailyTribute > 0) Ours(() => MakePeaceAction.ApplyByKingdomDecision(o, k, p.OfferDailyTribute, p.OfferTributeDays));
             else Ours(() => MakePeaceAction.Apply(k, o));
             // nothing is paid or handed over for a peace the game did not make
-            if (k.IsAtWarWith(o)) { Log.Warn($"[diplomacia] el juego no ha aplicado la paz entre {kn} y {o.Name}: no se paga ni se entrega nada"); return null; }
+            if (k.IsAtWarWith(o)) { Log.Warn($"[diplomacy] the game did not apply the peace between {kn} and {o.Name}: nothing is paid or handed over"); return null; }
 
             var fromK = new List<string>(); var fromO = new List<string>();
             if (p.Reparations > 0) { int paid = Pay(k, o, p.Reparations); if (paid > 0) fromK.Add(L.F("AIL_555e7801", $"{paid} denarios de reparaciones")); }
@@ -2186,7 +2186,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             if (p.DailyTribute > 0) fromK.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
             else if (p.OfferDailyTribute > 0) fromO.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.OfferDailyTribute} denarios al día durante {p.OfferTributeDays} días"));
             WorldSim.ChangeStance(k.StringId, o.StringId, 10); WorldSim.ChangeStance(o.StringId, k.StringId, 10);
-            Log.Info($"[diplomacia] paz entre {kn} y {o.Name}: {kn} da [{string.Join(", ", fromK)}], {o.Name} da [{string.Join(", ", fromO)}]");
+            Log.Info($"[diplomacy] peace between {kn} and {o.Name}: {kn} gives [{string.Join(", ", fromK)}], {o.Name} gives [{string.Join(", ", fromO)}]");
             string text = L.F("AIL_64b1d2d4", $"{kn} y {o.Name} firman la paz") + ".";
             if (fromK.Count > 0) text += " " + L.F("AIL_e7b1c76d", $"{kn} da a {o.Name}: {string.Join(", ", fromK)}.");
             if (fromO.Count > 0) text += " " + L.F("AIL_e7b1c76d", $"{o.Name} da a {kn}: {string.Join(", ", fromO)}.");
@@ -2205,9 +2205,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     foreach (var party in st.SiegeEvent.BesiegerCamp.GetInvolvedPartiesForEventType().ToList())
                         if (party?.MobileParty != null) party.MobileParty.BesiegerCamp = null;
                 }
-                catch (Exception ex) { Log.Error("[diplomacia] levantando el asedio de una plaza cedida", ex); }
+                catch (Exception ex) { Log.Error("[diplomacy] lifting the siege of a ceded settlement", ex); }
             if (st.MapFaction != giver || st.IsUnderSiege)
-            { Log.Warn($"[diplomacia] {st.Name} no ha podido cambiar de manos tras la paz entre {giver.Name} y {receiver.Name}"); return; }
+            { Log.Warn($"[diplomacy] {st.Name} could not change hands after the peace between {giver.Name} and {receiver.Name}"); return; }
             ChangeOwnerOfSettlementAction.ApplyByDefault(receiver.Leader, st);
             given.Add(L.F("AIL_5c924813", $"la entrega de {st.Name}"));
         }
@@ -2291,14 +2291,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             if (type.Length == 0 || type == "none") return null;
             var o = WorldSim.FindKingdom(Target(a));
             string kn = k.Name.ToString();
-            string Bad(string why) { Log.Warn($"[diplomacia] {kn}: acción {type} ignorada ({why})"); return null; }
+            string Bad(string why) { Log.Warn($"[diplomacy] {kn}: action {type} ignored ({why})"); return null; }
             // The game's own policies, through the same calls its votes end in, so they show in Kingdom > Policies
             string EnactPolicy(PolicyObject policy)
             {
                 if (!Laws.PoliciesEnabled) return Bad("políticas del juego desactivadas");
                 if (k.HasPolicy(policy)) return Bad("esa política ya está en vigor");
                 k.AddPolicy(policy);
-                Log.Info($"[leyes] {kn} adopta la política {policy.StringId}");
+                Log.Info($"[laws] {kn} adopts policy {policy.StringId}");
                 return L.F("AIL_e7b1c5e8", $"{kn} adopta la política «{policy.Name}».");
             }
             string RepealPolicy(PolicyObject policy)
@@ -2306,7 +2306,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 if (!Laws.PoliciesEnabled) return Bad("políticas del juego desactivadas");
                 if (!k.HasPolicy(policy)) return Bad("esa política no está en vigor");
                 k.RemovePolicy(policy);
-                Log.Info($"[leyes] {kn} deroga la política {policy.StringId}");
+                Log.Info($"[laws] {kn} repeals policy {policy.StringId}");
                 return L.F("AIL_e7b1c5e9", $"{kn} deroga la política «{policy.Name}».");
             }
 
@@ -2420,7 +2420,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     // The new alliance is sealed and seen to exist before anything else: only then, with "a new
                     // alliance replaces the old one", does a kingdom left over its limit end its oldest other one.
                     try { Ours(() => Alli.StartAlliance(o, k)); }
-                    catch (Exception ex) { Log.Error($"[diplomacia] sellando la alianza entre {kn} y {o.Name}", ex); }
+                    catch (Exception ex) { Log.Error($"[diplomacy] sealing the alliance between {kn} and {o.Name}", ex); }
                     if (!Allied(k, o)) return Bad("el juego no ha sellado la alianza: no se rompe ninguna otra");
                     {
                         // normally set by the game's own event (OnAllianceStarted)
@@ -2590,7 +2590,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (!replaces && St.Laws.Count(l => l.KingdomId == k.StringId) >= cfg.MaxLawsPerKingdom) return Bad(L.T("AIL_8a3f11e5", "demasiadas leyes en vigor"));
                     var problems = new List<string>();
                     var effects = Laws.ParseEffects(a["law_effects"], problems);
-                    if (problems.Count > 0) Log.Warn($"[leyes] {kn}, «{name}»: {string.Join("; ", problems)}");
+                    if (problems.Count > 0) Log.Warn($"[laws] {kn}, «{name}»: {string.Join("; ", problems)}");
                     St.Laws.RemoveAll(l => l.KingdomId == k.StringId && WorldSim.Norm(l.Name) == WorldSim.Norm(name));
                     var law = new KingdomLaw
                     {
@@ -2600,7 +2600,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     St.Laws.Add(law);
                     Laws.Invalidate();
                     var parts = Laws.DescribeAll(law);
-                    Log.Info($"[leyes] {kn} promulga «{name}»: {(parts.Count > 0 ? string.Join("; ", parts) : "sin efectos")}");
+                    Log.Info($"[laws] {kn} enacts «{name}»: {(parts.Count > 0 ? string.Join("; ", parts) : "no effects")}");
                     return L.F("AIL_203a7d74", $"{kn} promulga la ley «{name}»") + (parts.Count > 0 ? " (" + string.Join("; ", parts) + ")" : "") + ".";
                 }
                 case "repeal_law":
@@ -2677,12 +2677,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 if (clan == null || clan == Clan.PlayerClan || clan == clan.Kingdom.RulingClan || clan.IsUnderMercenaryService || clan.IsMinorFaction) return;
                 var k = clan.Kingdom;
                 int rel = clan.Leader.GetRelation(k.Leader);
-                if (rel > cfg.RebellionMaxRelation) { Log.Info($"[diplomacia] rebelión de {clan.Name} descartada: su relación con {k.Leader.Name} es {rel}"); return; }
+                if (rel > cfg.RebellionMaxRelation) { Log.Info($"[diplomacy] rebellion by {clan.Name} discarded: their relation with {k.Leader.Name} is {rel}"); return; }
                 ChangeKingdomAction.ApplyByLeaveWithRebellionAgainstKingdom(clan);
-                Log.Info($"[diplomacia] el clan {clan.Name} se alza contra {k.Name}");
+                Log.Info($"[diplomacy] clan {clan.Name} rises against {k.Name}");
                 WorldSim.Say(L.F("AIL_d6fd303c", $"El clan {clan.Name} se alza en rebelión contra {k.Name}."), Colors.Red);
             }
-            catch (Exception ex) { Log.Error("Rebelión de clan", ex); }
+            catch (Exception ex) { Log.Error("Clan rebellion", ex); }
         }
 
         private static string Reject(string type, Kingdom k, Kingdom o, string text)
@@ -2704,8 +2704,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return paid;
         }
 
-        private static void EndAlliance(Kingdom a, Kingdom b) { try { if (Allied(a, b)) Alli.EndAlliance(a, b); } catch (Exception ex) { Log.Error("Fin de alianza", ex); } }
-        private static void EndTrade(Kingdom a, Kingdom b) { try { if (HasTrade(a, b)) Trade.EndTradeAgreement(a, b); } catch (Exception ex) { Log.Error("Fin de comercio", ex); } }
+        private static void EndAlliance(Kingdom a, Kingdom b) { try { if (Allied(a, b)) Alli.EndAlliance(a, b); } catch (Exception ex) { Log.Error("End of alliance", ex); } }
+        private static void EndTrade(Kingdom a, Kingdom b) { try { if (HasTrade(a, b)) Trade.EndTradeAgreement(a, b); } catch (Exception ex) { Log.Error("End of trade", ex); } }
 
         private static Clan FindClan(Kingdom k, string name)
         {
@@ -2743,7 +2743,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                         });
                         SaveFiles.Flush(heroes: false);
                     }
-                    catch (Exception ex) { Log.Error("Respuesta del jugador a una propuesta", ex); }
+                    catch (Exception ex) { Log.Error("Player reply to a proposal", ex); }
                 });
             }
             InformationManager.ShowInquiry(new InquiryData(L.F("AIL_f85f4507", $"Mensaje de {from.Leader.Name}, de {from.Name}"),
@@ -2789,7 +2789,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 if (broken != null) { why = broken.En; return null; }
                 return p;
             }
-            catch (Exception ex) { Log.Error("[diplomacia] redactando una paz hablada", ex); why = TChatNoTreaty.Text; return null; }
+            catch (Exception ex) { Log.Error("[diplomacy] drafting a spoken peace", ex); why = TChatNoTreaty.Text; return null; }
         }
 
         /// <summary>The terms of a chat peace as the player reads them before signing: who pays whom, or that nobody does.</summary>
@@ -2818,7 +2818,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 string r = SignPeace(mine, theirs, p, out Why broken);
                 if (broken != null)
                 {
-                    Log.Warn($"[diplomacia] la paz hablada entre {mine.Name} y {theirs.Name} no se firma: {broken.Es}");
+                    Log.Warn($"[diplomacy] the spoken peace between {mine.Name} and {theirs.Name} is not signed: {broken.Es}");
                     why = broken.En; whyForPlayer = broken.Es; return null;
                 }
                 if (r == null) { why = TChatNotApplied.Text; return null; }
@@ -2830,7 +2830,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 });
                 return r;
             }
-            catch (Exception ex) { Log.Error("[diplomacia] firmando una paz hablada", ex); why = TChatNotApplied.Text; return null; }
+            catch (Exception ex) { Log.Error("[diplomacy] signing a spoken peace", ex); why = TChatNotApplied.Text; return null; }
         }
 
         private static readonly Tpl TPlayerStatement =new Tpl("kingdom_statement/player_statement_analysis.txt",

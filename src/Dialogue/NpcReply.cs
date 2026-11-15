@@ -75,7 +75,7 @@ namespace AILegacy.Dialogue
                 if (text == r.Reply) return;
                 text = Regex.Replace(text, @"[ 	]{2,}", " ");
                 text = Regex.Replace(text, @" +([,.;:!?])", "$1").Trim();
-                AILegacy.Core.Log.Warn("Acción escrita dentro de la frase: se saca del texto para que no lo corte");
+                AILegacy.Core.Log.Warn("Action written inside the sentence: moved out of the text so it does not get cut");
                 r.Reply = text;
             }
             catch { }

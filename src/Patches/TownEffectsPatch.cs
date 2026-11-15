@@ -25,7 +25,7 @@ namespace AILegacy.Patches
                 foreach (var (value, label) in WorldSim.TownModifiers(town, stat))
                     if (Math.Abs(value) >= 0.005f) result.Add(value, new TextObject("{=!}" + label));
             }
-            catch (Exception ex) { Log.Error("Efectos en la cuenta del juego", ex); }
+            catch (Exception ex) { Log.Error("Effects on the game accounts", ex); }
         }
     }
 

@@ -98,7 +98,7 @@ namespace AILegacy.Letters
                     if (cost > 0) Hero.MainHero.ChangeHeroGold(-cost);
                     MemoryStore.Letters.Add(new PendingLetter { HeroId = hero.StringId, Text = text, FromPlayer = true, ArriveDay = CampaignTime.Now.ToDays + hours / 24.0 });
                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_c27c3eed", $"El mensajero parte hacia {hero.Name}. Llegará en {TravelText(hours)}."), Colors.Yellow));
-                    Log.Info($"Carta para {hero.Name} ({cost} denarios, {hours:0} h)");
+                    Log.Info($"Letter for {hero.Name} ({cost} denars, {hours:0} h)");
                     SaveFiles.Flush();
                 },
                 null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
@@ -153,7 +153,7 @@ namespace AILegacy.Letters
                     else { ToShow.Enqueue((hero, l.Text)); TryShowPending(); }
                 }
             }
-            catch (Exception ex) { Log.Error("Cartas: tick horario", ex); }
+            catch (Exception ex) { Log.Error("Letters: hourly tick", ex); }
         }
 
         /// <summary>The player's letter arrives. The NPC reads it and writes back, and the reply travels too.</summary>
@@ -163,7 +163,7 @@ namespace AILegacy.Letters
             mem.Turns.Add(new ChatTurn { Role = "player", Text = "[Letter] " + text, Day = CampaignTime.Now.ToDays });
             mem.OwesReplyToPlayer = true;
             Bonds.Touch(mem);
-            Log.Info($"Carta entregada a {hero.Name}");
+            Log.Info($"Letter delivered to {hero.Name}");
             SaveFiles.Flush();
             Generate(hero, true);
         }
@@ -195,7 +195,7 @@ namespace AILegacy.Letters
                     if (roll <= 0) { Generate(c.hero, false); return; }
                 }
             }
-            catch (Exception ex) { Log.Error("Cartas: tick diario", ex); }
+            catch (Exception ex) { Log.Error("Letters: daily tick", ex); }
         }
 
         private static bool CanWrite(Hero h) =>
@@ -223,7 +223,7 @@ namespace AILegacy.Letters
 
             List<ChatMessage> msgs;
             try { msgs = PromptBuilder.BuildLetter(s, playerLetter); }
-            catch (Exception ex) { Log.Error("Cartas: prompt", ex); return; }
+            catch (Exception ex) { Log.Error("Letters: prompt", ex); return; }
 
             _generating = true;
             int session = World.WorldSim.Session;
@@ -232,9 +232,9 @@ namespace AILegacy.Letters
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>
                 {
-                    if (session != World.WorldSim.Session) { Log.Info("Cartas: respuesta de otra partida, descartada"); return; }
+                    if (session != World.WorldSim.Session) { Log.Info("Letters: response from another game, discarded"); return; }
                     _generating = false;
-                    if (res == null || !res.Ok) { Log.Warn("Cartas: sin respuesta de la IA: " + res?.Error); return; }
+                    if (res == null || !res.Ok) { Log.Warn("Letters: no response from the AI: " + res?.Error); return; }
 
                     string letter = res.Text, remember = "";
                     var actions = new List<string>();
@@ -267,12 +267,12 @@ namespace AILegacy.Letters
                     if (isReply && actions.Count > 0)
                     {
                         try { NpcActions.Execute(s, actions, new NpcActions.ActionContext { ViaLetter = true }); }
-                        catch (Exception ex) { Log.Error("Cartas: acciones", ex); }
+                        catch (Exception ex) { Log.Error("Letters: actions", ex); }
                     }
 
                     var (_, hours) = Quote(hero);
                     MemoryStore.Letters.Add(new PendingLetter { HeroId = hero.StringId, Text = letter, FromPlayer = false, ArriveDay = now + hours / 24.0 });
-                    Log.Info($"{s.Name} escribe una carta ({(isReply ? "respuesta" : "por iniciativa propia")}); llegará en {hours:0} h");
+                    Log.Info($"{s.Name} writes a letter ({(isReply ? "reply" : "own initiative")}); arrives in {hours:0} h");
                     SaveFiles.Flush();
                 });
             });

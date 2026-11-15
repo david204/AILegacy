@@ -496,7 +496,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
                 }
                 sb.AppendLine();
             }
-            catch (System.Exception ex) { AILegacy.Core.Log.Error("Hechos reales para el resumen", ex); }
+            catch (System.Exception ex) { AILegacy.Core.Log.Error("Real facts for the summary", ex); }
             if (mem.Summaries.Count > 0)
             {
                 sb.AppendLine("Older records, oldest first:");
@@ -641,7 +641,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
                 foreach (var d in deep) sys.AppendLine(" - " + d.Replace("\n", "\n   "));
                 foreach (var b in back) sys.AppendLine(" - " + b);
             }
-            catch (System.Exception ex) { AILegacy.Core.Log.Error("Recuerdo relevante", ex); }
+            catch (System.Exception ex) { AILegacy.Core.Log.Error("Relevant memory", ex); }
         }
 
         private static void AppendMemory(StringBuilder sys, Speaker s, string playerName, bool withRecall)

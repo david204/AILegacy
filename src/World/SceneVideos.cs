@@ -103,15 +103,15 @@ Answer with the prompt only, nothing else.");
                     if (gen != _gen) return;
                     Busy = false;
                     if (session != WorldSim.Session) return;
-                    if (file == null) { Log.Warn("Vídeo de la escena: " + error); WorldSim.Say(L.F("AIL_e7b1c85d", $"El vídeo no se ha podido hacer: {error}"), Colors.Red); return; }
-                    Log.Info("Vídeo de la escena: " + file);
-                    try { done?.Invoke(file); } catch (Exception ex) { Log.Error("Vídeo: aviso de fin", ex); }
+                    if (file == null) { Log.Warn("Scene video: " + error); WorldSim.Say(L.F("AIL_e7b1c85d", $"El vídeo no se ha podido hacer: {error}"), Colors.Red); return; }
+                    Log.Info("Scene video: " + file);
+                    try { done?.Invoke(file); } catch (Exception ex) { Log.Error("Video: end callback", ex); }
                 });
             }
 
             string ask;
             try { ask = TPrompt.Format("people", people ?? "", "where", where ?? "", "text", exchange.Length > 1500 ? exchange.Substring(0, 1500) : exchange); }
-            catch (Exception ex) { Busy = false; Log.Error("Vídeo: descripción", ex); return; }
+            catch (Exception ex) { Busy = false; Log.Error("Video: description", ex); return; }
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", ask) }, wantJson: false, task: "image_prompt", maxTokensOverride: 300)
                 .ContinueWith(async t =>
                 {
@@ -189,7 +189,7 @@ Answer with the prompt only, nothing else.");
                 File.WriteAllText(page, html, new UTF8Encoding(false));
                 Web.EditorWindow.Show(new Uri(page).AbsoluteUri);
             }
-            catch (Exception ex) { Log.Error("Ver el vídeo", ex); }
+            catch (Exception ex) { Log.Error("Watch the video", ex); }
         }
     }
 }

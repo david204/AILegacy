@@ -219,10 +219,10 @@ namespace AILegacy.Memory
                     {
                         // An old manifest next to newer files would make them look hand-edited on the next load
                         lock (IoGate) { _manifestDirty = true; _manifestHold = true; }
-                        Log.Warn("No se pudo escribir el índice de archivos de la campaña; se reintenta con el próximo guardado");
+                        Log.Warn("Could not write the campaign file index; will retry on the next save");
                     }
                 }
-                catch (Exception ex) { Log.Error("Escritura de archivos en segundo plano", ex); }
+                catch (Exception ex) { Log.Error("Background file writing", ex); }
             }
         }
 
@@ -238,11 +238,11 @@ namespace AILegacy.Memory
                 {
                     var until = DateTime.UtcNow.AddSeconds(30);
                     while (_writerRunning && DateTime.UtcNow < until) System.Threading.Monitor.Wait(IoGate, 500);
-                    if (_writerRunning) Log.Warn("Los archivos de la campaña siguen escribiéndose tras 30 s; se continúa sin esperar más");
+                    if (_writerRunning) Log.Warn("Campaign files are still being written after 30 s; continuing without waiting");
                     return !_writerRunning;
                 }
             }
-            catch (Exception ex) { Log.Error("Esperando la escritura de archivos", ex); return false; }
+            catch (Exception ex) { Log.Error("Waiting for file writing", ex); return false; }
         }
 
         /// <summary>
@@ -327,7 +327,7 @@ namespace AILegacy.Memory
                 catch (Exception ex) { last = ex; }
             }
             try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
-            Log.Warn($"No se pudo escribir {Path.GetFileName(path)} tras 3 intentos; se salta por ahora ({last?.GetType().Name}: {last?.Message})");
+            Log.Warn($"Could not write {Path.GetFileName(path)} after 3 attempts; skipping for now ({last?.GetType().Name}: {last?.Message})");
             return false;
         }
 
@@ -347,9 +347,9 @@ namespace AILegacy.Memory
                         if (File.Exists(main)) { File.Delete(tmp); continue; }
                         CheckJson(ReadBounded(tmp));   // throws if it's cut short, too large or too deep
                         File.Move(tmp, main);
-                        Log.Warn("Recuperado de un corte: " + Path.GetFileName(main));
+                        Log.Warn("Recovered from an interruption: " + Path.GetFileName(main));
                     }
-                    catch (Exception ex) { Log.Warn($"Resto de escritura ilegible, se ignora: {Path.GetFileName(tmp)} ({ex.Message})"); }
+                    catch (Exception ex) { Log.Warn($"Unreadable leftover from a write, ignoring: {Path.GetFileName(tmp)} ({ex.Message})"); }
                 }
             }
             catch { }
@@ -369,7 +369,7 @@ namespace AILegacy.Memory
                 Prune(Directory.GetFiles(trash), MaxTrash, File.Delete);
                 return true;
             }
-            catch (Exception ex) { Log.Warn($"No se pudo mover a la papelera {Path.GetFileName(file)}: {ex.Message}"); return false; }
+            catch (Exception ex) { Log.Warn($"Could not move {Path.GetFileName(file)} to the trash: {ex.Message}"); return false; }
         }
 
         /// <summary>Keeps only the <paramref name="keep"/> newest entries (names start with the date).</summary>
@@ -396,7 +396,7 @@ namespace AILegacy.Memory
                 if (c == null || string.IsNullOrEmpty(c.UniqueGameId)) return;
                 Save(c.UniqueGameId, TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, heroes, keepStamp, wait: keepStamp || wait, recheck: recheck);
             }
-            catch (Exception ex) { Log.Error("Volcado de archivos de la campaña", ex); }
+            catch (Exception ex) { Log.Error("Campaign file dump", ex); }
         }
 
         /// <summary>Call often. Every 6 game hours it flushes news, letters and orders; once a day, the characters too.</summary>
@@ -466,7 +466,7 @@ namespace AILegacy.Memory
                         if (QueueIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented), urgent: talking != null && m.HeroId == talking)) written++;
                         _sig[m.HeroId] = sig;
                     }
-                    catch (Exception ex) { Log.Warn($"Se salta el archivo de {m.HeroName} ({m.HeroId}): {ex.Message}"); }
+                    catch (Exception ex) { Log.Warn($"Skipping the file of {m.HeroName} ({m.HeroId}): {ex.Message}"); }
                 }
                 if (list.Count > 0) _recheckAt = (_recheckAt + slice) % list.Count;
                 if (QueueIfChanged(dir, NewsFile, JsonConvert.SerializeObject(NewsStore.All.ToList(), Formatting.Indented))) written++;
@@ -487,11 +487,11 @@ namespace AILegacy.Memory
                 }
                 // The writer leaves the manifest (_escritos.json) for last, once the files it names are in place
                 if (written + removed > 0)
-                    Log.Info($"Archivos de la campaña {campaignId}: {written} escritos, {removed} a la papelera" +
-                             (heroes ? $"; personajes serializados {serialized} de {list.Count}" + (checkedHeroes > 0 ? $" ({checkedHeroes} de repaso)" : "") : ""));
+                    Log.Info($"Campaign {campaignId} files: {written} written, {removed} sent to the trash" +
+                             (heroes ? $"; characters serialized {serialized} of {list.Count}" + (checkedHeroes > 0 ? $" ({checkedHeroes} rechecked)" : "") : ""));
                 if (wait) Drain();
             }
-            catch (Exception ex) { Log.Error("No se pudieron escribir los archivos de la campaña", ex); }
+            catch (Exception ex) { Log.Error("Could not write the campaign files", ex); }
         }
 
         private static readonly Dictionary<string, long> _sig = new Dictionary<string, long>();
@@ -561,10 +561,10 @@ namespace AILegacy.Memory
                         var m = JsonConvert.DeserializeObject<HeroMemory>(text, BoundedJson);
                         if (m != null && !string.IsNullOrEmpty(m.HeroId)) list.Add(m);
                     }
-                    catch (Exception ex) { Log.Warn($"Archivo editado ilegible, se ignora: {name} ({ex.Message})"); }
+                    catch (Exception ex) { Log.Warn($"Edited file unreadable, ignoring: {name} ({ex.Message})"); }
                 }
             }
-            catch (Exception ex) { Log.Error("Buscando archivos editados a mano", ex); }
+            catch (Exception ex) { Log.Error("Looking for hand-edited files", ex); }
             return list;
         }
 
@@ -579,7 +579,7 @@ namespace AILegacy.Memory
                 UseDir(dir);
                 return ReadDir(dir, campaignId);
             }
-            catch (Exception ex) { Log.Error("No se pudieron leer los archivos de la campaña", ex); return false; }
+            catch (Exception ex) { Log.Error("Could not read the campaign files", ex); return false; }
         }
 
         /// <summary>Puts a folder of campaign files into memory, as tolerant as loading always was. Loading a campaign ends here.</summary>
@@ -589,10 +589,10 @@ namespace AILegacy.Memory
             {
                 var s = ParseDir(dir, false, out string what);
                 if (s == null || !MemoryStore.Replace(s)) return false;
-                Log.Info($"Campaña {campaignId} cargada de archivos: {what}");
+                Log.Info($"Campaign {campaignId} loaded from files: {what}");
                 return true;
             }
-            catch (Exception ex) { Log.Error("No se pudieron leer los archivos de la campaña", ex); return false; }
+            catch (Exception ex) { Log.Error("Could not read the campaign files", ex); return false; }
         }
 
         /// <summary>
@@ -623,7 +623,7 @@ namespace AILegacy.Memory
                 catch (Exception ex)
                 {
                     if (strict) throw new InvalidDataException(name + ": " + ex.Message, ex);
-                    bad++; Log.Warn($"Archivo de personaje ilegible, se ignora: {name} ({ex.Message})");
+                    bad++; Log.Warn($"Character file unreadable, ignoring: {name} ({ex.Message})");
                 }
             }
 
@@ -763,10 +763,10 @@ namespace AILegacy.Memory
                 }
                 if (!diverged) return null;
                 var dest = ArchiveFiles(dir, out int copied);
-                if (dest != null) Log.Info($"Los archivos eran de otra rama ({why}): {copied} archivos copiados a {dest} antes de cargar la memoria de la partida");
+                if (dest != null) Log.Info($"The files were from another branch ({why}): {copied} files copied to {dest} before loading the save's memory");
                 return dest;
             }
-            catch (Exception ex) { Log.Error("Archivando la rama descartada", ex); return null; }
+            catch (Exception ex) { Log.Error("Archiving the discarded branch", ex); return null; }
         }
 
         /// <summary>Copies the campaign's .json files to a new folder of _ramas (last MaxBranches kept). Null when there are none.</summary>
@@ -782,7 +782,7 @@ namespace AILegacy.Memory
             foreach (var f in files)
             {
                 try { File.Copy(f, Path.Combine(dest, Path.GetFileName(f)), true); copied++; }
-                catch (Exception ex) { Log.Warn($"Rama archivada sin {Path.GetFileName(f)}: {ex.Message}"); }
+                catch (Exception ex) { Log.Warn($"Branch archived without {Path.GetFileName(f)}: {ex.Message}"); }
             }
             Prune(Directory.GetDirectories(root), MaxBranches, d => Directory.Delete(d, true));
             return dest;
@@ -801,15 +801,15 @@ namespace AILegacy.Memory
             {
                 if (Load(campaignId))
                 {
-                    Log.Warn($"Memoria de la campaña {campaignId} recuperada de sus archivos (la copia de la partida guardada no se pudo usar)");
+                    Log.Warn($"Memory of campaign {campaignId} recovered from its files (the save's copy could not be used)");
                     return true;
                 }
                 var dir = DirFor(campaignId);
-                if (!Directory.Exists(dir)) { Log.Error($"La campaña {campaignId} no tiene archivos ni copias de los que recuperar la memoria: se empieza sin memoria"); return false; }
+                if (!Directory.Exists(dir)) { Log.Error($"Campaign {campaignId} has no files or backups to recover memory from: starting without memory"); return false; }
                 // The files did not load as a whole, but they are what there is: set aside before anything writes over them
                 Drain();
                 var kept = ArchiveFiles(dir, out int copied);
-                if (kept != null) Log.Warn($"Los {copied} archivos de la campaña que no se pudieron cargar quedan guardados en {kept}");
+                if (kept != null) Log.Warn($"The {copied} campaign files that could not be loaded are kept in {kept}");
                 var root = Path.Combine(dir, EditorBackupsDir);
                 if (Directory.Exists(root) && !IsLink(root))
                 {
@@ -818,19 +818,19 @@ namespace AILegacy.Memory
                         try
                         {
                             if (IsLink(f)) continue;
-                            if (!MemoryStore.TryParse(ReadBounded(f, MaxBackupBytes), out var snap, out string why, strict: false)) { Log.Warn($"Copia {Path.GetFileName(f)} ilegible, se prueba la anterior: {why}"); continue; }
+                            if (!MemoryStore.TryParse(ReadBounded(f, MaxBackupBytes), out var snap, out string why, strict: false)) { Log.Warn($"Backup {Path.GetFileName(f)} unreadable, trying the previous one: {why}"); continue; }
                             if (!MemoryStore.Replace(snap)) continue;
                             UseDir(dir);
-                            Log.Warn($"Memoria de la campaña {campaignId} recuperada de la copia {Path.GetFileName(f)} ({snap.HeroCount} personajes): ni la partida guardada ni los archivos se pudieron leer");
+                            Log.Warn($"Memory of campaign {campaignId} recovered from backup {Path.GetFileName(f)} ({snap.HeroCount} characters): neither the save nor the files could be read");
                             return true;
                         }
-                        catch (Exception ex) { Log.Warn($"Copia {Path.GetFileName(f)} ilegible, se prueba la anterior: {ex.Message}"); }
+                        catch (Exception ex) { Log.Warn($"Backup {Path.GetFileName(f)} unreadable, trying the previous one: {ex.Message}"); }
                     }
                 }
-                Log.Error($"No se pudo recuperar la memoria de la campaña {campaignId} de la partida, de sus archivos ni de las copias: se empieza sin memoria."
-                          + (kept != null ? $" Los {copied} archivos que había quedan guardados en {kept}" : " No había archivos que conservar"));
+                Log.Error($"Could not recover the memory of campaign {campaignId} from the save, its files or the backups: starting without memory."
+                          + (kept != null ? $" The {copied} existing files are kept in {kept}" : " There were no files to keep"));
             }
-            catch (Exception ex) { Log.Error("Recuperando la memoria de la campaña", ex); }
+            catch (Exception ex) { Log.Error("Recovering campaign memory", ex); }
             return false;
         }
 
@@ -860,15 +860,15 @@ namespace AILegacy.Memory
                 // A whole memory is larger than any one file, so it gets the backups' own limit
                 if (!MemoryStore.TryParse(ReadBounded(path, MaxBackupBytes), out var back, out string why, strict: false) || back.HeroCount != want)
                 {
-                    Log.Error($"La copia de la memoria antes de {label} no se lee bien ({why ?? $"{back?.HeroCount} personajes de {want}"}); se descarta");
+                    Log.Error($"The memory backup before {label} does not read correctly ({why ?? $"{back?.HeroCount} characters of {want}"}); discarding it");
                     try { File.Delete(path); } catch { }
                     return null;
                 }
                 Prune(Directory.GetFiles(root, "*.json"), MaxEditorBackups, File.Delete);
-                Log.Info("Copia de la memoria antes de " + label + ": " + path);
+                Log.Info("Memory backup before " + label + ": " + path);
                 return path;
             }
-            catch (Exception ex) { Log.Error("Copia de la memoria", ex); return null; }
+            catch (Exception ex) { Log.Error("Memory backup", ex); return null; }
         }
 
         // ============================================================ copies the editor lists and restores
@@ -985,7 +985,7 @@ namespace AILegacy.Memory
                         list.Add(new BackupInfo { Kind = kind, Name = fi.Name, Label = rest, When = when, Files = 1, Size = fi.Length, CanRestore = ok });
                     }
                 }
-                catch (Exception ex) { Log.Warn("Lista de copias (" + kind + "): " + ex.Message); }
+                catch (Exception ex) { Log.Warn("Backup list (" + kind + "): " + ex.Message); }
             }
             return list.OrderByDescending(b => b.When, StringComparer.Ordinal).ToList();
         }
@@ -1018,7 +1018,7 @@ namespace AILegacy.Memory
                     if (!Directory.Exists(path) || !File.Exists(Path.Combine(path, CampaignFile))) { error = gone; return null; }
                     if (Directory.GetFiles(path, "*.json").Sum(f => new FileInfo(f).Length) > 2 * MaxBackupBytes) { error = tooBig; return null; }
                     try { whole = ParseDir(path, true, out _); }
-                    catch (Exception ex) { Log.Warn($"Rama {name} no restaurada: {ex.Message}"); error = damaged; return null; }
+                    catch (Exception ex) { Log.Warn($"Branch {name} not restored: {ex.Message}"); error = damaged; return null; }
                 }
                 else
                 {
@@ -1027,14 +1027,14 @@ namespace AILegacy.Memory
                     string text = ReadBounded(path, MaxBackupBytes);
                     if (kind == "editor")
                     {
-                        if (!MemoryStore.TryParse(text, out whole, out string why)) { Log.Warn($"Copia {name} no restaurada: {why}"); error = damaged; return null; }
+                        if (!MemoryStore.TryParse(text, out whole, out string why)) { Log.Warn($"Backup {name} not restored: {why}"); error = damaged; return null; }
                     }
                     else
                     {
                         try { one = JsonConvert.DeserializeObject<HeroMemory>(text, BoundedJson); }
-                        catch (Exception ex) { Log.Warn($"Archivo {name} no restaurado: {ex.Message}"); error = damaged; return null; }
+                        catch (Exception ex) { Log.Warn($"File {name} not restored: {ex.Message}"); error = damaged; return null; }
                         if (one == null || string.IsNullOrEmpty(one.HeroId)) { error = L.T("AIL_e7b1c65c", "Ese archivo no es la memoria de un personaje; no se puede restaurar desde aquí."); return null; }
-                        if (MemoryStore.Normalize(one) > 0) { Log.Warn($"Archivo {name} no restaurado: tiene entradas vacías"); error = damaged; return null; }
+                        if (MemoryStore.Normalize(one) > 0) { Log.Warn($"File {name} not restored: it has empty entries"); error = damaged; return null; }
                     }
                 }
 
@@ -1059,16 +1059,16 @@ namespace AILegacy.Memory
                 Flush(wait: true);
                 if (!AllWritten(out int failed))
                 {
-                    Log.Error($"Copia restaurada ({kind}): {name}, pero no todos los archivos llegaron al disco ({failed} con fallo): en disco puede quedar la versión anterior hasta el próximo guardado. Lo que había queda en {Path.GetFileName(safety)}");
+                    Log.Error($"Backup restored ({kind}): {name}, but not all files reached the disk ({failed} failed): the previous version may remain on disk until the next save. The previous content is kept in {Path.GetFileName(safety)}");
                     string file = Path.GetFileName(safety);
                     error = L.F("AIL_e7b1c74b", $"La copia se ha restaurado, pero {failed} archivos no se pudieron escribir en disco. Guarda la partida para volver a intentarlo. Lo que había queda en {file}.");
                     return null;
                 }
-                Log.Info($"Copia restaurada ({kind}): {name}; lo que había queda en {Path.GetFileName(safety)}");
+                Log.Info($"Backup restored ({kind}): {name}; the previous content is kept in {Path.GetFileName(safety)}");
                 return Path.GetFileName(safety);
             }
             // The exception's text can carry full paths: it goes to the log, not to the page
-            catch (Exception ex) { Log.Error("Restaurar copia", ex); error = damaged; return null; }
+            catch (Exception ex) { Log.Error("Restore backup", ex); error = damaged; return null; }
         }
 
         /// <summary>
@@ -1101,7 +1101,7 @@ namespace AILegacy.Memory
                 }
                 return dest;
             }
-            catch (Exception ex) { Log.Error("Copia de personajes", ex); return null; }
+            catch (Exception ex) { Log.Error("Character backup", ex); return null; }
         }
 
         /// <summary>
@@ -1129,9 +1129,9 @@ namespace AILegacy.Memory
                     Directory.CreateDirectory(keep);
                     string to = Path.Combine(keep, Path.GetFileNameWithoutExtension(file) + "." + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json");
                     File.Copy(path, to, true);
-                    Log.Error($"{file} es ilegible ({ex.Message}). Copia guardada en _ilegibles\\{Path.GetFileName(to)}; se sigue sin esos datos.");
+                    Log.Error($"{file} is unreadable ({ex.Message}). Copy saved in _ilegibles\\{Path.GetFileName(to)}; continuing without that data.");
                 }
-                catch (Exception ex2) { Log.Error($"{file} ilegible y no se pudo apartar: {ex.Message} / {ex2.Message}"); }
+                catch (Exception ex2) { Log.Error($"{file} unreadable and could not be set aside: {ex.Message} / {ex2.Message}"); }
                 return null;
             }
         }

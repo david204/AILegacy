@@ -72,8 +72,8 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
             _running = false;
             try { if (PlayerEncounter.Current != null) PlayerEncounter.Current.IsPlayerWaiting = false; } catch { }
             var done = _onDone; _onDone = null;
-            try { if (completed) done?.Invoke(); } catch (Exception ex) { Log.Error("Actividad: final", ex); }
-            try { GameMenu.SwitchToMenu(_backMenu); } catch (Exception ex) { Log.Error("Actividad: volver al menú", ex); }
+            try { if (completed) done?.Invoke(); } catch (Exception ex) { Log.Error("Activity: finish", ex); }
+            try { GameMenu.SwitchToMenu(_backMenu); } catch (Exception ex) { Log.Error("Activity: back to menu", ex); }
         }
 
         // ============================================================ ask around
@@ -116,7 +116,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
                     key: "ask_around", failed: () => { if (serial != _askSerial) return; _rumoursFailed = true; if (_showWhenReady) ShowRumours(); });
                 if (!sent) _rumoursFailed = true;
             }
-            catch (Exception ex) { Log.Error("Preguntar por ahí", ex); _rumoursFailed = true; }
+            catch (Exception ex) { Log.Error("Ask around", ex); _rumoursFailed = true; }
         }
 
         /// <summary>Fallback with no AI (or when it fails): the latest news as they came in.</summary>
@@ -142,7 +142,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
                     L.T("AIL_f6d0c4b4", "Enterado"), null, null, null), true);
                 _rumours = null; _rumoursFailed = false;
             }
-            catch (Exception ex) { Log.Error("Enseñar lo que se cuenta", ex); }
+            catch (Exception ex) { Log.Error("Show what is being told", ex); }
         }
 
         // ============================================================ evening with your men
@@ -158,7 +158,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
             var cfg = S.Get;
             _lastEvening = CampaignTime.Now.ToDays;
             int morale = Math.Max(1, cfg.EveningMorale);
-            try { MobileParty.MainParty.RecentEventsMorale += morale; } catch (Exception ex) { Log.Error("Velada: moral", ex); }
+            try { MobileParty.MainParty.RecentEventsMorale += morale; } catch (Exception ex) { Log.Error("Evening: morale", ex); }
             // Companions riding with you trust you a bit more
             int closer = 0;
             try
@@ -176,7 +176,7 @@ Answer ONLY with JSON: { ""rumours"": [ ""..."", ""..."" ] }");
                         closer++;
                     }
             }
-            catch (Exception ex) { Log.Error("Velada: compañeros", ex); }
+            catch (Exception ex) { Log.Error("Evening: companions", ex); }
             InformationManager.DisplayMessage(new InformationMessage(
                 L.F("AIL_e6b1c004", $"La velada sienta bien a la tropa: moral +{morale}.") + (closer > 0 ? " " + L.F("AIL_e6b1c005", $"{closer} de tus compañeros te tienen algo más de confianza.") : ""), Colors.Green));
         }

@@ -99,13 +99,13 @@ namespace AILegacy.Web
                 }
                 _thread = new Thread(Loop) { IsBackground = true, Name = "AILegacyEditor" };
                 _thread.Start();
-                Log.Info("Editor web en " + Url);
+                Log.Info("Web editor at " + Url);
                 return true;
             }
             catch (Exception ex)
             {
                 string id = NewErrorId();
-                Log.Error($"No se pudo arrancar el editor web [{id}]", ex);
+                Log.Error($"Could not start the web editor [{id}]", ex);
                 string detail = GenericError(id);
                 Info(L.F("AIL_4f6f8296", $"No se pudo abrir el puerto {port}. Cambia el puerto en MCM → AI Legacy → Editor.\n{detail}"));
                 _http = null;
@@ -192,10 +192,10 @@ namespace AILegacy.Web
                 else
                 {
                     string id = NewErrorId();
-                    Log.Error($"Editor web [{id}]: {where}", ex);
+                    Log.Error($"Web editor [{id}]: {where}", ex);
                     code = 500; msg = GenericError(id);
                 }
-                if (code != 500) Log.Warn($"Editor web: {where} → {code} {msg}");
+                if (code != 500) Log.Warn($"Web editor: {where} -> {code} {msg}");
             }
             catch { code = 500; msg = "error"; }
             try { Send(res, code, JsonConvert.SerializeObject(new { error = msg }), "application/json; charset=utf-8"); } catch { }
@@ -248,8 +248,8 @@ namespace AILegacy.Web
         private static void Reject(string what)
         {
             int n = Interlocked.Increment(ref _rejected);
-            if (n <= 20) Log.Warn("Editor web: petición rechazada " + what);
-            else if (n == 21) Log.Warn("Editor web: más peticiones rechazadas; ya no se apuntan");
+            if (n <= 20) Log.Warn("Web editor: request rejected " + what);
+            else if (n == 21) Log.Warn("Web editor: more requests rejected; no longer logged");
         }
 
         private static bool Allowed(HttpListenerRequest req, out string why)
@@ -370,7 +370,7 @@ namespace AILegacy.Web
                     Directory.CreateDirectory(Path.GetDirectoryName(p));
                     WriteText(p, text);
                     ReloadWorldData();
-                    Log.Info("Editor: " + name + " guardado para esta partida");
+                    Log.Info("Editor: " + name + " saved for this campaign");
                     return new { ok = true, count };
                 }
 
@@ -495,7 +495,7 @@ namespace AILegacy.Web
                         if (kv == "morality") m.Morality = v; else if (kv == "profanity") m.Profanity = v; else m.Piety = v;
                     }
                     SaveFiles.Flush();
-                    Log.Info("Editor: guardado " + m.HeroName);
+                    Log.Info("Editor: saved " + m.HeroName);
                     return new { ok = true };
                 }
 
@@ -583,7 +583,7 @@ namespace AILegacy.Web
                     CampaignWritable(p);
                     Directory.CreateDirectory(Path.GetDirectoryName(p));
                     WriteText(p, (bool?)d["reset"] == true ? t.Default : text);
-                    Log.Info("Editor: plantilla " + ((bool?)d["reset"] == true ? "restaurada " : "guardada ") + t.Key);
+                    Log.Info("Editor: template " + ((bool?)d["reset"] == true ? "restored " : "saved ") + t.Key);
                     return new { ok = true };
                 }
 
@@ -620,7 +620,7 @@ namespace AILegacy.Web
                             try
                             {
                                 // another save was loaded meanwhile: that memory is not this campaign's, and saving would write it here
-                                if (session != WorldSim.Session) { Log.Info("Editor: personalidad de otra partida, descartada"); return; }
+                                if (session != WorldSim.Session) { Log.Info("Editor: personality from another save, discarded"); return; }
                                 if (res == null || !res.Ok) { GenerateError[id] = res?.Error ?? L.T("AIL_ea76bfc7", "la IA no ha respondido"); return; }
                                 int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                                 if (a < 0 || b <= a) { GenerateError[id] = "respuesta ilegible"; return; }
@@ -630,9 +630,9 @@ namespace AILegacy.Web
                                 m.Profile = p; m.ProfileRevision++;
                                 GenerateError.Remove(id);
                                 SaveFiles.Flush();
-                                Log.Info("Editor: personalidad generada para " + m.HeroName);
+                                Log.Info("Editor: personality generated for " + m.HeroName);
                             }
-                            catch (Exception ex) { GenerateError[id] = "respuesta ilegible"; Log.Error("Generar personalidad", ex); }
+                            catch (Exception ex) { GenerateError[id] = "respuesta ilegible"; Log.Error("Generating personality", ex); }
                         });
                     });
                     return new { ok = true, started = true };
@@ -744,7 +744,7 @@ namespace AILegacy.Web
                     if (string.IsNullOrWhiteSpace(json) || !(d["data"] is JObject)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
                     // All of it is read and checked before anything changes; a damaged file leaves the memory as it was
                     string damaged = L.T("AIL_e7b1c6df", "Los datos están dañados o incompletos; no se ha cambiado nada.");
-                    if (!MemoryStore.TryParse(json, out var parsed, out string why)) { Log.Warn("Editor: importación rechazada: " + why); throw new ApiError(damaged); }
+                    if (!MemoryStore.TryParse(json, out var parsed, out string why)) { Log.Warn("Editor: import rejected: " + why); throw new ApiError(damaged); }
                     // Full backup of current memory first (same as /api/export). If it fails, nothing gets replaced
                     var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "importar");
                     if (backup == null) throw new ApiError(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));

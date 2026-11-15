@@ -92,7 +92,7 @@ namespace AILegacy.World
             };
             All.Add(o);
             WorldSim.State.LastOutbreakDay = o.StartDay;
-            Log.Info($"[enfermedad] brote en {st.Name}: {o.NameEn}, gravedad {severity}, {days} días");
+            Log.Info($"[disease] outbreak in {st.Name}: {o.NameEn}, severity {severity}, {days} days");
             if (announce)
                 NewsStore.Add(new NewsItem
                 {
@@ -156,7 +156,7 @@ namespace AILegacy.World
                     if (now >= o.UntilDay)
                     {
                         All.Remove(o);
-                        Log.Info($"[enfermedad] fin del brote en {st.Name}");
+                        Log.Info($"[disease] outbreak ended in {st.Name}");
                         NewsStore.Add(new NewsItem
                         {
                             Type = "event_disease", Importance = 1, Text = $"The sickness in {st.Name} has passed.", TitleEs = L.F("AIL_387fb206", $"{st.Name} se libra de la enfermedad"),
@@ -185,7 +185,7 @@ namespace AILegacy.World
                         if (next != null)
                         {
                             var n = Start(next, o.Name, o.NameEn, Math.Max(1, o.Severity - (Rng.Next(2) == 0 ? 1 : 0)), (int)Math.Max(10, (o.UntilDay - now) * cfg.DiseaseSpreadInheritFactor), true, o.Fx);
-                            if (n != null) Log.Info($"[enfermedad] {o.NameEn} salta de {st.Name} a {next.Name}");
+                            if (n != null) Log.Info($"[disease] {o.NameEn} spreads from {st.Name} to {next.Name}");
                         }
                     }
                 }
@@ -196,8 +196,8 @@ namespace AILegacy.World
                 if (ob != null) SickenPlayerTroops(ob, mine, 0.5f * (ob.Quarantined ? cfg.QuarantineInfectionReduction * 2f : 1f));
 
                 TickSick(now);
-                try { ForceDaily(now); } catch (Exception ex) { Log.Error("[enfermedad] guarniciones y milicias", ex); }
-                try { HerbDaily(now); } catch (Exception ex) { Log.Error("[enfermedad] hierbas", ex); }
+                try { ForceDaily(now); } catch (Exception ex) { Log.Error("[disease] garrisons and militias", ex); }
+                try { HerbDaily(now); } catch (Exception ex) { Log.Error("[disease] herbs", ex); }
 
                 if (cfg.DiseaseSeasonalChancePerMille > 0 && All.Count < cfg.DiseaseMaxSimultaneous
                     && (WorldSim.State.LastOutbreakDay < 0 || now - WorldSim.State.LastOutbreakDay >= cfg.DiseaseMinDaysBetweenOutbreaks)
@@ -211,7 +211,7 @@ namespace AILegacy.World
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("[enfermedad] tick diario", ex); }
+            catch (Exception ex) { Log.Error("[disease] daily tick", ex); }
         }
 
         public static void OnSettlementEntered(MobileParty party, Settlement st, Hero hero)
@@ -228,14 +228,14 @@ namespace AILegacy.World
                     L.F("AIL_e13e09e9", $"En {st.Name} hay {o.Name}") + (o.Quarantined ? L.T("AIL_5eccf2c1", ". Está en cuarentena: entras por tu cuenta y riesgo.") : "."), Colors.Red));
                 SickenPlayerTroops(o, st, o.Quarantined ? 1.3f : 1f);
             }
-            catch (Exception ex) { Log.Error("[enfermedad] entrada", ex); }
+            catch (Exception ex) { Log.Error("[disease] entry", ex); }
         }
 
         /// <summary>The player bribed the guards to get into a quarantined settlement.</summary>
         public static void SickenAtGate(Settlement st)
         {
             try { var o = At(st); if (Enabled && o != null) SickenPlayerTroops(o, st, 1.3f); }
-            catch (Exception ex) { Log.Error("[enfermedad] entrada con soborno", ex); }
+            catch (Exception ex) { Log.Error("[disease] entry with bribe", ex); }
         }
 
         /// <summary>Some of the player's soldiers fall sick. They count as wounded and recover over time.</summary>
@@ -415,7 +415,7 @@ namespace AILegacy.World
                 args => { if (Pay(CostRoster(MobileParty.MainParty.PrisonRoster, Settlement.CurrentSettlement))) { HealRoster(MobileParty.MainParty.PrisonRoster); WorldSim.Say(L.T("AIL_e3e82b77", "Tus prisioneros quedan curados."), Colors.Green); } Refresh(); }, false, -1);
 
             AddSickCare(starter);
-            try { AddHerbMenu(starter); } catch (Exception ex) { Log.Error("Menú de hierbas", ex); }
+            try { AddHerbMenu(starter); } catch (Exception ex) { Log.Error("Herb menu", ex); }
 
             starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_prevent", L.T("AIL_3c407add", "{=!}Prevención para tu partida, ") + PreventionDays + L.T("AIL_48d043af", " días ({AIL_H_PREV}{GOLD_ICON})"),
                 args =>
@@ -444,8 +444,8 @@ namespace AILegacy.World
         /// <summary>In the player's own fiefs, the player decides from the settlement menu.</summary>
         public static void AddMenus(CampaignGameStarter starter)
         {
-            try { AddHospital(starter); } catch (Exception ex) { Log.Error("Menú del hospital", ex); }
-            try { QuarantineRules.AddMenus(starter); } catch (Exception ex) { Log.Error("Menú de la puerta en cuarentena", ex); }
+            try { AddHospital(starter); } catch (Exception ex) { Log.Error("Hospital menu", ex); }
+            try { QuarantineRules.AddMenus(starter); } catch (Exception ex) { Log.Error("Quarantine gate menu", ex); }
             foreach (var menu in new[] { "town", "castle", "village" })
             {
                 starter.AddGameMenuOption(menu, "ailegacy_quarantine_" + menu, L.T("AIL_b23dc670", "{=!}Decretar cuarentena (15 días)"),

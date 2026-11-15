@@ -55,7 +55,7 @@ namespace AILegacy.Import
                         options, true, 1, 1, L.T("AIL_e5c9b3a9", "Importar"), L.T("AIL_e5c9b3a4", "Cancelar"),
                         sel => { if (sel?.Count > 0) MainThread.Post(() => Import((string)sel[0].Identifier, false)); }, null), true);
                 }
-                catch (Exception ex) { Log.Error("Importador", ex); Show("AI Legacy", "Error importando: " + ex.Message); }
+                catch (Exception ex) { Log.Error("Importer", ex); Show("AI Legacy", "Error importando: " + ex.Message); }
             });
         }
 
@@ -77,11 +77,11 @@ namespace AILegacy.Import
                             var dest = SaveFiles.BackupHeroFiles(Campaign.Current.UniqueGameId, imported, "importados");
                             foreach (var m in imported) MemoryStore.Remove(m.HeroId);
                             SaveFiles.Flush();
-                            Log.Info($"Importación deshecha: {imported.Count} personajes apartados a {dest}");
+                            Log.Info($"Import undone: {imported.Count} characters moved aside to {dest}");
                             Show("AI Legacy", L.F("AIL_35ac229c", $"Quitadas las memorias importadas de {imported.Count} personajes.\nCopia en:\n{dest}\n\nGuarda la partida para que quede así."));
                         }, null), true);
                 }
-                catch (Exception ex) { Log.Error("Deshacer importación", ex); Show("AI Legacy", "Error: " + ex.Message); }
+                catch (Exception ex) { Log.Error("Undo import", ex); Show("AI Legacy", "Error: " + ex.Message); }
             });
         }
 
@@ -108,9 +108,9 @@ namespace AILegacy.Import
                     imported++;
                     if (names.Count < 12) names.Add(hero.Name.ToString());
                 }
-                catch (Exception ex) { failed++; Log.Error("Importando " + Path.GetFileName(file), ex); }
+                catch (Exception ex) { failed++; Log.Error("Importing " + Path.GetFileName(file), ex); }
             }
-            Log.Info($"Importación de {dir}: {imported} importados, {skipped} ya tenían memoria, {missing} sin héroe/datos, {failed} con error");
+            Log.Info($"Import from {dir}: {imported} imported, {skipped} already had memory, {missing} without hero/data, {failed} failed");
             Show(L.T("AIL_fd979159", "Importación de AIInfluence"),
                 L.F("AIL_4232f06e", $"Importados: {imported}\nYa tenían memoria en AI Legacy (no tocados): {skipped}\nSin datos útiles o no existen en esta partida: {missing}\nCon error: {failed}") +
                 (names.Count > 0 ? "\n\n" + string.Join(", ", names) + (imported > names.Count ? "…" : "") : "") +

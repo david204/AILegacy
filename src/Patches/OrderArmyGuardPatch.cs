@@ -26,10 +26,10 @@ namespace AILegacy.Patches
                 if (h == null) return true;
                 var o = OrderSystem.Find(h);
                 if (o == null || o.Type == "approach") return true;
-                Log.Info($"[orden] {h.Name} ignora la llamada al ejército de {lead.LeaderHero?.Name}: está cumpliendo «{o.Type} {o.TargetName}»");
+                Log.Info($"[order] {h.Name} ignores the army call from {lead.LeaderHero?.Name}: busy carrying out '{o.Type} {o.TargetName}'");
                 return false;
             }
-            catch (Exception ex) { Log.Error("Orden frente a llamada a ejército", ex); return true; }
+            catch (Exception ex) { Log.Error("Order vs army call", ex); return true; }
         }
     }
 }

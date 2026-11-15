@@ -134,7 +134,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Corro: lo que los demás vieron hacer", ex); }
+            catch (Exception ex) { Log.Error("Circle: what the others saw done", ex); }
         }
 
         /// <summary>Whether the agent is in your group talk. While it is, it won't start ambient chats of its own.</summary>
@@ -152,7 +152,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 Transcript.Add($"({sp.Name} has come over and joined.)");
                 _idle = 0f;
             }
-            catch (Exception ex) { Log.Error("Entrar en el grupo", ex); }
+            catch (Exception ex) { Log.Error("Join the group", ex); }
         }
 
         internal static void Note(string line) { if (_mission != null && Mission.Current == _mission && !string.IsNullOrWhiteSpace(line)) Transcript.Add(line); }
@@ -300,7 +300,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 if (_waiting || ChatSession.IsBusy || Initiative.Busy || Campaign.Current.ConversationManager.IsConversationInProgress) return;
                 Open();
             }
-            catch (Exception ex) { Log.Error("Conversación de grupo", ex); End(false); }
+            catch (Exception ex) { Log.Error("Group conversation", ex); End(false); }
         }
 
         private static void Open()
@@ -507,8 +507,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     try
                     {
                         // asked in another campaign: its lines, deeds and memories do not belong in this one
-                        if (session != WorldSim.Session) { Log.Info("[grupo] respuesta de otra partida, descartada"); return; }
-                        if (res == null || !res.Ok) { if (!silent) Say(L.T("AIL_38907a94", "Nadie del grupo contesta (la IA no ha respondido)."), Colors.Red); Log.Warn("Grupo: sin respuesta: " + res?.Error); return; }
+                        if (session != WorldSim.Session) { Log.Info("[group] reply from another game, discarded"); return; }
+                        if (res == null || !res.Ok) { if (!silent) Say(L.T("AIL_38907a94", "Nadie del grupo contesta (la IA no ha respondido)."), Colors.Red); Log.Warn("Group: no reply: " + res?.Error); return; }
                         if (Mission.Current != m) return;
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a < 0 || b <= a) return;
@@ -591,7 +591,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                         }
                                     }
                                 }
-                                catch (Exception ex) { Log.Error("Corro: acción del catálogo", ex); }
+                                catch (Exception ex) { Log.Error("Circle: catalog action", ex); }
                                 // The speaker remembers this as part of your shared history
                                 // (your line is stored once per round, even if they speak twice)
                                 if (!silent && heard.Add(member.Who.Key)) member.Who.Memory.Turns.Add(new ChatTurn { Role = "player", Text = "[Said to the group you were in] " + text, Day = CampaignTime.Now.ToDays });
@@ -640,7 +640,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                     }
                                 }
                         }
-                        catch (Exception ex) { Log.Error("Grupo: opinión sobre el jugador", ex); }
+                        catch (Exception ex) { Log.Error("Group: opinion of the player", ex); }
                         string rumor = ((string)j["rumor"] ?? "").Trim();
                         if (cfg.EnableRumors && rumor.Length > 20 && (DateTime.UtcNow - _lastRumor).TotalSeconds > 120)
                         {
@@ -663,10 +663,10 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                             try { if (x.Who.IsHero && x.Who.Memory.Turns.Count > cfg.SummarizeAfterTurns + cfg.HistoryTurnsInPrompt) MemorySummarizer.MaybeSummarize(x.Who, cfg.HistoryTurnsInPrompt); } catch { }
                         }
                         while (Transcript.Count > 40) Transcript.RemoveAt(0);
-                        Log.Info($"[grupo] {string.Join(", ", circle.Select(x => x.Who.Name))}: {summary}");
+                        Log.Info($"[group] {string.Join(", ", circle.Select(x => x.Who.Name))}: {summary}");
                         SaveFiles.Flush();
                     }
-                    catch (Exception ex) { Log.Error("Respuesta del grupo", ex); }
+                    catch (Exception ex) { Log.Error("Group reply", ex); }
                 });
             });
         }

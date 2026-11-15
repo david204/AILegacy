@@ -75,7 +75,7 @@ namespace AILegacy.Memory
             var messages = PromptBuilder.BuildSummary(s, old, merge);
             mem.SummarizeInFlight = true;
             int session = World.WorldSim.Session;
-            Log.Info($"Resumiendo {old.Count} turnos antiguos de {s.Name}" + (merge.Count > 0 ? $" y fundiendo {merge.Count} tramos viejos" : ""));
+            Log.Info($"Summarizing {old.Count} old turns of {s.Name}" + (merge.Count > 0 ? $" and merging {merge.Count} old segments" : ""));
 
             LlmClient.CompleteAsync(messages, wantJson: true, task: "summary", maxTokensOverride: merge.Count > 0 ? 1200 : 900, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
             {
@@ -86,7 +86,7 @@ namespace AILegacy.Memory
                     if (session != World.WorldSim.Session) return;       // another save was loaded meanwhile
                     if (res == null || !res.Ok || string.IsNullOrWhiteSpace(res.Text))
                     {
-                        Log.Warn($"No se pudo resumir la memoria de {s.Name}: {res?.Error}");
+                        Log.Warn($"Could not summarize the memory of {s.Name}: {res?.Error}");
                         return;
                     }
                     string summary = res.Text.Trim(), title = "", page = "", merged = "";
@@ -103,12 +103,12 @@ namespace AILegacy.Memory
                         }
                     }
                     catch { /* plain text reply, use it as the summary */ }
-                    if (summary.Length < 10 || summary.StartsWith("{")) { Log.Warn($"Resumen de {s.Name} ilegible: se conserva el historial"); return; }
+                    if (summary.Length < 10 || summary.StartsWith("{")) { Log.Warn($"Summary of {s.Name} unreadable: keeping the history"); return; }
 
                     // Only drop the turns we sent, and only while they're still at the front of the history
                     int n = 0;
                     while (n < old.Count && n < mem.Turns.Count && ReferenceEquals(mem.Turns[n], old[n])) n++;
-                    if (n == 0) { Log.Warn($"El historial de {s.Name} ha cambiado mientras se resumía: se deja como está"); return; }
+                    if (n == 0) { Log.Warn($"History of {s.Name} changed while summarizing: leaving it as is"); return; }
                     var folded = mem.Turns.Take(n).ToList();
                     Recall.Archive(mem, folded);
                     mem.Turns.RemoveRange(0, n);
@@ -134,7 +134,7 @@ namespace AILegacy.Memory
                         mem.Summaries.Insert(0, new SummaryPart { FromDay = a.ToDay < 0 ? -1 : a.FromDay, ToDay = b.ToDay, Text = Clip(a.Text.Trim() + " " + b.Text.Trim(), 1400) });
                     }
                     mem.Summary = Compose(mem);
-                    Log.Info($"Memoria de {s.Name}: nuevo tramo ({n} turnos, {mem.Summaries.Count} tramos en total): {summary}");
+                    Log.Info($"Memory of {s.Name}: new segment ({n} turns, {mem.Summaries.Count} segments in total): {summary}");
 
                     if (cfg.EnableMemoryPages && s.IsHero && page.Length > 20)
                     {
@@ -146,7 +146,7 @@ namespace AILegacy.Memory
                         });
                         while (mem.Pages.Count > cfg.MaxMemoryPages) mem.Pages.RemoveAt(0);
                         if (cfg.ImageAuto && World.SceneImages.Enabled) World.SceneImages.Request(mem, mem.Pages[mem.Pages.Count - 1]);
-                        Log.Info($"Nueva página en el libro de memorias de {s.Name}: {title}");
+                        Log.Info($"New page in the memory book of {s.Name}: {title}");
                     }
                     SaveFiles.Flush();
                 });

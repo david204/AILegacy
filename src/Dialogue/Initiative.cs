@@ -85,11 +85,11 @@ namespace AILegacy.Dialogue
             {
                 messages = PromptBuilder.BuildDialogue(s, S.Get.MaxRelationChangePerConversation, openingInstruction);
             }
-            catch (Exception ex) { Log.Error("Iniciativa: prompt", ex); return false; }
+            catch (Exception ex) { Log.Error("Initiative: prompt", ex); return false; }
 
             _p = p;
             int session = World.WorldSim.Session;
-            Log.Info($"Iniciativa: {s.Name} va a dirigirse al jugador");
+            Log.Info($"Initiative: {s.Name} is going to approach the player");
             bool first = s.Memory.Profile == null || s.Memory.Profile.IsEmpty;
             LlmClient.CompleteAsync(messages, wantJson: true, task: "initiative", maxTokensOverride: first ? Math.Max(S.Get.MaxTokens, 1800) : (int?)null,
                 preferredProvider: s.IsHero ? S.Get.ProviderHeroes : S.Get.ProviderResidents).ContinueWith(t =>
@@ -98,12 +98,12 @@ namespace AILegacy.Dialogue
                 MainThread.Post(() =>
                 {
                     if (_p != p || session != World.WorldSim.Session) return;
-                    if (res == null || !res.Ok) { p.Failed = true; Log.Warn("Iniciativa: sin respuesta de la IA: " + res?.Error); return; }
+                    if (res == null || !res.Ok) { p.Failed = true; Log.Warn("Initiative: no AI reply: " + res?.Error); return; }
                     var reply = NpcReply.Parse(res.Text);
                     if (string.IsNullOrWhiteSpace(reply.Reply)) { p.Failed = true; return; }
                     if (reply.Profile != null && (s.Memory.Profile == null || s.Memory.Profile.IsEmpty)) s.Memory.Profile = reply.Profile;
                     if (!string.IsNullOrWhiteSpace(reply.Mood) && reply.Mood.Length <= 30) { s.Memory.Mood = reply.Mood; s.Memory.MoodReason = reply.MoodReason; s.Memory.MoodDay = CampaignTime.Now.ToDays; }
-                    if (!string.IsNullOrWhiteSpace(reply.Thoughts)) Log.Info($"[piensa] {s.Name}: {reply.Thoughts}");
+                    if (!string.IsNullOrWhiteSpace(reply.Thoughts)) Log.Info($"[thinks] {s.Name}: {reply.Thoughts}");
                     p.Reply = reply.Reply;
                 });
             });
@@ -155,7 +155,7 @@ namespace AILegacy.Dialogue
                 p.Age += dt;
                 if (p.Hero != null) TickMap(p); else TickScene(p);
             }
-            catch (Exception ex) { Log.Error("Iniciativa: tick", ex); _p = null; }
+            catch (Exception ex) { Log.Error("Initiative: tick", ex); _p = null; }
         }
 
         private static void TickScene(Approach p)
@@ -197,7 +197,7 @@ namespace AILegacy.Dialogue
                     new ConversationCharacterData(CharacterObject.PlayerCharacter, PartyBase.MainParty),
                     new ConversationCharacterData(h.CharacterObject, captor));
             }
-            catch (Exception ex) { Log.Error("Iniciativa del captor: abrir conversación", ex); _p = null; }
+            catch (Exception ex) { Log.Error("Captor initiative: open conversation", ex); _p = null; }
         }
 
         private static void TickMap(Approach p)
@@ -222,7 +222,7 @@ namespace AILegacy.Dialogue
                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_f4c8e2a1", $"{h.Name} te corta el paso."), Colors.Red));
                     EncounterManager.StartPartyEncounter(party.Party, PartyBase.MainParty);
                 }
-                catch (Exception ex) { Log.Error("Iniciativa hostil: abrir el encuentro", ex); _p = null; }
+                catch (Exception ex) { Log.Error("Hostile initiative: open encounter", ex); _p = null; }
                 return;
             }
             InformationManager.ShowInquiry(new InquiryData(L.F("AIL_c65afb5d", $"{h.Name} quiere hablar contigo"),
@@ -238,7 +238,7 @@ namespace AILegacy.Dialogue
                             new ConversationCharacterData(CharacterObject.PlayerCharacter, PartyBase.MainParty),
                             new ConversationCharacterData(h.CharacterObject, party.Party));
                     }
-                    catch (Exception ex) { Log.Error("Iniciativa: abrir conversación en el mapa", ex); _p = null; }
+                    catch (Exception ex) { Log.Error("Initiative: open conversation on the map", ex); _p = null; }
                 }),
                 () => { _p = null; ChatSession.AddNote(p.Who.Memory, "I rode over to speak with them and they would not receive me.", S.Get.MaxNotesPerHero, p.Who.Name); }), true);
         }

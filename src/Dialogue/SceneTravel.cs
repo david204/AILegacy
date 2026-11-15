@@ -68,7 +68,7 @@ namespace AILegacy.Dialogue
                 Entries.Remove(e);
                 Follow(a);
             }
-            catch (Exception ex) { Log.Error("Viaje entre escenas: nuevo personaje", ex); }
+            catch (Exception ex) { Log.Error("Scene travel: new character", ex); }
         }
 
         private static Hero HeroOf(Agent a)
@@ -124,14 +124,14 @@ namespace AILegacy.Dialogue
                 if (a == null || !S.Get.FollowAcrossDoors) return;
                 var e = Entries.FirstOrDefault(x => x.Agent == a);
                 if (e != null) { e.Follows = true; return; }
-                if (Register(a, true) != null) { Log.Info($"[escena] {a.Name} te seguirá también al cruzar puertas"); return; }
+                if (Register(a, true) != null) { Log.Info($"[scene] {a.Name} will also follow you through doors"); return; }
                 var le = PlayerEncounter.LocationEncounter;
                 if (le?.Settlement == null || HeroOf(a) != null) return;
                 if (_where != le.Settlement) { Entries.Clear(); _where = le.Settlement; }
                 _mission = Mission.Current;
                 Entries.Add(new Entry { Agent = a, Name = a.Name, Follows = true });
             }
-            catch (Exception ex) { Log.Error("Viaje entre escenas: seguir", ex); }
+            catch (Exception ex) { Log.Error("Scene travel: follow", ex); }
         }
 
         /// <summary>They stop walking with the player (told to stay, sat down, left, went to guide).</summary>
@@ -141,7 +141,7 @@ namespace AILegacy.Dialogue
             {
                 foreach (var e in Entries.Where(x => x.Agent == a).ToList()) Remove(e);
             }
-            catch (Exception ex) { Log.Error("Viaje entre escenas: soltar", ex); }
+            catch (Exception ex) { Log.Error("Scene travel: release", ex); }
         }
 
         private static void Remove(Entry e)
@@ -198,7 +198,7 @@ namespace AILegacy.Dialogue
                 foreach (var l in complex.GetListOfLocations())
                     if (l != here && Open(l) && NextHop(here, l) != null) list.Add(l);
             }
-            catch (Exception ex) { Log.Error("Viaje entre escenas: lugares", ex); }
+            catch (Exception ex) { Log.Error("Scene travel: places", ex); }
             return list;
         }
 
@@ -246,10 +246,10 @@ namespace AILegacy.Dialogue
                 if (e == null) return null;
                 e.Dest = dest.StringId; e.Left = 300f;
                 Lead(e);
-                Log.Info($"[escena] {who.Name} lleva al jugador a {dest.StringId}");
+                Log.Info($"[scene] {who.Name} takes the player to {dest.StringId}");
                 return dest.Name?.ToString() ?? dest.StringId;
             }
-            catch (Exception ex) { Log.Error("Viaje entre escenas: llevar al jugador", ex); return null; }
+            catch (Exception ex) { Log.Error("Scene travel: take the player", ex); return null; }
         }
 
         /// <summary>Sends them to the door of this scene that leads towards their destination. Without such a door they just walk with the player.</summary>
@@ -323,7 +323,7 @@ namespace AILegacy.Dialogue
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Viaje entre escenas", ex); Entries.Clear(); }
+            catch (Exception ex) { Log.Error("Scene travel", ex); Entries.Clear(); }
         }
 
         /// <summary>The player has just appeared in another scene of the same settlement: the game has already brought in whoever could enter.</summary>
@@ -348,7 +348,7 @@ namespace AILegacy.Dialogue
                         if (location) Say(L.F("AIL_e7b1c640", $"{e.Name} te espera fuera."));
                         continue;
                     }
-                    Log.Info($"[escena] {e.Name} entra contigo en {here?.StringId}");
+                    Log.Info($"[scene] {e.Name} enters with you at {here?.StringId}");
                     if (e.Dest != null && here != null && here.StringId == e.Dest)
                     {
                         Say(L.F("AIL_e7b1c642", $"{e.Name} te ha traído hasta {here.Name}."));
@@ -360,7 +360,7 @@ namespace AILegacy.Dialogue
                     SceneActions.Adopt(e.Agent, true);
                     if (e.Dest != null) Lead(e);
                 }
-                catch (Exception ex) { Log.Error("Viaje entre escenas: escena nueva", ex); Entries.Remove(e); }
+                catch (Exception ex) { Log.Error("Scene travel: new scene", ex); Entries.Remove(e); }
             }
         }
     }

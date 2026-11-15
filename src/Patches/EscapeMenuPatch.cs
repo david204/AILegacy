@@ -23,7 +23,7 @@ namespace AILegacy.Patches
                     () => new Tuple<bool, TextObject>(false, TextObject.GetEmpty()));
                 __result.Insert(Math.Min(2, __result.Count), item);
             }
-            catch (Exception ex) { Log.Error("Menú de Escape", ex); }
+            catch (Exception ex) { Log.Error("Escape menu", ex); }
         }
     }
 }

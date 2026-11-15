@@ -28,7 +28,7 @@ namespace AILegacy.Patches
             // these run many times a second: one line in the log is enough
             if (_logged) return;
             _logged = true;
-            Log.Error("Efectos de la enfermedad (" + where + ")", ex);
+            Log.Error("Disease effects (" + where + ")", ex);
         }
 
         public static TextObject Reason(string name) => new TextObject("{=!}" + Diseases.HeroLabel(name));

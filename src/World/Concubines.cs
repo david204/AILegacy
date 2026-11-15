@@ -84,16 +84,16 @@ namespace AILegacy.World
                 try
                 {
                     var cm = Campaign.Current.ConversationManager;
-                    void Join() { try { if (h.IsAlive && Is(h) && h.Clan == Clan.PlayerClan && h.PartyBelongedTo == null && !h.IsPrisoner) AddHeroToPartyAction.Apply(h, MobileParty.MainParty); } catch (Exception ex) { Log.Error("Concubina: unirse a la partida", ex); } }
+                    void Join() { try { if (h.IsAlive && Is(h) && h.Clan == Clan.PlayerClan && h.PartyBelongedTo == null && !h.IsPrisoner) AddHeroToPartyAction.Apply(h, MobileParty.MainParty); } catch (Exception ex) { Log.Error("Concubine: join party", ex); } }
                     if (cm != null && cm.IsConversationInProgress) cm.ConversationEndOneShot += Join; else Join();
                 }
                 catch { }
                 Note(h, $"[Done: you left your house to live with {P.Name} as their concubine.]");
-                Log.Info($"[concubinas] {h.Name} pasa a vivir con el jugador");
+                Log.Info($"[concubines] {h.Name} moves in with the player");
                 SaveFiles.Dirty();
                 return L.F("AIL_e7b1c836", $"{h.Name} deja su casa para vivir contigo como concubina.");
             }
-            catch (Exception ex) { Log.Error("Concubina: tomar", ex); return null; }
+            catch (Exception ex) { Log.Error("Concubine: take", ex); return null; }
         }
 
         /// <summary>It ends: back to their house and their old life, with a hard word between them. Null if they were not one.</summary>
@@ -107,7 +107,7 @@ namespace AILegacy.World
                 if (h.IsAlive)
                 {
                     if (h.PartyBelongedTo == MobileParty.MainParty) try { MobileParty.MainParty.MemberRoster.RemoveTroop(h.CharacterObject); } catch { }
-                    if (h.PartyBelongedTo == MobileParty.MainParty) Log.Warn($"Concubina: {h.Name} sigue en tu partida; se irá al soltarla");
+                    if (h.PartyBelongedTo == MobileParty.MainParty) Log.Warn($"Concubine: {h.Name} is still in your party; will leave when released");
                     var origin = c.OriginClanId != null ? Clan.All.FirstOrDefault(x => x.StringId == c.OriginClanId && !x.IsEliminated) : null;
                     // a notable goes the long way round, through wanderer, so the game places them again
                     if (c.WasNotable) { h.Clan = null; h.SetNewOccupation(Occupation.Wanderer); h.SetNewOccupation((Occupation)c.OriginOccupation); }
@@ -122,8 +122,8 @@ namespace AILegacy.World
                     Note(h, $"[Done: you are no longer {P.Name}'s concubine and went back to your own house.]");
                 }
             }
-            catch (Exception ex) { Log.Error("Concubina: dejar", ex); }
-            Log.Info($"[concubinas] {h?.Name} deja de ser concubina");
+            catch (Exception ex) { Log.Error("Concubine: dismiss", ex); }
+            Log.Info($"[concubines] {h?.Name} is no longer a concubine");
             SaveFiles.Dirty();
             return quiet ? "" : L.F("AIL_e7b1c837", $"{h.Name} deja de ser tu concubina y vuelve a su casa.");
         }
@@ -172,7 +172,7 @@ namespace AILegacy.World
                     if (Rng.NextDouble() < p) Bastards.Conceive(mother, father);
                 }
             }
-            catch (Exception ex) { Log.Error("[concubinas] día", ex); }
+            catch (Exception ex) { Log.Error("[concubines] day", ex); }
         }
 
         public static string DescribeFor(Speaker s)

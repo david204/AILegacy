@@ -48,9 +48,9 @@ namespace AILegacy.World
                         }
                     }
                 }
-                if (given > 0) Log.Info($"[sin tierra] {given} partida(s) de clanes sin feudo salen a patrullar");
+                if (given > 0) Log.Info($"[landless] {given} part(ies) of landless clans go on patrol");
             }
-            catch (Exception ex) { Log.Error("Patrullas de clanes sin tierra", ex); }
+            catch (Exception ex) { Log.Error("Landless clan patrols", ex); }
         }
 
         private static bool IsLandless(Clan c) =>
@@ -112,7 +112,7 @@ namespace AILegacy.World
                         RestUntil[h.StringId] = now + RestDays;
                     }
                 }
-                catch (Exception ex) { Log.Error("Patrullas de clanes sin tierra: repaso", ex); }
+                catch (Exception ex) { Log.Error("Landless clan patrols: review", ex); }
             }
             if (RestUntil.Count > 400)
                 foreach (var k in RestUntil.Where(kv => kv.Value < now).Select(kv => kv.Key).ToList()) RestUntil.Remove(k);

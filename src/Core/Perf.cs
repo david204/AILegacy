@@ -65,8 +65,8 @@ namespace AILegacy.Core
                 bool want = S.Get.PerformanceMeter;
                 if (want != On)
                 {
-                    if (want) { Reset(); Instrument(); On = true; Log.Info($"[rendimiento] medidor encendido: {_patchCount} métodos de parche medidos"); }
-                    else { On = false; Uninstrument(); Log.Info("[rendimiento] medidor apagado"); }
+                    if (want) { Reset(); Instrument(); On = true; Log.Info($"[performance] meter on: {_patchCount} patch methods measured"); }
+                    else { On = false; Uninstrument(); Log.Info("[performance] meter off"); }
                 }
                 if (!On) return;
                 double seconds = (Stopwatch.GetTimestamp() - _windowStart) / (double)Stopwatch.Frequency;
@@ -74,7 +74,7 @@ namespace AILegacy.Core
                 Log.Info(Summary(seconds));
                 Reset();
             }
-            catch (Exception ex) { Log.Error("Medidor de rendimiento", ex); }
+            catch (Exception ex) { Log.Error("Performance meter", ex); }
         }
 
         private static void Reset()
@@ -148,7 +148,7 @@ namespace AILegacy.Core
                     }
                     catch (Exception ex)
                     {
-                        Log.Warn($"[rendimiento] no se puede medir {m.DeclaringType.Name}.{m.Name}: {ex.Message}");
+                        Log.Warn($"[performance] cannot measure {m.DeclaringType.Name}.{m.Name}: {ex.Message}");
                         // Nothing of the meter may stay on a patch it could not wrap whole
                         try { _harmony.Unpatch(m, HarmonyPatchType.All, HarmonyId); } catch { }
                     }
@@ -156,7 +156,7 @@ namespace AILegacy.Core
             }
             catch (Exception ex)
             {
-                Log.Error("Medidor de rendimiento: instrumentar parches", ex);
+                Log.Error("Performance meter: instrumenting patches", ex);
                 try { _harmony?.UnpatchAll(HarmonyId); } catch { }
                 _patchCount = 0;
             }
@@ -188,7 +188,7 @@ namespace AILegacy.Core
             if (!_instrumented) return;
             _instrumented = false;
             try { _harmony?.UnpatchAll(HarmonyId); }
-            catch (Exception ex) { Log.Error("Medidor de rendimiento: retirar la medición", ex); }
+            catch (Exception ex) { Log.Error("Performance meter: removing measurement", ex); }
         }
 
         private static void PatchBegin(out long __state) => __state = Stopwatch.GetTimestamp();

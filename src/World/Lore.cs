@@ -70,7 +70,7 @@ namespace AILegacy.World
                             _stamp = stamp; _path = path;
                         }
                     }
-                    catch (Exception ex) { Log.Warn($"world_data\\{_file} ilegible, uso el de fábrica: {ex.Message}"); _value = _value ?? _defaults(); }
+                    catch (Exception ex) { Log.Warn($"world_data\\{_file} unreadable, using the factory default: {ex.Message}"); _value = _value ?? _defaults(); }
                     return _value;
                 }
             }
@@ -211,7 +211,7 @@ namespace AILegacy.World
                     mem.Archetype = a.Name; mem.ArchetypeText = a.Description; mem.Morality = a.Morality; mem.Profanity = a.Profanity; mem.Piety = a.Piety;
                 }
             }
-            catch (Exception ex) { Log.Error("Arquetipo", ex); }
+            catch (Exception ex) { Log.Error("Archetype", ex); }
         }
 
         private static string ForCulture(Dictionary<string, string> d, Speaker s)
@@ -251,7 +251,7 @@ namespace AILegacy.World
                     if (customs.Length > 0) sys.AppendLine("Customs of your people: " + customs);
                 }
             }
-            catch (Exception ex) { Log.Error("Trasfondo en el prompt", ex); }
+            catch (Exception ex) { Log.Error("Backstory in prompt", ex); }
         }
 
         // ============================================================ character development
@@ -282,7 +282,7 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
             mem.LastDevelopmentDay = now;
             int session = WorldSim.Session;
             string prompt = TDevelopment.Format("npc_name", s.Name, "event", whatHappened, "profile", JsonConvert.SerializeObject(mem.Profile), "max_fields", cfg.DevelopmentMaxFields);
-            Log.Info($"Evolución del carácter de {s.Name}: {whatHappened}");
+            Log.Info($"Character evolution of {s.Name}: {whatHappened}");
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "lore", maxTokensOverride: 700, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
@@ -290,8 +290,8 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
                 {
                     mem.DevelopmentInFlight = false;
                     // Another save was loaded meanwhile: this memory belongs to the campaign that asked, and saving now would write it into the one loaded
-                    if (session != WorldSim.Session) { Log.Info($"Evolución de {s.Name}: respuesta de otra partida, descartada"); return; }
-                    if (res == null || !res.Ok) { Log.Warn($"Evolución de {s.Name}: sin respuesta ({res?.Error})"); return; }
+                    if (session != WorldSim.Session) { Log.Info($"Evolution of {s.Name}: response from another game, discarded"); return; }
+                    if (res == null || !res.Ok) { Log.Warn($"Evolution of {s.Name}: no response ({res?.Error})"); return; }
                     try
                     {
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
@@ -316,10 +316,10 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
                             if (p.Backstory.Length > 1800) p.Backstory = p.Backstory.Substring(p.Backstory.Length - 1800);
                         }
                         mem.ProfileRevision++;
-                        Log.Info($"Carácter de {s.Name} actualizado (revisión {mem.ProfileRevision}, {changed} campo/s): {add}");
+                        Log.Info($"Character of {s.Name} updated (revision {mem.ProfileRevision}, {changed} field(s)): {add}");
                         SaveFiles.Flush();
                     }
-                    catch (Exception ex) { Log.Error("Evolución del carácter", ex); }
+                    catch (Exception ex) { Log.Error("Character evolution", ex); }
                 });
             });
         }

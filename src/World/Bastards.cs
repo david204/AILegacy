@@ -91,7 +91,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 var behavior = Campaign.Current.GetCampaignBehavior<TaleWorlds.CampaignSystem.CampaignBehaviors.PregnancyCampaignBehavior>();
                 if (behavior == null) return false;
                 if (_queueField == null) _queueField = HarmonyLib.AccessTools.Field(behavior.GetType(), "_heroPregnancies");
-                if (_queueField == null) { Log.Warn("Embarazo ilegítimo: el juego no tiene _heroPregnancies"); return false; }
+                if (_queueField == null) { Log.Warn("Illegitimate pregnancy: game has no _heroPregnancies"); return false; }
                 var list = _queueField.GetValue(behavior) as IList;
                 if (list == null) return false;
                 if (_pregnancyCtor == null)
@@ -99,7 +99,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                     var type = behavior.GetType().GetNestedType("Pregnancy", BindingFlags.NonPublic | BindingFlags.Public);
                     _pregnancyCtor = type?.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Hero), typeof(Hero), typeof(CampaignTime) }, null);
                 }
-                if (_pregnancyCtor == null) { Log.Warn("Embarazo ilegítimo: no encuentro el constructor del embarazo del juego"); return false; }
+                if (_pregnancyCtor == null) { Log.Warn("Illegitimate pregnancy: game pregnancy constructor not found"); return false; }
                 foreach (var e in list)
                 {
                     var m = e?.GetType().GetField("Mother")?.GetValue(e) as Hero;
@@ -110,7 +110,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 mother.IsPregnant = true;
                 return true;
             }
-            catch (Exception ex) { Log.Error("Embarazo ilegítimo: cola del juego", ex); return false; }
+            catch (Exception ex) { Log.Error("Illegitimate pregnancy: game queue", ex); return false; }
         }
 
         /// <summary>A child conceived out of wedlock. True if the pregnancy took.</summary>
@@ -127,7 +127,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             WorldSim.State.Bastards.Add(b);
             // without MakePregnantAction there is no conception event: tell the mood system by hand
             try { Mood.OnChildConceived(mother); } catch { }
-            Log.Info($"[bastardos] {mother.Name} espera un hijo de {father.Name}{(b.HusbandId != null ? " (no es su marido)" : "")}");
+            Log.Info($"[bastards] {mother.Name} is expecting a child by {father.Name}{(b.HusbandId != null ? " (not her husband)" : "")}");
             SaveFiles.Dirty();
             return true;
         }
@@ -143,7 +143,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 float chance = S.Get.BastardChancePercent * 10f * Mood.FertilityFactor(mother);
                 if (Rng.Next(1000) < Math.Min(1000f, chance)) Conceive(mother, father);
             }
-            catch (Exception ex) { Log.Error("[bastardos] intimidad con el jugador", ex); }
+            catch (Exception ex) { Log.Error("[bastards] intimacy with the player", ex); }
         }
 
         // ---- between two characters, when they are together (off by default)
@@ -218,7 +218,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 double total = lovers.Sum(x => x.w), pick = Rng.NextDouble() * total;
                 foreach (var (h, wt) in lovers) { if ((pick -= wt) > 0) continue; Conceive(w, h); return; }
             }
-            catch (Exception ex) { Log.Error("[bastardos] tirada diaria", ex); }
+            catch (Exception ex) { Log.Error("[bastards] daily roll", ex); }
         }
 
         // ============================================================ birth
@@ -233,9 +233,9 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 if (b == null) return;
                 b.Born = true; b.Lost = false;
                 var father = Hero.Find(b.FatherId);
-                if (children == null || children.Count == 0 || father == null) { Log.Info($"[bastardos] el hijo de {mother.Name} y {b.FatherId} nace muerto"); return; }
+                if (children == null || children.Count == 0 || father == null) { Log.Info($"[bastards] the child of {mother.Name} and {b.FatherId} is stillborn"); return; }
                 foreach (var c in children) if (c != null) { b.Children.Add(c.StringId); b.BirthNames[c.StringId] = c.FirstName?.ToString() ?? c.Name.ToString(); }
-                Log.Info($"[bastardos] {mother.Name} da a luz {children.Count} hijo(s) de {father.Name}");
+                Log.Info($"[bastards] {mother.Name} gives birth to {children.Count} child(ren) by {father.Name}");
                 // married to each other by now: nothing to hide or name
                 if (mother.Spouse == father) { foreach (var c in children) Legitimize(b, c, quiet: true); return; }
                 bool playerParent = mother == P || father == P;
@@ -249,7 +249,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 foreach (var c in children) RaiseWith(b, c, mother, father);
                 SaveFiles.Dirty();
             }
-            catch (Exception ex) { Log.Error("[bastardos] parto", ex); }
+            catch (Exception ex) { Log.Error("[bastards] birth", ex); }
         }
 
         private static void AskGuardian(Bastard b, List<Hero> children, Hero other)
@@ -264,14 +264,14 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 () =>
                 {
                     if (session != WorldSim.Session || Campaign.Current == null) return;
-                    try { foreach (var c in children) { if (c.Clan != Clan.PlayerClan) c.Clan = Clan.PlayerClan; Name(b, c); } Log.Info("[bastardos] el jugador cría al niño en su casa"); }
-                    catch (Exception ex) { Log.Error("[bastardos] tutela: en casa", ex); }
+                    try { foreach (var c in children) { if (c.Clan != Clan.PlayerClan) c.Clan = Clan.PlayerClan; Name(b, c); } Log.Info("[bastards] player raises the child at home"); }
+                    catch (Exception ex) { Log.Error("[bastards] guardianship: at home", ex); }
                 },
                 () =>
                 {
                     if (session != WorldSim.Session || Campaign.Current == null) return;
                     try { foreach (var c in children) RaiseWith(b, c, other, P); }
-                    catch (Exception ex) { Log.Error("[bastardos] tutela: con el otro", ex); }
+                    catch (Exception ex) { Log.Error("[bastards] guardianship: with the other parent", ex); }
                 }), true);
         }
 
@@ -297,10 +297,10 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                     var sec = StorySecrets.AddEvent($"{child.Name} is not the child of {husband.Name}: the true father is {father?.Name}.",
                         L.F("AIL_e7b1c81a", $"{child.Name} no es hijo de {husband.Name}: su verdadero padre es {father?.Name}."), new[] { mother, father, child }, new[] { mother, father }, "high");
                     b.SecretId = sec?.Id;
-                    Log.Info($"[bastardos] {child.Name} pasa por hijo de {husband.Name}");
+                    Log.Info($"[bastards] {child.Name} is passed off as the child of {husband.Name}");
                     return;
                 }
-                catch (Exception ex) { Log.Error("[bastardos] secreto guardado", ex); }
+                catch (Exception ex) { Log.Error("[bastards] saved secret", ex); }
             }
             Name(b, child);
             if (!cfg.BastardConsequences || guardian.Clan == Clan.PlayerClan) return;
@@ -328,7 +328,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                         Heroes = new List<string> { mother.StringId, father.StringId, child.StringId },
                     });
             }
-            catch (Exception ex) { Log.Error("[bastardos] escándalo", ex); }
+            catch (Exception ex) { Log.Error("[bastards] scandal", ex); }
         }
 
         /// <summary>The baseborn surname, after the mother's culture. The birth name is kept to give back later.</summary>
@@ -347,7 +347,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 string full = first + " " + names[Rng.Next(names.Count)];
                 child.SetName(new TextObject("{=!}" + full), new TextObject("{=!}" + first));
             }
-            catch (Exception ex) { Log.Error("[bastardos] apellido", ex); }
+            catch (Exception ex) { Log.Error("[bastards] surname", ex); }
         }
 
         // ============================================================ legitimation
@@ -373,11 +373,11 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 if (b.SecretId != null) StorySecrets.Reveal(b.SecretId, null);
                 // marked only once it is all done, so a failure can be tried again
                 b.Legitimized.Add(child.StringId);
-                Log.Info($"[bastardos] {child.Name} queda legitimado");
+                Log.Info($"[bastards] {child.Name} is legitimized");
                 if (!quiet) WorldSim.Say(L.F("AIL_e7b1c81d", $"{child.Name} es ahora hijo legítimo."), Colors.Yellow);
                 SaveFiles.Dirty();
             }
-            catch (Exception ex) { Log.Error("[bastardos] legitimar", ex); }
+            catch (Exception ex) { Log.Error("[bastards] legitimize", ex); }
         }
 
         /// <summary>Marriages: the parents marrying make their children legitimate; so does a baseborn child marrying, if set.</summary>
@@ -391,14 +391,14 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 if (S.Get.BastardLegitimizeOnMarriage)
                     foreach (var h in new[] { a, b }) if (IsBaseborn(h)) Legitimize(RecordOf(h), h);
             }
-            catch (Exception ex) { Log.Error("[bastardos] boda", ex); }
+            catch (Exception ex) { Log.Error("[bastards] wedding", ex); }
         }
 
         /// <summary>Heading a house makes one legitimate.</summary>
         public static void OnClanLeaderChanged(Hero oldLeader, Hero newLeader)
         {
             try { if (Enabled && newLeader != null && IsBaseborn(newLeader)) Legitimize(RecordOf(newLeader), newLeader); }
-            catch (Exception ex) { Log.Error("[bastardos] jefe de clan", ex); }
+            catch (Exception ex) { Log.Error("[bastards] clan leader", ex); }
         }
 
         /// <summary>The player, as parent, acknowledges an adult baseborn child.</summary>
@@ -417,7 +417,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             {
                 if (child.Clan != Clan.PlayerClan && child.Clan?.Leader != child) { child.Clan = Clan.PlayerClan; if (child.Occupation != Occupation.Lord) child.SetNewOccupation(Occupation.Lord); }
             }
-            catch (Exception ex) { Log.Error("[bastardos] reconocer", ex); }
+            catch (Exception ex) { Log.Error("[bastards] acknowledge", ex); }
         }
 
         // ============================================================ daily: lost pregnancies
@@ -434,7 +434,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                     if (mother != null && mother.IsAlive && mother.IsPregnant) continue;
                     if (now - b.ConceivedDay < 1) continue;
                     b.Lost = true;
-                    Log.Info($"[bastardos] {b.MotherId} pierde el embarazo");
+                    Log.Info($"[bastards] {b.MotherId} loses the pregnancy");
                     if (mother != null && mother.IsAlive)
                     {
                         try { AILegacy.Api.AILegacyApi.AddMoodCause(mother, "You lost the child you were carrying.", -1, 3, 14); } catch { }
@@ -443,7 +443,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 }
                 WorldSim.State.Bastards.RemoveAll(x => x.Lost && now - x.ConceivedDay > 400);
             }
-            catch (Exception ex) { Log.Error("[bastardos] día", ex); }
+            catch (Exception ex) { Log.Error("[bastards] day", ex); }
         }
 
         public static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool show)

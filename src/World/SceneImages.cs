@@ -58,7 +58,7 @@ Answer with the prompt only, nothing else.");
         public static bool RequestMoment(HeroMemory mem, string where, string exchange, Action<string> shown)
         {
             if (!Enabled || mem == null || Dir == null || string.IsNullOrWhiteSpace(exchange)) return false;
-            if (IsBusy) { Log.Info("Imagen de la charla: ya hay otra en curso, esta respuesta se queda sin imagen"); return false; }
+            if (IsBusy) { Log.Info("Conversation image: another is already in progress, this reply gets no image"); return false; }
             var page = new MemoryPage { Title = where ?? "", Text = exchange, Day = CampaignTime.Now.ToDays };
             Pending.Enqueue((mem, page, () => { string path = PathOf(page); if (path != null) shown?.Invoke(path); }, TMoment));
             Next();
@@ -138,15 +138,15 @@ Answer with the prompt only, nothing else.");
                         _failures = 0;
                         job.page.Image = file; job.page.ImagePrompt = prompt;
                         if (job.tpl == null) SaveFiles.Dirty();
-                        Log.Info($"Imagen {(job.tpl == null ? "de la página" : "de la charla en")} «{job.page.Title}»: {file}");
+                        Log.Info($"Image {(job.tpl == null ? "of the page" : "of the conversation in")} «{job.page.Title}»: {file}");
                     }
                     else
                     {
                         _failures++;
                         if (!string.IsNullOrEmpty(prompt)) job.page.ImagePrompt = prompt;     // the description is kept for the next try
-                        Log.Warn($"Imagen de la página «{job.page.Title}»: no se pudo ({error})");
+                        Log.Warn($"Image of the page «{job.page.Title}»: failed ({error})");
                     }
-                    try { job.done?.Invoke(); } catch (Exception ex) { Log.Error("Imagen: aviso de fin", ex); }
+                    try { job.done?.Invoke(); } catch (Exception ex) { Log.Error("Image: end callback", ex); }
                     Next();
                 });
             }

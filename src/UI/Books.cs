@@ -43,7 +43,7 @@ namespace AILegacy.UI
                 Current = w;
                 return w;
             }
-            catch (Exception ex) { Log.Error("No se pudo abrir la ventana " + movie, ex); return null; }
+            catch (Exception ex) { Log.Error("Could not open window " + movie, ex); return null; }
         }
 
         public void Tick()
@@ -65,7 +65,7 @@ namespace AILegacy.UI
                 }
                 _vm?.OnFinalize();
             }
-            catch (Exception ex) { Log.Error("Cerrar ventana", ex); }
+            catch (Exception ex) { Log.Error("Closing window", ex); }
             finally { _layer = null; if (Current == this) Current = null; }
         }
     }
@@ -103,7 +103,7 @@ namespace AILegacy.UI
                 vm.Select(vm.Entries[0], vm.Entries[0].Title, (string)vm.Entries[0].Tag);
                 Open("AILegacyBook", vm);
             }
-            catch (Exception ex) { Core.Log.Error("Repasar lo hablado", ex); }
+            catch (Exception ex) { Core.Log.Error("Reviewing past conversation", ex); }
         }
 
         /// <summary>World news in a single column, read like a town crier's notice: title, who it concerns, what happened, effects, type and date.</summary>
@@ -123,7 +123,7 @@ namespace AILegacy.UI
                 w = GauntletWindow.Open("AILegacyNews", vm, () => w?.Close());
                 if (w == null) OpenNewsOld();
             }
-            catch (Exception ex) { Core.Log.Error("Ventana de noticias", ex); OpenNewsOld(); }
+            catch (Exception ex) { Core.Log.Error("News window", ex); OpenNewsOld(); }
         }
 
         /// <summary>True for news worth telling (world events, royal statements, big happenings). The rest is the steady trickle of captures and skirmishes.</summary>
@@ -205,7 +205,7 @@ namespace AILegacy.UI
                     vm.Cards.Add(new NewsCardVM(string.Format(L.T("AIL_e7b1c5eb", "Leyes en vigor en {0}"), k.Name), "", sb.ToString().TrimEnd(), "", L.T("AIL_e7b1c5ec", "Ley"), "", 1));
                 }
             }
-            catch (Exception ex) { Core.Log.Error("Leyes en la ventana de noticias", ex); }
+            catch (Exception ex) { Core.Log.Error("Laws in the news window", ex); }
         }
 
         /// <summary>Event id for a news item. New items carry it, older saves are matched by title.</summary>
@@ -437,7 +437,7 @@ namespace AILegacy.UI
                 vm.Select(e, title, (text ?? "").Replace("{", "(").Replace("}", ")"), path);
                 Open("AILegacyBook", vm);
             }
-            catch (Exception ex) { Log.Error("Imagen de la escena", ex); }
+            catch (Exception ex) { Log.Error("Scene image", ex); }
         }
 
         private static void Open(string movie, BookVM vm)
@@ -503,21 +503,21 @@ namespace AILegacy.UI
                 if (!want) { Detach(); return; }
                 if (onMap && top != _screen) Attach(top);
             }
-            catch (Exception ex) { Log.Error("Botones del mapa", ex); Detach(); }
+            catch (Exception ex) { Log.Error("Map buttons", ex); Detach(); }
         }
 
         private static void Attach(ScreenBase screen)
         {
             Detach();
             _vm = new MapButtonsVM { OnNews = Books.OpenNews, OnMemories = Books.OpenMemories, OnQuests = Books.OpenQuests };
-            Log.Info("Creando botones del mapa…");
+            Log.Info("Creating map buttons...");
             _layer = new GauntletLayer("AILegacyMapHud", 300);
             _movie = _layer.LoadMovie("AILegacyMapButtons", _vm);
             // isMouseVisible false, same as the map's own layers. With true the cursor gets stuck and the camera can't rotate.
             _layer.InputRestrictions.SetInputRestrictions(false, InputUsageMask.MouseButtons);
             screen.AddLayer(_layer);
             _screen = screen;
-            Log.Info("Botones del mapa añadidos a " + screen.GetType().Name);
+            Log.Info("Map buttons added to " + screen.GetType().Name);
         }
 
         public static void Detach()

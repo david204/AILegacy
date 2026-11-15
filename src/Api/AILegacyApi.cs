@@ -88,7 +88,7 @@ namespace AILegacy.Api
             foreach (var d in ev.GetInvocationList())
             {
                 try { call(d); }
-                catch (Exception ex) { Log.Error("API: fallo en un mod suscrito (" + (d.Method?.DeclaringType?.FullName ?? "?") + ")", ex); }
+                catch (Exception ex) { Log.Error("API: a subscribed mod failed (" + (d.Method?.DeclaringType?.FullName ?? "?") + ")", ex); }
             }
         }
 
@@ -372,7 +372,7 @@ namespace AILegacy.Api
                     t = t.Replace("\r", " ").Trim();
                     lines.Add(t.Length > 500 ? t.Substring(0, 500) : t);
                 }
-                catch (Exception ex) { Log.Error("API: fallo en el contexto del mod «" + kv.Key + "»", ex); }
+                catch (Exception ex) { Log.Error("API: failure in the context of mod '" + kv.Key + "'", ex); }
             }
             return string.Join("\n", lines);
         }

@@ -79,7 +79,7 @@ namespace AILegacy.World
                     if (data.Party is Settlement st && Barred(party, st)) p.SetBehaviorScore(in data, 0f);
                 }
             }
-            catch (Exception ex) { Log.Error("[cuarentena] IA del mapa", ex); }
+            catch (Exception ex) { Log.Error("[quarantine] map AI", ex); }
         }
 
         /// <summary>If the quarantine starts while the player is inside, or a save loads inside, they aren't thrown out.</summary>
@@ -104,7 +104,7 @@ namespace AILegacy.World
                 _backMenu = id;
                 GameMenu.SwitchToMenu(GateMenu);
             }
-            catch (Exception ex) { Log.Error("[cuarentena] puerta", ex); }
+            catch (Exception ex) { Log.Error("[quarantine] gate", ex); }
         }
 
         private static Settlement Here => Settlement.CurrentSettlement ?? PlayerEncounter.EncounterSettlement;
@@ -163,7 +163,7 @@ namespace AILegacy.World
                         if (MobileParty.MainParty.CurrentSettlement != null) PlayerEncounter.LeaveSettlement();
                         PlayerEncounter.Finish();
                     }
-                    catch (Exception ex) { Log.Error("[cuarentena] salir de la puerta", ex); }
+                    catch (Exception ex) { Log.Error("[quarantine] leaving the gate", ex); }
                 }, true, -1);
         }
     }

@@ -92,7 +92,7 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
                     _busy = false;
                     try
                     {
-                        if (res == null || !res.Ok) { Log.Warn("[al pasar] la IA no ha dado las frases: " + res?.Error); return; }
+                        if (res == null || !res.Ok) { Log.Warn("[passing] the AI gave no lines: " + res?.Error); return; }
                         if (session != AILegacy.World.WorldSim.Session || Mission.Current != m) return;
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a < 0 || b <= a) return;
@@ -104,9 +104,9 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
                             if (!Pool.TryGetValue(key, out var list)) Pool[key] = list = new List<string>();
                             foreach (var x in arr) { string s = (x?.ToString() ?? "").Trim(); if (s.Length > 2 && s.Length <= cfg.PassByMaxChars + 40) { list.Add(s); total++; } }
                         }
-                        Log.Info($"[al pasar] {total} frases listas para {st.Name}");
+                        Log.Info($"[passing] {total} lines ready for {st.Name}");
                     }
-                    catch (Exception ex) { Log.Error("Frases al pasar", ex); }
+                    catch (Exception ex) { Log.Error("Passing lines", ex); }
                 });
             });
         }
@@ -178,7 +178,7 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
                 try { pick.SetLookAgent(Agent.Main); _looker = pick; _lookLeft = secs; } catch { }
                 _cool = cfg.PassBySeconds * (0.7f + (float)Rng.NextDouble() * 0.6f);
             }
-            catch (Exception ex) { Log.Error("Vida al pasar", ex); _busy = false; _cool = 30f; }
+            catch (Exception ex) { Log.Error("Passing life", ex); _busy = false; _cool = 30f; }
         }
     }
 }

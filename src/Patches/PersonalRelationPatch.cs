@@ -24,7 +24,7 @@ namespace AILegacy.Patches
                 effectiveHero1 = hero1;
                 effectiveHero2 = hero2;
             }
-            catch (Exception ex) { Log.Error("Relación personal", ex); }
+            catch (Exception ex) { Log.Error("Personal relation", ex); }
         }
     }
 }

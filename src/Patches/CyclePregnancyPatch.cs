@@ -24,7 +24,7 @@ namespace AILegacy.Patches
                 if (woman == null || !woman.IsFemale) return;
                 __result = Math.Min(1f, __result * World.Mood.FertilityFactor(woman));
             }
-            catch (Exception ex) { Log.Error("Ciclo y embarazo", ex); }
+            catch (Exception ex) { Log.Error("Cycle and pregnancy", ex); }
         }
     }
 }

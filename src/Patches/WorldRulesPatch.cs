@@ -19,7 +19,7 @@ namespace AILegacy.Patches
         private static void Postfix(MobileParty caravanParty, Town town, ref float __result)
         {
             try { if (__result > 0f && town != null && QuarantineRules.Barred(caravanParty, town.Settlement)) __result = 0f; }
-            catch (Exception ex) { Log.Error("[cuarentena] caravanas", ex); }
+            catch (Exception ex) { Log.Error("[quarantine] caravans", ex); }
         }
     }
 
@@ -94,7 +94,7 @@ namespace AILegacy.Patches
                 var clan = __instance?.ClanToExpel;
                 if (__state != null && clan != null && clan.Kingdom != __state) Banished.Ban(clan, __state);
             }
-            catch (Exception ex) { Log.Error("Destierro por votación", ex); }
+            catch (Exception ex) { Log.Error("Banishment by vote", ex); }
         }
     }
 

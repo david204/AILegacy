@@ -113,7 +113,7 @@ namespace AILegacy.Prompt
                 foreach (var it in items) sb.AppendLine("- " + DescribeItem(it, s));
                 return sb.ToString().TrimEnd();
             }
-            catch (Exception ex) { Log.Error("Menciones", ex); return ""; }
+            catch (Exception ex) { Log.Error("Mentions", ex); return ""; }
         }
 
         private static Vec2 Where(Speaker s)

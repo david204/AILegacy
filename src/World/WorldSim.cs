@@ -336,7 +336,7 @@ namespace AILegacy.World
             try { Laws.Invalidate(); } catch { }
             try { Diplomacy.ResetSession(); } catch { }
             try { WarTolls.ResetSession(); } catch { }
-            Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
+            Log.Info("[world] session state cleared (new or loaded game)");
         }
 
         /// <summary>Nothing in flight and the minimum gap between calls has passed.</summary>
@@ -362,10 +362,10 @@ namespace AILegacy.World
             WorldRequest dropped = null;
             lock (Queue)
             {
-                if (key != null && !Reserved.Add(key)) { Log.Info($"[mundo] {what}: ya estaba pedida"); return false; }
+                if (key != null && !Reserved.Add(key)) { Log.Info($"[world] {what}: already requested"); return false; }
                 if (Ready && Queue.Count == 0) { Launch(r); return true; }
                 Queue.Add(r);
-                Log.Info($"[mundo] {what}: en cola ({Queue.Count})");
+                Log.Info($"[world] {what}: queued ({Queue.Count})");
                 if (Queue.Count > MaxQueued)
                 {
                     dropped = Queue.FirstOrDefault(x => !x.Important) ?? Queue[0];
@@ -375,8 +375,8 @@ namespace AILegacy.World
             }
             if (dropped != null)
             {
-                Log.Warn($"[mundo] cola llena: se descarta «{dropped.What}»");
-                try { dropped.Failed?.Invoke(); } catch (Exception ex) { Log.Error("[mundo] descartando petición", ex); }
+                Log.Warn($"[world] queue full: dropping «{dropped.What}»");
+                try { dropped.Failed?.Invoke(); } catch (Exception ex) { Log.Error("[world] dropping request", ex); }
             }
             return true;
         }
@@ -386,13 +386,13 @@ namespace AILegacy.World
             _busy = true;
             _lastCall = DateTime.UtcNow;
             r.Attempts++;
-            Log.Info($"[mundo] petición: {r.What}");
+            Log.Info($"[world] request: {r.What}");
             LlmClient.CompleteAsync(r.Messages, wantJson: true, task: "world", maxTokensOverride: r.MaxTokens, preferredProvider: S.Get.ProviderWorld).ContinueWith(t =>
             {
                 _busy = false;
                 var res = t.IsFaulted ? null : t.Result;
                 JObject j = null;
-                if (res == null || !res.Ok) Log.Warn($"[mundo] {r.What}: sin respuesta ({res?.Error})");
+                if (res == null || !res.Ok) Log.Warn($"[world] {r.What}: no response ({res?.Error})");
                 else
                 {
                     try
@@ -400,23 +400,23 @@ namespace AILegacy.World
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a >= 0 && b > a) j = JObject.Parse(res.Text.Substring(a, b - a + 1));
                     }
-                    catch (Exception ex) { Log.Warn($"[mundo] {r.What}: JSON ilegible ({ex.Message})"); }
+                    catch (Exception ex) { Log.Warn($"[world] {r.What}: unreadable JSON ({ex.Message})"); }
                 }
                 Pending.Enqueue(() =>
                 {
                     // From another campaign: ResetSession already released its keys and cleared the queue
-                    if (r.Session != _session || Campaign.Current == null || Campaign.Current.UniqueGameId != r.Camp) { if (r.Session == _session) Release(r.Key); Log.Info($"[mundo] {r.What}: respuesta de otra partida, descartada"); return; }
+                    if (r.Session != _session || Campaign.Current == null || Campaign.Current.UniqueGameId != r.Camp) { if (r.Session == _session) Release(r.Key); Log.Info($"[world] {r.What}: response from another game, discarded"); return; }
                     if (j == null)
                     {
                         // Important requests (the player's statement) get one retry. The rest hand back their schedule
-                        if (r.Important && r.Attempts < 2) { lock (Queue) Queue.Insert(0, r); Log.Info($"[mundo] {r.What}: se reintenta"); return; }
+                        if (r.Important && r.Attempts < 2) { lock (Queue) Queue.Insert(0, r); Log.Info($"[world] {r.What}: retrying"); return; }
                         Release(r.Key);
-                        try { r.Failed?.Invoke(); } catch (Exception ex) { Log.Error($"[mundo] fallo de {r.What}", ex); }
+                        try { r.Failed?.Invoke(); } catch (Exception ex) { Log.Error($"[world] failure of {r.What}", ex); }
                         return;
                     }
                     Release(r.Key);
                     try { r.Apply(j); }
-                    catch (Exception ex) { Log.Error($"[mundo] aplicando {r.What}", ex); }
+                    catch (Exception ex) { Log.Error($"[world] applying {r.What}", ex); }
                 });
             });
         }
@@ -616,9 +616,9 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     Triggers.Add(trigger);
                 }
                 _urgent = true;
-                Log.Info("[mundo] suceso tuyo en cola: " + (whatEn.Length > 120 ? whatEn.Substring(0, 120) + "…" : whatEn));
+                Log.Info("[world] your event queued: " + (whatEn.Length > 120 ? whatEn.Substring(0, 120) + "…" : whatEn));
             }
-            catch (Exception ex) { Log.Error("Suceso del jugador", ex); }
+            catch (Exception ex) { Log.Error("Player event", ex); }
         }
 
         private static void TryReact()
@@ -700,7 +700,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                                 worn.Add($"- {ks[i].Name} ({FatigueWord(ks[i])}) and {ks[j].Name} ({FatigueWord(ks[j])})");
                     if (worn.Count > 0) { sys.AppendLine(TWornWars.Text.Trim()); sys.AppendLine(string.Join("\n", worn.Take(6))); }
                 }
-                catch (Exception ex) { Log.Error("[mundo] guerras que agotan a los dos", ex); }
+                catch (Exception ex) { Log.Error("[world] wars that exhaust both sides", ex); }
             }
 
             // Kingdoms a reaction may involve: those of the people and places in what happened, and whoever is at war or allied with them
@@ -710,7 +710,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 var facts = new List<string>();
                 foreach (var tr in reactTo) foreach (var f in tr.Facts) if (!facts.Contains(f)) facts.Add(f);
                 try { allowed = FactCheck.Connected(reactTo.SelectMany(tr => tr.Kingdoms), Facts.BuildModel()); }
-                catch (Exception ex) { Log.Error("[mundo] reinos ligados a un suceso", ex); allowed = new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)); }
+                catch (Exception ex) { Log.Error("[world] kingdoms tied to an event", ex); allowed = new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)); }
                 string factText = facts.Count > 0 ? string.Join("\n", facts) : "(nobody of note and no kingdom is tied to it)";
                 string allowedText = allowed.Count > 0 ? string.Join(", ", allowed) : "(none: this is local talk)";
                 sys.AppendLine();
@@ -771,7 +771,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 foreach (var text in texts) wrong = wrong ?? FactCheck.CheckSummary(text, model);
                 return wrong;
             }
-            catch (Exception ex) { Log.Error("[mundo] comprobando hechos", ex); return null; }
+            catch (Exception ex) { Log.Error("[world] checking facts", ex); return null; }
         }
 
         /// <param name="allowed">For a reaction to a real event: the only kingdoms it may involve. null for the scheduled batch.</param>
@@ -795,9 +795,9 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 if (wrong == null && S.Get.FactCheckEvents)
                 {
                     try { wrong = FactCheck.CheckDead(ParseClaims(x["claims"]), e.SummaryEn, model ?? (model = Facts.BuildModel())); }
-                    catch (Exception ex) { Log.Error("[mundo] comprobando muertos", ex); }
+                    catch (Exception ex) { Log.Error("[world] checking dead", ex); }
                 }
-                if (wrong != null) { Log.Warn($"[mundo] evento descartado por contradecir el mundo: «{e.Title}» {wrong}"); continue; }
+                if (wrong != null) { Log.Warn($"[world] event discarded for contradicting the world: «{e.Title}» {wrong}"); continue; }
                 // A next chapter of an open story keeps its id (so its effects and its news stay tied to it) and its past
                 string cont = ((string)(x["continues"]?.Type == JTokenType.String ? x["continues"] : null) ?? "").Trim();
                 if (cont.Length > 0 && !continued)
@@ -818,7 +818,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         foreach (var kv in old.Engagement) if (!e.Engagement.ContainsKey(kv.Key)) e.Engagement[kv.Key] = kv.Value;
                         State.Events.Remove(old);
                         NewsStore.Delete(old.Id);
-                        Log.Info($"[mundo] sigue la historia «{old.Title}» ({e.History.Count} capítulo(s) anteriores)");
+                        Log.Info($"[world] continues story «{old.Title}» ({e.History.Count} previous chapter(s))");
                     }
                 }
                 var strangers = new List<string>();
@@ -842,12 +842,12 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         try { chance = (int?)p.Value ?? 0; } catch { }
                         e.Engagement[kg.StringId] = Math.Max(0, Math.Min(100, chance));
                     }
-                if (strangers.Count > 0) Log.Info($"[mundo] «{e.Title}»: reinos ajenos al suceso real, descartados: {string.Join(", ", strangers)}");
+                if (strangers.Count > 0) Log.Info($"[world] «{e.Title}»: kingdoms unrelated to the real event, discarded: {string.Join(", ", strangers)}");
                 // A reaction left with no kingdom is local talk. With importance 3 or 4 and no kingdom the news would
                 // reach every court in the world, so it is held at 2: only the place it names hears of it.
                 if (allowed != null && e.Kingdoms.Count == 0 && e.Importance > 2)
                 {
-                    Log.Info($"[mundo] «{e.Title}»: sin reinos ligados al suceso, importancia {e.Importance} → 2");
+                    Log.Info($"[world] «{e.Title}»: no kingdoms tied to the event, importance {e.Importance} → 2");
                     e.Importance = 2;
                 }
                 Publish(e);
@@ -903,7 +903,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 Type = "event_" + e.Type, Importance = e.Importance, Text = string.IsNullOrWhiteSpace(e.SummaryEn) ? e.Title : e.SummaryEn,
                 TitleEs = e.Title, TextEs = e.Text, Kingdoms = e.Kingdoms.ToList(), SettlementId = e.Settlements.FirstOrDefault(),
             });
-            Log.Info($"[mundo] evento [{e.Type}, imp {e.Importance}]: {e.Title}");
+            Log.Info($"[world] event [{e.Type}, imp {e.Importance}]: {e.Title}");
             if (e.Importance >= S.Get.WorldEventNotifyImportance) Say(L.F("AIL_ee278059", $"Se cuenta por Calradia: {e.Title}"), Colors.Cyan);
         }
 
@@ -924,7 +924,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 ClanId = clan.StringId, IncomePercent = pct, EventId = e.Id, Reason = Clean((string)f["reason"], 120),
                 UntilDay = CampaignTime.Now.ToDays + Math.Max(1, Math.Min(cfg.EffectMaxDays, (int?)f["duration_days"] ?? 14)),
             });
-            Log.Info($"[mundo] efecto en el clan {clan.Name}: ingresos {pct:+0;-0}% ");
+            Log.Info($"[world] effect on clan {clan.Name}: income {pct:+0;-0}% ");
             if (clan == Clan.PlayerClan) Say(L.F("AIL_c81ffc1c", $"Tu clan lo nota: ingresos {pct:+0;-0} % mientras dure ({Clean((string)f["reason"], 120)})."), pct < 0 ? Colors.Red : Colors.Green);
         }
 
@@ -1050,7 +1050,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             {
                 var kg = FindKingdom(kname);
                 if (kg == null) return;
-                if (allowed != null && !allowed.Contains(kg.StringId)) { Log.Info($"[mundo] «{e.Title}»: efecto sobre {kg.Name} descartado, reino ajeno al suceso real"); return; }
+                if (allowed != null && !allowed.Contains(kg.StringId)) { Log.Info($"[world] «{e.Title}»: effect on {kg.Name} discarded, kingdom unrelated to the real event"); return; }
                 foreach (var town in kg.Settlements.Where(s0 => s0.IsTown).Take(14))
                 {
                     var one = (JObject)f.DeepClone();
@@ -1111,17 +1111,17 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         if (lNow != 0) st.Town.Loyalty = Math.Max(0f, Math.Min(100f, st.Town.Loyalty + lNow));
                     }
                     else if (st.Village != null && pNow != 0) st.Village.Hearth = Math.Max(10f, st.Village.Hearth + pNow);
-                    Log.Info($"[mundo] golpe en {st.Name}: prosperidad {pNow:+0.#;-0.#;0}, comida {fNow:+0.#;-0.#;0}, seguridad {sNow:+0.#;-0.#;0}, lealtad {lNow:+0.#;-0.#;0} ({fx.Reason})");
+                    Log.Info($"[world] hit on {st.Name}: prosperity {pNow:+0.#;-0.#;0}, food {fNow:+0.#;-0.#;0}, security {sNow:+0.#;-0.#;0}, loyalty {lNow:+0.#;-0.#;0} ({fx.Reason})");
                     if (st.OwnerClan == Clan.PlayerClan)
                         Say(L.F("AIL_e7b1c514", $"{st.Name} lo sufre de golpe: {fx.Reason}"), pNow + fNow + sNow + lNow < 0 ? Colors.Red : Colors.Green);
                 }
             }
-            catch (Exception ex) { Log.Error("Efecto instantáneo", ex); }
+            catch (Exception ex) { Log.Error("Instant effect", ex); }
             if (fx.ProsperityPerDay == 0 && fx.FoodPerDay == 0 && fx.SecurityPerDay == 0 && fx.LoyaltyPerDay == 0 && fx.PricePercent == 0
                 && (fx.PriceByCategory == null || fx.PriceByCategory.Count == 0) && fx.TaxPercent == 0) return;
             State.Effects.Add(fx);
             string prices = fx.PriceByCategory == null ? "" : ", precios " + string.Join(", ", fx.PriceByCategory.Select(kv => $"{kv.Key} {kv.Value:+0;-0}%"));
-            Log.Info($"[mundo] efecto en {st.Name}: prosperidad {fx.ProsperityPerDay:+0.#;-0.#;0}/día, comida {fx.FoodPerDay:+0.#;-0.#;0}, seguridad {fx.SecurityPerDay:+0.#;-0.#;0}, lealtad {fx.LoyaltyPerDay:+0.#;-0.#;0}{prices}{(fx.TaxPercent != 0 ? $", impuestos {fx.TaxPercent:+0;-0}%" : "")} ({fx.Reason})");
+            Log.Info($"[world] effect on {st.Name}: prosperity {fx.ProsperityPerDay:+0.#;-0.#;0}/day, food {fx.FoodPerDay:+0.#;-0.#;0}, security {fx.SecurityPerDay:+0.#;-0.#;0}, loyalty {fx.LoyaltyPerDay:+0.#;-0.#;0}{prices}{(fx.TaxPercent != 0 ? $", taxes {fx.TaxPercent:+0;-0}%" : "")} ({fx.Reason})");
         }
 
         // ============================================================ ticks
@@ -1142,10 +1142,10 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 Banished.OnDailyTick();
                 NpcRomance.OnDailyTick();
                 // each on its own: one that fails must not take the others with it
-                try { TickFatigue(); } catch (Exception ex) { Log.Error("[mundo] cansancio de guerra", ex); }
-                try { WarTolls.OnDailyTick(now); } catch (Exception ex) { Log.Error("[mundo] bajas y fuerza de las guerras", ex); }
+                try { TickFatigue(); } catch (Exception ex) { Log.Error("[world] war weariness", ex); }
+                try { WarTolls.OnDailyTick(now); } catch (Exception ex) { Log.Error("[world] war losses and strength", ex); }
                 Diplomacy.TrackKingdoms();
-                try { Diplomacy.OnDailyTick(now); } catch (Exception ex) { Log.Error("[diplomacia] tick diario", ex); }
+                try { Diplomacy.OnDailyTick(now); } catch (Exception ex) { Log.Error("[diplomacy] daily tick", ex); }
 
                 // Background batch: things brewing even when nothing big happened. Reactions to real events are separate (TryReact).
                 if (Enabled && cfg.BackgroundEvents)
@@ -1155,7 +1155,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     else if (now >= State.NextEventGenerationDay) GenerateEvents();
                 }
             }
-            catch (Exception ex) { Log.Error("[mundo] tick diario", ex); }
+            catch (Exception ex) { Log.Error("[world] daily tick", ex); }
         }
 
         // ---- daily effects inside the game's own calculation (see Patches\TownEffectsPatch.cs)
@@ -1232,7 +1232,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     else if (st.Village != null)
                         st.Village.Hearth = Math.Max(10f, st.Village.Hearth + fx.ProsperityPerDay);   // for villages, prosperity means hearths
                 }
-                catch (Exception ex) { Log.Error("[mundo] efecto económico", ex); State.Effects.Remove(fx); }
+                catch (Exception ex) { Log.Error("[world] economic effect", ex); State.Effects.Remove(fx); }
             }
         }
 
@@ -1327,7 +1327,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 if (amount >= t.Daily) { t.UnpaidDays = 0; continue; }
                 if (++t.UnpaidDays < TributeUnpaidDays) continue;
                 State.Tributes.Remove(t);
-                Log.Info($"[mundo] tributo de {payer.Name} a {receiver.Name} roto: {t.UnpaidDays} días sin pagarlo entero");
+                Log.Info($"[world] tribute from {payer.Name} to {receiver.Name} broken: {t.UnpaidDays} days without paying in full");
                 string text = L.F("AIL_e7b1c795", $"{payer.Name} lleva {t.UnpaidDays} días sin poder pagar entero el tributo que debía a {receiver.Name}: el tributo queda roto.");
                 NewsStore.Add(new NewsItem
                 {
@@ -1397,7 +1397,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             foreach (var k in Kingdoms.ToList())
             {
                 try { AddFatigue(k, DailyFatigue(k)); }
-                catch (Exception ex) { Log.Error($"[mundo] cansancio de guerra de {k?.StringId}", ex); }
+                catch (Exception ex) { Log.Error($"[world] war weariness of {k?.StringId}", ex); }
             }
         }
 
@@ -1405,7 +1405,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         {
             // only a battle between two kingdoms at war wears them down, by the men each lost (World/WarTolls.cs)
             try { WarTolls.OnBattleEnded(e); }
-            catch (Exception ex) { Log.Error("[mundo] cansancio por una batalla", ex); }
+            catch (Exception ex) { Log.Error("[world] weariness from a battle", ex); }
             Mood.OnMapEventEnded(e);
         }
 
@@ -1418,7 +1418,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 var own = victim != null && victim.IsLord ? Facts.Subject(victim.Clan) : null;
                 if (own != null && WarTolls.KilledByEnemy(victim, killer, detail, own) != null) AddFatigue(own, S.Get.FatiguePerLordKilled);
             }
-            catch (Exception ex) { Log.Error("[mundo] cansancio por un noble muerto", ex); }
+            catch (Exception ex) { Log.Error("[world] weariness from a dead noble", ex); }
             Chronicle.OnHeroKilled(victim, killer, detail);
             Mood.OnHeroKilled(victim, killer);
         }
@@ -1426,13 +1426,13 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         public static void OnPrisonerTaken(PartyBase captor, Hero prisoner)
         {
             try { WarTolls.OnPrisonerTaken(captor, prisoner); }
-            catch (Exception ex) { Log.Error("[mundo] cansancio por un noble preso", ex); }
+            catch (Exception ex) { Log.Error("[world] weariness from a captured noble", ex); }
         }
 
         public static void OnPrisonerReleased(Hero prisoner, PartyBase captor, IFaction faction, TaleWorlds.CampaignSystem.Actions.EndCaptivityDetail detail, bool show)
         {
             try { WarTolls.OnPrisonerReleased(prisoner); }
-            catch (Exception ex) { Log.Error("[mundo] cansancio devuelto por un noble libre", ex); }
+            catch (Exception ex) { Log.Error("[world] weariness returned by a freed noble", ex); }
         }
 
         public static void OnSettlementOwnerChanged(Settlement s, bool openToClaim, Hero newOwner, Hero oldOwner, Hero capturer,

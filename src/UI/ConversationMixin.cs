@@ -46,7 +46,7 @@ namespace AILegacy.UI
         public ConversationMixin(MissionConversationVM vm) : base(vm)
         {
             _current = new WeakReference<ConversationMixin>(this);
-            try { Recompute(); } catch (Exception ex) { Log.Error("Conversación: barras", ex); }
+            try { Recompute(); } catch (Exception ex) { Log.Error("Conversation: bars", ex); }
         }
 
         /// <summary>True while the bars are on screen, so the stats line under the reply can be skipped.</summary>
@@ -79,12 +79,12 @@ namespace AILegacy.UI
             if (_since < 0.5f) return;
             _since = 0f;
             try { if (_current != null && _current.TryGetTarget(out var m)) m.Recompute(); }
-            catch (Exception ex) { Log.Error("Conversación: barras", ex); }
+            catch (Exception ex) { Log.Error("Conversation: bars", ex); }
         }
 
         public override void OnRefresh()
         {
-            try { Recompute(); } catch (Exception ex) { Log.Error("Conversación: barras", ex); }
+            try { Recompute(); } catch (Exception ex) { Log.Error("Conversation: bars", ex); }
         }
 
         public override void OnFinalize()
@@ -195,7 +195,7 @@ namespace AILegacy.UI
                 _historyCount = -1;
                 Recompute();
             }
-            catch (Exception ex) { Log.Error("Conversación: historial", ex); }
+            catch (Exception ex) { Log.Error("Conversation: history", ex); }
         }
 
         [DataSourceProperty] public bool AilCardVisible { get => _cardVisible; set { if (value != _cardVisible) { _cardVisible = value; OnPropertyChangedWithValue(value, nameof(AilCardVisible)); } } }

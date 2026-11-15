@@ -159,18 +159,18 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
                                         if (at <= 0 || (does != "stand_down" && does != "turn")) continue;
                                         Plans.Add(new HelperPlan { Who = Txt(h["who"]), Line = Txt(h["line"]), Turns = does == "turn", At = Math.Min(95, at) });
                                     }
-                                    if (Plans.Count > 0) Log.Info("[pelea] los que le ayudan: " + string.Join("; ", Plans.Select(p => $"{p.Who} {(p.Turns ? "cambia de bando" : "lo deja")} al {p.At} %")));
+                                    if (Plans.Count > 0) Log.Info("[fight] those helping: " + string.Join("; ", Plans.Select(p => $"{p.Who} {(p.Turns ? "switches sides" : "quits")} at {p.At} %")));
                                 }
-                                Log.Info($"[pelea] conducta de {_name}: se rinde al {_yieldsAt} %, huye al {_fleesAt} %, tregua al {_truceAt} %, pide ayuda al {_helpAt} %; acepta tregua: {AcceptsTruce}; acepta rendición: {AcceptsYield}; mirón: {_onlookerSide} al {_onlookerAt} %");
+                                Log.Info($"[fight] behaviour of {_name}: yields at {_yieldsAt} %, flees at {_fleesAt} %, truce at {_truceAt} %, asks for help at {_helpAt} %; accepts truce: {AcceptsTruce}; accepts yield: {AcceptsYield}; onlooker: {_onlookerSide} at {_onlookerAt} %");
                             }
                             Show(_opp, _name, ((string)j["opening"] ?? "").Trim(), Colors.Red);
                             _gap = 3f;
                         }
-                        catch (Exception ex) { Log.Error("Frases de pelea", ex); }
+                        catch (Exception ex) { Log.Error("Fight lines", ex); }
                     });
                 });
             }
-            catch (Exception ex) { Log.Error("Frases de pelea: empezar", ex); Clear(); }
+            catch (Exception ex) { Log.Error("Fight lines: start", ex); Clear(); }
         }
 
         public static void Tick(float dt)
@@ -226,7 +226,7 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Frases de pelea: tick", ex); Clear(); }
+            catch (Exception ex) { Log.Error("Fight lines: tick", ex); Clear(); }
         }
 
         public static void End(bool playerWon)

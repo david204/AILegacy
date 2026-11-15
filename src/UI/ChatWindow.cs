@@ -38,7 +38,7 @@ namespace AILegacy.UI
             }
             catch (Exception ex)
             {
-                Log.Error("No se pudo abrir la ventana de chat; uso ventanas de texto", ex);
+                Log.Error("Could not open the chat window; using text windows", ex);
                 return null;
             }
         }
@@ -51,7 +51,7 @@ namespace AILegacy.UI
                 if (_layer.Input.IsHotKeyReleased("Confirm")) VM.ExecuteSend();
                 else if (_layer.Input.IsHotKeyReleased("Exit")) VM.ExecuteClose();
             }
-            catch (Exception ex) { Log.Error("Chat: teclas", ex); }
+            catch (Exception ex) { Log.Error("Chat: keys", ex); }
         }
 
         public void Close()
@@ -67,7 +67,7 @@ namespace AILegacy.UI
                 }
                 VM?.OnFinalize();
             }
-            catch (Exception ex) { Log.Error("Chat: cerrar ventana", ex); }
+            catch (Exception ex) { Log.Error("Chat: closing window", ex); }
             finally
             {
                 _layer = null; _movie = null; _screen = null;

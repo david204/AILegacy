@@ -74,7 +74,7 @@ namespace AILegacy.Dialogue
             var a = TalkingAgent();
             if (a == null) return null;
             _fight = new PendingFight { Who = s, Opponent = a, Kind = kind, Wait = 0.6f };
-            Log.Info($"Pelea pendiente con {s.Name}: {kind}");
+            Log.Info($"Pending fight with {s.Name}: {kind}");
             switch (kind)
             {
                 case "brawl": return L.F("AIL_8e8232dd", $"{s.Name} se remanga: habrá pelea a puñetazos en cuanto termine la charla.");
@@ -90,7 +90,7 @@ namespace AILegacy.Dialogue
             if (opponent == null || !opponent.IsActive() || _fight != null || !CanFightHere()) return false;
             _fight = new PendingFight { Who = s, Opponent = opponent, Kind = kind, Wait = 0.4f };
             if (helpers != null) _fight.Helpers.AddRange(helpers.Where(h => h != null && h.IsActive() && h != opponent));
-            Log.Info($"Pelea pendiente con {s?.Name}: {kind} (fuera de charla)");
+            Log.Info($"Pending fight with {s?.Name}: {kind} (outside a talk)");
             return true;
         }
 
@@ -104,7 +104,7 @@ namespace AILegacy.Dialogue
                 var fh = m?.GetMissionBehavior<MissionFightHandler>();
                 if (fh == null || fh.IsThereActiveFight() || Agent.Main == null || !Agent.Main.IsActive() || f.Opponent == null || !f.Opponent.IsActive())
                 {
-                    Log.Warn("La pelea no ha podido empezar (la escena ha cambiado)");
+                    Log.Warn("The fight could not start (scene changed)");
                     return;
                 }
                 // Not using the game's StartFistFight: when it ends it gives weapons back without checking the agent is
@@ -121,9 +121,9 @@ namespace AILegacy.Dialogue
                 foreach (var foe in foes) TeamBefore[foe] = foe.Team;
                 fh.StartCustomFight(new List<Agent> { Agent.Main }, foes, false, false, won =>
                 {
-                    try { Unguard(); } catch (Exception ex) { Log.Error("Curar tras la pelea amistosa", ex); }
+                    try { Unguard(); } catch (Exception ex) { Log.Error("Heal after friendly fight", ex); }
                     try { if (stripped != null) foreach (var st in stripped) Restore(st); }
-                    catch (Exception ex) { Log.Error("Devolver armas tras la pelea", ex); }
+                    catch (Exception ex) { Log.Error("Return weapons after the fight", ex); }
                     MainThread.Post(() => OnFightEnded(f, won));
                 });
                 // Fist fight or friendly duel: nobody dies. At half health they yield and the fight ends
@@ -132,11 +132,11 @@ namespace AILegacy.Dialogue
                 ActiveFoes.Clear(); ActiveFoes.AddRange(foes); _unleash = 0f;
                 Unleash();
                 Say(f.Unprovoked ? L.F("AIL_1ee35da7", $"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F("AIL_96bdc93c", $"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F("AIL_70eda317", $"¡Duelo a muerte con {f.Who.Name}!") : L.F("AIL_e97439d8", $"¡Duelo con {f.Who.Name}!"), Colors.Red);
-                Log.Info($"Pelea empezada con {f.Who.Name}: {f.Kind}");
+                Log.Info($"Fight started with {f.Who.Name}: {f.Kind}");
                 FightBanter.Begin(f.Who, f.Opponent, f.Kind, IsFriendly(f) ? null : foes.Where(x => x != f.Opponent).ToList());
                 Say(Hotkeys.Fix(L.T("AIL_e7b1c508", "(Alt+Y: rendirte · Alt+P: pedir tregua)")), Colors.Gray);
             }
-            catch (Exception ex) { Log.Error("Empezar la pelea", ex); }
+            catch (Exception ex) { Log.Error("Start the fight", ex); }
         }
 
         // ============================================================ friendly fights: no deaths
@@ -173,7 +173,7 @@ namespace AILegacy.Dialogue
                     GuardedAgents.Add(new Guarded { Agent = a, Start = a.Health, Prev = a.CurrentMortalityState });
                     a.OnAgentHealthChanged += OnGuardedHealth;
                 }
-                catch (Exception ex) { Log.Error("Proteger la pelea amistosa", ex); }
+                catch (Exception ex) { Log.Error("Protect friendly fight", ex); }
             }
         }
 
@@ -205,7 +205,7 @@ namespace AILegacy.Dialogue
                     else if (a == _friendly.Opponent) _yield = 1;
                 }
             }
-            catch (Exception ex) { Log.Error("Vida en la pelea amistosa", ex); }
+            catch (Exception ex) { Log.Error("Health in friendly fight", ex); }
         }
 
         /// <summary>End of a friendly fight: everyone gets back the health (and mortality state) they had before.</summary>
@@ -237,10 +237,10 @@ namespace AILegacy.Dialogue
             {
                 var fh = Mission.Current?.GetMissionBehavior<MissionFightHandler>();
                 if (fh == null || !fh.IsThereActiveFight()) { Unguard(); return; }
-                Log.Info($"Pelea amistosa: {(y == 1 ? "el rival se rinde" : "el jugador se rinde")} a media vida");
+                Log.Info($"Friendly fight: {(y == 1 ? "rival yields" : "player yields")} at half health");
                 fh.EndFight(y == 1);
             }
-            catch (Exception ex) { Log.Error("Terminar la pelea amistosa", ex); }
+            catch (Exception ex) { Log.Error("End friendly fight", ex); }
         }
 
         // ============================================================ what fighters decide mid-fight
@@ -256,11 +256,11 @@ namespace AILegacy.Dialogue
                 var fh = Mission.Current?.GetMissionBehavior<MissionFightHandler>();
                 if (_active == null || fh == null || !fh.IsThereActiveFight()) return false;
                 _active.Ending = ending;
-                Log.Info($"[pelea] termina: {ending}");
+                Log.Info($"[fight] ends: {ending}");
                 fh.EndFight(playerWon);
                 return true;
             }
-            catch (Exception ex) { Log.Error("Terminar la pelea", ex); return false; }
+            catch (Exception ex) { Log.Error("End the fight", ex); return false; }
         }
 
         private static void AskPlayer(string title, string text, string yes, string no, Action onYes)
@@ -268,7 +268,7 @@ namespace AILegacy.Dialogue
             if (_asking) return;
             _asking = true;
             InformationManager.ShowInquiry(new InquiryData(title, text, true, true, yes, no,
-                () => { _asking = false; try { onYes(); } catch (Exception ex) { Log.Error("Pelea: decisión del jugador", ex); } },
+                () => { _asking = false; try { onYes(); } catch (Exception ex) { Log.Error("Fight: player decision", ex); } },
                 () => { _asking = false; }), true);
         }
 
@@ -314,7 +314,7 @@ namespace AILegacy.Dialogue
                 foreach (var a in near)
                     if (JoinFight(fh, a, false)) Say(L.F("AIL_e7b1c507", $"{a.Name} se mete en la pelea de parte de {f.Who.Name}."), Colors.Red);
             }
-            catch (Exception ex) { Log.Error("Pedir ayuda en la pelea", ex); }
+            catch (Exception ex) { Log.Error("Ask for help in the fight", ex); }
         }
 
         /// <summary>Someone watching takes a side. Never in a friendly fight, which is between the two of them.</summary>
@@ -332,7 +332,7 @@ namespace AILegacy.Dialogue
                 if (!string.IsNullOrWhiteSpace(line)) { try { UI.Bubbles.Show(who, line, 4f); } catch { } Say($"{who.Name}: {line}", Colors.Yellow); }
                 Say(L.F("AIL_e7b1c507", $"{who.Name} se mete en la pelea de parte de {(playerSide ? P.Name.ToString() : f.Who.Name)}."), playerSide ? Colors.Green : Colors.Red);
             }
-            catch (Exception ex) { Log.Error("Mirón que se mete en la pelea", ex); }
+            catch (Exception ex) { Log.Error("Onlooker joins the fight", ex); }
         }
 
         // The fight handler keeps each side in a private list, and the team each fighter had before in a private table
@@ -352,7 +352,7 @@ namespace AILegacy.Dialogue
                 var table = (playerSide ? FPlayerOld : FOpponentOld)?.GetValue(fh) as Dictionary<Agent, Team>;
                 if (table != null && table.ContainsKey(a)) table[a] = before;
             }
-            catch (Exception ex) { Log.Error("Guardar el equipo anterior", ex); }
+            catch (Exception ex) { Log.Error("Save previous equipment", ex); }
         }
 
         /// <summary>
@@ -391,7 +391,7 @@ namespace AILegacy.Dialogue
                     fh.AddAgentToSide(h, true);
                     RememberTeam(fh, h, true, before);
                     Say(L.F("AIL_e7b1c646", $"{h.Name} cambia de bando y lucha a tu lado."), Colors.Green);
-                    Log.Info($"[pelea] {h.Name} cambia de bando");
+                    Log.Info($"[fight] {h.Name} switches sides");
                     return;
                 }
                 // Out of the fight: what the handler does for everyone when it ends, done now for this one
@@ -400,7 +400,7 @@ namespace AILegacy.Dialogue
                     var g = h.GetComponent<SandBox.CampaignAgentComponent>()?.AgentNavigator?.GetBehaviorGroup<SandBox.Missions.AgentBehaviors.AlarmedBehaviorGroup>();
                     if (g != null) { g.DisableScriptedBehavior(); g.DisableCalmDown = false; }
                 }
-                catch (Exception ex) { Log.Error("Calmar al que deja la pelea", ex); }
+                catch (Exception ex) { Log.Error("Calm down the one leaving the fight", ex); }
                 h.SetWatchState(Agent.WatchState.Patrolling);
                 h.SetTeam(new Team(before.MBTeam, BattleSideEnum.None, m), true);
                 try
@@ -411,9 +411,9 @@ namespace AILegacy.Dialogue
                 catch { }
                 SceneActions.WalkAway(h);
                 Say(L.F("AIL_e7b1c645", $"{h.Name} deja la pelea."), Colors.Yellow);
-                Log.Info($"[pelea] {h.Name} deja la pelea");
+                Log.Info($"[fight] {h.Name} leaves the fight");
             }
-            catch (Exception ex) { Log.Error("Ayudante que deja la pelea o cambia de bando", ex); }
+            catch (Exception ex) { Log.Error("Helper leaving the fight or switching sides", ex); }
         }
 
         /// <summary>Alt+Y: the player yields. Alt+P: the player asks to stop as equals. The opponent answers as they decided.</summary>
@@ -440,7 +440,7 @@ namespace AILegacy.Dialogue
                     else { FightBanter.Shout(FightBanter.TruceAnswer); Say(L.F("AIL_e7b1c506", $"{name} no quiere tregua."), Colors.Red); }
                 }
             }
-            catch (Exception ex) { Log.Error("Teclas de la pelea", ex); }
+            catch (Exception ex) { Log.Error("Fight keys", ex); }
         }
 
         // ============================================================ hitting someone out of nowhere
@@ -459,7 +459,7 @@ namespace AILegacy.Dialogue
         {
             if (s == null || opponent == null) return;
             _fight = new PendingFight { Who = s, Opponent = opponent, Kind = kind, Wait = wait };
-            Log.Info($"Pelea en la escena del mapa con {s.Name}: {kind}");
+            Log.Info($"Fight in the map scene with {s.Name}: {kind}");
         }
 
         // A band that agreed to join: once the talk and the encounter are over, its men move to the player's party
@@ -477,7 +477,7 @@ namespace AILegacy.Dialogue
                 // The meeting has to be closed first, or the game still treats them as the party in front of you
                 if (PlayerEncounter.Current != null)
                 {
-                    try { PlayerEncounter.LeaveEncounter = true; PlayerEncounter.Finish(true); } catch (Exception ex) { Log.Warn("Cerrar el encuentro con la banda: " + ex.Message); }
+                    try { PlayerEncounter.LeaveEncounter = true; PlayerEncounter.Finish(true); } catch (Exception ex) { Log.Warn("Close the encounter with the band: " + ex.Message); }
                     if (PlayerEncounter.Current != null) return;      // next frame
                 }
                 _bandJoin = null;
@@ -500,10 +500,10 @@ namespace AILegacy.Dialogue
                 if (purse > 0) P.ChangeHeroGold(purse);
                 string name = b.Name?.ToString() ?? "";
                 DestroyPartyAction.Apply(null, b);
-                Log.Info($"La banda {name} se une a la partida: {joined} hombres, {purse} denarios");
+                Log.Info($"Band {name} joins the party: {joined} men, {purse} denars");
                 InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1c4fc", $"{joined} hombres de {name} marchan ahora contigo."), Colors.Green));
             }
-            catch (Exception ex) { Log.Error("Unir la banda a la partida", ex); _bandJoin = null; }
+            catch (Exception ex) { Log.Error("Join the band to the party", ex); _bandJoin = null; }
         }
 
         // Roleplay deaths: applied once the chat closes and the scene ends
@@ -514,7 +514,7 @@ namespace AILegacy.Dialogue
         {
             if (h == null || RoleDeaths.Any(d => d.who == h)) return;
             RoleDeaths.Add((h, kind ?? "suicide", how ?? "", found ?? ""));
-            Log.Info($"Muerte por rol pendiente: {h.Name} ({kind}: {how}){(string.IsNullOrWhiteSpace(found) ? "" : " — se encuentra: " + found)}");
+            Log.Info($"Role-play death pending: {h.Name} ({kind}: {how}){(string.IsNullOrWhiteSpace(found) ? "" : " — found: " + found)}");
         }
 
         private static string DeathInEnglish(string kind, string victim, string killer)
@@ -618,7 +618,7 @@ namespace AILegacy.Dialogue
                     else if (a.IsAlarmStateNormal()) a.SetAlarmState(Agent.AIStateFlag.Alarmed);
                 }
             }
-            catch (Exception ex) { Log.Error("La gente alrededor de la pelea", ex); }
+            catch (Exception ex) { Log.Error("People around the fight", ex); }
         }
 
         private static bool IsGuard(Agent a)
@@ -646,7 +646,7 @@ namespace AILegacy.Dialogue
                 if (!playerSide) { ActiveFoes.Add(a); if (_active != null && !_active.Helpers.Contains(a)) _active.Helpers.Add(a); }
                 return true;
             }
-            catch (Exception ex) { Log.Error("Sumar a la pelea", ex); return false; }
+            catch (Exception ex) { Log.Error("Add to the fight", ex); return false; }
         }
 
         /// <summary>During an armed assault by the player, guards arrive in waves. With many down, the alarm goes off.</summary>
@@ -750,11 +750,11 @@ namespace AILegacy.Dialogue
                 {
                     _waves++;
                     Say(L.F("AIL_e7b1c86d", $"Llegan {done} soldados de la guarnición y de los señores que hay en {st.Name}."), Colors.Red);
-                    Log.Info($"[pelea] {done} defensores de la guarnición y de los señores de {st.Name}");
+                    Log.Info($"[fight] {done} defenders from the garrison and the lords of {st.Name}");
                     Unleash();
                 }
             }
-            catch (Exception ex) { Log.Error("Defensores de la guarnición", ex); }
+            catch (Exception ex) { Log.Error("Garrison defenders", ex); }
         }
 
         /// <summary>After the fight the defenders go back: the dead leave their roster, the fallen stay there wounded.</summary>
@@ -819,9 +819,9 @@ namespace AILegacy.Dialogue
                     if (done >= want) break;
                 }
                 Say(done > 0 ? L.F("AIL_5a62c49f", $"{done} de tus hombres entran en la pelea.") : L.T("AIL_f71c6f6e", "No te quedan hombres sanos a los que llamar."), done > 0 ? Colors.Green : Colors.Gray);
-                if (done > 0) Log.Info($"[escena] el jugador mete {done} soldados en la pelea");
+                if (done > 0) Log.Info($"[scene] the player puts {done} soldiers into the fight");
             }
-            catch (Exception ex) { Log.Error("Llamar a tus tropas", ex); }
+            catch (Exception ex) { Log.Error("Call your troops", ex); }
         }
 
         /// <summary>After the fight your men leave the scene (those knocked down stay wounded in your party).</summary>
@@ -922,12 +922,12 @@ namespace AILegacy.Dialogue
                     f.Helpers.Add(a);
                     Say(L.F("AIL_9ccbdf55", $"{a.Name} sale en defensa de {sp.Name}."), Colors.Red);
                 }
-                Log.Info($"[escena] el jugador golpea a {sp.Name} sin mediar palabra ({f.Kind}; {f.Helpers.Count} en su defensa)");
+                Log.Info($"[scene] the player strikes {sp.Name} without a word ({f.Kind}; {f.Helpers.Count} defending them)");
                 if (armed && cfg.StreetSummonTroops) Say(Hotkeys.Fix(L.T("AIL_c4f81902", "Puedes llamar a tus hombres: Ctrl+X (diez) o Ctrl+Alt+X (todos los que quepan). Solo en la calle.")), Colors.Gray);
                 _fight = f;
                 StartFight();
             }
-            catch (Exception ex) { Log.Error("Pelea callejera", ex); _streetCool = 5f; }
+            catch (Exception ex) { Log.Error("Street fight", ex); _streetCool = 5f; }
         }
 
         private class Stripped
@@ -951,7 +951,7 @@ namespace AILegacy.Dialogue
                     a.RemoveEquippedWeapon(i);
                 }
             }
-            catch (Exception ex) { Log.Error("Quitar armas para la pelea", ex); }
+            catch (Exception ex) { Log.Error("Remove weapons for the fight", ex); }
             return s;
         }
 
@@ -993,7 +993,7 @@ namespace AILegacy.Dialogue
                 var mem = s.Memory;
                 string you = Prompt.ContextBuilder.PlayerNameFor(s) ?? "the stranger";
                 string what = f.Kind == "brawl" ? "a fist fight" : f.Kind == "death" ? "a duel to the death" : "a duel";
-                Log.Info($"Pelea con {s.Name} ({f.Kind}): {(playerWon ? "gana el jugador" : "pierde el jugador")}");
+                Log.Info($"Fight with {s.Name} ({f.Kind}): {(playerWon ? "player wins" : "player loses")}");
 
                 // They remember it, so the next chat knows
                 mem.Turns.Add(new ChatTurn
@@ -1100,7 +1100,7 @@ namespace AILegacy.Dialogue
                     });
                 }
             }
-            catch (Exception ex) { Log.Error("Fin de la pelea", ex); }
+            catch (Exception ex) { Log.Error("End of the fight", ex); }
         }
 
         // ============================================================ map: attack and surrender
@@ -1151,14 +1151,14 @@ namespace AILegacy.Dialogue
             KeepEncounter = true;
             _autoAttack = 15f;
             _autoAttackWho = s?.Name;
-            Log.Info($"Ataque en el mapa de {s?.Name}: la batalla empezará al cerrar la charla");
+            Log.Info($"Map attack by {s?.Name}: the battle will start when the talk closes");
         }
 
         private static void TickMapAttack(float dt)
         {
             try
             {
-                if ((_autoAttack -= dt) <= 0f) { _autoAttack = 0f; Log.Warn($"La batalla con {_autoAttackWho} no ha empezado sola: queda el menú del encuentro"); return; }
+                if ((_autoAttack -= dt) <= 0f) { _autoAttack = 0f; Log.Warn($"The battle with {_autoAttackWho} did not start on its own: the encounter menu remains"); return; }
                 if (PlayerEncounter.Current == null) { _autoAttack = 0f; return; }       // encounter already resolved
                 var mc = Campaign.Current?.CurrentMenuContext;
                 if (mc?.GameMenu == null || mc.GameMenu.StringId != "encounter") return;   // menu not up yet
@@ -1168,13 +1168,13 @@ namespace AILegacy.Dialogue
                 if (!global::Helpers.MenuHelper.EncounterAttackCondition(args) || !args.IsEnabled)
                 {
                     // Wounded, on a raft, etc.: the game won't allow an attack, so the player decides in the menu
-                    Log.Info($"La batalla con {_autoAttackWho} no puede empezar sola (el juego no deja atacar ahora)");
+                    Log.Info($"The battle with {_autoAttackWho} cannot start on its own (the game does not allow attacking now)");
                     return;
                 }
-                Log.Info($"Empieza la batalla con {_autoAttackWho}");
+                Log.Info($"Battle starts with {_autoAttackWho}");
                 global::Helpers.MenuHelper.EncounterAttackConsequence(args);
             }
-            catch (Exception ex) { _autoAttack = 0f; Log.Error("Empezar la batalla del mapa", ex); }
+            catch (Exception ex) { _autoAttack = 0f; Log.Error("Start the map battle", ex); }
         }
 
         /// <summary>The NPC surrenders with their whole party. Resolved when the chat closes.</summary>
@@ -1222,9 +1222,9 @@ namespace AILegacy.Dialogue
                 foreach (var x in heroes) TakePrisonerAction.Apply(main.Party, x);
                 if (party.IsActive) DestroyPartyAction.Apply(main.Party, party);
                 Say(L.F("AIL_454cbf99", $"{s.Name} se rinde: {taken} hombres pasan a ser tus prisioneros."), Colors.Green);
-                Log.Info($"Rendición de {s.Name}: {taken} prisioneros");
+                Log.Info($"Surrender of {s.Name}: {taken} prisoners");
             }
-            catch (Exception ex) { Log.Error("Rendición", ex); }
+            catch (Exception ex) { Log.Error("Surrender", ex); }
         }
 
         // ============================================================ tick
@@ -1246,13 +1246,13 @@ namespace AILegacy.Dialogue
                 var foe = PlayerEncounter.EncounteredMobileParty;
                 if (PlayerEncounter.InsideSettlement || foe == null || foe.MapFaction == null || Hero.MainHero.MapFaction == null
                     || !(foe.MapFaction.IsBanditFaction || foe.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction)))
-                { Log.Warn("Rendición del jugador: el encuentro ya no es con un enemigo en el mapa; no se hace nada"); return; }
+                { Log.Warn("Player surrender: the encounter is no longer with an enemy on the map; doing nothing"); return; }
                 // Same as the "Surrender" option in the encounter menu
                 PlayerEncounter.PlayerSurrender = true;
                 PlayerEncounter.Update();
-                Log.Info("El jugador se rinde: queda prisionero");
+                Log.Info("The player surrenders: becomes a prisoner");
             }
-            catch (Exception ex) { _playerSurrender = 0f; KeepEncounter = false; Log.Error("Rendición del jugador", ex); }
+            catch (Exception ex) { _playerSurrender = 0f; KeepEncounter = false; Log.Error("Player surrender", ex); }
         }
 
         public static void Tick(float dt)
@@ -1307,7 +1307,7 @@ namespace AILegacy.Dialogue
                             // The game only knows a few ways to die: execution, a killing with a culprit, or one without
                             if (d.kind == "executed") KillCharacterAction.ApplyByExecution(d.who, P, true, true);
                             else KillCharacterAction.ApplyByMurder(d.who, d.kind == "killed" ? P : null, true);
-                            Log.Info($"Muerte por rol cumplida: {victim} ({d.kind})");
+                            Log.Info($"Role-play death carried out: {victim} ({d.kind})");
                             // How it happened, who did it and what was found go to the news, where characters learn of it
                             string text = DeathInEnglish(d.kind, victim, P.Name.ToString()) + (d.how.Length > 2 ? $" ({d.how})" : "") + "."
                                           + (d.found.Length > 2 ? $" Found afterwards: {d.found}" : "");
@@ -1327,7 +1327,7 @@ namespace AILegacy.Dialogue
                             }
                             NewsStore.Add(item);
                         }
-                        catch (Exception ex) { Log.Error("Muerte por rol", ex); }
+                        catch (Exception ex) { Log.Error("Role-play death", ex); }
                     }
                 }
                 if (ToKill.Count > 0 && Mission.Current == null && !talking)
@@ -1339,7 +1339,7 @@ namespace AILegacy.Dialogue
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Combate: tick", ex); _fight = null; _surrender = null; }
+            catch (Exception ex) { Log.Error("Combat: tick", ex); _fight = null; _surrender = null; }
         }
 
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));

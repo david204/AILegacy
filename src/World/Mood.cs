@@ -73,7 +73,7 @@ namespace AILegacy.World
                 list.Add(new MoodEvent { Who = who, Kind = kind, Sign = sign, Strength = strength, Day = now, Until = now + days * Scale, CoolUntil = now + coolDays * Scale, Text = text, About = about });
                 if (list.Count > 600) list.RemoveRange(0, list.Count - 600);
             }
-            catch (Exception ex) { Log.Error("Ánimo: apuntar causa", ex); }
+            catch (Exception ex) { Log.Error("Mood: record cause", ex); }
         }
 
         /// <summary>A mood cause added by another mod through the API.</summary>
@@ -114,7 +114,7 @@ namespace AILegacy.World
                 foreach (var h in Leaders(lose))
                     Add(h.StringId, "battle_lost", -1, 2, 4, 14, $"You lost a battle{where}" + (winner != null ? $" to {winner}" : "") + ": the defeat stings, and you are short of patience.");
             }
-            catch (Exception ex) { Log.Error("Ánimo: batalla", ex); }
+            catch (Exception ex) { Log.Error("Mood: battle", ex); }
         }
 
         private static IEnumerable<Hero> Leaders(MapEventSide side)
@@ -142,7 +142,7 @@ namespace AILegacy.World
                 if (h == null || h == Hero.MainHero) return;
                 Add(h.StringId, "tournament_won", +1, 2, 5, 30, $"You won the tournament of {town?.Name}: the cheers are still in your ears.");
             }
-            catch (Exception ex) { Log.Error("Ánimo: torneo", ex); }
+            catch (Exception ex) { Log.Error("Mood: tournament", ex); }
         }
 
         /// <summary>Capturing a noble: satisfied for 3 days (14-day cooldown).</summary>
@@ -154,7 +154,7 @@ namespace AILegacy.World
                 if (h == null || h == Hero.MainHero || prisoner == null || !prisoner.IsLord) return;
                 Add(h.StringId, "took_prisoner", +1, 1, 3, 14, $"You took {prisoner.Name} prisoner days ago: a prize, and you know it.");
             }
-            catch (Exception ex) { Log.Error("Ánimo: prisionero", ex); }
+            catch (Exception ex) { Log.Error("Mood: prisoner", ex); }
         }
 
         /// <summary>Released from captivity: relieved for 4 days.</summary>
@@ -165,7 +165,7 @@ namespace AILegacy.World
                 if (h == null || h == Hero.MainHero || !h.IsAlive) return;
                 Add(h.StringId, "released", +1, 2, 4, 10, "You were a prisoner until a few days ago and you are free again: relief, and a grudge against whoever held you.");
             }
-            catch (Exception ex) { Log.Error("Ánimo: liberación", ex); }
+            catch (Exception ex) { Log.Error("Mood: release", ex); }
         }
 
         /// <summary>A new war puts both sides on edge for 5 days.</summary>
@@ -177,7 +177,7 @@ namespace AILegacy.World
                 Add("f:" + a.StringId, "war_declared", 0, 1, 5, 0, $"War has just been declared between your realm and {b.Name}: everyone is on edge.", b.StringId);
                 Add("f:" + b.StringId, "war_declared", 0, 1, 5, 0, $"War has just been declared between your realm and {a.Name}: everyone is on edge.", a.StringId);
             }
-            catch (Exception ex) { Log.Error("Ánimo: guerra", ex); }
+            catch (Exception ex) { Log.Error("Mood: war", ex); }
         }
 
         /// <summary>A birth: joy (or grief if stillborn) for 10 days.</summary>
@@ -193,7 +193,7 @@ namespace AILegacy.World
                 if (father != null && father != Hero.MainHero)
                     Add(father.StringId, "became_parent", alive ? +1 : -1, 2, 8, 0, alive ? $"{mother.Name} has just borne you a child: you are proud and glad." : $"The child {mother.Name} bore you was born dead: you are grieving.");
             }
-            catch (Exception ex) { Log.Error("Ánimo: parto", ex); }
+            catch (Exception ex) { Log.Error("Mood: birth", ex); }
         }
 
         /// <summary>Records the conception day. She only finds out 7 to 11 days later (fixed per woman).</summary>
@@ -331,7 +331,7 @@ namespace AILegacy.World
                 foreach (var c in list)
                     sys.AppendLine($"- ({(c.Sign > 0 ? "lifts you" : c.Sign < 0 ? "weighs on you" : "unsettles you")}, {(c.Strength >= 3 ? "strongly" : c.Strength == 2 ? "clearly" : "a little")}) {c.Text}");
             }
-            catch (Exception ex) { Log.Error("Ánimo: texto", ex); }
+            catch (Exception ex) { Log.Error("Mood: text", ex); }
         }
 
         /// <summary>Short list for the UI and the editor. In English, since these are the same causes the AI sees.</summary>

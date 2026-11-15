@@ -112,7 +112,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             var e = _errand; _errand = null;
             if (e == null) return;
             SceneMove.Release(e.Who);
-            if (why != null) Log.Info("[escena] recado cancelado: " + why);
+            if (why != null) Log.Info("[scene] errand cancelled: " + why);
         }
 
         private static void BeginErrand(Settlement st)
@@ -132,7 +132,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                                 "context", Context(st, sa), "others", others.Count > 0 ? string.Join(", ", others) : "(nobody in particular)", "before", before, "angle", angle,
                                 "min_lines", 3, "max_lines", 6, "max_chars", cfg.AmbientMaxChars, "language", cfg.Language)
                             + (e.Back ? "\n" + TErrandReport.Format("a", sa.Name, "player", player, "max_chars", cfg.AmbientMaxChars, "language", cfg.Language) : "");
-            Log.Info($"[escena] recado: {sa.Name} va a buscar a {sb.Name} (a {e.Who.Position.Distance(e.Target.Position):0} m){(e.Back ? " y volverá a contarlo" : "")}");
+            Log.Info($"[scene] errand: {sa.Name} goes to find {sb.Name} (at {e.Who.Position.Distance(e.Target.Position):0} m){(e.Back ? " and will come back to tell it" : "")}");
             _lastPair = pairKey; _lastPairAt = DateTime.UtcNow;
             Ask(Mission.Current, prompt, e.Who, e.Target, sa, sb, 6, 900, pairKey, e);
         }
@@ -163,7 +163,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                 if (sp.IsHero) { sp.Memory.Turns.Add(new ChatTurn { Role = "npc", Text = "[On coming back to them] " + e.Report, Day = CampaignTime.Now.ToDays }); SaveFiles.Flush(); }
                 GroupTalk.Note($"{sp.Name}: {e.Report}");
             }
-            catch (Exception ex) { Log.Error("Volver a contarlo", ex); }
+            catch (Exception ex) { Log.Error("Come back to tell it", ex); }
         }
 
         /// <summary>Soldiers, guards and thugs are on duty and don't start chatting on their own.</summary>
@@ -401,7 +401,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             var near = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a != Agent.Main && a.Character is CharacterObject
                                            && a.Position.Distance(me) <= cfg.AmbientRadius && !GroupTalk.Has(a) && !SceneActions.Busy(a) && !(a.Team != null && Agent.Main.Team != null && a.IsEnemyOf(Agent.Main))).ToList();
             if (_calledMission != m) { _calledMission = m; CalledOut.Clear(); }
-            if (near.Count == 0) { Log.Info($"[escena] nadie a menos de {cfg.AmbientRadius} m"); _timer = 20f; return; }
+            if (near.Count == 0) { Log.Info($"[scene] nobody within {cfg.AmbientRadius} m"); _timer = 20f; return; }
 
             // Sometimes someone who knows you says something as you pass
             if (cfg.AmbientCallOuts && Rng.Next(100) < 30)
@@ -443,7 +443,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                 }
             if (first == null)
             {
-                Log.Info($"[escena] sin pareja para charlar: {near.Count} personaje(s) a menos de {cfg.AmbientRadius} m, ninguno a menos de {cfg.AmbientPairDistance} m de otro");
+                Log.Info($"[scene] no pair to chat: {near.Count} character(s) within {cfg.AmbientRadius} m, none within {cfg.AmbientPairDistance} m of another");
                 _timer = 20f;      // retry soon, people move around
                 return;
             }
@@ -478,7 +478,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             int maxLines = full ? Math.Max(2, cfg.AmbientMaxLines) : Math.Max(2, cfg.AmbientCommonerLines);
             int minLines = full ? Math.Min(maxLines, Math.Max(2, maxLines / 2)) : 2;
             int maxChars = full ? cfg.AmbientMaxChars : Math.Min(cfg.AmbientMaxChars, 90);
-            Log.Info($"[escena] {sa.Name} y {sb2.Name} van a charlar (están a {apart:0.0} m{(_walker != null ? "; " + sa.Name + " va hacia allí" : "")}; tema: {angle})");
+            Log.Info($"[scene] {sa.Name} and {sb2.Name} are going to chat ({apart:0.0} m apart{(_walker != null ? "; " + sa.Name + " walks over" : "")}; topic: {angle})");
             _lastPair = pairKey; _lastPairAt = DateTime.UtcNow;
             // Turn by turn: ask for a couple of lines at a time, each batch sees what was said before. Costs more
             // requests, but the talk stops by itself if you step in. Named people only.
@@ -537,7 +537,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     {
                         // asked in another campaign: nothing of it is said, heard or remembered in this one
                         if (session != WorldSim.Session) { if (chain != null && _chain == chain) _chain = null; return; }
-                        if (res == null || !res.Ok) { Log.Warn("[escena] la IA no ha dado la charla: " + res?.Error); if (chain != null && _chain == chain) _chain = null; return; }
+                        if (res == null || !res.Ok) { Log.Warn("[scene] the AI gave no chat: " + res?.Error); if (chain != null && _chain == chain) _chain = null; return; }
                         if (Mission.Current != m || a == null || !a.IsActive() || gen != _gen) { if (chain != null && _chain == chain) _chain = null; return; }
                         int i0 = res.Text.IndexOf('{'), i1 = res.Text.LastIndexOf('}');
                         if (i0 < 0 || i1 <= i0) { if (chain != null && _chain == chain) _chain = null; return; }
@@ -600,10 +600,10 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                             // If you talk to them afterwards, they know what they were just talking about
                             if (sa != null) { sa.Memory.RecentTalk = b != null ? $"Moments ago you were talking with {(sb != null ? sb.Name : "someone")} nearby: {topic}" : $"Moments ago you called out to them as they passed: {topic}"; sa.Memory.RecentTalkAt = DateTime.UtcNow; }
                             if (sb != null) { sb.Memory.RecentTalk = $"Moments ago you were talking with {sa?.Name ?? "someone"} nearby: {topic}"; sb.Memory.RecentTalkAt = DateTime.UtcNow; }
-                            Log.Info($"[escena] {(sa?.Name ?? "?")}{(sb != null ? " y " + sb.Name : " (al jugador)")}: {topic}");
+                            Log.Info($"[scene] {(sa?.Name ?? "?")}{(sb != null ? " and " + sb.Name : " (to the player)")}: {topic}");
                         }
                     }
-                    catch (Exception ex) { Log.Error("Charla de ambiente", ex); }
+                    catch (Exception ex) { Log.Error("Ambient chat", ex); }
                 });
             });
         }
@@ -738,11 +738,11 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                                + (speaker == null ? (partial ? "they said to " : "them say to ") : (partial ? speaker.Name + " said to " : speaker.Name + " say to "))
                                + names + $": «{caught}»" + (partial ? " (the gaps are what you could not hear; do not fill them in as if you knew)" : ""),
                     });
-                    Log.Info($"[escena] {h.Name} oye {(partial ? "a medias " : "")}lo que {(speaker == null ? "dices" : speaker.Name + " dice")} a {names} ({dist:0.0} m)");
+                    Log.Info($"[scene] {h.Name} overhears {(partial ? "half of " : "")}what {(speaker == null ? "you say" : speaker.Name + " says")} to {names} ({dist:0.0} m)");
                 }
                 if (OverheardBy.Count > 800) { OverheardBy.Clear(); HeardCount.Clear(); }
             }
-            catch (Exception ex) { Log.Error("Oír de pasada", ex); }
+            catch (Exception ex) { Log.Error("Overhear in passing", ex); }
         }
 
         public static void Tick(float dt)
@@ -836,7 +836,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 if (_busy || talking || ChatSession.IsBusy || Initiative.Busy) return;
                 if (!Bubbles.Available)
                 {
-                    if (!_warned) { _warned = true; Log.Warn("[escena] el texto sobre la cabeza no está disponible (desactivado en MCM, falló antes, o la pantalla no es la de una escena): no hay charlas"); }
+                    if (!_warned) { _warned = true; Log.Warn("[scene] overhead text is not available (disabled in MCM, failed earlier, or the screen is not a scene): no chats"); }
                     return;
                 }
                 _timer -= dt;
@@ -844,7 +844,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 _timer = cfg.AmbientIntervalSeconds * (0.7f + (float)Rng.NextDouble() * 0.6f);
                 TryStart(st);
             }
-            catch (Exception ex) { Log.Error("Vida en la escena", ex); Play.Clear(); _busy = false; }
+            catch (Exception ex) { Log.Error("Scene life", ex); Play.Clear(); _busy = false; }
         }
 
         /// <summary>The first agent walks up to within a couple of steps of the second.</summary>
@@ -855,7 +855,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 if (!SceneMove.GoTo(a, b)) return;
                 _walker = a; _walkTo = b; _walkLeft = timeout; _arrived = false;
             }
-            catch (Exception ex) { Log.Error("Acercarse a hablar", ex); _walker = null; _walkTo = null; _arrived = true; }
+            catch (Exception ex) { Log.Error("Approach to talk", ex); _walker = null; _walkTo = null; _arrived = true; }
         }
 
         /// <summary>The walker goes back to what it was doing.</summary>

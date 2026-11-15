@@ -212,7 +212,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 if (players != playerOrder && !(playerOrder && team.IsPlayerGeneral)) continue;      // each side only commands its own formations
                 string move = ((string)o["move"] ?? "").Trim().ToLowerInvariant(), shape = ((string)o["shape"] ?? "").Trim().ToLowerInvariant(), fire = ((string)o["fire"] ?? "").Trim().ToLowerInvariant();
                 string width = ((string)o["width"] ?? "").Trim().ToLowerInvariant(), face = ((string)o["face"] ?? "").Trim().ToLowerInvariant(), mount = ((string)o["mount"] ?? "").Trim().ToLowerInvariant();
-                if (move == "retreat" && !mayRetreat) { Log.Info($"[batalla] retirada de {Name(f)} rechazada: no están en clara inferioridad"); move = "fall_back"; }
+                if (move == "retreat" && !mayRetreat) { Log.Info($"[battle] retreat of {Name(f)} rejected: not clearly outnumbered"); move = "fall_back"; }
                 MovementOrder? mo = null;
                 string label = move;
                 if (move == "charge") mo = MovementOrder.MovementOrderCharge;
@@ -338,8 +338,8 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     try
                     {
                         if (session != AILegacy.World.WorldSim.Session || Mission.Current != m || _mission != m || gen != s.Gen || !BattleOn(m)) return;
-                        if (res == null || !res.Ok) { Log.Warn("[batalla] sin órdenes de la IA: " + res?.Error); return; }
-                        if (m.CurrentTime - now > MaxLateSeconds) { Log.Info($"[batalla] respuesta tardía ({(int)(m.CurrentTime - now)} s), descartada"); return; }
+                        if (res == null || !res.Ok) { Log.Warn("[battle] no orders from the AI: " + res?.Error); return; }
+                        if (m.CurrentTime - now > MaxLateSeconds) { Log.Info($"[battle] late response ({(int)(m.CurrentTime - now)} s), discarded"); return; }
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                         if (a < 0 || b <= a) return;
                         var j = JObject.Parse(res.Text.Substring(a, b - a + 1));
@@ -357,9 +357,9 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                             try { if (general != null && general.IsActive()) Bubbles.Show(general, shout, 5f); } catch { }
                         }
                         if (cfg.BattleAIShowOrders && done > 0) Say($"[{commander}] {shown.ToString().TrimEnd(' ', ';')}", new Color(0.7f, 0.7f, 0.7f));
-                        Log.Info($"[batalla] {commander} ({ownMen} contra {foeMen}): {shown}— {plan}");
+                        Log.Info($"[battle] {commander} ({ownMen} vs {foeMen}): {shown}— {plan}");
                     }
-                    catch (Exception ex) { Log.Error("Órdenes de batalla", ex); }
+                    catch (Exception ex) { Log.Error("Battle orders", ex); }
                 });
             });
         }
@@ -401,9 +401,9 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                                 int done = Apply(team, null, j["orders"] as JArray, c2, f2, me2, true, shown);
                                 string understood = ((string)j["understood"] ?? "").Trim();
                                 Say(done > 0 ? L.F("AIL_6c53dc0f", $"Tus capitanes: {(understood.Length > 2 ? understood : shown.ToString())}") : L.T("AIL_7237f719", "Tus capitanes no saben qué hacer con esa orden."), done > 0 ? new Color(0.55f, 0.9f, 0.55f) : Colors.Gray);
-                                Log.Info($"[batalla] orden del jugador «{text}» → {shown}");
+                                Log.Info($"[battle] player order '{text}' -> {shown}");
                             }
-                            catch (Exception ex) { Log.Error("Orden del jugador en batalla", ex); }
+                            catch (Exception ex) { Log.Error("Player order in battle", ex); }
                         });
                     });
                 }, null, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_ca0dcdf4", "Escribe una orden"))), true);
@@ -425,7 +425,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 if (_mission != m)
                 {
                     _mission = m; Sides.Clear(); _requests = 0; _playerWaiting = false;
-                    Log.Info(cfg.EnableBattleAI ? "[batalla] empieza una batalla campal: IA de táctica activa" : "[batalla] empieza una batalla campal: solo órdenes con tus palabras");
+                    Log.Info(cfg.EnableBattleAI ? "[battle] field battle starts: tactics AI active" : "[battle] field battle starts: only orders in your own words");
                 }
                 float now = m.CurrentTime;
 
@@ -451,7 +451,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     if (men == 0) continue;
 
                     // If the AI hasn't given valid orders in a while, hand formations back to the game's tactics (with long intervals, at most 45 s of slack)
-                    if (s.Held.Count > 0 && s.LastOkAt >= 0f && now - s.LastOkAt > Math.Min(cfg.BattleAIInterval * 2.5f, cfg.BattleAIInterval + 45f)) { Release(s); Log.Info("[batalla] sin decisiones recientes: mando devuelto a las tácticas del juego"); }
+                    if (s.Held.Count > 0 && s.LastOkAt >= 0f && now - s.LastOkAt > Math.Min(cfg.BattleAIInterval * 2.5f, cfg.BattleAIInterval + 45f)) { Release(s); Log.Info("[battle] no recent decisions: command returned to the game's tactics"); }
 
                     if (s.Waiting || _requests >= 2) continue;
                     bool heavyLosses = s.MenAtLastDecision > 0 && men < s.MenAtLastDecision * 0.82f && now >= s.NextAt - cfg.BattleAIInterval + 12f;
@@ -460,7 +460,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     Decide(s, now);
                 }
             }
-            catch (Exception ex) { Log.Error("IA de batalla", ex); _mission = null; Sides.Clear(); }
+            catch (Exception ex) { Log.Error("Battle AI", ex); _mission = null; Sides.Clear(); }
         }
     }
 }

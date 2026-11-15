@@ -79,7 +79,7 @@ namespace AILegacy.Dialogue
                 // A file the engine drops at once would otherwise be started again twice a second
                 if (!playing && _sound != null && _playedFor < 3f && ++_shortRuns >= 3)
                 {
-                    Log.Warn("Música propia: las pistas se cortan nada más empezar; se deja de intentar en esta sesión");
+                    Log.Warn("Own music: tracks cut off right after starting; giving up for this session");
                     _broken = true;
                     Silence();
                     return;
@@ -89,7 +89,7 @@ namespace AILegacy.Dialogue
             }
             catch (Exception ex)
             {
-                Log.Error("Música propia", ex);
+                Log.Error("Own music", ex);
                 _broken = true;                 // never retry every frame
                 Silence();
             }
@@ -161,7 +161,7 @@ namespace AILegacy.Dialogue
             {
                 foreach (var m in Moments) Directory.CreateDirectory(Path.Combine(Root, m));
             }
-            catch (Exception ex) { Log.Warn("Música propia: no se pudieron crear las carpetas: " + ex.Message); }
+            catch (Exception ex) { Log.Warn("Own music: could not create folders: " + ex.Message); }
         }
 
         private static string[] FilesFor(string moment)
@@ -190,7 +190,7 @@ namespace AILegacy.Dialogue
             var ev = SoundEvent.CreateEventFromExternalFile(ProgrammerEvent, file, null, false, false);
             if (ev == null || !ev.IsValid || !ev.Play())
             {
-                Log.Warn("Música propia: el juego no ha podido reproducir " + Path.GetFileName(file));
+                Log.Warn("Own music: the game could not play " + Path.GetFileName(file));
                 try { ev?.Release(); } catch { }
                 _poll = 5f;
                 return;
@@ -201,7 +201,7 @@ namespace AILegacy.Dialogue
             _lastFile = file;
             _playedFor = 0f;
             Duck();
-            Log.Info($"[música] {moment}{(folder != moment ? " (carpeta " + folder + ")" : "")}: {Path.GetFileName(file)}");
+            Log.Info($"[music] {moment}{(folder != moment ? " (folder " + folder + ")" : "")}: {Path.GetFileName(file)}");
         }
 
         private static void ReleaseSound()
@@ -209,7 +209,7 @@ namespace AILegacy.Dialogue
             var ev = _sound;
             _sound = null;
             if (ev == null) return;
-            try { if (ev.IsValid) ev.Release(); } catch (Exception ex) { Log.Warn("Música propia: al soltar la pista: " + ex.Message); }
+            try { if (ev.IsValid) ev.Release(); } catch (Exception ex) { Log.Warn("Own music: releasing the track: " + ex.Message); }
         }
 
         private static void StopTrack()
@@ -237,9 +237,9 @@ namespace AILegacy.Dialogue
                 _psai = t?.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
                 _getVolume = t?.GetMethod("GetVolume", Type.EmptyTypes);
                 _setVolume = t?.GetMethod("SetVolume", new[] { typeof(float) });
-                if (_psai == null || _getVolume == null || _setVolume == null) { _psai = null; Log.Warn("Música propia: no se encuentra el control de volumen de la música del juego; no se bajará"); }
+                if (_psai == null || _getVolume == null || _setVolume == null) { _psai = null; Log.Warn("Own music: game music volume control not found; it will not be lowered"); }
             }
-            catch (Exception ex) { _psai = null; Log.Warn("Música propia: " + ex.Message); }
+            catch (Exception ex) { _psai = null; Log.Warn("Own music: " + ex.Message); }
             return _psai != null;
         }
 

@@ -54,7 +54,7 @@ namespace AILegacy.Web
                 _thread.SetApartmentState(ApartmentState.STA);
                 _thread.Start();
             }
-            catch (Exception ex) { Log.Error("No se pudo abrir el editor", ex); }
+            catch (Exception ex) { Log.Error("Could not open the editor", ex); }
         }
 
         /// <summary>Closes the panel if it's open. Called when leaving the campaign.</summary>
@@ -112,7 +112,7 @@ namespace AILegacy.Web
                 form.HandleCreated += (s, e) =>
                 {
                     try { if (game != IntPtr.Zero && IsWindow(game)) SetWindowLongPtr(form.Handle, GWLP_HWNDPARENT, game); }
-                    catch (Exception ex) { Log.Warn("El editor no pudo engancharse a la ventana del juego: " + ex.Message); }
+                    catch (Exception ex) { Log.Warn("The editor could not attach to the game window: " + ex.Message); }
                 };
                 form.KeyDown += (s, e) => { if (e.KeyCode == Keys.Escape) form.Close(); };
 
@@ -152,7 +152,7 @@ namespace AILegacy.Web
                     }
                     catch (Exception ex)
                     {
-                        Log.Error("WebView2 no pudo arrancar", ex);
+                        Log.Error("WebView2 could not start", ex);
                         MessageBox.Show(form, L.T("AIL_c774d780", "No se pudo cargar el editor dentro del juego (WebView2).\n\nÁbrelo en el navegador: ") + url + "\n\n" + ex.Message,
                             "AI Legacy", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         form.Close();
@@ -170,7 +170,7 @@ namespace AILegacy.Web
             }
             catch (Exception ex)
             {
-                Log.Error("Panel del editor", ex);
+                Log.Error("Editor panel", ex);
                 _form = null;
             }
         }

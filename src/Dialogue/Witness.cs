@@ -69,9 +69,9 @@ namespace AILegacy.Dialogue
                 var knower = famous ? seen[0] : seen.FirstOrDefault(KnowsName);
                 r.Level = knower != null ? 2 : 1;
                 r.ByWhom = (knower ?? seen[0]).Name ?? "";
-                Log.Info($"[testigos] {r.Count} testigo(s); {(r.Level == 2 ? "te reconoce " + r.ByWhom : "nadie sabe tu nombre")}");
+                Log.Info($"[witnesses] {r.Count} witness(es); {(r.Level == 2 ? "recognizes you " + r.ByWhom : "nobody knows your name")}");
             }
-            catch (Exception ex) { Log.Error("Testigos", ex); r.Level = 2; r.Count = 1; }      // on error, assume they were recognized
+            catch (Exception ex) { Log.Error("Witnesses", ex); r.Level = 2; r.Count = 1; }      // on error, assume they were recognized
             return r;
         }
     }

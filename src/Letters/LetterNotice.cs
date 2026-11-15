@@ -43,7 +43,7 @@ namespace AILegacy.Letters
             _onInspect = () =>
             {
                 try { LetterSystem.Open(data.From, data.Text); }
-                catch (Exception ex) { Log.Error("Cartas: abrir desde el aviso", ex); }
+                catch (Exception ex) { Log.Error("Letters: open from the notice", ex); }
                 ExecuteRemove();
             };
         }
@@ -65,7 +65,7 @@ namespace AILegacy.Letters
                 MBInformationManager.AddNotice(new LetterNoticeData(from, text, L.F("AIL_da85936f", $"Carta de {from.Name}"), first));
                 return true;
             }
-            catch (Exception ex) { Log.Error("Cartas: aviso en el mapa", ex); return false; }
+            catch (Exception ex) { Log.Error("Letters: map notice", ex); return false; }
         }
     }
 }

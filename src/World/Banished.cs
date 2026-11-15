@@ -48,9 +48,9 @@ namespace AILegacy.World
                 if (clan == null || k == null || WorldSim.State == null) return;
                 All.RemoveAll(b => b.ClanId == clan.StringId && b.KingdomId == k.StringId);
                 All.Add(new Banishment { ClanId = clan.StringId, KingdomId = k.StringId, Day = CampaignTime.Now.ToDays, RulerId = k.Leader?.StringId, RulerName = k.Leader?.Name?.ToString() });
-                Log.Info($"Destierro: el clan {clan.Name} queda desterrado de {k.Name}");
+                Log.Info($"Banishment: clan {clan.Name} is banished from {k.Name}");
             }
-            catch (Exception ex) { Log.Error("Destierro", ex); }
+            catch (Exception ex) { Log.Error("Banishment", ex); }
         }
 
         public static bool Pardon(Clan clan, Kingdom k)
@@ -59,7 +59,7 @@ namespace AILegacy.World
             {
                 if (clan == null || k == null || WorldSim.State == null) return false;
                 bool any = All.RemoveAll(b => b.ClanId == clan.StringId && b.KingdomId == k.StringId) > 0;
-                if (any) Log.Info($"Destierro: {k.Name} perdona al clan {clan.Name}");
+                if (any) Log.Info($"Banishment: {k.Name} pardons clan {clan.Name}");
                 return any;
             }
             catch { return false; }
@@ -72,7 +72,7 @@ namespace AILegacy.World
             {
                 if (clan == Clan.PlayerClan)
                     WorldSim.Say(L.F("AIL_b7d2f010", $"Tu clan está desterrado de {k.Name}. No puedes volver hasta que su soberano te perdone."), Colors.Red);
-                Log.Info($"Destierro: se impide que el clan {clan.Name} vuelva a {k.Name}");
+                Log.Info($"Banishment: clan {clan.Name} is blocked from returning to {k.Name}");
             }
             catch { }
             return false;
@@ -97,7 +97,7 @@ namespace AILegacy.World
                     }
                 }
             }
-            catch (Exception ex) { Log.Error("Destierros: repaso diario", ex); }
+            catch (Exception ex) { Log.Error("Banishments: daily review", ex); }
         }
 
         private static string Ago(double day)

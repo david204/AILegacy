@@ -75,7 +75,7 @@ namespace AILegacy.Scenes
                 var h = _pending; _pending = null;
                 Open(h);
             }
-            catch (Exception ex) { Log.Error("Hablar en la escena", ex); _pending = null; }
+            catch (Exception ex) { Log.Error("Talking in the scene", ex); _pending = null; }
         }
 
         private static void Open(Hero h)
@@ -83,9 +83,9 @@ namespace AILegacy.Scenes
             var party = h.PartyBelongedTo;
             if (party == null || !h.IsAlive) return;
             string scene = Campaign.Current.Models.SceneModel.GetConversationSceneForMapPosition(party.Position);
-            if (string.IsNullOrEmpty(scene)) { Log.Warn("[escena del mapa] no hay escena para este terreno"); return; }
+            if (string.IsNullOrEmpty(scene)) { Log.Warn("[map scene] no scene for this terrain"); return; }
             var rec = SandBoxMissions.CreateSandBoxMissionInitializerRecord(scene, "", false, DecalAtlasGroup.Town);
-            Log.Info($"[escena del mapa] se abre «{scene}» para hablar con {h.Name}{(AtWar(h) ? " (enemigo: parlamento)" : "")}");
+            Log.Info($"[map scene] opening '{scene}' to talk with {h.Name}{(AtWar(h) ? " (enemy: parley)" : "")}");
             _open = true; _current = h;
             MissionState.OpenNew(MissionName, rec, mission => new MissionBehavior[]
             {
@@ -110,10 +110,10 @@ namespace AILegacy.Scenes
                 {
                     // With an enemy, the parley doesn't end the encounter. It's still there back on the map (attack, surrender,
                     // ask to be let go...) unless the talk already settled it.
-                    if (who != null && AtWar(who) && who.IsAlive && !who.IsPrisoner) { Log.Info("[escena del mapa] fin del parlamento con un enemigo: el encuentro sigue"); return; }
+                    if (who != null && AtWar(who) && who.IsAlive && !who.IsPrisoner) { Log.Info("[map scene] parley with an enemy ended: the encounter continues"); return; }
                     if (PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement && !Combat.KeepEncounter) PlayerEncounter.Finish(true);
                 }
-                catch (Exception ex) { Log.Error("Cerrar el encuentro tras la escena", ex); }
+                catch (Exception ex) { Log.Error("Closing the encounter after the scene", ex); }
             });
         }
     }
@@ -134,7 +134,7 @@ namespace AILegacy.Scenes
                 var player = Hero.MainHero;
                 Mission.PlayerTeam = Mission.Teams.Add(BattleSideEnum.Attacker, player.MapFaction.Color, player.MapFaction.Color2);
                 // Empty second team. Whoever fights you (duel, brawl) is moved there for the fight
-                try { Mission.Teams.Add(BattleSideEnum.Defender, _party.MapFaction?.Color ?? uint.MaxValue, _party.MapFaction?.Color2 ?? uint.MaxValue); } catch (Exception ex) { Log.Warn("Segundo bando de la escena: " + ex.Message); }
+                try { Mission.Teams.Add(BattleSideEnum.Defender, _party.MapFaction?.Color ?? uint.MaxValue, _party.MapFaction?.Color2 ?? uint.MaxValue); } catch (Exception ex) { Log.Warn("Second side of the scene: " + ex.Message); }
 
                 // Spawn points that the game's conversation scenes come with
                 MatrixFrame mine = MatrixFrame.Identity, theirs = MatrixFrame.Identity;
@@ -174,7 +174,7 @@ namespace AILegacy.Scenes
                 if (fight != null && lordAgent != null) Combat.QueueSceneFight(Speaker.FromHero(_lord), lordAgent, fight, 4f);
                 else InformationManager.DisplayMessage(new InformationMessage(Hotkeys.Fix(L.F("AIL_7c146680", $"Estás frente a {_lord.Name}. F para hablarle, Alt+T para hablar a los que tengas cerca, Tab para marcharte.")), Colors.Yellow));
             }
-            catch (Exception ex) { Log.Error("Montar la escena del mapa", ex); }
+            catch (Exception ex) { Log.Error("Building the map scene", ex); }
         }
 
         private Vec3 Ground(Vec3 p)
@@ -195,7 +195,7 @@ namespace AILegacy.Scenes
                 foreach (var e in roster.Where(e => !e.Character.IsHero && e.Number - e.WoundedNumber > 0).OrderByDescending(e => e.Character.Tier))
                     for (int i = 0; i < e.Number - e.WoundedNumber && list.Count < max; i++) list.Add(e.Character);
             }
-            catch (Exception ex) { Log.Error("Escolta de la escena", ex); }
+            catch (Exception ex) { Log.Error("Scene escort", ex); }
             return list;
         }
 
@@ -226,7 +226,7 @@ namespace AILegacy.Scenes
                 if (!isPlayer && agent != null) { try { agent.SetLookAgent(null); } catch { } }
                 return agent;
             }
-            catch (Exception ex) { Log.Error($"Poner a {c?.Name} en la escena", ex); return null; }
+            catch (Exception ex) { Log.Error($"Placing {c?.Name} in the scene", ex); return null; }
         }
 
         protected override void OnEndMission()

@@ -147,7 +147,7 @@ namespace AILegacy.World
                 var src = WorldSim.State?.Laws;
                 if (src != null) foreach (var law in src.ToArray()) if (law != null) Upgrade(law);
             }
-            catch (Exception ex) { Log.Error("[leyes] poner al día leyes antiguas", ex); }
+            catch (Exception ex) { Log.Error("[laws] updating old laws", ex); }
             _dirty = true;
         }
 
@@ -186,7 +186,7 @@ namespace AILegacy.World
                         foreach (var kv in tmp) snap.ByKingdom[kv.Key] = kv.Value.ToDictionary(x => x.Key, x => x.Value.ToArray());
                     }
                 }
-                catch (Exception ex) { Log.Error("[leyes] índice de efectos", ex); }
+                catch (Exception ex) { Log.Error("[laws] effects index", ex); }
                 _snap = snap;
                 return snap;
             }
@@ -565,7 +565,7 @@ Effects on the parties led by the lords of the realm. target = all, ruler (only 
                 }
                 return TRuler.Format(pairs.ToArray());
             }
-            catch (Exception ex) { Log.Error("[leyes] texto para el soberano", ex); return ""; }
+            catch (Exception ex) { Log.Error("[laws] text for the ruler", ex); return ""; }
         }
 
         /// <summary>What someone living in that kingdom knows of its laws. Empty when there is nothing to know.</summary>

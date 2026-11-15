@@ -70,12 +70,12 @@ namespace AILegacy.World
                     last[key] = now;
                     parties++;
                 }
-                if (parties > 0) Log.Info($"[arena] {parties} señor(es) entrenan a sus tropas en la arena ({men} soldados)");
+                if (parties > 0) Log.Info($"[arena] {parties} lord(s) training troops in the arena ({men} soldiers)");
                 // Parties that no longer exist
                 if (last.Count > 300)
                     foreach (var k in last.Where(kv => kv.Key.StartsWith(KeyPrefix) && now - kv.Value > 24 * 30).Select(kv => kv.Key).ToList()) last.Remove(k);
             }
-            catch (Exception ex) { Log.Error("Entrenamiento de tropas de señores en la arena", ex); }
+            catch (Exception ex) { Log.Error("Lords' troop training in the arena", ex); }
         }
     }
 }

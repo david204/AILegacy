@@ -117,7 +117,7 @@ namespace AILegacy.Core
                         }
                     }
                 }
-                catch (Exception ex) { Log.Warn($"No se pudo leer {path}: {ex.Message}"); }
+                catch (Exception ex) { Log.Warn($"Could not read {path}: {ex.Message}"); }
                 Tables[code] = t;
                 return t;
             }
@@ -153,7 +153,7 @@ namespace AILegacy.Core
                 foreach (var kv in mine) dict[kv.Key] = kv.Value;
                 _synced = code;
             }
-            catch (Exception ex) { try { Log.Warn("Textos en la tabla del juego: " + ex.Message); } catch { } }
+            catch (Exception ex) { try { Log.Warn("Texts in the game table: " + ex.Message); } catch { } }
         }
 
         /// <summary>Translation in the current language (or English), or null.</summary>

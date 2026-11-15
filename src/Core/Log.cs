@@ -26,8 +26,8 @@ namespace AILegacy.Core
             int n;
             lock (Gate) { Seen.TryGetValue(key, out n); Seen[key] = ++n; if (Seen.Count > 500) Seen.Clear(); }
             if (n <= FullTimes) { Write("ERROR", ex == null ? msg : msg + " :: " + ex); return; }
-            if (n == FullTimes + 1) { Write("ERROR", $"{msg} :: se repite ({ex?.GetType().Name}); a partir de ahora solo se apunta el recuento"); return; }
-            if (n == 10 || n == 100 || n == 1000 || n % 10000 == 0) Write("ERROR", $"{msg} :: ya van {n} veces ({ex?.GetType().Name})");
+            if (n == FullTimes + 1) { Write("ERROR", $"{msg} :: repeats ({ex?.GetType().Name}); from now on only a count is logged"); return; }
+            if (n == 10 || n == 100 || n == 1000 || n % 10000 == 0) Write("ERROR", $"{msg} :: {n} times so far ({ex?.GetType().Name})");
         }
 
         private static string FirstFrame(Exception ex)

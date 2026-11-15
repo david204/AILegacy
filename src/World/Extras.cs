@@ -65,9 +65,9 @@ namespace AILegacy.World
                 var st = Settlement.CurrentSettlement;
                 if (st != null) LastAt[st.StringId] = CampaignTime.Now.ToHours;
                 InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_980877af", $"Tus hombres terminan el entrenamiento: {trained} han ganado experiencia") + (hurt > 0 ? L.F("AIL_66fb1576", $", {hurt} se han lesionado.") : "."), Colors.Green));
-                Log.Info($"[arena] entrenamiento terminado: {trained} entrenados, {hurt} lesionados");
+                Log.Info($"[arena] training finished: {trained} trained, {hurt} injured");
             }
-            catch (Exception ex) { Log.Error("Fin del entrenamiento", ex); }
+            catch (Exception ex) { Log.Error("Training end", ex); }
             try { if (PlayerEncounter.Current != null) PlayerEncounter.Current.IsPlayerWaiting = false; } catch { }
             GameMenu.SwitchToMenu("town_arena");
         }
@@ -175,7 +175,7 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
                 WorldSim.Ask(L.T("AIL_58e1ca60", "personaje único"), new List<ChatMessage> { new ChatMessage("user", prompt) }, 900,
                     j => { WorldSim.State.NextUniqueDay = next; Create(town, j); }, key: "unique");
             }
-            catch (Exception ex) { Log.Error("Personajes únicos", ex); }
+            catch (Exception ex) { Log.Error("Unique characters", ex); }
         }
 
         private static void Create(Settlement town, JObject j)
@@ -214,9 +214,9 @@ Answer ONLY with JSON: { ""name"": ""a first name that fits the culture (and a b
                 });
                 InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_1c42ff4a", $"Se cuenta por {town.Name}: ha llegado {name}, {role}."), new Color(0.4f, 0.9f, 0.95f)));
                 SaveFiles.Flush();
-                Log.Info($"[únicos] {name} ({role}) llega a {town.Name} [{hero.StringId}]");
+                Log.Info($"[uniques] {name} ({role}) arrives in {town.Name} [{hero.StringId}]");
             }
-            catch (Exception ex) { Log.Error("Crear personaje único", ex); }
+            catch (Exception ex) { Log.Error("Create unique character", ex); }
         }
     }
 
@@ -272,7 +272,7 @@ Answer ONLY with JSON: { ""title"": ""3 to 7 words"", ""text"": ""the chronicle"
                     InformationManager.ShowInquiry(new InquiryData(title, text, true, false, L.T("AIL_e8438e2a", "Cerrar"), "", null, null), true);
                 }, key: "chronicle:" + id);
             }
-            catch (Exception ex) { Log.Error("Crónica de una muerte", ex); }
+            catch (Exception ex) { Log.Error("Death chronicle", ex); }
         }
     }
 }

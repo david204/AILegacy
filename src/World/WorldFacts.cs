@@ -172,7 +172,7 @@ namespace AILegacy.World
                 }
                 Finish(t, factions, string.IsNullOrEmpty(n.SettlementId) ? null : Settlement.Find(n.SettlementId));
             }
-            catch (Exception ex) { Log.Error("Hechos de una noticia", ex); }
+            catch (Exception ex) { Log.Error("Facts of a news item", ex); }
             return t;
         }
 
@@ -187,7 +187,7 @@ namespace AILegacy.World
                 if (p != null && text.IndexOf(p.Name.ToString(), StringComparison.OrdinalIgnoreCase) >= 0) AddHero(t, p, factions);
                 Finish(t, factions, where);
             }
-            catch (Exception ex) { Log.Error("Hechos de un suceso", ex); }
+            catch (Exception ex) { Log.Error("Facts of an event", ex); }
             return t;
         }
 
@@ -205,7 +205,7 @@ namespace AILegacy.World
                 t.Facts = fresh.Facts;
                 t.Kingdoms = fresh.Kingdoms;
             }
-            catch (Exception ex) { Log.Error("Hechos de un suceso, al releerlos", ex); }
+            catch (Exception ex) { Log.Error("Facts of an event, on re-reading", ex); }
         }
 
         /// <summary>The date in the words of this world, for every prompt that reasons about time.</summary>
@@ -269,7 +269,7 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
                 if (lines.Count == 0) return "";
                 return TDead.Format("dead", string.Join("\n", lines.OrderBy(l => l.Key).Take(max).Select(l => l.Value)));
             }
-            catch (Exception ex) { Log.Error("Lista de muertos para la IA", ex); return ""; }
+            catch (Exception ex) { Log.Error("Dead list for the AI", ex); return ""; }
         }
 
         // ============================================================ the world as plain data, for the checks
@@ -329,7 +329,7 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
                     if (!string.IsNullOrEmpty(first) && first != name) m.AddDead(first, h.StringId);
                 }
             }
-            catch (Exception ex) { Log.Error("Muertos para la comprobación de hechos", ex); }
+            catch (Exception ex) { Log.Error("Dead for fact checking", ex); }
             return m;
         }
 
@@ -396,7 +396,7 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
                     if (minor.Count > 0) lines.Add(new KeyValuePair<string, string>(null, "- Under no crown (minor and independent clans; nobody's subjects): " + string.Join(", ", minor) + "."));
                     if (rebels.Count > 0) lines.Add(new KeyValuePair<string, string>(null, "- Rebel clans, under no crown: " + string.Join(", ", rebels) + "."));
                 }
-                catch (Exception ex) { Log.Error("Lista de clanes por reino", ex); }
+                catch (Exception ex) { Log.Error("Clan list per kingdom", ex); }
                 _roster = lines; _rosterDay = day; _rosterFor = Campaign.Current;
             }
             return Fit(_roster, RosterBudget, keep, "");
@@ -455,7 +455,7 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
                         gap[FactCheck.Pair(ids[i], ids[j])] = d.Take(3).Average();
                     }
             }
-            catch (Exception ex) { Log.Error("Geografía de los reinos", ex); }
+            catch (Exception ex) { Log.Error("Kingdom geography", ex); }
             _gap = gap;
             _span = maxX > minX ? (float)Math.Sqrt((maxX - minX) * (maxX - minX) + (maxY - minY) * (maxY - minY)) : 0f;
         }
@@ -532,7 +532,7 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
                     lines.Add(new KeyValuePair<string, string>(k.StringId, sb.Append('.').ToString()));
                 }
             }
-            catch (Exception ex) { Log.Error("Geografía para la IA", ex); }
+            catch (Exception ex) { Log.Error("Geography for the AI", ex); }
             return lines.Count == 0 ? "  (unknown)" : Fit(lines, GeographyBudget, keep, "  ");
         }
 

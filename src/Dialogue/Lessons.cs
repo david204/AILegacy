@@ -59,7 +59,7 @@ Answer ONLY with JSON: { ""reasoning"": ""..."", ""verdict"": ""missed|missing|p
                 }
                 return _global;
             }
-            catch (Exception ex) { Log.Error("Leer lecciones", ex); return new List<string>(); }
+            catch (Exception ex) { Log.Error("Read lessons", ex); return new List<string>(); }
         }
 
         private static void Store(List<string> list)
@@ -72,7 +72,7 @@ Answer ONLY with JSON: { ""reasoning"": ""..."", ""verdict"": ""missed|missing|p
                 File.WriteAllLines(GlobalFile, lines, new UTF8Encoding(false));
                 _global = list.ToList(); _globalStamp = File.GetLastWriteTimeUtc(GlobalFile);
             }
-            catch (Exception ex) { Log.Error("Guardar lecciones", ex); }
+            catch (Exception ex) { Log.Error("Save lessons", ex); }
         }
 
         /// <summary>The block for the shared part of the dialogue prompt, or "".</summary>
@@ -103,7 +103,7 @@ Answer ONLY with JSON: { ""reasoning"": ""..."", ""verdict"": ""missed|missing|p
                 at = list.Count;
             }
             Store(list);
-            Log.Info($"[lección] guardada ({at} de {list.Count}): {lesson}");
+            Log.Info($"[lesson] saved ({at} of {list.Count}): {lesson}");
             return at;
         }
 
@@ -111,7 +111,7 @@ Answer ONLY with JSON: { ""reasoning"": ""..."", ""verdict"": ""missed|missing|p
         {
             var list = Current().ToList();
             if (number < 1 || number > list.Count) return false;
-            Log.Info($"[lección] borrada: {list[number - 1]}");
+            Log.Info($"[lesson] deleted: {list[number - 1]}");
             list.RemoveAt(number - 1);
             Store(list);
             return true;
@@ -141,7 +141,7 @@ Answer ONLY with JSON: { ""reasoning"": ""..."", ""verdict"": ""missed|missing|p
             msgs.Add(new ChatMessage("user", TReview.Format("complaint", complaint.Replace("«", "\"").Replace("»", "\""), "count", list.Count,
                 "max", Math.Max(5, cfg.PlayerLessonsMax), "lessons", numbered, "language", cfg.Language)));
             int session = WorldSim.Session;
-            Log.Info($"[lección] revisando la última respuesta de {npcName}: {complaint}");
+            Log.Info($"[lesson] reviewing last reply from {npcName}: {complaint}");
             LlmClient.CompleteAsync(msgs, wantJson: true, task: "lesson", maxTokensOverride: 900, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
@@ -159,10 +159,10 @@ Answer ONLY with JSON: { ""reasoning"": ""..."", ""verdict"": ""missed|missing|p
                         string forPlayer = ((string)j["for_player"] ?? "").Trim();
                         int replaces = 0;
                         try { replaces = (int?)j["replaces"] ?? 0; } catch { }
-                        Log.Info($"[lección] veredicto {verdict}: {((string)j["reasoning"] ?? "").Replace("\n", " ")}");
+                        Log.Info($"[lesson] verdict {verdict}: {((string)j["reasoning"] ?? "").Replace("\n", " ")}");
                         if (verdict == "missing")
                         {
-                            Log.Warn($"[lección] FALTABA EN EL PROMPT ({npcName}): {complaint} | {forPlayer}");
+                            Log.Warn($"[lesson] MISSING FROM PROMPT ({npcName}): {complaint} | {forPlayer}");
                             say(L.F("AIL_e7b1c7bf", $"{forPlayer}\n\nEl fallo es del mod: le faltaba información. Queda anotado en el registro para corregirlo."), false);
                             return;
                         }
@@ -180,9 +180,9 @@ Answer ONLY with JSON: { ""reasoning"": ""..."", ""verdict"": ""missed|missing|p
                                 int at = Add(lesson, replaces);
                                 say(L.F("AIL_e7b1c7be", $"Lección guardada ({at} de {Current().Count})."), false);
                             },
-                            () => Log.Info("[lección] descartada por el jugador")), true);
+                            () => Log.Info("[lesson] discarded by the player")), true);
                     }
-                    catch (Exception ex) { Log.Error("Revisión de una respuesta", ex); say(L.T("AIL_e7b1c7c1", "La revisión no ha llegado (la IA no ha respondido)."), true); }
+                    catch (Exception ex) { Log.Error("Reply review", ex); say(L.T("AIL_e7b1c7c1", "La revisión no ha llegado (la IA no ha respondido)."), true); }
                 });
             });
         }
