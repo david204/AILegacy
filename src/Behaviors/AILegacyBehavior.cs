@@ -48,6 +48,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.TournamentFinished.AddNonSerializedListener(this, World.Mood.OnTournamentFinished);
             CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener(this, World.Mood.OnPrisonerReleased);
             CampaignEvents.WarDeclared.AddNonSerializedListener(this, World.Mood.OnWarDeclared);
+            CampaignEvents.WarDeclared.AddNonSerializedListener(this, Diplomacy.OnWarDeclared);
             CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(this, World.Mood.OnGivenBirth);
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             // Political history: rulers and fief owners

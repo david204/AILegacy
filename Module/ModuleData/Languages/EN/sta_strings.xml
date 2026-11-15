@@ -2122,5 +2122,10 @@
     <string id="AIL_e7b1c80b" text="Cruel plotters with a deep hatred may try to have someone killed. Against you it is always warned of first, and there is always a way out: hired blades you can fight, a poison a physician can treat, or your own guards stopping them. Against other nobles it can succeed and they die. Off: nobody plots a death." />
     <string id="AIL_e7b1c80c" text="Intrigue: seducing a spouse" />
     <string id="AIL_e7b1c80d" text="A plotter may court their target's husband or wife behind their back: the spouse warms to them and cools to the target, and in the end tongues wag. Yours too. Recommended: off unless you want it." />
+    <string id="AIL_e7b1c811" text="{0} has broken its truce with {1}: the other kingdoms turn their backs on it." />
+    <string id="AIL_e7b1c812" text="{0} breaks the truce" />
+    <string id="AIL_e7b1c813" text="{0} has declared war on {1} without honouring the truce. The other kingdoms break their pacts with it and want no dealings while the shame lasts." />
+    <string id="AIL_e7b1c814" text="House rule: days a truce-breaker is shunned (0 = never)" />
+    <string id="AIL_e7b1c815" text="A kingdom that declares war while its truce with that enemy still runs (you, or anyone another mod lets do it) is shunned for this many days: the other crowns end their alliances and trade with it, none will make a new pact with it, and they know it as a fair target. Recommended: 42 to 84; 0 turns it off." />
   </strings>
 </base>

@@ -2027,6 +2027,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
         public int MinTruceDays { get; set; } = 42;
 
+        [SettingPropertyInteger("{=AIL_e7b1c814}House rule: days a truce-breaker is shunned (0 = never)", 0, 336, Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c815}A kingdom that declares war while its truce with that enemy still runs (you, or anyone another mod lets do it) is shunned for this many days: the other crowns end their alliances and trade with it, none will make a new pact with it, and they know it as a fair target. Recommended: 42 to 84; 0 turns it off.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]
+        public int PariahDays { get; set; } = 84;
+
         [SettingPropertyInteger("{=AIL_e7b1c750}Forced peace after this many days of a stalemate war (0 = off)", 0, 840, Order = 3, RequireRestart = false,
             HintText = "{=AIL_e7b1c751}When two AI kingdoms have been at war this long and no town or castle has changed hands between them in all that time, the war ends by itself, with a news item: nobody can keep it up. One such peace a day at most. A year of Calradia is 84 days. Never applied to a kingdom you rule. Kings are told how close each of their wars is to this. Afterwards neither of the two may declare war on the other for 84 days, or for the truce set above if that is longer. Recommended: 126 to 252 (a year and a half to three years); 0 turns it off.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c74f}Campaign rules", GroupOrder = 10)]

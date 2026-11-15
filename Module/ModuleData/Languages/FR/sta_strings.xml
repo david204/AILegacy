@@ -2122,5 +2122,10 @@
     <string id="AIL_e7b1c80b" text="Les comploteurs cruels animés d’une haine profonde peuvent tenter de faire tuer quelqu’un. Contre vous, il y a toujours un avertissement d’abord et toujours une issue : des tueurs à gages que vous pouvez combattre, un poison qu’un médecin peut soigner, ou votre propre garde qui les arrête. Contre d’autres nobles, cela peut réussir et ils meurent. Désactivé : personne ne complote une mort." />
     <string id="AIL_e7b1c80c" text="Intrigue : séduire un conjoint" />
     <string id="AIL_e7b1c80d" text="Un comploteur peut courtiser en cachette le mari ou la femme de sa cible : le conjoint se rapproche de lui et se refroidit envers la cible, et à la fin les langues se délient. Le vôtre aussi. Recommandé : désactivé, sauf si vous le voulez." />
+    <string id="AIL_e7b1c811" text="{0} a rompu sa trêve avec {1} : les autres royaumes lui tournent le dos." />
+    <string id="AIL_e7b1c812" text="{0} rompt la trêve" />
+    <string id="AIL_e7b1c813" text="{0} a déclaré la guerre à {1} sans respecter la trêve. Les autres royaumes rompent leurs pactes avec lui et ne veulent aucun échange tant que dure la honte." />
+    <string id="AIL_e7b1c814" text="Règle de la maison : jours de mise à l’écart pour qui rompt une trêve (0 = jamais)" />
+    <string id="AIL_e7b1c815" text="Un royaume qui déclare la guerre alors que sa trêve avec cet ennemi court encore (vous, ou quiconque un autre mod laisse faire) est mis à l’écart pendant ce nombre de jours : les autres couronnes mettent fin à leurs alliances et à leur commerce avec lui, aucune ne conclut de nouveau pacte avec lui, et elles le tiennent pour une cible légitime. Recommandé : de 42 à 84 ; 0 le désactive." />
   </strings>
 </base>

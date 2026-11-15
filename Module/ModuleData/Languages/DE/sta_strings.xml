@@ -2122,5 +2122,10 @@
     <string id="AIL_e7b1c80b" text="Grausame Verschwörer mit tiefem Hass können versuchen, jemanden töten zu lassen. Gegen dich gibt es immer zuerst eine Warnung und immer einen Ausweg: gedungene Mörder, gegen die du kämpfen kannst, ein Gift, das ein Arzt behandeln kann, oder deine eigene Wache, die sie aufhält. Gegen andere Adlige kann es gelingen, und sie sterben. Aus: Niemand plant einen Tod." />
     <string id="AIL_e7b1c80c" text="Intrige: einen Ehepartner verführen" />
     <string id="AIL_e7b1c80d" text="Ein Verschwörer kann heimlich um den Mann oder die Frau seines Ziels werben: Der Ehepartner wendet sich ihm zu und kühlt gegenüber dem Ziel ab, und am Ende wird getratscht. Auch deiner. Empfohlen: aus, es sei denn, du willst es." />
+    <string id="AIL_e7b1c811" text="{0} hat den Waffenstillstand mit {1} gebrochen: Die anderen Reiche wenden sich ab." />
+    <string id="AIL_e7b1c812" text="{0} bricht den Waffenstillstand" />
+    <string id="AIL_e7b1c813" text="{0} hat {1} den Krieg erklärt, ohne den Waffenstillstand zu achten. Die anderen Reiche brechen ihre Bündnisse mit ihm und wollen nichts mit ihm zu tun haben, solange die Schande währt." />
+    <string id="AIL_e7b1c814" text="Hausregel: Tage der Ächtung für Waffenstillstandsbrecher (0 = nie)" />
+    <string id="AIL_e7b1c815" text="Ein Reich, das den Krieg erklärt, während sein Waffenstillstand mit diesem Feind noch gilt (du, oder jeder, dem eine andere Mod das erlaubt), wird so viele Tage geächtet: Die anderen Kronen beenden Bündnisse und Handel mit ihm, keine schließt einen neuen Pakt mit ihm, und sie sehen es als legitimes Ziel. Empfohlen: 42 bis 84; 0 schaltet es ab." />
   </strings>
 </base>

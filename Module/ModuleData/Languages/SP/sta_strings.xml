@@ -2122,5 +2122,10 @@
     <string id="AIL_e7b1c80b" text="Los conspiradores crueles con un odio profundo pueden intentar que maten a alguien. Contra ti siempre hay un aviso antes y siempre hay salida: asesinos a sueldo a los que puedes plantar cara, un veneno que un médico puede tratar o tu propia guardia que los detiene. Contra otros nobles puede salir bien y mueren. Desactivado: nadie trama una muerte." />
     <string id="AIL_e7b1c80c" text="Intriga: seducir a un cónyuge" />
     <string id="AIL_e7b1c80d" text="Un conspirador puede cortejar a escondidas al marido o la mujer de su objetivo: el cónyuge se acerca a él y se enfría con el objetivo, y al final corren las habladurías. El tuyo también. Recomendado: desactivado salvo que lo quieras." />
+    <string id="AIL_e7b1c811" text="{0} ha roto la tregua con {1}: los demás reinos le dan la espalda." />
+    <string id="AIL_e7b1c812" text="{0} rompe la tregua" />
+    <string id="AIL_e7b1c813" text="{0} ha declarado la guerra a {1} sin respetar la tregua. Los demás reinos rompen sus pactos con él y no quieren tratos mientras dure la vergüenza." />
+    <string id="AIL_e7b1c814" text="Regla de la casa: días que se margina a quien rompe una tregua (0 = nunca)" />
+    <string id="AIL_e7b1c815" text="Un reino que declara la guerra mientras sigue en vigor su tregua con ese enemigo (tú, o cualquiera al que otro mod se lo permita) queda marginado estos días: las demás coronas rompen sus alianzas y su comercio con él, ninguna hace un pacto nuevo con él y lo tienen por objetivo legítimo. Recomendado: de 42 a 84; 0 lo desactiva." />
   </strings>
 </base>

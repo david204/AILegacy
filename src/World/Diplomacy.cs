@@ -370,6 +370,7 @@ namespace AILegacy.World
 
         private static string AllianceBlocked(Kingdom k, Kingdom o)
         {
+            { string pariah = PariahBlocked(k, o); if (pariah != null) return pariah; }
             int max = S.Get.MaxAlliancesPerKingdom;
             if (max <= 0 || k == null || o == null || PlayerRules(k) || PlayerRules(o)) return null;
             // with "a new alliance replaces the old one" a kingdom at its limit still has room: once the new one is
@@ -992,8 +993,70 @@ siege: far away, but under your siege right now");
             return string.Join("\n", text.Split('\n').Where(l => l.Trim().Length > 0));
         }
 
+        // ============================================================ a truce broken: the pariah
+
+        private static readonly Tpl TRulePariah = new Tpl("kingdom_statement/rule_pariah.txt",
+            "- {name} ({id}) broke a truce with {victim} {days} day(s) ago. Until the shame fades, in {left} day(s), no crown makes or accepts an alliance or a trade agreement with them, and a crown with a war to spare may fairly make them its target.");
+
+        /// <summary>Days left of the shame of a kingdom that broke a truce. 0 = none.</summary>
+        public static int PariahDaysLeft(Kingdom k)
+        {
+            try
+            {
+                if (k == null || St?.Pariahs == null || !St.Pariahs.TryGetValue(k.StringId, out var p)) return 0;
+                double left = p.Until - CampaignTime.Now.ToDays;
+                return left > 0 ? (int)Math.Ceiling(left) : 0;
+            }
+            catch { return 0; }
+        }
+
+        /// <summary>No AI crown deals with a kingdom that broke a truce, nor the other way round. Null if nothing stops it.</summary>
+        private static string PariahBlocked(Kingdom k, Kingdom o)
+        {
+            if (k == null || o == null || S.Get.PariahDays <= 0) return null;
+            // the player decides for their own realm; the AI crowns decide for theirs
+            if (!PlayerRules(k) && PariahDaysLeft(o) > 0) return $"{o.Name} rompió una tregua: nadie hace pactos con su reino en {PariahDaysLeft(o)} días";
+            if (!PlayerRules(o) && PariahDaysLeft(k) > 0) return $"{k.Name} rompió una tregua: nadie hace pactos con su reino en {PariahDaysLeft(k)} días";
+            return null;
+        }
+
+        /// <summary>A war was declared. If the truce after their last peace was still running, the one who declared it is shunned.</summary>
+        public static void OnWarDeclared(IFaction a, IFaction b, DeclareWarAction.DeclareWarDetail detail)
+        {
+            try
+            {
+                if (!Enabled || S.Get.PariahDays <= 0 || !(a is Kingdom k) || !(b is Kingdom o) || St == null) return;
+                // the truce a ruler is bound by, measured from the last peace (the war has already started, so it is read by hand)
+                double since = -1;
+                try { var link = k.GetStanceWith(o); if (link != null) since = CampaignTime.Now.ToDays - link.PeaceDeclarationDate.ToDays; } catch { }
+                bool truce = (S.Get.MinTruceDays > 0 && since >= 0 && since < S.Get.MinTruceDays);
+                if (!truce && St.ForcedTruceUntil != null && St.ForcedTruceUntil.TryGetValue(FactCheck.Pair(k.StringId, o.StringId), out double until))
+                    truce = until > CampaignTime.Now.ToDays && until - CampaignTime.Now.ToDays <= 400;
+                if (!truce) return;
+                if (St.Pariahs == null) St.Pariahs = new Dictionary<string, Pariah>();
+                St.Pariahs[k.StringId] = new Pariah { VictimId = o.StringId, Day = CampaignTime.Now.ToDays, Until = CampaignTime.Now.ToDays + S.Get.PariahDays };
+                // their pacts go with their good name
+                foreach (var x in WorldSim.Kingdoms.Where(x => x != k && x != o).ToList())
+                {
+                    if (PlayerRules(x)) continue;
+                    if (Allied(k, x)) { EndAlliance(k, x); Log.Info($"[diplomacia] {x.Name} rompe su alianza con {k.Name}, que rompió una tregua"); }
+                    if (HasTrade(k, x)) EndTrade(k, x);
+                }
+                WorldSim.Say(L.F("AIL_e7b1c811", $"{k.Name} ha roto la tregua con {o.Name}: los demás reinos le dan la espalda."), PlayerRules(k) ? Colors.Red : Colors.Yellow);
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "news", Importance = 3, Text = $"{k.Name} broke its truce with {o.Name} and declared war: the other crowns shun it.",
+                    TitleEs = L.F("AIL_e7b1c812", $"{k.Name} rompe la tregua"), TextEs = L.F("AIL_e7b1c813", $"{k.Name} ha declarado la guerra a {o.Name} sin respetar la tregua. Los demás reinos rompen sus pactos con él y no quieren tratos mientras dure la vergüenza."),
+                    Kingdoms = new List<string> { k.StringId, o.StringId },
+                });
+                Log.Info($"[diplomacia] {k.Name} rompe la tregua con {o.Name}: paria {S.Get.PariahDays} días");
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] tregua rota", ex); }
+        }
+
         private static string TradeBlocked(Kingdom k, Kingdom o)
         {
+            { string pariah = PariahBlocked(k, o); if (pariah != null) return pariah; }
             int max = S.Get.MaxTradePactsPerKingdom;
             if (max <= 0 || k == null || o == null || PlayerRules(k) || PlayerRules(o)) return null;
             if (TradeCount(k) >= max) return $"{k.Name} ya tiene {TradeCount(k)} acuerdos comerciales (límite {max})";
@@ -1041,6 +1104,17 @@ siege: far away, but under your siege right now");
             }
             var mine = PlayerRealm;
             if (!cfg.AiOffersPactsToPlayer && PlayerRules(mine) && mine != k) lines.Add(TRuleNoPactsToPlayer.Format("kingdom", mine.StringId, "ruler", Hero.MainHero.Name));
+            // kingdoms that broke a truce
+            try
+            {
+                foreach (var x in WorldSim.Kingdoms.Where(x => PariahDaysLeft(x) > 0))
+                {
+                    var p = St.Pariahs[x.StringId];
+                    lines.Add(TRulePariah.Format("name", x.Name.ToString(), "id", x.StringId, "victim", WorldSim.FindKingdom(p.VictimId)?.Name?.ToString() ?? p.VictimId,
+                        "days", (int)(CampaignTime.Now.ToDays - p.Day), "left", PariahDaysLeft(x)));
+                }
+            }
+            catch { }
             if (cfg.RefusedProposalCooldownDays > 0)
             {
                 var barred = new List<string>();

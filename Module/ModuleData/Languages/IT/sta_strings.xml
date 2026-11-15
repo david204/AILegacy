@@ -2122,5 +2122,10 @@
     <string id="AIL_e7b1c80b" text="I cospiratori crudeli con un odio profondo possono cercare di far uccidere qualcuno. Contro di te c’è sempre prima un avvertimento e sempre una via d’uscita: sicari che puoi affrontare, un veleno che un medico può curare o la tua guardia che li ferma. Contro altri nobili può riuscire e muoiono. Disattivato: nessuno trama una morte." />
     <string id="AIL_e7b1c80c" text="Intrigo: sedurre un coniuge" />
     <string id="AIL_e7b1c80d" text="Un cospiratore può corteggiare di nascosto il marito o la moglie del suo bersaglio: il coniuge si avvicina a lui e si raffredda con il bersaglio, e alla fine si chiacchiera. Anche il tuo. Consigliato: disattivato, a meno che tu non lo voglia." />
+    <string id="AIL_e7b1c811" text="{0} ha rotto la tregua con {1}: gli altri regni gli voltano le spalle." />
+    <string id="AIL_e7b1c812" text="{0} rompe la tregua" />
+    <string id="AIL_e7b1c813" text="{0} ha dichiarato guerra a {1} senza rispettare la tregua. Gli altri regni rompono i patti con lui e non vogliono rapporti finché dura la vergogna." />
+    <string id="AIL_e7b1c814" text="Regola della casa: giorni di isolamento per chi rompe una tregua (0 = mai)" />
+    <string id="AIL_e7b1c815" text="Un regno che dichiara guerra mentre la tregua con quel nemico è ancora in vigore (tu, o chiunque un’altra mod lo permetta) viene isolato per questi giorni: le altre corone rompono alleanze e commerci con lui, nessuna stringe un nuovo patto con lui e lo considerano un bersaglio legittimo. Consigliato: da 42 a 84; 0 lo disattiva." />
   </strings>
 </base>

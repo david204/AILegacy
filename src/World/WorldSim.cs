@@ -137,6 +137,14 @@ namespace AILegacy.World
     }
 
     /// <summary>All world simulation state. Stored in ailegacy_world.json and in the in-save copy.</summary>
+    /// <summary>A kingdom that broke a truce: against whom, when, and until when the others shun it.</summary>
+    public class Pariah
+    {
+        [JsonProperty("victim")] public string VictimId;
+        [JsonProperty("day")] public double Day;
+        [JsonProperty("until")] public double Until;
+    }
+
     public class WorldState
     {
         [JsonProperty("events")] public List<WorldEvent> Events = new List<WorldEvent>();
@@ -221,6 +229,8 @@ namespace AILegacy.World
         [JsonProperty("war_seen")] public Dictionary<string, double> WarSeenDay = new Dictionary<string, double>();
         /// <summary>Day until which neither may declare war on the other after a peace forced by exhaustion ("a|b").</summary>
         [JsonProperty("forced_truce")] public Dictionary<string, double> ForcedTruceUntil = new Dictionary<string, double>();
+        /// <summary>Kingdoms that broke a truce, shunned by the other crowns for a while.</summary>
+        [JsonProperty("pariahs")] public Dictionary<string, Pariah> Pariahs = new Dictionary<string, Pariah>();
         /// <summary>Per kingdom id: what its AI ruler is told on his next turn about a peace that could not be signed (English).</summary>
         [JsonProperty("peace_notes")] public Dictionary<string, List<string>> PeaceNotes = new Dictionary<string, List<string>>();
         /// <summary>Men each open war has cost its two sides ("a|b"), in all and day by day for the last few days (World/WarTolls.cs).</summary>
