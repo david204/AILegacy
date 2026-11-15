@@ -43,9 +43,22 @@ namespace AILegacy
             }
         }
 
+        /// <summary>The player is still making their character: the campaign exists but is not running yet.</summary>
+        public static bool InCharacterCreation
+        {
+            get
+            {
+                try { return TaleWorlds.Core.GameStateManager.Current?.ActiveState is TaleWorlds.CampaignSystem.CharacterCreationContent.CharacterCreationState; }
+                catch { return false; }
+            }
+        }
+
         protected override void OnApplicationTick(float dt)
         {
             base.OnApplicationTick(dt);
+            // Nothing of the mod runs while the character is being made: it has nothing to do there, and a report of the
+            // game closing at that screen pointed here
+            if (InCharacterCreation) return;
             // Each entry is timed when the performance meter is on (Core/Perf.cs). Off, Begin is one bool check
             long t = Perf.Begin();
             MainThread.Pump();

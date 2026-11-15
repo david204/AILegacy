@@ -19,6 +19,7 @@ namespace AILegacy.Behaviors
 
         public override void RegisterEvents()
         {
+            _creationDone = false; _seedAfterCreation = false;
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, LetterSystem.OnDailyTick);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, LetterSystem.OnHourlyTick);
@@ -78,6 +79,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, Diplomacy.OnNewGameCreated);
             CampaignEvents.OnGameLoadedEvent.AddNonSerializedListener(this, Diplomacy.OnGameLoaded);
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(this, Diplomacy.OnCharacterCreationIsOver);
+            CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(this, OnCreationOver);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Diplomacy.PeaceAtStart);
             // Dates the game does not keep: when a kingdom was founded and when an alliance began
             CampaignEvents.KingdomCreatedEvent.AddNonSerializedListener(this, Diplomacy.OnKingdomCreated);
@@ -181,12 +183,30 @@ namespace AILegacy.Behaviors
             catch (Exception ex) { Log.Error("Error cargando los datos de la campaña", ex); }
         }
 
+        private static bool _seedAfterCreation, _creationDone;
+
+        /// <summary>A new campaign: the important characters are prepared once the player's character exists.</summary>
+        private static void OnCreationOver(int _)
+        {
+            _creationDone = true;
+            if (!_seedAfterCreation) return;
+            _seedAfterCreation = false;
+            SeedCharacters(afterCreation: true);
+            try { SaveFiles.Flush(); } catch (Exception ex) { Log.Error("Archivos", ex); }
+        }
+
         /// <summary>
         /// On new game or load, creates the files for important characters (rulers, your family and clan, story characters)
         /// with their share of world knowledge, before you ever talk to them.
         /// </summary>
-        private static void SeedCharacters()
+        private static void SeedCharacters(bool afterCreation = false)
         {
+            // Before the player's character exists there is nobody to be family or clan of: wait for it
+            bool newGame = false;
+            try { newGame = Campaign.Current?.CampaignGameLoadingType == Campaign.GameLoadingType.NewCampaign; } catch { }
+            // (the event of its end comes while that screen is still the active one)
+            if (!afterCreation && !_creationDone && (SubModule.InCharacterCreation || newGame))
+            { _seedAfterCreation = true; Log.Info("Personajes importantes: se preparan al acabar la creación del personaje"); return; }
             try
             {
                 var p = Hero.MainHero;
