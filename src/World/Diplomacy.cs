@@ -2168,7 +2168,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 if (t != null && t.Type != JTokenType.Null)
                 {
                     if (t.Type == JTokenType.Integer) v = (long)t;
-                    else if (t.Type == JTokenType.Float) v = (long)Math.Round((double)t);
+                    else if (t.Type == JTokenType.Float)
+                    {
+                        // clamp before the cast: an out-of-range double turns into long.MinValue
+                        double d = (double)t;
+                        v = double.IsNaN(d) ? 0 : (long)Math.Round(Math.Max(int.MinValue, Math.Min(int.MaxValue, d)));
+                    }
                     else if (t.Type == JTokenType.String) v = FactCheck.ParseSignedAmount((string)t);
                     // a list or an object is not a number: it reads as none, and the caps decide
                 }
