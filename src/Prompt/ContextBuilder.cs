@@ -37,7 +37,10 @@ namespace AILegacy.Prompt
                 if (npc.IsClanLeader) clanLine += " — you lead this clan";
                 else if (npc.Clan.Leader != null) clanLine += $" — led by {npc.Clan.Leader.Name}";
                 if (npc.Clan.IsMinorFaction) clanLine += ", a minor faction";
-                if (npc.Clan.IsUnderMercenaryService) clanLine += ", serving as mercenaries";
+                // Clan.Kingdom and Hero.MapFaction give the paying kingdom for mercenaries: that is a contract, not an allegiance
+                var employer = AILegacy.World.Facts.Employer(npc.Clan);
+                if (employer != null) clanLine += $", hired by {employer.Name} as mercenaries (paid swords while the contract lasts: not its vassals, not its kin)";
+                else if (npc.Clan.Kingdom == null && !npc.Clan.IsBanditFaction) clanLine += ", sworn to no kingdom";
                 var banned = AILegacy.World.Banished.DescribeForClan(npc.Clan);
                 if (banned.Length > 0) clanLine += ". Your clan is " + banned;
                 sb.AppendLine(clanLine);
@@ -47,9 +50,10 @@ namespace AILegacy.Prompt
 
             if (npc.MapFaction is Kingdom k)
             {
-                var line = $"Kingdom: {k.Name}";
+                bool hired = AILegacy.World.Facts.IsHired(npc);
+                var line = hired ? $"Kingdom: none of your own. Your clan fights for {k.Name} for pay" : $"Kingdom: {k.Name}";
                 if (npc.IsKingdomLeader) line += " — you are its ruler";
-                else if (k.Leader != null) line += $", ruled by {k.Leader.Name}";
+                else if (k.Leader != null) line += hired ? $" (its ruler, {k.Leader.Name}, is your paymaster, not your liege)" : $", ruled by {k.Leader.Name}";
                 sb.AppendLine(line);
                 var law = AILegacy.World.Laws.ForSubject(k);
                 if (law.Length > 0) sb.AppendLine(law);
@@ -93,7 +97,7 @@ namespace AILegacy.Prompt
             if (fiefs.Length > 0) sb.AppendLine("Your clan holds: " + fiefs);
 
             var wars = DescribeWars(npc.MapFaction);
-            if (wars.Length > 0) sb.AppendLine("Your faction is at war with: " + wars);
+            if (wars.Length > 0) sb.AppendLine((AILegacy.World.Facts.IsHired(npc) ? "The kingdom that pays you is at war with: " : "Your faction is at war with: ") + wars);
 
             var bio = SafeText(npc.EncyclopediaText);
             if (!string.IsNullOrWhiteSpace(bio)) sb.AppendLine("Known background: " + Clip(bio, 700));
@@ -302,15 +306,16 @@ namespace AILegacy.Prompt
             }
             else
             {
-                string how = why == "fame" ? " (you recognise them by reputation)" : why == "same_kingdom" ? " (a known vassal of your realm)"
+                bool pHired = AILegacy.World.Facts.Employer(clan) != null;
+                string how = why == "fame" ? " (you recognise them by reputation)" : why == "same_kingdom" ? (pHired ? " (a known mercenary captain in the pay of your realm)" : " (a known vassal of your realm)")
                            : why == "lord_here" ? " (the lord of this place)" : why == "ruler" ? " (a ruler — everyone knows who they are)" : "";
                 sb.AppendLine($"Name: {p.Name}{how}");
                 sb.AppendLine($"Gender: {(p.IsFemale ? "woman" : "man")}, age {(int)p.Age}");
-                if (p.Culture != null) sb.AppendLine($"Culture: {p.Culture.Name}");
+                if (p.Culture != null) sb.AppendLine($"Culture: {p.Culture.Name} (by birth; it says nothing of whom they serve)");
                 if (clan != null)
                     sb.AppendLine($"Clan: {clan.Name} (tier {clan.Tier}, renown {(int)clan.Renown}) — {DescribeFame(clan.Tier)}");
                 if (p.MapFaction is Kingdom pk)
-                    sb.AppendLine(pk.Leader == p ? $"Ruler of {pk.Name}" : $"Sworn to {pk.Name}{(clan != null && clan.IsUnderMercenaryService ? " as a mercenary" : "")}");
+                    sb.AppendLine(pk.Leader == p ? $"Ruler of {pk.Name}" : pHired ? $"In the pay of {pk.Name} as a mercenary (hired, not sworn to it)" : $"Sworn to {pk.Name}");
                 else
                     sb.AppendLine("Belongs to no kingdom");
                 var pBanned = AILegacy.World.Banished.DescribeForClan(clan);
@@ -366,7 +371,8 @@ namespace AILegacy.Prompt
                                               : $"Their banners show they serve {p.MapFaction.Name}, a faction at war with yours: an enemy.");
             }
             else if (why != null && myFaction != null && myFaction == p.MapFaction && myFaction.IsKingdomFaction)
-                sb.AppendLine("You serve the same kingdom.");
+                sb.AppendLine(s.IsHero && AILegacy.World.Facts.IsHired(s.Hero) != AILegacy.World.Facts.IsHired(p)
+                        ? "You fight under the same banner, one of you as a vassal and the other for pay." : "You serve the same kingdom.");
 
             sb.AppendLine($"Judging by their gear, they seem {DescribeWealth(p.Gold)}.");
             return sb.ToString().TrimEnd();
@@ -420,7 +426,7 @@ namespace AILegacy.Prompt
             Put("culture", () => h.Culture?.Name?.ToString());
             Put("role", () => DescribeRole(h));
             Put("clan", () => h.Clan == null ? null : $"{h.Clan.Name} (tier {h.Clan.Tier}){(h.IsClanLeader ? ", leader" : "")}");
-            Put("kingdom", () => (h.MapFaction as Kingdom)?.Name?.ToString());
+            Put("kingdom", () => (h.MapFaction as Kingdom)?.Name?.ToString() + (h.MapFaction is Kingdom && AILegacy.World.Facts.IsHired(h) ? " (in its pay as mercenaries, not its vassals)" : ""));
             Put("situation", () => DescribeSituation(h));
             Put("party_size", () => h.PartyBelongedTo != null && h.PartyBelongedTo.LeaderHero == h ? h.PartyBelongedTo.MemberRoster.TotalManCount.ToString() : null);
             Put("player_party_size", () => MobileParty.MainParty?.MemberRoster.TotalManCount.ToString());
@@ -521,7 +527,7 @@ namespace AILegacy.Prompt
 
                 // Liege and important fellow nobles of the realm
                 if (npc.MapFaction is Kingdom k && k.Leader != null && k.Leader != npc && !family.Contains(k.Leader))
-                    sb.AppendLine($"Your ruler: {k.Leader.Name} — {WhereIs(k.Leader, npc)}");
+                    sb.AppendLine($"{(AILegacy.World.Facts.IsHired(npc) ? "The ruler who pays your clan (not your liege)" : "Your ruler")}: {k.Leader.Name} — {WhereIs(k.Leader, npc)}");
                 return sb.ToString().TrimEnd();
             }
             catch { return ""; }
@@ -693,6 +699,8 @@ namespace AILegacy.Prompt
             {
                 var order = World.OrderSystem.Describe(h);
                 if (order.Length > 0) parts.Add(order);
+                var arena = Patches.ArenaLordsPatch.Describe(h);
+                if (arena.Length > 0) parts.Add(arena);
             }
             catch { }
             return string.Join(", ", parts);

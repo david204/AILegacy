@@ -46,41 +46,50 @@ namespace AILegacy
         protected override void OnApplicationTick(float dt)
         {
             base.OnApplicationTick(dt);
+            // Each entry is timed when the performance meter is on (Core/Perf.cs). Off, Begin is one bool check
+            long t = Perf.Begin();
             MainThread.Pump();
+            Perf.End("tick:MainThread.Pump", t);
             if (Campaign.Current != null)
             {
-                Dialogue.ChatSession.TickUI();
-                UI.MapHud.Tick();
-                UI.ConversationMixin.Tick(dt);
+                t = Perf.Begin(); Dialogue.ChatSession.TickUI(); Perf.End("tick:ChatSession.TickUI", t);
+                t = Perf.Begin(); UI.MapHud.Tick(); Perf.End("tick:MapHud", t);
+                t = Perf.Begin(); UI.ConversationMixin.Tick(dt); Perf.End("tick:ConversationMixin", t);
             }
 
             _letterCheck += dt;
             if (_letterCheck >= 1f)
             {
+                t = Perf.Begin();
                 Core.L.SyncGameTexts();          // "{=AIL_...}" texts, in the language picked in the mod
                 _letterCheck = 0f;
                 try { if (Campaign.Current != null) LetterSystem.TryShowPending(); } catch (Exception ex) { Log.Error("Cartas", ex); }
                 try { World.OrderSystem.Pump(); } catch (Exception ex) { Log.Error("Órdenes", ex); }
                 try { SaveFiles.Pump(); } catch (Exception ex) { Log.Error("Archivos", ex); }
                 try { World.WorldSim.Pump(); } catch (Exception ex) { Log.Error("Mundo", ex); }
+                try { if (Campaign.Current != null) World.ResidentFaces.Sweep(); } catch (Exception ex) { Log.Error("Vecinos", ex); }
+                Perf.End("tick:cada segundo (textos, cartas, órdenes, archivos, mundo)", t);
+                Perf.Pump();
             }
-            Dialogue.Combat.Tick(dt);
-            Dialogue.Initiative.Tick(dt);
-            Dialogue.Justice.Tick(dt);
-            Dialogue.GroupTalk.Tick(dt);
-            Dialogue.SceneActions.Tick(dt);
-            Battle.BattleAI.Tick(dt);
-            Scenes.MapTalk.Tick(dt);
-            Dialogue.Ambient.Tick(dt);
-            Dialogue.PassBy.Tick(dt);
-            World.Diseases.MissionTick(dt);
-            UI.Bubbles.Tick(dt);
+            t = Perf.Begin(); Dialogue.Combat.Tick(dt); Perf.End("tick:Combat", t);
+            t = Perf.Begin(); Dialogue.Initiative.Tick(dt); Perf.End("tick:Initiative", t);
+            t = Perf.Begin(); Dialogue.Justice.Tick(dt); Perf.End("tick:Justice", t);
+            t = Perf.Begin(); Dialogue.GroupTalk.Tick(dt); Perf.End("tick:GroupTalk", t);
+            t = Perf.Begin(); Dialogue.SceneActions.Tick(dt); Perf.End("tick:SceneActions", t);
+            t = Perf.Begin(); Battle.BattleAI.Tick(dt); Perf.End("tick:BattleAI", t);
+            t = Perf.Begin(); Scenes.MapTalk.Tick(dt); Perf.End("tick:MapTalk", t);
+            t = Perf.Begin(); Dialogue.Ambient.Tick(dt); Perf.End("tick:Ambient", t);
+            t = Perf.Begin(); Dialogue.PassBy.Tick(dt); Perf.End("tick:PassBy", t);
+            t = Perf.Begin(); World.Diseases.MissionTick(dt); Perf.End("tick:Diseases.MissionTick", t);
+            t = Perf.Begin(); UI.Bubbles.Tick(dt); Perf.End("tick:Bubbles", t);
+            t = Perf.Begin(); Dialogue.TalkMusic.Tick(dt); Perf.End("tick:TalkMusic", t);
         }
 
         public override void OnGameEnd(Game game)
         {
             base.OnGameEnd(game);
             try { UI.MapHud.Detach(); UI.Bubbles.Detach(); Web.EditorServer.Stop(); } catch { }
+            Dialogue.TalkMusic.Shutdown();
             // Leaving the campaign: whatever is still queued for the campaign files goes to disk first
             try { Memory.SaveFiles.Drain(); } catch { }
         }

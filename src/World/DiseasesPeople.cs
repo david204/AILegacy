@@ -154,7 +154,6 @@ namespace AILegacy.World
         private static int Sev(int s) => Math.Max(1, Math.Min(5, s));
         private static bool Roll(float chance) => chance > 0f && Rng.NextDouble() < chance;
         private static int Whole(float expected) => expected <= 0f ? 0 : (int)expected + (Rng.NextDouble() < expected - (int)expected ? 1 : 0);
-        private static bool PlayerPrevented => WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays;
 
         // ============================================================ what a disease does
 
@@ -508,7 +507,7 @@ namespace AILegacy.World
                     }
                 }
                 catch { }
-                float guard = p.IsMainParty && PlayerPrevented ? 0.25f : 1f;
+                float guard = p.IsMainParty ? PlayerGuard : 1f;
                 var heroes = p.IsMainParty ? p.MemberRoster.GetTroopRoster().Where(e => e.Character.IsHero).Select(e => e.Character.HeroObject).ToList()
                                            : p.LeaderHero != null ? new List<Hero> { p.LeaderHero } : new List<Hero>();
                 foreach (var h in heroes)
@@ -548,7 +547,7 @@ namespace AILegacy.World
         private static void CatchAt(Hero h, Outbreak o, Settlement st, float baseChance, float perSeverity)
         {
             if (h == null || !h.IsAlive) return;
-            float guard = (h == Hero.MainHero || h.PartyBelongedTo == MobileParty.MainParty) && PlayerPrevented ? 0.25f : 1f;
+            float guard = h == Hero.MainHero || h.PartyBelongedTo == MobileParty.MainParty ? PlayerGuard : 1f;
             if (Roll(baseChance * (1f + o.Severity * perSeverity) * PlaceFactor(o, st) * HeroResist(h) * guard))
                 InfectHero(h, o.Name, o.NameEn, o.Severity, false, o.Fx, o.UntilDay + 3);
         }
@@ -586,9 +585,12 @@ namespace AILegacy.World
             try
             {
                 if (Campaign.Current == null || !Enabled) return;
-                if ((long)CampaignTime.Now.ToHours % 6 != 0) return;
+                bool round = (long)CampaignTime.Now.ToHours % 6 == 0;
+                try { CareRound(CampaignTime.Now.ToDays, round); } catch (Exception ex) { Log.Error("[enfermedad] partidas que van a tratarse", ex); }
+                if (!round) return;
                 SeasonalRound();
                 PlaceRound();
+                try { ForceRound(); } catch (Exception ex) { Log.Error("[enfermedad] contagio de guarniciones", ex); }
             }
             catch (Exception ex) { Log.Error("[enfermedad] ronda de contagio", ex); }
         }
@@ -603,6 +605,7 @@ namespace AILegacy.World
         {
             try
             {
+                if (Campaign.Current != null && Mission.Current == null) HerbKey();
                 if (Campaign.Current == null || Mission.Current == null || Agent.Main == null) { _walkClock = 0f; _hallSeen = null; return; }
                 var st = Settlement.CurrentSettlement;
                 if (st == null || !Enabled) return;
@@ -618,7 +621,7 @@ namespace AILegacy.World
                         var s = Worst(OfHero(sickLords[Rng.Next(sickLords.Count)]));
                         float closed = QuarantineRules.Closed(st) ? cfg.QuarantineInfectionReduction : 1f;
                         float chance = Math.Min(0.35f, cfg.LordHallInfectionChancePerLord * sickLords.Count * (1f + s.Severity * 0.1f) * HeroResist(Hero.MainHero) * closed);
-                        if (Roll(chance * (PlayerPrevented ? 0.25f : 1f))) InfectHero(Hero.MainHero, s.Name, s.NameEn, s.Severity, s.Seasonal, s.Fx, s.UntilDay);
+                        if (Roll(chance * PlayerGuard)) InfectHero(Hero.MainHero, s.Name, s.NameEn, s.Severity, s.Seasonal, s.Fx, s.UntilDay);
                     }
                 }
                 var o = At(st);
@@ -674,11 +677,7 @@ namespace AILegacy.World
             foreach (var s in (lead ?? new List<Sickness>()).Concat(troops ?? new List<Sickness>()).Where(NeedsCare).ToList())
             {
                 int cost = s.Kind == Sickness.Hero ? HeroCareCost(s, st) : BandCareCost(s, st);
-                if (payer != null)
-                {
-                    if (payer.Gold < cost) continue;
-                    payer.ChangeHeroGold(-cost);
-                }
+                if (payer != null && !PayCare(payer, cost, st)) continue;
                 StartTreatment(s, q);
             }
         }
@@ -797,12 +796,14 @@ namespace AILegacy.World
             Settlement where = h.CurrentSettlement ?? h.HomeSettlement;
             var realm = h.MapFaction;
             bool known = h.IsLord;
+            bool ownTexts = NoteDeath(h, s);
             KillCharacterAction.ApplyByOldAge(h, true);
             if (isPlayer) { Remove(s); return; }      // the game takes over from here (heir, or the end)
-            if (h.IsAlive) { s.Progress = 95f; return; }
+            if (h.IsAlive) { ForgetDeath(h); s.Progress = 95f; return; }
+            ConfirmDeath(h);
             Remove(s);
             Log.Info($"[enfermedad] {who} muere de {s.NameEn}");
-            if (close) WorldSim.Say(L.F("AIL_e7b1c5f8", $"{who} ha muerto de {s.Name}."), Colors.Red);
+            if (close && !ownTexts) WorldSim.Say(L.F("AIL_e7b1c5f8", $"{who} ha muerto de {s.Name}."), Colors.Red);
             if (known)
                 NewsStore.Add(new NewsItem
                 {
@@ -864,7 +865,7 @@ namespace AILegacy.World
                 int regulars = p.MemberRoster.TotalRegulars;
                 float damp = 150f / (150f + regulars);      // big hosts camp spread out
                 bool main = p.IsMainParty;
-                float guard = main && PlayerPrevented ? 0.25f : 1f;
+                float guard = main ? PlayerGuard : 1f;
                 var riders = (main ? p.MemberRoster.GetTroopRoster().Where(e => e.Character.IsHero).Select(e => e.Character.HeroObject) : new[] { p.LeaderHero }).Where(h => h != null && h.IsAlive).ToList();
                 var troops = (OfTroops(p) ?? new List<Sickness>()).ToList();
                 var held = (OfPrisoners(p) ?? new List<Sickness>()).ToList();
@@ -907,7 +908,7 @@ namespace AILegacy.World
                         {
                             if (q == null || q == p || !q.IsActive) continue;
                             int qr = q.MemberRoster.TotalRegulars;
-                            if (qr > 0 && Roll(0.075f * f.Spread * sevMult * (0.3f + share) * (q.IsMainParty && PlayerPrevented ? 0.25f : 1f)))
+                            if (qr > 0 && Roll(0.075f * f.Spread * sevMult * (0.3f + share) * (q.IsMainParty ? PlayerGuard : 1f)))
                                 InfectBand(q, Sickness.Troops, s.Name, s.NameEn, s.Severity, s.Seasonal, s.Fx, s.UntilDay, Math.Max(1, (int)(qr * 0.02f)));
                         }
                 }
@@ -1006,7 +1007,7 @@ namespace AILegacy.World
                 {
                     var st = Settlement.CurrentSettlement;
                     var cases = MyHeroCases();
-                    if (cases.Count > 0 && Pay(cases.Sum(s => HeroCareCost(s, st))))
+                    if (cases.Count > 0 && PayOrOwe(cases.Sum(s => HeroCareCost(s, st))))
                     {
                         foreach (var s in cases) StartTreatment(s, CareQuality(st));
                         WorldSim.Say(L.T("AIL_e7b1c602", "Los médicos empiezan el tratamiento. Cuanto mejor el hospital, antes hará efecto."), Colors.Green);
@@ -1028,7 +1029,7 @@ namespace AILegacy.World
                 {
                     var st = Settlement.CurrentSettlement;
                     var cases = MyBandCases();
-                    if (cases.Count > 0 && Pay(cases.Sum(s => BandCareCost(s, st))))
+                    if (cases.Count > 0 && PayOrOwe(cases.Sum(s => BandCareCost(s, st))))
                     {
                         foreach (var s in cases) StartTreatment(s, CareQuality(st));
                         WorldSim.Say(L.T("AIL_e7b1c605", "Los médicos se ocupan de tus enfermos."), Colors.Green);

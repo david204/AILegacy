@@ -34,6 +34,26 @@ namespace AILegacy.Web
         private const string TokenHeader = "X-AIL-Token";
         private const string TokenMarker = "__AIL_TOKEN__";
 
+        // Largest request body accepted. The biggest thing the page sends is the whole memory (Service, restore from
+        // file): about 15 KB per character with its history, so this is room for some thousand characters.
+        private const int MaxBodyBytes = 16 * 1024 * 1024;
+        // A memory import is under ten levels deep and nothing else the page sends comes close
+        private const int MaxJsonDepth = 64;
+        private static readonly JsonSerializerSettings BoundedJson = new JsonSerializerSettings { MaxDepth = MaxJsonDepth };
+
+        /// <summary>An error whose text is written for the player and is safe to send to the page.</summary>
+        private sealed class ApiError : Exception
+        {
+            public readonly int Status;
+            public ApiError(string message, int status = 400) : base(message) { Status = status; }
+        }
+
+        private static string NewErrorId() => Guid.NewGuid().ToString("N").Substring(0, 8);
+
+        /// <summary>What the player is told about an unexpected error. The exception itself (it can name full paths) goes to the log under the same id.</summary>
+        private static string GenericError(string id) =>
+            L.F("AIL_e7b1c6db", $"Error interno {id}. Los detalles están en el registro del mod (logs\\ailegacy.log).");
+
         public static string Url => $"http://localhost:{_port}/";
 
         private static string NewToken()
@@ -84,8 +104,10 @@ namespace AILegacy.Web
             }
             catch (Exception ex)
             {
-                Log.Error("No se pudo arrancar el editor web", ex);
-                Info(L.F("AIL_4f6f8296", $"No se pudo abrir el puerto {port}. Cambia el puerto en MCM → AI Legacy → Editor.\n{ex.Message}"));
+                string id = NewErrorId();
+                Log.Error($"No se pudo arrancar el editor web [{id}]", ex);
+                string detail = GenericError(id);
+                Info(L.F("AIL_4f6f8296", $"No se pudo abrir el puerto {port}. Cambia el puerto en MCM → AI Legacy → Editor.\n{detail}"));
                 _http = null;
                 return false;
             }
@@ -129,25 +151,94 @@ namespace AILegacy.Web
                     Send(res, 200, html, "text/html; charset=utf-8");
                     return;
                 }
-                if (path.StartsWith("/api/") && req.HttpMethod == "POST") Memory.SaveFiles.Dirty();
-                // Every API call needs the session token
+                // Every API call needs the session token. Until it has been checked nothing else happens:
+                // the body is not read and nothing in the game is touched.
                 if (!path.StartsWith("/api/") || !TokenOk(req.Headers[TokenHeader]))
                 {
                     Reject($"(sin ficha válida) {req.HttpMethod} {path}");
                     Send(res, 403, JsonConvert.SerializeObject(new { error = "forbidden" }), "application/json; charset=utf-8");
                     return;
                 }
-                string body = "";
-                if (req.HasEntityBody) using (var r = new StreamReader(req.InputStream, Encoding.UTF8)) body = r.ReadToEnd();
-                var data = string.IsNullOrWhiteSpace(body) ? new JObject() : JObject.Parse(body);
+                var data = ParseBody(ReadBody(req));
+                bool post = req.HttpMethod == "POST";
 
-                object result = MainThread.Invoke(() => Api(path, req.QueryString, data));
+                object result = MainThread.Invoke(() =>
+                {
+                    // The editor can change anything, so the next flush compares every character.
+                    // Done here, on the game thread, where the flush itself runs.
+                    if (post) SaveFiles.Dirty();
+                    return Api(path, req.QueryString, data);
+                });
                 Send(res, 200, JsonConvert.SerializeObject(result), "application/json; charset=utf-8");
             }
-            catch (Exception ex)
+            catch (Exception ex) { Fail(req, res, ex); }
+        }
+
+        /// <summary>
+        /// Answers a failed call. Texts written for the player go out as they are. Anything unexpected goes to the
+        /// log in full, and the page only gets a short id to find it there.
+        /// </summary>
+        private static void Fail(HttpListenerRequest req, HttpListenerResponse res, Exception ex)
+        {
+            int code; string msg;
+            try
             {
-                Log.Error("Editor web: " + req.Url, ex);
-                try { Send(res, 500, JsonConvert.SerializeObject(new { error = ex.GetBaseException().Message }), "application/json; charset=utf-8"); } catch { }
+                var real = ex is AggregateException agg && agg.InnerException != null ? agg.InnerException : ex;
+                string where = req.HttpMethod + " " + req.Url?.AbsolutePath;
+                if (real is ApiError api) { code = api.Status; msg = api.Message; }
+                // Says where the JSON is wrong (line, position, field). Newtonsoft's messages carry no file paths
+                else if (real is JsonException) { code = 400; msg = real.Message; }
+                else if (real is TimeoutException) { code = 503; msg = L.T("AIL_3e8e1ac7", "El juego no respondió (¿está cargando o minimizado?)"); }
+                else
+                {
+                    string id = NewErrorId();
+                    Log.Error($"Editor web [{id}]: {where}", ex);
+                    code = 500; msg = GenericError(id);
+                }
+                if (code != 500) Log.Warn($"Editor web: {where} → {code} {msg}");
+            }
+            catch { code = 500; msg = "error"; }
+            try { Send(res, code, JsonConvert.SerializeObject(new { error = msg }), "application/json; charset=utf-8"); } catch { }
+        }
+
+        /// <summary>The request body as text, never more than MaxBodyBytes of it.</summary>
+        private static string ReadBody(HttpListenerRequest req)
+        {
+            if (!req.HasEntityBody) return "";
+            ApiError TooBig() => new ApiError(L.T("AIL_e7b1c6dc", "La petición es demasiado grande."), 413);
+            if (req.ContentLength64 > MaxBodyBytes) throw TooBig();
+            // The length header can be missing (chunked) or wrong, so the bytes that really arrive are counted too
+            using (var ms = new MemoryStream())
+            {
+                var buf = new byte[81920];
+                int n;
+                while ((n = req.InputStream.Read(buf, 0, buf.Length)) > 0)
+                {
+                    if (ms.Length + n > MaxBodyBytes) throw TooBig();
+                    ms.Write(buf, 0, n);
+                }
+                string text = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
+                return text.Length > 0 && text[0] == '\uFEFF' ? text.Substring(1) : text;
+            }
+        }
+
+        /// <summary>The body as a JSON object, with a limit on nesting. An empty body is an empty object.</summary>
+        private static JObject ParseBody(string body)
+        {
+            if (string.IsNullOrWhiteSpace(body)) return new JObject();
+            try { return ParseJson(body) as JObject ?? throw new JsonReaderException("not an object"); }
+            catch (JsonException) { throw new ApiError(L.T("AIL_e7b1c6dd", "Petición no válida.")); }
+        }
+
+        /// <summary>JToken.Parse with a limit on nesting. Strings that look like dates stay strings.</summary>
+        private static JToken ParseJson(string text)
+        {
+            using (var reader = new JsonTextReader(new System.IO.StringReader(text)) { MaxDepth = MaxJsonDepth, DateParseHandling = DateParseHandling.None })
+            {
+                var token = JToken.Load(reader);
+                while (reader.Read())
+                    if (reader.TokenType != JsonToken.Comment) throw new JsonReaderException("Additional text found after the end of the JSON content.");
+                return token;
             }
         }
 
@@ -216,7 +307,7 @@ namespace AILegacy.Web
 
         private static object Api(string path, System.Collections.Specialized.NameValueCollection q, JObject d)
         {
-            if (Campaign.Current == null) throw new Exception(L.T("AIL_9189b76c", "No hay ninguna partida cargada."));
+            if (Campaign.Current == null) throw new ApiError(L.T("AIL_9189b76c", "No hay ninguna partida cargada."));
             string wd = Path.Combine(Paths.ModuleDir, "world_data");
             switch (path)
             {
@@ -230,14 +321,14 @@ namespace AILegacy.Web
                     // The world files as the game reads them now: this campaign's copy if it has one, else the module's
                     var files = new Dictionary<string, object>();
                     foreach (var n in WorldFiles.Names)
-                        files[n] = new { text = ReadText(WorldFiles.Resolve(n), n == WorldFiles.World ? "" : n == "religion.json" || n == "cultural_traditions.json" ? "{}" : "[]"), own = WorldFiles.HasOwn(n) };
+                        files[n] = new { text = ReadText(WorldPathForPage(n), n == WorldFiles.World ? "" : n == "religion.json" || n == "cultural_traditions.json" ? "{}" : "[]"), own = WorldFiles.HasOwn(n) };
                     // Names for the hero ids the facts and secrets point at
                     var names = new Dictionary<string, string>();
                     foreach (var n in new[] { "info.json", "secrets.json" })
                     {
                         try
                         {
-                            foreach (var e in JsonConvert.DeserializeObject<List<KnowledgeEntry>>(ReadText(WorldFiles.Resolve(n), "[]")) ?? new List<KnowledgeEntry>())
+                            foreach (var e in JsonConvert.DeserializeObject<List<KnowledgeEntry>>(ReadText(WorldPathForPage(n), "[]"), BoundedJson) ?? new List<KnowledgeEntry>())
                                 foreach (var id in (e.About ?? new List<string>()).Concat(e.Who ?? new List<string>()))
                                     if (id != null && byId.TryGetValue(id, out var hh)) names[id] = hh.Name.ToString();
                         }
@@ -273,12 +364,12 @@ namespace AILegacy.Web
                 {
                     string name = (string)d["name"] ?? "";
                     // Only the listed names exist for this route, so a name can't point anywhere else
-                    if (!WorldFiles.IsKnown(name)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
+                    if (!WorldFiles.IsKnown(name)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
                     string text = CheckWorldFile(name, (string)d["text"] ?? "", out int count);
-                    var p = WorldFiles.CampaignPath(name);
+                    var p = CampaignWritable(WorldFiles.CampaignPath(name));
                     Directory.CreateDirectory(Path.GetDirectoryName(p));
                     WriteText(p, text);
-                    World.Lore.Reload();
+                    ReloadWorldData();
                     Log.Info("Editor: " + name + " guardado para esta partida");
                     return new { ok = true, count };
                 }
@@ -293,25 +384,26 @@ namespace AILegacy.Web
                     {
                         string from = WorldFiles.DefaultPath(n), to = WorldFiles.CampaignPath(n);
                         if (File.Exists(to) || !File.Exists(from)) continue;    // never over a copy the campaign already has
+                        if (!CampaignPlain(to)) continue;                       // nor through a link
                         File.Copy(from, to);
                         copied++;
                     }
-                    World.Lore.Reload();
+                    ReloadWorldData();
                     return new { ok = true, copied };
                 }
 
                 case "/api/worlddata/reset":
                 {
                     string name = (string)d["name"] ?? "";
-                    if (!WorldFiles.IsKnown(name)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
-                    var p = WorldFiles.CampaignPath(name);
+                    if (!WorldFiles.IsKnown(name)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
+                    var p = CampaignWritable(WorldFiles.CampaignPath(name));
                     if (File.Exists(p))
                     {
                         // Kept next to it as .bak, the game stops reading it
                         File.Copy(p, p + ".bak", true);
                         File.Delete(p);
                     }
-                    World.Lore.Reload();
+                    ReloadWorldData();
                     return new { ok = true };
                 }
 
@@ -342,7 +434,7 @@ namespace AILegacy.Web
                 {
                     // Names only: SaveFiles resolves them inside the campaign's own backup folders and refuses the rest
                     var safety = SaveFiles.RestoreBackup(Campaign.Current.UniqueGameId, (string)d["kind"] ?? "", (string)d["name"] ?? "", out string err);
-                    if (safety == null) throw new Exception(err ?? L.T("AIL_61be9174", "Archivo no válido."));
+                    if (safety == null) throw new ApiError(err ?? L.T("AIL_61be9174", "Archivo no válido."));
                     return new { ok = true, backup = safety, npcs = MemoryStore.Count };
                 }
 
@@ -359,7 +451,7 @@ namespace AILegacy.Web
                     var id = q["id"] ?? (string)d["id"];
                     var hero = Hero.Find(id);
                     var m = MemoryStore.Find(id) ?? (hero != null ? MemoryStore.Get(id, hero.Name.ToString()) : null);
-                    if (m == null) throw new Exception("No existe ese personaje.");
+                    if (m == null) throw new ApiError("No existe ese personaje.");
                     return new
                     {
                         id = m.HeroId, name = m.HeroName,
@@ -381,7 +473,7 @@ namespace AILegacy.Web
                     var id = (string)d["id"];
                     var hero = Hero.Find(id);
                     var m = MemoryStore.Find(id) ?? (hero != null ? MemoryStore.Get(id, hero.Name.ToString()) : null);
-                    if (m == null) throw new Exception("No existe ese personaje.");
+                    if (m == null) throw new ApiError("No existe ese personaje.");
                     var p = d["profile"] as JObject;
                     // Populate over the existing profile so fields the editor doesn't send (sample lines etc.) survive
                     if (p != null) { if (m.Profile == null) m.Profile = new CharacterProfile(); JsonConvert.PopulateObject(p.ToString(), m.Profile); }
@@ -418,7 +510,7 @@ namespace AILegacy.Web
                 {
                     // Full memory backup first (same as /api/export). If it fails, nothing gets deleted
                     var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "borrar_npc");
-                    if (backup == null) throw new Exception(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
+                    if (backup == null) throw new ApiError(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
                     MemoryStore.Remove((string)d["id"]);
                     SaveFiles.Flush();   // moves its file to _papelera now instead of on the next daily flush
                     return new { ok = true, backup };
@@ -435,7 +527,7 @@ namespace AILegacy.Web
                         Heroes = (d["heroes"] as JArray)?.Select(x => x.ToString()).ToList() ?? new List<string>(),
                         SettlementId = ((string)d["settlement"] ?? "").Trim(),
                     };
-                    if (n.Text.Length < 5) throw new Exception(L.T("AIL_bf60207b", "Escribe el texto del evento."));
+                    if (n.Text.Length < 5) throw new ApiError(L.T("AIL_bf60207b", "Escribe el texto del evento."));
                     n.TitleEs = ((string)d["title"] ?? "").Trim();
                     if (n.TitleEs.Length == 0) n.TitleEs = n.Text.Length > 60 ? n.Text.Substring(0, 60) + "…" : n.Text;
                     n.TextEs = n.Text;
@@ -454,13 +546,15 @@ namespace AILegacy.Web
                 {
                     Directory.CreateDirectory(wd);
                     var world = Directory.GetFiles(wd, "*.json").Select(Path.GetFileName).OrderBy(x => x).Select(f => new { kind = "world", name = f, edited = false });
-                    var prompts = Prompt.Templates.AllTemplates().Select(t =>
+                    // The module's own world_data may hold links (mod managers deploy files that way). In the campaign
+                    // folder nothing is a link unless someone put it there: those templates are not offered at all
+                    var prompts = Prompt.Templates.AllTemplates().Where(t => { var p = Prompt.Templates.PathFor(t.Key); return p == null || CampaignPlain(p); }).Select(t =>
                     {
                         var p = Prompt.Templates.PathFor(t.Key);
                         bool edited = false;
-                        try { edited = p != null && File.Exists(p) && File.ReadAllText(p, Encoding.UTF8).Replace("\r\n", "\n").Trim('\n', ' ', '﻿') != t.Default; } catch { }
+                        try { edited = p != null && File.Exists(p) && SaveFiles.ReadBounded(p).Replace("\r\n", "\n").Trim('\n', ' ', '﻿') != t.Default; } catch { }
                         return new { kind = "prompt", name = t.Key, edited };
-                    });
+                    }).ToList();
                     return world.Concat(prompts);
                 }
 
@@ -468,7 +562,9 @@ namespace AILegacy.Web
                 {
                     string kind = q["kind"] ?? "", name = q["name"] ?? "";
                     if (kind == "world") return new { text = ReadText(WorldFile(wd, name), "[]"), def = "" };
-                    var t = Prompt.Templates.Get(name) ?? throw new Exception("No existe esa plantilla.");
+                    var t = Prompt.Templates.Get(name) ?? throw new ApiError("No existe esa plantilla.");
+                    var own = Prompt.Templates.PathFor(t.Key);
+                    if (own != null && !CampaignPlain(own)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
                     return new { text = t.Text, def = t.Default };
                 }
 
@@ -477,12 +573,14 @@ namespace AILegacy.Web
                     string kind = (string)d["kind"] ?? "", name = (string)d["name"] ?? "", text = (string)d["text"] ?? "";
                     if (kind == "world")
                     {
-                        JToken.Parse(text);      // validate before overwriting anything
+                        ParseJson(text);         // validate before overwriting anything
                         WriteText(WorldFile(wd, name), text);
+                        ReloadWorldData();
                         return new { ok = true };
                     }
-                    var t = Prompt.Templates.Get(name) ?? throw new Exception("No existe esa plantilla.");
-                    var p = Prompt.Templates.PathFor(t.Key) ?? throw new Exception(L.T("AIL_8871d6a5", "No hay carpeta de plantillas para esta partida."));
+                    var t = Prompt.Templates.Get(name) ?? throw new ApiError("No existe esa plantilla.");
+                    var p = Prompt.Templates.PathFor(t.Key) ?? throw new ApiError(L.T("AIL_8871d6a5", "No hay carpeta de plantillas para esta partida."));
+                    CampaignWritable(p);
                     Directory.CreateDirectory(Path.GetDirectoryName(p));
                     WriteText(p, (bool?)d["reset"] == true ? t.Default : text);
                     Log.Info("Editor: plantilla " + ((bool?)d["reset"] == true ? "restaurada " : "guardada ") + t.Key);
@@ -493,14 +591,14 @@ namespace AILegacy.Web
                 case "/api/npc/generate":
                 {
                     var id = (string)d["id"];
-                    var hero = Hero.Find(id) ?? throw new Exception(L.T("AIL_10f114fb", "Ese personaje ya no existe en la partida."));
+                    var hero = Hero.Find(id) ?? throw new ApiError(L.T("AIL_10f114fb", "Ese personaje ya no existe en la partida."));
                     if (Generating.Contains(id)) return new { ok = true, started = false };
                     var sp = Dialogue.Speaker.FromHero(hero);
                     World.Lore.EnsureArchetype(sp);
                     var m = sp.Memory;
                     var facts = new StringBuilder();
                     facts.AppendLine($"{hero.Name}, {(hero.IsFemale ? "woman" : "man")}, {(int)hero.Age} years old, of {hero.Culture?.Name} culture.");
-                    facts.AppendLine(hero.IsLord ? $"A noble of clan {hero.Clan?.Name}{(hero.Clan?.Leader == hero ? " (its head)" : "")}, of {hero.MapFaction?.Name}{(hero.MapFaction is Kingdom kk && kk.Leader == hero ? " — its ruler" : "")}."
+                    facts.AppendLine(hero.IsLord ? $"A noble of clan {hero.Clan?.Name}{(hero.Clan?.Leader == hero ? " (its head)" : "")}; the clan is a {World.Facts.ClanKind(hero.Clan)}{(hero.MapFaction is Kingdom kk && kk.Leader == hero ? " — and this is its ruler" : "")}."
                                    : hero.IsNotable ? $"A notable ({hero.Occupation}) of {hero.CurrentSettlement?.Name ?? hero.HomeSettlement?.Name}." : hero.IsWanderer ? "A wanderer who sells their sword or wits." : "A person of some name.");
                     if (hero.Spouse != null) facts.AppendLine($"Married to {hero.Spouse.Name}.");
                     if (hero.Father != null || hero.Mother != null) facts.AppendLine($"Child of {hero.Father?.Name}{(hero.Father != null && hero.Mother != null ? " and " : "")}{hero.Mother?.Name}.");
@@ -531,7 +629,7 @@ namespace AILegacy.Web
                                 SaveFiles.Flush();
                                 Log.Info("Editor: personalidad generada para " + m.HeroName);
                             }
-                            catch (Exception ex) { GenerateError[id] = ex.Message; Log.Error("Generar personalidad", ex); }
+                            catch (Exception ex) { GenerateError[id] = "respuesta ilegible"; Log.Error("Generar personalidad", ex); }
                         });
                     });
                     return new { ok = true, started = true };
@@ -562,7 +660,7 @@ namespace AILegacy.Web
                 case "/api/companion/create":
                 {
                     var h = World.People.CreateCompanion((string)d["name"], (bool?)d["female"] == true, (int?)d["age"] ?? 25, (string)d["culture"], out string err);
-                    if (h == null) throw new Exception(err ?? "No se pudo crear.");
+                    if (h == null) throw new ApiError(err ?? "No se pudo crear.");
                     var m = MemoryStore.Get(h.StringId, h.Name.ToString());
                     string story = ((string)d["backstory"] ?? "").Trim(), pers = ((string)d["personality"] ?? "").Trim();
                     if (story.Length > 0 || pers.Length > 0)
@@ -578,7 +676,7 @@ namespace AILegacy.Web
                 case "/api/family/create":
                 {
                     var h = World.People.CreateFamily((string)d["relation"], (string)d["name"], (bool?)d["female"] == true, (int?)d["age"] ?? 25, (string)d["culture"], out string err);
-                    if (h == null) throw new Exception(err ?? "No se pudo crear.");
+                    if (h == null) throw new ApiError(err ?? "No se pudo crear.");
                     var m = MemoryStore.Get(h.StringId, h.Name.ToString());
                     string story = ((string)d["backstory"] ?? "").Trim(), pers = ((string)d["personality"] ?? "").Trim();
                     if (story.Length > 0 || pers.Length > 0) { if (m.Profile == null) m.Profile = new CharacterProfile(); m.Profile.Backstory = story; m.Profile.Personality = pers; }
@@ -611,7 +709,7 @@ namespace AILegacy.Web
                 case "/api/item/add":
                 {
                     string name = ((string)d["name"] ?? "").Trim(), desc = ((string)d["desc"] ?? "").Trim();
-                    if (name.Length < 2) throw new Exception(L.T("AIL_7f675e5a", "Ponle nombre al objeto."));
+                    if (name.Length < 2) throw new ApiError(L.T("AIL_7f675e5a", "Ponle nombre al objeto."));
                     World.Belongings.Items.RemoveAll(i => string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase));
                     World.Belongings.Items.Add(new World.RpItem { Name = name, Description = desc, FromName = ((string)d["from"] ?? "").Trim(), Day = CampaignTime.Now.ToDays });
                     SaveFiles.Flush();
@@ -640,17 +738,21 @@ namespace AILegacy.Web
                 case "/api/import":
                 {
                     var json = d["data"]?.ToString(Formatting.None);
-                    if (string.IsNullOrWhiteSpace(json) || !(d["data"] is JObject)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
+                    if (string.IsNullOrWhiteSpace(json) || !(d["data"] is JObject)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
+                    // All of it is read and checked before anything changes; a damaged file leaves the memory as it was
+                    string damaged = L.T("AIL_e7b1c6df", "Los datos están dañados o incompletos; no se ha cambiado nada.");
+                    if (!MemoryStore.TryParse(json, out var parsed, out string why)) { Log.Warn("Editor: importación rechazada: " + why); throw new ApiError(damaged); }
                     // Full backup of current memory first (same as /api/export). If it fails, nothing gets replaced
                     var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "importar");
-                    if (backup == null) throw new Exception(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
-                    MemoryStore.Deserialize(json);
+                    if (backup == null) throw new ApiError(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
+                    if (!MemoryStore.Replace(parsed, out bool rollbackFailed))
+                        throw rollbackFailed ? new ApiError(SaveFiles.RollbackFailedText(backup), 500) : new ApiError(damaged);
                     SaveFiles.Flush();   // files missing from the import go to _papelera, they aren't deleted
                     return new { ok = true, npcs = MemoryStore.Count, backup };
                 }
 
                 default:
-                    throw new Exception(L.T("AIL_eb19bc3f", "Ruta desconocida: ") + path);
+                    throw new ApiError(L.T("AIL_eb19bc3f", "Ruta desconocida: ") + path);
             }
         }
 
@@ -687,12 +789,12 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
         {
             count = 0;
             if (name == WorldFiles.World) return text;
-            Exception Missing(int i, string field) => new Exception(L.F("AIL_e7b1c65d", $"Entrada {i + 1}: falta «{field}»."));
-            Exception Repeated(int i, string field) => new Exception(L.F("AIL_e7b1c65e", $"Entrada {i + 1}: «{field}» está repetido."));
-            Exception Bad(int i, string field) => new Exception(L.F("AIL_e7b1c65f", $"Entrada {i + 1}: valor no válido en «{field}»."));
+            ApiError Missing(int i, string field) => new ApiError(L.F("AIL_e7b1c65d", $"Entrada {i + 1}: falta «{field}»."));
+            ApiError Repeated(int i, string field) => new ApiError(L.F("AIL_e7b1c65e", $"Entrada {i + 1}: «{field}» está repetido."));
+            ApiError Bad(int i, string field) => new ApiError(L.F("AIL_e7b1c65f", $"Entrada {i + 1}: valor no válido en «{field}»."));
             if (name == "info.json" || name == "secrets.json")
             {
-                var list = JsonConvert.DeserializeObject<List<KnowledgeEntry>>(text) ?? new List<KnowledgeEntry>();
+                var list = JsonConvert.DeserializeObject<List<KnowledgeEntry>>(text, BoundedJson) ?? new List<KnowledgeEntry>();
                 var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -713,7 +815,7 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
             }
             if (name == "archetypes.json")
             {
-                var list = JsonConvert.DeserializeObject<List<Archetype>>(text) ?? new List<Archetype>();
+                var list = JsonConvert.DeserializeObject<List<Archetype>>(text, BoundedJson) ?? new List<Archetype>();
                 var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -732,7 +834,7 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
                 return JsonConvert.SerializeObject(list, Formatting.Indented);
             }
             // religion.json and cultural_traditions.json: culture id to text
-            var map = JsonConvert.DeserializeObject<Dictionary<string, string>>(text) ?? new Dictionary<string, string>();
+            var map = JsonConvert.DeserializeObject<Dictionary<string, string>>(text, BoundedJson) ?? new Dictionary<string, string>();
             var clean = new Dictionary<string, string>();
             int at = 0;
             foreach (var kv in map)
@@ -748,18 +850,72 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
             return JsonConvert.SerializeObject(clean, Formatting.Indented);
         }
 
-        /// <summary>Path of a world_data file. Refuses anything outside that folder.</summary>
+        /// <summary>
+        /// Path of a world_data file the page may read or write: one that is already in that folder, under the name a
+        /// listing of the folder gives. A request never creates a file or reaches anywhere else. Links are allowed
+        /// here because mod managers deploy the module's own files as links.
+        /// </summary>
         private static string WorldFile(string wd, string name)
         {
-            name = Path.GetFileName(name ?? "");
-            if (name.Length == 0 || !name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
-            return Path.Combine(wd, name);
+            string p = name != null && name.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? SaveFiles.ChildOf(wd, name, allowLinks: true) : null;
+            if (p == null || !File.Exists(p)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
+            return p;
+        }
+
+        /// <summary>World files changed on disk: drop every cached copy so the next sentence already uses the new text.</summary>
+        private static void ReloadWorldData()
+        {
+            World.Lore.Reload();
+            World.Knowledge.Reload();
         }
 
         private static List<string> Lines(string s) =>
             (s ?? "").Split('\n').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
 
-        private static string ReadText(string p, string def = "") => File.Exists(p) ? File.ReadAllText(p, Encoding.UTF8) : def;
+        /// <summary>
+        /// A file for the page, through the same bounded read as the campaign files (SaveFiles.ReadBounded). One that
+        /// is too large is refused with a message that names it, never loaded.
+        /// </summary>
+        private static string ReadText(string p, string def = "")
+        {
+            if (p == null || !File.Exists(p)) return def;
+            try { return SaveFiles.ReadBounded(p); }
+            catch (InvalidDataException ex)
+            {
+                Log.Warn("Editor: " + ex.Message);
+                string file = Path.GetFileName(p);
+                throw new ApiError(L.F("AIL_e7b1c74c", $"El archivo {file} es demasiado grande para abrirlo en el editor."), 413);
+            }
+        }
+
+        /// <summary>
+        /// True for a path inside this campaign's folder with no link (symlink, junction) from the folder down to it.
+        /// What a link points at can be anywhere, so the page neither reads nor writes through one. The module's own
+        /// world_data folder is the exception and does not go through here (see WorldFile).
+        /// </summary>
+        private static bool CampaignPlain(string p)
+        {
+            try { return p != null && SaveFiles.PlainUnder(SaveFiles.DirFor(Campaign.Current.UniqueGameId), p); }
+            catch { return false; }
+        }
+
+        /// <summary>The file the game reads for a world file, for the page: a campaign copy reached through a link is refused.</summary>
+        private static string WorldPathForPage(string name)
+        {
+            if (!WorldFiles.HasOwn(name)) return WorldFiles.DefaultPath(name);
+            var p = WorldFiles.CampaignPath(name);
+            if (!CampaignPlain(p)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido.") + " (" + name + ")");
+            return p;
+        }
+
+        /// <summary>Where the page may write this campaign's copy of a world file or a template. Throws when a link is in the way.</summary>
+        private static string CampaignWritable(string p)
+        {
+            if (p == null) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
+            // The file may not exist yet: its folder and whatever of the path does exist must still be plain
+            if (!CampaignPlain(p)) throw new ApiError(L.T("AIL_61be9174", "Archivo no válido."));
+            return p;
+        }
 
         private static void WriteText(string p, string text)
         {

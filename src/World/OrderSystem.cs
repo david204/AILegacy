@@ -29,6 +29,10 @@ namespace AILegacy.World
         [JsonProperty("then")] public string Then;
         /// <summary>Days to stay on arrival before the order counts as done ("go to X and wait two days").</summary>
         [JsonProperty("wait")] public double WaitDays;
+        /// <summary>Not agreed with the player: a landless clan patrolling on its own (World/LandlessPatrols.cs). Silent, and anything the player asks replaces it.</summary>
+        [JsonProperty("auto", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Auto;
+        /// <summary>Why an Auto order was given, when it is not a landless patrol: "care" = a sick party riding to be treated (World/DiseasesExtra.cs).</summary>
+        [JsonProperty("why", DefaultValueHandling = DefaultValueHandling.Ignore)] public string Reason;
     }
 
     /// <summary>
@@ -38,6 +42,11 @@ namespace AILegacy.World
     internal static class OrderSystem
     {
         public static List<PartyOrder> Orders = new List<PartyOrder>();
+
+        private static readonly Prompt.Tpl TOwnPatrol = new Prompt.Tpl("orders/landless_patrol.txt",
+            "your clan holds no land, so these days you are patrolling the country around {place} with your men, of your own accord");
+        private static readonly Prompt.Tpl TOwnCare = new Prompt.Tpl("orders/seeking_care.txt",
+            "there is sickness in your party, so you are taking it to {place} to have the physicians there treat you and your men, of your own accord");
 
         // ============================================================ queries
 
@@ -50,21 +59,26 @@ namespace AILegacy.World
         }
 
         /// <summary>Leads a party and isn't tied to someone else's army.</summary>
-        public static bool CanTakeOrders(Hero h)
+        public static bool CanTakeOrders(Hero h, bool auto = false)
         {
-            if (!S.Get.EnableMapOrders || h == null || h.IsPrisoner || !h.IsAlive) return false;
+            if ((!auto && !S.Get.EnableMapOrders) || h == null || h.IsPrisoner || !h.IsAlive) return false;
             var p = PartyLedBy(h);
             if (p == null) return false;
             return p.Army == null || p.Army.LeaderParty == p || p.Army.LeaderParty == MobileParty.MainParty;
         }
 
-        public static PartyOrder Find(Hero h) => h == null ? null : Orders.FirstOrDefault(o => o.HeroId == h.StringId);
+        /// <summary>The order this hero has agreed with the player. A patrol of their own does not count.</summary>
+        public static PartyOrder Find(Hero h) => h == null ? null : Orders.FirstOrDefault(o => o.HeroId == h.StringId && !o.Auto);
+
+        /// <summary>Any order moving this hero's party, their own patrols included.</summary>
+        public static PartyOrder FindAny(Hero h) => h == null ? null : Orders.FirstOrDefault(o => o.HeroId == h.StringId);
 
         /// <summary>For the prompt: what they promised to do with their party.</summary>
         public static string Describe(Hero h)
         {
-            var o = Find(h);
+            var o = FindAny(h);
             if (o == null) return "";
+            if (o.Auto) return (o.Reason == "care" ? TOwnCare : TOwnPatrol).Format("place", o.TargetName ?? "");
             int days = Math.Max(0, (int)Math.Ceiling(o.UntilDay - CampaignTime.Now.ToDays));
             string who = Hero.MainHero.Name.ToString();
             string left = days <= 0 ? "ending today" : $"for about {days} more day(s)";
@@ -147,19 +161,20 @@ namespace AILegacy.World
             catch { return null; }
         }
 
-        public static bool Give(Hero h, string type, string targetId, string targetName, double days, string then = null, double waitDays = 0)
+        public static bool Give(Hero h, string type, string targetId, string targetName, double days, string then = null, double waitDays = 0, bool auto = false, string reason = null)
         {
-            if (!CanTakeOrders(h)) return false;
+            if (!CanTakeOrders(h, auto)) return false;
             var cfg = S.Get;
             if (days <= 0) days = cfg.OrderDefaultDays;
             days = Math.Max(0.5, Math.Min(cfg.OrderMaxDays, days));
             Cancel(h, silent: true);
-            var o = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, UntilDay = CampaignTime.Now.ToDays + days, StayDays = days, Then = then, WaitDays = Math.Max(0, Math.Min(S.Get.OrderMaxDays, waitDays)) };
+            var o = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, UntilDay = CampaignTime.Now.ToDays + days, StayDays = days, Then = then, WaitDays = Math.Max(0, Math.Min(S.Get.OrderMaxDays, waitDays)), Auto = auto, Reason = auto ? reason : null };
             // To join you or keep a meeting they have to get there first. The real deadline starts on arrival
             if (type == "follow") o.UntilDay = CampaignTime.Now.ToDays + Math.Max(days, cfg.OrderMaxDays);
             if (type == "meet") o.StayDays = cfg.OrderDefaultDays;
             Orders.Add(o);
-            Log.Info($"Orden para {h.Name}: {type} {targetName} ({days:0.#} días)");
+            Log.Info(auto && reason == "care" ? $"[enfermedad] {h.Name} ({h.Clan?.Name}) lleva a su partida a {targetName} para que la traten"
+                   : auto ? $"[sin tierra] {h.Name} ({h.Clan?.Name}) patrulla por su cuenta alrededor de {targetName} ({days:0.#} días)" : $"Orden para {h.Name}: {type} {targetName} ({days:0.#} días)");
             // Don't move the party while inside a scene (pulling it out of the settlement while you talk breaks the scene).
             // The order starts on the first tick after you leave.
             if (TaleWorlds.MountAndBlade.Mission.Current == null)
@@ -171,7 +186,7 @@ namespace AILegacy.World
 
         public static bool Cancel(Hero h, bool silent = false)
         {
-            var o = Find(h);
+            var o = FindAny(h);
             if (o == null) return false;
             Release(o, h, silent ? null : L.F("AIL_7cd9f263", $"{h.Name} vuelve a sus asuntos."));
             return true;
@@ -186,7 +201,7 @@ namespace AILegacy.World
                 if (p != null && !p.IsMainParty && p.LeaderHero == h) p.Ai.SetDoNotMakeNewDecisions(false);
             }
             catch (Exception ex) { Log.Error("Órdenes: liberar", ex); }
-            if (message != null) Say(message);
+            if (message != null && !o.Auto) Say(message);
             Log.Info($"Orden terminada ({o.Type} {o.TargetName}) de {h?.Name}");
         }
 
@@ -234,7 +249,7 @@ namespace AILegacy.World
                     // Defeated, captured or without a party: the deal is left undone, and both sides know it
                     if (p == null || h.IsPrisoner)
                     {
-                        if (o.Type != "approach") Remember(h, h.IsPrisoner ? $"you were taken prisoner and could not do what you had agreed with them ({o.Type} {o.TargetName})"
+                        if (o.Type != "approach" && !o.Auto) Remember(h, h.IsPrisoner ? $"you were taken prisoner and could not do what you had agreed with them ({o.Type} {o.TargetName})"
                                                  : $"you lost your party and could not do what you had agreed with them ({o.Type} {o.TargetName})");
                         Release(o, h, o.Type == "approach" ? null : L.F("AIL_5e0b93a7", $"{h.Name} ya no puede cumplir lo que acordasteis: {(h.IsPrisoner ? L.T("AIL_91c2d4f6", "ha caído prisionero") : L.T("AIL_2f7a8b13", "se ha quedado sin partida"))}."));
                         continue;
@@ -243,7 +258,7 @@ namespace AILegacy.World
                     if (p.Army != null && p.Army.LeaderParty != p && p.Army.LeaderParty != MobileParty.MainParty)
                     {
                         string boss = p.Army.LeaderParty?.LeaderHero?.Name?.ToString() ?? p.Army.Name?.ToString() ?? "?";
-                        if (o.Type != "approach") Remember(h, $"you were called into the army of {boss} and had to leave undone what you had agreed with them ({o.Type} {o.TargetName}). You owe them an explanation");
+                        if (o.Type != "approach" && !o.Auto) Remember(h, $"you were called into the army of {boss} and had to leave undone what you had agreed with them ({o.Type} {o.TargetName}). You owe them an explanation");
                         Release(o, h, o.Type == "approach" ? null : L.F("AIL_c4d81e09", $"{h.Name} ha sido llamado al ejército de {boss} y deja lo que acordasteis."));
                         continue;
                     }
@@ -274,7 +289,7 @@ namespace AILegacy.World
         /// <summary>Normal end of an order (time's up, target reached or lost). If they agreed to come back afterwards, they do.</summary>
         private static void Done(PartyOrder o, Hero h, string message)
         {
-            bool back = o.Then == "follow" && o.Type != "follow";
+            bool back = o.Then == "follow" && o.Type != "follow" && !o.Auto;
             Release(o, h, message);
             try
             {
@@ -352,7 +367,7 @@ namespace AILegacy.World
                             {
                                 // "Go and wait N days": stays there, and the time counts from arrival
                                 o.UntilDay = CampaignTime.Now.ToDays + o.WaitDays;
-                                Say(L.F("AIL_c7a9d5e2", $"{h.Name} ha llegado a {st.Name} y se queda allí {o.WaitDays:0.#} día(s)."));
+                                if (!o.Auto) Say(L.F("AIL_c7a9d5e2", $"{h.Name} ha llegado a {st.Name} y se queda allí {o.WaitDays:0.#} día(s)."));
                             }
                             else
                             {

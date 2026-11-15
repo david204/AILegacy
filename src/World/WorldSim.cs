@@ -133,6 +133,8 @@ namespace AILegacy.World
         [JsonProperty("jail_in")] public string JailSettlementId;
         [JsonProperty("jail_until")] public double JailReleaseDay = -1;
         [JsonProperty("uniques")] public List<string> UniqueIds = new List<string>();
+        /// <summary>Townsfolk the player has talked to: their memory and the face they keep (World/ResidentFaces.cs).</summary>
+        [JsonProperty("residents")] public List<Memory.HeroMemory> Residents = new List<Memory.HeroMemory>();
         /// <summary>Events that weigh on someone's (or a kingdom's) mood for a few days, and who killed whom.</summary>
         [JsonProperty("mood_events")] public List<MoodEvent> MoodEvents = new List<MoodEvent>();
         [JsonProperty("recent_kills")] public List<KillRecord> RecentKills = new List<KillRecord>();
@@ -152,6 +154,15 @@ namespace AILegacy.World
         /// <summary>Heroes and parties that are ill right now, and who is immune to what until which day ("hero|disease").</summary>
         [JsonProperty("sick")] public List<Sickness> Sick = new List<Sickness>();
         [JsonProperty("sick_immune")] public Dictionary<string, double> SickImmune = new Dictionary<string, double>();
+        /// <summary>Garrisons and militias down with the outbreak of their settlement.</summary>
+        [JsonProperty("sick_forces")] public List<ForceSickness> SickForces = new List<ForceSickness>();
+        /// <summary>Treatment a clan still owes the physicians (clan id -> gold). Charged with the next daily finances.</summary>
+        [JsonProperty("treatment_debt")] public Dictionary<string, int> TreatmentDebt = new Dictionary<string, int>();
+        /// <summary>Heroes killed by a disease (hero id -> which and when), for the texts of their death.</summary>
+        [JsonProperty("disease_deaths")] public Dictionary<string, DiseaseDeath> DiseaseDeaths = new Dictionary<string, DiseaseDeath>();
+        /// <summary>Herbs the player's party took against contagion: until which day, and how much they cut it (0..1).</summary>
+        [JsonProperty("herb_guard_until")] public double HerbGuardUntilDay = -1;
+        [JsonProperty("herb_guard")] public float HerbGuard;
         [JsonProperty("banished")] public List<Banishment> Banished = new List<Banishment>();
         [JsonProperty("courtships")] public List<Courtship> Courtships = new List<Courtship>();
         [JsonProperty("statement_queue")] public List<QueuedStatement> StatementQueue = new List<QueuedStatement>();
@@ -248,6 +259,8 @@ namespace AILegacy.World
             try { Dialogue.Verdict.ResetSession(); } catch { }
             try { Dialogue.Initiative.ResetSession(); } catch { }
             try { SceneImages.ResetSession(); } catch { }
+            try { Dialogue.TalkMusic.ResetSession(); } catch { }
+            try { NewsStore.ResetSession(); } catch { }
             try { Laws.Invalidate(); } catch { }
             Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
         }
@@ -436,26 +449,47 @@ Open stories:
 - secret (optional, for about one event in three): the hidden truth behind this event that only a few people know and that the public version leaves out (who really paid for it, who is lying, what was covered up). ""known_by"": 1 to 3 REAL named nobles from the data who would know. ""access"": low | medium | high (how hard it is to get it out of them).
 - clan_rebellion (rare, optional): the name of ONE vassal clan that rises against its own crown right now. Only when the data shows a real break between that clan and its ruler; never the ruling clan and never a clan of ""the realm of ..."". The world will carry it out.
 - disease (rare, optional): a sickness breaking out in ONE real town or village, when the season, a siege, hunger or crowding make it plausible. severity 1 (mild) to {max_severity}. You may also give how it behaves, or leave those fields out and they follow from the severity: spread_rate 0.1 to {max_spread} (how catching it is), death_chance 0 to {max_death} (daily risk for the gravely ill; 0 for anything nobody dies of), combat_modifier {min_combat} to 1 and map_speed_modifier {min_speed} to 1 (how much strength it leaves a fighter and a marching party), morale_penalty {max_morale} to 0, skill_penalty {max_skill} to 0.
+- claims: every allegiance, war and alliance your text relies on, so the world can check it before it is published: { ""who"": a lord or a clan, ""kingdom"": the id of the kingdom they are SUBJECTS of, or ""none"", ""mercenary"": true when they only serve that kingdom for pay }, { ""war"": [id, id] }, { ""allies"": [id, id] }. An event with a claim that contradicts the data below is thrown away. Take every allegiance from the list of who serves whom: a person's culture says where they were born, never whom they serve; a mercenary clan is neither kin nor subject of the crown that pays it and matters to it only while the contract lasts; minor clans answer to no crown.
 - title: 3-8 words in {language}. text: {min_len}-{max_len} characters in {language}, written like a chronicle. summary: the same in ONE English sentence.
 
 Answer ONLY with JSON:
 { ""events"": [ { ""type"": ""political|military|economic|social|mysterious"", ""title"": ""..."", ""text"": ""..."", ""summary"": ""..."", ""importance"": 1-4, ""continues"": """",
   ""kingdoms_involved"": [""kingdom ids""], ""settlements_involved"": [""settlement names""], ""kingdom_engagement"": { ""kingdom_id"": 0-100 },
+  ""claims"": [ { ""who"": ""name"", ""kingdom"": ""id or none"", ""mercenary"": false }, { ""war"": [""id"", ""id""] }, { ""allies"": [""id"", ""id""] } ],
   ""economic_effects"": [ { ""settlement"": ""name"", ""prosperity_per_day"": 0, ""food_per_day"": 0, ""security_per_day"": 0, ""loyalty_per_day"": 0, ""price_percent"": 0, ""price_of"": """", ""prosperity_now"": 0, ""food_now"": 0, ""security_now"": 0, ""loyalty_now"": 0, ""kingdom"": """", ""duration_days"": 0, ""reason"": ""..."" } ],
   ""clan_effects"": [ { ""clan"": ""clan name"", ""income_percent"": 0, ""duration_days"": 0, ""reason"": ""..."" } ],
   ""secret"": { ""text"": ""one or two English sentences"", ""text_local"": ""the same in {language}"", ""about"": [""names""], ""known_by"": [""names""], ""access"": ""high"" },
   ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30, ""spread_rate"": 0.3, ""death_chance"": 0, ""combat_modifier"": 0.9, ""map_speed_modifier"": 0.9, ""morale_penalty"": -5, ""skill_penalty"": -6 } } ] }
 Leave out economic_effects, clan_effects, secret, clan_rebellion and disease when they do not apply.");
 
-        public static void Touch() { var _ = TEventGen.Key; Diplomacy.Touch(); Laws.Touch(); }
+        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key; Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); }
 
-        // REAL game events that just happened and deserve a world reaction (not saved, they only matter right now)
-        private static readonly List<string> Triggers = new List<string>();
+        // REAL game events that just happened and deserve a world reaction (not saved, they only matter right now).
+        // Each one carries its fact sheet: the news line alone does not say whose man anyone is.
+        private static readonly List<Trigger> Triggers = new List<Trigger>();
 
         private static readonly Tpl TReact = new Tpl("dynamic_events_generator/react_to_real_event.txt",
 @"## THIS HAS JUST REALLY HAPPENED
 {triggers}
-Write ONE development that follows directly from it: how the people, the nobles, the merchants or the other crowns take it, what it stirs up, what it threatens next. It is a consequence or a reaction, not a retelling of the fact itself (everyone already knows the fact). Give kingdom_engagement to the crowns that would want to answer.");
+
+## HARD FACTS ABOUT IT
+Built by the world itself. They are the only truth about whom these people and places belong to and who is fighting whom:
+{facts}
+
+How to read them:
+- Culture is where someone was born. It is never an allegiance: a Nord by birth sworn to the Aserai is an Aserai vassal, and a Nord in no kingdom is nobody's man.
+- A mercenary clan is hired. It is neither kin nor subject of the kingdom that pays it, and it matters to that kingdom only while it is in its pay. A clan with no kingdom matters to no crown.
+- Do not state any allegiance, war, alliance or kinship that is not in these facts or in the kingdom data above. If a fact is missing, leave it out; do not guess it from a name or a culture.
+- If the facts do not make this matter to anyone powerful, write it as local talk: importance 1, kingdoms_involved and kingdom_engagement empty.
+
+Write ONE development that follows directly from it: how the people, the nobles, the merchants or the other crowns take it, what it stirs up, what it threatens next. It is a consequence or a reaction, not a retelling of the fact itself (everyone already knows the fact).
+kingdoms_involved and kingdom_engagement may only name kingdoms from this list, the ones the facts tie to what happened: {allowed}. Any other kingdom is discarded. Give kingdom_engagement only to the crowns that would truly want to answer.");
+
+        // For a reaction template edited before the facts existed: the facts still go in
+        private static readonly Tpl TFactsBlock = new Tpl("dynamic_events_generator/react_facts_fallback.txt",
+@"## HARD FACTS ABOUT IT (the only truth about whom these people and places belong to; culture is not allegiance, and a mercenary clan is neither kin nor subject of the kingdom that pays it)
+{facts}
+kingdoms_involved and kingdom_engagement may only name: {allowed}.");
 
         /// <summary>Every real game news item comes through here. Big ones trigger a world reaction as soon as possible.</summary>
         public static void OnRealNews(NewsItem n)
@@ -464,11 +498,12 @@ Write ONE development that follows directly from it: how the people, the nobles,
             if (!Enabled || !cfg.ReactiveEvents || n == null || Campaign.Current == null) return;
             string t = n.Type ?? "";
             if (t == "statement" || t == "custom" || t.StartsWith("event_")) return;     // don't feed the AI's own writing back into itself
-            if (n.Importance < cfg.ReactiveMinImportance) return;
+            if (n.NoReaction || n.Importance < cfg.ReactiveMinImportance) return;
+            var trigger = Facts.ForNews(n);
             lock (Triggers)
             {
                 if (Triggers.Count >= 5) Triggers.RemoveAt(0);
-                Triggers.Add(n.Text);
+                Triggers.Add(trigger);
             }
         }
 
@@ -490,10 +525,11 @@ Write ONE development that follows directly from it: how the people, the nobles,
                          + (blood && where != null && (where.IsTown || where.IsCastle || where.IsVillage) ? $" Blood was shed: give {where.Name} a modest, short-lived effect (security and/or prosperity) with the reason in a few words." : " No economic effect unless it clearly follows.")
                          + " If the one who did it is known by name and it is an outrage (blood, sacrilege, a noble struck down), their clan's name may suffer: a clan_effects entry for that clan."
                          + " Say only what the witnesses could know: if nobody knows who did it, the event must not name them.]";
+                var trigger = Facts.ForIncident(t, where);
                 lock (Triggers)
                 {
                     if (Triggers.Count >= 5) Triggers.RemoveAt(0);
-                    Triggers.Add(t);
+                    Triggers.Add(trigger);
                 }
                 _urgent = true;
                 Log.Info("[mundo] suceso tuyo en cola: " + (whatEn.Length > 120 ? whatEn.Substring(0, 120) + "…" : whatEn));
@@ -509,7 +545,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             if (State.LastReactiveHour > hour) State.LastReactiveHour = -1;     // loaded an older save
             if (!_urgent && State.LastReactiveHour >= 0 && hour - State.LastReactiveHour < cfg.ReactiveMinHoursBetween) return;
             _urgent = false;
-            List<string> take;
+            List<Trigger> take;
             lock (Triggers)
             {
                 if (Triggers.Count == 0) return;
@@ -521,7 +557,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
         }
 
         /// <summary>The reaction failed, so its events go back in the queue (at most twice in a row).</summary>
-        private static void RequeueTriggers(List<string> take)
+        private static void RequeueTriggers(List<Trigger> take)
         {
             if (take == null || take.Count == 0 || ++_reactRetries > 2) return;
             lock (Triggers)
@@ -531,7 +567,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
             }
         }
 
-        public static void GenerateEvents(bool forced = false, List<string> reactTo = null)
+        public static void GenerateEvents(bool forced = false, List<Trigger> reactTo = null)
         {
             var cfg = S.Get;
             if (!Enabled || Campaign.Current == null) return;
@@ -554,6 +590,9 @@ Write ONE development that follows directly from it: how the people, the nobles,
             sys.AppendLine($"## Date: day {now.GetDayOfSeason + 1} of {now.GetSeasonOfYear}, year {now.GetYear}");
             sys.AppendLine("## Kingdoms (technical truth, right now)");
             sys.AppendLine(DescribeKingdoms());
+            sys.AppendLine("## Who serves whom (exact, right now; nobody else belongs to these kingdoms)");
+            sys.AppendLine(Facts.Roster());
+            sys.AppendLine(Facts.CalendarAndMap());
             sys.AppendLine("## What really happened lately");
             sys.AppendLine(DescribeRecentNews(14));
             sys.AppendLine("## Developments already in the air (do not repeat them; you may continue one)");
@@ -561,14 +600,24 @@ Write ONE development that follows directly from it: how the people, the nobles,
             var pend = Diplomacy.DescribeAllProposals();
             if (pend.Length > 0) { sys.AppendLine("## Pending proposals between crowns (do not narrate their outcome)"); sys.AppendLine(pend); }
 
+            // Kingdoms a reaction may involve: those of the people and places in what happened, and whoever is at war or allied with them
+            HashSet<string> allowed = null;
             if (reactive)
             {
+                var facts = new List<string>();
+                foreach (var tr in reactTo) foreach (var f in tr.Facts) if (!facts.Contains(f)) facts.Add(f);
+                try { allowed = FactCheck.Connected(reactTo.SelectMany(tr => tr.Kingdoms), Facts.BuildModel()); }
+                catch (Exception ex) { Log.Error("[mundo] reinos ligados a un suceso", ex); allowed = new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)); }
+                string factText = facts.Count > 0 ? string.Join("\n", facts) : "(nobody of note and no kingdom is tied to it)";
+                string allowedText = allowed.Count > 0 ? string.Join(", ", allowed) : "(none: this is local talk)";
                 sys.AppendLine();
-                sys.AppendLine(TReact.Format("triggers", string.Join("\n", reactTo.Select(x => "- " + x))));
+                bool hasFacts = TReact.Text.Contains("{facts}");
+                sys.AppendLine(TReact.Format("triggers", string.Join("\n", reactTo.Select(x => "- " + x.Text)), "facts", factText, "allowed", allowedText));
+                if (!hasFacts) sys.AppendLine(TFactsBlock.Format("facts", factText, "allowed", allowedText));
             }
             Ask(reactive ? L.T("AIL_ce8115b0", "reacción a un suceso real") : "generar eventos",
                 new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", reactive ? "Write the development now." : "Write the events now.") },
-                count * 700 + 400, j =>
+                count * 800 + 400, j =>
                 {
                     if (reactive) _reactRetries = 0;
                     else
@@ -578,15 +627,56 @@ Write ONE development that follows directly from it: how the people, the nobles,
                         State.LastEventGenerationDay = d;
                         State.NextEventGenerationDay = d + S.Get.WorldEventsIntervalDays * (0.6 + Rng.NextDouble() * 0.8);
                     }
-                    ApplyEvents(j);
+                    ApplyEvents(j, S.Get.FactCheckEvents ? allowed : null);
                 },
                 key: reactive ? "react" : "events", failed: reactive ? (Action)(() => RequeueTriggers(reactTo)) : null);
         }
 
-        private static void ApplyEvents(JObject j)
+        private static List<FactClaim> ParseClaims(JToken t)
+        {
+            var list = new List<FactClaim>();
+            if (!(t is JArray arr)) return list;
+            foreach (var c in arr.OfType<JObject>().Take(20))
+            {
+                try
+                {
+                    if (c["war"] is JArray w && w.Count >= 2) list.Add(new FactClaim { Kind = "war", A = w[0]?.ToString(), B = w[1]?.ToString() });
+                    else if (c["allies"] is JArray al && al.Count >= 2) list.Add(new FactClaim { Kind = "allies", A = al[0]?.ToString(), B = al[1]?.ToString() });
+                    else if (c["who"] != null && c["who"].Type == JTokenType.String)
+                        list.Add(new FactClaim
+                        {
+                            Who = (string)c["who"], Kingdom = c["kingdom"] == null || c["kingdom"].Type == JTokenType.Null ? "" : c["kingdom"].ToString(),
+                            Mercenary = string.Equals(c["mercenary"]?.ToString(), "true", StringComparison.OrdinalIgnoreCase),
+                        });
+                }
+                catch { }
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// What the AI wrote, checked against the world before it is published. Returns what is wrong with it, or null.
+        /// <paramref name="model"/> is built on first use and reused for the rest of the batch.
+        /// </summary>
+        public static string Contradiction(ref FactModel model, JToken claims, params string[] texts)
+        {
+            if (!S.Get.FactCheckEvents) return null;
+            try
+            {
+                model = model ?? Facts.BuildModel();
+                string wrong = FactCheck.CheckClaims(ParseClaims(claims), model);
+                foreach (var text in texts) wrong = wrong ?? FactCheck.CheckSummary(text, model);
+                return wrong;
+            }
+            catch (Exception ex) { Log.Error("[mundo] comprobando hechos", ex); return null; }
+        }
+
+        /// <param name="allowed">For a reaction to a real event: the only kingdoms it may involve. null for the scheduled batch.</param>
+        private static void ApplyEvents(JObject j, HashSet<string> allowed = null)
         {
             if (!(j["events"] is JArray arr)) return;
             bool continued = false;
+            FactModel model = null;
             foreach (var x in arr.OfType<JObject>().Take(S.Get.WorldEventsPerGeneration))
             {
                 var e = new WorldEvent
@@ -596,6 +686,9 @@ Write ONE development that follows directly from it: how the people, the nobles,
                     SummaryEn = Clean((string)x["summary"], 350), Importance = Math.Max(1, Math.Min(4, (int?)x["importance"] ?? 2)),
                 };
                 if (e.Title.Length < 3 || e.Text.Length < 20) continue;
+                // A stated allegiance, war or alliance that the game denies: the event is not published
+                string wrong = Contradiction(ref model, x["claims"], e.SummaryEn, e.Text);
+                if (wrong != null) { Log.Warn($"[mundo] evento descartado por contradecir el mundo: «{e.Title}» {wrong}"); continue; }
                 // A next chapter of an open story keeps its id (so its effects and its news stay tied to it) and its past
                 string cont = ((string)(x["continues"]?.Type == JTokenType.String ? x["continues"] : null) ?? "").Trim();
                 if (cont.Length > 0 && !continued)
@@ -617,8 +710,13 @@ Write ONE development that follows directly from it: how the people, the nobles,
                         Log.Info($"[mundo] sigue la historia «{old.Title}» ({e.History.Count} capítulo(s) anteriores)");
                     }
                 }
+                var strangers = new List<string>();
                 if (x["kingdoms_involved"] is JArray ks)
-                    foreach (var k in ks) { var kg = FindKingdom(k?.ToString()); if (kg != null && !e.Kingdoms.Contains(kg.StringId)) e.Kingdoms.Add(kg.StringId); }
+                {
+                    var named = ks.Select(k => FindKingdom(k?.ToString())?.StringId).Where(id => id != null).ToList();
+                    foreach (var id in allowed == null ? named : FactCheck.FilterKingdoms(named, allowed, strangers))
+                        if (!e.Kingdoms.Contains(id)) e.Kingdoms.Add(id);
+                }
                 if (x["settlements_involved"] is JArray ss)
                     foreach (var s in ss) { var st = OrderSystem.FindSettlement(s?.ToString()); if (st != null && !e.Settlements.Contains(st.StringId)) e.Settlements.Add(st.StringId); }
                 if (x["kingdom_engagement"] is JObject eng)
@@ -626,9 +724,14 @@ Write ONE development that follows directly from it: how the people, the nobles,
                     {
                         var kg = FindKingdom(p.Name);
                         if (kg == null || kg.Leader == Hero.MainHero) continue;      // the player speaks when they want to
+                        // a crown the real event has nothing to do with gets no turn to speak about it
+                        if (allowed != null && FactCheck.FilterKingdoms(new[] { kg.StringId }, allowed, strangers).Count == 0) continue;
                         if (!e.Kingdoms.Contains(kg.StringId)) e.Kingdoms.Add(kg.StringId);
-                        e.Engagement[kg.StringId] = Math.Max(0, Math.Min(100, (int?)p.Value ?? 0));
+                        int chance = 0;
+                        try { chance = (int?)p.Value ?? 0; } catch { }
+                        e.Engagement[kg.StringId] = Math.Max(0, Math.Min(100, chance));
                     }
+                if (strangers.Count > 0) Log.Info($"[mundo] «{e.Title}»: reinos ajenos al suceso real, descartados: {string.Join(", ", strangers)}");
                 Publish(e);
                 if (x["economic_effects"] is JArray fx) foreach (var f in fx.OfType<JObject>().Take(4)) AddEffect(e, f);
                 if (x["clan_effects"] is JArray cfx) foreach (var f in cfx.OfType<JObject>().Take(2)) AddClanEffect(e, f);
@@ -1046,14 +1149,15 @@ Write ONE development that follows directly from it: how the people, the nobles,
 
         public static void OnHeroKilled(Hero victim, Hero killer, TaleWorlds.CampaignSystem.Actions.KillCharacterAction.KillCharacterActionDetail detail, bool show)
         {
-            try { if (victim != null && victim.IsLord) AddFatigue(victim.MapFaction as Kingdom, S.Get.FatiguePerLordKilled); } catch { }
+            // only its own lords weary a kingdom: a hired sword lost is not its blood (MapFaction would give the paymaster)
+            try { if (victim != null && victim.IsLord) AddFatigue(Facts.Subject(victim.Clan), S.Get.FatiguePerLordKilled); } catch { }
             Chronicle.OnHeroKilled(victim, killer, detail);
             Mood.OnHeroKilled(victim, killer);
         }
 
         public static void OnPrisonerTaken(PartyBase captor, Hero prisoner)
         {
-            try { if (prisoner != null && prisoner.IsLord) AddFatigue(prisoner.MapFaction as Kingdom, S.Get.FatiguePerLordKilled / 3f); } catch { }
+            try { if (prisoner != null && prisoner.IsLord) AddFatigue(Facts.Subject(prisoner.Clan), S.Get.FatiguePerLordKilled / 3f); } catch { }
         }
 
         public static void OnSettlementOwnerChanged(Settlement s, bool openToClaim, Hero newOwner, Hero oldOwner, Hero capturer,

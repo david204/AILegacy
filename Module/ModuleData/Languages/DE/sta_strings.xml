@@ -1804,5 +1804,133 @@
     <string id="AIL_e7b1c6c5" text=" · gefangen" />
     <string id="AIL_e7b1c6c6" text=" · tot oder nicht mehr im Spiel" />
     <string id="AIL_e7b1c6c7" text="Speichere im Spiel, damit die Änderung im Spielstand bleibt." />
+    <string id="AIL_e7b1c6c8" text="Bewohner, mit denen du gesprochen hast, behalten ihr Gesicht" />
+    <string id="AIL_e7b1c6c9" text="Das Spiel würfelt für jeden Bewohner ein neues Gesicht aus, sobald du einen Ort betrittst. Ist dies an, kommt der Dorfbewohner, Städter oder Tavernengast, mit dem du gesprochen hast, bei späteren Besuchen mit demselben Gesicht, Körperbau, Alter, derselben Kleidung und demselben Namen wieder und erinnert sich nach Speichern und Laden an dich. Vorher hielt sein Gedächtnis nur, bis du das Spiel geschlossen hast." />
+    <string id="AIL_e7b1c6ca" text="Gemerkte Bewohner pro Kampagne" />
+    <string id="AIL_e7b1c6cb" text="Sind es mehr, werden die vergessen, mit denen du am längsten nicht gesprochen hast. Sie werden mit der Weltdatei gespeichert, eine sehr hohe Zahl macht diese also größer." />
+    <string id="AIL_e7b1c6cc" text="Fürsten üben in der Arena" />
+    <string id="AIL_e7b1c6cd" text="Manche Adlige, die sich in einer Stadt aufhalten, verbringen ein paar Stunden des Vormittags oder Nachmittags in der Arena statt in der Burg. Betritt die Arena, um sie dort zu treffen und mit ihnen zu sprechen. Sie stehen unter den Leuten dort: An den Übungskämpfen nehmen sie nicht teil. Nicht während eines Turniers." />
+    <string id="AIL_e7b1c6ce" text="Fürsten in der Arena: Chance pro Fürst und Tag (%)" />
+    <string id="AIL_e7b1c6cf" text="Landlose Clans patrouillieren" />
+    <string id="AIL_e7b1c6d0" text="Untätige Trupps von Clans ohne Lehen (kleine Fraktionen, enteignete Adlige, Clans, die die Mod am Leben hält) patrouillieren einige Tage um eine Siedlung ihres Reiches oder Dienstherrn, oder um die nächste nicht feindliche, wenn sie niemandem dienen, und ruhen dann einen Tag, um sich zu versorgen. Dafür werden die Kartenbefehle der Mod benutzt. Hungernde oder dezimierte Trupps bleiben unbehelligt, und was du mit ihnen vereinbarst, geht vor." />
+    <string id="AIL_e7b1c6d1" text="Landlose Clans: Tage pro Patrouille" />
+    <string id="AIL_e7b1c6d2" text="Eigene Musik in Gesprächen" />
+    <string id="AIL_e7b1c6d3" text="Die Mod bringt keine Musik mit. Lege eigene .ogg-Dateien in Modules\AILegacy\music ab, in die Ordner talk, tense, romance, sad und victory. Während du über die Mod mit jemandem sprichst, läuft ein Stück aus dem Ordner, der zum Moment passt (Spannung, Romantik und die gezeigte Stimmung entscheiden; ein leerer Ordner weicht auf talk aus), und die Spielmusik wird leiser, bis das Gespräch endet. Die Lautstärke folgt der Sprachlautstärke des Spiels." />
+    <string id="AIL_e7b1c6d4" text="Eigene Musik: Lautstärke der Spielmusik währenddessen (%)" />
+    <string id="AIL_e7b1c6d5" text="Eigene Musik: Spannung, ab der der Ordner tense läuft" />
+    <string id="AIL_e7b1c6d6" text="Eigene Musik: Romantik, ab der der Ordner romance läuft" />
+    <string id="AIL_e7b1c6d7" text="Leistungsmesser (ins Log)" />
+    <string id="AIL_e7b1c6d8" text="Solange dies an ist, misst die Mod ihre eigene Arbeit in jedem Frame und jeden ihrer Harmony-Patches und schreibt alle 60 Sekunden eine nach Gesamtzeit sortierte Tabelle nach logs\ailegacy.log. Der Konsolenbefehl ailegacy.perf gibt sie sofort aus. Auf dem Bildschirm wird nichts angezeigt. Lass es aus, solange du nicht suchst, was das Spiel bremst." />
+    <string id="AIL_e7b1c6d9" text="KI-Fürsten trainieren ihre Truppen in Arenen" />
+    <string id="AIL_e7b1c6da" text="Ein Fürst, der in einer Stadt rastet und dessen Trupp überwiegend aus niedrigstufigen Truppen besteht, bezahlt die Arena aus eigenem Gold, und seine gesunden Soldaten sammeln Erfahrung, zum selben Preis, mit derselben Erfahrung und Verletzungschance wie dein eigenes Arenatraining und derselben Wartezeit. Gilt nicht für Trupps deines Clans. Benötigt „Training in der Arena“." />
+    <string id="AIL_e7b1c6db" text="Interner Fehler {0}. Die Einzelheiten stehen im Protokoll der Mod (logs\ailegacy.log)." />
+    <string id="AIL_e7b1c6dc" text="Die Anfrage ist zu groß." />
+    <string id="AIL_e7b1c6dd" text="Ungültige Anfrage." />
+    <string id="AIL_e7b1c6de" text="Diese Kopie ist zu groß, um sie von hier aus wiederherzustellen." />
+    <string id="AIL_e7b1c6df" text="Die Daten sind beschädigt oder unvollständig; es wurde nichts geändert." />
+    <string id="AIL_e7b1c6e0" text="KI-Trupps reiten zur Behandlung" />
+    <string id="AIL_e7b1c6e1" text="Ein Lord, dessen Trupp krank genug ist, reitet zur nächsten befreundeten Stadt oder Burg in Reichweite, bezahlt die Ärzte, ruht dort und geht dann wieder seinen Angelegenheiten nach. Nie ein Trupp, der in einer Armee, einer Schlacht oder Belagerung steckt oder etwas tut, worum du ihn gebeten hast." />
+    <string id="AIL_e7b1c6e2" text="KI-Behandlung: nötige Dringlichkeit zum Aufbruch (3 = jede Krankheit, 10 = nur die schwersten)" />
+    <string id="AIL_e7b1c6e3" text="Die Dringlichkeit wächst damit, wie weit und wie schwer die Krankheit ist: 3 bei den ersten Anzeichen, 10 bei einer Pest auf halbem Weg. Bei 5 bricht ein Lord wegen einer leichten Krankheit auf, sobald sie ein Viertel ihres Verlaufs erreicht hat, und bei einer tödlichen sofort." />
+    <string id="AIL_e7b1c6e4" text="KI-Behandlung: Anteil kranker Soldaten, der zählt (%)" />
+    <string id="AIL_e7b1c6e5" text="KI-Behandlung: weiteste Strecke, die sie reiten (Tage)" />
+    <string id="AIL_e7b1c6e6" text="KI-Behandlung: Ruhetage am Ort der Behandlung" />
+    <string id="AIL_e7b1c6e7" text="Heilkräuter" />
+    <string id="AIL_e7b1c6e8" text="Fünf Güteklassen von Kräutern, die in den Hospitälern verkauft werden: bessere in reichen Städten, die besten nur in einer Hauptstadt. Sie sind Waren in deinem Inventar: Nutze sie überall (Alt+H auf der Karte oder im Hospital), um deine Kranken zu behandeln oder damit sich dein Trupp einige Tage lang seltener ansteckt." />
+    <string id="AIL_e7b1c6e9" text="Kräuter: deine Kranken automatisch damit behandeln" />
+    <string id="AIL_e7b1c6ea" text="Jeden Tag bekommen deine kranken, unbehandelten Helden und Soldaten die Kräuter, die du mitführst: die besten für die schweren Fälle, die einfachsten für den Rest. Aus: nur, wenn du sie selbst einsetzt." />
+    <string id="AIL_e7b1c6eb" text="Garnisonen und Milizen erkranken" />
+    <string id="AIL_e7b1c6ec" text="Wo eine Seuche ausgebrochen ist, können sich Garnison und Miliz anstecken. Sie breitet sich unter ihnen aus, die Ärzte des Ortes sehen alle paar Tage nach ihnen, und eine schwere Krankheit, die man laufen lässt, tötet jeden Tag einige. Zu sehen im Tooltip der Siedlung und in der täglichen Veränderung der Miliz." />
+    <string id="AIL_e7b1c6ed" text="Garnisonen: Tage zwischen den Runden der Ärzte" />
+    <string id="AIL_e7b1c6ee" text="Krankheit in den Karten-Tooltips" />
+    <string id="AIL_e7b1c6ef" text="Fährst du auf der Karte über einen Trupp, siehst du, wer darin krank ist: der Anführer, die Soldaten und die Gefangenen. Halte die Taste für mehr Informationen, um zu sehen, wie weit jede Krankheit ist. Eine Siedlung zeigt ihre Seuche sowie ihre kranke Garnison und Miliz." />
+    <string id="AIL_e7b1c6f0" text="Todesfälle nennen die Krankheit" />
+    <string id="AIL_e7b1c6f1" text="Stirbt ein Held an einer Krankheit, nennen die Meldung, die Enzyklopädie und der Nachruf sie beim Namen, statt von Altersschwäche zu sprechen." />
+    <string id="AIL_e7b1c6f2" text="Behandlung auf Rechnung des Clans" />
+    <string id="AIL_e7b1c6f3" text="Ein Mitglied deines Clans, das fern von dir behandelt wird und nicht alles zahlen kann, bleibt den Rest schuldig: Er wird mit den nächsten täglichen Ausgaben deines Clans abgebucht, als eigene Zeile. Im Hospital kannst auch du deine Kranken anschreiben lassen, wenn das Gold nicht reicht." />
+    <string id="AIL_e7b1c6f4" text="Heilkräuter verwenden (auf der Karte)" />
+    <string id="AIL_e7b1c6f5" text="Multipliziert den Preis der Vorbeugung im Hospital und der Heilkräuter, die es verkauft." />
+    <string id="AIL_e7b1c6f6" text="Gewöhnliche Kräuter" />
+    <string id="AIL_e7b1c6f7" text="Seltene Kräuter" />
+    <string id="AIL_e7b1c6f8" text="Wertvolle Kräuter" />
+    <string id="AIL_e7b1c6f9" text="Außergewöhnliche Kräuter" />
+    <string id="AIL_e7b1c6fa" text="Legendäre Kräuter" />
+    <string id="AIL_e7b1c6fb" text="{=!}Heilkräuter kaufen" />
+    <string id="AIL_e7b1c6fc" text="Heilkräuter" />
+    <string id="AIL_e7b1c6fd" text="Die Apotheker von {0} verkaufen diese Kräuter. Die besten gelangen nur in reiche Städte und Hauptstädte. Du hast {1} Denare." />
+    <string id="AIL_e7b1c6fe" text="{0} × {1}: {2} Denare" />
+    <string id="AIL_e7b1c6ff" text="Als Behandlung: Stärke ×{0}. Gegen Ansteckung: {1}% weniger für {2} Tage. Du hast {3} dabei." />
+    <string id="AIL_e7b1c700" text="Kaufen" />
+    <string id="AIL_e7b1c701" text="Schließen" />
+    <string id="AIL_e7b1c702" text="Du kaufst {0} × {1} für {2} Denare." />
+    <string id="AIL_e7b1c703" text="Du hast nicht genug Gold." />
+    <string id="AIL_e7b1c704" text="Wähle, was du mit den mitgeführten Kräutern tun willst." />
+    <string id="AIL_e7b1c705" text="Deine Kranken mit {0} behandeln (du hast {1})" />
+    <string id="AIL_e7b1c706" text="{0} gegen Ansteckung einnehmen (nötig: {1}, du hast {2})" />
+    <string id="AIL_e7b1c707" text="Beginnt die Behandlung von {0} deiner {1} unbehandelten Kranken, mit Stärke ×{2}. Verbraucht {3}." />
+    <string id="AIL_e7b1c708" text="Dein ganzer Trupp erkrankt {1} Tage lang um {0}% seltener. Das kommt zur Vorbeugung des Hospitals hinzu." />
+    <string id="AIL_e7b1c709" text="Verwenden" />
+    <string id="AIL_e7b1c70a" text="Du hast keine Heilkräuter dabei." />
+    <string id="AIL_e7b1c70b" text="Du verbrauchst {0} × {1}: Die Behandlung von {2} Kranken beginnt." />
+    <string id="AIL_e7b1c70c" text="Dein Trupp nimmt {0} ein: Er erkrankt {2} Tage lang um {1}% seltener." />
+    <string id="AIL_e7b1c70d" text="&#10;Du führst Heilkräuter mit: {0}." />
+    <string id="AIL_e7b1c70e" text="&#10;Die Kräuter schützen deinen Trupp noch {0} Tag(e) ({1}% weniger Ansteckung)." />
+    <string id="AIL_e7b1c70f" text="Du hast keine unbehandelten Kranken." />
+    <string id="AIL_e7b1c711" text="Du hast nicht genug dabei: {0} sind nötig." />
+    <string id="AIL_e7b1c712" text="{0} Soldat(en) der Garnison von {1} sterben an {2}." />
+    <string id="AIL_e7b1c713" text="Die Garnison von {0} ist an {1} erkrankt." />
+    <string id="AIL_e7b1c714" text="Die Miliz von {0} ist an {1} erkrankt." />
+    <string id="AIL_e7b1c715" text="Krankheit" />
+    <string id="AIL_e7b1c716" text="Garnison" />
+    <string id="AIL_e7b1c717" text="Miliz" />
+    <string id="AIL_e7b1c71a" text="Truppen" />
+    <string id="AIL_e7b1c71b" text="Gefangene" />
+    <string id="AIL_e7b1c71c" text="{0} von {1} krank" />
+    <string id="AIL_e7b1c71d" text="{0} krank ({1}%)" />
+    <string id="AIL_e7b1c720" text="Behandlung von Krankheiten" />
+    <string id="AIL_e7b1c721" text="{0} kann die Ärzte von {1} nicht bezahlen: {2} Denare bleiben auf der Rechnung deines Clans." />
+    <string id="AIL_e7b1c722" text="Die Ärzte schreiben {0} Denare auf die Rechnung deines Clans: Sie werden mit den Tagesausgaben abgebucht." />
+    <string id="AIL_e7b1c723" text="&#10;Dein Clan schuldet den Ärzten {0} Denare; sie werden mit den Tagesausgaben abgebucht." />
+    <string id="AIL_e7b1c724" text="{VICTIM.NAME} ist an {DISEASE} gestorben. {?VICTIM.GENDER}Ihre{?}Seine{\?} Freunde und Verwandten werden {?VICTIM.GENDER}sie{?}ihn{\?} in guter Erinnerung behalten." />
+    <string id="AIL_e7b1c725" text="{VICTIM.LINK} ist an {DISEASE} gestorben." />
+    <string id="AIL_e7b1c726" text="{?CHARACTER.GENDER}Sie{?}Er{\?} starb im Jahr {YEAR} mit {CHARACTER.AGE} an {DISEASE}. {?CHARACTER.GENDER}Sie{?}Er{\?} galt als {REPUTATION}" />
+    <string id="AIL_e7b1c727" text="Am {DAY_OF_YEAR} {YEAR} ist {VICTIM.NAME} an {DISEASE} gestorben." />
+    <string id="AIL_e7b1c728" text="{=!}Deine Heilkräuter verwenden" />
+    <string id="AIL_e7b1c729" text=" (Söldner im Sold von {0})" />
+    <string id="AIL_e7b1c72a" text=", Oberhaupt des Söldnerclans {0}, im Sold von {1}," />
+    <string id="AIL_e7b1c72b" text=", Oberhaupt des Clans {0}, der keinem Reich dient," />
+    <string id="AIL_e7b1c72c" text="{0} Adlige gefangen" />
+    <string id="AIL_e7b1c72d" text="{0} hat {1} Adlige gefangen genommen" />
+    <string id="AIL_e7b1c72e" text=" bei {0}" />
+    <string id="AIL_e7b1c72f" text=" und {0} weitere" />
+    <string id="AIL_e7b1c730" text=" (Herrscher von {0})" />
+    <string id="AIL_e7b1c731" text=" (Oberhaupt des Clans {0})" />
+    <string id="AIL_e7b1c732" text=" (Oberhaupt des Söldnerclans {0})" />
+    <string id="AIL_e7b1c733" text=" (Clan {0})" />
+    <string id="AIL_e7b1c734" text="Belagerung von {0} gesprengt" />
+    <string id="AIL_e7b1c735" text="Die Belagerung von {0} wurde mit Waffengewalt gesprengt: {1} wurde geschlagen, und {2} bleibt in der Hand von {3}." />
+    <string id="AIL_e7b1c736" text="Belagerung von {0} aufgehoben" />
+    <string id="AIL_e7b1c737" text="Die Belagerung von {0} wurde aufgehoben: {1} hat aufgegeben und sich zurückgezogen, und {2} bleibt in der Hand von {3}." />
+    <string id="AIL_e7b1c738" text="Calradia im Frieden" />
+    <string id="AIL_e7b1c739" text="Zum ersten Mal seit Jahren führt kein Reich Calradias Krieg gegen ein anderes: Alle Kronen haben die Waffen niedergelegt." />
+    <string id="AIL_e7b1c73a" text="AI Legacy: Die Kampagne beginnt mit allen Reichen im Frieden." />
+    <string id="AIL_e7b1c73b" text="Welche Gefangenen-Nachrichten bleiben" />
+    <string id="AIL_e7b1c73c" text="Fürsten werden ständig gefangen genommen, und die Nachrichten sind voll davon. Nur Bedeutende: die Gefangennahme eines Herrschers (Nachricht für die ganze Welt) und des Oberhaupts eines Clans, der einem Reich die Treue geschworen hat (Nachricht für dieses Reich). Anführer von Söldner- und Kleinclans und gewöhnliche Adlige bleiben außen vor. Alle: Auch diese bleiben erhalten, als örtliches Gerede, das nie eine Reaktion auslöst. In beiden Fällen ergeben die Gefangenen einer Schlacht eine einzige Nachricht, und was du gefangen nimmst oder wer dich gefangen nimmt, wird immer berichtet." />
+    <string id="AIL_e7b1c73d" text="Was Chronist und Könige schreiben, mit der Welt abgleichen" />
+    <string id="AIL_e7b1c73e" text="Bevor ein Ereignis oder die Erklärung eines Königs veröffentlicht wird, gleicht der Mod es mit dem Spiel ab: ein Fürst in einem Reich, dem er nicht angehört, ein Söldner, der Vasall genannt wird, ein Krieg oder ein Bündnis, das es nicht gibt, ein König, der den Fürsten einer anderen Krone als seinen beansprucht. Was der Welt widerspricht, wird verworfen, und der Grund steht im Protokoll. Reaktionen auf echte Ereignisse dürfen nur die Reiche betreffen, die diese Ereignisse berühren. Aus: Alles wird so veröffentlicht, wie es geschrieben wurde." />
+    <string id="AIL_e7b1c73f" text="Neue Kampagnen beginnen mit allen Reichen im Frieden" />
+    <string id="AIL_e7b1c740" text="Nur beim Erstellen einer neuen Kampagne, einmal, nachdem das Spiel seine Anfangskriege eingerichtet hat: Jeder Krieg zwischen zwei Reichen endet. Nie bei einer bestehenden Kampagne und nie beim Laden. Vor dem Start der Kampagne einschalten. Ist unten eine Waffenruhe eingestellt, zählt sie ab diesem ersten Tag." />
+    <string id="AIL_e7b1c741" text="Hausregel: Höchstzahl der Reiche, gegen die ein Reich zugleich Krieg führen darf (0 = unbegrenzt)" />
+    <string id="AIL_e7b1c742" text="Ein KI-König darf keinen Krieg erklären, wenn sein Reich oder das Reich, auf das er zielt, bereits gegen so viele Krieg führt: kein Übereinanderherfallen. Bindet nur KI-Könige. Du wirst nie daran gehindert, selbst Krieg zu erklären, aber die Regel schützt auch dich: Kein KI-König erklärt dir den Krieg, sobald du an der Grenze bist. Kriege, die von selbst beginnen (eine Rebellion, ein neues Reich), werden nicht verhindert." />
+    <string id="AIL_e7b1c743" text="Hausregel: Tage Waffenruhe nach einem Frieden (0 = keine)" />
+    <string id="AIL_e7b1c744" text="Nachdem zwei Reiche Frieden geschlossen haben, darf kein KI-König eines der beiden dem anderen den Krieg erklären, bevor so viele Tage vergangen sind. Ein Jahr in Calradia hat 84 Tage. Bindet nur KI-Könige, in ihren Erklärungen und wenn du mit ihnen sprichst: Du selbst darfst eine Waffenruhe brechen." />
+    <string id="AIL_e7b1c745" text="Hausregel: Höchstzahl der Bündnisse je Reich (0 = unbegrenzt)" />
+    <string id="AIL_e7b1c746" text="Ein KI-König schlägt kein Bündnis vor und nimmt keines an, wenn sein Reich oder das andere schon so viele hat. Bindet nur KI-Könige: Was du als Herrscher vorschlägst oder annimmst, wird nie blockiert, aber ein KI-König an seiner Grenze verbündet sich nicht mit dir." />
+    <string id="AIL_e7b1c747" text="Hausregel: Höchstzahl der Handelsabkommen je Reich (0 = unbegrenzt)" />
+    <string id="AIL_e7b1c748" text="Ein KI-König schlägt kein Handelsabkommen vor und nimmt keines an, wenn sein Reich oder das andere schon so viele hat. Bindet nur KI-Könige, genau wie die Grenze für Bündnisse." />
+    <string id="AIL_e7b1c749" text="Die Dateien der Kampagne werden noch geschrieben; versuche es in ein paar Sekunden erneut." />
+    <string id="AIL_e7b1c74a" text="Die Änderung ist fehlgeschlagen und das Gedächtnis konnte nicht in den vorherigen Zustand zurückversetzt werden. Lade den Spielstand neu, ohne zu speichern. Der vorherige Stand liegt in {0}." />
+    <string id="AIL_e7b1c74b" text="Die Kopie wurde wiederhergestellt, aber {0} Dateien konnten nicht auf die Festplatte geschrieben werden. Speichere das Spiel, um es erneut zu versuchen. Der vorherige Stand liegt in {1}." />
+    <string id="AIL_e7b1c74c" text="Die Datei {0} ist zu groß, um sie im Editor zu öffnen." />
   </strings>
 </base>

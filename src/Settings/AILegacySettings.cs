@@ -381,6 +381,33 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
         public bool EnableResidents { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c6c8}Townsfolk you talked to keep their face", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6c9}The game draws a new random face for every townsman each time you enter a place. With this on, a villager, townsman or tavern guest you have talked to comes back with the same face, build, age, clothes and name on later visits, and remembers you after saving and loading. Before, their memory lasted only until you closed the game.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
+        public bool UniqueResidentFaces { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6ca}Townsfolk remembered per campaign", 10, 300, Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6cb}When there are more, the ones you talked to longest ago are forgotten. They are saved with the world file, so a very high number makes that file bigger.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
+        public int ResidentsRemembered { get; set; } = 60;
+
+        [SettingPropertyBool("{=AIL_e7b1c6d2}Own music in conversations", Order = 40, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6d3}The mod ships no music. Put your own .ogg files in Modules\\AILegacy\\music, in the folders talk, tense, romance, sad and victory. While you talk to someone through the mod, a track from the folder that fits the moment plays (tension, romance and the mood they show decide it; an empty folder falls back to talk) and the game's music is turned down until the talk ends. It sounds at the game's voice volume.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
+        public bool EnableTalkMusic { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6d4}Own music: game music volume meanwhile (%)", 0, 100, Order = 41, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
+        public int TalkMusicGameVolumePercent { get; set; } = 15;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6d5}Own music: tension from which the tense folder plays", 1, 100, Order = 42, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
+        public int TalkMusicTenseFrom { get; set; } = 50;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6d6}Own music: romance from which the romance folder plays", 1, 100, Order = 43, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
+        public int TalkMusicRomanceFrom { get; set; } = 40;
+
         [SettingPropertyInteger("{=AIL_abf0a3ef}Clan tier at which people know you by reputation", 0, 7, Order = 4, RequireRestart = false,
             HintText = "{=AIL_a3cd73e3}From this clan tier on, any NPC knows who you are without an introduction.")]
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
@@ -1016,6 +1043,19 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_953a8770}5. News and rumors", GroupOrder = 5)]
         public bool RealisticNewsSpread { get; set; } = true;
 
+        public static readonly string[] PrisonerNewsNames = { "All captures", "Notable only (rulers and heads of a kingdom's own clans)", "Rulers only" };
+
+        [SettingPropertyDropdown("{=AIL_e7b1c73b}Prisoner news kept", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1c73c}Lords are captured all the time, and the news fills up with it. Notable only: the capture of a ruler (news for the whole world) and of the head of a clan sworn to a kingdom (news for that kingdom). Leaders of mercenary and minor clans and ordinary nobles are left out. All: those are kept too, as local talk that never provokes a reaction. Either way the captives of one battle make a single piece of news, and what you capture or who captures you is always told.")]
+        [SettingPropertyGroup("{=AIL_953a8770}5. News and rumors", GroupOrder = 5)]
+        public MCM.Common.Dropdown<string> PrisonerNews { get; set; } = new MCM.Common.Dropdown<string>(PrisonerNewsNames, 1);
+
+        /// <summary>0 = all, 1 = notable only, 2 = rulers only.</summary>
+        public int PrisonerNewsMode()
+        {
+            try { return Math.Max(0, Math.Min(2, PrisonerNews?.SelectedIndex ?? 1)); } catch { return 1; }
+        }
+
         [SettingPropertyInteger("{=AIL_8b7f2016}Maximum news in the prompt", 0, 30, Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_953a8770}5. News and rumors", GroupOrder = 5)]
         public int MaxNewsInPrompt { get; set; } = 8;
@@ -1276,6 +1316,15 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
         public bool FollowAcrossDoors { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c6cc}Lords practise in the arena", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6cd}Some nobles staying in a town spend a few hours of the morning or the afternoon at the arena instead of the keep. Enter the arena to find them there and talk to them. They stand among the people there: they do not join the practice fights. Not while a tournament is on.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public bool LordsTrainInArena { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6ce}Lords in the arena: chance per lord and day (%)", 0, 100, Order = 6, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public int LordsInArenaChancePercent { get; set; } = 35;
+
         [SettingPropertyBool("{=AIL_e7b1c649}In a fight, their helpers can give up or change sides", Order = 5, RequireRestart = false,
             HintText = "{=AIL_e7b1c64a}Those who fight beside your opponent can lower their weapon and step back, or turn on them, when the fight goes badly, if it fits who they are. Decided in the same request as the fight lines, so it needs \"Lines during fights\" on. Never in a fist fight or a friendly duel.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
@@ -1519,7 +1568,8 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float DiseaseTreatmentTroopMultiplier { get; set; } = 0.5f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c635}Treatment: price multiplier of prevention", 0.5f, 3f, "0.00", Order = 72, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c635}Treatment: price multiplier of prevention", 0.5f, 3f, "0.00", Order = 72, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6f5}Multiplies the price of the hospital's prevention and of the healing herbs it sells.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float DiseasePreventionHerbCostMultiplier { get; set; } = 1f;
 
@@ -1539,6 +1589,64 @@ namespace AILegacy.Settings
         [SettingPropertyFloatingInteger("{=AIL_e7b1c63b}Share of its remaining days an outbreak passes on when it jumps to another place", 0.25f, 1f, "0.00", Order = 76, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float DiseaseSpreadInheritFactor { get; set; } = 0.75f;
+
+        // Lords who ride off to be treated
+        [SettingPropertyBool("{=AIL_e7b1c6e0}AI parties ride to be treated", Order = 80, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6e1}A lord whose party is sick enough rides to the nearest friendly town or castle within reach, pays its physicians, rests there and then goes back to his own affairs. Never a party in an army, in a battle or a siege, or doing something you asked of it.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool DiseaseAiSeekTreatment { get; set; } = true;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c6e2}AI treatment: urgency needed to set out (3 = any illness, 10 = only the gravest)", 3f, 10f, "0.0", Order = 81, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6e3}Urgency grows with how far the illness has gone and how severe it is: 3 at the first symptoms, 10 for a plague halfway through its course. At 5 a lord sets out for a mild illness once it reaches a quarter of its course, and at once for a deadly one.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseAiTreatmentMinUrgency { get; set; } = 5f;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6e4}AI treatment: share of sick soldiers that counts (%)", 1, 100, Order = 82, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public int DiseaseAiTreatmentMinTroopShare { get; set; } = 10;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c6e5}AI treatment: farthest they will ride (days)", 0.5f, 10f, "0.0", Order = 83, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseAiTreatmentMaxDays { get; set; } = 3f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c6e6}AI treatment: days they rest where they are treated", 0.5f, 7f, "0.0", Order = 84, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseAiTreatmentStayDays { get; set; } = 2f;
+
+        // Herbs, garrisons, tooltips, deaths, debt
+        [SettingPropertyBool("{=AIL_e7b1c6e7}Healing herbs", Order = 85, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6e8}Five qualities of herbs sold in the hospitals, better ones in richer towns and the best only in a capital. They are goods in your inventory: use them anywhere (Alt+H on the map, or in the hospital) to treat your sick or to make your party catch less for some days.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool EnableHealingHerbs { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c6e9}Herbs: treat your sick with them automatically", Order = 86, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6ea}Each day, your sick heroes and soldiers with no treatment get the herbs you carry: the best ones for the grave cases, the plainest for the rest. Off: only when you use them yourself.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool HerbsAutoUse { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c6eb}Garrisons and militias fall ill", Order = 87, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6ec}Where there is an outbreak, the garrison and the militia may catch it. It spreads among them, the physicians of the place see to them every few days, and a serious disease left to run kills some each day. It shows in the settlement's tooltip and in the militia's daily change.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool DiseaseGarrisonsFallIll { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6ed}Garrisons: days between the physicians' rounds", 1, 30, Order = 88, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public int DiseaseForceCareEveryDays { get; set; } = 4;
+
+        [SettingPropertyBool("{=AIL_e7b1c6ee}Disease in the map tooltips", Order = 89, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6ef}Hovering a party on the map lists who is ill in it: its leader, its soldiers and its prisoners. Hold the key for more information to see how far each illness has gone. A settlement shows its outbreak and its sick garrison and militia.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool DiseaseMapTooltips { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c6f0}Deaths name the disease", Order = 90, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6f1}When a hero dies of a disease, the notice, the encyclopedia and the obituary say which, instead of old age.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool DiseaseDeathTexts { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c6f2}Treatment on the clan's account", Order = 91, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6f3}A member of your clan treated away from you who cannot pay in full leaves the rest owed: it is charged with your clan's next daily expenses, as a line of its own. In the hospital you too can have your sick treated on account when you are short.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool DiseaseTreatmentDebt { get; set; } = true;
 
         // ------------------------------------------------------------ Initiative and errands
         [SettingPropertyBool("{=AIL_875d42da}NPCs tell each other things", Order = 0, RequireRestart = false,
@@ -1633,6 +1741,11 @@ namespace AILegacy.Settings
             HintText = "{=AIL_b3ac06a3}In each town's arena, \"Train your troops\": you pay, 8 hours pass and your healthy soldiers gain experience (more for novices). Some may get injured. Each arena takes a few days to admit you again.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
         public bool EnableArenaTraining { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c6d9}AI lords train their troops in arenas", Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6da}A lord resting in a town whose party is mostly low-tier troops pays the arena from his own gold and his healthy soldiers gain experience, with the same price, experience and injury chance as your own arena training, and the same wait before training again. Not your clan's parties. Needs “Training in the arena” on.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
+        public bool AiLordsTrainTroops { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_11a9a28f}Arena: base experience per soldier", 20, 2000, Order = 1, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
@@ -1819,6 +1932,36 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool AllowAiWarOnPlayer { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c73d}Check what the chronicler and the kings write against the world", Order = 33, RequireRestart = false,
+            HintText = "{=AIL_e7b1c73e}Before an event or a king's declaration is published, the mod checks it against the game: a lord placed in a kingdom he does not belong to, a mercenary called a vassal, a war or an alliance that does not exist, a king claiming another crown's lord as his own. What contradicts the world is thrown away and the reason goes to the log. Reactions to real events may only involve the kingdoms those events touch. Off: everything is published as written.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public bool FactCheckEvents { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c73f}New campaigns start with every kingdom at peace", Order = 34, RequireRestart = false,
+            HintText = "{=AIL_e7b1c740}Only when a new campaign is created, once, after the game has set up its starting wars: every war between two kingdoms ends. Never on a campaign that already exists and never when loading. Set it before starting the campaign. If a truce length is set below, it counts from that first day.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public bool PeaceAtCampaignStart { get; set; } = false;
+
+        [SettingPropertyInteger("{=AIL_e7b1c741}House rule: most kingdoms one kingdom may fight at once (0 = no limit)", 0, 10, Order = 35, RequireRestart = false,
+            HintText = "{=AIL_e7b1c742}An AI king may not declare war if his kingdom, or the kingdom he aims at, is already at war with this many: no piling on. It binds AI kings only. You are never stopped from declaring war yourself, but the rule protects you too: no AI king will declare war on you once you are at the limit. Wars that start by themselves (a rebellion, a new kingdom) are not stopped.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public int MaxWarsPerKingdom { get; set; } = 0;
+
+        [SettingPropertyInteger("{=AIL_e7b1c743}House rule: days of truce after a peace (0 = none)", 0, 336, Order = 36, RequireRestart = false,
+            HintText = "{=AIL_e7b1c744}After two kingdoms make peace, no AI king of either may declare war on the other until this many days have passed. A year of Calradia is 84 days. It binds AI kings only, in their declarations and when you talk to them: you may break a truce yourself.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public int MinTruceDays { get; set; } = 0;
+
+        [SettingPropertyInteger("{=AIL_e7b1c745}House rule: most alliances per kingdom (0 = no limit)", 0, 10, Order = 37, RequireRestart = false,
+            HintText = "{=AIL_e7b1c746}An AI king will not propose or accept an alliance if his kingdom or the other one already has this many. It binds AI kings only: what you propose or accept as ruler is never blocked, but an AI king at his limit will not ally with you.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public int MaxAlliancesPerKingdom { get; set; } = 0;
+
+        [SettingPropertyInteger("{=AIL_e7b1c747}House rule: most trade agreements per kingdom (0 = no limit)", 0, 10, Order = 38, RequireRestart = false,
+            HintText = "{=AIL_e7b1c748}An AI king will not propose or accept a trade agreement if his kingdom or the other one already has this many. It binds AI kings only, the same way as the limit on alliances.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public int MaxTradePactsPerKingdom { get; set; } = 0;
+
         [SettingPropertyBool("{=AIL_b7d2f023}An expelled clan is banished", Order = 60, RequireRestart = false,
             HintText = "{=AIL_b7d2f024}A clan cast out of a kingdom cannot swear to it, defect to it or serve it as mercenaries until its ruler pardons it. Applies to you too.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
@@ -1832,6 +1975,15 @@ namespace AILegacy.Settings
             HintText = "{=AIL_b7d2f027}The game dissolves a clan with no kingdom and no land after a while, killing its members. With this on, it spares banished clans and clans with people you have talked to.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool KeepKnownClansAlive { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c6cf}Landless clans patrol", Order = 63, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6d0}Parties of clans with no fief that are standing idle (minor factions, dispossessed nobles, clans the mod keeps alive) patrol for a few days around a settlement of their kingdom or employer, or the nearest one that is not hostile if they serve nobody, then rest a day so they can resupply. It uses the mod's own map orders. Hungry or depleted parties are left alone, and anything you agree with them comes first.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public bool LandlessClansPatrol { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c6d1}Landless clans: days per patrol", 1, 7, Order = 64, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
+        public int LandlessPatrolDays { get; set; } = 2;
 
         [SettingPropertyBool("{=AIL_76e631ee}Your king can expel you or confiscate a fief from you", Order = 33, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
@@ -2093,6 +2245,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
         public string KeySummonAll { get; set; } = "Ctrl+Alt+X";
 
+        [SettingPropertyText("{=AIL_e7b1c6f4}Use healing herbs (on the map)", Order = 7, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeyHerbs { get; set; } = "Alt+H";
+
         // ------------------------------------------------------------ Editor
         [SettingPropertyButton("{=AIL_1cb10851}Open the AI Legacy editor", Content = "{=AIL_5a216c13}Open", Order = 0, RequireRestart = false,
             HintText = "{=AIL_ab8aaa3e}Opens the editor in your browser: world, secrets, NPCs (personality, memory, instructions), events and backups. Requires a saved game to be loaded.")]
@@ -2126,6 +2283,11 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_7ff37c4e}Save request/response in logs", Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
         public bool DebugLogBodies { get; set; } = false;
+
+        [SettingPropertyBool("{=AIL_e7b1c6d7}Performance meter (to the log)", Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1c6d8}While on, the mod times its own work on every frame and each of its Harmony patches, and writes a table sorted by total time to logs\\ailegacy.log every 60 seconds. The console command ailegacy.perf prints it at once. Nothing is shown on screen. Leave it off unless you are looking for what slows the game down.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
+        public bool PerformanceMeter { get; set; } = false;
 
         // ------------------------------------------------------------ Import
         [SettingPropertyButton("{=AIL_31311890}Import memories from AIInfluence", Content = "{=AIL_faa80647}Import", Order = 0, RequireRestart = false,

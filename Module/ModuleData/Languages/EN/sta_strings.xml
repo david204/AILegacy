@@ -1804,5 +1804,133 @@
     <string id="AIL_e7b1c6c5" text=" · prisoner" />
     <string id="AIL_e7b1c6c6" text=" · dead or gone from the campaign" />
     <string id="AIL_e7b1c6c7" text="Save the game so the change is kept in the save." />
+    <string id="AIL_e7b1c6c8" text="Townsfolk you talked to keep their face" />
+    <string id="AIL_e7b1c6c9" text="The game draws a new random face for every townsman each time you enter a place. With this on, a villager, townsman or tavern guest you have talked to comes back with the same face, build, age, clothes and name on later visits, and remembers you after saving and loading. Before, their memory lasted only until you closed the game." />
+    <string id="AIL_e7b1c6ca" text="Townsfolk remembered per campaign" />
+    <string id="AIL_e7b1c6cb" text="When there are more, the ones you talked to longest ago are forgotten. They are saved with the world file, so a very high number makes that file bigger." />
+    <string id="AIL_e7b1c6cc" text="Lords practise in the arena" />
+    <string id="AIL_e7b1c6cd" text="Some nobles staying in a town spend a few hours of the morning or the afternoon at the arena instead of the keep. Enter the arena to find them there and talk to them. They stand among the people there: they do not join the practice fights. Not while a tournament is on." />
+    <string id="AIL_e7b1c6ce" text="Lords in the arena: chance per lord and day (%)" />
+    <string id="AIL_e7b1c6cf" text="Landless clans patrol" />
+    <string id="AIL_e7b1c6d0" text="Parties of clans with no fief that are standing idle (minor factions, dispossessed nobles, clans the mod keeps alive) patrol for a few days around a settlement of their kingdom or employer, or the nearest one that is not hostile if they serve nobody, then rest a day so they can resupply. It uses the mod's own map orders. Hungry or depleted parties are left alone, and anything you agree with them comes first." />
+    <string id="AIL_e7b1c6d1" text="Landless clans: days per patrol" />
+    <string id="AIL_e7b1c6d2" text="Own music in conversations" />
+    <string id="AIL_e7b1c6d3" text="The mod ships no music. Put your own .ogg files in Modules\AILegacy\music, in the folders talk, tense, romance, sad and victory. While you talk to someone through the mod, a track from the folder that fits the moment plays (tension, romance and the mood they show decide it; an empty folder falls back to talk) and the game's music is turned down until the talk ends. It sounds at the game's voice volume." />
+    <string id="AIL_e7b1c6d4" text="Own music: game music volume meanwhile (%)" />
+    <string id="AIL_e7b1c6d5" text="Own music: tension from which the tense folder plays" />
+    <string id="AIL_e7b1c6d6" text="Own music: romance from which the romance folder plays" />
+    <string id="AIL_e7b1c6d7" text="Performance meter (to the log)" />
+    <string id="AIL_e7b1c6d8" text="While on, the mod times its own work on every frame and each of its Harmony patches, and writes a table sorted by total time to logs\ailegacy.log every 60 seconds. The console command ailegacy.perf prints it at once. Nothing is shown on screen. Leave it off unless you are looking for what slows the game down." />
+    <string id="AIL_e7b1c6d9" text="AI lords train their troops in arenas" />
+    <string id="AIL_e7b1c6da" text="A lord resting in a town whose party is mostly low-tier troops pays the arena from his own gold and his healthy soldiers gain experience, with the same price, experience and injury chance as your own arena training, and the same wait before training again. Not your clan's parties. Needs “Training in the arena” on." />
+    <string id="AIL_e7b1c6db" text="Internal error {0}. The details are in the mod's log (logs\ailegacy.log)." />
+    <string id="AIL_e7b1c6dc" text="The request is too large." />
+    <string id="AIL_e7b1c6dd" text="Invalid request." />
+    <string id="AIL_e7b1c6de" text="That copy is too large to restore from here." />
+    <string id="AIL_e7b1c6df" text="The data is damaged or incomplete; nothing was changed." />
+    <string id="AIL_e7b1c6e0" text="AI parties ride to be treated" />
+    <string id="AIL_e7b1c6e1" text="A lord whose party is sick enough rides to the nearest friendly town or castle within reach, pays its physicians, rests there and then goes back to his own affairs. Never a party in an army, in a battle or a siege, or doing something you asked of it." />
+    <string id="AIL_e7b1c6e2" text="AI treatment: urgency needed to set out (3 = any illness, 10 = only the gravest)" />
+    <string id="AIL_e7b1c6e3" text="Urgency grows with how far the illness has gone and how severe it is: 3 at the first symptoms, 10 for a plague halfway through its course. At 5 a lord sets out for a mild illness once it reaches a quarter of its course, and at once for a deadly one." />
+    <string id="AIL_e7b1c6e4" text="AI treatment: share of sick soldiers that counts (%)" />
+    <string id="AIL_e7b1c6e5" text="AI treatment: farthest they will ride (days)" />
+    <string id="AIL_e7b1c6e6" text="AI treatment: days they rest where they are treated" />
+    <string id="AIL_e7b1c6e7" text="Healing herbs" />
+    <string id="AIL_e7b1c6e8" text="Five qualities of herbs sold in the hospitals, better ones in richer towns and the best only in a capital. They are goods in your inventory: use them anywhere (Alt+H on the map, or in the hospital) to treat your sick or to make your party catch less for some days." />
+    <string id="AIL_e7b1c6e9" text="Herbs: treat your sick with them automatically" />
+    <string id="AIL_e7b1c6ea" text="Each day, your sick heroes and soldiers with no treatment get the herbs you carry: the best ones for the grave cases, the plainest for the rest. Off: only when you use them yourself." />
+    <string id="AIL_e7b1c6eb" text="Garrisons and militias fall ill" />
+    <string id="AIL_e7b1c6ec" text="Where there is an outbreak, the garrison and the militia may catch it. It spreads among them, the physicians of the place see to them every few days, and a serious disease left to run kills some each day. It shows in the settlement's tooltip and in the militia's daily change." />
+    <string id="AIL_e7b1c6ed" text="Garrisons: days between the physicians' rounds" />
+    <string id="AIL_e7b1c6ee" text="Disease in the map tooltips" />
+    <string id="AIL_e7b1c6ef" text="Hovering a party on the map lists who is ill in it: its leader, its soldiers and its prisoners. Hold the key for more information to see how far each illness has gone. A settlement shows its outbreak and its sick garrison and militia." />
+    <string id="AIL_e7b1c6f0" text="Deaths name the disease" />
+    <string id="AIL_e7b1c6f1" text="When a hero dies of a disease, the notice, the encyclopedia and the obituary say which, instead of old age." />
+    <string id="AIL_e7b1c6f2" text="Treatment on the clan's account" />
+    <string id="AIL_e7b1c6f3" text="A member of your clan treated away from you who cannot pay in full leaves the rest owed: it is charged with your clan's next daily expenses, as a line of its own. In the hospital you too can have your sick treated on account when you are short." />
+    <string id="AIL_e7b1c6f4" text="Use healing herbs (on the map)" />
+    <string id="AIL_e7b1c6f5" text="Multiplies the price of the hospital's prevention and of the healing herbs it sells." />
+    <string id="AIL_e7b1c6f6" text="Common healing herbs" />
+    <string id="AIL_e7b1c6f7" text="Rare healing herbs" />
+    <string id="AIL_e7b1c6f8" text="Valuable healing herbs" />
+    <string id="AIL_e7b1c6f9" text="Exceptional healing herbs" />
+    <string id="AIL_e7b1c6fa" text="Legendary healing herbs" />
+    <string id="AIL_e7b1c6fb" text="{=!}Buy healing herbs" />
+    <string id="AIL_e7b1c6fc" text="Healing herbs" />
+    <string id="AIL_e7b1c6fd" text="The apothecaries of {0} sell these herbs. The best ones only reach rich towns and capitals. You have {1} denars." />
+    <string id="AIL_e7b1c6fe" text="{0} × {1}: {2} denars" />
+    <string id="AIL_e7b1c6ff" text="As treatment, strength ×{0}. Against contagion, {1}% less for {2} days. You carry {3}." />
+    <string id="AIL_e7b1c700" text="Buy" />
+    <string id="AIL_e7b1c701" text="Close" />
+    <string id="AIL_e7b1c702" text="You buy {0} of {1} for {2} denars." />
+    <string id="AIL_e7b1c703" text="You do not have enough gold." />
+    <string id="AIL_e7b1c704" text="Choose what to do with the herbs you carry." />
+    <string id="AIL_e7b1c705" text="Treat your sick with {0} (you carry {1})" />
+    <string id="AIL_e7b1c706" text="Take {0} against contagion (needs {1}, you carry {2})" />
+    <string id="AIL_e7b1c707" text="Starts the treatment of {0} of your {1} untreated sick, with strength ×{2}. Uses up {3}." />
+    <string id="AIL_e7b1c708" text="Your whole party falls ill {0}% less for {1} days. It adds to the hospital's prevention." />
+    <string id="AIL_e7b1c709" text="Use" />
+    <string id="AIL_e7b1c70a" text="You carry no healing herbs." />
+    <string id="AIL_e7b1c70b" text="You use {0} of {1}: the treatment of {2} sick begins." />
+    <string id="AIL_e7b1c70c" text="Your party takes {0}: it will fall ill {1}% less for {2} days." />
+    <string id="AIL_e7b1c70d" text="&#10;You carry healing herbs: {0}." />
+    <string id="AIL_e7b1c70e" text="&#10;The herbs guard your party for {0} more day(s) ({1}% less contagion)." />
+    <string id="AIL_e7b1c70f" text="You have nobody ill and untreated." />
+    <string id="AIL_e7b1c711" text="You do not carry enough: {0} are needed." />
+    <string id="AIL_e7b1c712" text="{0} soldier(s) of the garrison of {1} die of {2}." />
+    <string id="AIL_e7b1c713" text="The garrison of {0} has fallen ill with {1}." />
+    <string id="AIL_e7b1c714" text="The militia of {0} has fallen ill with {1}." />
+    <string id="AIL_e7b1c715" text="Sickness" />
+    <string id="AIL_e7b1c716" text="Garrison" />
+    <string id="AIL_e7b1c717" text="Militia" />
+    <string id="AIL_e7b1c71a" text="Troops" />
+    <string id="AIL_e7b1c71b" text="Prisoners" />
+    <string id="AIL_e7b1c71c" text="{0} of {1} sick" />
+    <string id="AIL_e7b1c71d" text="{0} sick ({1}%)" />
+    <string id="AIL_e7b1c720" text="Disease treatment" />
+    <string id="AIL_e7b1c721" text="{0} cannot pay the physicians of {1}: {2} denars are left on your clan's account." />
+    <string id="AIL_e7b1c722" text="The physicians put {0} denars on your clan's account: they will be charged with the day's expenses." />
+    <string id="AIL_e7b1c723" text="&#10;Your clan owes the physicians {0} denars; they are charged with the day's expenses." />
+    <string id="AIL_e7b1c724" text="{VICTIM.NAME} died of {DISEASE}. {?VICTIM.GENDER}Her{?}His{\?} family and friends will remember {?VICTIM.GENDER}her{?}him{\?}." />
+    <string id="AIL_e7b1c725" text="{VICTIM.LINK} died of {DISEASE}." />
+    <string id="AIL_e7b1c726" text="{?CHARACTER.GENDER}She{?}He{\?} died of {DISEASE} in {YEAR} at the age of {CHARACTER.AGE}. {?CHARACTER.GENDER}She{?}He{\?} was reputed to be {REPUTATION}" />
+    <string id="AIL_e7b1c727" text="On {DAY_OF_YEAR}, {YEAR}, {VICTIM.NAME} died of {DISEASE}." />
+    <string id="AIL_e7b1c728" text="{=!}Use your healing herbs" />
+    <string id="AIL_e7b1c729" text=" (a mercenary in the pay of {0})" />
+    <string id="AIL_e7b1c72a" text=", head of the mercenary clan {0}, in the pay of {1}," />
+    <string id="AIL_e7b1c72b" text=", head of clan {0}, which serves no kingdom," />
+    <string id="AIL_e7b1c72c" text="{0} nobles captured" />
+    <string id="AIL_e7b1c72d" text="{0} has taken {1} nobles prisoner" />
+    <string id="AIL_e7b1c72e" text=" near {0}" />
+    <string id="AIL_e7b1c72f" text=" and {0} more" />
+    <string id="AIL_e7b1c730" text=" (ruler of {0})" />
+    <string id="AIL_e7b1c731" text=" (head of clan {0})" />
+    <string id="AIL_e7b1c732" text=" (head of the mercenary clan {0})" />
+    <string id="AIL_e7b1c733" text=" (clan {0})" />
+    <string id="AIL_e7b1c734" text="The siege of {0} is broken" />
+    <string id="AIL_e7b1c735" text="The siege of {0} has been broken by force of arms: {1} has been defeated and {2} remains in the hands of {3}." />
+    <string id="AIL_e7b1c736" text="The siege of {0} is lifted" />
+    <string id="AIL_e7b1c737" text="The siege of {0} has been lifted: {1} has given it up and withdrawn, and {2} remains in the hands of {3}." />
+    <string id="AIL_e7b1c738" text="Calradia at peace" />
+    <string id="AIL_e7b1c739" text="For the first time in years, no kingdom of Calradia is at war with another: every crown has laid down its arms." />
+    <string id="AIL_e7b1c73a" text="AI Legacy: the campaign starts with every kingdom at peace." />
+    <string id="AIL_e7b1c73b" text="Prisoner news kept" />
+    <string id="AIL_e7b1c73c" text="Lords are captured all the time, and the news fills up with it. Notable only: the capture of a ruler (news for the whole world) and of the head of a clan sworn to a kingdom (news for that kingdom). Leaders of mercenary and minor clans and ordinary nobles are left out. All: those are kept too, as local talk that never provokes a reaction. Either way the captives of one battle make a single piece of news, and what you capture or who captures you is always told." />
+    <string id="AIL_e7b1c73d" text="Check what the chronicler and the kings write against the world" />
+    <string id="AIL_e7b1c73e" text="Before an event or a king's declaration is published, the mod checks it against the game: a lord placed in a kingdom he does not belong to, a mercenary called a vassal, a war or an alliance that does not exist, a king claiming another crown's lord as his own. What contradicts the world is thrown away and the reason goes to the log. Reactions to real events may only involve the kingdoms those events touch. Off: everything is published as written." />
+    <string id="AIL_e7b1c73f" text="New campaigns start with every kingdom at peace" />
+    <string id="AIL_e7b1c740" text="Only when a new campaign is created, once, after the game has set up its starting wars: every war between two kingdoms ends. Never on a campaign that already exists and never when loading. Set it before starting the campaign. If a truce length is set below, it counts from that first day." />
+    <string id="AIL_e7b1c741" text="House rule: most kingdoms one kingdom may fight at once (0 = no limit)" />
+    <string id="AIL_e7b1c742" text="An AI king may not declare war if his kingdom, or the kingdom he aims at, is already at war with this many: no piling on. It binds AI kings only. You are never stopped from declaring war yourself, but the rule protects you too: no AI king will declare war on you once you are at the limit. Wars that start by themselves (a rebellion, a new kingdom) are not stopped." />
+    <string id="AIL_e7b1c743" text="House rule: days of truce after a peace (0 = none)" />
+    <string id="AIL_e7b1c744" text="After two kingdoms make peace, no AI king of either may declare war on the other until this many days have passed. A year of Calradia is 84 days. It binds AI kings only, in their declarations and when you talk to them: you may break a truce yourself." />
+    <string id="AIL_e7b1c745" text="House rule: most alliances per kingdom (0 = no limit)" />
+    <string id="AIL_e7b1c746" text="An AI king will not propose or accept an alliance if his kingdom or the other one already has this many. It binds AI kings only: what you propose or accept as ruler is never blocked, but an AI king at his limit will not ally with you." />
+    <string id="AIL_e7b1c747" text="House rule: most trade agreements per kingdom (0 = no limit)" />
+    <string id="AIL_e7b1c748" text="An AI king will not propose or accept a trade agreement if his kingdom or the other one already has this many. It binds AI kings only, the same way as the limit on alliances." />
+    <string id="AIL_e7b1c749" text="The campaign files are still being written; try again in a few seconds." />
+    <string id="AIL_e7b1c74a" text="The change failed and the memory could not be put back as it was. Load your save again without saving. What was there is kept in {0}." />
+    <string id="AIL_e7b1c74b" text="The copy was restored, but {0} files could not be written to disk. Save your game to try again. What was there is kept in {1}." />
+    <string id="AIL_e7b1c74c" text="The file {0} is too large to open in the editor." />
   </strings>
 </base>

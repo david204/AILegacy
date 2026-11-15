@@ -247,7 +247,7 @@ Answer ONLY with JSON: { ""title"": ""3 to 7 words"", ""text"": ""the chronicle"
                 var m = MemoryStore.Find(victim.StringId);
                 if (m == null || m.ConversationCount < cfg.ChronicleMinTalks) return;
                 var sb = new StringBuilder();
-                sb.AppendLine($"{victim.Name}, {(victim.IsFemale ? "woman" : "man")}, died at {(int)victim.Age}; {victim.Culture?.Name}; {(victim.IsLord ? $"noble of house {victim.Clan?.Name}" : victim.IsNotable ? "a notable" : "a wanderer")}{(victim.MapFaction != null ? " of " + victim.MapFaction.Name : "")}.");
+                sb.AppendLine($"{victim.Name}, {(victim.IsFemale ? "woman" : "man")}, died at {(int)victim.Age}; {victim.Culture?.Name}; {(victim.IsLord ? $"noble of house {victim.Clan?.Name}" : victim.IsNotable ? "a notable" : "a wanderer")}{(victim.Clan != null ? Facts.Allegiance(victim) : victim.MapFaction != null ? " of " + victim.MapFaction.Name : "")}.");
                 if (victim.Spouse != null) sb.AppendLine($"Married to {victim.Spouse.Name}.");
                 if (victim.Children.Count > 0) sb.AppendLine("Children: " + string.Join(", ", victim.Children.Take(6).Select(c => c.Name.ToString())) + ".");
                 if (m.Profile != null && !m.Profile.IsEmpty) sb.AppendLine($"Character: {m.Profile.Personality} Past: {m.Profile.Backstory}");

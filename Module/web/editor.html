@@ -82,7 +82,7 @@
     <div class="card">
       <h2>Archivos de esta partida</h2>
       <p class="hint">Cada partida puede tener su propia copia de los archivos del mundo. Mientras no la tenga, usa los del módulo, que valen para todas las partidas. Al guardar en esta pestaña se crea la copia de esta partida; los del módulo no se tocan.</p>
-      <div class="row"><button class="btn" onclick="copyDefaults()">Copiar los valores del módulo a esta partida</button></div>
+      <div class="row"><button class="btn" data-click="copyDefaults">Copiar los valores del módulo a esta partida</button></div>
     </div>
     <div class="card">
       <h2>Tu personaje</h2>
@@ -91,44 +91,44 @@
       <textarea id="p_desc" maxlength="3000"></textarea>
       <label>Tu familia</label>
       <textarea id="p_family" maxlength="3000"></textarea>
-      <div class="row"><button class="btn main" onclick="savePlayer()">Guardar</button></div>
+      <div class="row"><button class="btn main" data-click="savePlayer">Guardar</button></div>
     </div>
     <div class="card">
       <h2>Descripción del mundo <span class="tag" data-own="world.txt"></span></h2>
       <p class="hint">Va al principio de cada conversación. Escríbelo en inglés (las respuestas salen en tu idioma). Se aplica en la siguiente frase.</p>
       <textarea id="world" style="min-height:260px"></textarea>
-      <div class="row"><button class="btn main" onclick="saveWorld()">Guardar</button><button class="btn" data-reset="world.txt" onclick="resetWD('world.txt')">Volver a los del módulo</button></div>
+      <div class="row"><button class="btn main" data-click="saveWorld">Guardar</button><button class="btn" data-reset="world.txt" data-click="resetWD" data-args="world.txt">Volver a los del módulo</button></div>
     </div>
     <div class="card">
       <h2>Hechos públicos <span class="tag" data-own="info.json"></span></h2>
       <p class="hint">Cosas que se saben en el mundo. Cada personaje que encaja tira una vez la probabilidad; si le sale, lo sabe para siempre.</p>
       <div id="k_info"></div>
-      <div class="row"><button class="btn" onclick="addK('info')">Añadir hecho</button><button class="btn main" onclick="saveK('info')">Guardar</button><button class="btn" data-reset="info.json" onclick="resetWD('info.json')">Volver a los del módulo</button></div>
+      <div class="row"><button class="btn" data-click="addK" data-args="info">Añadir hecho</button><button class="btn main" data-click="saveK" data-args="info">Guardar</button><button class="btn" data-reset="info.json" data-click="resetWD" data-args="info.json">Volver a los del módulo</button></div>
     </div>
     <div class="card">
       <h2>Secretos <span class="tag" data-own="secrets.json"></span></h2>
       <p class="hint">Como los hechos, pero quien lo sabe solo lo cuenta si se fía de ti lo bastante.</p>
       <div id="k_secrets"></div>
-      <div class="row"><button class="btn" onclick="addK('secrets')">Añadir secreto</button><button class="btn main" onclick="saveK('secrets')">Guardar</button><button class="btn" data-reset="secrets.json" onclick="resetWD('secrets.json')">Volver a los del módulo</button></div>
+      <div class="row"><button class="btn" data-click="addK" data-args="secrets">Añadir secreto</button><button class="btn main" data-click="saveK" data-args="secrets">Guardar</button><button class="btn" data-reset="secrets.json" data-click="resetWD" data-args="secrets.json">Volver a los del módulo</button></div>
     </div>
     <div class="card">
       <h2>Moldes de carácter <span class="tag" data-own="archetypes.json"></span></h2>
       <p class="hint">Cada personaje nace de uno de estos moldes según lo que es. Cambiar un molde no cambia a quien ya lo tiene asignado.</p>
       <div id="a_list"></div>
-      <div class="row"><button class="btn" onclick="addArch()">Añadir molde</button><button class="btn main" onclick="saveArch()">Guardar</button><button class="btn" data-reset="archetypes.json" onclick="resetWD('archetypes.json')">Volver a los del módulo</button></div>
+      <div class="row"><button class="btn" data-click="addArch">Añadir molde</button><button class="btn main" data-click="saveArch">Guardar</button><button class="btn" data-reset="archetypes.json" data-click="resetWD" data-args="archetypes.json">Volver a los del módulo</button></div>
     </div>
     <div class="grid2">
       <div class="card">
         <h2>Fe de cada pueblo <span class="tag" data-own="religion.json"></span></h2>
         <p class="hint">Un texto por cultura. El de «default» vale para las culturas que no tengan el suyo.</p>
         <div id="m_religion"></div>
-        <div class="row"><select id="m_religion_add" style="width:auto" onchange="addMap('religion', this)"></select><button class="btn main" onclick="saveMap('religion')">Guardar</button><button class="btn" data-reset="religion.json" onclick="resetWD('religion.json')">Volver a los del módulo</button></div>
+        <div class="row"><select id="m_religion_add" style="width:auto" data-change="addMap" data-args="religion" data-pass="el"></select><button class="btn main" data-click="saveMap" data-args="religion">Guardar</button><button class="btn" data-reset="religion.json" data-click="resetWD" data-args="religion.json">Volver a los del módulo</button></div>
       </div>
       <div class="card">
         <h2>Costumbres de cada pueblo <span class="tag" data-own="cultural_traditions.json"></span></h2>
         <p class="hint">Un texto por cultura. El de «default» vale para las culturas que no tengan el suyo.</p>
         <div id="m_traditions"></div>
-        <div class="row"><select id="m_traditions_add" style="width:auto" onchange="addMap('traditions', this)"></select><button class="btn main" onclick="saveMap('traditions')">Guardar</button><button class="btn" data-reset="cultural_traditions.json" onclick="resetWD('cultural_traditions.json')">Volver a los del módulo</button></div>
+        <div class="row"><select id="m_traditions_add" style="width:auto" data-change="addMap" data-args="traditions" data-pass="el"></select><button class="btn main" data-click="saveMap" data-args="traditions">Guardar</button><button class="btn" data-reset="cultural_traditions.json" data-click="resetWD" data-args="cultural_traditions.json">Volver a los del módulo</button></div>
       </div>
     </div>
       <div class="card">
@@ -142,23 +142,23 @@
     <p class="help">Aquí se edita la ficha y la memoria de cada personaje con el que has tratado. Lo que guardes vale desde la siguiente frase; guarda la partida en el juego para que quede también dentro del guardado. La estrella marca favoritos, que salen los primeros.</p>
     <div class="npcs">
       <div>
-        <input id="npcSearch" placeholder="Buscar en tus NPC…" oninput="renderNpcs()">
+        <input id="npcSearch" placeholder="Buscar en tus NPC…" data-input="renderNpcs">
         <div class="filters">
-          <select id="nf_kingdom" onchange="renderNpcs()"></select>
-          <select id="nf_clan" onchange="renderNpcs()"></select>
-          <select id="nf_life" onchange="renderNpcs()"><option value="">Vivos y muertos</option><option value="1">Solo vivos</option><option value="0">Solo muertos</option></select>
-          <select id="nf_talk" onchange="renderNpcs()"><option value="">Con o sin charlas</option><option value="1">Con charlas</option><option value="0">Sin charlas</option></select>
+          <select id="nf_kingdom" data-change="renderNpcs"></select>
+          <select id="nf_clan" data-change="renderNpcs"></select>
+          <select id="nf_life" data-change="renderNpcs"><option value="">Vivos y muertos</option><option value="1">Solo vivos</option><option value="0">Solo muertos</option></select>
+          <select id="nf_talk" data-change="renderNpcs"><option value="">Con o sin charlas</option><option value="1">Con charlas</option><option value="0">Sin charlas</option></select>
         </div>
         <div class="checks">
-          <label><input type="checkbox" id="nf_fav" onchange="renderNpcs()"> Favoritos</label>
-          <label><input type="checkbox" id="nf_rom" onchange="renderNpcs()"> Con romance</label>
-          <label><input type="checkbox" id="nf_pri" onchange="renderNpcs()"> Prisioneros</label>
+          <label><input type="checkbox" id="nf_fav" data-change="renderNpcs"> Favoritos</label>
+          <label><input type="checkbox" id="nf_rom" data-change="renderNpcs"> Con romance</label>
+          <label><input type="checkbox" id="nf_pri" data-change="renderNpcs"> Prisioneros</label>
         </div>
         <p class="hint" id="npcCount" style="margin:6px 0"></p>
         <div class="list" id="npcList"></div>
         <div class="card" style="margin-top:12px">
           <h2>Añadir personaje</h2>
-          <input id="heroSearch" placeholder="Buscar cualquier héroe…" oninput="searchHeroes()">
+          <input id="heroSearch" placeholder="Buscar cualquier héroe…" data-input="searchHeroes">
           <div class="list" id="heroResults" style="max-height:200px"></div>
         </div>
         <div class="card" style="margin-top:12px">
@@ -172,7 +172,7 @@
           <label>Cultura</label><select id="c_culture"></select>
           <label>Pasado (opcional)</label><textarea id="c_backstory"></textarea>
           <label>Personalidad (opcional)</label><textarea id="c_personality"></textarea>
-          <div class="row"><button class="btn main" onclick="createCompanion()">Crear</button></div>
+          <div class="row"><button class="btn main" data-click="createCompanion">Crear</button></div>
         </div>
         <div class="card" style="margin-top:12px">
           <h2>Crear familiar</h2>
@@ -185,7 +185,7 @@
           </div>
           <label>Cultura</label><select id="fam_culture"></select>
           <label>Pasado (opcional)</label><textarea id="fam_backstory"></textarea>
-          <div class="row"><button class="btn main" onclick="createFamily()">Crear</button></div>
+          <div class="row"><button class="btn main" data-click="createFamily">Crear</button></div>
         </div>
       </div>
       <div class="card" id="npcForm" style="display:none">
@@ -211,7 +211,7 @@
           <h2>Personalidad con IA</h2>
           <p class="hint">Escribe toda la ficha de arriba a partir de quién es en la partida (familia, clan, rasgos, molde de carácter), sin tener que hablar con el personaje en el juego. Pisa lo que haya. Es una petición a la IA.</p>
           <input id="f_hint" placeholder="Opcional: algo que quieras que tenga (p. ej. «es cobarde pero lo disimula con bravatas»)">
-          <div class="row"><button class="btn" id="genBtn" onclick="generateNpc()">Generar personalidad</button></div>
+          <div class="row"><button class="btn" id="genBtn" data-click="generateNpc">Generar personalidad</button></div>
         </div>
         <div class="grid2">
           <div><label>Molde de carácter</label><select id="f_archetype"></select><p class="hint" id="f_archetype_text"></p></div>
@@ -236,9 +236,9 @@
         <label>Últimas frases</label>
         <div class="turns" id="turns"></div>
         <div class="row">
-          <button class="btn main" onclick="saveNpc()">Guardar</button>
-          <button class="btn" onclick="clearHistory()">Borrar historial</button>
-          <button class="btn danger" onclick="deleteNpc()">Borrar toda su memoria</button>
+          <button class="btn main" data-click="saveNpc">Guardar</button>
+          <button class="btn" data-click="clearHistory">Borrar historial</button>
+          <button class="btn danger" data-click="deleteNpc">Borrar toda su memoria</button>
         </div>
       </div>
     </div>
@@ -259,11 +259,11 @@
       <label>Reinos implicados</label>
       <div class="checks" id="e_kingdoms"></div>
       <label>Personajes implicados</label>
-      <input id="e_heroSearch" placeholder="Buscar héroe para añadir…" oninput="searchEventHeroes()">
+      <input id="e_heroSearch" placeholder="Buscar héroe para añadir…" data-input="searchEventHeroes">
       <div class="list" id="e_heroResults" style="max-height:160px"></div>
       <p class="hint" id="e_heroes"></p>
       <div class="checks" style="margin-top:8px"><label><input type="checkbox" id="e_player"> Estoy implicado</label></div>
-      <div class="row"><button class="btn main" onclick="publishEvent()">Publicar</button></div>
+      <div class="row"><button class="btn main" data-click="publishEvent">Publicar</button></div>
     </div>
     <div class="card">
       <h2>Noticias y eventos actuales</h2>
@@ -275,7 +275,7 @@
     <p class="help">Aquí están los archivos de datos del módulo, que valen para todas las partidas, y las plantillas de lo que se le dice a la IA, que son solo de esta partida. Todo se aplica al guardar.</p>
     <div class="npcs">
       <div>
-        <input id="fileSearch" placeholder="Buscar archivo…" oninput="renderFiles()">
+        <input id="fileSearch" placeholder="Buscar archivo…" data-input="renderFiles">
         <div class="list" id="fileList" style="max-height:70vh"></div>
       </div>
       <div class="card" id="fileForm" style="display:none">
@@ -283,8 +283,8 @@
         <p class="hint" id="fileHint"></p>
         <textarea id="fileText" style="min-height:55vh;font-family:Consolas,monospace;font-size:13px" spellcheck="false"></textarea>
         <div class="row">
-          <button class="btn main" onclick="saveFile()">Guardar</button>
-          <button class="btn danger" id="fileReset" onclick="resetFile()">Volver al texto de fábrica</button>
+          <button class="btn main" data-click="saveFile">Guardar</button>
+          <button class="btn danger" id="fileReset" data-click="resetFile">Volver al texto de fábrica</button>
         </div>
       </div>
     </div>
@@ -302,7 +302,7 @@
       <label>Nombre</label><input id="i_name" placeholder="Carta sellada de Lucon">
       <label>Qué es y qué dice</label><textarea id="i_desc" placeholder="Una carta con el sello imperial en la que…"></textarea>
       <label>De quién viene (opcional)</label><input id="i_from">
-      <div class="row"><button class="btn main" onclick="addItem()">Crear</button></div>
+      <div class="row"><button class="btn main" data-click="addItem">Crear</button></div>
     </div>
   </section>
 
@@ -311,7 +311,7 @@
     <div class="card">
       <h2>Gasto de IA (esta sesión)</h2>
       <p class="hint">Peticiones, tokens y coste estimado por proveedor y tarea. El coste solo sale si has puesto el precio del proveedor en MCM › 0. Claves de IA.</p>
-      <div class="row"><button class="btn" onclick="loadUsage()">Actualizar</button> <span id="usageToday" class="hint"></span></div>
+      <div class="row"><button class="btn" data-click="loadUsage">Actualizar</button> <span id="usageToday" class="hint"></span></div>
       <div id="usageProviders" class="hint" style="margin:8px 0"></div>
       <table id="usageTable" style="width:100%;border-collapse:collapse;font-size:13px"></table>
     </div>
@@ -319,24 +319,24 @@
       <h2>Carpetas</h2>
       <p class="hint">Se abren en el Explorador de Windows del equipo donde corre el juego.</p>
       <div class="row">
-        <button class="btn" onclick="openDir('save')">Archivos de esta partida</button>
-        <button class="btn" onclick="openDir('world')">Datos del mundo</button>
-        <button class="btn" onclick="openDir('logs')">Registros (logs)</button>
+        <button class="btn" data-click="openDir" data-args="save">Archivos de esta partida</button>
+        <button class="btn" data-click="openDir" data-args="world">Datos del mundo</button>
+        <button class="btn" data-click="openDir" data-args="logs">Registros (logs)</button>
       </div>
     </div>
     <div class="card">
       <h2>Copia de seguridad</h2>
       <p class="hint">Toda la memoria de AI Legacy de esta partida (NPC, noticias, cartas). Se guarda también dentro de la partida al guardar en el juego.</p>
       <div class="row">
-        <button class="btn main" onclick="exportData()">Descargar copia (.json)</button>
+        <button class="btn main" data-click="exportData">Descargar copia (.json)</button>
         <input type="file" id="importFile" accept=".json" style="width:auto">
-        <button class="btn danger" onclick="importData()">Restaurar desde archivo</button>
+        <button class="btn danger" data-click="importData">Restaurar desde archivo</button>
       </div>
     </div>
     <div class="card">
       <h2>Copias guardadas</h2>
       <p class="hint">Las copias que el mod hace solo: antes de importar, borrar o restaurar desde el editor, al cargar un guardado anterior (rama archivada) y los archivos que retira (papelera). Al restaurar una, antes se guarda una copia de lo que hay ahora.</p>
-      <div class="row"><button class="btn" onclick="loadBackups()">Actualizar</button></div>
+      <div class="row"><button class="btn" data-click="loadBackups">Actualizar</button></div>
       <div style="max-height:420px;overflow:auto;margin-top:10px"><table class="bk" id="bkTable"></table></div>
     </div>
   </section>
@@ -379,10 +379,10 @@ async function loadUsage() {
   const u = await api('/api/usage');
   const n = x => Number(x || 0).toLocaleString();
   $('usageToday').textContent = T('Hoy:') + ' ' + Number(u.today || 0).toFixed(4) + ' $' + (u.cap > 0 ? ' / ' + u.cap.toFixed(2) + ' $' : '') + (u.queue > 0 ? '   ·   ' + T('En cola:') + ' ' + u.queue : '');
-  $('usageProviders').innerHTML = (u.providers || []).map(p => `${esc(p.name)} (${esc(p.model)}): ${esc(p.state)}${p.paid ? ' · ' + T('de pago') : ''}`).join('<br>');
+  $('usageProviders').innerHTML = (u.providers || []).map(p => `${esc(p.name)} (${esc(p.model)}): ${esc(p.state)}${p.paid ? ' · ' + TH('de pago') : ''}`).join('<br>');
   const rows = u.rows || [];
-  if (!rows.length) { $('usageTable').innerHTML = `<tr><td class="hint">${T('Sin peticiones todavía.')}</td></tr>`; return; }
-  const th = s => `<th style="text-align:left;border-bottom:1px solid #6665;padding:3px 6px">${T(s)}</th>`;
+  if (!rows.length) { $('usageTable').innerHTML = `<tr><td class="hint">${TH('Sin peticiones todavía.')}</td></tr>`; return; }
+  const th = s => `<th style="text-align:left;border-bottom:1px solid #6665;padding:3px 6px">${TH(s)}</th>`;
   const td = s => `<td style="padding:3px 6px;border-bottom:1px solid #6662">${s}</td>`;
   $('usageTable').innerHTML = '<tr>' + ['Proveedor', 'Tarea', 'Peticiones', 'Entrada', 'En caché', 'Salida', 'Coste ($)'].map(th).join('') + '</tr>' +
     rows.map(r => '<tr>' + [esc(r.provider), esc(r.task), n(r.calls) + (r.failed ? ` (${n(r.failed)} ✗)` : ''), n(r['in']), n(r.cached) + (r['in'] > 0 ? ` (${Math.round(r.cached * 100 / r['in'])} %)` : ''), n(r.out), Number(r.usd || 0).toFixed(4)].map(td).join('') + '</tr>').join('');
@@ -398,9 +398,9 @@ async function loadLang() {
 let state = null, npcId = null, eventHeroes = [], files = [], curFile = null, cultures = [], backups = [];
 const PKEYS = ['personality','backstory','speech_style','goals','secret','given_name','drives','values','social_behavior','cognitive_style','religion','reputation'];
 const $ = id => document.getElementById(id);
-const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-// For a value that goes inside '…' in an inline handler
-const escJ = s => esc((s ?? '').toString().replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+const esc = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// A translated text on its way into innerHTML
+const TH = s => esc(T(s));
 function toast(msg, bad) { const t = $('toast'); t.textContent = msg; t.style.borderColor = bad ? '#d77' : '#d9b25f'; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3500); }
 async function api(path, body) {
   const r = await authFetch(path, body === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
@@ -412,6 +412,20 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.id === 't-' + b.dataset.t));
 });
+// Lists built from game data (names, ids, file names) carry their values in data-* attributes and are handled
+// here. Nothing that comes from the game is written into an inline handler: HTML escaping does not protect
+// JavaScript code, and this page holds the session token.
+function onPick(boxId, selector, fn) {
+  const box = $(boxId);
+  box.addEventListener('click', e => { const el = e.target.closest(selector); if (el && box.contains(el)) fn(el, e); });
+}
+onPick('fileList', 'div[data-name]', el => openFile(el.dataset.kind, el.dataset.name));
+onPick('itemList', 'button[data-item]', el => delItem(el.dataset.item));
+onPick('storySecrets', 'button[data-id]', el => delStorySecret(el.dataset.id));
+onPick('npcList', 'div[data-id]', (el, e) => { if (e.target.closest('.star')) toggleFav(el.dataset.id); else openNpc(el.dataset.id); });
+onPick('heroResults', 'div[data-id]', el => { openNpc(el.dataset.id); setTimeout(refreshState, 300); });
+onPick('newsList', 'button[data-id]', el => delNews(el.dataset.id));
+onPick('e_heroResults', 'div[data-id]', el => addEventHero(el.dataset.id, el.dataset.name));
 
 async function load() {
   if (!load.lang) { load.lang = true; await loadLang(); }
@@ -438,7 +452,7 @@ let WD = {}, K = { info:[], secrets:[] }, ARCH = [], MAPS = { religion:[], tradi
 const cut = s => { s = (s || '').replace(/\s+/g, ' ').trim(); return s.length > 90 ? s.slice(0, 90) + '…' : s; };
 const errP = m => m ? `<p class="err">${esc(m)}</p>` : '';
 const slug = s => (s || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 32);
-const brokenMsg = () => `<p class="err">${T('Este archivo tiene un error de formato y no se puede mostrar aquí. Corrígelo a mano en la carpeta de la partida.')}</p>`;
+const brokenMsg = () => `<p class="err">${TH('Este archivo tiene un error de formato y no se puede mostrar aquí. Corrígelo a mano en la carpeta de la partida.')}</p>`;
 function readJson(name, wantArray) {
   BROKEN[name] = false;
   try { const v = JSON.parse(WD[name].text); if (wantArray ? Array.isArray(v) : (v && typeof v === 'object' && !Array.isArray(v))) return v; } catch {}
@@ -478,28 +492,28 @@ function renderK(kind) {
   if (BROKEN[KFILE[kind]]) { box.innerHTML = brokenMsg(); return; }
   const sec = kind === 'secrets', lvl = { low:'fácil de sonsacar', medium:'solo a quien se fía', high:'solo con mucha confianza' };
   box.innerHTML = K[kind].map((e, i) => {
-    const er = e._err || {}, a = `'${kind}',${i}`;
-    return `<details class="entry"${e._open ? ' open' : ''} ontoggle="kSet(${a},'_open',this.open)">
-      <summary>${esc(cut(e.text)) || T('(nuevo)')}<small>${esc(e.id)}</small></summary>
-      <label>Texto</label><textarea class="${er.text ? 'bad' : ''}" oninput="kSet(${a},'text',this.value)">${esc(e.text)}</textarea>${errP(er.text)}
+    const er = e._err || {}, a = `${kind},${i}`;
+    return `<details class="entry"${e._open ? ' open' : ''} data-toggle="kSet" data-args="${a},_open" data-pass="open">
+      <summary>${esc(cut(e.text)) || TH('(nuevo)')}<small>${esc(e.id)}</small></summary>
+      <label>Texto</label><textarea class="${er.text ? 'bad' : ''}" data-input="kSet" data-args="${a},text" data-pass="value">${esc(e.text)}</textarea>${errP(er.text)}
       <div class="grid2">
-        <div><label>Identificador</label><input class="${er.id ? 'bad' : ''}" value="${esc(e.id)}" placeholder="Se pone solo si lo dejas vacío" oninput="kSet(${a},'id',this.value)">${errP(er.id)}</div>
-        <div><label>Probabilidad de saberlo (0 a 100)</label><input type="number" min="0" max="100" class="${er.chance ? 'bad' : ''}" value="${esc(e.chance)}" oninput="kSet(${a},'chance',this.value)">${errP(er.chance)}</div>
+        <div><label>Identificador</label><input class="${er.id ? 'bad' : ''}" value="${esc(e.id)}" placeholder="Se pone solo si lo dejas vacío" data-input="kSet" data-args="${a},id" data-pass="value">${errP(er.id)}</div>
+        <div><label>Probabilidad de saberlo (0 a 100)</label><input type="number" min="0" max="100" class="${er.chance ? 'bad' : ''}" value="${esc(e.chance)}" data-input="kSet" data-args="${a},chance" data-pass="value">${errP(er.chance)}</div>
       </div>
-      ${sec ? `<label>Cuánto cuesta sonsacarlo</label><select onchange="kSet(${a},'access',this.value)">${['low','medium','high'].map(v => `<option value="${v}"${e.access === v ? ' selected' : ''}>${T(lvl[v])}</option>`).join('')}</select>` : ''}
+      ${sec ? `<label>Cuánto cuesta sonsacarlo</label><select data-change="kSet" data-args="${a},access" data-pass="value">${['low','medium','high'].map(v => `<option value="${v}"${e.access === v ? ' selected' : ''}>${TH(lvl[v])}</option>`).join('')}</select>` : ''}
       <label>Quién puede saberlo (ninguno marcado = todos)</label>
-      <div class="chips">${WHO.map(w => `<span class="chip${e.who.includes(w) ? ' on' : ''}" onclick="kWho(${a},'${w}')">${T(WHO_L[w])}</span>`).join('')}${e.who.map((w, j) => WHO.includes(w) ? '' : `<span class="chip on" title="Quitar" onclick="kDel(${a},'who',${j})">${esc(whoLabel(w))} ✕</span>`).join('')}</div>
+      <div class="chips">${WHO.map(w => `<span class="chip${e.who.includes(w) ? ' on' : ''}" data-click="kWho" data-args="${a},${w}">${TH(WHO_L[w])}</span>`).join('')}${e.who.map((w, j) => WHO.includes(w) ? '' : `<span class="chip on" title="Quitar" data-click="kDel" data-args="${a},who,${j}">${esc(whoLabel(w))} ✕</span>`).join('')}</div>
       <div class="row">
-        <select style="width:auto" onchange="kWho(${a},this.value)"><option value="">Añadir reino…</option>${state.kingdoms.map(k => `<option value="kingdom:${esc(k.id)}">${esc(k.name)}</option>`).join('')}</select>
-        <select style="width:auto" onchange="kWho(${a},this.value)"><option value="">Añadir cultura…</option>${cultures.map(c => `<option value="culture:${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select>
+        <select style="width:auto" data-change="kWho" data-args="${a}" data-pass="value"><option value="">Añadir reino…</option>${state.kingdoms.map(k => `<option value="kingdom:${esc(k.id)}">${esc(k.name)}</option>`).join('')}</select>
+        <select style="width:auto" data-change="kWho" data-args="${a}" data-pass="value"><option value="">Añadir cultura…</option>${cultures.map(c => `<option value="culture:${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select>
       </div>
       <label>De quién trata (esa persona lo sabe seguro)</label>
-      <div class="chips">${e.about.map((w, j) => `<span class="chip on" title="Quitar" onclick="kDel(${a},'about',${j})">${esc(whoLabel(w))} ✕</span>`).join('')}</div>
-      <input style="margin-top:6px" placeholder="Buscar héroe para añadir…" oninput="kSearch(${a},this.value)">
+      <div class="chips">${e.about.map((w, j) => `<span class="chip on" title="Quitar" data-click="kDel" data-args="${a},about,${j}">${esc(whoLabel(w))} ✕</span>`).join('')}</div>
+      <input style="margin-top:6px" placeholder="Buscar héroe para añadir…" data-input="kSearch" data-args="${a}" data-pass="value">
       <div class="list" id="ks_${kind}_${i}" style="max-height:140px"></div>
-      <div class="row"><button class="btn danger" onclick="kRemove(${a})">Quitar</button></div>
+      <div class="row"><button class="btn danger" data-click="kRemove" data-args="${a}">Quitar</button></div>
     </details>`;
-  }).join('') || `<p class="hint">${T('No hay ninguno.')}</p>`;
+  }).join('') || `<p class="hint">${TH('No hay ninguno.')}</p>`;
 }
 function kSet(kind, i, field, value) { K[kind][i][field] = value; }
 function kWho(kind, i, w) { if (!w) return; const e = K[kind][i], at = e.who.indexOf(w); if (at >= 0) e.who.splice(at, 1); else e.who.push(w); e._open = true; renderK(kind); }
@@ -511,7 +525,7 @@ function kSearch(kind, i, q) { clearTimeout(kTimer); kTimer = setTimeout(async (
   const box = $(`ks_${kind}_${i}`); if (!box) return;
   q = q.trim(); if (q.length < 2) { box.innerHTML = ''; return; }
   found = await api('/api/heroes?q=' + encodeURIComponent(q));
-  box.innerHTML = found.map((h, n) => `<div onclick="kAbout('${kind}',${i},${n})">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
+  box.innerHTML = found.map((h, n) => `<div data-click="kAbout" data-args="${kind},${i},${n}">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
 }, 250); }
 function kAbout(kind, i, n) { const h = found[n], e = K[kind][i]; if (!h) return; heroNames[h.id] = h.name; if (!e.about.includes(h.id)) e.about.push(h.id); e._open = true; renderK(kind); }
 async function saveK(kind) {
@@ -538,23 +552,23 @@ async function saveK(kind) {
 function renderArch() {
   const box = $('a_list');
   if (BROKEN['archetypes.json']) { box.innerHTML = brokenMsg(); return; }
-  const sel = (i, f, v) => `<select onchange="aSet(${i},'${f}',this.value)">${OPTS[f].map(o => `<option${o === v ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
+  const sel = (i, f, v) => `<select data-change="aSet" data-args="${i},${f}" data-pass="value">${OPTS[f].map(o => `<option${o === v ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
   box.innerHTML = ARCH.map((a, i) => {
     const er = a._err || {};
-    return `<details class="entry"${a._open ? ' open' : ''} ontoggle="aSet(${i},'_open',this.open)">
-      <summary>${esc(a.name) || T('(nuevo)')}<small>${esc(cut(a.description))}</small></summary>
-      <label>Nombre</label><input class="${er.name ? 'bad' : ''}" value="${esc(a.name)}" oninput="aSet(${i},'name',this.value)">${errP(er.name)}
-      <label>Descripción</label><textarea class="${er.description ? 'bad' : ''}" oninput="aSet(${i},'description',this.value)">${esc(a.description)}</textarea>${errP(er.description)}
+    return `<details class="entry"${a._open ? ' open' : ''} data-toggle="aSet" data-args="${i},_open" data-pass="open">
+      <summary>${esc(a.name) || TH('(nuevo)')}<small>${esc(cut(a.description))}</small></summary>
+      <label>Nombre</label><input class="${er.name ? 'bad' : ''}" value="${esc(a.name)}" data-input="aSet" data-args="${i},name" data-pass="value">${errP(er.name)}
+      <label>Descripción</label><textarea class="${er.description ? 'bad' : ''}" data-input="aSet" data-args="${i},description" data-pass="value">${esc(a.description)}</textarea>${errP(er.description)}
       <label>A quién se le puede asignar</label>
-      <div class="chips">${ROLES.map(r => `<span class="chip${a.roles.includes(r) ? ' on' : ''}" onclick="aRole(${i},'${r}')">${T(ROLE_L[r])}</span>`).join('')}</div>${errP(er.roles)}
+      <div class="chips">${ROLES.map(r => `<span class="chip${a.roles.includes(r) ? ' on' : ''}" data-click="aRole" data-args="${i},${r}">${TH(ROLE_L[r])}</span>`).join('')}</div>${errP(er.roles)}
       <div class="grid2">
         <div><label>Moral</label>${sel(i, 'morality', a.morality)}</div>
         <div><label>Palabrotas</label>${sel(i, 'profanity', a.profanity)}</div>
         <div><label>Piedad</label>${sel(i, 'piety', a.piety)}</div>
       </div>
-      <div class="row"><button class="btn danger" onclick="aRemove(${i})">Quitar</button></div>
+      <div class="row"><button class="btn danger" data-click="aRemove" data-args="${i}">Quitar</button></div>
     </details>`;
-  }).join('') || `<p class="hint">${T('No hay ninguno.')}</p>`;
+  }).join('') || `<p class="hint">${TH('No hay ninguno.')}</p>`;
 }
 function aSet(i, field, value) { ARCH[i][field] = value; }
 function aRole(i, r) { const a = ARCH[i], at = a.roles.indexOf(r); if (at >= 0) a.roles.splice(at, 1); else a.roles.push(r); a._open = true; renderArch(); }
@@ -588,11 +602,11 @@ function renderMap(kind) {
   const name = key => { const c = cultures.find(x => x.id === key); return c ? c.name : key; };
   box.innerHTML = rows.map((r, i) => `<div class="entry">
       <label style="margin-top:0">${esc(name(r.key))}${name(r.key) === r.key ? '' : ` <small>(${esc(r.key)})</small>`}</label>
-      <textarea class="${r._err ? 'bad' : ''}" oninput="mSet('${kind}',${i},this.value)">${esc(r.text)}</textarea>${errP(r._err)}
-      <div class="row"><button class="btn danger" onclick="mRemove('${kind}',${i})">Quitar</button></div>
-    </div>`).join('') || `<p class="hint">${T('No hay ninguno.')}</p>`;
+      <textarea class="${r._err ? 'bad' : ''}" data-input="mSet" data-args="${kind},${i}" data-pass="value">${esc(r.text)}</textarea>${errP(r._err)}
+      <div class="row"><button class="btn danger" data-click="mRemove" data-args="${kind},${i}">Quitar</button></div>
+    </div>`).join('') || `<p class="hint">${TH('No hay ninguno.')}</p>`;
   const have = new Set(rows.map(r => r.key));
-  add.innerHTML = `<option value="">${T('Añadir cultura…')}</option>` + [...cultures, { id:'default', name:'default' }].filter(c => !have.has(c.id)).map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  add.innerHTML = `<option value="">${TH('Añadir cultura…')}</option>` + [...cultures, { id:'default', name:'default' }].filter(c => !have.has(c.id)).map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
 }
 function mSet(kind, i, value) { MAPS[kind][i].text = value; }
 function mRemove(kind, i) { MAPS[kind].splice(i, 1); renderMap(kind); }
@@ -612,11 +626,11 @@ async function loadBackups() {
   backups = await api('/api/backups');
   const kind = { editor:'Copia del editor', branch:'Rama archivada', trash:'Papelera' };
   const why = { importar:'antes de importar', borrar_npc:'antes de borrar un personaje', restaurar:'antes de restaurar' };
-  const holds = b => b.kind === 'editor' ? T('Toda la memoria') + ' · ' + (why[b.label] ? T(why[b.label]) : esc(b.label))
-                   : b.kind === 'branch' ? b.files + ' ' + T('archivo(s) de la partida') : esc(b.label);
-  $('bkTable').innerHTML = !backups.length ? `<tr><td class="hint">${T('No hay copias todavía.')}</td></tr>`
-    : '<tr>' + ['Fecha', 'Tipo', 'Contiene', 'Tamaño', ''].map(h => `<th>${h ? T(h) : ''}</th>`).join('') + '</tr>' +
-      backups.map((b, i) => `<tr><td>${esc(b.when)}</td><td>${T(kind[b.kind] || b.kind)}</td><td>${holds(b)}</td><td>${fmtSize(b.size)}</td><td>${b.can_restore ? `<button class="btn" onclick="restoreBackup(${i})">Restaurar</button>` : ''}</td></tr>`).join('');
+  const holds = b => b.kind === 'editor' ? TH('Toda la memoria') + ' · ' + (why[b.label] ? TH(why[b.label]) : esc(b.label))
+                   : b.kind === 'branch' ? esc(b.files) + ' ' + TH('archivo(s) de la partida') : esc(b.label);
+  $('bkTable').innerHTML = !backups.length ? `<tr><td class="hint">${TH('No hay copias todavía.')}</td></tr>`
+    : '<tr>' + ['Fecha', 'Tipo', 'Contiene', 'Tamaño', ''].map(h => `<th>${h ? TH(h) : ''}</th>`).join('') + '</tr>' +
+      backups.map((b, i) => `<tr><td>${esc(b.when)}</td><td>${TH(kind[b.kind] || b.kind)}</td><td>${holds(b)}</td><td>${esc(fmtSize(b.size))}</td><td>${b.can_restore ? `<button class="btn" data-click="restoreBackup" data-args="${i}">Restaurar</button>` : ''}</td></tr>`).join('');
 }
 async function restoreBackup(i) {
   const b = backups[i]; if (!b) return;
@@ -629,10 +643,10 @@ async function restoreBackup(i) {
 function renderFiles() {
   const q = $('fileSearch').value.toLowerCase();
   $('fileList').innerHTML = files.filter(f => !q || f.name.toLowerCase().includes(q))
-    .map(f => `<div class="${curFile && curFile.name === f.name ? 'on' : ''}" onclick="openFile('${esc(f.kind)}','${esc(f.name)}')">${esc(f.name)}<small>${f.kind === 'world' ? T('datos del mundo') : T('plantilla') + (f.edited ? T(' · editada') : '')}</small></div>`).join('');
+    .map(f => `<div class="${curFile && curFile.name === f.name ? 'on' : ''}" data-kind="${esc(f.kind)}" data-name="${esc(f.name)}">${esc(f.name)}<small>${f.kind === 'world' ? TH('datos del mundo') : TH('plantilla') + (f.edited ? TH(' · editada') : '')}</small></div>`).join('');
 }
 async function openFile(kind, name) {
-  const f = await api('/api/file?kind=' + kind + '&name=' + encodeURIComponent(name));
+  const f = await api('/api/file?kind=' + encodeURIComponent(kind) + '&name=' + encodeURIComponent(name));
   curFile = { kind, name, def: f.def }; renderFiles();
   $('fileForm').style.display = 'block'; $('fileTitle').textContent = name;
   $('fileText').value = kind === 'world' ? pretty(f.text) : f.text;
@@ -655,7 +669,7 @@ async function resetFile() {
 
 async function loadItems() {
   const items = await api('/api/items');
-  $('itemList').innerHTML = items.map(i => `<div><span class="txt"><b>${esc(i.name)}</b>${i.from ? T(' · de ') + esc(i.from) : ''} — ${esc(i.desc)}</span> <button class="btn danger" onclick="delItem('${esc(i.name).replace(/'/g, '&#39;')}')">Quitar</button></div>`).join('') || '<div><small>No llevas ninguno.</small></div>';
+  $('itemList').innerHTML = items.map(i => `<div><span class="txt"><b>${esc(i.name)}</b>${i.from ? TH(' · de ') + esc(i.from) : ''} — ${esc(i.desc)}</span> <button class="btn danger" data-item="${esc(i.name)}">Quitar</button></div>`).join('') || '<div><small>No llevas ninguno.</small></div>';
 }
 async function addItem() {
   await api('/api/item/add', { name:$('i_name').value, desc:$('i_desc').value, from:$('i_from').value });
@@ -674,7 +688,7 @@ async function createCompanion() {
 async function loadStorySecrets() {
   const s = await api('/api/storysecrets');
   const lvl = { low:T('fácil de sonsacar'), medium:T('solo a quien se fía'), high:T('solo con mucha confianza') };
-  $('storySecrets').innerHTML = s.map(x => `<div><span class="txt">${esc(x.text)}<small> ${T('Trata de:')} ${esc((x.about || []).join(', ') || '—')} · ${T('Lo saben:')} ${esc((x.known_by || []).join(', '))} · ${lvl[x.access] || x.access} · ${x.source === 'event' ? T('nacido de un suceso') : T('de origen')} · ${x.days} ${T('día(s)')}</small></span> <button class="btn danger" onclick="delStorySecret('${esc(x.id)}')">Borrar</button></div>`).join('') || '<div><small>Todavía no hay ninguno: se van escribiendo con los días de juego.</small></div>';
+  $('storySecrets').innerHTML = s.map(x => `<div><span class="txt">${esc(x.text)}<small> ${TH('Trata de:')} ${esc((x.about || []).join(', ') || '—')} · ${TH('Lo saben:')} ${esc((x.known_by || []).join(', '))} · ${esc(lvl[x.access] || x.access)} · ${x.source === 'event' ? TH('nacido de un suceso') : TH('de origen')} · ${esc(x.days)} ${TH('día(s)')}</small></span> <button class="btn danger" data-id="${esc(x.id)}">Borrar</button></div>`).join('') || '<div><small>Todavía no hay ninguno: se van escribiendo con los días de juego.</small></div>';
 }
 async function delStorySecret(id) { await api('/api/storysecrets/delete', { id }); loadStorySecrets(); }
 
@@ -704,8 +718,8 @@ function pretty(s) { try { return JSON.stringify(JSON.parse(s), null, 2); } catc
 function npcFilters() {
   const k = $('nf_kingdom').value, c = $('nf_clan').value;
   const ks = new Set(state.npcs.map(n => n.kingdom)), clans = [...new Set(state.npcs.map(n => n.clan).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  $('nf_kingdom').innerHTML = `<option value="">${T('Todos los reinos')}</option>` + state.kingdoms.filter(x => ks.has(x.id)).map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('') + `<option value="-">${T('Sin reino')}</option>`;
-  $('nf_clan').innerHTML = `<option value="">${T('Todos los clanes')}</option>` + clans.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+  $('nf_kingdom').innerHTML = `<option value="">${TH('Todos los reinos')}</option>` + state.kingdoms.filter(x => ks.has(x.id)).map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('') + `<option value="-">${TH('Sin reino')}</option>`;
+  $('nf_clan').innerHTML = `<option value="">${TH('Todos los clanes')}</option>` + clans.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
   $('nf_kingdom').value = [...$('nf_kingdom').options].some(o => o.value === k) ? k : '';
   $('nf_clan').value = clans.includes(c) ? c : '';
 }
@@ -719,7 +733,7 @@ function renderNpcs() {
     && (!fav || n.fav) && (!rom || n.romance > 0) && (!pri || n.prisoner));
   list.sort((a, b) => ((b.fav ? 1 : 0) - (a.fav ? 1 : 0)) || a.name.localeCompare(b.name));
   $('npcCount').textContent = list.length + ' / ' + state.npcs.length;
-  $('npcList').innerHTML = list.map(n => `<div class="${n.id === npcId ? 'on' : ''}" onclick="openNpc('${escJ(n.id)}')"><span class="star${n.fav ? ' on' : ''}" title="Favorito" onclick="event.stopPropagation();toggleFav('${escJ(n.id)}')">★</span>${esc(n.name)}<small>${n.clan ? esc(n.clan) + ' · ' : ''}${n.talks} ${T('charla(s)')}${n.profile ? T(' · personalidad') : ''}${n.romance > 0 ? T(' · romance') : ''}${n.prisoner ? T(' · prisionero') : ''}${n.alive ? '' : T(' · muerto o fuera de la partida')}</small></div>`).join('') || '<div><small>Aún no hay nadie.</small></div>';
+  $('npcList').innerHTML = list.map(n => `<div class="${n.id === npcId ? 'on' : ''}" data-id="${esc(n.id)}"><span class="star${n.fav ? ' on' : ''}" title="Favorito">★</span>${esc(n.name)}<small>${n.clan ? esc(n.clan) + ' · ' : ''}${esc(n.talks)} ${TH('charla(s)')}${n.profile ? TH(' · personalidad') : ''}${n.romance > 0 ? TH(' · romance') : ''}${n.prisoner ? TH(' · prisionero') : ''}${n.alive ? '' : TH(' · muerto o fuera de la partida')}</small></div>`).join('') || '<div><small>Aún no hay nadie.</small></div>';
 }
 async function toggleFav(id) {
   const n = state.npcs.find(x => x.id === id); if (!n) return;
@@ -732,7 +746,7 @@ async function openNpc(id) {
   $('npcForm').style.display = 'block';
   $('npcTitle').textContent = n.name; $('npcInfo').textContent = n.info + (n.imported ? T(' · importado de AIInfluence (') + n.imported + ')' : '');
   for (const k of PKEYS) $('f_' + k).value = n.profile[k] || '';
-  $('f_archetype').innerHTML = '<option value="">' + T('(sin molde: se le asignará solo)') + '</option>' + (n.archetypes || []).map(a => `<option value="${esc(a.name)}" title="${esc(a.desc)}"${a.name === n.archetype ? ' selected' : ''}>${esc(a.name)}</option>`).join('');
+  $('f_archetype').innerHTML = '<option value="">' + TH('(sin molde: se le asignará solo)') + '</option>' + (n.archetypes || []).map(a => `<option value="${esc(a.name)}" title="${esc(a.desc)}"${a.name === n.archetype ? ' selected' : ''}>${esc(a.name)}</option>`).join('');
   $('f_archetype_text').textContent = n.archetype_text || '';
   $('f_tension').value = n.tension || 0; $('f_morality').value = n.morality || ''; $('f_profanity').value = n.profanity || ''; $('f_piety').value = n.piety || '';
   $('f_counts').textContent = `${(n.turns || []).length} ${T('frases recientes')} · ${n.archived} ${T('archivadas')} · ${n.pages} ${T('página(s) en su libro')}` + (n.in_game ? '' : T(' · ya no está en la partida'));
@@ -754,18 +768,18 @@ let heroTimer;
 function searchHeroes() { clearTimeout(heroTimer); heroTimer = setTimeout(async () => {
   const q = $('heroSearch').value.trim(); if (q.length < 2) { $('heroResults').innerHTML = ''; return; }
   const hs = await api('/api/heroes?q=' + encodeURIComponent(q));
-  $('heroResults').innerHTML = hs.map(h => `<div onclick="openNpc('${escJ(h.id)}');setTimeout(refreshState,300)">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
+  $('heroResults').innerHTML = hs.map(h => `<div data-id="${esc(h.id)}">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
 }, 250); }
 
 function renderNews() {
-  $('newsList').innerHTML = state.news.map(n => `<div><span class="t">${n.days === 0 ? T('hoy') : n.days + ' ' + T('día(s)')} · imp ${n.Importance}</span><span class="txt">${esc(n.Text)}</span><button class="btn danger" onclick="delNews('${esc(n.Id)}')">Borrar</button></div>`).join('') || '<p class="hint">No hay noticias todavía.</p>';
+  $('newsList').innerHTML = state.news.map(n => `<div><span class="t">${n.days === 0 ? TH('hoy') : esc(n.days) + ' ' + TH('día(s)')} · imp ${esc(n.Importance)}</span><span class="txt">${esc(n.Text)}</span><button class="btn danger" data-id="${esc(n.Id)}">Borrar</button></div>`).join('') || '<p class="hint">No hay noticias todavía.</p>';
 }
 async function delNews(id) { await api('/api/news/delete', { id }); state = await api('/api/state'); renderNews(); }
 let evTimer;
 function searchEventHeroes() { clearTimeout(evTimer); evTimer = setTimeout(async () => {
   const q = $('e_heroSearch').value.trim(); if (q.length < 2) { $('e_heroResults').innerHTML = ''; return; }
   const hs = await api('/api/heroes?q=' + encodeURIComponent(q));
-  $('e_heroResults').innerHTML = hs.map(h => `<div onclick="addEventHero('${esc(h.id)}','${esc(h.name).replace(/'/g,'')}')">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
+  $('e_heroResults').innerHTML = hs.map(h => `<div data-id="${esc(h.id)}" data-name="${esc(h.name)}">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
 }, 250); }
 function addEventHero(id, name) { if (!eventHeroes.find(h => h.id === id)) eventHeroes.push({ id, name }); $('e_heroes').innerHTML = eventHeroes.map(h => esc(h.name)).join(', '); }
 async function publishEvent() {
@@ -783,6 +797,24 @@ async function importData() {
   const f = $('importFile').files[0]; if (!f) { toast(T('Elige un archivo'), true); return; }
   if (!confirm(T('Esto SUSTITUYE toda la memoria actual de AI Legacy. ¿Seguro?'))) return;
   const data = JSON.parse(await f.text()); const r = await api('/api/import', { data }); toast(T('Restaurado: ') + r.npcs + ' NPC'); load();
+}
+// Buttons and fields say what they do in data-click, data-input, data-change or data-toggle: a name from ACTIONS,
+// with its fixed arguments in data-args and, in data-pass, what of the element goes last (its value, whether it is
+// open, or the element). No handler is written into the markup.
+const ACTIONS = { aRemove, aRole, aSet, addArch, addItem, addK, addMap, clearHistory, copyDefaults, createCompanion, createFamily, deleteNpc, exportData, generateNpc, importData, kAbout, kDel, kRemove, kSearch, kSet, kWho, loadBackups, loadUsage, mRemove, mSet, openDir, publishEvent, renderFiles, renderNpcs, resetFile, resetWD, restoreBackup, saveArch, saveFile, saveK, saveMap, saveNpc, savePlayer, saveWorld, searchEventHeroes, searchHeroes };
+for (const type of ['click', 'input', 'change', 'toggle']) {
+  // toggle does not bubble, so everything is caught on the way down
+  document.addEventListener(type, e => {
+    const el = e.target && e.target.closest ? e.target.closest('[data-' + type + ']') : null;
+    if (!el) return;
+    const name = el.getAttribute('data-' + type);
+    if (!Object.prototype.hasOwnProperty.call(ACTIONS, name)) return;
+    const fixed = el.getAttribute('data-args');
+    const args = fixed ? fixed.split(',').map(a => /^\d+$/.test(a) ? Number(a) : a) : [];
+    const pass = el.getAttribute('data-pass');
+    if (pass === 'value') args.push(el.value); else if (pass === 'open') args.push(el.open); else if (pass === 'el') args.push(el);
+    ACTIONS[name](...args);
+  }, true);
 }
 load().catch(e => toast(T('No se pudo conectar con el juego: ') + e.message, true));
 </script>

@@ -32,6 +32,10 @@ namespace AILegacy.World
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(owner, OnRulingClanChanged);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(owner, OnPrisonerTaken);
             CampaignEvents.OnSiegeEventStartedEvent.AddNonSerializedListener(owner, OnSiegeStarted);
+            CampaignEvents.OnSiegeEventEndedEvent.AddNonSerializedListener(owner, OnSiegeEnded);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(owner, OnHourlyTick);
+            Captures.Clear();
+            SiegeEnds.Clear();
         }
 
         /// <summary>
@@ -129,7 +133,8 @@ namespace AILegacy.World
                 case "Lost": how = "has disappeared and is presumed dead"; howEs = L.T("AIL_6c0ce598", "ha desaparecido y se le da por muerto"); break;
                 default: how = "has died"; howEs = L.T("AIL_00ec5af6", "ha muerto"); break;
             }
-            int imp = victim.IsKingdomLeader ? 4 : victim.IsClanLeader ? 3 : victim.IsLord ? 2 : 1;
+            // the head of a mercenary or minor clan is no kingdom's loss: court talk, not something that shakes a realm
+            int imp = victim.IsKingdomLeader ? 4 : victim.IsClanLeader && Facts.Subject(victim.Clan) != null ? 3 : victim.IsLord ? 2 : 1;
             NewsStore.Add(new NewsItem
             {
                 Type = "death", Importance = imp,
@@ -263,19 +268,169 @@ namespace AILegacy.World
             });
         });
 
+        // ---- prisoners: the captives of one battle make one news item, and only notable ones are news at all
+
+        private class Capture
+        {
+            public Hero Prisoner, By;
+            public IFaction Captor;
+            public Settlement Near;
+        }
+        private static readonly List<Capture> Captures = new List<Capture>();
+
+        /// <summary>4 = a ruler (world news), 3 = the head of a kingdom's own noble clan (kingdom news), 1 = anyone else (local).</summary>
+        private static int CaptiveRank(Hero h)
+        {
+            if (h.IsKingdomLeader) return 4;
+            var c = h.Clan;
+            // the head of a mercenary or minor clan is nobody's vassal: local talk, like any ordinary noble
+            return c != null && c.Leader == h && Facts.Subject(c) != null ? 3 : 1;
+        }
+
         private static void OnPrisonerTaken(PartyBase captor, Hero prisoner) => Safe("prisionero", () =>
         {
             if (prisoner == null || !prisoner.IsLord) return;
-            var by = captor?.LeaderHero;
-            NewsStore.Add(new NewsItem
+            Settlement near = null;
+            try { near = captor?.MapEvent?.MapEventSettlement ?? captor?.Settlement; } catch { }
+            Captures.Add(new Capture { Prisoner = prisoner, By = captor?.LeaderHero, Captor = captor?.MapFaction, Near = near });
+        });
+
+        private static void OnHourlyTick()
+        {
+            if (!On) { Captures.Clear(); SiegeEnds.Clear(); return; }
+            try { FlushCaptures(); } catch (Exception ex) { Log.Error("Noticia prisioneros", ex); Captures.Clear(); }
+            try { FlushSieges(); } catch (Exception ex) { Log.Error("Noticia fin de asedio", ex); SiegeEnds.Clear(); }
+        }
+
+        private static string Short(Hero h)
+        {
+            var c = h.Clan;
+            if (h.IsKingdomLeader && h.MapFaction != null) return $" (ruler of {h.MapFaction.Name})";
+            if (c == null) return "";
+            if (c.Leader != h) return $" (clan {c.Name})";
+            var s = Facts.Subject(c);
+            return s != null ? $" (head of clan {c.Name} of {s.Name})" : Facts.Employer(c) != null ? $" (head of the mercenary clan {c.Name})" : $" (head of clan {c.Name}, under no crown)";
+        }
+
+        private static string ShortEs(Hero h)
+        {
+            var c = h.Clan;
+            if (h.IsKingdomLeader && h.MapFaction != null) return L.F("AIL_e7b1c730", $" (soberano de {h.MapFaction.Name})");
+            if (c == null) return "";
+            if (c.Leader != h) return L.F("AIL_e7b1c733", $" (clan {c.Name})");
+            return Facts.Employer(c) != null ? L.F("AIL_e7b1c732", $" (jefe del clan mercenario {c.Name})") : L.F("AIL_e7b1c731", $" (jefe del clan {c.Name})");
+        }
+
+        private static void FlushCaptures()
+        {
+            if (Captures.Count == 0) return;
+            var all = Captures.ToList();
+            Captures.Clear();
+            int mode = S.Get.PrisonerNewsMode();      // 0 all, 1 notable only, 2 rulers only
+            foreach (var g in all.GroupBy(c => (c.Captor?.StringId ?? "") + "|" + (c.Near?.StringId ?? "")))
             {
-                Type = "prisoner", Importance = prisoner.IsKingdomLeader ? 4 : prisoner.IsClanLeader ? 3 : 2,
-                Text = $"{prisoner.Name}{TitleOf(prisoner)} has been taken prisoner" + (by != null ? $" by {by.Name}{FactionOf(by)}." : "."),
-                TitleEs = L.F("AIL_0b611224", $"{prisoner.Name}, capturado"),
-                TextEs = L.F("AIL_c704d473", $"{prisoner.Name}{TitleOfEs(prisoner)} ha sido hecho prisionero") + (by != null ? L.F("AIL_c6442751", $" por {by.Name}{DeEs(by)}.") : "."),
-                Kingdoms = Ids(prisoner.MapFaction, captor?.MapFaction), Heroes = HeroIds(prisoner, by),
+                var list = g.GroupBy(c => c.Prisoner).Select(x => x.First()).OrderByDescending(c => CaptiveRank(c.Prisoner)).ToList();
+                int top = CaptiveRank(list[0].Prisoner);
+                var by = list.Select(c => c.By).FirstOrDefault(h => h != null);
+                var captor = list[0].Captor; var near = list[0].Near;
+                // what the player did or suffered is always told
+                bool player = list.Any(c => c.Prisoner == Hero.MainHero || c.By == Hero.MainHero);
+                if (!player && ((mode >= 2 && top < 4) || (mode == 1 && top < 3))) continue;
+                // who gets named: everyone, or only those the setting keeps
+                int floor = player || mode == 0 ? 1 : mode == 1 ? 3 : 4;
+                var named = list.Where(c => CaptiveRank(c.Prisoner) >= floor).Take(6).ToList();
+                int others = list.Count - named.Count;
+
+                var factions = new List<IFaction> { captor };
+                foreach (var c in named) factions.Add((IFaction)Facts.Subject(c.Prisoner.Clan) ?? Facts.Employer(c.Prisoner.Clan));
+                var heroes = named.Select(c => c.Prisoner).ToList();
+                heroes.Add(by);
+                var n = new NewsItem
+                {
+                    Type = "prisoner", Importance = top >= 3 ? top : 1, NoReaction = top < 3,
+                    Kingdoms = Ids(factions.ToArray()), Heroes = HeroIds(heroes.ToArray()), SettlementId = near?.StringId,
+                };
+                if (list.Count == 1)
+                {
+                    var p = list[0].Prisoner;
+                    n.Text = $"{p.Name}{TitleOf(p)} has been taken prisoner" + (by != null ? $" by {by.Name}{FactionOf(by)}." : ".");
+                    n.TitleEs = L.F("AIL_0b611224", $"{p.Name}, capturado");
+                    n.TextEs = L.F("AIL_c704d473", $"{p.Name}{TitleOfEs(p)} ha sido hecho prisionero") + (by != null ? L.F("AIL_c6442751", $" por {by.Name}{DeEs(by)}.") : ".");
+                }
+                else
+                {
+                    string who = by != null ? by.Name + FactionOf(by) : captor != null ? captor.Name.ToString() : "An enemy host";
+                    string whoEs = by != null ? by.Name + DeEs(by) : captor != null ? captor.Name.ToString() : L.T("AIL_a2104812", "Un ejército enemigo");
+                    string names = string.Join(", ", named.Select(c => c.Prisoner.Name + Short(c.Prisoner))) + (others > 0 ? $" and {others} more" : "");
+                    string namesEs = string.Join(", ", named.Select(c => c.Prisoner.Name + ShortEs(c.Prisoner))) + (others > 0 ? L.F("AIL_e7b1c72f", $" y {others} más") : "");
+                    n.Text = $"{who} took {list.Count} nobles prisoner" + (near != null ? $" near {near.Name}" : "") + $": {names}.";
+                    n.TitleEs = L.F("AIL_e7b1c72c", $"{list.Count} nobles capturados");
+                    n.TextEs = L.F("AIL_e7b1c72d", $"{whoEs} ha hecho prisioneros a {list.Count} nobles") + (near != null ? L.F("AIL_e7b1c72e", $" cerca de {near.Name}") : "") + $": {namesEs}.";
+                }
+                NewsStore.Add(n);
+            }
+        }
+
+        // ---- sieges: how each one ended. The fall of the place is told by the change of owner
+
+        private class SiegeEnd
+        {
+            public Settlement Place;
+            public IFaction Owner, Besieger;
+            public Hero Leader;
+            public bool Beaten;
+            public double Hour;
+        }
+        private static readonly List<SiegeEnd> SiegeEnds = new List<SiegeEnd>();
+        private static readonly System.Reflection.FieldInfo BesiegerDefeated = HarmonyLib.AccessTools.Field(typeof(SiegeEvent), "_isBesiegerDefeated");
+
+        private static void OnSiegeEnded(SiegeEvent siege) => Safe("fin de asedio", () =>
+        {
+            var s = siege?.BesiegedSettlement;
+            if (s == null) return;
+            bool beaten = false;
+            try { beaten = BesiegerDefeated != null && (bool)BesiegerDefeated.GetValue(siege); } catch { }
+            SiegeEnds.Add(new SiegeEnd
+            {
+                Place = s, Owner = s.MapFaction, Besieger = siege.BesiegerCamp?.MapFaction, Leader = siege.BesiegerCamp?.LeaderParty?.LeaderHero,
+                Beaten = beaten, Hour = CampaignTime.Now.ToHours,
             });
         });
+
+        /// <summary>
+        /// An hour after a siege ends, when the game has settled who holds the place: if it did not change hands, the
+        /// siege was either broken by force or given up.
+        /// </summary>
+        private static void FlushSieges()
+        {
+            if (SiegeEnds.Count == 0) return;
+            double hour = CampaignTime.Now.ToHours, day = CampaignTime.Now.ToDays;
+            foreach (var e in SiegeEnds.Where(x => hour - x.Hour >= 1 || hour < x.Hour).ToList())
+            {
+                SiegeEnds.Remove(e);
+                var s = e.Place;
+                if (s.MapFaction != e.Owner) continue;
+                if (NewsStore.All.Any(n => n.SettlementId == s.StringId && (n.Type == "capture" || n.Type == "fief") && day - n.Day < 1.0)) continue;
+                string who = e.Leader != null ? e.Leader.Name + FactionOf(e.Leader) : e.Besieger != null ? "the host of " + e.Besieger.Name : "the besiegers";
+                string whoEs = e.Leader != null ? e.Leader.Name + DeEs(e.Leader) : e.Besieger != null ? e.Besieger.Name.ToString() : L.T("AIL_a2104812", "Un ejército enemigo");
+                var n = new NewsItem { Type = "siege", SettlementId = s.StringId, Kingdoms = Ids(e.Owner, e.Besieger), Heroes = HeroIds(e.Leader, s.OwnerClan?.Leader) };
+                if (e.Beaten)
+                {
+                    n.Importance = 3;
+                    n.Text = $"The siege of {s.Name} has been broken: {who} was beaten in the field and {s.Name} remains in the hands of {e.Owner?.Name}.";
+                    n.TitleEs = L.F("AIL_e7b1c734", $"Roto el asedio de {s.Name}");
+                    n.TextEs = L.F("AIL_e7b1c735", $"El asedio de {s.Name} ha sido roto por las armas: {whoEs} ha sido derrotado y {s.Name} sigue en manos de {e.Owner?.Name}.");
+                }
+                else
+                {
+                    n.Importance = 2;
+                    n.Text = $"The siege of {s.Name} has been lifted: {who} gave it up and withdrew, and {s.Name} remains in the hands of {e.Owner?.Name}.";
+                    n.TitleEs = L.F("AIL_e7b1c736", $"Levantado el asedio de {s.Name}");
+                    n.TextEs = L.F("AIL_e7b1c737", $"El asedio de {s.Name} se ha levantado: {whoEs} ha desistido y se ha retirado, y {s.Name} sigue en manos de {e.Owner?.Name}.");
+                }
+                NewsStore.Add(n);
+            }
+        }
 
         private static void OnSiegeStarted(SiegeEvent siege) => Safe("asedio", () =>
         {
@@ -295,22 +450,33 @@ namespace AILegacy.World
         private static List<string> Ids(params IFaction[] fs) => fs.Where(f => f != null).Select(f => f.StringId).Distinct().ToList();
         private static List<string> HeroIds(params Hero[] hs) => hs.Where(h => h != null).Select(h => h.StringId).Distinct().ToList();
 
-        private static string FactionOf(Hero h) => h?.MapFaction != null && h.MapFaction.IsKingdomFaction ? $" of {h.MapFaction.Name}" : "";
-        private static string DeEs(Hero h) => h?.MapFaction != null && h.MapFaction.IsKingdomFaction ? $" ({h.MapFaction.Name})" : "";
+        // Hero.MapFaction is the paying kingdom for a mercenary in service, so the wording comes from Facts
+        private static string FactionOf(Hero h) => Facts.Allegiance(h);
+        private static string DeEs(Hero h) => Facts.AllegianceLocal(h);
         private static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
 
         private static string TitleOf(Hero h)
         {
             if (h == null) return "";
             if (h.IsKingdomLeader && h.MapFaction != null) return $", ruler of {h.MapFaction.Name},";
-            if (h.IsClanLeader && h.Clan != null) return $", head of clan {h.Clan.Name},";
-            return h.Clan != null && h.IsLord ? $" of clan {h.Clan.Name}" : "";
+            var subject = Facts.Subject(h.Clan); var employer = Facts.Employer(h.Clan);
+            if (h.IsClanLeader && h.Clan != null)
+                return subject != null ? $", head of clan {h.Clan.Name} of {subject.Name},"
+                     : employer != null ? $", head of the mercenary clan {h.Clan.Name} (in the pay of {employer.Name}, not its vassal),"
+                     : $", head of clan {h.Clan.Name} (which serves no kingdom),";
+            if (h.Clan == null || !h.IsLord) return "";
+            return subject != null ? $" of clan {h.Clan.Name} of {subject.Name}"
+                 : employer != null ? $" of the mercenary clan {h.Clan.Name} (in the pay of {employer.Name})" : $" of clan {h.Clan.Name} (which serves no kingdom)";
         }
 
         private static string TitleOfEs(Hero h)
         {
             if (h == null) return "";
             if (h.IsKingdomLeader && h.MapFaction != null) return L.F("AIL_914cbfeb", $", soberano de {h.MapFaction.Name},");
+            if (h.IsClanLeader && h.Clan != null && Facts.Employer(h.Clan) != null)
+                return L.F("AIL_e7b1c72a", $", jefe del clan mercenario {h.Clan.Name}, a sueldo de {Facts.Employer(h.Clan).Name},");
+            if (h.IsClanLeader && h.Clan != null && h.Clan.Kingdom == null && !h.Clan.IsBanditFaction)
+                return L.F("AIL_e7b1c72b", $", jefe del clan {h.Clan.Name}, que no sirve a ningún reino,");
             if (h.IsClanLeader && h.Clan != null) return L.F("AIL_7282058a", $", jefe del clan {h.Clan.Name},");
             return h.Clan != null && h.IsLord ? L.F("AIL_a4990140", $", del clan {h.Clan.Name},") : "";
         }

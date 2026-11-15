@@ -47,6 +47,140 @@ namespace AILegacy.World
         public static bool Allied(Kingdom a, Kingdom b) { try { return Alli != null && Alli.IsAllyWithKingdom(a, b); } catch { return false; } }
         public static bool HasTrade(Kingdom a, Kingdom b) { try { return Trade != null && Trade.HasTradeAgreement(a, b, out _); } catch { return false; } }
 
+        // ============================================================ house rules (limits set by the player, 0 = none)
+
+        public static int WarCount(Kingdom k) => WorldSim.Kingdoms.Count(o => o != k && k.IsAtWarWith(o));
+        public static int AllianceCount(Kingdom k) => WorldSim.Kingdoms.Count(o => o != k && Allied(k, o));
+        public static int TradeCount(Kingdom k) => WorldSim.Kingdoms.Count(o => o != k && HasTrade(k, o));
+
+        /// <summary>Days left before either may declare war on the other again after their last peace. 0 = no truce in force.</summary>
+        public static int TruceDaysLeft(Kingdom a, Kingdom b)
+        {
+            try
+            {
+                int min = S.Get.MinTruceDays;
+                if (min <= 0 || a == null || b == null || a == b || a.IsAtWarWith(b)) return 0;
+                var link = a.GetStanceWith(b);
+                if (link == null) return 0;
+                // the game stamps the day a war between two factions ends, however it ended
+                double since = CampaignTime.Now.ToDays - link.PeaceDeclarationDate.ToDays;
+                return since >= 0 && since < min ? (int)Math.Ceiling(min - since) : 0;
+            }
+            catch { return 0; }
+        }
+
+        /// <summary>Why an AI ruler may not declare war on that kingdom under the house rules, or null. The player is never bound.</summary>
+        public static string WarBlocked(Kingdom k, Kingdom o)
+        {
+            if (k == null || o == null || PlayerRules(k)) return null;
+            int truce = TruceDaysLeft(k, o);
+            if (truce > 0) return $"tregua tras la paz con {o.Name}: faltan {truce} días";
+            int max = S.Get.MaxWarsPerKingdom;
+            if (max > 0 && WarCount(k) >= max) return $"{k.Name} ya está en guerra con {WarCount(k)} reinos (límite {max})";
+            if (max > 0 && WarCount(o) >= max) return $"{o.Name} ya está en guerra con {WarCount(o)} reinos (límite {max})";
+            return null;
+        }
+
+        private static string AllianceBlocked(Kingdom k, Kingdom o)
+        {
+            int max = S.Get.MaxAlliancesPerKingdom;
+            if (max <= 0 || k == null || o == null || PlayerRules(k)) return null;
+            if (AllianceCount(k) >= max) return $"{k.Name} ya tiene {AllianceCount(k)} alianzas (límite {max})";
+            return AllianceCount(o) >= max ? $"{o.Name} ya tiene {AllianceCount(o)} alianzas (límite {max})" : null;
+        }
+
+        private static string TradeBlocked(Kingdom k, Kingdom o)
+        {
+            int max = S.Get.MaxTradePactsPerKingdom;
+            if (max <= 0 || k == null || o == null || PlayerRules(k)) return null;
+            if (TradeCount(k) >= max) return $"{k.Name} ya tiene {TradeCount(k)} acuerdos comerciales (límite {max})";
+            return TradeCount(o) >= max ? $"{o.Name} ya tiene {TradeCount(o)} acuerdos comerciales (límite {max})" : null;
+        }
+
+        /// <summary>The limits in force and what they forbid this ruler right now, for their prompt.</summary>
+        private static string DescribeHouseRules(Kingdom k)
+        {
+            var cfg = S.Get;
+            var lines = new List<string>();
+            if (cfg.MaxWarsPerKingdom > 0) lines.Add($"- No kingdom may be at war with more than {cfg.MaxWarsPerKingdom} kingdom(s) at once. You are at war with {WarCount(k)}.");
+            if (cfg.MinTruceDays > 0) lines.Add($"- After a peace, neither side may declare war on the other for {cfg.MinTruceDays} days.");
+            if (cfg.MaxWarsPerKingdom > 0 || cfg.MinTruceDays > 0)
+            {
+                var no = new List<string>();
+                foreach (var o in WorldSim.Kingdoms.Where(x => x != k && !k.IsAtWarWith(x)))
+                {
+                    int truce = TruceDaysLeft(k, o);
+                    if (truce > 0) no.Add($"{o.StringId} (truce, {truce} more days)");
+                    else if (cfg.MaxWarsPerKingdom > 0 && WarCount(k) >= cfg.MaxWarsPerKingdom) no.Add($"{o.StringId} (you are at your limit of wars)");
+                    else if (cfg.MaxWarsPerKingdom > 0 && WarCount(o) >= cfg.MaxWarsPerKingdom) no.Add($"{o.StringId} (it is already fighting {WarCount(o)}: no piling on)");
+                }
+                lines.Add("- Right now you may NOT declare war on: " + (no.Count > 0 ? string.Join(", ", no) : "nobody is barred") + ".");
+            }
+            if (cfg.MaxAlliancesPerKingdom > 0)
+            {
+                var full = WorldSim.Kingdoms.Where(x => x != k && AllianceCount(x) >= cfg.MaxAlliancesPerKingdom).Select(x => x.StringId).ToList();
+                lines.Add($"- At most {cfg.MaxAlliancesPerKingdom} alliance(s) per kingdom. You have {AllianceCount(k)}." + (full.Count > 0 ? " Already at their limit: " + string.Join(", ", full) + "." : ""));
+            }
+            if (cfg.MaxTradePactsPerKingdom > 0)
+            {
+                var full = WorldSim.Kingdoms.Where(x => x != k && TradeCount(x) >= cfg.MaxTradePactsPerKingdom).Select(x => x.StringId).ToList();
+                lines.Add($"- At most {cfg.MaxTradePactsPerKingdom} trade agreement(s) per kingdom. You have {TradeCount(k)}." + (full.Count > 0 ? " Already at their limit: " + string.Join(", ", full) + "." : ""));
+            }
+            return lines.Count == 0 ? "" : "House rules of this world (enforced: an action that breaks one is thrown away, so do not try):\n" + string.Join("\n", lines);
+        }
+
+        // ============================================================ a new campaign that starts at peace
+
+        // Set when the game creates a campaign and cleared when one is loaded, so a save never gets this
+        private static bool _newCampaign;
+        public static void OnNewGameCreated(CampaignGameStarter starter) { _newCampaign = true; }
+        public static void OnGameLoaded(CampaignGameStarter starter) { _newCampaign = false; }
+
+        /// <summary>The game raises this ten times in a row with 0 to 9. We act on the last, after everyone else.</summary>
+        public static void OnCharacterCreationIsOver(int pass) { if (pass >= 9) PeaceAtStart(); }
+
+        /// <summary>
+        /// Once, on a campaign that has just been created: every war between two kingdoms ends. The game's starting
+        /// wars come from its kingdom data, long before this runs. Also called from the first daily tick in case a
+        /// mod skipped character creation.
+        /// </summary>
+        public static void PeaceAtStart()
+        {
+            if (!_newCampaign) return;
+            _newCampaign = false;
+            try
+            {
+                if (!S.Get.PeaceAtCampaignStart || Campaign.Current == null) return;
+                var ks = WorldSim.Kingdoms.ToList();
+                int made = 0;
+                bool live = NewsTracker.Live;
+                NewsTracker.Live = false;      // a dozen treaties signed at once are one piece of news, not a dozen
+                try
+                {
+                    for (int i = 0; i < ks.Count; i++)
+                        for (int j = i + 1; j < ks.Count; j++)
+                        {
+                            if (!ks[i].IsAtWarWith(ks[j])) continue;
+                            Kingdom a = ks[i], b = ks[j];
+                            Ours(() => MakePeaceAction.Apply(a, b));
+                            if (!a.IsAtWarWith(b)) made++;
+                        }
+                }
+                finally { NewsTracker.Live = live; }
+                Log.Info($"[diplomacia] partida nueva en paz: {made} guerras entre reinos terminadas al empezar");
+                if (made == 0) return;
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "custom", Importance = 3, Kingdoms = ks.Select(x => x.StringId).ToList(),
+                    Text = "For the first time in years, no kingdom of Calradia is at war with another: every crown has laid down its arms.",
+                    TitleEs = L.T("AIL_e7b1c738", "Calradia en paz"),
+                    TextEs = L.T("AIL_e7b1c739", "Por primera vez en años, ningún reino de Calradia está en guerra con otro: todas las coronas han depuesto las armas."),
+                });
+                WorldSim.Say(L.T("AIL_e7b1c73a", "AI Legacy: la partida empieza con todos los reinos en paz."), Colors.Cyan);
+            }
+            catch (Exception ex) { Log.Error("Paz al empezar la partida", ex); }
+        }
+
         // ============================================================ proposals
 
         private static Proposal Pending(string type, Kingdom from, Kingdom to) =>
@@ -185,14 +319,16 @@ How a sovereign acts:
 - Every decision must serve your realm: its safety, its treasury, its honour, or your grip on the throne. Weigh strength, war weariness, who is already fighting whom, and your stance towards each crown. A weary or losing realm seeks peace; a strong and rested one presses its advantage.
 - If a proposal or demand is addressed to you, answer it now: accept it or reject it (and say why). Accepting a peace means accepting its terms.
 - You speak as yourself: your character and culture show in the words. No modern language, no game terms, no numbers of troops or percentages.
+- Your people are exactly the clans listed as yours in the hard facts about your realm. A lord of another realm, of a minor clan or of a mercenary company you did not hire is not yours, whatever his culture: do not call him yours, mourn him as yours, answer for him or fear him as a rival inside your realm. The mercenaries you did hire are paid swords, not vassals and not kin.
+- Speak only of wars, truces and alliances that the data shows. An action aimed at a crown you cannot aim it at is thrown away: war on someone you are already fighting, peace with someone you are not at war with, anything the house rules forbid.
 
 Actions you may take (each is an object in ""actions""; target_kingdom is always a kingdom id from the data):
 - declare_war (target_kingdom): war, at once, no consent needed. It breaks any alliance or trade agreement with them.
-- propose_peace (target_kingdom) with optional terms you DEMAND from them: daily_tribute + tribute_days, reparations, settlement (a town or castle of theirs). Only against a realm you are at war with.
+- propose_peace (target_kingdom) with optional terms you DEMAND from them: daily_tribute + tribute_days (or tribute_years, in years of this world), reparations, settlement (a town or castle of theirs). Only against a realm you are at war with.
 - accept_peace / reject_peace (target_kingdom): answer THEIR pending peace proposal.
 - propose_alliance / accept_alliance / reject_alliance / break_alliance (target_kingdom): allies stand together in war. Propose only to a crown you are on good terms with and share an enemy or an interest with.
 - propose_trade / accept_trade / reject_trade / end_trade (target_kingdom, trade_years 1-5): only between realms at peace.
-- demand_tribute (target_kingdom, daily_tribute, tribute_days) / accept_tribute / reject_tribute / end_tribute: outside a peace treaty, a tribute is paid only by a realm that fears you.
+- demand_tribute (target_kingdom, daily_tribute, tribute_days or tribute_years) / accept_tribute / reject_tribute / end_tribute: outside a peace treaty, a tribute is paid only by a realm that fears you.
 - demand_reparations (target_kingdom, reparations) / accept_reparations / reject_reparations: a single payment.
 - demand_territory (target_kingdom, settlement = a town or castle of theirs) / transfer_territory / reject_territory.
 - expel_clan (clan = a vassal clan of yours, never your own): cast it out of the realm for treason or defiance. A clan cast out is banished: it cannot return until you pardon it.
@@ -211,10 +347,25 @@ Answer ONLY with JSON:
   ""statement"": ""the public statement, {min_len}-{max_len} characters, in {language}"",
   ""summary"": ""what you said and did, in ONE English sentence"",
   ""importance"": 1-4,
-  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ],
+  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""tribute_years"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ],
   ""relation_changes"": [ { ""kingdom"": ""id"", ""change"": -{max_stance} to {max_stance} } ],
+  ""own_people"": [ ""every lord or clan you speak of as your own"" ],
   ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
-Use only the fields an action needs. relation_changes: how your stance towards other crowns shifts because of this. kingdom_engagement: the daily chance that another ruler answers you.");
+Use only the fields an action needs. relation_changes: how your stance towards other crowns shifts because of this. own_people: each lord or clan your statement speaks of as yours (vassal, kin, sworn man, hired company); it is checked against the world, and a statement that claims someone who is not yours is not published. kingdom_engagement: the daily chance that another ruler answers you; only crowns this truly concerns (a neighbour, an enemy, an ally, the one you address).");
+
+        private static readonly Tpl TRealmFacts = new Tpl("kingdom_statement/realm_facts.txt",
+@"## Hard facts about your realm (exact, right now; nothing else is true)
+- Your own clan, the ruling house: {ruling}.
+- Your vassal clans, all of them: {vassals}.
+- Mercenary companies in your pay (hired swords: not vassals, not kin; they leave when the contract ends): {mercenaries}.
+- Nobody else is yours. Culture says where someone was born, not whom they serve: lords of your culture serve other crowns, and lords of other cultures may serve you.
+- You are at war with: {wars}.
+- You are allied with: {allies}.
+- You have trade agreements with: {trade}.
+- Peace signed lately: {truces}.
+- With every other kingdom you are simply at peace: {peace}.
+{limits}");
+
 
         private static string DescribeRuler(Hero ruler)
         {
@@ -246,13 +397,90 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             foreach (var c in k.Clans.Where(x => !x.IsEliminated).OrderByDescending(x => x.Tier).Take(12))
             {
                 var fiefs = c.Settlements.Where(s => s.IsTown || s.IsCastle).Select(s => s.Name.ToString()).ToList();
-                sb.AppendLine($"- Clan {c.Name}{(c == k.RulingClan ? " (YOUR clan, the ruling house)" : c.IsUnderMercenaryService ? " (mercenaries)" : "")}, led by {c.Leader?.Name}" +
+                sb.AppendLine($"- Clan {c.Name}{(c == k.RulingClan ? " (YOUR clan, the ruling house)" : c.IsUnderMercenaryService ? " (mercenaries in your pay: hired swords, not vassals)" : " (your vassals)")}, led by {c.Leader?.Name}" +
                               $"{(c == Clan.PlayerClan ? " — the clan of " + Hero.MainHero.Name : "")}: {(fiefs.Count > 0 ? string.Join(", ", fiefs) : "no fiefs")}" +
                               (c != k.RulingClan && c.Leader != null ? $"; relation with you {(int)c.Leader.GetRelation(k.Leader)}" : ""));
             }
             var banished = Banished.DescribeForRuler(k);
             if (banished.Length > 0) sb.AppendLine(banished);
             return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>The exact lists a ruler needs to not claim what is not theirs: own clans, hired companies, wars, truces, alliances, limits.</summary>
+        private static string DescribeFacts(Kingdom k)
+        {
+            string Led(Clan c) => c.Leader != null ? $"{c.Name} (led by {c.Leader.Name})" : c.Name.ToString();
+            string Join(IEnumerable<string> xs, string none) { var l = xs.ToList(); return l.Count > 0 ? string.Join(", ", l) : none; }
+            var clans = k.Clans.Where(c => !c.IsEliminated).ToList();
+            var others = WorldSim.Kingdoms.Where(o => o != k).ToList();
+            double now = CampaignTime.Now.ToDays;
+            var truces = new List<string>();
+            foreach (var o in others.Where(o => !k.IsAtWarWith(o)))
+            {
+                try
+                {
+                    double since = now - k.GetStanceWith(o).PeaceDeclarationDate.ToDays;
+                    if (since < 0 || since > CampaignTime.DaysInYear) continue;
+                    int left = TruceDaysLeft(k, o);
+                    truces.Add($"{o.StringId} ({(int)since} day(s) ago{(left > 0 ? $"; truce, no war for {left} more days" : "")})");
+                }
+                catch { }
+            }
+            return TRealmFacts.Format(
+                "ruling", k.RulingClan != null ? Led(k.RulingClan) : "none",
+                "vassals", Join(clans.Where(c => c != k.RulingClan && !c.IsUnderMercenaryService).OrderByDescending(c => c.Tier).Select(Led), "none"),
+                "mercenaries", Join(clans.Where(c => c.IsUnderMercenaryService).Select(Led), "none"),
+                "wars", Join(others.Where(o => k.IsAtWarWith(o)).Select(o => o.StringId), "nobody"),
+                "allies", Join(others.Where(o => Allied(k, o)).Select(o => o.StringId), "nobody"),
+                "trade", Join(others.Where(o => HasTrade(k, o)).Select(o => o.StringId), "nobody"),
+                "truces", Join(truces, "none"),
+                "peace", Join(others.Where(o => !k.IsAtWarWith(o)).Select(o => o.StringId), "nobody"),
+                "limits", DescribeHouseRules(k)).TrimEnd();
+        }
+
+        /// <summary>Every name this ruler may rightly call their own: their clans (vassals and hired) and the people in them.</summary>
+        private static List<string> OwnNames(Kingdom k)
+        {
+            var names = new List<string>();
+            foreach (var c in k.Clans)
+            {
+                if (c == null || c.IsEliminated) continue;
+                names.Add(c.Name?.ToString());
+                foreach (var h in c.Heroes)
+                {
+                    if (h == null) continue;
+                    names.Add(h.Name?.ToString());
+                    names.Add(h.FirstName?.ToString());
+                }
+            }
+            return names.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().ToList();
+        }
+
+        /// <summary>
+        /// A ruler's statement against the world, before anything in it is carried out: someone claimed who is not
+        /// theirs, or a war or alliance stated that does not exist. Returns what is wrong, or null.
+        /// </summary>
+        private static string StatementContradiction(Kingdom k, JObject j)
+        {
+            if (!S.Get.FactCheckEvents) return null;
+            try
+            {
+                var model = Facts.BuildModel();
+                // what this statement itself does is true by the time anyone reads it
+                if (j["actions"] is JArray acts)
+                    foreach (var a in acts.OfType<JObject>())
+                    {
+                        string type = ((string)(a["type"]?.Type == JTokenType.String ? a["type"] : null) ?? "").Trim().ToLowerInvariant();
+                        var o = WorldSim.FindKingdom((string)(a["target_kingdom"]?.Type == JTokenType.String ? a["target_kingdom"] : null));
+                        if (o == null || o == k) continue;
+                        if (type == "declare_war") model.AddWar(k.StringId, o.StringId);
+                        else if (type == "accept_alliance") model.AddAlliance(k.StringId, o.StringId);
+                    }
+                var named = j["own_people"] is JArray arr ? arr.Where(x => x != null && x.Type == JTokenType.String).Select(x => (string)x).Take(20).ToList() : new List<string>();
+                return FactCheck.CheckOwnPeople(named, OwnNames(k), model)
+                       ?? FactCheck.CheckSummary((string)(j["summary"]?.Type == JTokenType.String ? j["summary"] : null), model);
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] comprobando una declaración", ex); return null; }
         }
 
         private static string DescribeProposalsTo(Kingdom k)
@@ -276,7 +504,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             if (!string.IsNullOrWhiteSpace(lore)) { sys.AppendLine(); sys.AppendLine("## The world"); sys.AppendLine(lore); }
             sys.AppendLine(); sys.AppendLine("## Who you are"); sys.AppendLine(DescribeRuler(ruler));
             sys.AppendLine(); sys.AppendLine($"## Your realm, {k.Name} [id: {k.StringId}] — clans and their fiefs"); sys.AppendLine(DescribeRealm(k));
+            sys.AppendLine(); sys.AppendLine(DescribeFacts(k));
             sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth, right now)"); sys.AppendLine(WorldSim.DescribeKingdoms(k));
+            sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap());
             var lawsText = Laws.ForRuler(k);
             if (lawsText.Length > 0) { sys.AppendLine(); sys.AppendLine(lawsText); }
             sys.AppendLine(); sys.AppendLine("## PENDING PROPOSALS DIRECTED AT YOU (answer them)"); sys.AppendLine(DescribeProposalsTo(k));
@@ -331,6 +561,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             if (s.Text.Length < 5) return;
             var thoughts = (string)j["thoughts"];
             if (!string.IsNullOrWhiteSpace(thoughts)) Log.Info($"[diplomacia] [piensa] {s.RulerName}: {thoughts}");
+            // An AI ruler who claims someone else's lord, or a war that does not exist, is not heard. The player's words are theirs
+            if (playerText == null)
+            {
+                string wrong = StatementContradiction(k, j);
+                if (wrong != null) { Log.Warn($"[diplomacia] declaración de {s.RulerName} descartada por contradecir el mundo: {wrong} | {s.SummaryEn}"); return; }
+            }
 
             if (j["actions"] is JArray acts)
                 foreach (var a in acts.OfType<JObject>().Take(4))
@@ -384,6 +620,10 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return Math.Max(min, Math.Min(max, v));
         }
 
+        /// <summary>A tribute's length in days of this world: "a year" is one Calradian year, however the AI wrote it.</summary>
+        private static int TributeLength(JObject a) =>
+            FactCheck.TributeDays(I(a, "tribute_days", 0, 100000), I(a, "tribute_years", 0, 20), Math.Max(1, CampaignTime.DaysInYear), 10, 200);
+
         /// <summary>Validates and runs one ruler action. Returns what happened (to show) or null if it doesn't apply.</summary>
         private static string Resolve(Kingdom k, JObject a)
         {
@@ -418,6 +658,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (o == null || o == k) return Bad(L.T("AIL_8a207caf", "reino destino no válido"));
                     if (k.IsAtWarWith(o)) return Bad(L.T("AIL_acfa98a8", "ya están en guerra"));
                     if (PlayerRules(o) && !cfg.AllowAiWarOnPlayer) return Bad(L.T("AIL_b809052a", "guerra contra el jugador desactivada"));
+                    { string no = WarBlocked(k, o); if (no != null) return Bad(no); }
                     EndAlliance(k, o); EndTrade(k, o);
                     St.Proposals.RemoveAll(p => (p.From == k.StringId && p.To == o.StringId) || (p.From == o.StringId && p.To == k.StringId));
                     Diplomacy.Ours(() => DeclareWarAction.ApplyByDefault(k, o));
@@ -429,7 +670,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 {
                     if (o == null || o == k || !k.IsAtWarWith(o)) return Bad(L.T("AIL_a305fa83", "no están en guerra"));
                     var p = AddProposal("peace", k, o);
-                    p.DailyTribute = I(a, "daily_tribute", 0, cfg.MaxDailyTribute); p.TributeDays = p.DailyTribute > 0 ? I(a, "tribute_days", 10, 200) : 0;
+                    p.DailyTribute = I(a, "daily_tribute", 0, cfg.MaxDailyTribute); p.TributeDays = p.DailyTribute > 0 ? TributeLength(a) : 0;
                     p.Reparations = I(a, "reparations", 0, cfg.MaxReparations);
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == o);
                     p.SettlementId = st?.StringId;
@@ -460,6 +701,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 // ---------------------------------------------------- alliances
                 case "propose_alliance":
                     if (o == null || o == k || k.IsAtWarWith(o) || Allied(k, o)) return Bad("alianza no posible");
+                    { string no = AllianceBlocked(k, o); if (no != null) return Bad(no); }
                     AddProposal("alliance", k, o);
                     return L.F("AIL_f1ae2294", $"{kn} propone una alianza a {o.Name}.");
                 case "accept_alliance":
@@ -469,6 +711,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (p == null) return Bad("no hay propuesta de alianza");
                     St.Proposals.Remove(p);
                     if (k.IsAtWarWith(o) || Alli == null) return Bad(L.T("AIL_1d0a19e2", "alianza imposible ahora"));
+                    { string no = AllianceBlocked(k, o); if (no != null) return Bad(no); }
                     Alli.StartAlliance(o, k);
                     WorldSim.ChangeStance(k.StringId, o.StringId, 15); WorldSim.ChangeStance(o.StringId, k.StringId, 15);
                     return L.F("AIL_47c0f5a2", $"{kn} y {o.Name} sellan una alianza.");
@@ -485,6 +728,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "propose_trade":
                 {
                     if (o == null || o == k || k.IsAtWarWith(o) || HasTrade(k, o)) return Bad("acuerdo comercial no posible");
+                    { string no = TradeBlocked(k, o); if (no != null) return Bad(no); }
                     var p = AddProposal("trade", k, o);
                     p.TradeYears = I(a, "trade_years", 1, 5);
                     return L.F("AIL_6e09fc5c", $"{kn} propone a {o.Name} un acuerdo comercial de {p.TradeYears} año(s).");
@@ -496,6 +740,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (p == null) return Bad("no hay propuesta comercial");
                     St.Proposals.Remove(p);
                     if (k.IsAtWarWith(o) || Trade == null) return Bad(L.T("AIL_6ee119bd", "comercio imposible ahora"));
+                    { string no = TradeBlocked(k, o); if (no != null) return Bad(no); }
                     Trade.MakeTradeAgreement(o, k, CampaignTime.YearsFromNow(Math.Max(1, p.TradeYears)));
                     WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
                     return L.F("AIL_4e5e61ea", $"{kn} y {o.Name} firman un acuerdo comercial de {Math.Max(1, p.TradeYears)} año(s).");
@@ -512,7 +757,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = AddProposal("tribute", k, o);
-                    p.DailyTribute = I(a, "daily_tribute", 10, cfg.MaxDailyTribute); p.TributeDays = I(a, "tribute_days", 10, 200);
+                    p.DailyTribute = I(a, "daily_tribute", 10, cfg.MaxDailyTribute); p.TributeDays = TributeLength(a);
                     return L.F("AIL_c61b5727", $"{kn} exige a {o.Name} un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días.");
                 }
                 case "accept_tribute":
@@ -785,12 +1030,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
         private static readonly Tpl TPlayerStatement = new Tpl("kingdom_statement/player_statement_analysis.txt",
 @"{ruler}, ruler of {kingdom} [id: {kingdom_id}], has issued the public statement below. You are the chancellor: turn the words into the actions they really contain, nothing more.
 - Use only what the statement clearly says. If it only speaks and decides nothing, return no actions.
-- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days, reparations, settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects = a list of effects from the catalogue of law effects below), repeal_law (law_name), enact_policy (policy = id of an established policy from the lists below), repeal_policy (policy), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
+- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days or tribute_years, reparations, settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days or tribute_years), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects = a list of effects from the catalogue of law effects below), repeal_law (law_name), enact_policy (policy = id of an established policy from the lists below), repeal_policy (policy), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
 - target_kingdom must be a kingdom id from the data.
 Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
 For a law, law_name and law_text are the ruler's own words; choose law_effects that do what those words say, within the ranges.");
 
-        public static void Touch() { var _ = TStatement.Key + TPlayerStatement.Key; }
+        public static void Touch() { var _ = TStatement.Key + TPlayerStatement.Key + TRealmFacts.Key; }
 
         public static bool PlayerCanDeclare => Enabled && PlayerRules(PlayerRealm);
 
@@ -809,6 +1054,7 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
                     sys.AppendLine(TPlayerStatement.Format("ruler", Hero.MainHero.Name, "kingdom", k.Name, "kingdom_id", k.StringId));
                     sys.AppendLine(); sys.AppendLine($"## The realm of {k.Name}: clans and fiefs"); sys.AppendLine(DescribeRealm(k));
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
+                    sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap());
                     var lawsText = Laws.ForRuler(k);
                     if (lawsText.Length > 0) { sys.AppendLine(); sys.AppendLine(lawsText); }
                     sys.AppendLine(); sys.AppendLine("## Pending proposals directed at this realm"); sys.AppendLine(DescribeProposalsTo(k));

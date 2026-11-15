@@ -12,9 +12,9 @@ namespace AILegacy.Core
     /// </summary>
     internal static class Hotkeys
     {
-        public enum Id { GroupTalk, GroupEnd, BattleOrders, Yield, Truce, SummonTen, SummonAll }
+        public enum Id { GroupTalk, GroupEnd, BattleOrders, Yield, Truce, SummonTen, SummonAll, Herbs }
 
-        private static readonly string[] Defaults = { "Alt+T", "Alt+G", "Alt+B", "Alt+Y", "Alt+P", "Ctrl+X", "Ctrl+Alt+X" };
+        private static readonly string[] Defaults = { "Alt+T", "Alt+G", "Alt+B", "Alt+Y", "Alt+P", "Ctrl+X", "Ctrl+Alt+X", "Alt+H" };
         private static readonly int Count = Defaults.Length;
 
         private class Combo
@@ -22,6 +22,9 @@ namespace AILegacy.Core
             public string Raw;
             public InputKey Key = InputKey.Invalid;
             public bool Alt, Ctrl, Shift, Off;
+            // Same key and modifiers as an earlier shortcut: this one is turned off. DupOf is the one that keeps the key
+            public bool Dup;
+            public int DupOf = -1;
             public string Label = "";
             public int Mods => (Alt ? 1 : 0) | (Ctrl ? 2 : 0) | (Shift ? 4 : 0);
         }
@@ -41,6 +44,7 @@ namespace AILegacy.Core
                 case Id.Yield: return c.KeyYield;
                 case Id.Truce: return c.KeyTruce;
                 case Id.SummonTen: return c.KeySummonTen;
+                case Id.Herbs: return c.KeyHerbs;
                 default: return c.KeySummonAll;
             }
         }
@@ -82,20 +86,55 @@ namespace AILegacy.Core
 
         private static Combo Get(Id id)
         {
+            var c = Fresh((int)id, out bool changed);
+            if (changed) MarkDuplicates();
+            return c;
+        }
+
+        /// <summary>The cached shortcut, parsed again if its MCM text changed.</summary>
+        private static Combo Fresh(int i, out bool changed)
+        {
+            changed = false;
             string raw = null;
-            try { raw = Setting(id); } catch { }
-            if (raw == null) raw = Defaults[(int)id];
-            var have = Cache[(int)id];
+            try { raw = Setting((Id)i); } catch { }
+            if (raw == null) raw = Defaults[i];
+            var have = Cache[i];
             if (have != null && have.Raw == raw) return have;
             var c = Parse(raw);
             if (c == null)
             {
-                Log.Warn($"Tecla no reconocida en MCM ({id}): «{raw}». Se usa {Defaults[(int)id]}.");
-                c = Parse(Defaults[(int)id]);
+                Log.Warn($"Tecla no reconocida en MCM ({(Id)i}): «{raw}». Se usa {Defaults[i]}.");
+                c = Parse(Defaults[i]);
                 c.Raw = raw;
             }
-            Cache[(int)id] = c;
+            // Keeps what was decided about it, so the same clash is not logged again
+            if (have != null && have.Dup && have.Key == c.Key && have.Mods == c.Mods && have.Off == c.Off) { c.Dup = true; c.DupOf = have.DupOf; }
+            Cache[i] = c;
+            changed = true;
             return c;
+        }
+
+        /// <summary>
+        /// Two shortcuts on the same key and modifiers would both fire. Runs whenever a shortcut changes: in the fixed
+        /// order of Id the first one keeps the key and any later one is turned off, with one log line per clash.
+        /// </summary>
+        private static void MarkDuplicates()
+        {
+            var all = new Combo[Count];
+            for (int i = 0; i < Count; i++) all[i] = Fresh(i, out _);
+            for (int i = 0; i < Count; i++)
+            {
+                var c = all[i];
+                int first = -1;
+                if (!c.Off)
+                    for (int j = 0; j < i && first < 0; j++)
+                        if (!all[j].Off && !all[j].Dup && all[j].Key == c.Key && all[j].Mods == c.Mods) first = j;
+                bool told = c.Dup && c.DupOf == first;
+                c.Dup = first >= 0;
+                c.DupOf = first;
+                if (c.Dup && !told)
+                    Log.Warn($"Tecla repetida en MCM: {(Id)i} y {(Id)first} usan {c.Label}. Se queda con ella {(Id)first}; {(Id)i} queda sin tecla hasta que cambies una de las dos.");
+            }
         }
 
         private static bool ModsDown(Combo c) =>
@@ -110,21 +149,21 @@ namespace AILegacy.Core
         public static bool Pressed(Id id)
         {
             var c = Get(id);
-            if (c.Off || !Input.IsKeyPressed(c.Key) || !ModsDown(c)) return false;
+            if (c.Off || c.Dup || !Input.IsKeyPressed(c.Key) || !ModsDown(c)) return false;
             for (int i = 0; i < Count; i++)
             {
                 if (i == (int)id) continue;
                 var o = Get((Id)i);
-                if (o.Off || o.Key != c.Key || o.Mods == c.Mods || (o.Mods & c.Mods) != c.Mods) continue;
+                if (o.Off || o.Dup || o.Key != c.Key || o.Mods == c.Mods || (o.Mods & c.Mods) != c.Mods) continue;
                 if (ModsDown(o)) return false;
             }
             return true;
         }
 
-        /// <summary>How the shortcut reads now ("Alt+T"), or "-" when it is turned off.</summary>
-        public static string Label(Id id) { var c = Get(id); return c.Off ? "-" : c.Label; }
+        /// <summary>How the shortcut reads now ("Alt+T"), or "-" when it is turned off or lost its key to an earlier one.</summary>
+        public static string Label(Id id) { var c = Get(id); return c.Off || c.Dup ? "-" : c.Label; }
 
-        private static readonly Regex DefaultLabels = new Regex(@"Ctrl\+Alt\+X|Ctrl\+X|Alt\+[TGBYP]", RegexOptions.Compiled);
+        private static readonly Regex DefaultLabels = new Regex(@"Ctrl\+Alt\+X|Ctrl\+X|Alt\+[TGBYPH]", RegexOptions.Compiled);
 
         /// <summary>Texts name the default keys. This swaps them for the ones set in MCM.</summary>
         public static string Fix(string text)

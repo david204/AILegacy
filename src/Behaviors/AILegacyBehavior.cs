@@ -57,7 +57,16 @@ namespace AILegacy.Behaviors
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, World.Mood.OnPrisonerTaken);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, WorldSim.OnSettlementOwnerChanged);
             CampaignEvents.MobilePartyDestroyed.AddNonSerializedListener(this, QuestObjectives.OnPartyDestroyed);
+            // Remembered townsfolk get their face back right before the game spawns the people of a place
+            CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, World.ResidentFaces.OnLocationCharactersReady);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.LandlessPatrols.OnDailyTick);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.AiArenaTraining.OnDailyTick);
             NewsTracker.Register(this);
+            // A campaign that starts with every kingdom at peace: only ever on creation, after the game has set its starting wars
+            CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, Diplomacy.OnNewGameCreated);
+            CampaignEvents.OnGameLoadedEvent.AddNonSerializedListener(this, Diplomacy.OnGameLoaded);
+            CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(this, Diplomacy.OnCharacterCreationIsOver);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Diplomacy.PeaceAtStart);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -115,18 +124,27 @@ namespace AILegacy.Behaviors
                     var edited = SaveFiles.ManualEdits(id);
                     // If the files belong to another branch (you kept playing after this save), archive them before overwriting
                     SaveFiles.ArchiveIfDiverged(id, _inSaveStamp, CampaignTime.Now.ToDays);
-                    MemoryStore.Deserialize(_inSaveCopy);
-                    foreach (var m in edited) MemoryStore.Put(m);
-                    SaveFiles.AdoptStamp(id, _inSaveStamp);
-                    adopt = !string.IsNullOrEmpty(_inSaveStamp);
-                    Log.Info($"Memoria restaurada de la partida guardada" + (edited.Count > 0 ? $" ({edited.Count} personajes editados a mano se conservan)" : ""));
+                    if (MemoryStore.Deserialize(_inSaveCopy))
+                    {
+                        foreach (var m in edited) MemoryStore.Put(m);
+                        SaveFiles.AdoptStamp(id, _inSaveStamp);
+                        adopt = !string.IsNullOrEmpty(_inSaveStamp);
+                        Log.Info($"Memoria restaurada de la partida guardada" + (edited.Count > 0 ? $" ({edited.Count} personajes editados a mano se conservan)" : ""));
+                    }
+                    // Unreadable copy in the save: the files or a backup, and whatever is on disk is set aside before
+                    // anything gets written over it. The files keep their own stamp
+                    else SaveFiles.Recover(id);
                 }
-                else if (!SaveFiles.Load(id) && hasCopy)
+                else if (!SaveFiles.Load(id))
                 {
-                    MemoryStore.Deserialize(_inSaveCopy);
-                    SaveFiles.AdoptStamp(id, _inSaveStamp);
-                    adopt = !string.IsNullOrEmpty(_inSaveStamp);
-                    Log.Info($"La campaña {id} no tenía archivos: memoria recuperada de la copia de la partida");
+                    if (hasCopy && MemoryStore.Deserialize(_inSaveCopy))
+                    {
+                        SaveFiles.AdoptStamp(id, _inSaveStamp);
+                        adopt = !string.IsNullOrEmpty(_inSaveStamp);
+                        Log.Info($"La campaña {id} no tenía archivos: memoria recuperada de la copia de la partida");
+                    }
+                    // Files that are there but did not load, or a copy that did not read: same fallback
+                    else if (hasCopy || SaveFiles.Exists(id)) SaveFiles.Recover(id);
                 }
                 _inSaveCopy = null;
                 _inSaveStamp = null;

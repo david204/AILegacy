@@ -42,5 +42,13 @@
     </SubModule>
   </SubModules>
 
-  <Xmls />
+  <Xmls>
+    <XmlNode>
+      <XmlName id="Items" path="ailegacy_items" />
+      <IncludedGameTypes>
+        <GameType value="Campaign" />
+        <GameType value="CampaignStoryMode" />
+      </IncludedGameTypes>
+    </XmlNode>
+  </Xmls>
 </Module>

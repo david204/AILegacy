@@ -200,6 +200,15 @@ namespace AILegacy.Memory
         [JsonIgnore] public string RecentTalk;
         [JsonIgnore] public DateTime RecentTalkAt;
         [JsonIgnore] public bool IsResident;
+
+        // Townsfolk only (World/ResidentFaces.cs): the look they had when first met, put back on later visits
+        [JsonProperty("face", NullValueHandling = NullValueHandling.Ignore)] public string Face;
+        [JsonProperty("face_settlement", NullValueHandling = NullValueHandling.Ignore)] public string FaceSettlement;
+        [JsonProperty("face_character", NullValueHandling = NullValueHandling.Ignore)] public string FaceCharacter;
+        [JsonProperty("face_location", NullValueHandling = NullValueHandling.Ignore)] public string FaceLocation;
+        [JsonProperty("face_seed", DefaultValueHandling = DefaultValueHandling.Ignore)] public int FaceSeed;
+        /// <summary>Null in faces saved before the sex was noted: those take it from the first character they are put on.</summary>
+        [JsonProperty("face_female", NullValueHandling = NullValueHandling.Ignore)] public bool? FaceFemale;
     }
 
     /// <summary>A letter on its way (player to NPC or NPC to player).</summary>
@@ -260,23 +269,124 @@ namespace AILegacy.Memory
             NewsStore.Clear();
         }
 
-        /// <summary>Loads everything from the campaign files (save_data).</summary>
+        /// <summary>Loads everything from the campaign files (save_data). Tolerant: null entries are dropped.</summary>
         public static void LoadFrom(IEnumerable<HeroMemory> heroes, List<NewsItem> news, double lastLetterDay, List<PendingLetter> letters, List<PartyOrder> orders,
             List<AiQuest> quests = null, List<RpItem> items = null, WorldState world = null, List<NpcMessage> messages = null)
         {
-            QuestSystem.Quests = quests ?? new List<AiQuest>();
-            Belongings.Items = items ?? new List<RpItem>();
-            WorldSim.State = world ?? new WorldState();
-            WorldSim.ResetSession();
-            InfoExchange.Messages = messages ?? new List<NpcMessage>();
-            _byHero = new Dictionary<string, HeroMemory>();
-            _residents = new Dictionary<string, HeroMemory>();
-            foreach (var h in heroes) if (!string.IsNullOrEmpty(h?.HeroId)) _byHero[h.HeroId] = h;
+            Replace(Compose(heroes, news, lastLetterDay, letters, orders, quests, items, world, messages, false, out _));
+        }
+
+        /// <summary>A whole memory already read and checked, not live yet. Replace swaps it in.</summary>
+        public sealed class Snapshot
+        {
+            internal Dictionary<string, HeroMemory> Heroes = new Dictionary<string, HeroMemory>();
+            internal Dictionary<string, HeroMemory> Residents = new Dictionary<string, HeroMemory>();
+            internal List<NewsItem> News = new List<NewsItem>();
+            internal double LastLetterDay = -1;
+            internal List<PendingLetter> Letters = new List<PendingLetter>();
+            internal List<PartyOrder> Orders = new List<PartyOrder>();
+            internal List<AiQuest> Quests = new List<AiQuest>();
+            internal List<RpItem> Items = new List<RpItem>();
+            internal WorldState World = new WorldState();
+            internal List<NpcMessage> Messages = new List<NpcMessage>();
+            public int HeroCount => Heroes.Count;
+            public int NewsCount => News.Count;
+        }
+
+        /// <summary>Drops null entries. Returns how many there were.</summary>
+        private static int Clean<T>(ref List<T> list) where T : class
+        {
+            if (list == null) { list = new List<T>(); return 0; }
+            return list.RemoveAll(x => x == null);
+        }
+
+        /// <summary>
+        /// Leaves a character read from JSON safe to use: an explicit null where a list belongs becomes an empty list
+        /// and null entries are dropped. Returns how many null entries it dropped (0 for a healthy file).
+        /// </summary>
+        public static int Normalize(HeroMemory m)
+        {
+            if (m == null) return 0;
+            int bad = Clean(ref m.Summaries) + Clean(ref m.Notes) + Clean(ref m.Turns) + Clean(ref m.KnownSecretIds) + Clean(ref m.KnownInfoIds)
+                      + Clean(ref m.CustomInstructions) + Clean(ref m.Heard) + Clean(ref m.Pages) + Clean(ref m.Archive);
+            if (m.Others == null) m.Others = new Dictionary<string, OtherBond>();
+            foreach (var k in m.Others.Where(kv => kv.Value == null).Select(kv => kv.Key).ToList()) { m.Others.Remove(k); bad++; }
+            foreach (var o in m.Others.Values) bad += Clean(ref o.Notes);
+            if (m.Profile != null && m.Profile.SampleLines == null) m.Profile.SampleLines = new List<string>();
+            return bad;
+        }
+
+        /// <summary>
+        /// Builds a snapshot from parts. Strict (a backup or an import) gives null and the reason when anything in it
+        /// is damaged; otherwise (loading a campaign) the damaged entries are dropped and the rest is kept.
+        /// </summary>
+        public static Snapshot Compose(IEnumerable<HeroMemory> heroes, List<NewsItem> news, double lastLetterDay, List<PendingLetter> letters, List<PartyOrder> orders,
+            List<AiQuest> quests, List<RpItem> items, WorldState world, List<NpcMessage> messages, bool strict, out string why)
+        {
+            why = null;
+            var s = new Snapshot { LastLetterDay = lastLetterDay };
+            int at = 0;
+            foreach (var h in heroes ?? new List<HeroMemory>())
+            {
+                at++;
+                if (h == null) { if (strict) { why = $"personaje {at} vacío"; return null; } continue; }
+                int bad = Normalize(h);
+                if (strict && bad > 0) { why = $"personaje {at} ({h.HeroId}) con {bad} entradas vacías"; return null; }
+                // Characters with no id were never written to their own file either
+                if (!string.IsNullOrEmpty(h.HeroId)) s.Heroes[h.HeroId] = h;
+            }
+            int holes = Clean(ref news) + Clean(ref letters) + Clean(ref orders) + Clean(ref quests) + Clean(ref items) + Clean(ref messages);
+            if (strict && holes > 0) { why = $"{holes} entradas vacías en noticias, cartas, órdenes, encargos, objetos o mensajes"; return null; }
+            s.News = news; s.Letters = letters; s.Orders = orders; s.Quests = quests; s.Items = items; s.Messages = messages;
+            s.World = world ?? new WorldState();
+            return s;
+        }
+
+        /// <summary>What is live now, to put back if a swap fails halfway.</summary>
+        private static Snapshot Capture() => new Snapshot
+        {
+            Heroes = _byHero, Residents = _residents, News = NewsStore.All.ToList(), LastLetterDay = LastLetterDay, Letters = Letters,
+            Orders = OrderSystem.Orders, Quests = QuestSystem.Quests, Items = Belongings.Items, World = WorldSim.State, Messages = InfoExchange.Messages,
+        };
+
+        private static void Apply(Snapshot s)
+        {
+            _byHero = s.Heroes;
+            _residents = s.Residents;
             NewsStore.Clear();
-            NewsStore.Load(news);
-            LastLetterDay = lastLetterDay;
-            Letters = letters ?? new List<PendingLetter>();
-            OrderSystem.Orders = orders ?? new List<PartyOrder>();
+            NewsStore.Load(s.News);
+            LastLetterDay = s.LastLetterDay;
+            Letters = s.Letters;
+            OrderSystem.Orders = s.Orders;
+            QuestSystem.Quests = s.Quests;
+            Belongings.Items = s.Items;
+            WorldSim.State = s.World;
+            InfoExchange.Messages = s.Messages;
+            WorldSim.ResetSession();
+        }
+
+        /// <summary>Swaps a snapshot in, all of it or nothing: if anything fails, what was live is put back and it returns false.</summary>
+        public static bool Replace(Snapshot s) => Replace(s, out _);
+
+        /// <param name="rollbackFailed">True when the swap failed and what was live could not be put back either:
+        /// the memory is then a mix of both and the caller has to say so.</param>
+        public static bool Replace(Snapshot s, out bool rollbackFailed)
+        {
+            rollbackFailed = false;
+            if (s == null) return false;
+            var before = Capture();
+            try { Apply(s); return true; }
+            catch (Exception ex)
+            {
+                Log.Error("No se pudo cambiar la memoria; se deja como estaba", ex);
+                try { Apply(before); }
+                catch (Exception ex2)
+                {
+                    rollbackFailed = true;
+                    Log.Error("NO se pudo volver a la memoria anterior: la memoria en uso ha quedado a medias entre la anterior y la nueva. Carga la partida de nuevo", ex2);
+                }
+                return false;
+            }
         }
 
         public static string Serialize()
@@ -296,34 +406,69 @@ namespace AILegacy.Memory
             }, Formatting.None);
         }
 
-        public static void Deserialize(string json)
+        // A legitimate memory is a handful of levels deep. This stops a hostile file from nesting without end.
+        private const int MaxJsonDepth = 64;
+
+        /// <summary>
+        /// Reads a whole memory (an editor backup, an imported file) without touching what is live. False with the
+        /// reason when the text is not a complete, well formed memory. Not strict only drops empty entries instead of failing.
+        /// </summary>
+        public static bool TryParse(string json, out Snapshot parsed, out string why, bool strict = true)
+        {
+            parsed = null; why = null;
+            if (string.IsNullOrWhiteSpace(json)) { why = "vacío"; return false; }
+            try
+            {
+                var blob = JsonConvert.DeserializeObject<SaveBlob>(json, new JsonSerializerSettings { MaxDepth = MaxJsonDepth });
+                if (blob == null) { why = "sin contenido"; return false; }
+                if (blob.Heroes == null) { why = "falta la lista de personajes"; return false; }
+                parsed = Compose(blob.Heroes, blob.News, blob.LastLetterDay, blob.Letters, blob.Orders, blob.Quests, blob.Items, blob.World, blob.Messages, strict, out why);
+                return parsed != null;
+            }
+            catch (Exception ex) { why = ex.Message; return false; }
+        }
+
+        /// <summary>No memory in the save at all: no characters, news or orders, and the rest is left alone.</summary>
+        private static void StartEmpty()
         {
             _byHero = new Dictionary<string, HeroMemory>();
             _residents = new Dictionary<string, HeroMemory>();
             NewsStore.Clear();
             OrderSystem.Orders = new List<PartyOrder>();
-            // Nothing to load: keep the world state, but anything half-done in the session is no longer valid
-            if (string.IsNullOrEmpty(json)) { WorldSim.ResetSession(); return; }
+            // Keep the world state, but anything half-done in the session is no longer valid
+            WorldSim.ResetSession();
+        }
+
+        /// <summary>
+        /// Loads the memory stored inside a save. As tolerant as it always was (missing parts take their defaults,
+        /// damaged entries are dropped), but it reads everything first and only then swaps it in.
+        /// False when there was memory in the save and it could not be read or put in place: what is live is then
+        /// left exactly as it was, never emptied, and the caller falls back to the campaign files or a backup
+        /// (SaveFiles.Recover). True with an empty text: a save with no memory starts empty.
+        /// </summary>
+        public static bool Deserialize(string json)
+        {
+            if (string.IsNullOrEmpty(json)) { StartEmpty(); return true; }
+            Snapshot s;
             try
             {
-                var blob = JsonConvert.DeserializeObject<SaveBlob>(json);
-                foreach (var h in blob?.Heroes ?? new List<HeroMemory>())
-                    if (!string.IsNullOrEmpty(h.HeroId)) _byHero[h.HeroId] = h;
-                NewsStore.Load(blob?.News);
-                LastLetterDay = blob?.LastLetterDay ?? -1;
-                Letters = blob?.Letters ?? new List<PendingLetter>();
-                OrderSystem.Orders = blob?.Orders ?? new List<PartyOrder>();
-                QuestSystem.Quests = blob?.Quests ?? new List<AiQuest>();
-                Belongings.Items = blob?.Items ?? new List<RpItem>();
-                WorldSim.State = blob?.World ?? new WorldState();
-                WorldSim.ResetSession();
-                InfoExchange.Messages = blob?.Messages ?? new List<NpcMessage>();
-                Log.Info($"Memoria cargada de la partida: {_byHero.Count} personajes, {NewsStore.All.Count()} noticias");
+                if (json.Length > SaveFiles.MaxBackupBytes) throw new System.IO.InvalidDataException($"demasiado grande ({json.Length} caracteres)");
+                var blob = JsonConvert.DeserializeObject<SaveBlob>(json, new JsonSerializerSettings { MaxDepth = MaxJsonDepth });
+                if (blob == null) throw new System.IO.InvalidDataException("sin contenido");
+                s = Compose(blob.Heroes, blob.News, blob.LastLetterDay, blob.Letters, blob.Orders, blob.Quests, blob.Items, blob.World, blob.Messages, false, out _);
             }
             catch (Exception ex)
             {
-                Log.Error("No se pudo leer la memoria guardada en la partida", ex);
+                Log.Error("No se pudo leer la memoria guardada en la partida; NO se vacía la memoria, se buscará en los archivos de la campaña y en las copias", ex);
+                return false;
             }
+            if (s == null || !Replace(s))
+            {
+                Log.Error("La memoria guardada en la partida no se pudo poner en uso; NO se vacía la memoria, se buscará en los archivos de la campaña y en las copias");
+                return false;
+            }
+            Log.Info($"Memoria cargada de la partida: {_byHero.Count} personajes, {NewsStore.All.Count()} noticias");
+            return true;
         }
 
         private class SaveBlob

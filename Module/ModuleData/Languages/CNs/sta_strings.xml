@@ -1804,5 +1804,133 @@
     <string id="AIL_e7b1c6c5" text=" · 被俘" />
     <string id="AIL_e7b1c6c6" text=" · 已故或已不在存档中" />
     <string id="AIL_e7b1c6c7" text="请在游戏里存档，让改动写进存档。" />
+    <string id="AIL_e7b1c6c8" text="交谈过的居民保留原来的样貌" />
+    <string id="AIL_e7b1c6c9" text="每次进入场景，游戏都会给每个居民随机生成一张新面孔。开启后，你交谈过的村民、市民或酒馆客人在之后的来访中保持同样的样貌、体型、年龄、衣着和名字，存档读档后也记得你。以前他们的记忆只保留到关闭游戏为止。" />
+    <string id="AIL_e7b1c6ca" text="每个战役记住的居民数" />
+    <string id="AIL_e7b1c6cb" text="超过这个数量时，最久没交谈的会被遗忘。他们随世界文件保存，数值过高会让该文件变大。" />
+    <string id="AIL_e7b1c6cc" text="领主在竞技场练武" />
+    <string id="AIL_e7b1c6cd" text="停留在城镇里的一些贵族，会在上午或下午花几个小时待在竞技场而不是城堡大厅。进入竞技场就能在那里找到他们并交谈。他们站在场内的人群中，不参加练习战。举办锦标赛时不会出现。" />
+    <string id="AIL_e7b1c6ce" text="领主在竞技场：每位领主每天的概率（%）" />
+    <string id="AIL_e7b1c6cf" text="无领地的家族巡逻" />
+    <string id="AIL_e7b1c6d0" text="没有封地而无所事事的家族部队（小势力、失去领地的贵族、被本模组保留的家族）会在所属王国或雇主的定居点周围巡逻几天；若不为任何人效力，则在最近的非敌对定居点周围巡逻，之后休整一天以便补给。使用本模组自己的地图命令。缺粮或减员的部队不受影响，你与他们的约定优先。" />
+    <string id="AIL_e7b1c6d1" text="无领地家族：每次巡逻的天数" />
+    <string id="AIL_e7b1c6d2" text="对话中播放自己的音乐" />
+    <string id="AIL_e7b1c6d3" text="本模组不附带音乐。把你自己的 .ogg 文件放进 Modules\AILegacy\music 下的 talk、tense、romance、sad、victory 文件夹。通过本模组与人交谈时，会播放与当下气氛相符的文件夹中的一首曲子（由紧张度、恋情和对方表现出的情绪决定；空文件夹改用 talk），游戏音乐随之调低，直到谈话结束。音量跟随游戏的语音音量。" />
+    <string id="AIL_e7b1c6d4" text="自己的音乐：期间游戏音乐的音量（%）" />
+    <string id="AIL_e7b1c6d5" text="自己的音乐：紧张度达到多少时播放 tense 文件夹" />
+    <string id="AIL_e7b1c6d6" text="自己的音乐：恋情达到多少时播放 romance 文件夹" />
+    <string id="AIL_e7b1c6d7" text="性能计量（写入日志）" />
+    <string id="AIL_e7b1c6d8" text="开启后，本模组会对自己每帧的工作和每个 Harmony 补丁计时，并每 60 秒把按总耗时排序的表格写入 logs\ailegacy.log。控制台命令 ailegacy.perf 可立即输出。屏幕上不显示任何内容。除非在查找拖慢游戏的原因，否则请保持关闭。" />
+    <string id="AIL_e7b1c6d9" text="AI 领主在竞技场训练部队" />
+    <string id="AIL_e7b1c6da" text="在城镇休整、部队多为低阶士兵的领主会用自己的金币支付竞技场费用，他的健康士兵获得经验；价格、经验和受伤概率与你自己的竞技场训练相同，再次训练的等待时间也相同。不影响你家族的部队。需要开启“竞技场训练”。" />
+    <string id="AIL_e7b1c6db" text="内部错误 {0}。详情见模组日志（logs\ailegacy.log）。" />
+    <string id="AIL_e7b1c6dc" text="请求过大。" />
+    <string id="AIL_e7b1c6dd" text="请求无效。" />
+    <string id="AIL_e7b1c6de" text="该备份过大，无法从这里恢复。" />
+    <string id="AIL_e7b1c6df" text="数据已损坏或不完整；未做任何更改。" />
+    <string id="AIL_e7b1c6e0" text="AI部队会前去就医" />
+    <string id="AIL_e7b1c6e1" text="部队病情足够严重的领主会前往可及范围内最近的友方城镇或城堡，付钱请医师诊治，在那里休整，然后回去忙自己的事。身在军团、战斗或围城中的部队，以及正在办你所托之事的部队，绝不会这样做。" />
+    <string id="AIL_e7b1c6e2" text="AI就医：动身所需的紧迫度（3 = 任何疾病，10 = 仅最严重的）" />
+    <string id="AIL_e7b1c6e3" text="紧迫度随病程进展和严重程度上升：初现症状时为3，瘟疫发展到一半时为10。设为5时，领主在轻症发展到四分之一时动身，遇到致命疾病则立刻动身。" />
+    <string id="AIL_e7b1c6e4" text="AI就医：计入考量的患病士兵比例（%）" />
+    <string id="AIL_e7b1c6e5" text="AI就医：最远愿意走多远（天）" />
+    <string id="AIL_e7b1c6e6" text="AI就医：在就医处休整的天数" />
+    <string id="AIL_e7b1c6e7" text="药草" />
+    <string id="AIL_e7b1c6e8" text="医院出售五种品质的药草：富庶城镇的更好，最好的只在都城有售。它们是你物品栏里的货物：可随处使用（在地图上按 Alt+H，或在医院里），用来医治病人，或让你的部队在几天内更不易被传染。" />
+    <string id="AIL_e7b1c6e9" text="药草：自动用来医治病人" />
+    <string id="AIL_e7b1c6ea" text="每天，你队中尚未得到医治的患病英雄和士兵会用上你携带的药草：最好的给重症，最普通的给其余的人。关闭：只在你亲自使用时才用。" />
+    <string id="AIL_e7b1c6eb" text="驻军和民兵会患病" />
+    <string id="AIL_e7b1c6ec" text="有疫情的地方，驻军和民兵都可能染病。疾病会在他们当中蔓延，当地医师每隔几天巡诊一次；重病若任其发展，每天都会有人死去。这会显示在定居点的提示框和民兵的每日变化中。" />
+    <string id="AIL_e7b1c6ed" text="驻军：医师两次巡诊相隔的天数" />
+    <string id="AIL_e7b1c6ee" text="在地图提示框中显示疾病" />
+    <string id="AIL_e7b1c6ef" text="在地图上把鼠标移到一支部队上，可看到其中谁患了病：首领、士兵和俘虏。按住查看更多信息的按键，可看到每种疾病的进展。定居点会显示其疫情以及患病的驻军和民兵。" />
+    <string id="AIL_e7b1c6f0" text="死讯写明病因" />
+    <string id="AIL_e7b1c6f1" text="英雄病死时，通知、百科和讣告会写明死于何种疾病，而不是说寿终正寝。" />
+    <string id="AIL_e7b1c6f2" text="治疗费记在家族账上" />
+    <string id="AIL_e7b1c6f3" text="你的家族成员在别处就医而付不起全款时，余款会记账：随家族下一次的每日支出一并扣除，并单列一行。在医院里，你手头金币不够时也可以赊账为病人治疗。" />
+    <string id="AIL_e7b1c6f4" text="使用药草（在地图上）" />
+    <string id="AIL_e7b1c6f5" text="按此倍数调整医院预防措施及其所售药草的价格。" />
+    <string id="AIL_e7b1c6f6" text="普通药草" />
+    <string id="AIL_e7b1c6f7" text="稀有药草" />
+    <string id="AIL_e7b1c6f8" text="珍贵药草" />
+    <string id="AIL_e7b1c6f9" text="罕见药草" />
+    <string id="AIL_e7b1c6fa" text="传说药草" />
+    <string id="AIL_e7b1c6fb" text="{=!}购买药草" />
+    <string id="AIL_e7b1c6fc" text="药草" />
+    <string id="AIL_e7b1c6fd" text="{0}的药剂师出售这些药草。最好的只会运到富庶城镇和都城。你有 {1} 第纳尔。" />
+    <string id="AIL_e7b1c6fe" text="{0} × {1}：{2} 第纳尔" />
+    <string id="AIL_e7b1c6ff" text="用于治疗：效力 ×{0}。用于防传染：{2} 天内减少 {1}%。你带着 {3} 份。" />
+    <string id="AIL_e7b1c700" text="购买" />
+    <string id="AIL_e7b1c701" text="关闭" />
+    <string id="AIL_e7b1c702" text="你花 {2} 第纳尔买了 {0} 份{1}。" />
+    <string id="AIL_e7b1c703" text="你的金币不够。" />
+    <string id="AIL_e7b1c704" text="选择如何使用你携带的药草。" />
+    <string id="AIL_e7b1c705" text="用{0}医治病人（你带着 {1} 份）" />
+    <string id="AIL_e7b1c706" text="服用{0}预防传染（需要 {1} 份，你带着 {2} 份）" />
+    <string id="AIL_e7b1c707" text="开始医治你 {1} 个未得医治的病例中的 {0} 个，效力 ×{2}。消耗 {3} 份。" />
+    <string id="AIL_e7b1c708" text="你的整支部队在 {1} 天内患病几率降低 {0}%。可与医院的预防措施叠加。" />
+    <string id="AIL_e7b1c709" text="使用" />
+    <string id="AIL_e7b1c70a" text="你没有携带药草。" />
+    <string id="AIL_e7b1c70b" text="你用掉 {0} 份{1}：开始医治 {2} 个病例。" />
+    <string id="AIL_e7b1c70c" text="你的部队服用了{0}：{2} 天内患病几率降低 {1}%。" />
+    <string id="AIL_e7b1c70d" text="&#10;你携带的药草：{0}。" />
+    <string id="AIL_e7b1c70e" text="&#10;药草还会保护你的部队 {0} 天（传染减少 {1}%）。" />
+    <string id="AIL_e7b1c70f" text="你没有未得医治的病人。" />
+    <string id="AIL_e7b1c711" text="你带的不够：需要 {0} 份。" />
+    <string id="AIL_e7b1c712" text="{1}的驻军中有 {0} 名士兵死于{2}。" />
+    <string id="AIL_e7b1c713" text="{0}的驻军染上了{1}。" />
+    <string id="AIL_e7b1c714" text="{0}的民兵染上了{1}。" />
+    <string id="AIL_e7b1c715" text="疾病" />
+    <string id="AIL_e7b1c716" text="驻军" />
+    <string id="AIL_e7b1c717" text="民兵" />
+    <string id="AIL_e7b1c71a" text="部队" />
+    <string id="AIL_e7b1c71b" text="俘虏" />
+    <string id="AIL_e7b1c71c" text="{1} 人中 {0} 人患病" />
+    <string id="AIL_e7b1c71d" text="{0} 人患病（{1}%）" />
+    <string id="AIL_e7b1c720" text="疾病治疗" />
+    <string id="AIL_e7b1c721" text="{0}付不起{1}医师的诊金：{2} 第纳尔记在你的家族账上。" />
+    <string id="AIL_e7b1c722" text="医师把 {0} 第纳尔记在你的家族账上：将随当日支出一并扣除。" />
+    <string id="AIL_e7b1c723" text="&#10;你的家族欠医师 {0} 第纳尔；将随当日支出一并扣除。" />
+    <string id="AIL_e7b1c724" text="{VICTIM.NAME}死于{DISEASE}。{?VICTIM.GENDER}她{?}他{\?}的家人和朋友会记住{?VICTIM.GENDER}她{?}他{\?}。" />
+    <string id="AIL_e7b1c725" text="{VICTIM.LINK}死于{DISEASE}。" />
+    <string id="AIL_e7b1c726" text="{?CHARACTER.GENDER}她{?}他{\?}于 {YEAR} 年死于{DISEASE}，享年 {CHARACTER.AGE} 岁。{?CHARACTER.GENDER}她{?}他{\?}素有{REPUTATION}之名" />
+    <string id="AIL_e7b1c727" text="{YEAR} 年{DAY_OF_YEAR}，{VICTIM.NAME}死于{DISEASE}。" />
+    <string id="AIL_e7b1c728" text="{=!}使用你的药草" />
+    <string id="AIL_e7b1c729" text="（受雇于{0}的佣兵）" />
+    <string id="AIL_e7b1c72a" text="，佣兵家族{0}的族长（受雇于{1}），" />
+    <string id="AIL_e7b1c72b" text="，不效忠任何王国的{0}家族的族长，" />
+    <string id="AIL_e7b1c72c" text="{0}名贵族被俘" />
+    <string id="AIL_e7b1c72d" text="{0}俘虏了{1}名贵族" />
+    <string id="AIL_e7b1c72e" text="（在{0}附近）" />
+    <string id="AIL_e7b1c72f" text="等另外{0}人" />
+    <string id="AIL_e7b1c730" text="（{0}的君主）" />
+    <string id="AIL_e7b1c731" text="（{0}家族族长）" />
+    <string id="AIL_e7b1c732" text="（佣兵家族{0}的族长）" />
+    <string id="AIL_e7b1c733" text="（{0}家族）" />
+    <string id="AIL_e7b1c734" text="{0}之围被击破" />
+    <string id="AIL_e7b1c735" text="{0}之围已被武力击破：{1}战败，{2}仍在{3}手中。" />
+    <string id="AIL_e7b1c736" text="{0}之围解除" />
+    <string id="AIL_e7b1c737" text="{0}之围已经解除：{1}放弃围攻并撤退，{2}仍在{3}手中。" />
+    <string id="AIL_e7b1c738" text="卡拉迪亚的和平" />
+    <string id="AIL_e7b1c739" text="多年来第一次，卡拉迪亚没有任何王国与他国交战：所有王室都放下了武器。" />
+    <string id="AIL_e7b1c73a" text="AI Legacy：战役开始时所有王国处于和平状态。" />
+    <string id="AIL_e7b1c73b" text="保留哪些俘虏消息" />
+    <string id="AIL_e7b1c73c" text="领主随时都在被俘，消息里全是这些。仅重要人物：君主被俘（全世界的消息）以及效忠某王国的家族族长被俘（该王国的消息）。佣兵家族和小家族的首领以及普通贵族不计入。全部：这些也会保留，但只作为本地传闻，绝不会引发反应。无论哪种设置，同一场战斗的俘虏只合并成一条消息，而你俘虏的人或俘虏你的人总会被记录。" />
+    <string id="AIL_e7b1c73d" text="将编年史家和国王所写的内容与世界核对" />
+    <string id="AIL_e7b1c73e" text="在发布事件或国王的宣言之前，模组会与游戏核对：被安排到不属于他的王国的领主、被称作封臣的佣兵、并不存在的战争或同盟、把别国领主说成自己人的国王。与世界矛盾的内容会被丢弃，原因写入日志。对真实事件的反应只能涉及这些事件所牵涉的王国。关闭：一切按原文发布。" />
+    <string id="AIL_e7b1c73f" text="新战役开始时所有王国处于和平" />
+    <string id="AIL_e7b1c740" text="仅在创建新战役时执行一次，在游戏设好初始战争之后：所有王国之间的战争结束。绝不会作用于已有的战役，也不会在读档时执行。请在开始战役前设置。如果下方设置了停战天数，则从第一天起算。" />
+    <string id="AIL_e7b1c741" text="自定规则：一个王国最多同时与几个王国交战（0 = 不限）" />
+    <string id="AIL_e7b1c742" text="如果AI国王自己的王国或他想攻打的王国已经与这么多王国交战，他就不能宣战：不许群起而攻。此规则只约束AI国王。你自己宣战永远不受限制，但规则同样保护你：当你达到上限时，没有AI国王会向你宣战。自行爆发的战争（叛乱、新王国）不会被阻止。" />
+    <string id="AIL_e7b1c743" text="自定规则：议和后的停战天数（0 = 无）" />
+    <string id="AIL_e7b1c744" text="两个王国议和后，在经过这么多天之前，双方的AI国王都不能向对方宣战。卡拉迪亚的一年是84天。此规则只约束AI国王（在他们的宣言中以及你与他们交谈时）：你自己可以撕毁停战。" />
+    <string id="AIL_e7b1c745" text="自定规则：每个王国最多几个同盟（0 = 不限）" />
+    <string id="AIL_e7b1c746" text="如果AI国王自己的王国或对方王国已有这么多同盟，他不会提出或接受同盟。此规则只约束AI国王：你作为君主提出或接受的同盟永远不会被阻止，但已达上限的AI国王不会与你结盟。" />
+    <string id="AIL_e7b1c747" text="自定规则：每个王国最多几项贸易协定（0 = 不限）" />
+    <string id="AIL_e7b1c748" text="如果AI国王自己的王国或对方王国已有这么多贸易协定，他不会提出或接受新的协定。此规则只约束AI国王，与同盟上限相同。" />
+    <string id="AIL_e7b1c749" text="战役文件仍在写入；请几秒后重试。" />
+    <string id="AIL_e7b1c74a" text="更改失败，记忆也无法恢复到原来的状态。请不要存档，重新读取存档。原有内容保留在 {0}。" />
+    <string id="AIL_e7b1c74b" text="备份已恢复，但有 {0} 个文件未能写入磁盘。请保存游戏以重试。原有内容保留在 {1}。" />
+    <string id="AIL_e7b1c74c" text="文件 {0} 过大，无法在编辑器中打开。" />
   </strings>
 </base>

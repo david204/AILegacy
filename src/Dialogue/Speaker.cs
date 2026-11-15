@@ -54,12 +54,14 @@ namespace AILegacy.Dialogue
         {
             var settlement = Settlement.CurrentSettlement;
             var key = $"res:{settlement?.StringId ?? "none"}:{c?.StringId}:{FaceKey(agent)}";
+            var mem = MemoryStore.Get(key, c.Name.ToString(), resident: true);
+            World.ResidentFaces.Attach(mem, agent, settlement, c);
             return new Speaker
             {
                 Character = c,
                 Key = key,
                 ResidentSettlement = settlement,
-                Memory = MemoryStore.Get(key, c.Name.ToString(), resident: true),
+                Memory = mem,
             };
         }
 

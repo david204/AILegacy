@@ -86,6 +86,7 @@ namespace AILegacy.World
                 }
                 else EnterSettlementAction.ApplyForCharacterOnly(hero, st);
                 SceneTravel.NotePromoted(agent, hero);
+                ResidentFaces.Forget(s.Key);
 
                 SaveFiles.Flush();
                 Log.Info($"[gente] {name} pasa a ser un personaje con nombre ({hero.StringId}){(companion ? ", compañero tuyo" : $", errante de {st.Name}")}");
@@ -142,7 +143,7 @@ namespace AILegacy.World
                 Log.Info($"[gente] familiar creado desde el editor: {name} ({relation}, {hero.StringId})");
                 return hero;
             }
-            catch (Exception ex) { Log.Error("Crear familiar", ex); error = ex.Message; return null; }
+            catch (Exception ex) { Log.Error("Crear familiar", ex); error = null; return null; }   // the editor shows its own text; the detail stays in the log
         }
 
         public static Hero CreateCompanion(string name, bool female, int age, string cultureId, out string error)
@@ -170,7 +171,7 @@ namespace AILegacy.World
                 Log.Info($"[gente] compañero creado desde el editor: {name} ({hero.StringId})");
                 return hero;
             }
-            catch (Exception ex) { Log.Error("Crear compañero", ex); error = ex.Message; return null; }
+            catch (Exception ex) { Log.Error("Crear compañero", ex); error = null; return null; }   // the editor shows its own text; the detail stays in the log
         }
     }
 }

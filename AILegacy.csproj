@@ -65,12 +65,14 @@
   </ItemGroup>
 
   <!-- Copy module files. config.json, world_data and world.txt are only copied if they don't exist yet -->
-  <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /></ItemGroup>
+  <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /><MusicNotes Include="Module\music\**\LEEME.txt" /></ItemGroup>
   <Target Name="CopyModuleFiles" AfterTargets="Build">
     <Copy SourceFiles="Module\SubModule.xml" DestinationFolder="$(ModuleDir)" />
+    <Copy SourceFiles="Module\ModuleData\ailegacy_items.xml" DestinationFolder="$(ModuleDir)\ModuleData" />
     <Copy SourceFiles="@(GuiPrefabs)" DestinationFolder="$(ModuleDir)\GUI\Prefabs" />
     <Copy SourceFiles="@(GuiBrushes)" DestinationFolder="$(ModuleDir)\GUI\Brushes" />
     <Copy SourceFiles="Module\web\editor.html" DestinationFolder="$(ModuleDir)\web" />
+    <Copy SourceFiles="@(MusicNotes)" DestinationFiles="@(MusicNotes->'$(ModuleDir)\music\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(LangFiles)" DestinationFiles="@(LangFiles->'$(ModuleDir)\ModuleData\AILegacyTexts\%(RecursiveDir)%(Filename)%(Extension)')" />
     <!-- Old builds put these in ModuleData\Languages, where the game loads them by itself. Remove that folder -->
     <RemoveDir Directories="$(ModuleDir)\ModuleData\Languages" />

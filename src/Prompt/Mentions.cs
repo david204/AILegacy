@@ -185,7 +185,7 @@ namespace AILegacy.Prompt
             var sb = new StringBuilder($"Clan {c.Name}");
             try
             {
-                sb.Append(c.Kingdom != null ? $": a house of {c.Kingdom.Name}" + (c.IsUnderMercenaryService ? " (mercenaries)" : "") : c.IsMinorFaction ? ": a minor faction" : ": a house with no realm");
+                sb.Append(": " + World.Facts.ClanKind(c));
                 if (c.Leader != null) sb.Append($", led by {c.Leader.Name}");
                 sb.Append(c.Tier >= 5 ? "; one of the great houses" : c.Tier >= 3 ? "; a house of standing" : "; a lesser house");
                 var fiefs = c.Settlements.Where(x => x.IsTown || x.IsCastle).Select(x => x.Name.ToString()).Take(5).ToList();
@@ -206,7 +206,8 @@ namespace AILegacy.Prompt
                 else if (h.IsNotable) sb.Append($", a notable of {h.HomeSettlement?.Name}");
                 else if (h.IsPlayerCompanion) sb.Append(", one of their companions");
                 else if (h.IsWanderer) sb.Append(", a wanderer");
-                if (h.MapFaction is Kingdom k) sb.Append(k.Leader == h ? $", ruler of {k.Name}" : $", of {k.Name}");
+                // a mercenary in service has the paying kingdom as MapFaction: he is not "of" it
+                if (h.MapFaction is Kingdom k) sb.Append(k.Leader == h ? $", ruler of {k.Name}" : World.Facts.IsHired(h) ? $", a mercenary in the pay of {k.Name}" : h.Clan != null ? $", of {k.Name}" : $", who lives in the lands of {k.Name}");
                 if (h.Spouse != null) sb.Append($"; married to {h.Spouse.Name}");
                 if (h.IsPrisoner) sb.Append("; said to be a prisoner" + (h.PartyBelongedToAsPrisoner?.Name != null ? $" of {h.PartyBelongedToAsPrisoner.Name}" : ""));
                 else

@@ -453,7 +453,8 @@ namespace AILegacy.Dialogue
                 Name = "declare_war", Usage = "declare_war",
                 Description = "As ruler, you declare war on the other person's kingdom, effective immediately. Only for grave insults, threats or when it truly serves your realm.",
                 IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction != PlayerKingdom
-                                   && !s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction),
+                                   && !s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction)
+                                   && World.Diplomacy.WarBlocked(s.Hero.MapFaction as Kingdom, PlayerKingdom as Kingdom) == null,
                 Execute = (s, arg, ctx) =>
                 {
                     MarkWarPeace(s.Hero.MapFaction);
@@ -1657,6 +1658,7 @@ namespace AILegacy.Dialogue
                 mem.Morality = old.Morality; mem.Profanity = old.Profanity; mem.Piety = old.Piety;
                 if (mem.Profile != null)
                     mem.Profile.Backstory = ((mem.Profile.Backstory ?? "") + $" I left {born?.Name} to follow {Hero.MainHero.Name}.").Trim();
+                World.ResidentFaces.Forget(s.Key);
                 Log.Info($"{name} deja de ser un vecino de {born?.Name} y pasa a ser héroe ({hero.StringId}) y compañero");
                 return hero;
             }

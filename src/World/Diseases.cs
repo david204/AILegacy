@@ -140,10 +140,12 @@ namespace AILegacy.World
             {
                 var cfg = S.Get;
                 double now = CampaignTime.Now.ToDays;
+                PruneDeaths(now);
                 if (!Enabled)
                 {
                     if (All.Count > 0) All.Clear();
                     if (Sick.Count > 0) { Sick.Clear(); Touch(); }
+                    if (Forces.Count > 0) Forces.Clear();
                     return;
                 }
 
@@ -194,6 +196,8 @@ namespace AILegacy.World
                 if (ob != null) SickenPlayerTroops(ob, mine, 0.5f * (ob.Quarantined ? cfg.QuarantineInfectionReduction * 2f : 1f));
 
                 TickSick(now);
+                try { ForceDaily(now); } catch (Exception ex) { Log.Error("[enfermedad] guarniciones y milicias", ex); }
+                try { HerbDaily(now); } catch (Exception ex) { Log.Error("[enfermedad] hierbas", ex); }
 
                 if (cfg.DiseaseSeasonalChancePerMille > 0 && All.Count < cfg.DiseaseMaxSimultaneous
                     && (WorldSim.State.LastOutbreakDay < 0 || now - WorldSim.State.LastOutbreakDay >= cfg.DiseaseMinDaysBetweenOutbreaks)
@@ -238,7 +242,7 @@ namespace AILegacy.World
         private static void SickenPlayerTroops(Outbreak o, Settlement st, float factor)
         {
             var cfg = S.Get;
-            if (WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays) factor *= 0.25f;      // prevention paid for at a hospital
+            factor *= PlayerGuard;      // prevention paid for at a hospital, herbs taken on the road
             if (!cfg.DiseaseAffectsPlayerTroops || Rng.Next(100) >= o.Severity * cfg.DiseaseTroopChancePerSeverity * factor) return;
             var roster = MobileParty.MainParty.MemberRoster;
             int healthy = roster.TotalHealthyCount;
@@ -325,6 +329,7 @@ namespace AILegacy.World
             int w = WoundedCount(MobileParty.MainParty.MemberRoster);
             if (w > 0) sb.Append(L.F("AIL_6d44c3f5", $"\nTienes {w} soldado(s) heridos o enfermos."));
             try { sb.Append(SickText()); } catch { }
+            try { sb.Append(HerbText(st)); } catch { }
             if (WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays) sb.Append(L.F("AIL_e9459925", $"\nTus hombres están prevenidos {(int)Math.Ceiling(WorldSim.State.PreventionUntilDay - CampaignTime.Now.ToDays)} día(s) más."));
             return sb.ToString();
         }
@@ -397,6 +402,7 @@ namespace AILegacy.World
                 args => { if (Pay(CostRoster(MobileParty.MainParty.PrisonRoster, Settlement.CurrentSettlement))) { HealRoster(MobileParty.MainParty.PrisonRoster); WorldSim.Say(L.T("AIL_e3e82b77", "Tus prisioneros quedan curados."), Colors.Green); } Refresh(); }, false, -1);
 
             AddSickCare(starter);
+            try { AddHerbMenu(starter); } catch (Exception ex) { Log.Error("Menú de hierbas", ex); }
 
             starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_prevent", L.T("AIL_3c407add", "{=!}Prevención para tu partida, ") + PreventionDays + L.T("AIL_48d043af", " días ({AIL_H_PREV}{GOLD_ICON})"),
                 args =>

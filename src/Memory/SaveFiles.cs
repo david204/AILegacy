@@ -226,8 +226,11 @@ namespace AILegacy.Memory
             }
         }
 
-        /// <summary>Waits until everything queued is on disk. Returns at once when nothing is.</summary>
-        public static void Drain()
+        /// <summary>
+        /// Waits until everything queued is on disk. Returns at once when nothing is. False when the writer was still
+        /// at it after 30 seconds: whoever is about to replace the files must not go on then.
+        /// </summary>
+        public static bool Drain()
         {
             try
             {
@@ -236,9 +239,23 @@ namespace AILegacy.Memory
                     var until = DateTime.UtcNow.AddSeconds(30);
                     while (_writerRunning && DateTime.UtcNow < until) System.Threading.Monitor.Wait(IoGate, 500);
                     if (_writerRunning) Log.Warn("Los archivos de la campaña siguen escribiéndose tras 30 s; se continúa sin esperar más");
+                    return !_writerRunning;
                 }
             }
-            catch (Exception ex) { Log.Error("Esperando la escritura de archivos", ex); }
+            catch (Exception ex) { Log.Error("Esperando la escritura de archivos", ex); return false; }
+        }
+
+        /// <summary>
+        /// After a flush that waited: true when every file reached the disk. False when the writer is still running,
+        /// something is still queued or a write failed, so the disk may hold an older version than the memory.
+        /// </summary>
+        private static bool AllWritten(out int failed)
+        {
+            lock (IoGate)
+            {
+                failed = _failed.Count;
+                return !_writerRunning && IoQueue.Count == 0 && failed == 0;
+            }
         }
 
         /// <summary>A file was moved or deleted by hand from the game thread: forget its hash.</summary>
@@ -257,7 +274,7 @@ namespace AILegacy.Memory
             try
             {
                 var p = Path.Combine(dir, CampaignFile);
-                return File.Exists(p) ? JsonConvert.DeserializeObject<CampaignInfo>(File.ReadAllText(p, Encoding.UTF8)) : null;
+                return File.Exists(p) ? ReadJson<CampaignInfo>(p) : null;
             }
             catch { return null; }
         }
@@ -268,7 +285,7 @@ namespace AILegacy.Memory
             {
                 var p = Path.Combine(dir, ManifestFile);
                 if (File.Exists(p))
-                    return new Dictionary<string, string>(JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(p)) ?? new Dictionary<string, string>(),
+                    return new Dictionary<string, string>(ReadJson<Dictionary<string, string>>(p) ?? new Dictionary<string, string>(),
                         StringComparer.OrdinalIgnoreCase);
             }
             catch { }
@@ -328,7 +345,7 @@ namespace AILegacy.Memory
                     try
                     {
                         if (File.Exists(main)) { File.Delete(tmp); continue; }
-                        JToken.Parse(File.ReadAllText(tmp, Encoding.UTF8));   // throws if it's cut short
+                        CheckJson(ReadBounded(tmp));   // throws if it's cut short, too large or too deep
                         File.Move(tmp, main);
                         Log.Warn("Recuperado de un corte: " + Path.GetFileName(main));
                     }
@@ -539,9 +556,9 @@ namespace AILegacy.Memory
                     if (name.StartsWith("ailegacy_", StringComparison.OrdinalIgnoreCase) || name.StartsWith("_")) continue;
                     try
                     {
-                        var text = File.ReadAllText(f, Encoding.UTF8);
+                        var text = ReadBounded(f);
                         if (!manifest.TryGetValue(name, out var h) || h == Hash(text)) continue;   // only files the mod wrote that changed afterwards
-                        var m = JsonConvert.DeserializeObject<HeroMemory>(text);
+                        var m = JsonConvert.DeserializeObject<HeroMemory>(text, BoundedJson);
                         if (m != null && !string.IsNullOrEmpty(m.HeroId)) list.Add(m);
                     }
                     catch (Exception ex) { Log.Warn($"Archivo editado ilegible, se ignora: {name} ({ex.Message})"); }
@@ -565,41 +582,156 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Error("No se pudieron leer los archivos de la campaña", ex); return false; }
         }
 
-        /// <summary>Puts a folder of campaign files into memory. Loading a campaign and restoring an archived branch both end here.</summary>
+        /// <summary>Puts a folder of campaign files into memory, as tolerant as loading always was. Loading a campaign ends here.</summary>
         private static bool ReadDir(string dir, string campaignId)
         {
             try
             {
-                var heroes = new List<HeroMemory>();
-                int bad = 0;
-                foreach (var f in Directory.GetFiles(dir, "*.json"))
-                {
-                    var name = Path.GetFileName(f);
-                    if (name.StartsWith("ailegacy_", StringComparison.OrdinalIgnoreCase) || name.StartsWith("_")) continue;
-                    try
-                    {
-                        var m = JsonConvert.DeserializeObject<HeroMemory>(File.ReadAllText(f, Encoding.UTF8));
-                        if (m == null || string.IsNullOrEmpty(m.HeroId)) { bad++; continue; }
-                        heroes.Add(m);
-                    }
-                    catch (Exception ex) { bad++; Log.Warn($"Archivo de personaje ilegible, se ignora: {name} ({ex.Message})"); }
-                }
-
-                var news = Read<List<NewsItem>>(dir, NewsFile) ?? new List<NewsItem>();
-                var letters = Read<List<PendingLetter>>(dir, LettersFile) ?? new List<PendingLetter>();
-                var orders = Read<List<PartyOrder>>(dir, OrdersFile) ?? new List<PartyOrder>();
-                var info = Read<CampaignInfo>(dir, CampaignFile) ?? new CampaignInfo();
-                var quests = Read<List<AiQuest>>(dir, QuestsFile) ?? new List<AiQuest>();
-                var items = Read<List<RpItem>>(dir, ItemsFile) ?? new List<RpItem>();
-
-                var world = Read<WorldState>(dir, WorldFile) ?? new WorldState();
-                var messages = Read<List<NpcMessage>>(dir, MessagesFile) ?? new List<NpcMessage>();
-                MemoryStore.LoadFrom(heroes, news, info.LastLetterDay, letters, orders, quests, items, world, messages);
-                Log.Info($"Campaña {campaignId} cargada de archivos: {heroes.Count} personajes, {news.Count} noticias, {letters.Count} cartas, {orders.Count} órdenes, {quests.Count} encargos" +
-                         (bad > 0 ? $", {bad} archivos ilegibles" : ""));
+                var s = ParseDir(dir, false, out string what);
+                if (s == null || !MemoryStore.Replace(s)) return false;
+                Log.Info($"Campaña {campaignId} cargada de archivos: {what}");
                 return true;
             }
             catch (Exception ex) { Log.Error("No se pudieron leer los archivos de la campaña", ex); return false; }
+        }
+
+        /// <summary>
+        /// Reads a folder of campaign files into a snapshot, without touching what is live. Not strict (loading a
+        /// campaign): an unreadable file is skipped or takes its default, as always. Strict (restoring an archived
+        /// branch): any file that is unreadable, empty, damaged or a link throws, so nothing partial gets restored.
+        /// </summary>
+        private static MemoryStore.Snapshot ParseDir(string dir, bool strict, out string what)
+        {
+            var heroes = new List<HeroMemory>();
+            int bad = 0;
+            if (strict) CheckBranch(dir);
+            foreach (var f in Directory.GetFiles(dir, "*.json"))
+            {
+                var name = Path.GetFileName(f);
+                if (strict && IsLink(f)) throw new InvalidDataException(name + ": es un enlace");
+                if (name.StartsWith("ailegacy_", StringComparison.OrdinalIgnoreCase) || name.StartsWith("_")) continue;
+                try
+                {
+                    var m = ReadJson<HeroMemory>(f);
+                    if (m == null || string.IsNullOrEmpty(m.HeroId))
+                    {
+                        if (strict) throw new InvalidDataException("no es la memoria de un personaje");
+                        bad++; continue;
+                    }
+                    heroes.Add(m);
+                }
+                catch (Exception ex)
+                {
+                    if (strict) throw new InvalidDataException(name + ": " + ex.Message, ex);
+                    bad++; Log.Warn($"Archivo de personaje ilegible, se ignora: {name} ({ex.Message})");
+                }
+            }
+
+            var news = Read<List<NewsItem>>(dir, NewsFile, strict) ?? new List<NewsItem>();
+            var letters = Read<List<PendingLetter>>(dir, LettersFile, strict) ?? new List<PendingLetter>();
+            var orders = Read<List<PartyOrder>>(dir, OrdersFile, strict) ?? new List<PartyOrder>();
+            var info = Read<CampaignInfo>(dir, CampaignFile, strict) ?? new CampaignInfo();
+            var quests = Read<List<AiQuest>>(dir, QuestsFile, strict) ?? new List<AiQuest>();
+            var items = Read<List<RpItem>>(dir, ItemsFile, strict) ?? new List<RpItem>();
+            var world = Read<WorldState>(dir, WorldFile, strict) ?? new WorldState();
+            var messages = Read<List<NpcMessage>>(dir, MessagesFile, strict) ?? new List<NpcMessage>();
+
+            var s = MemoryStore.Compose(heroes, news, info.LastLetterDay, letters, orders, quests, items, world, messages, strict, out string why);
+            if (s == null) throw new InvalidDataException(why ?? "datos incompletos");
+            what = $"{s.HeroCount} personajes, {news.Count} noticias, {letters.Count} cartas, {orders.Count} órdenes, {quests.Count} encargos" +
+                   (bad > 0 ? $", {bad} archivos ilegibles" : "");
+            return s;
+        }
+
+        /// <summary>
+        /// An archived branch is a flat folder of .json files the mod copied there. Before any of it is read, every
+        /// entry has to be exactly that: directly inside the folder, a plain name, not a folder, not a link, and a
+        /// .json. Anything else throws and nothing is restored.
+        /// </summary>
+        private static void CheckBranch(string dir)
+        {
+            if (IsLink(dir)) throw new InvalidDataException("la carpeta de la rama es un enlace");
+            string root = Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            foreach (var entry in Directory.GetFileSystemEntries(dir))
+            {
+                string name = Path.GetFileName(entry);
+                string full = Path.GetFullPath(entry);
+                if (!PlainName(name) || !string.Equals(Path.GetDirectoryName(full), root, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException(name + ": fuera de la carpeta de la rama");
+                var attr = File.GetAttributes(full);
+                if ((attr & FileAttributes.ReparsePoint) != 0) throw new InvalidDataException(name + ": es un enlace");
+                if ((attr & FileAttributes.Directory) != 0) throw new InvalidDataException(name + ": es una carpeta");
+                if (!name.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException(name + ": tipo de archivo no admitido");
+            }
+        }
+
+        // ============================================================ bounded reading
+
+        // One file of the campaign folder (a character, the news, the world state). Same limits as what the editor
+        // page may upload. A legitimate file is far smaller and a handful of levels deep.
+        public const long MaxFileBytes = 16L * 1024 * 1024;
+        public const int MaxJsonDepth = 64;
+        internal static readonly JsonSerializerSettings BoundedJson = new JsonSerializerSettings { MaxDepth = MaxJsonDepth };
+
+        /// <summary>
+        /// The text of a file, never more than maxBytes of it: a larger file throws InvalidDataException before its
+        /// content is in memory. The bytes that really arrive are counted, the size on disk can change meanwhile.
+        /// Encoding as File.ReadAllText: UTF-8 unless a byte order mark says otherwise.
+        /// </summary>
+        internal static string ReadBounded(string path, long maxBytes = MaxFileBytes)
+        {
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                if (fs.Length > maxBytes) throw new InvalidDataException($"{Path.GetFileName(path)}: demasiado grande ({fs.Length} bytes, máximo {maxBytes})");
+                using (var ms = new MemoryStream((int)Math.Min(fs.Length, int.MaxValue / 2)))
+                {
+                    var buf = new byte[81920];
+                    int n;
+                    while ((n = fs.Read(buf, 0, buf.Length)) > 0)
+                    {
+                        if (ms.Length + n > maxBytes) throw new InvalidDataException($"{Path.GetFileName(path)}: demasiado grande (máximo {maxBytes} bytes)");
+                        ms.Write(buf, 0, n);
+                    }
+                    ms.Position = 0;
+                    using (var reader = new StreamReader(ms, Encoding.UTF8, true)) return reader.ReadToEnd();
+                }
+            }
+        }
+
+        /// <summary>A file of the campaign folder as an object, bounded in size and nesting. Throws when it is too large, too deep or not valid.</summary>
+        internal static T ReadJson<T>(string path, long maxBytes = MaxFileBytes) => JsonConvert.DeserializeObject<T>(ReadBounded(path, maxBytes), BoundedJson);
+
+        /// <summary>Throws unless the text is one complete JSON value no deeper than the limit.</summary>
+        private static void CheckJson(string text)
+        {
+            using (var reader = new JsonTextReader(new StringReader(text)) { MaxDepth = MaxJsonDepth, DateParseHandling = DateParseHandling.None })
+                JToken.Load(reader);
+        }
+
+        private static bool IsLink(string path) => (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
+
+        /// <summary>
+        /// True when the path is below the root and nothing from the root down to it is a link (symlink,
+        /// junction). The root itself is not checked: mod managers may deploy the module folder as a link.
+        /// </summary>
+        internal static bool PlainUnder(string root, string path)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(root) || string.IsNullOrEmpty(path)) return false;
+                string r = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string p = Path.GetFullPath(path);
+                if (!p.StartsWith(r + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) return false;
+                for (string at = p; at != null && at.Length > r.Length; at = Path.GetDirectoryName(at))
+                {
+                    // Asked of the entry itself, so a link whose target is gone is still seen. Not there yet is fine
+                    try { if (IsLink(at)) return false; }
+                    catch (FileNotFoundException) { }
+                    catch (DirectoryNotFoundException) { }
+                }
+                return true;
+            }
+            catch { return false; }
         }
 
         /// <summary>
@@ -630,24 +762,76 @@ namespace AILegacy.Memory
                     why = $"día de los archivos {info?.SavedDay:0.##} > día de la partida {campaignDay:0.##}";
                 }
                 if (!diverged) return null;
-                var files = Directory.GetFiles(dir, "*.json");
-                if (files.Length == 0) return null;
-
-                var root = Path.Combine(dir, BranchesDir);
-                var dest = Path.Combine(root, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-                for (int i = 2; Directory.Exists(dest); i++) dest = Path.Combine(root, $"{DateTime.Now:yyyyMMdd_HHmmss}_{i}");
-                Directory.CreateDirectory(dest);
-                int copied = 0;
-                foreach (var f in files)
-                {
-                    try { File.Copy(f, Path.Combine(dest, Path.GetFileName(f)), true); copied++; }
-                    catch (Exception ex) { Log.Warn($"Rama archivada sin {Path.GetFileName(f)}: {ex.Message}"); }
-                }
-                Prune(Directory.GetDirectories(root), MaxBranches, d => Directory.Delete(d, true));
-                Log.Info($"Los archivos eran de otra rama ({why}): {copied} archivos copiados a {dest} antes de cargar la memoria de la partida");
+                var dest = ArchiveFiles(dir, out int copied);
+                if (dest != null) Log.Info($"Los archivos eran de otra rama ({why}): {copied} archivos copiados a {dest} antes de cargar la memoria de la partida");
                 return dest;
             }
             catch (Exception ex) { Log.Error("Archivando la rama descartada", ex); return null; }
+        }
+
+        /// <summary>Copies the campaign's .json files to a new folder of _ramas (last MaxBranches kept). Null when there are none.</summary>
+        private static string ArchiveFiles(string dir, out int copied)
+        {
+            copied = 0;
+            var files = Directory.GetFiles(dir, "*.json");
+            if (files.Length == 0) return null;
+            var root = Path.Combine(dir, BranchesDir);
+            var dest = Path.Combine(root, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+            for (int i = 2; Directory.Exists(dest); i++) dest = Path.Combine(root, $"{DateTime.Now:yyyyMMdd_HHmmss}_{i}");
+            Directory.CreateDirectory(dest);
+            foreach (var f in files)
+            {
+                try { File.Copy(f, Path.Combine(dest, Path.GetFileName(f)), true); copied++; }
+                catch (Exception ex) { Log.Warn($"Rama archivada sin {Path.GetFileName(f)}: {ex.Message}"); }
+            }
+            Prune(Directory.GetDirectories(root), MaxBranches, d => Directory.Delete(d, true));
+            return dest;
+        }
+
+        /// <summary>
+        /// The memory inside the save could not be read, or the campaign files did not load. Nothing is emptied: the
+        /// campaign files are tried first, then the editor's copies from the newest back. If none of them reads,
+        /// whatever files are on disk are copied whole to _ramas before the game goes on with an empty memory and
+        /// writes over them. True when a memory was recovered.
+        /// </summary>
+        public static bool Recover(string campaignId)
+        {
+            if (string.IsNullOrEmpty(campaignId)) return false;
+            try
+            {
+                if (Load(campaignId))
+                {
+                    Log.Warn($"Memoria de la campaña {campaignId} recuperada de sus archivos (la copia de la partida guardada no se pudo usar)");
+                    return true;
+                }
+                var dir = DirFor(campaignId);
+                if (!Directory.Exists(dir)) { Log.Error($"La campaña {campaignId} no tiene archivos ni copias de los que recuperar la memoria: se empieza sin memoria"); return false; }
+                // The files did not load as a whole, but they are what there is: set aside before anything writes over them
+                Drain();
+                var kept = ArchiveFiles(dir, out int copied);
+                if (kept != null) Log.Warn($"Los {copied} archivos de la campaña que no se pudieron cargar quedan guardados en {kept}");
+                var root = Path.Combine(dir, EditorBackupsDir);
+                if (Directory.Exists(root) && !IsLink(root))
+                {
+                    foreach (var f in Directory.GetFiles(root, "*.json").OrderByDescending(x => Path.GetFileName(x), StringComparer.Ordinal))
+                    {
+                        try
+                        {
+                            if (IsLink(f)) continue;
+                            if (!MemoryStore.TryParse(ReadBounded(f, MaxBackupBytes), out var snap, out string why, strict: false)) { Log.Warn($"Copia {Path.GetFileName(f)} ilegible, se prueba la anterior: {why}"); continue; }
+                            if (!MemoryStore.Replace(snap)) continue;
+                            UseDir(dir);
+                            Log.Warn($"Memoria de la campaña {campaignId} recuperada de la copia {Path.GetFileName(f)} ({snap.HeroCount} personajes): ni la partida guardada ni los archivos se pudieron leer");
+                            return true;
+                        }
+                        catch (Exception ex) { Log.Warn($"Copia {Path.GetFileName(f)} ilegible, se prueba la anterior: {ex.Message}"); }
+                    }
+                }
+                Log.Error($"No se pudo recuperar la memoria de la campaña {campaignId} de la partida, de sus archivos ni de las copias: se empieza sin memoria."
+                          + (kept != null ? $" Los {copied} archivos que había quedan guardados en {kept}" : " No había archivos que conservar"));
+            }
+            catch (Exception ex) { Log.Error("Recuperando la memoria de la campaña", ex); }
+            return false;
         }
 
         /// <summary>After loading a save, the files take its stamp (the next flush must use keepStamp).</summary>
@@ -659,7 +843,8 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Backs up the whole memory (same as the editor export) to _copias_editor\ before an import or delete.
+        /// Backs up the whole memory (same as the editor export) to _copias_editor\ before an import, delete or restore.
+        /// The copy is read back and checked before it counts: a copy that can't be restored is no copy.
         /// Keeps the last MaxEditorBackups. Returns the path, or null on failure.
         /// </summary>
         public static string BackupMemory(string campaignId, string label)
@@ -670,7 +855,15 @@ namespace AILegacy.Memory
                 Directory.CreateDirectory(root);
                 var path = Path.Combine(root, $"{DateTime.Now:yyyyMMdd_HHmmss}_{Safe(label)}.json");
                 for (int i = 2; File.Exists(path); i++) path = Path.Combine(root, $"{DateTime.Now:yyyyMMdd_HHmmss}_{Safe(label)}_{i}.json");
+                int want = MemoryStore.AllHeroes.Count(h => !string.IsNullOrEmpty(h?.HeroId));
                 if (!WriteAtomic(path, MemoryStore.Serialize())) return null;
+                // A whole memory is larger than any one file, so it gets the backups' own limit
+                if (!MemoryStore.TryParse(ReadBounded(path, MaxBackupBytes), out var back, out string why, strict: false) || back.HeroCount != want)
+                {
+                    Log.Error($"La copia de la memoria antes de {label} no se lee bien ({why ?? $"{back?.HeroCount} personajes de {want}"}); se descarta");
+                    try { File.Delete(path); } catch { }
+                    return null;
+                }
                 Prune(Directory.GetFiles(root, "*.json"), MaxEditorBackups, File.Delete);
                 Log.Info("Copia de la memoria antes de " + label + ": " + path);
                 return path;
@@ -700,18 +893,50 @@ namespace AILegacy.Memory
             return sub == null ? null : Path.Combine(DirFor(campaignId), sub);
         }
 
-        /// <summary>Full path of a direct child of root, or null if the name tries to reach anywhere else.</summary>
-        private static string ChildOf(string root, string name)
+        // The largest copy the editor will bring back. The mod's own copies of a long campaign are a few MB.
+        public const long MaxBackupBytes = 64L * 1024 * 1024;
+
+        private static readonly string[] DeviceNames = { "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$", "CLOCK$" };
+
+        /// <summary>
+        /// True for a plain file or folder name: no separators, no "..", nothing Windows rewrites on the way to the
+        /// disk (it strips trailing dots and spaces, so "a." opens "a") and no device name (CON, NUL, COM1...).
+        /// </summary>
+        internal static bool PlainName(string name)
         {
-            if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(name)) return null;
-            if (name.IndexOfAny(new[] { '/', '\\', ':' }) >= 0 || name.Contains("..") || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return null;
+            if (string.IsNullOrWhiteSpace(name) || name.Length > 255) return false;
+            if (name.IndexOfAny(new[] { '/', '\\', ':' }) >= 0 || name.Contains("..") || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return false;
+            char last = name[name.Length - 1];
+            if (last == '.' || last == ' ') return false;
+            int dot = name.IndexOf('.');
+            string stem = (dot < 0 ? name : name.Substring(0, dot)).TrimEnd(' ').ToUpperInvariant();
+            if (Array.IndexOf(DeviceNames, stem) >= 0) return false;
+            if (stem.Length == 4 && (stem.StartsWith("COM") || stem.StartsWith("LPT")) && (char.IsDigit(stem[3]) || stem[3] == '¹' || stem[3] == '²' || stem[3] == '³')) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Full path of a direct child of root, or null. The name is never turned into a path: it has to be one of
+        /// the names an actual listing of root gives back, so whatever is returned is something that is really there
+        /// under that exact name. Links (symlinks, junctions) are refused for the root and for the child unless
+        /// allowLinks, because what they point at can be anywhere.
+        /// </summary>
+        internal static string ChildOf(string root, string name, bool allowLinks = false)
+        {
+            if (string.IsNullOrWhiteSpace(root) || !PlainName(name)) return null;
             try
             {
-                string full = Path.GetFullPath(Path.Combine(root, name));
-                string dir = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-                return full.StartsWith(dir, StringComparison.OrdinalIgnoreCase) && string.Equals(Path.GetDirectoryName(full) + Path.DirectorySeparatorChar, dir, StringComparison.OrdinalIgnoreCase) ? full : null;
+                var dir = new DirectoryInfo(root);
+                if (!dir.Exists || (!allowLinks && (dir.Attributes & FileAttributes.ReparsePoint) != 0)) return null;
+                foreach (var entry in Directory.GetFileSystemEntries(dir.FullName))
+                {
+                    if (!string.Equals(Path.GetFileName(entry), name, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!allowLinks && IsLink(entry)) return null;
+                    return entry;
+                }
             }
-            catch { return null; }
+            catch { }
+            return null;
         }
 
         /// <summary>"20261115_101500_importar.json" gives the date and "importar".</summary>
@@ -737,12 +962,13 @@ namespace AILegacy.Memory
                 try
                 {
                     var root = BackupRoot(campaignId, kind);
-                    if (!Directory.Exists(root)) continue;
+                    if (!Directory.Exists(root) || IsLink(root)) continue;
                     if (kind == "branch")
                     {
                         foreach (var d in Directory.GetDirectories(root))
                         {
-                            var files = Directory.GetFiles(d, "*.json");
+                            if (IsLink(d)) continue;
+                            var files = Directory.GetFiles(d, "*.json").Where(f => !IsLink(f)).ToArray();
                             SplitStamp(Path.GetFileName(d), Directory.GetLastWriteTime(d), out var when, out _);
                             list.Add(new BackupInfo { Kind = kind, Name = Path.GetFileName(d), Label = "", When = when, Files = files.Length, Size = files.Sum(f => new FileInfo(f).Length) });
                         }
@@ -751,6 +977,7 @@ namespace AILegacy.Memory
                     foreach (var f in Directory.GetFiles(root, "*.json"))
                     {
                         var fi = new FileInfo(f);
+                        if ((fi.Attributes & FileAttributes.ReparsePoint) != 0) continue;
                         SplitStamp(fi.Name, fi.LastWriteTime, out var when, out var rest);
                         rest = Path.GetFileNameWithoutExtension(rest);
                         // A character's file ends in "(hero id)"; the rest of the trash is not memory that can go back
@@ -764,55 +991,94 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Brings a copy back. The current memory is copied to _copias_editor first, and nothing changes if that fails.
-        /// An editor copy goes through MemoryStore.Deserialize (what loading a save does), a branch through ReadDir
-        /// (what loading the campaign files does), and a trash file puts that one character back. Then everything is
-        /// written, so disk and memory match. Returns the safety copy's file name, or null with the reason in error.
+        /// Brings a copy back, all of it or nothing. First the copy is read and checked in full into temporary
+        /// objects (an editor copy as a whole memory, a branch as a folder of campaign files, a trash file as one
+        /// character). Then the current memory is copied to _copias_editor and that copy is read back. Only then is
+        /// the live memory swapped, and everything written so disk and memory match. If any step fails the memory
+        /// stays exactly as it was. Returns the safety copy's file name, or null with the reason in error.
         /// </summary>
         public static string RestoreBackup(string campaignId, string kind, string name, out string error)
         {
             error = null;
+            string gone = L.T("AIL_e7b1c65b", "Esa copia ya no existe o está incompleta.");
+            string damaged = L.T("AIL_e7b1c6df", "Los datos están dañados o incompletos; no se ha cambiado nada.");
+            string tooBig = L.T("AIL_e7b1c6de", "Esa copia es demasiado grande para restaurarla desde aquí.");
+            string busy = L.T("AIL_e7b1c749", "Los archivos de la campaña aún se están escribiendo; inténtalo de nuevo en unos segundos.");
             try
             {
                 var path = ChildOf(BackupRoot(campaignId, kind), name);
                 if (path == null) { error = L.T("AIL_61be9174", "Archivo no válido."); return null; }
-                Drain();
-                string text = null;
+                // Nothing may still be on its way to disk: a write queued before the swap would land after it and
+                // leave the old version of that file in place
+                if (!Drain()) { error = busy; return null; }
+                MemoryStore.Snapshot whole = null;
                 HeroMemory one = null;
                 if (kind == "branch")
                 {
-                    if (!Directory.Exists(path) || !File.Exists(Path.Combine(path, CampaignFile))) { error = L.T("AIL_e7b1c65b", "Esa copia ya no existe o está incompleta."); return null; }
+                    if (!Directory.Exists(path) || !File.Exists(Path.Combine(path, CampaignFile))) { error = gone; return null; }
+                    if (Directory.GetFiles(path, "*.json").Sum(f => new FileInfo(f).Length) > 2 * MaxBackupBytes) { error = tooBig; return null; }
+                    try { whole = ParseDir(path, true, out _); }
+                    catch (Exception ex) { Log.Warn($"Rama {name} no restaurada: {ex.Message}"); error = damaged; return null; }
                 }
                 else
                 {
-                    if (!File.Exists(path)) { error = L.T("AIL_e7b1c65b", "Esa copia ya no existe o está incompleta."); return null; }
-                    text = File.ReadAllText(path, Encoding.UTF8);
+                    if (!File.Exists(path)) { error = gone; return null; }
+                    if (new FileInfo(path).Length > MaxBackupBytes) { error = tooBig; return null; }
+                    string text = ReadBounded(path, MaxBackupBytes);
                     if (kind == "editor")
                     {
-                        // Deserialize empties the memory before reading, so make sure it can be read
-                        var j = JToken.Parse(text) as JObject;
-                        if (j == null || !(j["heroes"] is JArray)) { error = L.T("AIL_61be9174", "Archivo no válido."); return null; }
+                        if (!MemoryStore.TryParse(text, out whole, out string why)) { Log.Warn($"Copia {name} no restaurada: {why}"); error = damaged; return null; }
                     }
                     else
                     {
-                        one = JsonConvert.DeserializeObject<HeroMemory>(text);
+                        try { one = JsonConvert.DeserializeObject<HeroMemory>(text, BoundedJson); }
+                        catch (Exception ex) { Log.Warn($"Archivo {name} no restaurado: {ex.Message}"); error = damaged; return null; }
                         if (one == null || string.IsNullOrEmpty(one.HeroId)) { error = L.T("AIL_e7b1c65c", "Ese archivo no es la memoria de un personaje; no se puede restaurar desde aquí."); return null; }
+                        if (MemoryStore.Normalize(one) > 0) { Log.Warn($"Archivo {name} no restaurado: tiene entradas vacías"); error = damaged; return null; }
                     }
                 }
 
+                // Written, read back and counted inside BackupMemory. Without it nothing is touched
                 var safety = BackupMemory(campaignId, "restaurar");
                 if (safety == null) { error = L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."); return null; }
 
-                if (kind == "editor") MemoryStore.Deserialize(text);
-                else if (kind == "branch") { if (!ReadDir(path, campaignId)) { error = L.T("AIL_e7b1c65b", "Esa copia ya no existe o está incompleta."); return null; } }
+                // The safety copy is written directly, not through the queue, and everything here runs on the game
+                // thread, the only one that queues: the queue drained above is still empty
+                if (whole != null)
+                {
+                    if (!MemoryStore.Replace(whole, out bool rollbackFailed))
+                    {
+                        error = rollbackFailed ? RollbackFailedText(safety) : damaged;
+                        return null;
+                    }
+                }
                 else MemoryStore.Put(one);
 
+                // Waits for the writer, so disk and memory match before the page is told it is done
                 Dirty();
-                Flush();
+                Flush(wait: true);
+                if (!AllWritten(out int failed))
+                {
+                    Log.Error($"Copia restaurada ({kind}): {name}, pero no todos los archivos llegaron al disco ({failed} con fallo): en disco puede quedar la versión anterior hasta el próximo guardado. Lo que había queda en {Path.GetFileName(safety)}");
+                    string file = Path.GetFileName(safety);
+                    error = L.F("AIL_e7b1c74b", $"La copia se ha restaurado, pero {failed} archivos no se pudieron escribir en disco. Guarda la partida para volver a intentarlo. Lo que había queda en {file}.");
+                    return null;
+                }
                 Log.Info($"Copia restaurada ({kind}): {name}; lo que había queda en {Path.GetFileName(safety)}");
                 return Path.GetFileName(safety);
             }
-            catch (Exception ex) { Log.Error("Restaurar copia", ex); error = ex.Message; return null; }
+            // The exception's text can carry full paths: it goes to the log, not to the page
+            catch (Exception ex) { Log.Error("Restaurar copia", ex); error = damaged; return null; }
+        }
+
+        /// <summary>
+        /// What the page is told when swapping the memory failed and the previous one could not be put back. The
+        /// details are in the log (MemoryStore.Replace).
+        /// </summary>
+        internal static string RollbackFailedText(string safetyPath)
+        {
+            string file = Path.GetFileName(safetyPath ?? "");
+            return L.F("AIL_e7b1c74a", $"El cambio ha fallado y la memoria no ha podido volver a como estaba. Carga la partida de nuevo sin guardar. Lo que había queda en {file}.");
         }
 
         /// <summary>Moves the given characters' files to a subfolder, so an import can be undone without losing anything.</summary>
@@ -838,11 +1104,22 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Error("Copia de personajes", ex); return null; }
         }
 
-        private static T Read<T>(string dir, string file) where T : class
+        /// <summary>
+        /// One of the campaign's own files, or null when it isn't there. Not strict: an unreadable file is set aside and
+        /// null comes back. Strict: a file that is there but unreadable or empty throws, and nothing on disk is touched.
+        /// </summary>
+        private static T Read<T>(string dir, string file, bool strict = false) where T : class
         {
             var path = Path.Combine(dir, file);
             if (!File.Exists(path)) return null;
-            try { return JsonConvert.DeserializeObject<T>(File.ReadAllText(path, Encoding.UTF8)); }
+            if (strict)
+            {
+                T got;
+                try { got = ReadJson<T>(path); }
+                catch (Exception ex) { throw new InvalidDataException(file + ": " + ex.Message, ex); }
+                return got ?? throw new InvalidDataException(file + ": vacío");
+            }
+            try { return ReadJson<T>(path); }
             catch (Exception ex)
             {
                 // Keep an untouched copy so the data can be recovered by hand

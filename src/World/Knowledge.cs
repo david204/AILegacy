@@ -34,6 +34,12 @@ namespace AILegacy.World
         private static readonly FileCache Secrets = new FileCache("secrets.json");
         private static readonly Random Rng = new Random();
 
+        /// <summary>
+        /// Drops the cached facts and secrets. The editor calls it after it saves, resets or copies a world file:
+        /// the file's date alone can miss a change (a copy keeps the date of the original).
+        /// </summary>
+        public static void Reload() { Info.Forget(); Secrets.Forget(); }
+
         public static void EnsureRolled(Speaker s)
         {
             var m = s.Memory;
@@ -79,6 +85,9 @@ namespace AILegacy.World
             private string _path;
 
             public FileCache(string name) { _name = name; }
+
+            /// <summary>Forgets what was read, so the next use reads the file again whatever its date says.</summary>
+            public void Forget() { _entries = new List<KnowledgeEntry>(); _stamp = DateTime.MinValue; _path = null; }
 
             public List<KnowledgeEntry> Entries
             {

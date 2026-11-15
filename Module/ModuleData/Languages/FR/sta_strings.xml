@@ -1804,5 +1804,133 @@
     <string id="AIL_e7b1c6c5" text=" · prisonnier" />
     <string id="AIL_e7b1c6c6" text=" · mort ou absent de la partie" />
     <string id="AIL_e7b1c6c7" text="Sauvegardez la partie en jeu pour que le changement reste dans la sauvegarde." />
+    <string id="AIL_e7b1c6c8" text="Les habitants à qui vous avez parlé gardent leur visage" />
+    <string id="AIL_e7b1c6c9" text="Le jeu tire un nouveau visage au hasard pour chaque habitant à chaque fois que vous entrez dans un lieu. Avec cette option, le villageois, citadin ou client de taverne à qui vous avez parlé revient avec le même visage, la même carrure, le même âge, les mêmes vêtements et le même nom lors des visites suivantes, et se souvient de vous après une sauvegarde et un chargement. Avant, sa mémoire ne durait que jusqu’à la fermeture du jeu." />
+    <string id="AIL_e7b1c6ca" text="Habitants mémorisés par campagne" />
+    <string id="AIL_e7b1c6cb" text="Au-delà, ceux à qui vous avez parlé il y a le plus longtemps sont oubliés. Ils sont enregistrés avec le fichier du monde : un nombre très élevé l’alourdit." />
+    <string id="AIL_e7b1c6cc" text="Les seigneurs s’exercent dans l’arène" />
+    <string id="AIL_e7b1c6cd" text="Certains nobles présents dans une ville passent quelques heures du matin ou de l’après-midi à l’arène plutôt qu’au donjon. Entrez dans l’arène pour les y trouver et leur parler. Ils se tiennent parmi les gens du lieu : ils ne prennent pas part aux combats d’entraînement. Pas pendant un tournoi." />
+    <string id="AIL_e7b1c6ce" text="Seigneurs dans l’arène : chance par seigneur et par jour (%)" />
+    <string id="AIL_e7b1c6cf" text="Les clans sans terre patrouillent" />
+    <string id="AIL_e7b1c6d0" text="Les troupes des clans sans fief qui restent inactives (factions mineures, nobles dépossédés, clans que le mod garde en vie) patrouillent quelques jours autour d’une place de leur royaume ou de leur employeur, ou de la plus proche qui ne soit pas hostile s’ils ne servent personne, puis se reposent un jour pour se ravitailler. Cela utilise les ordres de carte du mod. Les troupes affamées ou décimées sont laissées tranquilles, et ce que vous convenez avec elles passe d’abord." />
+    <string id="AIL_e7b1c6d1" text="Clans sans terre : jours par patrouille" />
+    <string id="AIL_e7b1c6d2" text="Musique personnelle dans les conversations" />
+    <string id="AIL_e7b1c6d3" text="Le mod ne fournit aucune musique. Placez vos propres fichiers .ogg dans Modules\AILegacy\music, dans les dossiers talk, tense, romance, sad et victory. Pendant que vous parlez à quelqu’un via le mod, une piste du dossier correspondant au moment est jouée (la tension, la romance et l’humeur affichée en décident ; un dossier vide se rabat sur talk) et la musique du jeu baisse jusqu’à la fin de la discussion. Elle suit le volume des voix du jeu." />
+    <string id="AIL_e7b1c6d4" text="Musique personnelle : volume de la musique du jeu pendant ce temps (%)" />
+    <string id="AIL_e7b1c6d5" text="Musique personnelle : tension à partir de laquelle le dossier tense est joué" />
+    <string id="AIL_e7b1c6d6" text="Musique personnelle : romance à partir de laquelle le dossier romance est joué" />
+    <string id="AIL_e7b1c6d7" text="Mesure des performances (dans le journal)" />
+    <string id="AIL_e7b1c6d8" text="Tant que l’option est active, le mod chronomètre son propre travail à chaque image et chacun de ses patchs Harmony, et écrit dans logs\ailegacy.log un tableau trié par temps total toutes les 60 secondes. La commande de console ailegacy.perf l’affiche tout de suite. Rien n’apparaît à l’écran. Laissez-la désactivée sauf si vous cherchez ce qui ralentit le jeu." />
+    <string id="AIL_e7b1c6d9" text="Les seigneurs IA entraînent leurs troupes dans les arènes" />
+    <string id="AIL_e7b1c6da" text="Un seigneur au repos dans une ville, dont la troupe est surtout composée de soldats de bas niveau, paie l’arène de son or et ses soldats valides gagnent de l’expérience, au même prix, avec la même expérience et le même risque de blessure que votre propre entraînement, et la même attente avant de recommencer. Pas les troupes de votre clan. Nécessite « Entraînement dans l’arène »." />
+    <string id="AIL_e7b1c6db" text="Erreur interne {0}. Les détails sont dans le journal du mod (logs\ailegacy.log)." />
+    <string id="AIL_e7b1c6dc" text="La requête est trop volumineuse." />
+    <string id="AIL_e7b1c6dd" text="Requête non valide." />
+    <string id="AIL_e7b1c6de" text="Cette copie est trop volumineuse pour être restaurée d'ici." />
+    <string id="AIL_e7b1c6df" text="Les données sont endommagées ou incomplètes ; rien n'a été modifié." />
+    <string id="AIL_e7b1c6e0" text="Les troupes de l'IA vont se faire soigner" />
+    <string id="AIL_e7b1c6e1" text="Un seigneur dont la troupe est assez malade se rend à la ville ou au château ami le plus proche à sa portée, paie ses médecins, s'y repose puis retourne à ses affaires. Jamais une troupe engagée dans une armée, une bataille ou un siège, ni une troupe qui fait ce que vous lui avez demandé." />
+    <string id="AIL_e7b1c6e2" text="Soins de l'IA : urgence requise pour se mettre en route (3 = toute maladie, 10 = seulement les plus graves)" />
+    <string id="AIL_e7b1c6e3" text="L'urgence augmente avec l'avancée et la gravité de la maladie : 3 aux premiers symptômes, 10 pour une peste à mi-parcours. À 5, un seigneur se met en route pour une maladie bénigne dès qu'elle atteint un quart de son cours, et aussitôt pour une maladie mortelle." />
+    <string id="AIL_e7b1c6e4" text="Soins de l'IA : part de soldats malades qui compte (%)" />
+    <string id="AIL_e7b1c6e5" text="Soins de l'IA : distance maximale parcourue (jours)" />
+    <string id="AIL_e7b1c6e6" text="Soins de l'IA : jours de repos là où on les soigne" />
+    <string id="AIL_e7b1c6e7" text="Herbes médicinales" />
+    <string id="AIL_e7b1c6e8" text="Cinq qualités d'herbes vendues dans les hôpitaux : meilleures dans les villes riches, et les meilleures seulement dans une capitale. Ce sont des marchandises de votre inventaire : utilisez-les n'importe où (Alt+H sur la carte, ou à l'hôpital) pour soigner vos malades ou pour que votre troupe soit moins contaminée pendant quelques jours." />
+    <string id="AIL_e7b1c6e9" text="Herbes : soigner vos malades avec elles automatiquement" />
+    <string id="AIL_e7b1c6ea" text="Chaque jour, vos héros et soldats malades non soignés reçoivent les herbes que vous transportez : les meilleures pour les cas graves, les plus communes pour les autres. Désactivé : seulement quand vous les utilisez vous-même." />
+    <string id="AIL_e7b1c6eb" text="Les garnisons et les milices tombent malades" />
+    <string id="AIL_e7b1c6ec" text="Là où sévit une épidémie, la garnison et la milice peuvent l'attraper. Elle se répand parmi eux, les médecins du lieu s'en occupent tous les quelques jours, et une maladie grave qu'on laisse courir en tue quelques-uns chaque jour. Cela se voit dans l'infobulle de la colonie et dans la variation quotidienne de la milice." />
+    <string id="AIL_e7b1c6ed" text="Garnisons : jours entre les tournées des médecins" />
+    <string id="AIL_e7b1c6ee" text="La maladie dans les infobulles de la carte" />
+    <string id="AIL_e7b1c6ef" text="Au survol d'une troupe sur la carte, on voit qui y est malade : son chef, ses soldats et ses prisonniers. Maintenez la touche d'informations supplémentaires pour voir l'avancée de chaque maladie. Une colonie montre son épidémie ainsi que sa garnison et sa milice malades." />
+    <string id="AIL_e7b1c6f0" text="Les décès nomment la maladie" />
+    <string id="AIL_e7b1c6f1" text="Quand un héros meurt d'une maladie, l'annonce, l'encyclopédie et la nécrologie disent laquelle, au lieu de parler de vieillesse." />
+    <string id="AIL_e7b1c6f2" text="Soins sur le compte du clan" />
+    <string id="AIL_e7b1c6f3" text="Un membre de votre clan soigné loin de vous qui ne peut pas tout payer laisse le reste en dette : il est prélevé avec les prochaines dépenses quotidiennes de votre clan, sur une ligne à part. À l'hôpital, vous pouvez vous aussi faire soigner vos malades à crédit quand l'or vous manque." />
+    <string id="AIL_e7b1c6f4" text="Utiliser les herbes médicinales (sur la carte)" />
+    <string id="AIL_e7b1c6f5" text="Multiplie le prix de la prévention de l'hôpital et des herbes médicinales qu'il vend." />
+    <string id="AIL_e7b1c6f6" text="Herbes communes" />
+    <string id="AIL_e7b1c6f7" text="Herbes rares" />
+    <string id="AIL_e7b1c6f8" text="Herbes précieuses" />
+    <string id="AIL_e7b1c6f9" text="Herbes exceptionnelles" />
+    <string id="AIL_e7b1c6fa" text="Herbes légendaires" />
+    <string id="AIL_e7b1c6fb" text="{=!}Acheter des herbes médicinales" />
+    <string id="AIL_e7b1c6fc" text="Herbes médicinales" />
+    <string id="AIL_e7b1c6fd" text="Les apothicaires de {0} vendent ces herbes. Les meilleures n'arrivent que dans les villes riches et les capitales. Vous avez {1} deniers." />
+    <string id="AIL_e7b1c6fe" text="{0} × {1} : {2} deniers" />
+    <string id="AIL_e7b1c6ff" text="En traitement, force ×{0}. Contre la contagion, {1} % de moins pendant {2} jours. Vous en avez {3}." />
+    <string id="AIL_e7b1c700" text="Acheter" />
+    <string id="AIL_e7b1c701" text="Fermer" />
+    <string id="AIL_e7b1c702" text="Vous achetez {0} × {1} pour {2} deniers." />
+    <string id="AIL_e7b1c703" text="Vous n'avez pas assez d'or." />
+    <string id="AIL_e7b1c704" text="Choisissez quoi faire des herbes que vous transportez." />
+    <string id="AIL_e7b1c705" text="Soigner vos malades avec {0} (vous en avez {1})" />
+    <string id="AIL_e7b1c706" text="Prendre {0} contre la contagion (il en faut {1}, vous en avez {2})" />
+    <string id="AIL_e7b1c707" text="Commence le traitement de {0} de vos {1} malade(s) non soigné(s), avec une force ×{2}. En consomme {3}." />
+    <string id="AIL_e7b1c708" text="Toute votre troupe tombe malade {0} % moins souvent pendant {1} jours. Cela s'ajoute à la prévention de l'hôpital." />
+    <string id="AIL_e7b1c709" text="Utiliser" />
+    <string id="AIL_e7b1c70a" text="Vous n'avez pas d'herbes médicinales." />
+    <string id="AIL_e7b1c70b" text="Vous utilisez {0} × {1} : le traitement de {2} malade(s) commence." />
+    <string id="AIL_e7b1c70c" text="Votre troupe prend {0} : elle tombera malade {1} % moins souvent pendant {2} jours." />
+    <string id="AIL_e7b1c70d" text="&#10;Vous transportez des herbes médicinales : {0}." />
+    <string id="AIL_e7b1c70e" text="&#10;Les herbes protègent votre troupe encore {0} jour(s) ({1} % de contagion en moins)." />
+    <string id="AIL_e7b1c70f" text="Vous n'avez aucun malade non soigné." />
+    <string id="AIL_e7b1c711" text="Vous n'en avez pas assez : il en faut {0}." />
+    <string id="AIL_e7b1c712" text="{0} soldat(s) de la garnison de {1} meurent de {2}." />
+    <string id="AIL_e7b1c713" text="La garnison de {0} est tombée malade : {1}." />
+    <string id="AIL_e7b1c714" text="La milice de {0} est tombée malade : {1}." />
+    <string id="AIL_e7b1c715" text="Maladie" />
+    <string id="AIL_e7b1c716" text="Garnison" />
+    <string id="AIL_e7b1c717" text="Milice" />
+    <string id="AIL_e7b1c71a" text="Troupes" />
+    <string id="AIL_e7b1c71b" text="Prisonniers" />
+    <string id="AIL_e7b1c71c" text="{0} malades sur {1}" />
+    <string id="AIL_e7b1c71d" text="{0} malades ({1} %)" />
+    <string id="AIL_e7b1c720" text="Traitement des maladies" />
+    <string id="AIL_e7b1c721" text="{0} ne peut pas payer les médecins de {1} : {2} deniers restent sur le compte de votre clan." />
+    <string id="AIL_e7b1c722" text="Les médecins inscrivent {0} deniers sur le compte de votre clan : ils seront prélevés avec les dépenses du jour." />
+    <string id="AIL_e7b1c723" text="&#10;Votre clan doit {0} deniers aux médecins ; ils sont prélevés avec les dépenses du jour." />
+    <string id="AIL_e7b1c724" text="{VICTIM.NAME} est {?VICTIM.GENDER}morte{?}mort{\?} de {DISEASE}. Sa famille et ses amis se souviendront {?VICTIM.GENDER}d'elle{?}de lui{\?}." />
+    <string id="AIL_e7b1c725" text="{VICTIM.LINK} est {?VICTIM.GENDER}morte{?}mort{\?} de {DISEASE}." />
+    <string id="AIL_e7b1c726" text="{?CHARACTER.GENDER}Elle est morte{?}Il est mort{\?} de {DISEASE} en {YEAR} à l'âge de {CHARACTER.AGE} ans. {?CHARACTER.GENDER}Elle{?}Il{\?} avait la réputation d'être {REPUTATION}" />
+    <string id="AIL_e7b1c727" text="Le {DAY_OF_YEAR} {YEAR}, {VICTIM.NAME} est {?VICTIM.GENDER}morte{?}mort{\?} de {DISEASE}." />
+    <string id="AIL_e7b1c728" text="{=!}Utiliser vos herbes médicinales" />
+    <string id="AIL_e7b1c729" text=" (mercenaire à la solde de {0})" />
+    <string id="AIL_e7b1c72a" text=", chef du clan mercenaire {0}, à la solde de {1}," />
+    <string id="AIL_e7b1c72b" text=", chef du clan {0}, qui ne sert aucun royaume," />
+    <string id="AIL_e7b1c72c" text="{0} nobles capturés" />
+    <string id="AIL_e7b1c72d" text="{0} a fait prisonniers {1} nobles" />
+    <string id="AIL_e7b1c72e" text=" près de {0}" />
+    <string id="AIL_e7b1c72f" text=" et {0} autres" />
+    <string id="AIL_e7b1c730" text=" (souverain de {0})" />
+    <string id="AIL_e7b1c731" text=" (chef du clan {0})" />
+    <string id="AIL_e7b1c732" text=" (chef du clan mercenaire {0})" />
+    <string id="AIL_e7b1c733" text=" (clan {0})" />
+    <string id="AIL_e7b1c734" text="Le siège de {0} est brisé" />
+    <string id="AIL_e7b1c735" text="Le siège de {0} a été brisé par les armes : {1} a été vaincu et {2} reste aux mains de {3}." />
+    <string id="AIL_e7b1c736" text="Le siège de {0} est levé" />
+    <string id="AIL_e7b1c737" text="Le siège de {0} a été levé : {1} y a renoncé et s'est retiré, et {2} reste aux mains de {3}." />
+    <string id="AIL_e7b1c738" text="Calradia en paix" />
+    <string id="AIL_e7b1c739" text="Pour la première fois depuis des années, aucun royaume de Calradia n'est en guerre contre un autre : toutes les couronnes ont déposé les armes." />
+    <string id="AIL_e7b1c73a" text="AI Legacy : la campagne commence avec tous les royaumes en paix." />
+    <string id="AIL_e7b1c73b" text="Nouvelles de prisonniers conservées" />
+    <string id="AIL_e7b1c73c" text="Les seigneurs sont capturés sans arrêt et les nouvelles en débordent. Notables seulement : la capture d'un souverain (nouvelle pour le monde entier) et celle du chef d'un clan vassal d'un royaume (nouvelle pour ce royaume). Les chefs de clans mercenaires ou mineurs et les nobles ordinaires sont laissés de côté. Toutes : ceux-là sont gardés aussi, comme des bruits locaux qui ne provoquent jamais de réaction. Dans les deux cas, les captifs d'une même bataille font une seule nouvelle, et ce que vous capturez ou qui vous capture est toujours raconté." />
+    <string id="AIL_e7b1c73d" text="Vérifier ce qu'écrivent le chroniqueur et les rois par rapport au monde" />
+    <string id="AIL_e7b1c73e" text="Avant de publier un événement ou la déclaration d'un roi, le mod le vérifie par rapport au jeu : un seigneur placé dans un royaume qui n'est pas le sien, un mercenaire appelé vassal, une guerre ou une alliance qui n'existe pas, un roi qui réclame comme sien le seigneur d'une autre couronne. Ce qui contredit le monde est rejeté et la raison va dans le journal. Les réactions aux événements réels ne peuvent impliquer que les royaumes que ces événements touchent. Désactivé : tout est publié tel quel." />
+    <string id="AIL_e7b1c73f" text="Les nouvelles campagnes commencent avec tous les royaumes en paix" />
+    <string id="AIL_e7b1c740" text="Uniquement à la création d'une nouvelle campagne, une seule fois, après que le jeu a mis en place ses guerres de départ : toutes les guerres entre deux royaumes prennent fin. Jamais sur une campagne existante ni au chargement. Activez-le avant de commencer la campagne. Si une durée de trêve est réglée plus bas, elle compte à partir de ce premier jour." />
+    <string id="AIL_e7b1c741" text="Règle maison : nombre maximal de royaumes qu'un royaume peut combattre à la fois (0 = sans limite)" />
+    <string id="AIL_e7b1c742" text="Un roi de l'IA ne peut pas déclarer la guerre si son royaume, ou celui qu'il vise, est déjà en guerre contre autant de royaumes : pas d'acharnement à plusieurs. Cela ne lie que les rois de l'IA. Vous n'êtes jamais empêché de déclarer la guerre, mais la règle vous protège aussi : aucun roi de l'IA ne vous déclarera la guerre une fois que vous êtes à la limite. Les guerres qui commencent d'elles-mêmes (une rébellion, un nouveau royaume) ne sont pas arrêtées." />
+    <string id="AIL_e7b1c743" text="Règle maison : jours de trêve après une paix (0 = aucun)" />
+    <string id="AIL_e7b1c744" text="Après une paix entre deux royaumes, aucun roi de l'IA de l'un ne peut déclarer la guerre à l'autre avant que ce nombre de jours soit écoulé. Une année de Calradia compte 84 jours. Cela ne lie que les rois de l'IA, dans leurs déclarations et quand vous leur parlez : vous pouvez rompre une trêve vous-même." />
+    <string id="AIL_e7b1c745" text="Règle maison : nombre maximal d'alliances par royaume (0 = sans limite)" />
+    <string id="AIL_e7b1c746" text="Un roi de l'IA ne proposera ni n'acceptera d'alliance si son royaume ou l'autre en a déjà autant. Cela ne lie que les rois de l'IA : ce que vous proposez ou acceptez en tant que souverain n'est jamais bloqué, mais un roi de l'IA à sa limite ne s'alliera pas avec vous." />
+    <string id="AIL_e7b1c747" text="Règle maison : nombre maximal d'accords commerciaux par royaume (0 = sans limite)" />
+    <string id="AIL_e7b1c748" text="Un roi de l'IA ne proposera ni n'acceptera d'accord commercial si son royaume ou l'autre en a déjà autant. Cela ne lie que les rois de l'IA, comme la limite des alliances." />
+    <string id="AIL_e7b1c749" text="Les fichiers de la campagne sont encore en cours d’écriture ; réessayez dans quelques secondes." />
+    <string id="AIL_e7b1c74a" text="Le changement a échoué et la mémoire n’a pas pu être remise comme avant. Rechargez votre partie sans sauvegarder. Ce qu’il y avait est conservé dans {0}." />
+    <string id="AIL_e7b1c74b" text="La copie a été restaurée, mais {0} fichiers n’ont pas pu être écrits sur le disque. Sauvegardez la partie pour réessayer. Ce qu’il y avait est conservé dans {1}." />
+    <string id="AIL_e7b1c74c" text="Le fichier {0} est trop volumineux pour être ouvert dans l’éditeur." />
   </strings>
 </base>

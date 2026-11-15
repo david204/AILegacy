@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Healing herbs of the disease system. The ids are used by src\World\DiseasesExtra.cs and stored in saves: never rename them.
+     Not merchandise: no market stocks them, the hospitals sell them. The value is half the base price, so reselling never pays. -->
+<Items>
+	<Item
+		id="ailegacy_herbs_common"
+		name="{=AIL_e7b1c6f6}Common healing herbs"
+		mesh="merchandise_flax"
+		item_category="unassigned"
+		is_merchandise="false"
+		value="50"
+		weight="0.2"
+		Type="Goods">
+		<Flags
+			Civilian="true" />
+	</Item>
+	<Item
+		id="ailegacy_herbs_rare"
+		name="{=AIL_e7b1c6f7}Rare healing herbs"
+		mesh="merchandise_flax"
+		item_category="unassigned"
+		is_merchandise="false"
+		value="150"
+		weight="0.2"
+		Type="Goods">
+		<Flags
+			Civilian="true" />
+	</Item>
+	<Item
+		id="ailegacy_herbs_valuable"
+		name="{=AIL_e7b1c6f8}Valuable healing herbs"
+		mesh="spice_sack"
+		item_category="unassigned"
+		is_merchandise="false"
+		value="350"
+		weight="0.2"
+		Type="Goods">
+		<Flags
+			Civilian="true" />
+	</Item>
+	<Item
+		id="ailegacy_herbs_exceptional"
+		name="{=AIL_e7b1c6f9}Exceptional healing herbs"
+		mesh="spice_sack"
+		item_category="unassigned"
+		is_merchandise="false"
+		value="750"
+		weight="0.2"
+		Type="Goods">
+		<Flags
+			Civilian="true" />
+	</Item>
+	<Item
+		id="ailegacy_herbs_legendary"
+		name="{=AIL_e7b1c6fa}Legendary healing herbs"
+		mesh="spice_sack"
+		item_category="unassigned"
+		is_merchandise="false"
+		value="1500"
+		weight="0.2"
+		Type="Goods">
+		<Flags
+			Civilian="true" />
+	</Item>
+</Items>
