@@ -430,6 +430,9 @@ namespace AILegacy.World
 
         // ============================================================ world state for prompts
 
+        private static readonly Tpl TWornWars = new Tpl("dynamic_events_generator/worn_wars.txt",
+            "## Wars that are wearing out BOTH sides (a story worth telling, if nothing bigger is happening: lords tired of the campaign, a peace party at court, unpaid men deserting, quiet envoys; never write the peace as signed)");
+
         public static float Fatigue(Kingdom k) => k != null && State.WarFatigue.TryGetValue(k.StringId, out var f) ? f : 0f;
 
         public static string FatigueWord(Kingdom k)
@@ -666,6 +669,21 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             sys.AppendLine(DescribeActiveEvents(8));
             var pend = Diplomacy.DescribeAllProposals();
             if (pend.Length > 0) { sys.AppendLine("## Pending proposals between crowns (do not narrate their outcome)"); sys.AppendLine(pend); }
+            // Wars that wear out both sides are a story of their own: the scheduled batch is told about them
+            if (!reactive)
+            {
+                try
+                {
+                    var worn = new List<string>();
+                    var ks = Kingdoms.Where(k => k != null && !k.IsEliminated).ToList();
+                    for (int i = 0; i < ks.Count; i++)
+                        for (int j = i + 1; j < ks.Count; j++)
+                            if (ks[i].IsAtWarWith(ks[j]) && Fatigue(ks[i]) >= 35f && Fatigue(ks[j]) >= 35f)
+                                worn.Add($"- {ks[i].Name} ({FatigueWord(ks[i])}) and {ks[j].Name} ({FatigueWord(ks[j])})");
+                    if (worn.Count > 0) { sys.AppendLine(TWornWars.Text.Trim()); sys.AppendLine(string.Join("\n", worn.Take(6))); }
+                }
+                catch (Exception ex) { Log.Error("[mundo] guerras que agotan a los dos", ex); }
+            }
 
             // Kingdoms a reaction may involve: those of the people and places in what happened, and whoever is at war or allied with them
             HashSet<string> allowed = null;

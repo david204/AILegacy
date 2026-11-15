@@ -102,6 +102,9 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
 
         // What the others in a group keep of a deed one of them really carried out. It is stored after "[Seen: ",
         // which is what marks it as a fact for the summary.
+        private static readonly Tpl TOpenTask = new Tpl("group_conversation/open_task.txt",
+            "They gave {player} a task that is still open: {brief} ({days} day(s) left). They may ask how it goes, in front of the others or aside, as fits them.");
+
         private static readonly Tpl TSeen = new Tpl("group_conversation/seen_deed.txt",
             "{name} really did this in front of you, in the group with {player}. It took effect in the world and it was {name}'s deed, not yours. From {name}'s own record, where \"you\" is {name} and \"they\" is {player}: {deed}");
 
@@ -417,7 +420,17 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     foreach (var y in Circle)
                         if (y != x && y.Who.IsHero && x.Who.Memory.Others.TryGetValue(y.Who.Hero.StringId, out var ob))
                             among += $" Towards {y.Who.Name}: {Bonds.OtherWord(ob.Trust)}" + (ob.Notes.Count > 0 ? $" (last: {ob.Notes[ob.Notes.Count - 1]})" : "") + ".";
-                members.AppendLine($"{i + 1}. {x.Who.Name} — {x.Desc}. {knows}.{rel}{mem}{recent}{among}");
+                // A task they gave the player that is still open: they may well bring it up
+                string task = "";
+                try
+                {
+                    var q = cfg.EnableQuests && x.Who.IsHero ? World.QuestSystem.ActiveFrom(x.Who.Hero.StringId) : null;
+                    if (q != null)
+                        task = " " + TOpenTask.Format("player", playerName, "brief", string.IsNullOrWhiteSpace(q.Brief) ? q.Name : q.Brief,
+                            "days", Math.Max(0, (int)Math.Ceiling(q.DueDay - CampaignTime.Now.ToDays))).Trim();
+                }
+                catch { }
+                members.AppendLine($"{i + 1}. {x.Who.Name} — {x.Desc}. {knows}.{rel}{mem}{recent}{among}{task}");
             }
             string transcript = Transcript.Count == 0 ? "(nothing yet)" : string.Join("\n", Transcript.Skip(Math.Max(0, Transcript.Count - 16)));
             string context = st != null ? Ambient.Context(st, Circle[0].Who) : "(on the road)";
