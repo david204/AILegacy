@@ -28,6 +28,7 @@ namespace AILegacy.Dialogue
             try
             {
                 if (a == null || target == null || a == target || !a.IsActive() || !target.IsActive() || !a.IsAIControlled || a.MountAgent != null) return false;
+                SceneActions.StandFromGround(a);
                 var g = Group(a);
                 if (g != null)
                 {
@@ -60,6 +61,9 @@ namespace AILegacy.Dialogue
             }
             catch (Exception ex) { Log.Error("Soltar a un personaje", ex); }
         }
+
+        /// <summary>Takes charge of someone the game itself set following (brought into the scene behind the player), so they can be released.</summary>
+        public static void Adopt(Agent a) { if (a != null) Ours.Add(a); }
 
         public static void Forget() => Ours.Clear();
     }

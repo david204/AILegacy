@@ -163,6 +163,7 @@ namespace AILegacy.UI
             double now = CampaignTime.Now.ToDays;
             string clean(string s) => (s ?? "").Replace("{", "(").Replace("}", ")");
             vm.Cards.Clear();
+            AddLawCards(vm, all);
             foreach (var n in NewsStore.All.Where(n => now - n.Day <= cfg.NewsLifetimeDays && (all || IsEvent(n))).OrderByDescending(n => n.Day).Take(80))
             {
                 int d = (int)(now - n.Day);
@@ -177,6 +178,34 @@ namespace AILegacy.UI
             if (vm.Cards.Count == 0)
                 vm.Cards.Add(new NewsCardVM(L.T("AIL_dd4380be", "Sin sucesos"), "", all ? L.T("AIL_6549b43d", "Todavía no ha pasado nada digno de contarse.") : L.T("AIL_cf032cac", "Todavía no hay ningún suceso de los que dan que hablar. Con «Ver todo» salen también las capturas, batallas y saqueos del día a día."), "", "", "", 2));
             vm.ToggleText = all ? L.T("AIL_f96ef1d1", "Solo sucesos") : L.T("AIL_ebad7b06", "Ver todo");
+        }
+
+        /// <summary>Laws created by rulers, one card per kingdom: the player's own always, the rest with "see everything".</summary>
+        private static void AddLawCards(NewsFeedVM vm, bool all)
+        {
+            try
+            {
+                if (!Laws.Enabled) return;
+                var mine = Hero.MainHero?.MapFaction as Kingdom;
+                foreach (var k in WorldSim.Kingdoms.OrderByDescending(x => x == mine))
+                {
+                    if (k != mine && !all) continue;
+                    var laws = Laws.Of(k);
+                    if (laws.Count == 0) continue;
+                    var sb = new StringBuilder();
+                    foreach (var law in laws)
+                    {
+                        var fx = Laws.DescribeAll(law);
+                        sb.Append("«").Append((law.Name ?? "?").Replace("{", "(").Replace("}", ")")).Append("»");
+                        if (!string.IsNullOrWhiteSpace(law.Text)) sb.Append(": ").Append(law.Text.Replace("{", "(").Replace("}", ")"));
+                        sb.Append("\n");
+                        if (fx.Count > 0) sb.Append(string.Join("; ", fx)).Append("\n");
+                        sb.Append("\n");
+                    }
+                    vm.Cards.Add(new NewsCardVM(string.Format(L.T("AIL_e7b1c5eb", "Leyes en vigor en {0}"), k.Name), "", sb.ToString().TrimEnd(), "", L.T("AIL_e7b1c5ec", "Ley"), "", 1));
+                }
+            }
+            catch (Exception ex) { Core.Log.Error("Leyes en la ventana de noticias", ex); }
         }
 
         /// <summary>Event id for a news item. New items carry it, older saves are matched by title.</summary>

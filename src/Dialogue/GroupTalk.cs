@@ -339,7 +339,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                             ", and only when the talk truly calls for it and they would really decide it in front of the others. To do one, add \"do\": [\"action as written\"] to that person's line " +
                             "(it takes effect in the world at once; never announce a deed in words without it):\n" + sbDeeds.ToString().TrimEnd();
             }
-            string prompt = TGroup.Format("manner", manner, "bystanders", byText, "actions", (cfg.SceneErrands ? SceneActions.Help.Replace("{player}", playerName) : "(nothing else)") + deeds, "moods", Gestures.Moods,
+            string prompt = TGroup.Format("manner", manner, "bystanders", byText, "actions", (cfg.SceneErrands ? SceneActions.HelpFor(playerName) : "(nothing else)") + deeds, "moods", Gestures.Moods,
                 "place", st?.Name?.ToString() ?? "the camp", "player", playerName, "members", members.ToString().TrimEnd(), "context", context, "elsewhere", elsewhere,
                 "transcript", transcript, "said", text.Replace("«", "\"").Replace("»", "\""), "max_lines", cfg.GroupMaxLines, "max_chars", cfg.GroupMaxChars, "language", cfg.Language);
 

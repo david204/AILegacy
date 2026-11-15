@@ -48,6 +48,17 @@ namespace AILegacy.UI
             ScrollVersion++;
         }
 
+        /// <summary>A line whose text will keep changing while the reply is being written.</summary>
+        public ChatLineVM AddLiveLine(string speaker, string nameColor)
+        {
+            var line = new ChatLineVM(speaker, "", nameColor, BodyColor);
+            Lines.Add(line);
+            ScrollVersion++;
+            return line;
+        }
+
+        public void RemoveLine(ChatLineVM line) { if (line != null) Lines.Remove(line); }
+
         public void AddSystem(string text) => AddLine("", text, SystemColor, SystemColor);
         public void AddError(string text) => AddLine("", text, ErrorColor, ErrorColor);
 

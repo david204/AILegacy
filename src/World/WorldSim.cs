@@ -144,6 +144,9 @@ namespace AILegacy.World
         /// <summary>A ruler's stance toward another kingdom: "a|b" -> -100..100.</summary>
         [JsonProperty("stance")] public Dictionary<string, int> Stance = new Dictionary<string, int>();
         [JsonProperty("outbreaks")] public List<Outbreak> Outbreaks = new List<Outbreak>();
+        /// <summary>Heroes and parties that are ill right now, and who is immune to what until which day ("hero|disease").</summary>
+        [JsonProperty("sick")] public List<Sickness> Sick = new List<Sickness>();
+        [JsonProperty("sick_immune")] public Dictionary<string, double> SickImmune = new Dictionary<string, double>();
         [JsonProperty("banished")] public List<Banishment> Banished = new List<Banishment>();
         [JsonProperty("courtships")] public List<Courtship> Courtships = new List<Courtship>();
         [JsonProperty("statement_queue")] public List<QueuedStatement> StatementQueue = new List<QueuedStatement>();
@@ -426,7 +429,7 @@ Open stories:
 - clan_effects (optional): when the event is about the name of ONE specific clan being stained or raised (a scandal, an outrage committed by one of its members, a feat that brings it honour), how its income changes while people remember: income_percent from -{max_clan}% to +{max_clan}%, for up to {max_days} days, with the reason in a few words. Merchants and allies avoid a disgraced house; they court an honoured one.
 - secret (optional, for about one event in three): the hidden truth behind this event that only a few people know and that the public version leaves out (who really paid for it, who is lying, what was covered up). ""known_by"": 1 to 3 REAL named nobles from the data who would know. ""access"": low | medium | high (how hard it is to get it out of them).
 - clan_rebellion (rare, optional): the name of ONE vassal clan that rises against its own crown right now. Only when the data shows a real break between that clan and its ruler; never the ruling clan and never a clan of ""the realm of ..."". The world will carry it out.
-- disease (rare, optional): a sickness breaking out in ONE real town or village, when the season, a siege, hunger or crowding make it plausible. severity 1 (mild) to {max_severity}.
+- disease (rare, optional): a sickness breaking out in ONE real town or village, when the season, a siege, hunger or crowding make it plausible. severity 1 (mild) to {max_severity}. You may also give how it behaves, or leave those fields out and they follow from the severity: spread_rate 0.1 to {max_spread} (how catching it is), death_chance 0 to {max_death} (daily risk for the gravely ill; 0 for anything nobody dies of), combat_modifier {min_combat} to 1 and map_speed_modifier {min_speed} to 1 (how much strength it leaves a fighter and a marching party), morale_penalty {max_morale} to 0, skill_penalty {max_skill} to 0.
 - title: 3-8 words in {language}. text: {min_len}-{max_len} characters in {language}, written like a chronicle. summary: the same in ONE English sentence.
 
 Answer ONLY with JSON:
@@ -435,10 +438,10 @@ Answer ONLY with JSON:
   ""economic_effects"": [ { ""settlement"": ""name"", ""prosperity_per_day"": 0, ""food_per_day"": 0, ""security_per_day"": 0, ""loyalty_per_day"": 0, ""price_percent"": 0, ""price_of"": """", ""prosperity_now"": 0, ""food_now"": 0, ""security_now"": 0, ""loyalty_now"": 0, ""kingdom"": """", ""duration_days"": 0, ""reason"": ""..."" } ],
   ""clan_effects"": [ { ""clan"": ""clan name"", ""income_percent"": 0, ""duration_days"": 0, ""reason"": ""..."" } ],
   ""secret"": { ""text"": ""one or two English sentences"", ""text_local"": ""the same in {language}"", ""about"": [""names""], ""known_by"": [""names""], ""access"": ""high"" },
-  ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30 } } ] }
+  ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30, ""spread_rate"": 0.3, ""death_chance"": 0, ""combat_modifier"": 0.9, ""map_speed_modifier"": 0.9, ""morale_penalty"": -5, ""skill_penalty"": -6 } } ] }
 Leave out economic_effects, clan_effects, secret, clan_rebellion and disease when they do not apply.");
 
-        public static void Touch() { var _ = TEventGen.Key; Diplomacy.Touch(); }
+        public static void Touch() { var _ = TEventGen.Key; Diplomacy.Touch(); Laws.Touch(); }
 
         // REAL game events that just happened and deserve a world reaction (not saved, they only matter right now)
         private static readonly List<string> Triggers = new List<string>();
@@ -534,7 +537,10 @@ Write ONE development that follows directly from it: how the people, the nobles,
             sys.AppendLine(TEventGen.Format("count", count, "language", Lang, "min_len", cfg.WorldEventMinLength, "max_len", cfg.WorldEventMaxLength,
                 "open", OpenStories(), "max_now", InstantFactor,
                 "max_prosperity", cfg.EffectMaxProsperityPerDay, "max_food", cfg.EffectMaxFoodPerDay, "max_security", cfg.EffectMaxSecurityPerDay,
-                "max_loyalty", cfg.EffectMaxLoyaltyPerDay, "max_days", cfg.EffectMaxDays, "max_severity", cfg.DiseaseMaxSeverity, "max_clan", cfg.ClanEffectMaxPercent, "max_price", cfg.EffectMaxPricePercent));
+                "max_loyalty", cfg.EffectMaxLoyaltyPerDay, "max_days", cfg.EffectMaxDays, "max_severity", cfg.DiseaseMaxSeverity, "max_clan", cfg.ClanEffectMaxPercent, "max_price", cfg.EffectMaxPricePercent,
+                "max_spread", cfg.DiseaseMaxSpreadRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "max_death", cfg.DiseaseMaxDeathChance.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture),
+                "min_combat", cfg.DiseaseMinCombatModifier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "min_speed", cfg.DiseaseMinMapSpeedModifier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture),
+                "max_morale", cfg.DiseaseMaxMoralePenalty, "max_skill", cfg.DiseaseMaxPhysicalSkillPenalty));
             var lore = WorldLore.Text;
             if (!string.IsNullOrWhiteSpace(lore)) { sys.AppendLine(); sys.AppendLine("## The world"); sys.AppendLine(lore); }
             var now = CampaignTime.Now;
@@ -598,6 +604,8 @@ Write ONE development that follows directly from it: how the people, the nobles,
                         while (e.History.Count > 5) e.History.RemoveAt(0);
                         foreach (var k in old.Kingdoms) if (!e.Kingdoms.Contains(k)) e.Kingdoms.Add(k);
                         foreach (var st0 in old.Settlements) if (!e.Settlements.Contains(st0)) e.Settlements.Add(st0);
+                        // rulers already due to speak about it still have their say on the new chapter
+                        foreach (var kv in old.Engagement) if (!e.Engagement.ContainsKey(kv.Key)) e.Engagement[kv.Key] = kv.Value;
                         State.Events.Remove(old);
                         NewsStore.Delete(old.Id);
                         Log.Info($"[mundo] sigue la historia «{old.Title}» ({e.History.Count} capítulo(s) anteriores)");
@@ -786,6 +794,8 @@ Write ONE development that follows directly from it: how the people, the nobles,
             {
                 float pNow = C("prosperity_now", cfg.EffectMaxProsperityPerDay * InstantFactor), fNow = C("food_now", cfg.EffectMaxFoodPerDay * InstantFactor);
                 float sNow = C("security_now", cfg.EffectMaxSecurityPerDay * InstantFactor), lNow = C("loyalty_now", cfg.EffectMaxLoyaltyPerDay * InstantFactor);
+                // a village has only its hearths: the other three have nowhere to land
+                if (st.Town == null) { fNow = 0; sNow = 0; lNow = 0; }
                 if (pNow != 0 || fNow != 0 || sNow != 0 || lNow != 0)
                 {
                     if (st.Town != null)
@@ -884,14 +894,7 @@ Write ONE development that follows directly from it: how the people, the nobles,
                     string why = string.IsNullOrWhiteSpace(fx.Reason) ? L.T("AIL_a9c3e7f1", "Sucesos del mundo") : (fx.Reason.Length > 60 ? fx.Reason.Substring(0, 60) + "…" : fx.Reason);
                     list.Add((v, why));
                 }
-                if (st.MapFaction is Kingdom k)
-                    foreach (var law in State.Laws)
-                    {
-                        if (law.KingdomId != k.StringId) continue;
-                        float v = stat == StatProsperity ? Math.Max(-1.5f, Math.Min(1.5f, law.ProsperityPerDay)) : stat == StatFood ? law.FoodPerDay : stat == StatSecurity ? law.SecurityPerDay : law.LoyaltyPerDay;
-                        if (Math.Abs(v) < 0.005f) continue;
-                        list.Add((v, L.T("AIL_a9c3e7f2", "Ley: ") + (string.IsNullOrWhiteSpace(law.Name) ? "?" : law.Name)));
-                    }
+                Laws.SettlementLines(st, stat == StatProsperity ? Laws.Prosperity : stat == StatFood ? Laws.Food : stat == StatSecurity ? Laws.Security : Laws.Loyalty, list);
             }
             catch { }
             return list;

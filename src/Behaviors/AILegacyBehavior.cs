@@ -27,6 +27,8 @@ namespace AILegacy.Behaviors
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, QuestSystem.OnDailyTick);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, QuestObjectives.OnSettlementEntered);
             CampaignEvents.SettlementEntered.AddNonSerializedListener(this, Diseases.OnSettlementEntered);
+            CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, Diseases.OnHourlyTick);
+            CampaignEvents.MapEventEnded.AddNonSerializedListener(this, Diseases.OnMapEventEnded);
             // Quarantine really closes the place: map AI parties stay away and the player is stopped at the gate
             CampaignEvents.AiHourlyTickEvent.AddNonSerializedListener(this, QuarantineRules.OnAiHourlyTick);
             CampaignEvents.GameMenuOpened.AddNonSerializedListener(this, QuarantineRules.OnGameMenuOpened);

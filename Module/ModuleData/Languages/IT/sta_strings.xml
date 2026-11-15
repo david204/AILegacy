@@ -1177,7 +1177,7 @@
     <string id="AIL_ef0295b5" text="Assedio a {0}" />
     <string id="AIL_ef08b937" text="senza clan" />
     <string id="AIL_ef1030cb" text="Nessuno ti ha visto: nessuno saprà che sei stato tu." />
-    <string id="AIL_ef8b7c72" text="Un re può creare una legge propria con effetti piccoli e giornalieri in tutte le sue città e castelli (lealtà, prosperità, sicurezza, cibo), e abrogarla." />
+    <string id="AIL_ef8b7c72" text="In una dichiarazione, un sovrano può creare una propria legge e abrogarla. I suoi effetti (su insediamenti, clan o gruppi) passano per i calcoli del gioco e compaiono nei suggerimenti con il nome della legge." />
     <string id="AIL_efa2c194" text="Arrestato dalla guardia" />
     <string id="AIL_effea661" text="Riassumi a partire da N turni" />
     <string id="AIL_f00983f3" text="Scrivi ciò che proclami davanti a Calradia. Ciò che deciderai con chiarezza (guerra, pace, alleanza, tributo, imposte, feudi…) verrà messo in atto; il resto rimarrà solo parole." />
@@ -1378,6 +1378,13 @@
     <string id="AIL_e7b1c512" text="Solo i sovrani iniziano e chiudono le guerre tra regni IA" />
     <string id="AIL_e7b1c513" text="Impedisce ai voti del gioco, agli accordi di chiamata alle armi e ad altre mod di dichiarare guerra o fare pace tra due regni IA: lo fanno solo le dichiarazioni dei loro sovrani. Le guerre nate da ciò che accade nel mondo (un attacco, una ribellione, un nuovo regno) e tutto ciò che riguarda il tuo regno non vengono toccati." />
     <string id="AIL_e7b1c514" text="{0} lo subisce di colpo: {1}" />
+    <string id="AIL_e7b1c515" text="Giorni in cui ricordano ciò che è stato detto loro (0 = sempre)" />
+    <string id="AIL_e7b1c516" text="Ciò che è arrivato a un personaggio tramite qualcun altro svanisce dopo questi giorni. Ciò che ha solo sentito di passaggio ha una sua impostazione, più breve, in D. Scene." />
+    <string id="AIL_e7b1c517" text="Mani attraverso cui può passare un messaggio" />
+    <string id="AIL_e7b1c518" text="Chi riceve un messaggio può passarlo ai suoi: uno pubblico a un paio di loro, uno privato a volte, un segreto solo se è tipo da tradire una confidenza. Ognuno sa chi glielo ha detto e da dove è partito. 0 = si ferma alla prima persona." />
+    <string id="AIL_e7b1c519" text="I messaggi possono avere risposta" />
+    <string id="AIL_e7b1c51a" text="Quando un personaggio manda un messaggio e ha bisogno di risposta, chi lo riceve rimanda la sua per la stessa strada, e il primo può dirtela la prossima volta che parlate. Una breve richiesta IA per risposta." />
+    <string id="AIL_e7b1c51b" text="Risposte al giorno, al massimo" />
     <string id="AIL_e5c9b3a1" text="Notizie" />
     <string id="AIL_e5c9b3a2" text="Memorie" />
     <string id="AIL_e5c9b3a3" text="Conferma" />
@@ -1503,5 +1510,177 @@
     <string id="AIL_e6b1c012" text="Serata con i tuoi uomini: denari a testa" />
     <string id="AIL_e6b1c013" text="Serata con i tuoi uomini: morale guadagnato" />
     <string id="AIL_e6b1c014" text="Serata con i tuoi uomini: giorni prima di poterla ripetere" />
+    <string id="AIL_e7b1c5a0" text="Lealtà al giorno" />
+    <string id="AIL_e7b1c5a1" text="Prosperità al giorno" />
+    <string id="AIL_e7b1c5a2" text="Sicurezza al giorno" />
+    <string id="AIL_e7b1c5a3" text="Cibo al giorno" />
+    <string id="AIL_e7b1c5a4" text="Milizia al giorno" />
+    <string id="AIL_e7b1c5a5" text="Focolari dei villaggi al giorno" />
+    <string id="AIL_e7b1c5a6" text="Produzione delle botteghe" />
+    <string id="AIL_e7b1c5a7" text="Milizia veterana" />
+    <string id="AIL_e7b1c5a8" text="Velocità di costruzione" />
+    <string id="AIL_e7b1c5a9" text="Ricambio delle reclute" />
+    <string id="AIL_e7b1c5aa" text="Gettito delle tasse" />
+    <string id="AIL_e7b1c5ab" text="Paghe delle guarnigioni" />
+    <string id="AIL_e7b1c5ac" text="Influenza del clan al giorno" />
+    <string id="AIL_e7b1c5ad" text="Entrate del clan" />
+    <string id="AIL_e7b1c5ae" text="Dimensione del gruppo" />
+    <string id="AIL_e7b1c5af" text="Paghe delle truppe" />
+    <string id="AIL_e7b1c5b0" text="Morale del gruppo" />
+    <string id="AIL_e7b1c5b1" text="Velocità del gruppo" />
+    <string id="AIL_e7b1c5b2" text="Costo in influenza degli eserciti" />
+    <string id="AIL_e7b1c5b3" text="Lealtà al giorno: min" />
+    <string id="AIL_e7b1c5b4" text="Lealtà al giorno: max" />
+    <string id="AIL_e7b1c5b5" text="Prosperità al giorno: min" />
+    <string id="AIL_e7b1c5b6" text="Prosperità al giorno: max" />
+    <string id="AIL_e7b1c5b7" text="Sicurezza al giorno: min" />
+    <string id="AIL_e7b1c5b8" text="Sicurezza al giorno: max" />
+    <string id="AIL_e7b1c5b9" text="Cibo al giorno: min" />
+    <string id="AIL_e7b1c5ba" text="Cibo al giorno: max" />
+    <string id="AIL_e7b1c5bb" text="Milizia al giorno: min" />
+    <string id="AIL_e7b1c5bc" text="Milizia al giorno: max" />
+    <string id="AIL_e7b1c5bd" text="Focolari dei villaggi al giorno: min" />
+    <string id="AIL_e7b1c5be" text="Focolari dei villaggi al giorno: max" />
+    <string id="AIL_e7b1c5bf" text="Produzione delle botteghe (%): min" />
+    <string id="AIL_e7b1c5c0" text="Produzione delle botteghe (%): max" />
+    <string id="AIL_e7b1c5c1" text="Milizia veterana (%): min" />
+    <string id="AIL_e7b1c5c2" text="Milizia veterana (%): max" />
+    <string id="AIL_e7b1c5c3" text="Velocità di costruzione (%): min" />
+    <string id="AIL_e7b1c5c4" text="Velocità di costruzione (%): max" />
+    <string id="AIL_e7b1c5c5" text="Ricambio delle reclute (%): min" />
+    <string id="AIL_e7b1c5c6" text="Ricambio delle reclute (%): max" />
+    <string id="AIL_e7b1c5c7" text="Gettito delle tasse (%): min" />
+    <string id="AIL_e7b1c5c8" text="Gettito delle tasse (%): max" />
+    <string id="AIL_e7b1c5c9" text="Paghe delle guarnigioni (%): min" />
+    <string id="AIL_e7b1c5ca" text="Paghe delle guarnigioni (%): max" />
+    <string id="AIL_e7b1c5cb" text="Influenza del clan al giorno: min" />
+    <string id="AIL_e7b1c5cc" text="Influenza del clan al giorno: max" />
+    <string id="AIL_e7b1c5cd" text="Entrate del clan (%): min" />
+    <string id="AIL_e7b1c5ce" text="Entrate del clan (%): max" />
+    <string id="AIL_e7b1c5cf" text="Dimensione del gruppo: min" />
+    <string id="AIL_e7b1c5d0" text="Dimensione del gruppo: max" />
+    <string id="AIL_e7b1c5d1" text="Paghe delle truppe (%): min" />
+    <string id="AIL_e7b1c5d2" text="Paghe delle truppe (%): max" />
+    <string id="AIL_e7b1c5d3" text="Morale del gruppo: min" />
+    <string id="AIL_e7b1c5d4" text="Morale del gruppo: max" />
+    <string id="AIL_e7b1c5d5" text="Velocità del gruppo (%): min" />
+    <string id="AIL_e7b1c5d6" text="Velocità del gruppo (%): max" />
+    <string id="AIL_e7b1c5d7" text="Costo in influenza degli eserciti (%): min" />
+    <string id="AIL_e7b1c5d8" text="Costo in influenza degli eserciti (%): max" />
+    <string id="AIL_e7b1c5d9" text="Leggi" />
+    <string id="AIL_e7b1c5da" text="I sovrani possono adottare le politiche del gioco" />
+    <string id="AIL_e7b1c5db" text="In una dichiarazione, un sovrano può adottare o abolire una delle politiche di regno del gioco. Entra in vigore subito, senza votazione, e compare in Regno › Politiche." />
+    <string id="AIL_e7b1c5dc" text="Mostra le leggi create in Regno › Politiche" />
+    <string id="AIL_e7b1c5dd" text="Le leggi create dal sovrano del tuo regno compaiono tra le politiche attive, con testo ed effetti. Lì non si possono votare." />
+    <string id="AIL_e7b1c5de" text="Limite rigido per le leggi create dai sovrani: un valore fuori da questo intervallo viene ridotto, anche per le leggi già in vigore. L'intervallo viene comunicato all'IA." />
+    <string id="AIL_e7b1c5df" text="città" />
+    <string id="AIL_e7b1c5e0" text="castelli" />
+    <string id="AIL_e7b1c5e1" text="villaggi" />
+    <string id="AIL_e7b1c5e2" text="solo il sovrano" />
+    <string id="AIL_e7b1c5e3" text="clan regnante" />
+    <string id="AIL_e7b1c5e4" text="feudi del clan regnante" />
+    <string id="AIL_e7b1c5e5" text="gli altri clan" />
+    <string id="AIL_e7b1c5e6" text="feudi degli altri clan" />
+    <string id="AIL_e7b1c5e7" text="clan di livello {0} o superiore" />
+    <string id="AIL_e7b1c5e8" text="{0} adotta la politica «{1}»." />
+    <string id="AIL_e7b1c5e9" text="{0} abolisce la politica «{1}»." />
+    <string id="AIL_e7b1c5ea" text="Legge creata per decreto del sovrano. Non si vota: solo chi regna può abrogarla, con una dichiarazione." />
+    <string id="AIL_e7b1c5eb" text="Leggi in vigore: {0}" />
+    <string id="AIL_e7b1c5ec" text="Legge" />
+    <string id="AIL_e7b1c5ed" text="Legge proclamata da {0}." />
+    <string id="AIL_e7b1c5ee" text="Ti sei ammalato: {0}." />
+    <string id="AIL_e7b1c5ef" text="{0} si è ammalato: {1}." />
+    <string id="AIL_e7b1c5f0" text="{0} dei tuoi soldati si ammalano di {1}." />
+    <string id="AIL_e7b1c5f1" text="{0} dei tuoi prigionieri si ammalano di {1}." />
+    <string id="AIL_e7b1c5f2" text="Sei guarito: {0}." />
+    <string id="AIL_e7b1c5f3" text="{0} è guarito: {1}." />
+    <string id="AIL_e7b1c5f4" text="I tuoi soldati si sono liberati del male: {0}." />
+    <string id="AIL_e7b1c5f5" text="Il tuo male peggiora: {0} ({1}%). Ti serve un medico." />
+    <string id="AIL_e7b1c5f6" text="{0} dei tuoi soldati muoiono di {1}." />
+    <string id="AIL_e7b1c5f7" text="{0} dei tuoi prigionieri muoiono di {1}." />
+    <string id="AIL_e7b1c5f8" text="{0} è morto di malattia: {1}." />
+    <string id="AIL_e7b1c5f9" text="Malattia ({0})" />
+    <string id="AIL_e7b1c5fb" text="Malato: {0}" />
+    <string id="AIL_e7b1c5fc" text="&#10;Soffri di {0} ({1}), avanzamento {2}%{3}." />
+    <string id="AIL_e7b1c5fd" text=" (in cura)" />
+    <string id="AIL_e7b1c5fe" text="&#10;{0} dei tuoi compagni sono malati." />
+    <string id="AIL_e7b1c5ff" text="&#10;{0} dei tuoi soldati e {1} dei tuoi prigionieri sono malati." />
+    <string id="AIL_e7b1c600" text="{=!}Far curare la tua malattia e quella dei tuoi compagni ({AIL_H_SICK}{GOLD_ICON})" />
+    <string id="AIL_e7b1c601" text="{=!}Né tu né i tuoi compagni avete una malattia non curata." />
+    <string id="AIL_e7b1c602" text="I medici iniziano la cura. Migliore è l'ospedale, prima farà effetto." />
+    <string id="AIL_e7b1c603" text="{=!}Far curare i tuoi soldati e prigionieri malati ({AIL_H_SICKT}{GOLD_ICON})" />
+    <string id="AIL_e7b1c604" text="{=!}Non hai soldati né prigionieri con una malattia non curata." />
+    <string id="AIL_e7b1c605" text="I medici si occupano dei tuoi malati." />
+    <string id="AIL_e7b1c606" text="Muore {0}" />
+    <string id="AIL_e7b1c607" text="raffreddore" />
+    <string id="AIL_e7b1c608" text="tosse da campo" />
+    <string id="AIL_e7b1c609" text="febbre di strada" />
+    <string id="AIL_e7b1c60a" text="mal di ventre" />
+    <string id="AIL_e7b1c60b" text="febbri" />
+    <string id="AIL_e7b1c60c" text="febbre del gelo" />
+    <string id="AIL_e7b1c60d" text="colpo di sole" />
+    <string id="AIL_e7b1c60e" text="febbre di bordo" />
+    <string id="AIL_e7b1c60f" text="flusso di sangue" />
+    <string id="AIL_e7b1c611" text="Limiti: tasso di contagio massimo di una malattia" />
+    <string id="AIL_e7b1c612" text="Quanto può essere contagiosa al massimo una malattia, che lo dica l'evento che l'ha portata o che si calcoli dalla gravità. Scala tutte le probabilità di contagio qui sotto." />
+    <string id="AIL_e7b1c613" text="Limiti: probabilità giornaliera massima di morire (0 = nessuno muore di malattia)" />
+    <string id="AIL_e7b1c614" text="Uccidono solo le malattie serie (gravità 3 o più): di sicuro quando arrivano fino in fondo senza cure, e con questo rischio giornaliero al massimo dalla metà in poi. Con 0 nessun eroe e nessun soldato muore di malattia." />
+    <string id="AIL_e7b1c615" text="Limiti: moltiplicatore di combattimento minimo" />
+    <string id="AIL_e7b1c616" text="Il massimo di debolezza per un combattente malato: danno, velocità dell'arma e, per metà, movimento in battaglia. 1 = la malattia non indebolisce mai nessuno in combattimento." />
+    <string id="AIL_e7b1c617" text="Limiti: moltiplicatore minimo di velocità sulla mappa" />
+    <string id="AIL_e7b1c618" text="Limiti: massima penalità al morale" />
+    <string id="AIL_e7b1c619" text="Limiti: massima penalità alle abilità di combattimento" />
+    <string id="AIL_e7b1c61a" text="Punti che un eroe malato perde, nel caso peggiore, nelle abilità con le armi, Equitazione e Atletica mentre combatte in una scena." />
+    <string id="AIL_e7b1c61b" text="Contagio: dentro un luogo colpito (ogni 6 ore)" />
+    <string id="AIL_e7b1c61c" text="Probabilità base, ogni 6 ore, che un eroe che si trova in una città, un castello o un villaggio colpito si contagi. La cambiano la gravità, l'affollamento, il tasso di contagio e un buon guaritore." />
+    <string id="AIL_e7b1c61d" text="Contagio: camminando in un luogo colpito (al minuto)" />
+    <string id="AIL_e7b1c61e" text="Contagio: un capo dai propri soldati malati (al giorno)" />
+    <string id="AIL_e7b1c61f" text="Probabilità giornaliera quando tutti i soldati sono malati; con meno malati cala in proporzione. Vale per te, i tuoi compagni e ogni nobile." />
+    <string id="AIL_e7b1c620" text="Contagio: nella sala del signore, per ogni nobile malato presente" />
+    <string id="AIL_e7b1c621" text="Contagio: moltiplicatore dentro un luogo in quarantena" />
+    <string id="AIL_e7b1c622" text="Con le porte chiuse e i malati tenuti in disparte, chi è dentro si contagia meno. 1 = la quarantena non aiuta chi è dentro; 0 = dentro non si contagia nessuno." />
+    <string id="AIL_e7b1c623" text="Contagio: moltiplicatore verso e dai prigionieri (0 = disattivato)" />
+    <string id="AIL_e7b1c624" text="Malanni di stagione in viaggio" />
+    <string id="AIL_e7b1c625" text="Malanni lievi (un raffreddore, una tosse da campo, le febbri) per eroi e soldati che viaggiano sulla mappa. Più probabili d'inverno, con pioggia o neve e in mare. Passano in due settimane e nel frattempo indeboliscono un po'." />
+    <string id="AIL_e7b1c626" text="Stagione: probabilità base (ogni 6 ore)" />
+    <string id="AIL_e7b1c627" text="Stagione: probabilità massima dopo tutte le aggiunte" />
+    <string id="AIL_e7b1c628" text="Stagione: aggiunta in inverno" />
+    <string id="AIL_e7b1c629" text="Stagione: aggiunta in autunno" />
+    <string id="AIL_e7b1c62a" text="Stagione: aggiunta in primavera" />
+    <string id="AIL_e7b1c62b" text="Stagione: aggiunta in estate" />
+    <string id="AIL_e7b1c62c" text="Stagione: aggiunta con pioggia leggera" />
+    <string id="AIL_e7b1c62d" text="Stagione: aggiunta con pioggia forte o tempesta" />
+    <string id="AIL_e7b1c62e" text="Stagione: aggiunta con nevicata" />
+    <string id="AIL_e7b1c62f" text="Stagione: aggiunta con bufera di neve" />
+    <string id="AIL_e7b1c630" text="Stagione: aggiunta su terreno bagnato" />
+    <string id="AIL_e7b1c631" text="Stagione: aggiunta a bordo, in mare" />
+    <string id="AIL_e7b1c632" text="Cura: costo base in ospedale" />
+    <string id="AIL_e7b1c633" text="Curare un eroe malato costa questo, per la gravità della malattia, per il livello dei prezzi della città. I nobili pagano lo stesso quando arrivano malati." />
+    <string id="AIL_e7b1c634" text="Cura: moltiplicatore di costo per soldati e prigionieri" />
+    <string id="AIL_e7b1c635" text="Cura: moltiplicatore del prezzo della prevenzione" />
+    <string id="AIL_e7b1c636" text="Cura: quota della Medicina del chirurgo che arriva ai soldati" />
+    <string id="AIL_e7b1c637" text="Velocità con cui peggiora una malattia non curata" />
+    <string id="AIL_e7b1c638" text="1 = una malattia lieve impiega circa tre mesi ad arrivare al peggio e una peste meno di tre settimane. La cura, o un chirurgo abbastanza bravo per quella malattia, la fanno regredire." />
+    <string id="AIL_e7b1c639" text="Velocità di guarigione sotto cura" />
+    <string id="AIL_e7b1c63a" text="Stagione: giorni di immunità dopo esserne guariti (0 = nessuno)" />
+    <string id="AIL_e7b1c63b" text="Quota dei giorni rimanenti che un focolaio trasmette quando salta in un altro luogo" />
+    <string id="AIL_e7b1c63c" text="Mostra la risposta mentre viene scritta (streaming)" />
+    <string id="AIL_e7b1c63d" text="La battuta del personaggio cresce nel riquadro di dialogo mentre l'IA la scrive, invece di apparire tutta insieme. Solo nel dialogo. Se un fornitore non lo supporta, la mod torna da sola alla risposta intera con quel fornitore." />
+    <string id="AIL_e7b1c63e" text="{0} entra con te." />
+    <string id="AIL_e7b1c63f" text="{0} non ti segue oltre la porta." />
+    <string id="AIL_e7b1c640" text="{0} ti aspetta fuori." />
+    <string id="AIL_e7b1c641" text="{0} ti porta a {1}: seguilo fino alla porta e attraversala." />
+    <string id="AIL_e7b1c642" text="{0} ti ha portato fino a {1}." />
+    <string id="AIL_e7b1c643" text="{0} si stanca di aspettarti alla porta." />
+    <string id="AIL_e7b1c644" text="{0} si siede per terra." />
+    <string id="AIL_e7b1c645" text="{0} lascia lo scontro." />
+    <string id="AIL_e7b1c646" text="{0} cambia schieramento e combatte al tuo fianco." />
+    <string id="AIL_e7b1c647" text="Chi ti accompagna ti segue oltre le porte" />
+    <string id="AIL_e7b1c648" text="Un personaggio con un nome che cammina con te ti accompagna quando attraversi una porta verso la taverna, la sala o le strade dello stesso insediamento, e un personaggio può offrirsi di portarti in uno di quei luoghi. Gli abitanti senza nome si fermano alla porta. Disattivato: chi ti segue resta indietro a ogni porta." />
+    <string id="AIL_e7b1c649" text="In uno scontro, chi lo aiuta può ritirarsi o cambiare schieramento" />
+    <string id="AIL_e7b1c64a" text="Chi combatte al fianco del tuo avversario può abbassare l'arma e farsi da parte, o rivoltarsi contro di lui, quando lo scontro va male, se è nel suo carattere. Si decide nella stessa richiesta delle frasi di combattimento, quindi serve «Lines during fights» attivo. Mai in una scazzottata o in un duello amichevole." />
+    <string id="AIL_e7b1c64b" text="{0} ti aspetterà alla porta quando avrai finito di parlare." />
+    <string id="AIL_e7b1c64c" text="Il riquadro di dialogo mostra solo le loro parole" />
+    <string id="AIL_e7b1c64d" text="Il riquadro di dialogo mostra solo ciò che dice il personaggio, senza la tua frase sopra e senza il suo nome davanti. Attivalo se usi una mod vocale che legge il riquadro ad alta voce, così non legge anche la tua frase. La tua frase resta nel pannello Cronologia." />
   </strings>
 </base>

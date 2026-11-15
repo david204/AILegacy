@@ -209,7 +209,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
         /// <summary>Forces every template (static fields) to register before they are written to disk.</summary>
-        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); }
+        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); }
 
         // =========================================================== dialogue
 
@@ -520,6 +520,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             sys.AppendLine(ContextBuilder.DescribeWorld(s));
             try { var fx = WorldSim.DescribeEffectsAt(s.Settlement ?? s.HomeSettlement); if (fx.Length > 0) sys.AppendLine(fx); } catch { }
             try { var sick = Diseases.DescribeAt(s.Settlement ?? s.HomeSettlement); if (sick.Length > 0) sys.AppendLine(sick); } catch { }
+            try { var ill = Diseases.DescribeSick(s.Hero); if (ill.Length > 0) sys.AppendLine(ill); } catch { }
             try { var mods = AILegacy.Api.ModHooks.DescribeContext(s.Hero); if (mods.Length > 0) sys.AppendLine(mods); } catch { }
             if (!string.IsNullOrWhiteSpace(s.Memory.RecentTalk) && (System.DateTime.UtcNow - s.Memory.RecentTalkAt).TotalMinutes < 10)
                 sys.AppendLine(s.Memory.RecentTalk + " (They may have overheard it.)");

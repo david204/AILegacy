@@ -689,6 +689,21 @@ namespace AILegacy.Dialogue
                 }
             },
 
+            new ActionDef
+            {
+                Name = "go_into", Usage = "go_into:<place>",
+                Description = "You take the other person, on foot, to another part of this settlement and go in with them: you walk to the door and they come through it with you. " +
+                              "Use it when they ask you to show them the way or to go there together, in the SAME reply in which you agree. Only to one of the places listed.",
+                IsAvailable = s => SceneAgent() != null && SceneTravel.CanLead(SceneAgent()),
+                Extra = s => "Places you can take them to from here: " + SceneTravel.Places() + ".",
+                Execute = (s, arg, ctx) =>
+                {
+                    var a = SceneAgent();
+                    if (a == null) return null;
+                    return SceneActions.Apply(a, "go_into:" + arg, new List<TaleWorlds.MountAndBlade.Agent>()) ? L.F("AIL_e7b1c64b", $"{s.Name} te espera en la puerta cuando termines de hablar.") : null;
+                }
+            },
+
             // ----------------------------------------------------------- orders on the map
             new ActionDef
             {
@@ -1412,17 +1427,19 @@ namespace AILegacy.Dialogue
             // ----------------------------------------------------------- messages to other NPCs
             new ActionDef
             {
-                Name = "send_word", Usage = "send_word:<name of a real person>|<what you tell them, one or two sentences in English>|<public, private or secret>",
+                Name = "send_word", Usage = "send_word:<name of a real person>|<what you tell them, one or two sentences in English>|<public, private or secret>|<answer, or empty>",
                 Description = "You pass on to another real person something about the one in front of you: what they said, did, asked of you, promised, threatened or confessed. " +
                               "Use it when your duty, loyalty or interest calls for it (warn your lord, tell your spouse, alert a friend, denounce them), or when they ask you to carry a message. " +
-                              "It travels at the speed of a rider. public = you will tell it around; private = for that person only; secret = in confidence. They do not see this unless you tell them.",
+                              "It travels at the speed of a rider. public = you will tell it around; private = for that person only; secret = in confidence. They do not see this unless you tell them. " +
+                              "Write answer as the last part when you need that person's reply (you are asking them something, or carrying a question for the one in front of you): their word comes back to you by the same road, and you can pass it on when you next speak.",
                 IsAvailable = s => S.Get.EnableInfoExchange && s.IsHero && !s.Hero.IsPrisoner && InfoExchange.Confidants(s.Hero, 1).Count > 0,
                 Extra = s => InfoExchange.DescribeConfidants(s.Hero),
                 Execute = (s, arg, ctx) =>
                 {
                     var parts = (arg ?? "").Split('|');
                     if (parts.Length < 2) return null;
-                    return InfoExchange.Send(s, parts[0].Trim(), parts[1].Trim(), parts.Length > 2 ? parts[2] : "private");
+                    bool wants = parts.Length > 3 && parts[3].Trim().ToLowerInvariant().StartsWith("answer");
+                    return InfoExchange.Send(s, parts[0].Trim(), parts[1].Trim(), parts.Length > 2 ? parts[2] : "private", wants);
                 }
             },
 

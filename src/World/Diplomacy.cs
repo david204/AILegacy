@@ -200,8 +200,9 @@ Actions you may take (each is an object in ""actions""; target_kingdom is always
 - grant_fief (settlement = a town or castle held by your own clan, clan = a vassal clan of yours): reward loyalty.
 - confiscate_fief (settlement = a town or castle of one of your vassal clans): take it for the crown; they will resent it.
 - set_tax (tax_percent from {tax_min} to {tax_max}; 0 removes it): an extra crown tax on your towns. More gold, but loyalty and prosperity suffer.
-- enact_law (law_name, law_text in {language}, law_effects = small daily changes in all your towns and castles: loyalty -1..1, prosperity -1.5..1.5, security -1..1, food -3..3): proclaim a law of your own. A law that gives with one hand takes with the other; at most {max_laws} laws at a time.
+- enact_law (law_name, law_text in {language}, law_effects = a list of effects taken from the catalogue of law effects below): proclaim a law of your own. It is in force at once, with no vote. A law that gives with one hand takes with the other; at most {max_laws} laws at a time.
 - repeal_law (law_name): abolish one of your laws in force.
+- enact_policy / repeal_policy (policy = the id of an established policy from the lists below): adopt or abolish one of the old policies of the realm by decree, with no vote.
 - declare_war_on_clan / make_peace_with_clan (clan = an independent clan that belongs to no kingdom, such as one you expelled or that rebelled).
 - quarantine_settlement (settlement = a town, castle or village of yours where there is sickness, quarantine_days 5-60) / lift_quarantine (settlement): closing it stops the sickness from spreading but hurts trade and tempers.
 
@@ -210,7 +211,7 @@ Answer ONLY with JSON:
   ""statement"": ""the public statement, {min_len}-{max_len} characters, in {language}"",
   ""summary"": ""what you said and did, in ONE English sentence"",
   ""importance"": 1-4,
-  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": { ""loyalty"": 0, ""prosperity"": 0, ""security"": 0, ""food"": 0 }, ""quarantine_days"": 0 } ],
+  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ],
   ""relation_changes"": [ { ""kingdom"": ""id"", ""change"": -{max_stance} to {max_stance} } ],
   ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
 Use only the fields an action needs. relation_changes: how your stance towards other crowns shifts because of this. kingdom_engagement: the daily chance that another ruler answers you.");
@@ -276,6 +277,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             sys.AppendLine(); sys.AppendLine("## Who you are"); sys.AppendLine(DescribeRuler(ruler));
             sys.AppendLine(); sys.AppendLine($"## Your realm, {k.Name} [id: {k.StringId}] — clans and their fiefs"); sys.AppendLine(DescribeRealm(k));
             sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth, right now)"); sys.AppendLine(WorldSim.DescribeKingdoms(k));
+            var lawsText = Laws.ForRuler(k);
+            if (lawsText.Length > 0) { sys.AppendLine(); sys.AppendLine(lawsText); }
             sys.AppendLine(); sys.AppendLine("## PENDING PROPOSALS DIRECTED AT YOU (answer them)"); sys.AppendLine(DescribeProposalsTo(k));
             var own = St.Proposals.Where(p => p.From == k.StringId).ToList();
             if (own.Count > 0)
@@ -390,6 +393,23 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             var o = WorldSim.FindKingdom((string)a["target_kingdom"]);
             string kn = k.Name.ToString();
             string Bad(string why) { Log.Warn($"[diplomacia] {kn}: acción {type} ignorada ({why})"); return null; }
+            // The game's own policies, through the same calls its votes end in, so they show in Kingdom > Policies
+            string EnactPolicy(PolicyObject policy)
+            {
+                if (!Laws.PoliciesEnabled) return Bad("políticas del juego desactivadas");
+                if (k.HasPolicy(policy)) return Bad("esa política ya está en vigor");
+                k.AddPolicy(policy);
+                Log.Info($"[leyes] {kn} adopta la política {policy.StringId}");
+                return L.F("AIL_e7b1c5e8", $"{kn} adopta la política «{policy.Name}».");
+            }
+            string RepealPolicy(PolicyObject policy)
+            {
+                if (!Laws.PoliciesEnabled) return Bad("políticas del juego desactivadas");
+                if (!k.HasPolicy(policy)) return Bad("esa política no está en vigor");
+                k.RemovePolicy(policy);
+                Log.Info($"[leyes] {kn} deroga la política {policy.StringId}");
+                return L.F("AIL_e7b1c5e9", $"{kn} deroga la política «{policy.Name}».");
+            }
 
             switch (type)
             {
@@ -596,28 +616,48 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (!cfg.EnableKingdomLaws) return Bad("leyes desactivadas");
                     string name = WorldSim.Clean((string)a["law_name"], 60), text = WorldSim.Clean((string)a["law_text"], 500);
                     if (name.Length < 3) return Bad(L.T("AIL_f48c59a0", "ley sin nombre"));
-                    if (St.Laws.Count(l => l.KingdomId == k.StringId) >= cfg.MaxLawsPerKingdom) return Bad(L.T("AIL_8a3f11e5", "demasiadas leyes en vigor"));
-                    var fx = a["law_effects"] as JObject ?? new JObject();
-                    float F(string key, float max) { float v = 0f; try { v = (float?)fx[key] ?? 0f; } catch { } return Math.Max(-max, Math.Min(max, v)); }
+                    // A ruler who names an old policy of the realm as a law wants that policy
+                    var named = Laws.FindPolicy(name);
+                    if (named != null && a["law_effects"] == null) return EnactPolicy(named);
+                    bool replaces = St.Laws.Any(l => l.KingdomId == k.StringId && WorldSim.Norm(l.Name) == WorldSim.Norm(name));
+                    if (!replaces && St.Laws.Count(l => l.KingdomId == k.StringId) >= cfg.MaxLawsPerKingdom) return Bad(L.T("AIL_8a3f11e5", "demasiadas leyes en vigor"));
+                    var problems = new List<string>();
+                    var effects = Laws.ParseEffects(a["law_effects"], problems);
+                    if (problems.Count > 0) Log.Warn($"[leyes] {kn}, «{name}»: {string.Join("; ", problems)}");
                     St.Laws.RemoveAll(l => l.KingdomId == k.StringId && WorldSim.Norm(l.Name) == WorldSim.Norm(name));
                     var law = new KingdomLaw
                     {
                         Id = WorldSim.NewId("law"), KingdomId = k.StringId, Name = name, Text = text, EnactedDay = CampaignTime.Now.ToDays, AuthorName = k.Leader.Name.ToString(),
-                        LoyaltyPerDay = F("loyalty", 1f), ProsperityPerDay = F("prosperity", 1.5f), SecurityPerDay = F("security", 1f), FoodPerDay = F("food", 3f),
+                        Effects = effects,
                     };
                     St.Laws.Add(law);
-                    var parts = new List<string>();
-                    if (law.LoyaltyPerDay != 0) parts.Add($"lealtad {law.LoyaltyPerDay:+0.#;-0.#}"); if (law.ProsperityPerDay != 0) parts.Add($"prosperidad {law.ProsperityPerDay:+0.#;-0.#}");
-                    if (law.SecurityPerDay != 0) parts.Add($"seguridad {law.SecurityPerDay:+0.#;-0.#}"); if (law.FoodPerDay != 0) parts.Add($"comida {law.FoodPerDay:+0.#;-0.#}");
-                    return L.F("AIL_203a7d74", $"{kn} promulga la ley «{name}»") + (parts.Count > 0 ? L.F("AIL_782deaf5", $" (al día en sus ciudades y castillos: {string.Join(", ", parts)})") : "") + ".";
+                    Laws.Invalidate();
+                    var parts = Laws.DescribeAll(law);
+                    Log.Info($"[leyes] {kn} promulga «{name}»: {(parts.Count > 0 ? string.Join("; ", parts) : "sin efectos")}");
+                    return L.F("AIL_203a7d74", $"{kn} promulga la ley «{name}»") + (parts.Count > 0 ? " (" + string.Join("; ", parts) + ")" : "") + ".";
                 }
                 case "repeal_law":
                 {
-                    string n = WorldSim.Norm((string)a["law_name"]);
+                    string n = WorldSim.Norm((string)a["law_name"] ?? (string)a["policy"]);
                     var law = St.Laws.FirstOrDefault(l => l.KingdomId == k.StringId && (WorldSim.Norm(l.Name) == n || (n.Length > 2 && (WorldSim.Norm(l.Name).Contains(n) || n.Contains(WorldSim.Norm(l.Name))))));
-                    if (law == null) return Bad("ley no encontrada");
+                    if (law == null)
+                    {
+                        var old = Laws.FindPolicy((string)a["law_name"] ?? (string)a["policy"]);
+                        return old != null ? RepealPolicy(old) : Bad("ley no encontrada");
+                    }
                     St.Laws.Remove(law);
+                    Laws.Invalidate();
                     return L.F("AIL_59559c9d", $"{kn} deroga la ley «{law.Name}».");
+                }
+                case "enact_policy":
+                {
+                    var policy = Laws.FindPolicy((string)a["policy"] ?? (string)a["law_name"]);
+                    return policy == null ? Bad("política no encontrada") : EnactPolicy(policy);
+                }
+                case "repeal_policy":
+                {
+                    var policy = Laws.FindPolicy((string)a["policy"] ?? (string)a["law_name"]);
+                    return policy == null ? Bad("política no encontrada") : RepealPolicy(policy);
                 }
                 case "declare_war_on_clan":
                 case "make_peace_with_clan":
@@ -745,9 +785,10 @@ Use only the fields an action needs. relation_changes: how your stance towards o
         private static readonly Tpl TPlayerStatement = new Tpl("kingdom_statement/player_statement_analysis.txt",
 @"{ruler}, ruler of {kingdom} [id: {kingdom_id}], has issued the public statement below. You are the chancellor: turn the words into the actions they really contain, nothing more.
 - Use only what the statement clearly says. If it only speaks and decides nothing, return no actions.
-- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days, reparations, settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects { loyalty -1..1, prosperity -1.5..1.5, security -1..1, food -3..3 }), repeal_law (law_name), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
+- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days, reparations, settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects = a list of effects from the catalogue of law effects below), repeal_law (law_name), enact_policy (policy = id of an established policy from the lists below), repeal_policy (policy), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
 - target_kingdom must be a kingdom id from the data.
-Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }");
+Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
+For a law, law_name and law_text are the ruler's own words; choose law_effects that do what those words say, within the ranges.");
 
         public static void Touch() { var _ = TStatement.Key + TPlayerStatement.Key; }
 
@@ -768,6 +809,8 @@ Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English s
                     sys.AppendLine(TPlayerStatement.Format("ruler", Hero.MainHero.Name, "kingdom", k.Name, "kingdom_id", k.StringId));
                     sys.AppendLine(); sys.AppendLine($"## The realm of {k.Name}: clans and fiefs"); sys.AppendLine(DescribeRealm(k));
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
+                    var lawsText = Laws.ForRuler(k);
+                    if (lawsText.Length > 0) { sys.AppendLine(); sys.AppendLine(lawsText); }
                     sys.AppendLine(); sys.AppendLine("## Pending proposals directed at this realm"); sys.AppendLine(DescribeProposalsTo(k));
                     WorldSim.Say(L.T("AIL_ebf54145", "Tus heraldos llevan la declaración a todos los rincones…"), Colors.Cyan);
                     // With important: true it waits behind a running request instead of being dropped, and retries once if it fails

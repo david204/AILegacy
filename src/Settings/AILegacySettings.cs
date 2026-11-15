@@ -903,7 +903,7 @@ namespace AILegacy.Settings
         public int ActionRagTopK { get; set; } = 7;
 
         [SettingPropertyText("{=AIL_d4b8a2f9}Vector model (empty = automatic)", Order = 26, RequireRestart = false,
-            HintText = "{=AIL_d4b8a2fa}For providers whose own vector model field is empty and whose service the mod does not know. Empty: gemini-embedding-001 with Gemini, text-embedding-3-small with OpenAI, embedding-3 with GLM, nomic-embed-text with Ollama; DeepSeek and Groq do not give vectors. Type another only if your provider uses a different name.")]
+            HintText = "{=AIL_d4b8a2fa}For providers whose own vector model field is empty and whose service the mod does not know. Empty: gemini-embedding-001 with Gemini, text-embedding-3-small with OpenAI, mistral-embed with Mistral, embedding-3 with GLM (Chinese endpoint only), nomic-embed-text with Ollama; DeepSeek, Groq and international GLM do not give vectors. Type another only if your provider uses a different name.")]
         [SettingPropertyGroup("{=AIL_370ba9dd}4. Memory", GroupOrder = 4)]
         public string EmbeddingModel { get; set; } = "";
 
@@ -1261,6 +1261,16 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
         public bool SceneErrands { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c647}Whoever walks with you follows you through doors", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c648}A named character who is walking with you comes along when you go through a door to the tavern, the hall or the streets of the same settlement, and a character can offer to take you to one of those places. Nameless townsfolk stop at the door. Off: whoever follows you is left behind at every door.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public bool FollowAcrossDoors { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c649}In a fight, their helpers can give up or change sides", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c64a}Those who fight beside your opponent can lower their weapon and step back, or turn on them, when the fight goes badly, if it fits who they are. Decided in the same request as the fight lines, so it needs \"Lines during fights\" on. Never in a fist fight or a friendly duel.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public bool FightHelpersWaver { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_90722e01}Silence after a chat (seconds)", 30, 900, Order = 4, RequireRestart = false,
             HintText = "{=AIL_c43fad42}Time without new chats after one ends. The same two take twice as long to talk again.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
@@ -1374,6 +1384,152 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public int DiseaseTroopChancePerSeverity { get; set; } = 8;
 
+        // People and parties fall ill: limits of what a disease may do
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c611}Limits: highest spread rate of a disease", 0.1f, 1f, "0.00", Order = 30, RequireRestart = false,
+            HintText = "{=AIL_e7b1c612}How catching a disease can be at most, whether the event that brought it says so or it is worked out from its severity. It scales every contagion chance below.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseMaxSpreadRate { get; set; } = 0.8f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c613}Limits: highest daily chance of dying (0 = nobody dies of disease)", 0f, 1f, "0.00", Order = 31, RequireRestart = false,
+            HintText = "{=AIL_e7b1c614}Only serious diseases (severity 3 or more) kill: surely when they run their full course untreated, and with this daily risk at most from the halfway point. At 0 no hero and no soldier dies of disease.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseMaxDeathChance { get; set; } = 0.3f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c615}Limits: lowest combat multiplier", 0.1f, 1f, "0.00", Order = 32, RequireRestart = false,
+            HintText = "{=AIL_e7b1c616}The weakest a sick fighter can get: damage, weapon speed and, by half, movement in a fight. 1 = disease never weakens anyone in combat.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseMinCombatModifier { get; set; } = 0.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c617}Limits: lowest map speed multiplier", 0.1f, 1f, "0.00", Order = 33, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseMinMapSpeedModifier { get; set; } = 0.5f;
+
+        [SettingPropertyInteger("{=AIL_e7b1c618}Limits: largest morale penalty", -50, 0, Order = 34, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public int DiseaseMaxMoralePenalty { get; set; } = -30;
+
+        [SettingPropertyInteger("{=AIL_e7b1c619}Limits: largest penalty to fighting skills", -50, 0, Order = 35, RequireRestart = false,
+            HintText = "{=AIL_e7b1c61a}Points a sick hero loses, at worst, in weapon skills, Riding and Athletics while fighting in a scene.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public int DiseaseMaxPhysicalSkillPenalty { get; set; } = -30;
+
+        // How it is caught
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c61b}Contagion: inside a stricken place (every 6 hours)", 0f, 0.3f, "0.000", Order = 40, RequireRestart = false,
+            HintText = "{=AIL_e7b1c61c}Base chance, every 6 hours, that a hero staying in a town, castle or village with an outbreak catches it. Severity, crowding, the spread rate and a good healer change it.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SettlementInfectionBaseChance { get; set; } = 0.05f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c61d}Contagion: walking the streets of a stricken place (per minute)", 0f, 0.3f, "0.000", Order = 41, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float MissionInfectionBaseChance { get; set; } = 0.08f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c61e}Contagion: a leader from their own sick soldiers (daily)", 0f, 0.5f, "0.000", Order = 42, RequireRestart = false,
+            HintText = "{=AIL_e7b1c61f}Daily chance when every soldier is sick; with fewer sick it shrinks in proportion. It applies to you, your companions and every lord.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float PlayerFromTroopsBaseChance { get; set; } = 0.175f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c620}Contagion: in the lord's hall, per sick lord present", 0f, 0.1f, "0.000", Order = 43, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float LordHallInfectionChancePerLord { get; set; } = 0.025f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c621}Contagion: multiplier inside a quarantined place", 0f, 1f, "0.00", Order = 44, RequireRestart = false,
+            HintText = "{=AIL_e7b1c622}With the gates shut and the sick kept apart, those inside catch it less. 1 = quarantine does not help those inside; 0 = nobody inside catches it.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float QuarantineInfectionReduction { get; set; } = 0.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c623}Contagion: multiplier to and from prisoners (0 = off)", 0f, 1f, "0.00", Order = 45, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float PrisonerSpreadModifier { get; set; } = 0.5f;
+
+        // Seasonal illnesses
+        [SettingPropertyBool("{=AIL_e7b1c624}Seasonal illnesses on the road", Order = 50, RequireRestart = false,
+            HintText = "{=AIL_e7b1c625}Mild illnesses (a cold, a camp cough, the ague) for heroes and soldiers travelling the map. More likely in winter, in rain or snow, and at sea. They pass in two weeks and weaken a little meanwhile.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public bool EnableSeasonalDiseases { get; set; } = true;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c626}Seasonal: base chance (every 6 hours)", 0.005f, 0.1f, "0.000", Order = 51, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalDiseaseBaseChance { get; set; } = 0.02f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c627}Seasonal: highest chance after all additions", 0.1f, 0.5f, "0.00", Order = 52, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalDiseaseMaxChance { get; set; } = 0.35f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c628}Seasonal: added in winter", 0f, 0.2f, "0.000", Order = 53, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalWinterBonus { get; set; } = 0.05f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c629}Seasonal: added in autumn", 0f, 0.2f, "0.000", Order = 54, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalAutumnBonus { get; set; } = 0.03f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62a}Seasonal: added in spring", 0f, 0.2f, "0.000", Order = 55, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalSpringBonus { get; set; } = 0.02f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62b}Seasonal: added in summer", 0f, 0.1f, "0.000", Order = 56, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalSummerBonus { get; set; } = 0.01f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62c}Seasonal: added in light rain", 0f, 0.1f, "0.000", Order = 57, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalWeatherLightRainBonus { get; set; } = 0.012f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62d}Seasonal: added in heavy rain or a storm", 0f, 0.15f, "0.000", Order = 58, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalWeatherHeavyRainBonus { get; set; } = 0.02f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62e}Seasonal: added in snowfall", 0f, 0.15f, "0.000", Order = 59, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalWeatherSnowyBonus { get; set; } = 0.02f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62f}Seasonal: added in a blizzard", 0f, 0.2f, "0.000", Order = 60, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalWeatherBlizzardBonus { get; set; } = 0.03f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c630}Seasonal: added on wet ground", 0f, 0.1f, "0.000", Order = 61, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalWeatherWetBonus { get; set; } = 0.01f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c631}Seasonal: added aboard ship at sea", 0f, 0.15f, "0.000", Order = 62, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float SeasonalShipAtSeaBonus { get; set; } = 0.02f;
+
+        [SettingPropertyInteger("{=AIL_e7b1c63a}Seasonal: days of immunity after getting over one (0 = none)", 0, 60, Order = 63, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public int SeasonalPostRecoveryImmunityDays { get; set; } = 21;
+
+        // Treatment and healing
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c632}Treatment: base cost in the hospital", 50f, 500f, "0", Order = 70, RequireRestart = false,
+            HintText = "{=AIL_e7b1c633}Treating a sick hero costs this, times the severity of the disease, times the price level of the town. Lords pay the same when they ride in sick.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseTreatmentBaseCost { get; set; } = 100f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c634}Treatment: cost multiplier for soldiers and prisoners", 0.1f, 2f, "0.00", Order = 71, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseTreatmentTroopMultiplier { get; set; } = 0.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c635}Treatment: price multiplier of prevention", 0.5f, 3f, "0.00", Order = 72, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseasePreventionHerbCostMultiplier { get; set; } = 1f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c636}Treatment: share of the surgeon's Medicine that reaches the soldiers", 0.5f, 1f, "0.00", Order = 73, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseMedicineSkillForTroopsMultiplier { get; set; } = 0.75f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c637}Speed at which an untreated disease worsens", 0.25f, 3f, "0.00", Order = 74, RequireRestart = false,
+            HintText = "{=AIL_e7b1c638}1 = a mild disease takes about three months to reach its worst and a plague under three weeks. Treatment, or a surgeon good enough for that disease, turns it back.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseProgressionMultiplier { get; set; } = 1f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c639}Speed of recovery under treatment", 0.25f, 3f, "0.00", Order = 75, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseRecoveryMultiplier { get; set; } = 1f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c63b}Share of its remaining days an outbreak passes on when it jumps to another place", 0.25f, 1f, "0.00", Order = 76, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public float DiseaseSpreadInheritFactor { get; set; } = 0.75f;
+
         // ------------------------------------------------------------ Initiative and errands
         [SettingPropertyBool("{=AIL_875d42da}NPCs tell each other things", Order = 0, RequireRestart = false,
             HintText = "{=AIL_39a88b5b}What you say or do in front of an NPC can reach their lord, their family or their friends, delayed according to distance. What arrives is their version, not a fact.")]
@@ -1383,6 +1539,25 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_0a072878}Errands each NPC remembers", 1, 40, Order = 1, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
         public int MaxHeardPerHero { get; set; } = 10;
+
+        [SettingPropertyInteger("{=AIL_e7b1c515}Days they remember what they were told (0 = always)", 0, 365, Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1c516}What reached a character through someone else fades after this many days. What they only overheard has its own, shorter setting in D. Scenes.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public int HeardLifespanDays { get; set; } = 60;
+
+        [SettingPropertyInteger("{=AIL_e7b1c517}Hands a message can pass through", 0, 4, Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1c518}Whoever receives word may pass it on to their own people: a public message to a couple of them, a private one sometimes, a secret only if they are the kind to break a confidence. Each one knows who told them and where it began. 0 = it stops with the first person.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public int ErrandMaxHops { get; set; } = 2;
+
+        [SettingPropertyBool("{=AIL_e7b1c519}Messages can be answered", Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1c51a}When a character sends word and needs a reply, the one who receives it sends their answer back by the same road, and the first can tell you when you next speak. One short AI request per answer.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public bool ErrandAnswers { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c51b}Answers per day, at most", 1, 30, Order = 2, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public int ErrandAnswersPerDay { get; set; } = 4;
 
         [SettingPropertyBool("{=AIL_a815af23}NPCs approach you on the map", Order = 2, RequireRestart = false,
             HintText = "{=AIL_cc079ac8}A noble who already knows you and passes nearby may ride up to you to talk, if they have a reason: an open task, something they heard about you, affection or resentment. They ask whether you will receive them.")]
@@ -1653,13 +1828,175 @@ namespace AILegacy.Settings
         public bool AllowAiExpelPlayer { get; set; } = false;
 
         [SettingPropertyBool("{=AIL_015c810d}Laws proclaimed by kings", Order = 34, RequireRestart = false,
-            HintText = "{=AIL_ef8b7c72}A king can create a law of their own with small daily effects in all their towns and castles (loyalty, prosperity, security, food), and repeal it.")]
+            HintText = "{=AIL_ef8b7c72}In a declaration, a ruler can create a law of their own and repeal it. Its effects (on settlements, clans or parties) go through the game's own calculations and show in the tooltips with the law's name.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool EnableKingdomLaws { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_a12df7a9}Laws in force per kingdom", 1, 10, Order = 35, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int MaxLawsPerKingdom { get; set; } = 3;
+
+        [SettingPropertyBool("{=AIL_e7b1c5da}Rulers can adopt the game's own policies", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1c5db}In a declaration, a ruler can adopt or abolish one of the kingdom policies of the game. It takes effect at once, with no vote, and shows in Kingdom › Policies.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public bool EnableNativePolicies { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c5dc}Show created laws in Kingdom › Policies", Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1c5dd}The laws created by the ruler of your kingdom are listed among its active policies, with their text and effects. They cannot be voted on there.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public bool LawsInPoliciesScreen { get; set; } = true;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5b3}Loyalty per day: min", -10f, 0f, "0.00", Order = 10, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawLoyaltyMin { get; set; } = -2f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5b4}Loyalty per day: max", 0f, 10f, "0.00", Order = 11, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawLoyaltyMax { get; set; } = 2f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5b5}Prosperity per day: min", -10f, 0f, "0.00", Order = 12, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawProsperityMin { get; set; } = -1.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5b6}Prosperity per day: max", 0f, 10f, "0.00", Order = 13, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawProsperityMax { get; set; } = 1.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5b7}Security per day: min", -10f, 0f, "0.00", Order = 14, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawSecurityMin { get; set; } = -1.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5b8}Security per day: max", 0f, 10f, "0.00", Order = 15, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawSecurityMax { get; set; } = 1.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5b9}Food per day: min", -10f, 0f, "0.00", Order = 16, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawFoodMin { get; set; } = -3f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5ba}Food per day: max", 0f, 10f, "0.00", Order = 17, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawFoodMax { get; set; } = 3f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5bb}Militia per day: min", -10f, 0f, "0.00", Order = 18, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawMilitiaMin { get; set; } = -1.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5bc}Militia per day: max", 0f, 10f, "0.00", Order = 19, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawMilitiaMax { get; set; } = 1.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5bd}Village hearths per day: min", -5f, 0f, "0.00", Order = 20, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawHearthMin { get; set; } = -0.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5be}Village hearths per day: max", 0f, 5f, "0.00", Order = 21, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawHearthMax { get; set; } = 0.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5bf}Workshop production (%): min", -50f, 0f, "0", Order = 22, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawWorkshopMin { get; set; } = -15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c0}Workshop production (%): max", 0f, 50f, "0", Order = 23, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawWorkshopMax { get; set; } = 15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c1}Veteran militia chance (%): min", -50f, 0f, "0", Order = 24, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawVeteransMin { get; set; } = -20f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c2}Veteran militia chance (%): max", 0f, 50f, "0", Order = 25, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawVeteransMax { get; set; } = 20f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c3}Construction speed (%): min", -50f, 0f, "0", Order = 26, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawConstructionMin { get; set; } = -25f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c4}Construction speed (%): max", 0f, 50f, "0", Order = 27, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawConstructionMax { get; set; } = 25f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c5}Recruit replenishment (%): min", -50f, 0f, "0", Order = 28, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawRecruitmentMin { get; set; } = -25f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c6}Recruit replenishment (%): max", 0f, 50f, "0", Order = 29, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawRecruitmentMax { get; set; } = 25f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c7}Tax income (%): min", -50f, 0f, "0", Order = 30, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawTaxMin { get; set; } = -15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c8}Tax income (%): max", 0f, 50f, "0", Order = 31, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawTaxMax { get; set; } = 15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5c9}Garrison wages (%): min", -50f, 0f, "0", Order = 32, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawGarrisonWagesMin { get; set; } = -15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5ca}Garrison wages (%): max", 0f, 50f, "0", Order = 33, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawGarrisonWagesMax { get; set; } = 15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5cb}Clan influence per day: min", -10f, 0f, "0.00", Order = 34, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawInfluenceMin { get; set; } = -1.5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5cc}Clan influence per day: max", 0f, 10f, "0.00", Order = 35, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawInfluenceMax { get; set; } = 2f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5cd}Clan income (%): min", -50f, 0f, "0", Order = 36, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawClanIncomeMin { get; set; } = -10f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5ce}Clan income (%): max", 0f, 50f, "0", Order = 37, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawClanIncomeMax { get; set; } = 10f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5cf}Party size: min", -100f, 0f, "0", Order = 38, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawPartySizeMin { get; set; } = -20f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d0}Party size: max", 0f, 150f, "0", Order = 39, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawPartySizeMax { get; set; } = 40f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d1}Troop wages (%): min", -50f, 0f, "0", Order = 40, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawWagesMin { get; set; } = -15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d2}Troop wages (%): max", 0f, 50f, "0", Order = 41, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawWagesMax { get; set; } = 15f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d3}Party morale: min", -30f, 0f, "0.0", Order = 42, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawMoraleMin { get; set; } = -5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d4}Party morale: max", 0f, 30f, "0.0", Order = 43, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawMoraleMax { get; set; } = 5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d5}Party speed (%): min", -25f, 0f, "0", Order = 44, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawSpeedMin { get; set; } = -5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d6}Party speed (%): max", 0f, 25f, "0", Order = 45, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawSpeedMax { get; set; } = 5f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d7}Army influence cost (%): min", -50f, 0f, "0", Order = 46, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawArmyCostMin { get; set; } = -30f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c5d8}Army influence cost (%): max", 0f, 50f, "0", Order = 47, RequireRestart = false, HintText = "{=AIL_e7b1c5de}Hard limit for the laws rulers create: a value outside this range is cut down to it, also for laws already in force. The AI is told the range.")]
+        [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy/{=AIL_e7b1c5d9}Laws", GroupOrder = 10)]
+        public float LawArmyCostMax { get; set; } = 30f;
 
         [SettingPropertyBool("{=AIL_5abeb44e}Clan rebellions", Order = 36, RequireRestart = false,
             HintText = "{=AIL_cbd20bc6}An event can make a vassal clan rise against its crown (never yours nor the ruling clan), if it truly gets along badly with its king.")]
@@ -1729,6 +2066,16 @@ namespace AILegacy.Settings
             HintText = "{=AIL_c3a7f1e8}Once that amount is reached in a day (real day, not game day) paid providers stop being used until tomorrow. Only providers with a price set under 0. AI keys are counted.")]
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
         public int DailySpendCapCents { get; set; } = 0;
+
+        [SettingPropertyBool("{=AIL_e7b1c63c}Show the reply as it is written (streaming)", Order = 12, RequireRestart = false,
+            HintText = "{=AIL_e7b1c63d}The character's line grows in the dialogue box while the AI writes it, instead of appearing all at once. Dialogue only. If a provider does not support it, the mod goes back to the whole reply with that provider on its own.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
+        public bool StreamReplies { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c64c}Dialogue box shows only their words", Order = 13, RequireRestart = false,
+            HintText = "{=AIL_e7b1c64d}The dialogue box shows only what the character says, without your own line above it and without their name in front. Turn it on if you use a voice mod that reads the dialogue box aloud, so it does not read your line too. Your line is still in the History panel.")]
+        [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
+        public bool DialogOnlyTheirWords { get; set; } = false;
 
         [SettingPropertyBool("{=AIL_7ff37c4e}Save request/response in logs", Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]

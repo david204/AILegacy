@@ -38,7 +38,10 @@ namespace AILegacy.Llm
             if (u.Contains("generativelanguage.googleapis.com")) return "gemini-embedding-001";
             if (u.Contains("api.openai.com")) return "text-embedding-3-small";
             if (u.Contains("localhost:11434") || u.Contains("127.0.0.1:11434")) return "nomic-embed-text";
-            if (u.Contains("bigmodel.cn") || u.Contains("api.z.ai")) return "embedding-3";
+            // GLM serves embeddings on its Chinese endpoint only: international keys (api.z.ai) get none
+            if (u.Contains("bigmodel.cn")) return "embedding-3";
+            if (u.Contains("api.z.ai")) return null;
+            if (u.Contains("api.mistral.ai")) return "mistral-embed";
             if (u.Contains("deepseek.com") || u.Contains("api.groq.com")) return null;   // no /embeddings endpoint
             return string.IsNullOrWhiteSpace(fromSettings) ? null : fromSettings.Trim();
         }

@@ -27,6 +27,16 @@ namespace AILegacy.World
         [JsonProperty("secrecy")] public string Secrecy = "private";
         [JsonProperty("day")] public double Day;
         [JsonProperty("arrive")] public double ArriveDay;
+        /// <summary>Who first told it, when it has passed through other hands since. Null if the sender is the source.</summary>
+        [JsonProperty("origin", NullValueHandling = NullValueHandling.Ignore)] public string OriginName;
+        /// <summary>Ids of everyone it has already passed through, so it never goes back to them.</summary>
+        [JsonProperty("chain", NullValueHandling = NullValueHandling.Ignore)] public List<string> Chain;
+        /// <summary>How many times it has been passed on (0 = straight from the source).</summary>
+        [JsonProperty("hops")] public int Hops;
+        /// <summary>The sender expects an answer back.</summary>
+        [JsonProperty("wants_answer")] public bool WantsAnswer;
+        /// <summary>This is the answer to an earlier message.</summary>
+        [JsonProperty("is_answer")] public bool IsAnswer;
     }
 
     /// <summary>Something an NPC heard from another one.</summary>
@@ -36,6 +46,9 @@ namespace AILegacy.World
         [JsonProperty("text")] public string Text;
         [JsonProperty("secrecy")] public string Secrecy = "private";
         [JsonProperty("day")] public double Day;
+        /// <summary>Who it came from originally, when the teller was only passing it on.</summary>
+        [JsonProperty("origin", NullValueHandling = NullValueHandling.Ignore)] public string OriginName;
+        [JsonProperty("hops")] public int Hops;
     }
 
     /// <summary>
@@ -73,7 +86,7 @@ namespace AILegacy.World
         }
 
         /// <summary>The NPC sends word to another one. Returns the text to show the player, "" for nothing to show, or null on failure.</summary>
-        public static string Send(Speaker from, string toName, string text, string secrecy)
+        public static string Send(Speaker from, string toName, string text, string secrecy, bool wantsAnswer = false)
         {
             if (!from.IsHero || string.IsNullOrWhiteSpace(text)) return null;
             string n = WorldSim.Norm(toName);
@@ -92,6 +105,8 @@ namespace AILegacy.World
             {
                 Id = WorldSim.NewId("m"), FromId = from.Hero.StringId, FromName = from.Name, ToId = to.StringId, Text = text, Secrecy = secrecy,
                 Day = CampaignTime.Now.ToDays, ArriveDay = CampaignTime.Now.ToDays + hours / 24.0,
+                WantsAnswer = wantsAnswer && S.Get.ErrandAnswers,
+                Chain = new List<string> { from.Hero.StringId },
             });
             Log.Info($"Recado de {from.Name} para {to.Name} ({secrecy}, llega en {hours:0} h): {text}");
             // Private or secret messages aren't announced to the player. They'd have no way to know, and it gave away
@@ -128,8 +143,13 @@ namespace AILegacy.World
                     var to = Hero.Find(m.ToId);
                     if (to == null || !to.IsAlive) continue;
                     var mem = MemoryStore.Get(to.StringId, to.Name.ToString());
-                    AddHeard(mem, new HeardItem { FromName = m.FromName, Text = m.Text, Secrecy = m.Secrecy, Day = now });
-                    Log.Info($"Recado entregado a {to.Name} (de {m.FromName}): {m.Text}");
+                    AddHeard(mem, new HeardItem { FromName = m.FromName, Text = m.Text, Secrecy = m.Secrecy, Day = now, OriginName = m.OriginName, Hops = m.Hops });
+                    Log.Info($"Recado entregado a {to.Name} (de {m.FromName}{(m.OriginName != null ? ", que lo supo por " + m.OriginName : "")}): {m.Text}");
+                    if (!m.IsAnswer)
+                    {
+                        Forward(m, to, now);
+                        if (m.WantsAnswer && m.Hops == 0) Answer(m, to);
+                    }
 
                     // Public news spreads by word of mouth
                     if (m.Secrecy == "public")
@@ -144,6 +164,102 @@ namespace AILegacy.World
                 }
             }
             catch (Exception ex) { Log.Error("Recados entre NPC", ex); }
+        }
+
+        /// <summary>
+        /// Word travels on from whoever receives it. A public message goes to a couple of their own people, a private
+        /// one sometimes to the one they are closest to, a secret only if they are the kind to break a confidence.
+        /// It never goes back to anyone it has already passed through, and stops after a few hands.
+        /// </summary>
+        private static void Forward(NpcMessage m, Hero holder, double now)
+        {
+            try
+            {
+                var cfg = S.Get;
+                if (m.Hops >= cfg.ErrandMaxHops) return;
+                int honor = 0;
+                try { honor = holder.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor); } catch { }
+                int many; string secrecy = m.Secrecy;
+                if (m.Secrecy == "public") many = 2;
+                else if (m.Secrecy == "private") many = Rng.Next(100) < 35 - honor * 10 ? 1 : 0;
+                else { many = honor < 0 && Rng.Next(100) < 15 ? 1 : 0; secrecy = "private"; }        // a broken confidence
+                if (many == 0) return;
+                var chain = m.Chain ?? new List<string> { m.FromId };
+                var next = Confidants(holder, 12).Where(h => !chain.Contains(h.StringId) && h.StringId != m.ToId && !Messages.Any(x => x.ToId == h.StringId && x.Text == m.Text)).Take(many).ToList();
+                foreach (var to in next)
+                {
+                    double hours = Hours(holder, to);
+                    var newChain = chain.ToList(); newChain.Add(holder.StringId);
+                    Messages.Add(new NpcMessage
+                    {
+                        Id = WorldSim.NewId("m"), FromId = holder.StringId, FromName = holder.Name.ToString(), ToId = to.StringId, Text = m.Text, Secrecy = secrecy,
+                        Day = now, ArriveDay = now + hours / 24.0, OriginName = m.OriginName ?? m.FromName, Chain = newChain, Hops = m.Hops + 1,
+                    });
+                    Log.Info($"Recado reenviado por {holder.Name} a {to.Name} ({secrecy}, mano {m.Hops + 1}, llega en {hours:0} h)");
+                }
+            }
+            catch (Exception ex) { Log.Error("Reenviar recado", ex); }
+        }
+
+        private static readonly Tpl TAnswer = new Tpl("info_exchange/errand_answer.txt",
+@"You are {to_name}: {to_desc}
+{from_name} ({relation_to_sender}) has sent you word about {player}: «{text}»
+What you already know or have heard about {player}: {known}
+They expect your answer. Give it in one or two sentences, in your own voice, as the word you send back to {from_name}: what you make of it, what you will do, or what you ask in return. It is a claim that reached you, not a fact you saw.
+Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
+
+        private static double _answerDay = -1;
+        private static int _answersToday;
+
+        /// <summary>Whoever receives a message that asks for an answer sends one back (one short AI request, a few a day at most).</summary>
+        private static void Answer(NpcMessage m, Hero to)
+        {
+            try
+            {
+                var cfg = S.Get;
+                var from = Hero.Find(m.FromId);
+                if (!cfg.ErrandAnswers || from == null || !from.IsAlive) return;
+                double today = Math.Floor(CampaignTime.Now.ToDays);
+                if (today != _answerDay) { _answerDay = today; _answersToday = 0; }
+                if (_answersToday >= cfg.ErrandAnswersPerDay) { Log.Info($"Recado: {to.Name} no contesta hoy (tope diario de respuestas)"); return; }
+                _answersToday++;
+                var s = Speaker.FromHero(to);
+                var mem = s.Memory;
+                string known = string.IsNullOrWhiteSpace(mem.Summary) ? (mem.ConversationCount > 0 ? "you have met them" : "you have never met them") : mem.Summary;
+                if (known.Length > 500) known = known.Substring(0, 500);
+                string desc = $"{(to.IsFemale ? "woman" : "man")}, {(int)to.Age}, {to.Culture?.Name}, {(to.IsLord ? "noble of clan " + to.Clan?.Name : to.IsNotable ? "notable" : "commoner")}"
+                              + (mem.Profile != null && !mem.Profile.IsEmpty ? ". " + mem.Profile.Personality : "");
+                string prompt = TAnswer.Format("to_name", to.Name.ToString(), "to_desc", desc, "from_name", m.FromName,
+                    "relation_to_sender", ContextBuilder.DescribeRelation(to.GetRelation(from)), "player", P.Name.ToString(), "text", m.Text, "known", known);
+                int session = WorldSim.Session;
+                Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "errand", maxTokensOverride: 200,
+                    preferredProvider: cfg.ProviderWorld).ContinueWith(t =>
+                {
+                    var res = t.IsFaulted ? null : t.Result;
+                    MainThread.Post(() =>
+                    {
+                        try
+                        {
+                            if (session != WorldSim.Session || res == null || !res.Ok) return;
+                            int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
+                            if (a < 0 || b <= a) return;
+                            string ans = ((string)Newtonsoft.Json.Linq.JObject.Parse(res.Text.Substring(a, b - a + 1))["answer"] ?? "").Trim();
+                            if (ans.Length < 5 || !to.IsAlive || !from.IsAlive) return;
+                            if (ans.Length > 400) ans = ans.Substring(0, 400);
+                            double now = CampaignTime.Now.ToDays, hours = Hours(to, from);
+                            Messages.Add(new NpcMessage
+                            {
+                                Id = WorldSim.NewId("m"), FromId = to.StringId, FromName = to.Name.ToString(), ToId = from.StringId,
+                                Text = $"In answer to your word about {P.Name}: {ans}", Secrecy = m.Secrecy == "public" ? "private" : m.Secrecy,
+                                Day = now, ArriveDay = now + hours / 24.0, IsAnswer = true, Chain = new List<string> { to.StringId },
+                            });
+                            Log.Info($"Respuesta de {to.Name} a {from.Name} (llega en {hours:0} h): {ans}");
+                        }
+                        catch (Exception ex) { Log.Error("Respuesta a un recado", ex); }
+                    });
+                });
+            }
+            catch (Exception ex) { Log.Error("Contestar un recado", ex); }
         }
 
         /// <summary>Ambient chat topics that old saves stored. They aren't about the player.</summary>
@@ -166,9 +282,12 @@ namespace AILegacy.World
             try
             {
                 int days = S.Get.OverheardLifespanDays;
-                if (days <= 0 || mem?.Heard == null || mem.Heard.Count == 0) return;
+                if (mem?.Heard == null || mem.Heard.Count == 0) return;
+                if (days <= 0) days = int.MaxValue;
                 double now = CampaignTime.Now.ToDays;
                 mem.Heard.RemoveAll(x => x != null && x.FromName == OwnEars && now - x.Day > days);
+                int told = S.Get.HeardLifespanDays;
+                if (told > 0) mem.Heard.RemoveAll(x => x != null && x.FromName != OwnEars && now - x.Day > told);
             }
             catch { }
         }
@@ -192,6 +311,7 @@ namespace AILegacy.World
             var sb = new StringBuilder();
             foreach (var x in list.Skip(Math.Max(0, list.Count - 6)))
                 sb.AppendLine($"- {(int)(now - x.Day)} day(s) ago, from {x.FromName}" +
+                              (string.IsNullOrEmpty(x.OriginName) ? "" : x.Hops >= 2 ? $", who had it from others (it began with {x.OriginName}; third-hand, details may have changed on the way)" : $", who had it from {x.OriginName}") +
                               (x.Secrecy == "secret" ? " (told to you in confidence: do not reveal who told you)" : x.Secrecy == "private" ? " (in private)" : "") + $": {x.Text}");
             return sb.ToString().TrimEnd();
         }

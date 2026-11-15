@@ -51,6 +51,8 @@ namespace AILegacy.Prompt
                 if (npc.IsKingdomLeader) line += " — you are its ruler";
                 else if (k.Leader != null) line += $", ruled by {k.Leader.Name}";
                 sb.AppendLine(line);
+                var law = AILegacy.World.Laws.ForSubject(k);
+                if (law.Length > 0) sb.AppendLine(law);
             }
 
             var family = DescribeFamily(npc);
@@ -170,6 +172,8 @@ namespace AILegacy.Prompt
                     sb.AppendLine($"Life here: prosperity {(int)st.Town.Prosperity}, security {(int)st.Town.Security}, loyalty {(int)st.Town.Loyalty} — " +
                                   (st.Town.Prosperity < 2000 ? "times are hard" : st.Town.Prosperity > 6000 ? "the town is thriving" : "life is ordinary"));
                 }
+                var law = AILegacy.World.Laws.ForSubject(st.OwnerClan?.Kingdom);
+                if (law.Length > 0) sb.AppendLine(law);
             }
             sb.AppendLine("You are a commoner: you know local gossip, prices and people, little of high politics, and you are careful around armed strangers and nobles.");
             var wars = DescribeWars(s.Faction);

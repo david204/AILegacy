@@ -45,14 +45,28 @@ namespace AILegacy.UI
 
         public static bool Available => !_broken && S.Get.EnableBubbles && ScreenManager.TopScreen is MissionScreen;
 
-        public static void Show(Agent agent, string text, float seconds)
+        public static void Show(Agent agent, string text, float seconds) => Show(agent, text, seconds, false);
+
+        /// <summary>A line still being written. When it outgrows the bubble, the end stays in view instead of the start.</summary>
+        public static void ShowLive(Agent agent, string text, float seconds) => Show(agent, text, seconds, true);
+
+        private static void Show(Agent agent, string text, float seconds, bool keepEnd)
         {
             try
             {
                 if (_broken || agent == null || string.IsNullOrWhiteSpace(text) || !S.Get.EnableBubbles) return;
                 if (!Attach()) return;
                 text = text.Replace("{", "(").Replace("}", ")").Trim();
-                if (text.Length > 220) text = text.Substring(0, 220) + "…";
+                if (text.Length > 220)
+                {
+                    if (keepEnd)
+                    {
+                        int from = text.Length - 220;
+                        if (char.IsLowSurrogate(text[from])) from++;
+                        text = "…" + text.Substring(from);
+                    }
+                    else text = text.Substring(0, 220) + "…";
+                }
                 var old = Items.FirstOrDefault(i => i.Agent == agent);
                 if (old != null) { old.VM.Text = text; old.Left = seconds; return; }
                 var vm = new BubbleVM { Text = text, IsVisible = false };

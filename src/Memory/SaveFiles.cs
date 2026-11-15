@@ -25,6 +25,8 @@ namespace AILegacy.Memory
     ///   _copias_editor\              full memory backup before an import or delete from the editor
     /// Written right away (after each reply, letter, order...) and when the game saves.
     /// On load, the copy inside the save wins, except for files you edited by hand.
+    /// What changed is decided and serialized on the game thread. The disk writes go to a writer thread, the file of
+    /// the character being talked to first. Saving the game, loading and anything that reads the folder wait for it.
     /// </summary>
     internal static class SaveFiles
     {
@@ -100,9 +102,139 @@ namespace AILegacy.Memory
         private static void UseDir(string dir)
         {
             if (string.Equals(_writtenDir, dir, StringComparison.OrdinalIgnoreCase)) return;
+            Drain();        // nothing of the previous campaign may still be on its way to disk
             _writtenDir = dir;
             _written = ReadManifest(dir);
+            lock (IoGate)
+            {
+                _ioDir = dir;
+                _onDisk = new Dictionary<string, string>(_written, StringComparer.OrdinalIgnoreCase);
+                _manifestDirty = false;
+                _failed.Clear();
+            }
             _stamp = ReadInfo(dir)?.Stamp;
+        }
+
+        // ============================================================ writer thread
+
+        private class PendingWrite
+        {
+            public string Dir, Name, Content, Hash;
+            public bool Urgent;
+        }
+
+        // Guards everything below. The game thread fills the queue, the writer empties it.
+        private static readonly object IoGate = new object();
+        private static readonly List<PendingWrite> IoQueue = new List<PendingWrite>();
+        private static bool _writerRunning;
+        private static string _ioDir;
+        // What really is on disk (name = hash). The manifest is written from this, never from what is only queued,
+        // so a write that failed does not look like a file edited by hand on the next load.
+        private static Dictionary<string, string> _onDisk = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static bool _manifestDirty;
+        private static readonly HashSet<string> _failed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Queues the file if its content changed since the last time it was queued or written.</summary>
+        private static bool QueueIfChanged(string dir, string name, string content, bool urgent = false)
+        {
+            string hash = Hash(content);
+            if (_written.TryGetValue(name, out var old) && old == hash && (IsQueued(dir, name) || File.Exists(Path.Combine(dir, name)))) return false;
+            _written[name] = hash;
+            lock (IoGate)
+            {
+                // A newer version of the same file replaces the one still waiting
+                IoQueue.RemoveAll(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase) && string.Equals(w.Dir, dir, StringComparison.OrdinalIgnoreCase));
+                IoQueue.Add(new PendingWrite { Dir = dir, Name = name, Content = content, Hash = hash, Urgent = urgent });
+                StartWriter();
+            }
+            return true;
+        }
+
+        private static bool IsQueued(string dir, string name)
+        {
+            lock (IoGate)
+                return IoQueue.Any(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase) && string.Equals(w.Dir, dir, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>Call with IoGate held.</summary>
+        private static void StartWriter()
+        {
+            if (_writerRunning) return;
+            _writerRunning = true;
+            // Not a background thread: if the game closes with files still queued, the process waits for them
+            new System.Threading.Thread(WriterLoop) { IsBackground = false, Name = "AILegacyFiles" }.Start();
+        }
+
+        private static void WriterLoop()
+        {
+            while (true)
+            {
+                PendingWrite job = null;
+                string manifest = null, manifestDir = null;
+                lock (IoGate)
+                {
+                    if (IoQueue.Count > 0)
+                    {
+                        int at = IoQueue.FindIndex(w => w.Urgent);
+                        if (at < 0) at = 0;
+                        job = IoQueue[at];
+                        IoQueue.RemoveAt(at);
+                    }
+                    else if (_manifestDirty && _ioDir != null)
+                    {
+                        _manifestDirty = false;
+                        manifestDir = _ioDir;
+                        try { manifest = JsonConvert.SerializeObject(_onDisk, Formatting.Indented); } catch { }
+                    }
+                    else
+                    {
+                        _writerRunning = false;
+                        System.Threading.Monitor.PulseAll(IoGate);
+                        return;
+                    }
+                }
+                try
+                {
+                    if (job != null)
+                    {
+                        bool ok = WriteAtomic(Path.Combine(job.Dir, job.Name), job.Content);
+                        lock (IoGate)
+                        {
+                            if (!string.Equals(job.Dir, _ioDir, StringComparison.OrdinalIgnoreCase)) continue;
+                            if (ok) { _onDisk[job.Name] = job.Hash; _manifestDirty = true; }
+                            else _failed.Add(job.Name);
+                        }
+                    }
+                    else if (manifest != null) WriteAtomic(Path.Combine(manifestDir, ManifestFile), manifest);
+                }
+                catch (Exception ex) { Log.Error("Escritura de archivos en segundo plano", ex); }
+            }
+        }
+
+        /// <summary>Waits until everything queued is on disk. Returns at once when nothing is.</summary>
+        public static void Drain()
+        {
+            try
+            {
+                lock (IoGate)
+                {
+                    var until = DateTime.UtcNow.AddSeconds(30);
+                    while (_writerRunning && DateTime.UtcNow < until) System.Threading.Monitor.Wait(IoGate, 500);
+                    if (_writerRunning) Log.Warn("Los archivos de la campaña siguen escribiéndose tras 30 s; se continúa sin esperar más");
+                }
+            }
+            catch (Exception ex) { Log.Error("Esperando la escritura de archivos", ex); }
+        }
+
+        /// <summary>A file was moved or deleted by hand from the game thread: forget its hash.</summary>
+        private static void ForgetFile(string name)
+        {
+            _written.Remove(name);
+            lock (IoGate)
+            {
+                IoQueue.RemoveAll(w => string.Equals(w.Name, name, StringComparison.OrdinalIgnoreCase) && string.Equals(w.Dir, _ioDir, StringComparison.OrdinalIgnoreCase));
+                if (_onDisk.Remove(name)) { _manifestDirty = true; StartWriter(); }
+            }
         }
 
         private static CampaignInfo ReadInfo(string dir)
@@ -126,18 +258,6 @@ namespace AILegacy.Memory
             }
             catch { }
             return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        }
-
-        /// <summary>Writes the file only if its content changed. If it can't be written, it's skipped with a log warning
-        /// and retried on the next flush.</summary>
-        private static bool WriteIfChanged(string dir, string name, string content)
-        {
-            var path = Path.Combine(dir, name);
-            string hash = Hash(content);
-            if (_written.TryGetValue(name, out var old) && old == hash && File.Exists(path)) return false;
-            if (!WriteAtomic(path, content)) return false;
-            _written[name] = hash;
-            return true;
         }
 
         /// <summary>
@@ -233,14 +353,16 @@ namespace AILegacy.Memory
 
         /// <summary>
         /// Writes whatever changed, now. Called after each NPC reply, when a chat closes, and with every letter and order.
+        /// The files reach the disk a moment later, from the writer thread. The flush after loading (keepStamp) waits for them.
         /// </summary>
-        public static void Flush(bool heroes = true, bool keepStamp = false)
+        /// <param name="recheck">Also compare in full a share of the characters whose signature did not change (the daily flush).</param>
+        public static void Flush(bool heroes = true, bool keepStamp = false, bool recheck = false)
         {
             try
             {
                 var c = TaleWorlds.CampaignSystem.Campaign.Current;
                 if (c == null || string.IsNullOrEmpty(c.UniqueGameId)) return;
-                Save(c.UniqueGameId, TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, heroes, keepStamp);
+                Save(c.UniqueGameId, TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, heroes, keepStamp, wait: keepStamp, recheck: recheck);
             }
             catch (Exception ex) { Log.Error("Volcado de archivos de la campaña", ex); }
         }
@@ -255,12 +377,15 @@ namespace AILegacy.Memory
             if (hour - _lastPumpHour < 6) return;
             bool newDay = (int)(hour / 24) != (int)(_lastPumpHour / 24);
             _lastPumpHour = hour;
-            Flush(heroes: newDay);
+            Flush(heroes: newDay, recheck: true);
         }
 
         /// <param name="keepStamp">true only for the flush right after loading: the files become that save's files and
         /// keep its stamp, so reloading it again isn't taken as another branch.</param>
-        public static void Save(string campaignId, double campaignDay, bool heroes = true, bool keepStamp = false)
+        /// <param name="wait">true (the game's own save) returns only when every file is on disk, and every character is
+        /// compared in full instead of trusting its signature.</param>
+        /// <param name="recheck">Compare in full a twelfth of the characters whose signature did not change, in turn.</param>
+        public static void Save(string campaignId, double campaignDay, bool heroes = true, bool keepStamp = false, bool wait = true, bool recheck = false)
         {
             if (string.IsNullOrEmpty(campaignId)) return;
             try
@@ -268,34 +393,56 @@ namespace AILegacy.Memory
                 var dir = DirFor(campaignId);
                 Directory.CreateDirectory(dir);
                 UseDir(dir);
-                int written = 0;
+                int written = 0, serialized = 0, checkedHeroes = 0;
+                // Files the writer could not write last time are compared again from scratch
+                lock (IoGate)
+                {
+                    foreach (var n in _failed) _written.Remove(n);
+                    _failed.Clear();
+                }
+                string talking = null;
+                try { talking = Dialogue.ChatSession.Active?.Who?.Key; } catch { }
 
                 var keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { NewsFile, LettersFile, OrdersFile, CampaignFile, QuestsFile, ItemsFile, ManifestFile, WorldFile, MessagesFile };
-                if (WriteIfChanged(dir, MessagesFile, JsonConvert.SerializeObject(InfoExchange.Messages, Formatting.Indented))) written++;
-                if (WriteIfChanged(dir, WorldFile, JsonConvert.SerializeObject(WorldSim.State, Formatting.Indented))) written++;
-                if (WriteIfChanged(dir, QuestsFile, JsonConvert.SerializeObject(QuestSystem.Quests, Formatting.Indented))) written++;
-                if (WriteIfChanged(dir, ItemsFile, JsonConvert.SerializeObject(Belongings.Items, Formatting.Indented))) written++;
-                // Only serialize characters that changed since the last flush (with hundreds of them, serializing all after
-                // every reply caused stutters). Every 12 flushes check them all, in case the signature misses something.
-                if (_sigDir != dir) { _sigDir = dir; _sig.Clear(); _flushes = 0; }
-                bool all = _flushes++ % 12 == 0;
-                foreach (var m in heroes ? MemoryStore.AllHeroes.ToList() : new List<HeroMemory>())
+                if (QueueIfChanged(dir, MessagesFile, JsonConvert.SerializeObject(InfoExchange.Messages, Formatting.Indented))) written++;
+                if (QueueIfChanged(dir, WorldFile, JsonConvert.SerializeObject(WorldSim.State, Formatting.Indented))) written++;
+                if (QueueIfChanged(dir, QuestsFile, JsonConvert.SerializeObject(QuestSystem.Quests, Formatting.Indented))) written++;
+                if (QueueIfChanged(dir, ItemsFile, JsonConvert.SerializeObject(Belongings.Items, Formatting.Indented))) written++;
+                // Only serialize characters whose signature changed since the last flush (with hundreds of them, serializing
+                // all after every reply caused stutters). In case the signature misses a change, everyone is compared in
+                // full on the first flush and whenever the game saves, and the daily flush goes through a twelfth of them
+                // in turn. That used to be everyone at once every 12 flushes, whichever flush that happened to be.
+                if (_sigDir != dir) { _sigDir = dir; _sig.Clear(); _flushes = 0; _recheckAt = 0; }
+                var list = heroes ? MemoryStore.AllHeroes.ToList() : new List<HeroMemory>();
+                bool all = heroes && (_flushes++ == 0 || wait);
+                int slice = all || !recheck || list.Count == 0 ? 0 : (list.Count + 11) / 12;
+                if (list.Count > 0) _recheckAt %= list.Count;
+                for (int i = 0; i < list.Count; i++)
                 {
+                    var m = list[i];
                     if (string.IsNullOrEmpty(m.HeroId)) continue;
                     var name = HeroFileName(m);
                     keep.Add(name);
                     long sig = 0;
                     try { sig = Signature(m); } catch { all = true; }
-                    if (!all && _sig.TryGetValue(m.HeroId, out long old) && old == sig && _written.ContainsKey(name)) continue;
-                    try { if (WriteIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented))) written++; _sig[m.HeroId] = sig; }
+                    bool again = slice > 0 && (i - _recheckAt + list.Count) % list.Count < slice;
+                    if (!all && !again && _sig.TryGetValue(m.HeroId, out long old) && old == sig && _written.ContainsKey(name)) continue;
+                    try
+                    {
+                        serialized++;
+                        if (again) checkedHeroes++;
+                        if (QueueIfChanged(dir, name, JsonConvert.SerializeObject(m, Formatting.Indented), urgent: talking != null && m.HeroId == talking)) written++;
+                        _sig[m.HeroId] = sig;
+                    }
                     catch (Exception ex) { Log.Warn($"Se salta el archivo de {m.HeroName} ({m.HeroId}): {ex.Message}"); }
                 }
-                if (WriteIfChanged(dir, NewsFile, JsonConvert.SerializeObject(NewsStore.All.ToList(), Formatting.Indented))) written++;
-                if (WriteIfChanged(dir, LettersFile, JsonConvert.SerializeObject(MemoryStore.Letters, Formatting.Indented))) written++;
-                if (WriteIfChanged(dir, OrdersFile, JsonConvert.SerializeObject(OrderSystem.Orders, Formatting.Indented))) written++;
+                if (list.Count > 0) _recheckAt = (_recheckAt + slice) % list.Count;
+                if (QueueIfChanged(dir, NewsFile, JsonConvert.SerializeObject(NewsStore.All.ToList(), Formatting.Indented))) written++;
+                if (QueueIfChanged(dir, LettersFile, JsonConvert.SerializeObject(MemoryStore.Letters, Formatting.Indented))) written++;
+                if (QueueIfChanged(dir, OrdersFile, JsonConvert.SerializeObject(OrderSystem.Orders, Formatting.Indented))) written++;
                 // Something changed, so new stamp (except on the flush after loading, which takes the save's stamp)
                 if (string.IsNullOrEmpty(_stamp) || (written > 0 && !keepStamp)) _stamp = NewStamp();
-                if (WriteIfChanged(dir, CampaignFile, JsonConvert.SerializeObject(
+                if (QueueIfChanged(dir, CampaignFile, JsonConvert.SerializeObject(
                         new CampaignInfo { LastLetterDay = MemoryStore.LastLetterDay, SavedDay = campaignDay, Stamp = _stamp }, Formatting.Indented))) written++;
 
                 // Forgotten (/olvidar) or renamed characters and unknown files go to _papelera, never deleted
@@ -304,13 +451,13 @@ namespace AILegacy.Memory
                 {
                     var n = Path.GetFileName(f);
                     if (keep.Contains(n)) continue;
-                    if (MoveToTrash(dir, f)) { _written.Remove(n); removed++; }
+                    if (MoveToTrash(dir, f)) { ForgetFile(n); removed++; }
                 }
+                // The writer leaves the manifest (_escritos.json) for last, once the files it names are in place
                 if (written + removed > 0)
-                {
-                    WriteAtomic(Path.Combine(dir, ManifestFile), JsonConvert.SerializeObject(_written, Formatting.Indented));
-                    Log.Info($"Archivos de la campaña {campaignId}: {written} escritos, {removed} a la papelera");
-                }
+                    Log.Info($"Archivos de la campaña {campaignId}: {written} escritos, {removed} a la papelera" +
+                             (heroes ? $"; personajes serializados {serialized} de {list.Count}" + (checkedHeroes > 0 ? $" ({checkedHeroes} de repaso)" : "") : ""));
+                if (wait) Drain();
             }
             catch (Exception ex) { Log.Error("No se pudieron escribir los archivos de la campaña", ex); }
         }
@@ -318,6 +465,8 @@ namespace AILegacy.Memory
         private static readonly Dictionary<string, long> _sig = new Dictionary<string, long>();
         private static string _sigDir;
         private static int _flushes;
+        /// <summary>Where the next flush's re-check of unchanged characters starts.</summary>
+        private static int _recheckAt;
 
         /// <summary>Something changed outside the usual paths (the editor, an import), so the next flush checks every character.</summary>
         public static void Dirty() { _sig.Clear(); _flushes = 0; }
@@ -342,6 +491,9 @@ namespace AILegacy.Memory
                 A(m.Others.Count); foreach (var o in m.Others.Values) { A(o.Trust); A(o.Notes.Count); A((long)(o.Day * 100)); if (o.Notes.Count > 0) T(o.Notes[o.Notes.Count - 1]); }
                 A(m.ProfileRevision); A(m.Profile == null ? 0 : 1);
                 if (m.Profile != null) { T(m.Profile.Personality); T(m.Profile.Backstory); T(m.Profile.SpeechStyle); T(m.Profile.Goals); T(m.Profile.Secret); T(m.Profile.GivenName); T(m.Profile.Reputation); T(m.Profile.Religion); }
+                if (m.Profile != null) { T(m.Profile.Drives); T(m.Profile.Values); T(m.Profile.SocialBehavior); T(m.Profile.CognitiveStyle); A((long)(m.Profile.Naivety * 1000)); A(m.Profile.SampleLines?.Count ?? 0); }
+                T(m.MoodShown); T(m.ArchetypeText);
+                if (m.Pages.Count > 0) { var pg = m.Pages[m.Pages.Count - 1]; T(pg.Title); T(pg.Image); }
                 A(m.LettersSent); A(m.OwesReplyToPlayer ? 1 : 0); A((long)(m.LastLetterDay * 100)); A((long)(m.LastInitiativeDay * 100)); A((long)(m.LastRomanceDay * 100)); A((long)(m.LastIntimacyDay * 100));
                 A((long)(m.TensionDay * 100)); A((long)(m.LastDevelopmentDay * 100)); T(m.Archetype); T(m.Morality); T(m.Profanity); T(m.Piety); T(m.InitiativeReason); T(m.ImportedFrom); A(m.Seeded ? 1 : 0);
                 T(m.LastAiResponse);
@@ -362,6 +514,7 @@ namespace AILegacy.Memory
             try
             {
                 var dir = DirFor(campaignId);
+                Drain();
                 RecoverTemp(dir);
                 var manifest = ReadManifest(dir);
                 if (manifest.Count == 0) return list;   // no hashes, no way to tell, so assume nothing
@@ -389,6 +542,7 @@ namespace AILegacy.Memory
             try
             {
                 var dir = DirFor(campaignId);
+                Drain();
                 RecoverTemp(dir);
                 UseDir(dir);
                 var heroes = new List<HeroMemory>();
@@ -435,6 +589,7 @@ namespace AILegacy.Memory
             try
             {
                 var dir = DirFor(campaignId);
+                Drain();
                 RecoverTemp(dir);
                 var info = ReadInfo(dir);
                 bool diverged;
@@ -504,6 +659,7 @@ namespace AILegacy.Memory
             try
             {
                 var dir = DirFor(campaignId);
+                Drain();
                 UseDir(dir);
                 var dest = Path.Combine(dir, $"_{label}_{DateTime.Now:yyyyMMdd_HHmmss}");
                 Directory.CreateDirectory(dest);
@@ -513,7 +669,7 @@ namespace AILegacy.Memory
                     File.WriteAllText(Path.Combine(dest, name), JsonConvert.SerializeObject(m, Formatting.Indented), new UTF8Encoding(false));
                     var src = Path.Combine(dir, name);
                     if (File.Exists(src)) File.Delete(src);
-                    _written.Remove(name);
+                    ForgetFile(name);
                 }
                 return dest;
             }

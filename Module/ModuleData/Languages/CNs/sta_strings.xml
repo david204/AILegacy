@@ -1177,7 +1177,7 @@
     <string id="AIL_ef0295b5" text="围攻 {0}" />
     <string id="AIL_ef08b937" text="无家族" />
     <string id="AIL_ef1030cb" text="没人看见：没人会知道是你干的。" />
-    <string id="AIL_ef8b7c72" text="国王可以创建一条自己的法律，在其所有城镇和城堡中产生每日的小幅影响（忠诚、繁荣、治安、粮食），并可废除它。" />
+    <string id="AIL_ef8b7c72" text="统治者可以在宣言中创建自己的法律并将其废除。其效果（作用于定居点、家族或部队）通过游戏自身的计算生效，并以法律名称显示在提示中。" />
     <string id="AIL_efa2c194" text="被守卫逮捕" />
     <string id="AIL_effea661" text="从第 N 轮起进行总结" />
     <string id="AIL_f00983f3" text="写下你要向卡拉迪亚宣告的内容。你明确决定的事项（战争、和平、同盟、贡金、税收、封地……）将会执行；其余的只作为言论。" />
@@ -1378,6 +1378,13 @@
     <string id="AIL_e7b1c512" text="AI 王国之间的战争只由统治者开启和结束" />
     <string id="AIL_e7b1c513" text="阻止游戏自身的投票、参战协议和其他模组在两个 AI 王国之间宣战或议和：只有其统治者的声明才能做到。由世界事件引发的战争（袭击、叛乱、新王国）以及任何涉及你自己王国的事务不受影响。" />
     <string id="AIL_e7b1c514" text="{0}立刻受到冲击：{1}" />
+    <string id="AIL_e7b1c515" text="记住别人转告之事的天数（0 = 永久）" />
+    <string id="AIL_e7b1c516" text="角色经他人之口得知的事会在这些天后淡忘。偶然听到的话另有较短的设置，在“D. 场景”中。" />
+    <string id="AIL_e7b1c517" text="口信最多经过几手" />
+    <string id="AIL_e7b1c518" text="收到口信的人可能转告自己的人：公开的口信会告诉两三个人，私下的偶尔会，秘密只有会背弃信任的人才会外传。每个人都知道是谁告诉他的、最初出自何人。0 = 到第一个人为止。" />
+    <string id="AIL_e7b1c519" text="口信可以得到回复" />
+    <string id="AIL_e7b1c51a" text="当角色送出口信并需要答复时，收到的人会沿原路把回复送回，最初的人下次与你交谈时可以告诉你。每条回复需要一次简短的 AI 请求。" />
+    <string id="AIL_e7b1c51b" text="每天最多回复数" />
     <string id="AIL_e5c9b3a1" text="消息" />
     <string id="AIL_e5c9b3a2" text="回忆" />
     <string id="AIL_e5c9b3a3" text="确认" />
@@ -1503,5 +1510,177 @@
     <string id="AIL_e6b1c012" text="与部下共度一晚：每人第纳尔" />
     <string id="AIL_e6b1c013" text="与部下共度一晚：获得的士气" />
     <string id="AIL_e6b1c014" text="与部下共度一晚：再次进行前的天数" />
+    <string id="AIL_e7b1c5a0" text="每日忠诚度" />
+    <string id="AIL_e7b1c5a1" text="每日繁荣度" />
+    <string id="AIL_e7b1c5a2" text="每日治安" />
+    <string id="AIL_e7b1c5a3" text="每日粮食" />
+    <string id="AIL_e7b1c5a4" text="每日民兵" />
+    <string id="AIL_e7b1c5a5" text="每日村庄户数" />
+    <string id="AIL_e7b1c5a6" text="工坊产量" />
+    <string id="AIL_e7b1c5a7" text="老兵民兵几率" />
+    <string id="AIL_e7b1c5a8" text="建造速度" />
+    <string id="AIL_e7b1c5a9" text="新兵补充" />
+    <string id="AIL_e7b1c5aa" text="税收收入" />
+    <string id="AIL_e7b1c5ab" text="驻军军饷" />
+    <string id="AIL_e7b1c5ac" text="每日家族影响力" />
+    <string id="AIL_e7b1c5ad" text="家族收入" />
+    <string id="AIL_e7b1c5ae" text="部队规模" />
+    <string id="AIL_e7b1c5af" text="部队军饷" />
+    <string id="AIL_e7b1c5b0" text="部队士气" />
+    <string id="AIL_e7b1c5b1" text="部队速度" />
+    <string id="AIL_e7b1c5b2" text="军团影响力花费" />
+    <string id="AIL_e7b1c5b3" text="每日忠诚度: 最小" />
+    <string id="AIL_e7b1c5b4" text="每日忠诚度: 最大" />
+    <string id="AIL_e7b1c5b5" text="每日繁荣度: 最小" />
+    <string id="AIL_e7b1c5b6" text="每日繁荣度: 最大" />
+    <string id="AIL_e7b1c5b7" text="每日治安: 最小" />
+    <string id="AIL_e7b1c5b8" text="每日治安: 最大" />
+    <string id="AIL_e7b1c5b9" text="每日粮食: 最小" />
+    <string id="AIL_e7b1c5ba" text="每日粮食: 最大" />
+    <string id="AIL_e7b1c5bb" text="每日民兵: 最小" />
+    <string id="AIL_e7b1c5bc" text="每日民兵: 最大" />
+    <string id="AIL_e7b1c5bd" text="每日村庄户数: 最小" />
+    <string id="AIL_e7b1c5be" text="每日村庄户数: 最大" />
+    <string id="AIL_e7b1c5bf" text="工坊产量 (%): 最小" />
+    <string id="AIL_e7b1c5c0" text="工坊产量 (%): 最大" />
+    <string id="AIL_e7b1c5c1" text="老兵民兵几率 (%): 最小" />
+    <string id="AIL_e7b1c5c2" text="老兵民兵几率 (%): 最大" />
+    <string id="AIL_e7b1c5c3" text="建造速度 (%): 最小" />
+    <string id="AIL_e7b1c5c4" text="建造速度 (%): 最大" />
+    <string id="AIL_e7b1c5c5" text="新兵补充 (%): 最小" />
+    <string id="AIL_e7b1c5c6" text="新兵补充 (%): 最大" />
+    <string id="AIL_e7b1c5c7" text="税收收入 (%): 最小" />
+    <string id="AIL_e7b1c5c8" text="税收收入 (%): 最大" />
+    <string id="AIL_e7b1c5c9" text="驻军军饷 (%): 最小" />
+    <string id="AIL_e7b1c5ca" text="驻军军饷 (%): 最大" />
+    <string id="AIL_e7b1c5cb" text="每日家族影响力: 最小" />
+    <string id="AIL_e7b1c5cc" text="每日家族影响力: 最大" />
+    <string id="AIL_e7b1c5cd" text="家族收入 (%): 最小" />
+    <string id="AIL_e7b1c5ce" text="家族收入 (%): 最大" />
+    <string id="AIL_e7b1c5cf" text="部队规模: 最小" />
+    <string id="AIL_e7b1c5d0" text="部队规模: 最大" />
+    <string id="AIL_e7b1c5d1" text="部队军饷 (%): 最小" />
+    <string id="AIL_e7b1c5d2" text="部队军饷 (%): 最大" />
+    <string id="AIL_e7b1c5d3" text="部队士气: 最小" />
+    <string id="AIL_e7b1c5d4" text="部队士气: 最大" />
+    <string id="AIL_e7b1c5d5" text="部队速度 (%): 最小" />
+    <string id="AIL_e7b1c5d6" text="部队速度 (%): 最大" />
+    <string id="AIL_e7b1c5d7" text="军团影响力花费 (%): 最小" />
+    <string id="AIL_e7b1c5d8" text="军团影响力花费 (%): 最大" />
+    <string id="AIL_e7b1c5d9" text="法律" />
+    <string id="AIL_e7b1c5da" text="统治者可以采用游戏自带的政策" />
+    <string id="AIL_e7b1c5db" text="统治者可以在宣言中采用或废除游戏自带的一项王国政策。无需投票，立即生效，并显示在 王国 › 政策 中。" />
+    <string id="AIL_e7b1c5dc" text="在 王国 › 政策 中显示创建的法律" />
+    <string id="AIL_e7b1c5dd" text="你所在王国的统治者创建的法律会列在生效政策中，并附有文本和效果。在那里无法对其投票。" />
+    <string id="AIL_e7b1c5de" text="统治者所创法律的硬性上限：超出此范围的数值会被截断，已生效的法律也一样。该范围会告知 AI。" />
+    <string id="AIL_e7b1c5df" text="城镇" />
+    <string id="AIL_e7b1c5e0" text="城堡" />
+    <string id="AIL_e7b1c5e1" text="村庄" />
+    <string id="AIL_e7b1c5e2" text="仅统治者" />
+    <string id="AIL_e7b1c5e3" text="统治家族" />
+    <string id="AIL_e7b1c5e4" text="统治家族的封地" />
+    <string id="AIL_e7b1c5e5" text="其他家族" />
+    <string id="AIL_e7b1c5e6" text="其他家族的封地" />
+    <string id="AIL_e7b1c5e7" text="{0} 级及以上的家族" />
+    <string id="AIL_e7b1c5e8" text="{0}采用了政策“{1}”。" />
+    <string id="AIL_e7b1c5e9" text="{0}废除了政策“{1}”。" />
+    <string id="AIL_e7b1c5ea" text="由统治者颁布法令创建的法律。无需投票：只有在位者才能通过宣言将其废除。" />
+    <string id="AIL_e7b1c5eb" text="{0}的现行法律" />
+    <string id="AIL_e7b1c5ec" text="法律" />
+    <string id="AIL_e7b1c5ed" text="由{0}颁布的法律。" />
+    <string id="AIL_e7b1c5ee" text="你病倒了：{0}。" />
+    <string id="AIL_e7b1c5ef" text="{0}病倒了：{1}。" />
+    <string id="AIL_e7b1c5f0" text="你有{0}名士兵染上了{1}。" />
+    <string id="AIL_e7b1c5f1" text="你有{0}名俘虏染上了{1}。" />
+    <string id="AIL_e7b1c5f2" text="你的{0}痊愈了。" />
+    <string id="AIL_e7b1c5f3" text="{0}的{1}痊愈了。" />
+    <string id="AIL_e7b1c5f4" text="你的士兵已摆脱{0}。" />
+    <string id="AIL_e7b1c5f5" text="你的病情加重：{0}（{1}%）。你需要医生。" />
+    <string id="AIL_e7b1c5f6" text="你有{0}名士兵死于{1}。" />
+    <string id="AIL_e7b1c5f7" text="你有{0}名俘虏死于{1}。" />
+    <string id="AIL_e7b1c5f8" text="{0}死于{1}。" />
+    <string id="AIL_e7b1c5f9" text="疾病（{0}）" />
+    <string id="AIL_e7b1c5fb" text="患病：{0}" />
+    <string id="AIL_e7b1c5fc" text="&#10;你患有{0}（{1}），病程{2}%{3}。" />
+    <string id="AIL_e7b1c5fd" text="（治疗中）" />
+    <string id="AIL_e7b1c5fe" text="&#10;你有{0}名同伴患病。" />
+    <string id="AIL_e7b1c5ff" text="&#10;你有{0}名士兵和{1}名俘虏患病。" />
+    <string id="AIL_e7b1c600" text="{=!}治疗你和同伴的疾病（{AIL_H_SICK}{GOLD_ICON}）" />
+    <string id="AIL_e7b1c601" text="{=!}你和同伴都没有未经治疗的疾病。" />
+    <string id="AIL_e7b1c602" text="医生开始治疗。医院越好，见效越快。" />
+    <string id="AIL_e7b1c603" text="{=!}治疗患病的士兵和俘虏（{AIL_H_SICKT}{GOLD_ICON}）" />
+    <string id="AIL_e7b1c604" text="{=!}你没有患病未治的士兵或俘虏。" />
+    <string id="AIL_e7b1c605" text="医生开始照料你的病人。" />
+    <string id="AIL_e7b1c606" text="{0}去世" />
+    <string id="AIL_e7b1c607" text="伤风" />
+    <string id="AIL_e7b1c608" text="营地咳" />
+    <string id="AIL_e7b1c609" text="旅途热" />
+    <string id="AIL_e7b1c60a" text="营地腹痛" />
+    <string id="AIL_e7b1c60b" text="寒热病" />
+    <string id="AIL_e7b1c60c" text="霜寒热" />
+    <string id="AIL_e7b1c60d" text="中暑" />
+    <string id="AIL_e7b1c60e" text="船热病" />
+    <string id="AIL_e7b1c60f" text="赤痢" />
+    <string id="AIL_e7b1c611" text="上限：疾病的最高传播率" />
+    <string id="AIL_e7b1c612" text="疾病最多能有多强的传染性，无论由带来它的事件指定还是按严重度推算。它影响下面所有的传染几率。" />
+    <string id="AIL_e7b1c613" text="上限：每日最高死亡几率（0 = 无人病死）" />
+    <string id="AIL_e7b1c614" text="只有重病（严重度3及以上）会致命：未经治疗走到尽头时必死，过半之后每日风险最多为此值。设为0时，英雄和士兵都不会病死。" />
+    <string id="AIL_e7b1c615" text="上限：最低战斗倍率" />
+    <string id="AIL_e7b1c616" text="患病战士最弱能到什么程度：伤害、武器速度，以及减半计算的战斗移动。1 = 疾病不会削弱任何人的战斗力。" />
+    <string id="AIL_e7b1c617" text="上限：最低地图速度倍率" />
+    <string id="AIL_e7b1c618" text="上限：最大士气惩罚" />
+    <string id="AIL_e7b1c619" text="上限：战斗技能的最大惩罚" />
+    <string id="AIL_e7b1c61a" text="患病英雄在场景中战斗时，武器技能、骑术和跑动最多损失的点数。" />
+    <string id="AIL_e7b1c61b" text="传染：在疫区内（每6小时）" />
+    <string id="AIL_e7b1c61c" text="身处有疫情的城镇、城堡或村庄的英雄，每6小时被传染的基础几率。严重度、拥挤程度、传播率和好医生都会改变它。" />
+    <string id="AIL_e7b1c61d" text="传染：在疫区街上行走（每分钟）" />
+    <string id="AIL_e7b1c61e" text="传染：首领被自己的病兵传染（每日）" />
+    <string id="AIL_e7b1c61f" text="所有士兵都患病时的每日几率；病兵越少则按比例降低。适用于你、你的同伴和所有领主。" />
+    <string id="AIL_e7b1c620" text="传染：在领主大厅，每有一位患病领主在场" />
+    <string id="AIL_e7b1c621" text="传染：隔离地内的倍率" />
+    <string id="AIL_e7b1c622" text="城门关闭、病人隔开后，里面的人更不易被传染。1 = 隔离对里面的人没有帮助；0 = 里面无人被传染。" />
+    <string id="AIL_e7b1c623" text="传染：与俘虏之间的倍率（0 = 关闭）" />
+    <string id="AIL_e7b1c624" text="路途中的时令病" />
+    <string id="AIL_e7b1c625" text="在地图上行军的英雄和士兵会染上的小病（伤风、营地咳、寒热病）。冬季、雨雪天和海上更容易发生。两周内自愈，期间略微虚弱。" />
+    <string id="AIL_e7b1c626" text="时令病：基础几率（每6小时）" />
+    <string id="AIL_e7b1c627" text="时令病：所有加成后的最高几率" />
+    <string id="AIL_e7b1c628" text="时令病：冬季加成" />
+    <string id="AIL_e7b1c629" text="时令病：秋季加成" />
+    <string id="AIL_e7b1c62a" text="时令病：春季加成" />
+    <string id="AIL_e7b1c62b" text="时令病：夏季加成" />
+    <string id="AIL_e7b1c62c" text="时令病：小雨加成" />
+    <string id="AIL_e7b1c62d" text="时令病：大雨或风暴加成" />
+    <string id="AIL_e7b1c62e" text="时令病：降雪加成" />
+    <string id="AIL_e7b1c62f" text="时令病：暴风雪加成" />
+    <string id="AIL_e7b1c630" text="时令病：湿地加成" />
+    <string id="AIL_e7b1c631" text="时令病：海上航行加成" />
+    <string id="AIL_e7b1c632" text="治疗：医院的基础费用" />
+    <string id="AIL_e7b1c633" text="治疗一名患病英雄的费用为此值乘以疾病严重度，再乘以城镇的价格水平。领主带病进城时也照此付费。" />
+    <string id="AIL_e7b1c634" text="治疗：士兵和俘虏的费用倍率" />
+    <string id="AIL_e7b1c635" text="治疗：预防措施的价格倍率" />
+    <string id="AIL_e7b1c636" text="治疗：军医医术中惠及士兵的比例" />
+    <string id="AIL_e7b1c637" text="未治疗疾病的恶化速度" />
+    <string id="AIL_e7b1c638" text="1 = 轻病约三个月发展到最重，瘟疫不到三周。治疗，或医术足以应对该病的军医，能使其好转。" />
+    <string id="AIL_e7b1c639" text="治疗中的康复速度" />
+    <string id="AIL_e7b1c63a" text="时令病：痊愈后的免疫天数（0 = 无）" />
+    <string id="AIL_e7b1c63b" text="疫情蔓延到别处时，新疫情继承其剩余天数的比例" />
+    <string id="AIL_e7b1c63c" text="边写边显示回复（流式）" />
+    <string id="AIL_e7b1c63d" text="AI 书写时，角色的话会在对话框里逐渐出现，而不是一次全部显示。仅用于对话。如果某个服务商不支持，模组会自动对该服务商改回完整回复。" />
+    <string id="AIL_e7b1c63e" text="{0}跟你一起进来了。" />
+    <string id="AIL_e7b1c63f" text="{0}没有跟你走过那扇门。" />
+    <string id="AIL_e7b1c640" text="{0}在外面等你。" />
+    <string id="AIL_e7b1c641" text="{0}带你去{1}：跟到门口，然后穿过那扇门。" />
+    <string id="AIL_e7b1c642" text="{0}把你带到了{1}。" />
+    <string id="AIL_e7b1c643" text="{0}在门口等你等得不耐烦了。" />
+    <string id="AIL_e7b1c644" text="{0}席地而坐。" />
+    <string id="AIL_e7b1c645" text="{0}退出了打斗。" />
+    <string id="AIL_e7b1c646" text="{0}倒戈，站到你这边战斗。" />
+    <string id="AIL_e7b1c647" text="同行者会跟你穿过门" />
+    <string id="AIL_e7b1c648" text="有名字的角色与你同行时，会在你穿过门前往同一定居点的酒馆、大厅或街道时跟你一起过去；角色也可以主动提出带你去其中一处。无名的居民会在门口停下。关闭：跟随你的人会在每扇门前被留下。" />
+    <string id="AIL_e7b1c649" text="打斗中，对方的帮手可以罢手或倒戈" />
+    <string id="AIL_e7b1c64a" text="当战况不利时，站在对手一边战斗的人可以放下武器退开，或者倒戈相向，只要这符合他们的为人。这与打斗台词在同一次请求中决定，因此需要开启“Lines during fights”。拳斗和友好决斗中绝不会发生。" />
+    <string id="AIL_e7b1c64b" text="等你们谈完，{0}会在门口等你。" />
+    <string id="AIL_e7b1c64c" text="对话框只显示对方的话" />
+    <string id="AIL_e7b1c64d" text="对话框只显示角色所说的话，上方不显示你的话，前面也不带名字。如果你使用会朗读对话框的语音模组，请开启此项，以免它把你的话也读出来。你的话仍然会出现在“历史”面板中。" />
   </strings>
 </base>

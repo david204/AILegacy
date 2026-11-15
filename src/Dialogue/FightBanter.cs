@@ -33,8 +33,9 @@ Also decide, as {opponent_name} would, how they conduct this fight (""conduct"")
 - ""calls_help_at"": they shout for whoever nearby would stand with them (guards if they have the right, kin, friends). ""help_line"". 0 if nobody here would come or they are too proud.
 - ""accepts_truce"": true or false, if {player} asks to stop as equals. ""truce_answer"": what they say to it.
 - ""accepts_yield"": true or false, if {player} yields. In a fist fight or an ordinary duel it is always true. ""yield_answer"": what they say to it.
+- ""helpers"": those fighting at {opponent_name}'s side right now: {helpers}. A short list, nearly always empty, of the ones who would not see it through. For each: ""who"": their exact name from that list, or ""anyone"" for whoever is nearest among those fighting beside {opponent_name} by then; ""does"": ""stand_down"" (they lower their weapon, step back and take no further part) or ""turn"" (they change sides and fight for {player}); ""at"": when {opponent_name} has that share of strength left; ""line"": what that person says as they do it. A hired blade or a frightened neighbour stands down once it goes badly; kin, sworn men and guards doing their duty almost never do; turning on {opponent_name} takes a real reason (an old grudge, a friend or their own lord on the other side, plain murder being done in front of them). Always empty in a fist fight or a friendly duel.
 - ""onlooker"": does someone watching step in? ""side"": ""theirs"", ""yours"" or """" (nobody: the usual answer; people keep out of other people's fights unless it is their kin, their lord, or it has plainly become murder). ""at"": when {opponent_name} has that share of strength left. ""line"": what that person shouts as they come in.
-Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", ""flees_at"": 0, ""flee_line"": """", ""truce_at"": 0, ""truce_line"": """", ""calls_help_at"": 0, ""help_line"": """", ""accepts_truce"": false, ""truce_answer"": """", ""accepts_yield"": true, ""yield_answer"": """", ""onlooker"": { ""side"": """", ""at"": 0, ""line"": """" } }, ""opening"": ""as it starts"", ""when_hit"": [""on taking a blow"", ""another"", ""another""], ""when_hitting"": [""on landing a blow"", ""another"", ""another""], ""losing"": ""when clearly getting the worst of it"", ""victory"": ""standing over the beaten {player}"", ""defeat"": ""beaten, from the ground"", ""crowd"": [""an onlooker's shout"", ""another"", ""another"", ""another""] }");
+Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", ""flees_at"": 0, ""flee_line"": """", ""truce_at"": 0, ""truce_line"": """", ""calls_help_at"": 0, ""help_line"": """", ""accepts_truce"": false, ""truce_answer"": """", ""accepts_yield"": true, ""yield_answer"": """", ""helpers"": [], ""onlooker"": { ""side"": """", ""at"": 0, ""line"": """" } }, ""opening"": ""as it starts"", ""when_hit"": [""on taking a blow"", ""another"", ""another""], ""when_hitting"": [""on landing a blow"", ""another"", ""another""], ""losing"": ""when clearly getting the worst of it"", ""victory"": ""standing over the beaten {player}"", ""defeat"": ""beaten, from the ground"", ""crowd"": [""an onlooker's shout"", ""another"", ""another"", ""another""] }");
 
         public static void Touch() { var _ = TLines.Key; }
 
@@ -49,6 +50,9 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
         private static int _yieldsAt, _fleesAt, _truceAt, _helpAt, _onlookerAt;
         private static string _yieldLine, _fleeLine, _truceLine, _helpLine, _onlookerLine, _onlookerSide, _truceAnswer, _yieldAnswer;
         private static bool _didYield, _didFlee, _didTruce, _didHelp, _didOnlooker;
+        // What those fighting beside the opponent would do, by the opponent's share of health left
+        private class HelperPlan { public string Who, Line; public bool Turns, Done; public int At; }
+        private static readonly List<HelperPlan> Plans = new List<HelperPlan>();
         /// <summary>What they answer if the player asks to stop. Before the AI has answered: friendly fights stop, others go on.</summary>
         public static bool AcceptsTruce { get; private set; }
         public static bool AcceptsYield { get; private set; } = true;
@@ -77,7 +81,25 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
             return s;
         }
 
-        public static void Begin(Speaker who, Agent opp, string kind)
+        private static string DescribeHelpers(IList<Agent> helpers)
+        {
+            if (helpers == null) return "nobody, this one is between the two of them";
+            var names = new List<string>();
+            foreach (var h in helpers)
+            {
+                try
+                {
+                    if (h == null || !h.IsActive()) continue;
+                    var c = h.Character as CharacterObject;
+                    names.Add(c?.HeroObject != null ? $"{h.Name} (of clan {c.HeroObject.Clan?.Name})" : c != null ? $"{h.Name} ({c.Occupation})" : h.Name);
+                }
+                catch { }
+            }
+            return names.Count == 0 ? "nobody yet, though others may join" : string.Join(", ", names);
+        }
+
+        /// <summary>helpers: who fights beside the opponent as it starts. Null in a friendly fight, where nobody else takes part.</summary>
+        public static void Begin(Speaker who, Agent opp, string kind, IList<Agent> helpers = null)
         {
             try
             {
@@ -95,9 +117,9 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
                                  + (who.IsHero ? $" How {who.Name} feels about them: {ContextBuilder.DescribeRelation((int)who.Hero.GetRelationWithPlayer())}." : "");
                 string what = kind == "brawl" ? "a fist fight, no weapons" : kind == "death" ? "a duel to the death with drawn steel" : "a duel with drawn steel, until one yields or falls";
                 string prompt = TLines.Format("place", Settlement.CurrentSettlement?.Name?.ToString() ?? "the camp", "kind", what, "opponent_name", who.Name, "opponent", desc,
-                    "player", player, "between", between, "max_chars", 70, "language", cfg.Language);
+                    "player", player, "between", between, "max_chars", 70, "language", cfg.Language, "helpers", DescribeHelpers(helpers));
 
-                LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "banter", maxTokensOverride: 450,
+                LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "banter", maxTokensOverride: 520,
                     preferredProvider: who.IsHero ? cfg.ProviderHeroes : cfg.ProviderResidents).ContinueWith(t =>
                 {
                     var res = t.IsFaulted ? null : t.Result;
@@ -126,6 +148,17 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
                                     _onlookerSide = Txt(o["side"]).ToLowerInvariant(); _onlookerLine = Txt(o["line"]);
                                     int.TryParse(new string((o["at"]?.ToString() ?? "").Where(char.IsDigit).ToArray()), out _onlookerAt);
                                     _onlookerAt = Math.Max(0, Math.Min(95, _onlookerAt));
+                                }
+                                if (c["helpers"] is JArray hs && !Combat.ActiveIsFriendly)
+                                {
+                                    foreach (var h in hs.OfType<JObject>().Take(4))
+                                    {
+                                        string does = Txt(h["does"]).ToLowerInvariant();
+                                        int.TryParse(new string((h["at"]?.ToString() ?? "").Where(char.IsDigit).ToArray()), out int at);
+                                        if (at <= 0 || (does != "stand_down" && does != "turn")) continue;
+                                        Plans.Add(new HelperPlan { Who = Txt(h["who"]), Line = Txt(h["line"]), Turns = does == "turn", At = Math.Min(95, at) });
+                                    }
+                                    if (Plans.Count > 0) Log.Info("[pelea] los que le ayudan: " + string.Join("; ", Plans.Select(p => $"{p.Who} {(p.Turns ? "cambia de bando" : "lo deja")} al {p.At} %")));
                                 }
                                 Log.Info($"[pelea] conducta de {_name}: se rinde al {_yieldsAt} %, huye al {_fleesAt} %, tregua al {_truceAt} %, pide ayuda al {_helpAt} %; acepta tregua: {AcceptsTruce}; acepta rendición: {AcceptsYield}; mirón: {_onlookerSide} al {_onlookerAt} %");
                             }
@@ -157,6 +190,12 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
                 {
                     _didOnlooker = true;
                     Combat.OnlookerStepsIn(_onlookerSide == "yours", _onlookerLine);
+                }
+                foreach (var p in Plans)
+                {
+                    if (p.Done || left > p.At) continue;
+                    p.Done = true;
+                    Combat.HelperWavers(p.Who, p.Turns, p.Line);
                 }
                 if (!_didHelp && _helpAt > 0 && left <= _helpAt) { _didHelp = true; Show(_opp, _name, _helpLine, Colors.Red); Combat.OpponentCallsHelp(); _gap = 4f; return; }
                 if (!_didFlee && _fleesAt > 0 && left <= _fleesAt) { _didFlee = true; Show(_opp, _name, _fleeLine, Colors.Red); if (Combat.OpponentFlees()) return; }
@@ -204,7 +243,7 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
             _yieldLine = _fleeLine = _truceLine = _helpLine = _onlookerLine = _onlookerSide = _truceAnswer = _yieldAnswer = null;
             _didYield = _didFlee = _didTruce = _didHelp = _didOnlooker = false;
             AcceptsTruce = false; AcceptsYield = true;
-            Hit.Clear(); Hitting.Clear(); Crowd.Clear();
+            Hit.Clear(); Hitting.Clear(); Crowd.Clear(); Plans.Clear();
         }
     }
 }

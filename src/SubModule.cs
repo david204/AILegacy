@@ -73,6 +73,7 @@ namespace AILegacy
             Scenes.MapTalk.Tick(dt);
             Dialogue.Ambient.Tick(dt);
             Dialogue.PassBy.Tick(dt);
+            World.Diseases.MissionTick(dt);
             UI.Bubbles.Tick(dt);
         }
 
@@ -80,6 +81,8 @@ namespace AILegacy
         {
             base.OnGameEnd(game);
             try { UI.MapHud.Detach(); UI.Bubbles.Detach(); Web.EditorServer.Stop(); } catch { }
+            // Leaving the campaign: whatever is still queued for the campaign files goes to disk first
+            try { Memory.SaveFiles.Drain(); } catch { }
         }
 
         public override void OnGameLoaded(Game game, object initializerObject)

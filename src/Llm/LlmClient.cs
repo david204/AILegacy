@@ -87,6 +87,11 @@ namespace AILegacy.Llm
             public List<ProviderConfig> Providers = new List<ProviderConfig>();
             public string NoProvidersError;
             public DateTime Deadline;
+            /// <summary>Streamed request: gets the reply text written so far, on a background thread. Returning false drops the request.</summary>
+            public Func<string, bool> OnPartial;
+            public bool Stream;
+            /// <summary>Some text of an attempt was already handed over, so a new attempt has to clear it first.</summary>
+            public bool PartialSent;
         }
 
         private static volatile bool _debugBodies;
@@ -105,7 +110,7 @@ namespace AILegacy.Llm
             }
         }
 
-        private static CallOptions CaptureOptions(int? maxTokensOverride, string task, string preferred)
+        private static CallOptions CaptureOptions(int? maxTokensOverride, string task, string preferred, Func<string, bool> onPartial = null)
         {
             var o = new CallOptions { Task = string.IsNullOrWhiteSpace(task) ? "other" : task.Trim().ToLowerInvariant(), Preferred = (preferred ?? "").Trim() };
             o.Priority = PriorityOf(o.Task);
@@ -117,6 +122,9 @@ namespace AILegacy.Llm
                 o.BackgroundFreeOnly = s.BackgroundOnFreeProviders;
                 o.DailyCapUsd = Math.Max(0, s.DailySpendCapCents) / 100.0;
                 _debugBodies = s.DebugLogBodies;
+                // Only what is shown in the dialogue as it is written is streamed. World, summaries, letters and battles never are.
+                o.Stream = onPartial != null && s.StreamReplies && o.Task == "dialogue";
+                if (o.Stream) o.OnPartial = onPartial;
             }
             catch { if (maxTokensOverride.HasValue) o.MaxTokens = maxTokensOverride.Value; }
             // Read the provider list here, not on the background thread (it touches MCM and the disk)
@@ -135,6 +143,21 @@ namespace AILegacy.Llm
         public static Task<LlmResult> CompleteAsync(List<ChatMessage> messages, bool wantJson, int? maxTokensOverride = null, string preferredProvider = null, string task = null)
         {
             var opts = CaptureOptions(maxTokensOverride, task, preferredProvider);
+            var job = new Job { Messages = messages, WantJson = wantJson, Opts = opts, Seq = Interlocked.Increment(ref _seq) };
+            lock (QueueGate) Queue.Add(job);
+            Pump();
+            return job.Done.Task;
+        }
+
+        /// <summary>
+        /// Same as CompleteAsync, but the reply is read as it is written. <paramref name="onPartial"/> gets the text of the
+        /// "reply" field so far (the whole text when no JSON is asked for), on a background thread, and an empty string
+        /// when an attempt is thrown away and another starts. Return false from it to drop the request.
+        /// The final result is the same as without streaming. Only the "dialogue" task streams, and only if the setting is on.
+        /// </summary>
+        public static Task<LlmResult> CompleteStreamedAsync(List<ChatMessage> messages, bool wantJson, Func<string, bool> onPartial, int? maxTokensOverride = null, string preferredProvider = null, string task = null)
+        {
+            var opts = CaptureOptions(maxTokensOverride, task, preferredProvider, onPartial);
             var job = new Job { Messages = messages, WantJson = wantJson, Opts = opts, Seq = Interlocked.Increment(ref _seq) };
             lock (QueueGate) Queue.Add(job);
             Pump();
@@ -382,14 +405,69 @@ namespace AILegacy.Llm
             lock (WorkingLevel) WorkingLevel.TryGetValue(p.Name + "|" + p.Model, out start);
             int maxTokens = opts.MaxTokens;
             bool grown = false;
+            string key = p.Name + "|" + p.Model;
+            bool stream = opts.Stream && !IsFlagged(NoStream, key);
+            bool usageOpt = stream && !IsFlagged(NoStreamUsage, key);
+            bool droppedUsage = false, suspectStream = false;
             for (int level = start; level < 4; level++)
             {
-                var body = BuildBody(p, opts, messages, wantJson, level, maxTokens);
+                ClearPartial(opts);
+                var body = BuildBody(p, opts, messages, wantJson, level, maxTokens, stream, usageOpt);
                 NoteSent(p);
-                var (status, text, err, secs, retryAfter) = await Send(p, body, opts).ConfigureAwait(false);
+                int status; string text, err; double secs; double? retryAfter;
+                LlmResult streamed = null;
+                if (stream)
+                {
+                    var so = await SendStream(p, body, opts, wantJson).ConfigureAwait(false);
+                    if (so.Dropped) return new LlmResult { Ok = false, Error = "petición descartada" };
+                    status = so.Status; text = so.Text; err = so.Error; secs = so.Secs; retryAfter = so.RetryAfter;
+                    if (status == 200 && so.Result == null)
+                    {
+                        // The stream broke halfway: ask again the normal way, and stop streaming with this provider
+                        UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
+                        Flag(NoStream, key);
+                        Log.Warn($"{p.Name}: la respuesta en streaming se cortó ({err}); repito la petición sin streaming y no vuelvo a pedírselo en esta sesión");
+                        lastError = "streaming cortado: " + err;
+                        stream = false; usageOpt = false;
+                        level--;
+                        continue;
+                    }
+                    if ((status == 400 || status == 422) && IsBadParam(text))
+                    {
+                        UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
+                        lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
+                        // First suspect is the usage option, then streaming itself. Only after that, the usual parameter ladder
+                        if (usageOpt) { usageOpt = false; droppedUsage = true; }
+                        else { stream = false; suspectStream = true; }
+                        level--;
+                        continue;
+                    }
+                    if (status == 200)
+                    {
+                        streamed = so.Result;
+                        if (droppedUsage && !IsFlagged(NoStreamUsage, key))
+                        {
+                            Flag(NoStreamUsage, key);
+                            Log.Warn($"{p.Name}: no acepta stream_options; el consumo de sus respuestas en streaming se estimará");
+                        }
+                    }
+                }
+                else
+                {
+                    (status, text, err, secs, retryAfter) = await Send(p, body, opts).ConfigureAwait(false);
+                    if (suspectStream)
+                    {
+                        suspectStream = false;
+                        if (status == 200)
+                        {
+                            Flag(NoStream, key);
+                            Log.Warn($"{p.Name}: rechaza las peticiones en streaming; no vuelvo a pedírselo en esta sesión");
+                        }
+                    }
+                }
                 if (status == 200)
                 {
-                    var r = ParseResponse(text);
+                    var r = streamed ?? ParseResponse(text);
                     r.Provider = p.Name + "/" + p.Model;
                     r.Seconds = secs;
                     UsageMeter.Record(p.Name, opts.Task, r.Ok, r.PromptTokens, r.CachedTokens, r.CompletionTokens, secs, p.PriceIn, p.PriceOut);
@@ -421,7 +499,7 @@ namespace AILegacy.Llm
                 lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
                 UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
 
-                bool badParam = (status == 400 || status == 422) && (text ?? "").IndexOf("api key", StringComparison.OrdinalIgnoreCase) < 0 && (text ?? "").IndexOf("API_KEY", StringComparison.Ordinal) < 0;
+                bool badParam = (status == 400 || status == 422) && IsBadParam(text);
                 if (!badParam)
                 {
                     NoteFailure(p, status, text ?? err, retryAfter);
@@ -432,7 +510,33 @@ namespace AILegacy.Llm
             return new LlmResult { Ok = false, Error = lastError ?? "error desconocido" };
         }
 
-        private static string BuildBody(ProviderConfig p, CallOptions opts, List<ChatMessage> messages, bool wantJson, int level, int maxTokens)
+        /// <summary>A 400/422 that is about the request's parameters and not about the key.</summary>
+        private static bool IsBadParam(string text) =>
+            (text ?? "").IndexOf("api key", StringComparison.OrdinalIgnoreCase) < 0 && (text ?? "").IndexOf("API_KEY", StringComparison.Ordinal) < 0;
+
+        // Providers that turned out not to stream, or not to take stream_options, in this session (key = name|model)
+        private static readonly HashSet<string> NoStream = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> NoStreamUsage = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        private static bool IsFlagged(HashSet<string> set, string key) { lock (set) return set.Contains(key); }
+        private static void Flag(HashSet<string> set, string key) { lock (set) set.Add(key); }
+
+        /// <summary>Hands the text written so far to whoever is showing it. False = they no longer want it.</summary>
+        private static bool SendPartial(CallOptions opts, string text)
+        {
+            if (opts.OnPartial == null) return true;
+            opts.PartialSent = text.Length > 0;
+            try { return opts.OnPartial(text); }
+            catch (Exception ex) { Log.Error("Texto parcial de la respuesta", ex); return true; }
+        }
+
+        /// <summary>Before a new attempt: what the previous one showed is no longer valid.</summary>
+        private static void ClearPartial(CallOptions opts)
+        {
+            if (opts.OnPartial != null && opts.PartialSent) SendPartial(opts, "");
+        }
+
+        private static string BuildBody(ProviderConfig p, CallOptions opts, List<ChatMessage> messages, bool wantJson, int level, int maxTokens, bool stream = false, bool usageOpt = false)
         {
             var body = new JObject
             {
@@ -448,6 +552,11 @@ namespace AILegacy.Llm
             if (level < 2 && wantJson && p.JsonMode) body["response_format"] = new JObject { ["type"] = "json_object" };
             if (level == 0 && p.Extra != null)
                 foreach (var kv in p.Extra) body[kv.Key] = kv.Value?.DeepClone();
+            if (stream)
+            {
+                body["stream"] = true;
+                if (usageOpt) body["stream_options"] = new JObject { ["include_usage"] = true };
+            }
             return body.ToString(Formatting.None);
         }
 
@@ -517,6 +626,156 @@ namespace AILegacy.Llm
                 while (inner.InnerException != null) inner = inner.InnerException;
                 return (0, null, L.T("AIL_aa2c0935", "error de red: ") + inner.Message, (DateTime.UtcNow - started).TotalSeconds, null);
             }
+        }
+
+        private class StreamOutcome
+        {
+            public int Status;
+            public string Text, Error;
+            public double Secs;
+            public double? RetryAfter;
+            /// <summary>Set when the stream ended properly (or the provider answered with a plain reply). Null with status 200 = it broke.</summary>
+            public LlmResult Result;
+            /// <summary>Whoever asked no longer wants the reply.</summary>
+            public bool Dropped;
+        }
+
+        /// <summary>
+        /// Same request as Send, read as Server-Sent Events. The text is handed over through opts.OnPartial while it arrives.
+        /// Same time budget as the normal request, counted over the whole reply.
+        /// </summary>
+        private static async Task<StreamOutcome> SendStream(ProviderConfig p, string body, CallOptions opts, bool wantJson)
+        {
+            var o = new StreamOutcome();
+            var url = p.BaseUrl.TrimEnd('/') + "/chat/completions";
+            var started = DateTime.UtcNow;
+            int seq = Interlocked.Increment(ref _dumpSeq);
+            if (_debugBodies) Dump("req", opts.Task, p.Name, seq, body);
+            double left = (opts.Deadline - started).TotalSeconds;
+            if (left < 3) { o.Error = "tiempo agotado"; return o; }
+            double budget = Math.Min(Math.Max(5, p.TimeoutSeconds), left);
+
+            var sse = new SseReader();
+            var asm = new StreamAssembler();
+            var scanner = wantJson ? new ReplyFieldScanner() : null;
+            var raw = new StringBuilder();
+            bool reading = false;
+            var timedOut = new bool[1];
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(budget));
+            try
+            {
+                using (var req = new HttpRequestMessage(HttpMethod.Post, url))
+                {
+                    req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + p.ApiKey.Trim());
+                    req.Headers.TryAddWithoutValidation("Accept", "text/event-stream");
+                    req.Content = new StringContent(body, Encoding.UTF8, "application/json");
+                    using (var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cts.Token).ConfigureAwait(false))
+                    // A read already waiting on the network does not see the token on .NET Framework: closing the response wakes it up
+                    using (cts.Token.Register(() => { timedOut[0] = true; try { resp.Dispose(); } catch { } }))
+                    {
+                        o.Status = (int)resp.StatusCode;
+                        try
+                        {
+                            var ra = resp.Headers.RetryAfter;
+                            if (ra != null) o.RetryAfter = ra.Delta?.TotalSeconds ?? (ra.Date.HasValue ? (ra.Date.Value - DateTimeOffset.UtcNow).TotalSeconds : (double?)null);
+                        }
+                        catch { }
+                        string ctype = resp.Content.Headers.ContentType?.MediaType ?? "";
+                        bool plainJson = ctype.IndexOf("json", StringComparison.OrdinalIgnoreCase) >= 0;
+                        if (o.Status != 200 || plainJson)
+                        {
+                            // An error, or a provider that ignored "stream" and sent the whole reply at once
+                            o.Text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            o.Secs = (DateTime.UtcNow - started).TotalSeconds;
+                            if (_debugBodies) Dump("res", opts.Task, p.Name, seq, o.Text);
+                            if (o.Status == 200) o.Result = ParseResponse(o.Text);
+                            return o;
+                        }
+
+                        reading = true;
+                        var events = new List<string>();
+                        using (var net = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                        {
+                            var buffer = new byte[8192];
+                            while (!asm.Done)
+                            {
+                                int n = await net.ReadAsync(buffer, 0, buffer.Length, cts.Token).ConfigureAwait(false);
+                                if (n <= 0) break;
+                                events.Clear();
+                                sse.Feed(buffer, n, events);
+                                if (!TakeEvents(events, asm, scanner, raw, opts)) { o.Dropped = true; return o; }
+                            }
+                            if (!asm.Done)
+                            {
+                                events.Clear();
+                                sse.Finish(events);
+                                if (!TakeEvents(events, asm, scanner, raw, opts)) { o.Dropped = true; return o; }
+                            }
+                        }
+                    }
+                }
+                o.Secs = (DateTime.UtcNow - started).TotalSeconds;
+                if (_debugBodies) Dump("res", opts.Task, p.Name, seq, raw.Length > 0 ? raw.ToString() : sse.Other.ToString());
+
+                if (asm.Error != null) o.Error = "el proveedor cortó con un error: " + Trim(asm.Error, 200);
+                else if (asm.Events == 0 && sse.Other.ToString().TrimStart().StartsWith("{"))
+                {
+                    o.Text = sse.Other.ToString();
+                    o.Result = ParseResponse(o.Text);
+                }
+                else if (!asm.Complete) o.Error = asm.Events == 0 ? "no llegó ningún dato" : "terminó sin aviso de fin";
+                else o.Result = StreamResult(asm, body.Length);
+                return o;
+            }
+            catch (Exception ex)
+            {
+                o.Secs = (DateTime.UtcNow - started).TotalSeconds;
+                if (ex is OperationCanceledException || timedOut[0])
+                {
+                    o.Status = 0; o.Result = null;
+                    o.Error = L.F("AIL_b74fa9dd", $"sin respuesta en {(int)budget}s");
+                    return o;
+                }
+                var inner = ex;
+                while (inner.InnerException != null) inner = inner.InnerException;
+                if (reading) { o.Status = 200; o.Result = null; o.Error = inner.Message; }       // headers were fine, the body broke
+                else { o.Status = 0; o.Error = L.T("AIL_aa2c0935", "error de red: ") + inner.Message; }
+                return o;
+            }
+            finally { try { cts.Dispose(); } catch { } }
+        }
+
+        /// <summary>Feeds the events just read to the assembler and hands the new text over. False = the reply is no longer wanted.</summary>
+        private static bool TakeEvents(List<string> events, StreamAssembler asm, ReplyFieldScanner scanner, StringBuilder raw, CallOptions opts)
+        {
+            bool grew = false;
+            foreach (var data in events)
+            {
+                if (raw.Length < 400000) raw.Append("data: ").Append(data).Append("\n\n");
+                string added = asm.OnEvent(data);
+                if (added.Length == 0) continue;
+                grew = true;
+                scanner?.Feed(added);
+            }
+            if (!grew) return true;
+            if (scanner != null) return !scanner.Started || SendPartial(opts, scanner.Text);
+            return SendPartial(opts, asm.Content.ToString());
+        }
+
+        /// <summary>The finished stream as a result, the same way ParseResponse builds it from a whole reply.</summary>
+        private static LlmResult StreamResult(StreamAssembler asm, int requestChars)
+        {
+            string content = asm.Content.ToString();
+            string s = StripThink(content).Trim();
+            string finish = asm.FinishReason;
+            // No usage chunk: count about four characters per token so the spend cap still sees the call
+            int tin = asm.HasUsage ? asm.PromptTokens : requestChars / 4;
+            int tout = asm.HasUsage ? asm.CompletionTokens : (content.Length + 3) / 4;
+            int cached = asm.HasUsage ? asm.CachedTokens : 0;
+            bool cut = string.Equals(finish, "length", StringComparison.OrdinalIgnoreCase) || string.Equals(finish, "MAX_TOKENS", StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrEmpty(s))
+                return new LlmResult { Ok = false, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout, Error = L.T("AIL_f533587d", "respuesta vacía (finish_reason=") + finish + ")" };
+            return new LlmResult { Ok = true, Text = s, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout };
         }
 
         private static LlmResult ParseResponse(string text)

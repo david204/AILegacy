@@ -26,11 +26,13 @@ namespace AILegacy.World
         [JsonProperty("start")] public double StartDay;
         [JsonProperty("until")] public double UntilDay;
         [JsonProperty("quarantine_until")] public double QuarantineUntilDay = -1;
+        /// <summary>What it does to those who catch it. Null = worked out from the severity.</summary>
+        [JsonProperty("fx")] public DiseaseFx Fx;
 
         [JsonIgnore] public bool Quarantined => QuarantineUntilDay > CampaignTime.Now.ToDays;
     }
 
-    /// <summary>Law decreed by a king: a small daily effect on every town and castle in the kingdom.</summary>
+    /// <summary>Law decreed by a ruler: a list of effects on the settlements, clans or parties of the kingdom (see Laws.cs).</summary>
     public class KingdomLaw
     {
         [JsonProperty("id")] public string Id;
@@ -43,13 +45,15 @@ namespace AILegacy.World
         [JsonProperty("food")] public float FoodPerDay;
         [JsonProperty("day")] public double EnactedDay;
         [JsonProperty("author")] public string AuthorName;
+        // The four numbers above are how saves before the effect list stored a law. Laws.Upgrade moves them in here.
+        [JsonProperty("effects")] public List<LawEffect> Effects = new List<LawEffect>();
     }
 
     /// <summary>
     /// Seasonal or event-driven outbreaks. They hurt the settlement, spread to neighbors and wound your troops if you go in.
     /// Quarantines slow them down (kings decide, or you in your own fiefs).
     /// </summary>
-    internal static class Diseases
+    internal static partial class Diseases
     {
         private static readonly Random Rng = new Random();
         private static List<Outbreak> All => WorldSim.State.Outbreaks;
@@ -63,9 +67,7 @@ namespace AILegacy.World
         public static string DescribeAt(Settlement st)
         {
             var o = At(st);
-            if (o == null) return "";
-            return $"A sickness is in {st.Name}: {o.NameEn} ({SeverityWord(o.Severity)}), for {(int)(CampaignTime.Now.ToDays - o.StartDay)} day(s) now." +
-                   (o.Quarantined ? " The place is under QUARANTINE by order of its rulers: nobody is supposed to come or go." : " People are afraid.");
+            return o == null ? "" : PlaceText(o, st);
         }
 
         public static string DescribeFor(Kingdom k)
@@ -76,7 +78,7 @@ namespace AILegacy.World
 
         // ============================================================ outbreaks
 
-        public static Outbreak Start(Settlement st, string name, string nameEn, int severity, int days, bool announce = true)
+        public static Outbreak Start(Settlement st, string name, string nameEn, int severity, int days, bool announce = true, DiseaseFx fx = null)
         {
             var cfg = S.Get;
             if (!Enabled || st == null || st.IsHideout || At(st) != null) return null;
@@ -86,7 +88,7 @@ namespace AILegacy.World
             var o = new Outbreak
             {
                 Id = WorldSim.NewId("d"), SettlementId = st.StringId, Severity = severity, StartDay = CampaignTime.Now.ToDays, UntilDay = CampaignTime.Now.ToDays + days,
-                Name = string.IsNullOrWhiteSpace(name) ? "unas fiebres" : WorldSim.Clean(name, 50), NameEn = string.IsNullOrWhiteSpace(nameEn) ? "a fever" : WorldSim.Clean(nameEn, 50),
+                Name = string.IsNullOrWhiteSpace(name) ? "unas fiebres" : WorldSim.Clean(name, 50), NameEn = string.IsNullOrWhiteSpace(nameEn) ? "a fever" : WorldSim.Clean(nameEn, 50), Fx = fx,
             };
             All.Add(o);
             WorldSim.State.LastOutbreakDay = o.StartDay;
@@ -107,7 +109,17 @@ namespace AILegacy.World
             if (d == null || !Enabled || !S.Get.DiseaseFromEvents) return;
             var st = OrderSystem.FindSettlement((string)d["settlement"]);
             if (st == null) return;
-            Start(st, (string)d["name"], (string)d["name_en"], (int?)d["severity"] ?? 2, (int?)d["duration_days"] ?? 0, announce: false);
+            // optional numbers from the event; FxOf keeps them inside the MCM limits when they are used
+            DiseaseFx fx = null;
+            try
+            {
+                float spread = (float?)d["spread_rate"] ?? 0f, death = (float?)d["death_chance"] ?? -1f, combat = (float?)d["combat_modifier"] ?? 0f,
+                      speed = (float?)d["map_speed_modifier"] ?? 0f, morale = (float?)d["morale_penalty"] ?? 0f, skill = (float?)d["skill_penalty"] ?? 0f;
+                if (spread > 0f || death >= 0f || combat > 0f || speed > 0f || morale != 0f || skill != 0f)
+                    fx = new DiseaseFx { Spread = spread, Death = death, Combat = combat, MapSpeed = speed, Morale = -Math.Abs(morale), Skill = -Math.Abs(skill) };
+            }
+            catch { }
+            Start(st, (string)d["name"], (string)d["name_en"], (int?)d["severity"] ?? 2, (int?)d["duration_days"] ?? 0, announce: false, fx: fx);
         }
 
         private static (string es, string en) SeasonalName()
@@ -115,7 +127,7 @@ namespace AILegacy.World
             switch ((int)CampaignTime.Now.GetSeasonOfYear)
             {
                 case 0: return (L.T("AIL_fa46e0da", "fiebre de las manchas"), "spotted fever");        // spring
-                case 1: return ("flujo de sangre", "the bloody flux");            // summer
+                case 1: return (L.T("AIL_e7b1c60f", "flujo de sangre"), "the bloody flux");            // summer
                 case 2: return (L.T("AIL_d8412138", "tercianas de los pantanos"), "marsh ague");       // autumn
                 default: return (L.T("AIL_b86021cd", "fiebre de pulmón"), "lung fever");               // winter
             }
@@ -128,7 +140,12 @@ namespace AILegacy.World
             {
                 var cfg = S.Get;
                 double now = CampaignTime.Now.ToDays;
-                if (!Enabled) { if (All.Count > 0) All.Clear(); return; }
+                if (!Enabled)
+                {
+                    if (All.Count > 0) All.Clear();
+                    if (Sick.Count > 0) { Sick.Clear(); Touch(); }
+                    return;
+                }
 
                 foreach (var o in All.ToList())
                 {
@@ -158,14 +175,14 @@ namespace AILegacy.World
                     else if (st.Village != null)
                         st.Village.Hearth = Math.Max(10f, st.Village.Hearth - s * cfg.DiseaseProsperityLossPerSeverity * 0.4f);
 
-                    if (!o.Quarantined && All.Count < cfg.DiseaseMaxSimultaneous && Rng.Next(1000) < cfg.DiseaseSpreadChancePerMille * s)
+                    if (!o.Quarantined && All.Count < cfg.DiseaseMaxSimultaneous && Rng.Next(1000) < cfg.DiseaseSpreadChancePerMille * s * (FxOf(o.Severity, false, o.Fx).Spread / 0.4f))
                     {
                         var here = st.GetPosition2D;
                         var next = Settlement.All.Where(x => x != st && !x.IsHideout && (x.IsTown || x.IsCastle || x.IsVillage) && At(x) == null)
                             .OrderBy(x => x.GetPosition2D.Distance(here)).Take(4).OrderBy(_ => Rng.Next()).FirstOrDefault();
                         if (next != null)
                         {
-                            var n = Start(next, o.Name, o.NameEn, Math.Max(1, o.Severity - (Rng.Next(2) == 0 ? 1 : 0)), (int)Math.Max(10, (o.UntilDay - o.StartDay) * 0.8));
+                            var n = Start(next, o.Name, o.NameEn, Math.Max(1, o.Severity - (Rng.Next(2) == 0 ? 1 : 0)), (int)Math.Max(10, (o.UntilDay - now) * cfg.DiseaseSpreadInheritFactor), true, o.Fx);
                             if (n != null) Log.Info($"[enfermedad] {o.NameEn} salta de {st.Name} a {next.Name}");
                         }
                     }
@@ -174,7 +191,9 @@ namespace AILegacy.World
                 // Player's troops, if inside an infected settlement
                 var mine = MobileParty.MainParty?.CurrentSettlement;
                 var ob = At(mine);
-                if (ob != null) SickenPlayerTroops(ob, mine, 0.5f);
+                if (ob != null) SickenPlayerTroops(ob, mine, 0.5f * (ob.Quarantined ? cfg.QuarantineInfectionReduction * 2f : 1f));
+
+                TickSick(now);
 
                 if (cfg.DiseaseSeasonalChancePerMille > 0 && All.Count < cfg.DiseaseMaxSimultaneous
                     && (WorldSim.State.LastOutbreakDay < 0 || now - WorldSim.State.LastOutbreakDay >= cfg.DiseaseMinDaysBetweenOutbreaks)
@@ -195,7 +214,9 @@ namespace AILegacy.World
         {
             try
             {
-                if (!Enabled || party == null || !party.IsMainParty) return;
+                if (!Enabled || party == null) return;
+                if (!party.IsMainParty || !QuarantineRules.StopsPlayer(st)) OnAnyPartyEntered(party, st);
+                if (!party.IsMainParty) return;
                 var o = At(st);
                 if (o == null) return;
                 if (QuarantineRules.StopsPlayer(st)) return;      // stopped at the gate, not inside yet
@@ -231,7 +252,11 @@ namespace AILegacy.World
                 done += n;
             }
             if (done > 0)
+            {
                 InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_7074bda0", $"{done} de tus soldados caen enfermos de {o.Name} en {st.Name}."), Colors.Red));
+                // from here on they are a sick part of the party: it can pass to the rest, weigh on the march and be treated
+                RegisterSickTroops(o, done);
+            }
         }
 
         // ============================================================ quarantine
@@ -267,7 +292,7 @@ namespace AILegacy.World
         private static int WoundedCount(TroopRoster r) => r.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => e.WoundedNumber);
         private static int CostRoster(TroopRoster r, Settlement st) =>
             (int)Math.Ceiling(r.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => e.WoundedNumber * (10 + e.Character.Tier * 8)) * HospitalPrice(st));
-        private static int CostPrevention(Settlement st) => (int)Math.Ceiling((50 + MobileParty.MainParty.MemberRoster.TotalManCount * 6) * HospitalPrice(st));
+        private static int CostPrevention(Settlement st) => (int)Math.Ceiling((50 + MobileParty.MainParty.MemberRoster.TotalManCount * 6) * HospitalPrice(st) * S.Get.DiseasePreventionHerbCostMultiplier);
         private const int PreventionDays = 12;
 
         private static void HealRoster(TroopRoster r)
@@ -299,6 +324,7 @@ namespace AILegacy.World
             sb.Append(me.HitPoints >= me.MaxHitPoints * 0.95f ? L.T("AIL_226c9a7f", "\n\nEstás sano.") : L.F("AIL_8f3749ae", $"\n\nEstás herido ({me.HitPoints} de {me.MaxHitPoints})."));
             int w = WoundedCount(MobileParty.MainParty.MemberRoster);
             if (w > 0) sb.Append(L.F("AIL_6d44c3f5", $"\nTienes {w} soldado(s) heridos o enfermos."));
+            try { sb.Append(SickText()); } catch { }
             if (WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays) sb.Append(L.F("AIL_e9459925", $"\nTus hombres están prevenidos {(int)Math.Ceiling(WorldSim.State.PreventionUntilDay - CampaignTime.Now.ToDays)} día(s) más."));
             return sb.ToString();
         }
@@ -370,6 +396,8 @@ namespace AILegacy.World
                 },
                 args => { if (Pay(CostRoster(MobileParty.MainParty.PrisonRoster, Settlement.CurrentSettlement))) { HealRoster(MobileParty.MainParty.PrisonRoster); WorldSim.Say(L.T("AIL_e3e82b77", "Tus prisioneros quedan curados."), Colors.Green); } Refresh(); }, false, -1);
 
+            AddSickCare(starter);
+
             starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_prevent", L.T("AIL_3c407add", "{=!}Prevención para tu partida, ") + PreventionDays + L.T("AIL_48d043af", " días ({AIL_H_PREV}{GOLD_ICON})"),
                 args =>
                 {
@@ -424,27 +452,22 @@ namespace AILegacy.World
 
         public static void ApplyLaws()
         {
-            foreach (var law in WorldSim.State.Laws.ToList())
-            {
-                var k = WorldSim.FindKingdom(law.KingdomId);
-                if (k == null) { WorldSim.State.Laws.Remove(law); continue; }
-                // Law effects normally go through the game's daily calculation (WorldSim.TownModifiers, with a line in the
-                // breakdown). We only apply them by hand here if that calculation stopped going through our hook.
-                if (WorldSim.LawsViaModel()) continue;
+            WorldSim.State.Laws.RemoveAll(law => law == null || WorldSim.FindKingdom(law.KingdomId) == null);
+            Laws.Invalidate();
+            // Law effects normally go through the game's daily calculation (WorldSim.TownModifiers, with a line in the
+            // breakdown). We only apply the four town stats by hand here if that calculation stopped going through our hook.
+            if (!Laws.Enabled || Laws.Idle || WorldSim.LawsViaModel()) return;
+            foreach (var k in WorldSim.Kingdoms.ToList())
                 foreach (var town in k.Fiefs)
                 {
-                    town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty + law.LoyaltyPerDay));
-                    town.Prosperity = Math.Max(0f, town.Prosperity + Math.Max(-1.5f, Math.Min(1.5f, law.ProsperityPerDay)));   // clamp also covers laws from old saves
-                    town.Security = Math.Max(0f, Math.Min(100f, town.Security + law.SecurityPerDay));
-                    town.FoodStocks = Math.Max(0f, town.FoodStocks + law.FoodPerDay);
+                    var st = town.Settlement;
+                    town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty + Laws.SumForSettlement(st, Laws.Loyalty)));
+                    town.Prosperity = Math.Max(0f, town.Prosperity + Laws.SumForSettlement(st, Laws.Prosperity));
+                    town.Security = Math.Max(0f, Math.Min(100f, town.Security + Laws.SumForSettlement(st, Laws.Security)));
+                    town.FoodStocks = Math.Max(0f, town.FoodStocks + Laws.SumForSettlement(st, Laws.Food));
                 }
-            }
         }
 
-        public static string DescribeLaws(Kingdom k)
-        {
-            var laws = WorldSim.State.Laws.Where(l => l.KingdomId == k.StringId).ToList();
-            return laws.Count == 0 ? "" : "laws in force: " + string.Join("; ", laws.Select(l => l.Name));
-        }
+        public static string DescribeLaws(Kingdom k) => Laws.DescribeLaws(k);
     }
 }

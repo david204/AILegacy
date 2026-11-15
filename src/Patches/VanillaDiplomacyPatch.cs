@@ -68,7 +68,7 @@ namespace AILegacy.Patches
 
         private static bool Prepare() =>
             AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.DeclareWarAction), "ApplyInternal") != null
-            || AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.MakePeaceAction), "ApplyInternal") != null;
+            && AccessTools.Method(typeof(TaleWorlds.CampaignSystem.Actions.MakePeaceAction), "ApplyInternal") != null;
 
         private static bool Prefix(IFaction faction1, IFaction faction2, object[] __args, MethodBase __originalMethod)
         {

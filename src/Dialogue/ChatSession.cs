@@ -81,7 +81,105 @@ namespace AILegacy.Dialogue
             }
         }
 
-        public static void TickUI() => ChatWindow.Current?.Tick();
+        public static void TickUI()
+        {
+            ChatWindow.Current?.Tick();
+            try { Active?.PaintLive(); }
+            catch (Exception ex) { Log.Error("Texto de la respuesta mientras llega", ex); }
+        }
+
+        // ====================================================== reply shown while it is being written
+        // The HTTP thread only leaves the text in LiveText. Everything on screen is done here, on the game tick.
+
+        private class LiveText { public volatile string Text = ""; }
+
+        private LiveText _live;
+        /// <summary>Characters of the live text already on screen. It trails what has arrived so the line grows at a readable pace.</summary>
+        private int _liveShown;
+        private DateTime _livePaintAt;
+        /// <summary>Some of this turn's reply reached the screen before it was complete.</summary>
+        private bool _livePainted;
+        /// <summary>The "reply ready" sound already played for this turn, when the text started.</summary>
+        private bool _liveSounded;
+        private ChatLineVM _liveLine;
+        private TaleWorlds.MountAndBlade.Agent _liveAgent;
+
+        private const int LivePaintMs = 100;
+
+        private void PaintLive()
+        {
+            var live = _live;
+            if (live == null || !_waiting || _closed) return;
+            var now = DateTime.UtcNow;
+            if ((now - _livePaintAt).TotalMilliseconds < LivePaintMs) return;
+            _livePaintAt = now;
+
+            string all = live.Text ?? "";
+            if (all.Length < _liveShown) _liveShown = 0;        // that attempt was thrown away and another one started
+            if (all.Length == 0)
+            {
+                if (_livePainted) ShowLive("");
+                return;
+            }
+            int behind = all.Length - _liveShown;
+            if (behind > 0)
+            {
+                _liveShown += Math.Min(behind, Math.Max(6, behind / 3));
+                if (_liveShown < all.Length && char.IsHighSurrogate(all[_liveShown - 1])) _liveShown++;
+            }
+            ShowLive(all.Substring(0, _liveShown));
+        }
+
+        /// <summary>Puts the unfinished line where the player is looking: the dialogue box, the bubble over the head, or our window.</summary>
+        private void ShowLive(string npcText)
+        {
+            bool painted = false;
+            if (_dialogMode)
+            {
+                var cm = Campaign.Current?.ConversationManager;
+                bool inBox = cm != null && cm.IsConversationInProgress && cm.CurOptions != null && cm.CurOptions.Any(o => o.Id == "ailegacy_d_view");
+                if (inBox)
+                {
+                    string box = npcText.Length > 0 ? Compose(npcText) : L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*");
+                    painted = ConversationMixin.SetDialogText(box.Replace("{newline}", "\n"));
+                }
+                try
+                {
+                    if (npcText.Length > 0 && cm != null && TaleWorlds.MountAndBlade.Mission.Current != null && Bubbles.Available
+                        && cm.OneToOneConversationAgent is TaleWorlds.MountAndBlade.Agent agent && agent.IsActive())
+                    {
+                        Bubbles.ShowLive(agent, npcText, 6f);
+                        _liveAgent = agent;
+                        painted = true;
+                    }
+                }
+                catch { }
+            }
+            else if (UseWindow)
+            {
+                if (_liveLine == null) _liveLine = _win.VM.AddLiveLine(_s.Name, ChatVM.NpcColor);
+                string line = npcText.Length > 0 ? npcText : "…";
+                if (_liveLine.Text != line) { _liveLine.Text = line; _win.VM.ScrollVersion++; }
+                painted = true;
+            }
+            if (!painted || npcText.Length == 0) return;
+            _livePainted = true;
+            if (_liveSounded) return;
+            _liveSounded = true;
+            try { if (S.Get.ReplyReadySound) TaleWorlds.Engine.SoundEvent.PlaySound2D("event:/ui/notification/quest_update"); } catch { }
+        }
+
+        /// <summary>The reply stopped being a live text: it is complete, it failed, or the turn is being asked again.</summary>
+        private void EndLive(bool keepLine)
+        {
+            _live = null;
+            _liveShown = 0;
+            if (!keepLine && _liveLine != null)
+            {
+                try { _win?.VM.RemoveLine(_liveLine); } catch { }
+                _liveLine = null;
+            }
+        }
 
         // ====================================================== game dialogue mode
         // The talk lives in the native dialogue box: type, "(wait)", then "See their reply".
@@ -147,16 +245,36 @@ namespace AILegacy.Dialogue
         /// <summary>Text for the NPC's dialogue box right now. Marks the reply as read.</summary>
         public string ConsumeDialogText()
         {
-            if (_waiting) return L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*");
+            if (_waiting)
+            {
+                // Clicked "See their reply" while it is still being written: keep showing what there is
+                var live = _live;
+                string part = live?.Text ?? "";
+                if (_liveShown > 0 && _liveShown <= part.Length) return Compose(part.Substring(0, _liveShown));
+                return L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*");
+            }
             if (!HasUnreadReply && _lastNpc.Length == 0 && _dialogNotes.Count == 0) return L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)");
             HasUnreadReply = false;
             var sb = new StringBuilder();
-            if (_lastPlayer.Length > 0) sb.Append(L.T("AIL_63ea9af4", "Tú: ")).Append(_lastPlayer).Append("{newline}{newline}");
-            if (_lastNpc.Length > 0) sb.Append(_lastNpc.StartsWith("(") ? "" : _s.Name + ": ").Append(_lastNpc);
+            // With "only their words" the box holds nothing but what the character says, so a voice mod that reads
+            // the box doesn't also read the player's line and the name in front
+            bool bare = S.Get.DialogOnlyTheirWords;
+            if (!bare && _lastPlayer.Length > 0) sb.Append(L.T("AIL_63ea9af4", "Tú: ")).Append(_lastPlayer).Append("{newline}{newline}");
+            if (_lastNpc.Length > 0) sb.Append(bare || _lastNpc.StartsWith("(") ? "" : _s.Name + ": ").Append(_lastNpc);
             foreach (var n in _dialogNotes) sb.Append("{newline}» ").Append(n);
             _dialogNotes.Clear();
             string stats = _lastNpc.Length > 0 ? StatsLine() : "";
             if (stats.Length > 0) sb.Append("{newline}").Append(stats);
+            return Sanitize(sb.ToString());
+        }
+
+        /// <summary>The last exchange as the dialogue box shows it: the player's line and the character's, with the game's line breaks.</summary>
+        private string Compose(string npcText)
+        {
+            var sb = new StringBuilder();
+            bool bare = S.Get.DialogOnlyTheirWords;
+            if (!bare && _lastPlayer.Length > 0) sb.Append(L.T("AIL_63ea9af4", "Tú: ")).Append(_lastPlayer).Append("{newline}{newline}");
+            if (npcText.Length > 0) sb.Append(bare || npcText.StartsWith("(") ? "" : _s.Name + ": ").Append(npcText);
             return Sanitize(sb.ToString());
         }
 
@@ -234,33 +352,55 @@ namespace AILegacy.Dialogue
                 _lastNpc = text;
                 HasUnreadReply = true;
                 bool auto = S.Get.AutoShowReply;
+                // If the text was already growing on screen, the sound played when it started
+                bool sound = S.Get.ReplyReadySound && !_liveSounded;
                 try
                 {
                     if (auto)
                     {
                         // The reply will show in the box by itself, so just play the sound (the floating message overlapped the text)
-                        if (S.Get.ReplyReadySound) TaleWorlds.Engine.SoundEvent.PlaySound2D("event:/ui/notification/quest_update");
+                        if (sound) TaleWorlds.Engine.SoundEvent.PlaySound2D("event:/ui/notification/quest_update");
                     }
                     else
                     {
                         var note = new InformationMessage(L.F("AIL_c1353aff", $"{_s.Name} te contesta."), Colors.Yellow);
-                        if (S.Get.ReplyReadySound) note.SoundEventPath = "event:/ui/notification/quest_update";
+                        if (sound) note.SoundEventPath = "event:/ui/notification/quest_update";
                         InformationManager.DisplayMessage(note);
+                        // The box was showing the line as it grew: leave it on the finished one until the player clicks
+                        if (_livePainted) PaintBox(Compose(text));
                     }
+                    if (_liveAgent != null && _liveAgent.IsActive()) Bubbles.Show(_liveAgent, text, Math.Max(3f, Math.Min(8f, 2f + text.Length * 0.04f)));
                 }
                 catch { }
+                _liveAgent = null;
                 if (auto) MainThread.Post(AutoShow);
                 return;
             }
-            if (UseWindow) _win.VM.AddLine(_s.Name, text, ChatVM.NpcColor);
+            if (UseWindow)
+            {
+                if (_liveLine != null) { _liveLine.Text = text; _liveLine = null; _win.VM.ScrollVersion++; }
+                else _win.VM.AddLine(_s.Name, text, ChatVM.NpcColor);
+            }
             else _transcript.Add($"{_s.Name}: {text}");
+        }
+
+        /// <summary>Writes straight into the game's dialogue box, if it is sitting on our waiting line.</summary>
+        private void PaintBox(string composed)
+        {
+            try
+            {
+                var cm = Campaign.Current?.ConversationManager;
+                if (cm == null || !cm.IsConversationInProgress || cm.CurOptions == null || !cm.CurOptions.Any(o => o.Id == "ailegacy_d_view")) return;
+                ConversationMixin.SetDialogText(composed.Replace("{newline}", "\n"));
+            }
+            catch { }
         }
 
         private void UiSystem(string text, bool error = false)
         {
             if (_dialogMode)
             {
-                if (error) { _lastNpc = "(" + text + ")"; HasUnreadReply = true; Notify(text.Split('\n')[0], Colors.Red); }
+                if (error) { _lastNpc = "(" + text + ")"; HasUnreadReply = true; Notify(text.Split('\n')[0], Colors.Red); if (_livePainted) PaintBox(Compose(_lastNpc)); }
                 else { _dialogNotes.Add(text); HasUnreadReply = true; Notify(L.T("AIL_78f99860", "AI Legacy: comando aplicado. Pulsa «Ver su respuesta»."), Colors.Gray); }
                 return;
             }
@@ -317,6 +457,9 @@ namespace AILegacy.Dialogue
             _lines++;
 
             _retriedRepeat = false;
+            _livePainted = false;
+            _liveSounded = false;
+            _liveAgent = null;
             bool deep = false;
             try { deep = RagIndex.WantsQuery(_s); } catch { }
             if (!deep) { BuildAndAsk(text); return; }
@@ -361,7 +504,18 @@ namespace AILegacy.Dialogue
             bool firstTime = Mem.Profile == null || Mem.Profile.IsEmpty;
             int? tokens = firstTime ? Math.Max(S.Get.MaxTokens, 1800) : (int?)null;
             int session = World.WorldSim.Session;
-            LlmClient.CompleteAsync(messages, wantJson: true, task: "dialogue", maxTokensOverride: tokens, preferredProvider: _s.IsHero ? S.Get.ProviderHeroes : S.Get.ProviderResidents).ContinueWith(task =>
+            // The line shows while it is written. The callback runs on the HTTP thread and only stores the text;
+            // if another save has been loaded since, it answers false and the request is dropped.
+            Func<string, bool> onPartial = null;
+            EndLive(keepLine: true);
+            if (S.Get.StreamReplies)
+            {
+                var live = new LiveText();
+                _live = live;
+                onPartial = t => { if (session != World.WorldSim.Session) return false; live.Text = t ?? ""; return true; };
+                if (_livePainted) ShowLive("");      // asked again (a repeated line): back to "thinking" until the new text starts
+            }
+            LlmClient.CompleteStreamedAsync(messages, wantJson: true, onPartial: onPartial, task: "dialogue", maxTokensOverride: tokens, preferredProvider: _s.IsHero ? S.Get.ProviderHeroes : S.Get.ProviderResidents).ContinueWith(task =>
             {
                 var res = task.IsFaulted ? new LlmResult { Ok = false, Error = task.Exception?.GetBaseException().Message } : task.Result;
                 MainThread.Post(() =>
@@ -385,6 +539,7 @@ namespace AILegacy.Dialogue
         {
             _waiting = false;
             UiWaiting(false);
+            EndLive(keepLine: res.Ok && !_closed);
             if (_closed) { OnLateAnswer(res); return; }
 
             if (!res.Ok)

@@ -117,6 +117,8 @@ namespace AILegacy.Dialogue
                     stripped = new List<Stripped> { Strip(Agent.Main) };
                     foreach (var foe in foes) stripped.Add(Strip(foe));
                 }
+                Withdrawn.Clear(); TeamBefore.Clear();
+                foreach (var foe in foes) TeamBefore[foe] = foe.Team;
                 fh.StartCustomFight(new List<Agent> { Agent.Main }, foes, false, false, won =>
                 {
                     try { Unguard(); } catch (Exception ex) { Log.Error("Curar tras la pelea amistosa", ex); }
@@ -131,7 +133,7 @@ namespace AILegacy.Dialogue
                 Unleash();
                 Say(f.Unprovoked ? L.F("AIL_1ee35da7", $"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F("AIL_96bdc93c", $"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F("AIL_70eda317", $"¡Duelo a muerte con {f.Who.Name}!") : L.F("AIL_e97439d8", $"¡Duelo con {f.Who.Name}!"), Colors.Red);
                 Log.Info($"Pelea empezada con {f.Who.Name}: {f.Kind}");
-                FightBanter.Begin(f.Who, f.Opponent, f.Kind);
+                FightBanter.Begin(f.Who, f.Opponent, f.Kind, IsFriendly(f) ? null : foes.Where(x => x != f.Opponent).ToList());
                 Say(L.T("AIL_e7b1c508", "(Alt+Y: rendirte · Alt+P: pedir tregua)"), Colors.Gray);
             }
             catch (Exception ex) { Log.Error("Empezar la pelea", ex); }
@@ -306,7 +308,7 @@ namespace AILegacy.Dialogue
                 var f = _active; var m = Mission.Current;
                 var fh = m?.GetMissionBehavior<MissionFightHandler>();
                 if (f == null || fh == null || !fh.IsThereActiveFight() || IsFriendly(f) || f.Opponent == null) return;
-                var near = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && a != Agent.Main && !ActiveFoes.Contains(a)
+                var near = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && a != Agent.Main && !ActiveFoes.Contains(a) && !Withdrawn.Contains(a)
                                                && a.Position.Distance(f.Opponent.Position) <= 18f && IsGuard(a))
                                    .OrderBy(a => a.Position.Distance(f.Opponent.Position)).Take(2).ToList();
                 foreach (var a in near)
@@ -323,7 +325,7 @@ namespace AILegacy.Dialogue
                 var f = _active; var m = Mission.Current;
                 var fh = m?.GetMissionBehavior<MissionFightHandler>();
                 if (f == null || fh == null || !fh.IsThereActiveFight() || IsFriendly(f) || Agent.Main == null) return;
-                var who = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && a != Agent.Main && !ActiveFoes.Contains(a)
+                var who = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && a != Agent.Main && !ActiveFoes.Contains(a) && !Withdrawn.Contains(a)
                                               && a.MountAgent == null && a.Position.Distance(Agent.Main.Position) <= 15f)
                                   .OrderBy(a => a.Position.Distance(Agent.Main.Position)).FirstOrDefault();
                 if (who == null || !JoinFight(fh, who, playerSide)) return;
@@ -331,6 +333,87 @@ namespace AILegacy.Dialogue
                 Say(L.F("AIL_e7b1c507", $"{who.Name} se mete en la pelea de parte de {(playerSide ? P.Name.ToString() : f.Who.Name)}."), playerSide ? Colors.Green : Colors.Red);
             }
             catch (Exception ex) { Log.Error("Mirón que se mete en la pelea", ex); }
+        }
+
+        // The fight handler keeps each side in a private list, and the team each fighter had before in a private table
+        private static readonly System.Reflection.FieldInfo FOpponentSide = HarmonyLib.AccessTools.Field(typeof(MissionFightHandler), "_opponentSideAgents");
+        private static readonly System.Reflection.FieldInfo FOpponentOld = HarmonyLib.AccessTools.Field(typeof(MissionFightHandler), "_opponentSideAgentsOldTeamData");
+        private static readonly System.Reflection.FieldInfo FPlayerOld = HarmonyLib.AccessTools.Field(typeof(MissionFightHandler), "_playerSideAgentsOldTeamData");
+
+        /// <summary>
+        /// For someone added mid-fight the handler notes down the fight team as the one to give back, so they would
+        /// stay on that team when it ends. Writes the team they really had.
+        /// </summary>
+        private static void RememberTeam(MissionFightHandler fh, Agent a, bool playerSide, Team before)
+        {
+            try
+            {
+                if (before == null) return;
+                var table = (playerSide ? FPlayerOld : FOpponentOld)?.GetValue(fh) as Dictionary<Agent, Team>;
+                if (table != null && table.ContainsKey(a)) table[a] = before;
+            }
+            catch (Exception ex) { Log.Error("Guardar el equipo anterior", ex); }
+        }
+
+        /// <summary>
+        /// One of those fighting beside the opponent lowers their weapon and steps back, or turns on the opponent.
+        /// who: their name, or "anyone" for the nearest. Never in a friendly fight, which is one against one.
+        /// </summary>
+        internal static void HelperWavers(string who, bool turns, string line)
+        {
+            try
+            {
+                var f = _active; var m = Mission.Current;
+                var fh = m?.GetMissionBehavior<MissionFightHandler>();
+                if (f == null || fh == null || !fh.IsThereActiveFight() || IsFriendly(f) || !S.Get.FightHelpersWaver || Agent.Main == null || !Agent.Main.IsActive()) return;
+                if (f.Opponent == null || !f.Opponent.IsActive()) return;
+                // The opponent stays in: the handler only ends a fight when the last one of a side falls, never when a side is emptied by hand
+                var side = FOpponentSide?.GetValue(fh) as List<Agent>;
+                if (side == null || !side.Contains(f.Opponent)) return;
+                var pool = ActiveFoes.Where(a => a != null && a != f.Opponent && a.IsHuman && a.IsActive() && a.IsAIControlled && side.Contains(a)).ToList();
+                who = (who ?? "").Trim();
+                Agent h = who.Length < 2 || who.Equals("anyone", StringComparison.OrdinalIgnoreCase)
+                    ? pool.OrderBy(a => a.Position.Distance(Agent.Main.Position)).FirstOrDefault()
+                    : pool.FirstOrDefault(a => string.Equals(a.Name, who, StringComparison.OrdinalIgnoreCase))
+                      ?? pool.FirstOrDefault(a => a.Name.IndexOf(who, StringComparison.OrdinalIgnoreCase) >= 0 || who.IndexOf(a.Name, StringComparison.OrdinalIgnoreCase) >= 0);
+                if (h == null) return;
+                TeamBefore.TryGetValue(h, out var before);
+                if (before == null && !turns) return;      // nowhere to put them back
+
+                side.Remove(h);
+                ActiveFoes.Remove(h); Withdrawn.Add(h);
+                try { h.ResetEnemyCaches(); h.InvalidateTargetAgent(); h.InvalidateAIWeaponSelections(); } catch { }
+                if (!string.IsNullOrWhiteSpace(line)) { try { UI.Bubbles.Show(h, line, 4f); } catch { } Say($"{h.Name}: {line}", Colors.Yellow); }
+
+                if (turns)
+                {
+                    f.Helpers.Remove(h);
+                    fh.AddAgentToSide(h, true);
+                    RememberTeam(fh, h, true, before);
+                    Say(L.F("AIL_e7b1c646", $"{h.Name} cambia de bando y lucha a tu lado."), Colors.Green);
+                    Log.Info($"[pelea] {h.Name} cambia de bando");
+                    return;
+                }
+                // Out of the fight: what the handler does for everyone when it ends, done now for this one
+                try
+                {
+                    var g = h.GetComponent<SandBox.CampaignAgentComponent>()?.AgentNavigator?.GetBehaviorGroup<SandBox.Missions.AgentBehaviors.AlarmedBehaviorGroup>();
+                    if (g != null) { g.DisableScriptedBehavior(); g.DisableCalmDown = false; }
+                }
+                catch (Exception ex) { Log.Error("Calmar al que deja la pelea", ex); }
+                h.SetWatchState(Agent.WatchState.Patrolling);
+                h.SetTeam(new Team(before.MBTeam, BattleSideEnum.None, m), true);
+                try
+                {
+                    h.TryToSheathWeaponInHand(Agent.HandIndex.OffHand, Agent.WeaponWieldActionType.WithAnimation);
+                    h.TryToSheathWeaponInHand(Agent.HandIndex.MainHand, Agent.WeaponWieldActionType.WithAnimation);
+                }
+                catch { }
+                SceneActions.WalkAway(h);
+                Say(L.F("AIL_e7b1c645", $"{h.Name} deja la pelea."), Colors.Yellow);
+                Log.Info($"[pelea] {h.Name} deja la pelea");
+            }
+            catch (Exception ex) { Log.Error("Ayudante que deja la pelea o cambia de bando", ex); }
         }
 
         /// <summary>Alt+Y: the player yields. Alt+P: the player asks to stop as equals. The opponent answers as they decided.</summary>
@@ -368,7 +451,7 @@ namespace AILegacy.Dialogue
             _fight = null; _active = null; _surrender = null; _surrenderParty = null; KeepEncounter = false; _autoAttack = 0f;
             try { Unguard(); } catch { GuardedAgents.Clear(); _friendly = null; _yield = 0; }
             _bandJoin = null;
-            ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear();
+            ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear(); Withdrawn.Clear(); TeamBefore.Clear();
         }
 
         /// <summary>Fight that starts by itself when a scene opens (a duel agreed on the map).</summary>
@@ -474,7 +557,10 @@ namespace AILegacy.Dialogue
             try
             {
                 if (a == null || !a.IsActive()) return false;
+                var before = a.Team;
                 fh.AddAgentToSide(a, playerSide);
+                RememberTeam(fh, a, playerSide, before);
+                if (!TeamBefore.ContainsKey(a)) TeamBefore[a] = before;
                 var nav = a.GetComponent<SandBox.CampaignAgentComponent>()?.AgentNavigator;
                 if (nav != null)
                 {
@@ -513,7 +599,7 @@ namespace AILegacy.Dialogue
             int down = f.Helpers.Count(h => h != null && !h.IsActive());
             if (f.Helpers.Count >= cfg.StreetMaxGuards) return;
             var here = Agent.Main.Position;
-            var come = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && !f.Helpers.Contains(a) && !Summoned.Contains(a) && IsGuard(a)
+            var come = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && !f.Helpers.Contains(a) && !Summoned.Contains(a) && !Withdrawn.Contains(a) && IsGuard(a)
                                            && a.Position.Distance(here) <= (_alarm ? 150f : 45f))
                                .OrderBy(a => a.Position.Distance(here)).Take(_alarm ? cfg.StreetGuardWaveSize * 2 : cfg.StreetGuardWaveSize).ToList();
             if (!_alarm && (down >= 3 || (down >= 1 && _waves >= 2)))
@@ -599,6 +685,9 @@ namespace AILegacy.Dialogue
 
         // Agents fighting you: clear their walk mode and whatever they were doing so they run at you
         private static readonly List<Agent> ActiveFoes = new List<Agent>();
+        // Who stopped fighting or changed sides in this fight, and the team each foe had before it
+        private static readonly HashSet<Agent> Withdrawn = new HashSet<Agent>();
+        private static readonly Dictionary<Agent, Team> TeamBefore = new Dictionary<Agent, Team>();
         private static float _unleash;
 
         private static void Unleash()

@@ -28,8 +28,9 @@ namespace AILegacy.Dialogue
         /// <summary>New or loaded save: drop anything pending from the previous one, above all queued arrests.</summary>
         public static void ResetSession()
         {
-            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Away.Clear();
+            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Away.Clear(); Grounded.Clear();
             _mission = null;
+            SceneTravel.Reset();
         }
 
         public const string Help =
@@ -40,7 +41,7 @@ namespace AILegacy.Dialogue
  - ""call:<exact name>"": calls that person from the 'Elsewhere' list to come over and join this conversation (only someone they could rightly summon: kin, a servant, a subordinate, a friend).
  - ""leave"": ends their part in the conversation and goes back to their own business.
  - ""draw_weapon"": bares steel as a threat, without attacking (yet). ""sheathe_weapon"": puts it away again when calmed or ordered to.
- - ""sit_down"": goes to the nearest free seat and sits (they are invited to sit, or settle in for a long talk).
+ - ""sit_down"": goes to the nearest free seat and sits, or sits on the ground where they stand if there is none (they are invited to sit, or settle in for a long talk).
  - ""stand_up"": rises from where they sit or leaves what they were busy with, to face {player}.
  - ""call_guards"": orders the guard to remove {player} from their presence. ONLY for someone with authority in this place (its lord, the lord's family, a noble of this realm, the ruler), and only when {player} has truly earned it: insults, threats, refusing to leave when told, or insolence a proud noble would not swallow from a nobody. They say it aloud in the same line.
  - ""arrest:<exact name>"": takes ANOTHER person who is present (not {player}) away to the cells. ONLY a guard or soldier on duty, or the lord of this place, in a town or castle; and only with grave cause that they themselves find convincing: that person is accused before witnesses of blood or treason AND something visible supports it (bloodied hands, a body, a weapon, a confession, their own guilty answers), or they were caught in the act. An accusation alone, from a stranger, against a person of rank is not enough: then they question, they do not arrest. Never against the lord of the place or the ruler.";
@@ -48,13 +49,38 @@ namespace AILegacy.Dialogue
         private static void Say(string msg) => InformationManager.DisplayMessage(new InformationMessage(msg, Colors.Gray));
 
         /// <summary>Following, guiding or walking over. Busy agents don't start chatting on their own.</summary>
-        public static bool Busy(Agent a) => Followers.Contains(a) || Guides.Any(g => g.Who == a) || Calls.Any(c => c.Who == a);
+        public static bool Busy(Agent a) => Followers.Contains(a) || Guides.Any(g => g.Who == a) || Calls.Any(c => c.Who == a) || SceneTravel.Leading(a);
+
+        /// <summary>The list of actions for the AI, with the places someone could lead the player to from this scene.</summary>
+        public static string HelpFor(string player) => Help.Replace("{player}", player) + SceneTravel.HelpLine(player);
+
+        /// <summary>Someone the game brought into this scene behind the player: ours to release later, and following again if asked.</summary>
+        internal static void Adopt(Agent a, bool follow)
+        {
+            try
+            {
+                if (a == null || !a.IsActive()) return;
+                Sync();
+                SceneMove.Adopt(a);
+                if (!follow) return;
+                SceneMove.GoTo(a, Agent.Main);
+                Followers.Add(a);
+            }
+            catch (Exception ex) { Log.Error("Seguir en la escena nueva", ex); }
+        }
+
+        /// <summary>Stops walking with the player, with no message and without touching who crosses doors.</summary>
+        internal static void Unfollow(Agent a)
+        {
+            try { Followers.Remove(a); SceneMove.Release(a); }
+            catch (Exception ex) { Log.Error("Dejar de seguir", ex); }
+        }
 
         private static void Sync()
         {
             if (_mission == Mission.Current) return;
             _mission = Mission.Current;
-            Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear();
+            Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Grounded.Clear();
             SceneMove.Forget(); Gestures.Forget();
         }
 
@@ -79,19 +105,32 @@ namespace AILegacy.Dialogue
                         if (Followers.Contains(who) || !SceneMove.GoTo(who, Agent.Main)) return false;
                         Guides.RemoveAll(g => g.Who == who);
                         Followers.Add(who);
+                        SceneTravel.Follow(who);
                         Say(L.F("AIL_dd2f52c0", $"{who.Name} te acompaña."));
                         Log.Info($"[escena] {who.Name} te acompaña");
                         return false;
                     case "stay":
-                        if (!Followers.Remove(who)) return false;
+                    {
+                        bool led = SceneTravel.Leading(who);
+                        SceneTravel.Drop(who);
+                        if (!Followers.Remove(who) && !led) return false;
                         SceneMove.Release(who);
                         Say(L.F("AIL_78680a96", $"{who.Name} se queda aquí."));
                         return false;
+                    }
+                    case "go_into":
+                    {
+                        string place = SceneTravel.GoInto(who, arg);
+                        if (place == null) return false;
+                        Guides.RemoveAll(g => g.Who == who);
+                        Say(L.F("AIL_e7b1c641", $"{who.Name} te lleva a {place}: síguele hasta la puerta y crúzala."));
+                        return true;
+                    }
                     case "guide":
                     {
                         var to = Find();
                         if (to == null || to == who || !SceneMove.GoTo(who, to)) return false;
-                        Followers.Remove(who);
+                        Followers.Remove(who); SceneTravel.Drop(who);
                         Guides.RemoveAll(g => g.Who == who);
                         Guides.Add(new Guide { Who = who, To = to, Left = 240f });
                         Say(L.F("AIL_5f595733", $"{who.Name} te lleva hasta {to.Name}. Síguele."));
@@ -123,7 +162,7 @@ namespace AILegacy.Dialogue
                     case "sit_down":
                         try
                         {
-                            if (who.IsUsingGameObject) return false;
+                            if (who.IsUsingGameObject || who.IsSitting()) return false;
                             StandingPoint best = null; UsableMachine bestChair = null; float bd = 14f;
                             foreach (var mo in Mission.Current.ActiveMissionObjects)
                             {
@@ -135,15 +174,15 @@ namespace AILegacy.Dialogue
                                     if (d < bd) { bd = d; best = sp; bestChair = chair; }
                                 }
                             }
-                            if (best == null) return false;
-                            Followers.Remove(who); SceneMove.Release(who);
+                            if (best == null) { SitOnGround(who); return false; }
+                            Followers.Remove(who); SceneTravel.Drop(who); SceneMove.Release(who);
                             who.AIMoveToGameObjectEnable(best, bestChair, Agent.AIScriptedFrameFlags.NoAttack);
                             Say(L.F("AIL_67c8cba8", $"{who.Name} va a sentarse."));
                         }
                         catch (Exception ex) { Log.Error("Sentarse", ex); }
                         return false;
                     case "stand_up":
-                        try { if (who.IsUsingGameObject) who.StopUsingGameObject(); who.SetLookAgent(Agent.Main); } catch { }
+                        try { if (who.IsUsingGameObject) who.StopUsingGameObject(); StandFromGround(who); who.SetLookAgent(Agent.Main); } catch { }
                         return false;
                     case "call_guards":
                     {
@@ -211,6 +250,7 @@ namespace AILegacy.Dialogue
                         return false;
                     }
                     case "leave":
+                        SceneTravel.Drop(who);
                         if (Followers.Remove(who)) SceneMove.Release(who);
                         WalkAway(who);
                         Say(L.F("AIL_56f0d4a1", $"{who.Name} sale de la conversación."));
@@ -219,6 +259,100 @@ namespace AILegacy.Dialogue
             }
             catch (Exception ex) { Log.Error("Acción en la escena", ex); }
             return false;
+        }
+
+        // ============================================================ sitting where there is no seat
+
+        // Agents we sat on the ground: their daily routine is paused until they stand up
+        private static readonly List<(Agent who, float since, bool settled)> Grounded = new List<(Agent, float, bool)>();
+        private const string SitDownOnFloor = "act_sit_down_on_floor_1", SitIdleOnFloor = "act_sit_idle_on_floor_1", StandUpFromFloor = "act_stand_up_floor_1";
+
+        private static SandBox.Missions.AgentBehaviors.DailyBehaviorGroup Daily(Agent a)
+        {
+            try { return a.GetComponent<SandBox.CampaignAgentComponent>()?.AgentNavigator?.GetBehaviorGroup<SandBox.Missions.AgentBehaviors.DailyBehaviorGroup>(); }
+            catch { return null; }
+        }
+
+        /// <summary>No free seat nearby: they sit down where they stand. False if this scene or agent can't do it.</summary>
+        private static bool SitOnGround(Agent who)
+        {
+            try
+            {
+                var m = Mission.Current;
+                if (who == null || m == null || !who.IsActive() || who.MountAgent != null || who.IsSitting() || m.Mode == TaleWorlds.Core.MissionMode.Battle || Combat.Fighting) return false;
+                if (Grounded.Any(g => g.who == who)) return false;
+                var down = ActionIndexCache.Create(SitDownOnFloor);
+                if (down.Index < 0 || ActionIndexCache.Create(SitIdleOnFloor).Index < 0) { Log.Warn("Sentarse en el suelo: el juego no tiene esa animación"); return false; }
+                Followers.Remove(who); SceneTravel.Drop(who); SceneMove.Release(who);
+                try { who.DisableScriptedMovement(); } catch { }
+                // Hold them in place with the game's own idle behavior, or their routine walks them off mid-animation
+                var g = Daily(who);
+                if (g != null) { g.AddBehavior<SandBox.Missions.AgentBehaviors.IdleAgentBehavior>(); g.SetScriptedBehavior<SandBox.Missions.AgentBehaviors.IdleAgentBehavior>(); }
+                else who.SetIsAIPaused(true);
+                if (!who.SetActionChannel(0, in down, ignorePriority: true))
+                {
+                    Unpause(who);
+                    return false;
+                }
+                Grounded.Add((who, 0f, false));
+                Say(L.F("AIL_e7b1c644", $"{who.Name} se sienta en el suelo."));
+                return true;
+            }
+            catch (Exception ex) { Log.Error("Sentarse en el suelo", ex); return false; }
+        }
+
+        private static void Unpause(Agent a)
+        {
+            try
+            {
+                var g = Daily(a);
+                if (g != null && g.ScriptedBehavior is SandBox.Missions.AgentBehaviors.IdleAgentBehavior) g.DisableScriptedBehavior();
+                a.SetIsAIPaused(false);
+            }
+            catch (Exception ex) { Log.Error("Reanudar la rutina", ex); }
+        }
+
+        /// <summary>Gets up someone we sat on the ground and gives them back their routine. Does nothing for anyone else.</summary>
+        internal static void StandFromGround(Agent a)
+        {
+            try
+            {
+                int i = Grounded.FindIndex(g => g.who == a);
+                if (i < 0) return;
+                Grounded.RemoveAt(i);
+                if (a == null || !a.IsActive()) return;
+                if (a.IsSitting())
+                {
+                    var up = ActionIndexCache.Create(StandUpFromFloor);
+                    if (up.Index < 0) up = ActionIndexCache.act_none;
+                    a.SetActionChannel(0, in up, ignorePriority: true);
+                }
+                Unpause(a);
+            }
+            catch (Exception ex) { Log.Error("Levantarse del suelo", ex); }
+        }
+
+        private static void TickGrounded(float dt)
+        {
+            for (int i = Grounded.Count - 1; i >= 0; i--)
+            {
+                var g = Grounded[i];
+                try
+                {
+                    var a = g.who;
+                    if (a == null || Mission.Current == null || a.Mission != Mission.Current || !a.IsActive()) { Grounded.RemoveAt(i); continue; }
+                    // Trouble around them, or a fight: nobody stays sitting
+                    if (Combat.Fighting || !a.IsAlarmStateNormal()) { StandFromGround(a); continue; }
+                    float since = g.since + dt;
+                    if (since < 1f || a.IsSitting()) { Grounded[i] = (a, since, g.settled); continue; }
+                    // The sitting-down animation is over: hold the seated pose. If that was already done, something else moved them
+                    if (g.settled) { Grounded.RemoveAt(i); Unpause(a); continue; }
+                    var idle = ActionIndexCache.Create(SitIdleOnFloor);
+                    a.SetActionChannel(0, in idle, ignorePriority: true);
+                    Grounded[i] = (a, 0f, true);
+                }
+                catch (Exception ex) { Log.Error("Sentados en el suelo", ex); Grounded.RemoveAt(i); }
+            }
         }
 
         // Group ring: each member walks to a spot around the player and faces them
@@ -303,6 +437,8 @@ namespace AILegacy.Dialogue
         {
             try
             {
+                SceneTravel.Tick(dt);
+                if (Grounded.Count > 0) TickGrounded(dt);
                 // Arrested heroes fade out after a few seconds and are jailed for real once the mission is over
                 for (int i = Leaving.Count - 1; i >= 0; i--)
                 {

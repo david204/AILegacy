@@ -55,6 +55,23 @@ namespace AILegacy.UI
             get { try { return _current != null && _current.TryGetTarget(out var m) && m._statsVisible; } catch { return false; } }
         }
 
+        /// <summary>
+        /// Replaces the text in the game's dialogue box without moving the conversation. Used while a reply is still being
+        /// written. The game puts its own text back the next time the conversation advances. False if there is no box.
+        /// </summary>
+        public static bool SetDialogText(string text)
+        {
+            try
+            {
+                if (_current == null || !_current.TryGetTarget(out var m)) return false;
+                var vm = m.ViewModel;
+                if (vm == null) return false;
+                vm.DialogText = text ?? "";
+                return true;
+            }
+            catch { return false; }
+        }
+
         /// <summary>Runs twice a second. The numbers change after each reply and the game doesn't refresh its screen on its own.</summary>
         public static void Tick(float dt)
         {
@@ -137,6 +154,8 @@ namespace AILegacy.UI
                 catch { }
                 AilFamilyText = family; AilFamilyVisible = family.Length > 0;
                 string warn = mem != null && mem.LiesSuspected > 0 ? L.T("AIL_d5a0e002", "Sospecha que mientes") : "";
+                string ill = AILegacy.World.Diseases.MarkerFor(h);
+                if (ill.Length > 0) warn = warn.Length > 0 ? warn + " · " + ill : ill;
                 AilWarnText = warn;
                 AilWarnVisible = warn.Length > 0;
             }

@@ -85,6 +85,7 @@ namespace AILegacy.World
                     try { if (MobileParty.MainParty.MemberRoster.GetTroopCount(s.Character) > 0) MobileParty.MainParty.MemberRoster.AddToCounts(s.Character, -1); } catch { }
                 }
                 else EnterSettlementAction.ApplyForCharacterOnly(hero, st);
+                SceneTravel.NotePromoted(agent, hero);
 
                 SaveFiles.Flush();
                 Log.Info($"[gente] {name} pasa a ser un personaje con nombre ({hero.StringId}){(companion ? ", compañero tuyo" : $", errante de {st.Name}")}");
