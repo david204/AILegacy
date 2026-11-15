@@ -280,6 +280,7 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
             if (mem.LastDevelopmentDay >= 0 && now - mem.LastDevelopmentDay < cfg.DevelopmentMinDays) return;
             mem.DevelopmentInFlight = true;
             mem.LastDevelopmentDay = now;
+            int session = WorldSim.Session;
             string prompt = TDevelopment.Format("npc_name", s.Name, "event", whatHappened, "profile", JsonConvert.SerializeObject(mem.Profile), "max_fields", cfg.DevelopmentMaxFields);
             Log.Info($"Evolución del carácter de {s.Name}: {whatHappened}");
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "lore", maxTokensOverride: 700, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
@@ -288,6 +289,8 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
                 MainThread.Post(() =>
                 {
                     mem.DevelopmentInFlight = false;
+                    // Another save was loaded meanwhile: this memory belongs to the campaign that asked, and saving now would write it into the one loaded
+                    if (session != WorldSim.Session) { Log.Info($"Evolución de {s.Name}: respuesta de otra partida, descartada"); return; }
                     if (res == null || !res.Ok) { Log.Warn($"Evolución de {s.Name}: sin respuesta ({res?.Error})"); return; }
                     try
                     {

@@ -119,6 +119,7 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
                 string prompt = TLines.Format("place", Settlement.CurrentSettlement?.Name?.ToString() ?? "the camp", "kind", what, "opponent_name", who.Name, "opponent", desc,
                     "player", player, "between", between, "max_chars", 70, "language", cfg.Language, "helpers", DescribeHelpers(helpers));
 
+                int session = AILegacy.World.WorldSim.Session;
                 LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "banter", maxTokensOverride: 520,
                     preferredProvider: who.IsHero ? cfg.ProviderHeroes : cfg.ProviderResidents).ContinueWith(t =>
                 {
@@ -127,7 +128,7 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
                     {
                         try
                         {
-                            if (gen != _gen || _opp == null || res == null || !res.Ok) return;
+                            if (session != AILegacy.World.WorldSim.Session || gen != _gen || _opp == null || res == null || !res.Ok) return;
                             int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                             if (a < 0 || b <= a) return;
                             var j = JObject.Parse(res.Text.Substring(a, b - a + 1));

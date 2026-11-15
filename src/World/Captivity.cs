@@ -83,10 +83,20 @@ A threat of death from them is credible: take it as real, and each time it is re
             catch { return ""; }
         }
 
+        /// <summary>The record of this save. A malformed save can bring the list, or an entry of it, as null.</summary>
+        private static List<ExecutionRecord> Records(WorldState st)
+        {
+            if (st == null) return null;
+            if (st.Executions == null) st.Executions = new List<ExecutionRecord>();
+            st.Executions.RemoveAll(e => e == null || string.IsNullOrEmpty(e.Victim));
+            foreach (var e in st.Executions) { e.Name = e.Name ?? ""; e.Title = e.Title ?? ""; e.Kind = e.Kind ?? "executed"; }
+            return st.Executions;
+        }
+
         private static void Add(Hero victim, string kind, double day)
         {
             var st = WorldSim.State;
-            if (st == null || victim == null || st.Executions.Any(e => e.Victim == victim.StringId)) return;
+            if (Records(st) == null || victim == null || st.Executions.Any(e => e.Victim == victim.StringId)) return;
             st.Executions.Add(new ExecutionRecord { Victim = victim.StringId, Name = victim.Name?.ToString() ?? "", Title = TitleOf(victim), Day = day, Kind = kind });
             while (st.Executions.Count > 60) st.Executions.RemoveAt(0);
         }
@@ -128,12 +138,12 @@ A threat of death from them is credible: take it as real, and each time it is re
                     try { day = v.DeathDay.ToDays; } catch { }
                     Add(v, "executed", day);
                 }
-                st.Executions = st.Executions.OrderBy(x => x.Day).ToList();
+                st.Executions = Records(st).OrderBy(x => x.Day).ToList();
             }
             catch (Exception ex) { Log.Error("Ejecuciones anteriores, leídas del registro del juego", ex); }
         }
 
-        public static int Count { get { try { Seed(); return WorldSim.State?.Executions.Count ?? 0; } catch { return 0; } } }
+        public static int Count { get { try { Seed(); return Records(WorldSim.State)?.Count ?? 0; } catch { return 0; } } }
 
         /// <summary>The player's record with captives, for a captive's briefing.</summary>
         private static string Record()
@@ -141,7 +151,7 @@ A threat of death from them is credible: take it as real, and each time it is re
             try
             {
                 Seed();
-                var list = WorldSim.State?.Executions;
+                var list = Records(WorldSim.State);
                 if (list == null || list.Count == 0) return TRecordNone.Text;
                 // rulers first, then the latest
                 var shown = list.OrderByDescending(e => e.Title.StartsWith("ruler") ? 1 : 0).ThenByDescending(e => e.Day).Take(5)

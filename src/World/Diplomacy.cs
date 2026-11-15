@@ -53,24 +53,60 @@ namespace AILegacy.World
         public static bool Allied(Kingdom a, Kingdom b) { try { return Usable(a) && Usable(b) && Alli != null && Alli.IsAllyWithKingdom(a, b); } catch { return false; } }
         public static bool HasTrade(Kingdom a, Kingdom b) { try { return Usable(a) && Usable(b) && Trade != null && Trade.HasTradeAgreement(a, b, out _); } catch { return false; } }
 
-        /// <summary>The pacts the game keeps in one of its private lists: each entry with its two kingdoms. null when the list cannot be read.</summary>
+        private static readonly HashSet<string> PactListsUnread = new HashSet<string>();
+
+        /// <summary>
+        /// The pacts the game keeps in one of its private lists: each entry with its two kingdoms. null when the
+        /// list is not there or its entries are not what we expect (another game version, another mod's pacts):
+        /// nothing is guessed from an entry we cannot read, the caller goes by the public checks instead, and it
+        /// is logged once per list.
+        /// </summary>
         private static List<Tuple<object, Kingdom, Kingdom>> PactEntries(object behavior, string field, out System.Collections.IList list)
         {
             list = null;
             if (behavior == null) return null;
             const System.Reflection.BindingFlags any = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
-            list = behavior.GetType().GetField(field, any)?.GetValue(behavior) as System.Collections.IList;
-            if (list == null) return null;
-            var found = new List<Tuple<object, Kingdom, Kingdom>>();
-            foreach (object item in list)
+            string why = null;
+            try
             {
-                if (item == null) continue;
-                var t = item.GetType();
-                var f1 = t.GetField("Kingdom1", any); var f2 = t.GetField("Kingdom2", any);
-                if (f1 == null || f2 == null) return null;
-                found.Add(Tuple.Create(item, f1.GetValue(item) as Kingdom, f2.GetValue(item) as Kingdom));
+                list = behavior.GetType().GetField(field, any)?.GetValue(behavior) as System.Collections.IList;
+                if (list == null) why = "no existe o no es una lista";
+                else
+                {
+                    var found = new List<Tuple<object, Kingdom, Kingdom>>();
+                    foreach (object item in list)
+                    {
+                        if (item == null) continue;
+                        var t = item.GetType();
+                        var f1 = t.GetField("Kingdom1", any); var f2 = t.GetField("Kingdom2", any);
+                        // a field of another type would read as "no kingdom" and the entry would be taken for a broken one
+                        if (f1 == null || f2 == null || !typeof(Kingdom).IsAssignableFrom(f1.FieldType) || !typeof(Kingdom).IsAssignableFrom(f2.FieldType))
+                        {
+                            why = $"sus entradas ({t.Name}) no tienen Kingdom1 y Kingdom2 de tipo Kingdom";
+                            break;
+                        }
+                        found.Add(Tuple.Create(item, f1.GetValue(item) as Kingdom, f2.GetValue(item) as Kingdom));
+                    }
+                    if (why == null) return found;
+                }
             }
-            return found;
+            catch (Exception ex) { why = ex.GetType().Name + ": " + ex.Message; }
+            list = null;
+            if (PactListsUnread.Add(field))
+                Log.Warn($"[diplomacia] la lista {field} del juego no se puede leer ({why}): los pactos con reinos destruidos se buscan par a par con las consultas públicas");
+            return null;
+        }
+
+        /// <summary>
+        /// Every pair of kingdoms the game knows where at least one is destroyed or has no ruler: the pairs a pact
+        /// must not exist between. For when the game's own list cannot be read.
+        /// </summary>
+        private static IEnumerable<KeyValuePair<Kingdom, Kingdom>> BrokenPairs()
+        {
+            var all = Campaign.Current.Kingdoms.Where(x => x != null).ToList();
+            for (int i = 0; i < all.Count; i++)
+                for (int j = i + 1; j < all.Count; j++)
+                    if (!Usable(all[i]) || !Usable(all[j])) yield return new KeyValuePair<Kingdom, Kingdom>(all[i], all[j]);
         }
 
         /// <summary>
@@ -95,10 +131,21 @@ namespace AILegacy.World
                         ended++;
                     }
                 else if (alli != null)
-                    // the list could not be read (another version or another mod's alliances): at least the ones the kingdoms themselves list
+                {
+                    // the list could not be read (another version or another mod's alliances): the ones the kingdoms themselves list...
                     foreach (var k in Campaign.Current.Kingdoms.Where(x => x != null && !x.IsEliminated).ToList())
                         foreach (var o in k.AlliedKingdoms.ToList())
                             if (o != null && (!Usable(k) || !Usable(o))) { alli.EndAlliance(k, o); ended++; }
+                    // ...and whatever the game still answers yes to, pair by pair
+                    foreach (var p in BrokenPairs().ToList())
+                    {
+                        bool allied = false;
+                        try { allied = alli.IsAllyWithKingdom(p.Key, p.Value); } catch { }
+                        if (!allied) continue;
+                        try { alli.EndAlliance(p.Key, p.Value); ended++; }
+                        catch (Exception ex) { Log.Error($"[diplomacia] terminando la alianza entre {p.Key.StringId} y {p.Value.StringId}", ex); }
+                    }
+                }
                 var trade = Trade;
                 var pacts = PactEntries(trade, "_tradeAgreements", out var tradeList);
                 if (pacts != null)
@@ -107,6 +154,15 @@ namespace AILegacy.World
                         if (e.Item2 != null && e.Item3 != null) trade.EndTradeAgreement(e.Item2, e.Item3);
                         else tradeList.Remove(e.Item1);
                         ended++;
+                    }
+                else if (trade != null)
+                    foreach (var p in BrokenPairs().ToList())
+                    {
+                        bool agreed = false;
+                        try { agreed = trade.HasTradeAgreement(p.Key, p.Value, out _); } catch { }
+                        if (!agreed) continue;
+                        try { trade.EndTradeAgreement(p.Key, p.Value); ended++; }
+                        catch (Exception ex) { Log.Error($"[diplomacia] terminando el acuerdo comercial entre {p.Key.StringId} y {p.Value.StringId}", ex); }
                     }
                 if (ended > 0) Log.Info($"[diplomacia] {ended} pacto(s) con reinos destruidos o sin soberano, terminados");
             }
@@ -206,14 +262,38 @@ namespace AILegacy.World
         {
             if (Campaign.Current == null || St == null) return;
             CleanPacts();
-            try { Heal(); PruneGone(); }
+            try { Heal(); PruneGone(k?.StringId); }
             catch (Exception ex) { Log.Error("[diplomacia] reino destruido", ex); }
+            try { WarTolls.OnKingdomGone(k?.StringId); }
+            catch (Exception ex) { Log.Error("[diplomacia] bajas de un reino destruido", ex); }
         }
 
-        /// <summary>What a destroyed kingdom leaves in our own state: proposals, turns to speak, weariness, tributes, stances.</summary>
-        private static void PruneGone()
+        /// <summary>
+        /// What a destroyed kingdom leaves in our own state: proposals, turns to speak, weariness, tributes, stances.
+        /// <paramref name="gone"/> is the kingdom just destroyed: it is pruned by its id even if the kingdom list is
+        /// empty at that moment, or still counts it. Everything else is pruned against the list, when there is one.
+        /// </summary>
+        private static void PruneGone(string gone = null)
         {
             var alive = ExistingKingdomIds();
+            if (!string.IsNullOrEmpty(gone))
+            {
+                if (alive.Count > 0) alive.Remove(gone);
+                else
+                {
+                    // no list to go by: only what names the destroyed kingdom is taken out
+                    Func<string, bool> pair = x => { var ids = (x ?? "").Split('|'); return ids.Length == 2 && (ids[0] == gone || ids[1] == gone); };
+                    int n = St.Proposals.RemoveAll(p => p.From == gone || p.To == gone);
+                    n += St.StatementQueue.RemoveAll(q => q.KingdomId == gone);
+                    n += St.Tributes.RemoveAll(t => t.Payer == gone || t.Receiver == gone);
+                    foreach (var e in St.Events) e.Engagement.Remove(gone);
+                    St.WarFatigue.Remove(gone);
+                    St.LastStatementDay.Remove(gone);
+                    foreach (var key in St.Stance.Keys.Where(pair).ToList()) St.Stance.Remove(key);
+                    if (n > 0) Log.Info($"[diplomacia] {n} propuesta(s), turno(s) o tributo(s) del reino destruido {gone}, retirados");
+                    return;
+                }
+            }
             if (alive.Count == 0) return;
             int dropped = St.Proposals.RemoveAll(p => !alive.Contains(p.From) || !alive.Contains(p.To));
             dropped += St.StatementQueue.RemoveAll(q => !alive.Contains(q.KingdomId));
@@ -802,9 +882,10 @@ breaking: Your realm is at breaking point. Every further week of war risks ruin 
         private static readonly Tpl TReachTags = new Tpl("kingdom_statement/war_reach_tags.txt",
 @"border: on your border
 near: near your lands
-once: far away, but once yours");
+once: far away, but once yours
+siege: far away, but under your siege right now");
         private static readonly Tpl TWhyFar = new Tpl("kingdom_statement/peace_why_far.txt",
-            "{name} lies too far from the lands of {realm} for it to demand: only a town or castle on its border or near its lands, or one it once held, may be demanded");
+            "{name} lies too far from the lands of {realm} for it to demand: only a town or castle on its border or near its lands, one it once held, or one it is besieging right now, may be demanded");
 
         private static Why WhyFar(Settlement st, Kingdom realm) => new Why(
             L.F("AIL_e7b1c796", $"{st.Name} queda demasiado lejos de las tierras de {realm.Name} para exigirla"),
@@ -815,8 +896,11 @@ once: far away, but once yours");
         {
             try
             {
+                // By kingdom id where the record has it. Records from before the id was kept only have the name the
+                // kingdom went by then, which is all there is to compare.
                 string name = k.Name?.ToString();
-                return !string.IsNullOrEmpty(name) && St.Owners != null && St.Owners.TryGetValue(st.StringId, out var list) && list != null && list.Any(t => t != null && t.Of == name);
+                return St.Owners != null && St.Owners.TryGetValue(st.StringId, out var list) && list != null
+                       && list.Any(t => t != null && (!string.IsNullOrEmpty(t.OfId) ? t.OfId == k.StringId : !string.IsNullOrEmpty(name) && t.Of == name));
             }
             catch { return false; }
         }
@@ -830,7 +914,20 @@ once: far away, but once yours");
         {
             if (st == null || k == null || PlayerRules(k)) return true;
             int reach = Facts.Reach(st, k, out _);
-            return reach < 0 || reach <= 1 || OnceHeld(st, k);
+            return reach < 0 || reach <= 1 || OnceHeld(st, k) || Besieging(st, k);
+        }
+
+        /// <summary>His own army is before its walls right now: he can ask for what he is about to take, however far from home.</summary>
+        private static bool Besieging(Settlement st, Kingdom k)
+        {
+            try
+            {
+                var camp = st.IsUnderSiege ? st.SiegeEvent?.BesiegerCamp : null;
+                if (camp == null) return false;
+                if (camp.LeaderParty?.MapFaction == k) return true;
+                return camp.GetInvolvedPartiesForEventType().Any(x => x != null && x.MapFaction == k);
+            }
+            catch { return false; }
         }
 
         /// <summary>For a ruler's war with <paramref name="o"/>: which of their towns and castles he may demand.</summary>
@@ -847,8 +944,11 @@ once: far away, but once yours");
                     int reach = Facts.Reach(st, k, out float gap);
                     if (reach < 0) return "";
                     seen++;
-                    string tag = reach == 0 ? "border" : reach == 1 ? "near" : OnceHeld(st, k) ? "once" : null;
-                    if (tag != null) within.Add(Tuple.Create(reach, gap, $"{st.Name} ({PickLine(TReachTags, tag)})"));
+                    string tag = reach == 0 ? "border" : reach == 1 ? "near" : OnceHeld(st, k) ? "once" : Besieging(st, k) ? "siege" : null;
+                    if (tag == null) continue;
+                    // a tag file edited before a tag existed has no line for it: the place is still listed
+                    string label = PickLine(TReachTags, tag);
+                    within.Add(Tuple.Create(reach, gap, label.Length > 0 ? $"{st.Name} ({label})" : st.Name.ToString()));
                 }
                 if (seen == 0) return "";
                 return within.Count == 0 ? TWarReachNone.Text
@@ -1162,7 +1262,7 @@ once: far away, but once yours");
             Step("esperas y fechas de reinos que ya no están", () => PruneRefusals(now));
             Step("guerras sin fecha", () => TrackWars(now));
             CleanPacts();           // catches and logs by itself
-            Step("restos de reinos que ya no están", PruneGone);
+            Step("restos de reinos que ya no están", () => PruneGone());
             bool on = false;
             Step("ajustes", () => on = Enabled);
             if (!on) return;
@@ -1357,7 +1457,14 @@ once: far away, but once yours");
                 bool wars = next.Why == "wars";
                 // taken prisoner after his turn was queued: he keeps it only to answer a peace
                 bool held = RulerCaptive(k);
-                if (held && (wars || next.EventId != null)) return;
+                if (held && (wars || next.EventId != null))
+                {
+                    // Not queued again: nothing is used up by dropping it. The event keeps his name on it and his
+                    // wars are weighed again every day (QueueStatements), so he gets his turn once he is free.
+                    Log.Info($"[diplomacia] turno de {k.Leader.Name} ({k.Name}) retirado: está preso{(Captor(k.Leader) is string c0 ? " de " + c0 : "")}. " +
+                             (wars ? "Sus guerras se vuelven a sopesar cada día" : "El suceso sigue abierto para él") + " y hablará cuando quede libre.");
+                    return;
+                }
                 if (wars)
                 {
                     if (WarCount(k) == 0) return;                                          // the wars ended meanwhile
@@ -1545,7 +1652,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     foreach (var a in acts.OfType<JObject>())
                     {
                         string type = ((string)(a["type"]?.Type == JTokenType.String ? a["type"] : null) ?? "").Trim().ToLowerInvariant();
-                        var o = WorldSim.FindKingdom((string)(a["target_kingdom"]?.Type == JTokenType.String ? a["target_kingdom"] : null));
+                        var o = WorldSim.FindKingdom(Target(a));
                         if (o == null || o == k) continue;
                         if (type == "declare_war") model.AddWar(k.StringId, o.StringId);
                         else if (type == "accept_alliance") model.AddAlliance(k.StringId, o.StringId);
@@ -1649,6 +1756,16 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 {
                     // Only use up the turn when a reply arrives. If the call fails, the ruler can speak another day
                     _askedSession = -1;
+                    // Written for the ruler he was when it was asked. Taken prisoner, set free, dead or dethroned
+                    // while the request was in flight, the answer is another man's: it is thrown away with the turn
+                    // unspent, and whatever called him (a proposal, an event, his wars) calls him again as he is now.
+                    if (k.IsEliminated || k.Leader != ruler || RulerCaptive(k) != held)
+                    {
+                        Log.Info($"[diplomacia] declaración de {ruler.Name} ({k.Name}) descartada: " +
+                                 (k.IsEliminated ? "el reino ya no existe" : k.Leader != ruler ? "ya no es el soberano"
+                                  : held ? "se pidió estando preso y ya está libre" : "ha caído preso mientras se escribía") + ". Su turno no se gasta.");
+                        return;
+                    }
                     St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
                     if (!answer) St.LastStatementAnyDay = CampaignTime.Now.ToDays;
                     if (about != null) about.Engagement.Remove(k.StringId);
@@ -1708,7 +1825,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             if (j["relation_changes"] is JArray rc)
                 foreach (var x in rc.OfType<JObject>())
                 {
-                    var o = WorldSim.FindKingdom((string)x["kingdom"]);
+                    var o = WorldSim.FindKingdom(Target(x));
                     if (o == null || o == k) continue;
                     WorldSim.ChangeStance(k.StringId, o.StringId, Math.Max(-cfg.MaxStanceChange, Math.Min(cfg.MaxStanceChange, (int?)x["change"] ?? 0)));
                 }
@@ -2036,11 +2153,41 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return WarBlocked(k, o);
         }
 
-        private static int I(JObject a, string key, int min, int max)
+        /// <summary>
+        /// A number from an action, however the model wrote it: 1000, "1000", "1,000", "1.000", "1k", "5000 denars".
+        /// Only the first number in a text counts. Always held between <paramref name="min"/> and <paramref name="max"/>.
+        /// <paramref name="alt"/> are other keys the same value may come under, tried in order when the first is missing.
+        /// </summary>
+        private static int I(JObject a, string key, int min, int max, params string[] alt)
         {
-            int v = 0;
-            try { var t = a[key]; if (t != null && t.Type != JTokenType.Null) int.TryParse(new string(t.ToString().Where(c => char.IsDigit(c) || c == '-').ToArray()), out v); } catch { }
-            return Math.Max(min, Math.Min(max, v));
+            long v = 0;
+            try
+            {
+                var t = a[key];
+                for (int i = 0; (t == null || t.Type == JTokenType.Null) && alt != null && i < alt.Length; i++) t = a[alt[i]];
+                if (t != null && t.Type != JTokenType.Null)
+                {
+                    if (t.Type == JTokenType.Integer) v = (long)t;
+                    else if (t.Type == JTokenType.Float) v = (long)Math.Round((double)t);
+                    else if (t.Type == JTokenType.String) v = FactCheck.ParseSignedAmount((string)t);
+                    // a list or an object is not a number: it reads as none, and the caps decide
+                }
+            }
+            catch { }
+            return (int)Math.Max(min, Math.Min(max, v));
+        }
+
+        /// <summary>The kingdom an action is aimed at, under any of the names models give that field.</summary>
+        private static string Target(JObject a)
+        {
+            foreach (var key in new[] { "target_kingdom", "target", "kingdom", "to_kingdom", "to" })
+            {
+                var t = a?[key];
+                if (t == null || t.Type != JTokenType.String) continue;
+                string s = ((string)t).Trim();
+                if (s.Length > 0) return s;
+            }
+            return null;
         }
 
         /// <summary>A tribute's length in days of this world: "a year" is one Calradian year, however the AI wrote it.</summary>
@@ -2053,7 +2200,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             var cfg = S.Get;
             string type = ((string)a["type"] ?? "").Trim().ToLowerInvariant();
             if (type.Length == 0 || type == "none") return null;
-            var o = WorldSim.FindKingdom((string)a["target_kingdom"]);
+            var o = WorldSim.FindKingdom(Target(a));
             string kn = k.Name.ToString();
             string Bad(string why) { Log.Warn($"[diplomacia] {kn}: acción {type} ignorada ({why})"); return null; }
             // The game's own policies, through the same calls its votes end in, so they show in Kingdom > Policies
@@ -2265,7 +2412,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     if (CarriesOffer(a)) return Bad("los campos offer_ solo valen en propose_peace: una exigencia no ofrece nada");
                     var p = AddProposal("reparations", k, o);
-                    p.Reparations = I(a, "reparations", 100, cfg.MaxReparations);
+                    p.Reparations = I(a, "reparations", 100, cfg.MaxReparations, "amount");
                     return L.F("AIL_cb234369", $"{kn} exige a {o.Name} {p.Reparations} denarios en reparaciones.");
                 }
                 case "accept_reparations":

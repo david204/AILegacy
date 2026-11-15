@@ -43,6 +43,9 @@ namespace AILegacy.Dialogue
         private int _answered;
         /// <summary>This turn's reply was already re-requested once for repeating itself.</summary>
         private bool _retriedRepeat;
+        // A deed spoken as done with no action for it: the nudge for the next turn, and the kinds already nudged in this talk
+        private string _deedNudge;
+        private readonly HashSet<string> _deedsNudged = new HashSet<string>();
         private ChatWindow _win;
         private readonly List<string> _transcript = new List<string>(); // fallback popup mode only
 
@@ -485,6 +488,12 @@ namespace AILegacy.Dialogue
             try
             {
                 messages = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk);
+                // once, on the turn after the words: do it with the action or say plainly why not
+                if (_deedNudge != null && messages.Count > 0)
+                {
+                    messages[messages.Count - 1].Content += "\n\n" + _deedNudge;
+                    _deedNudge = null;
+                }
             }
             catch (Exception ex)
             {
@@ -716,6 +725,8 @@ namespace AILegacy.Dialogue
                 shown.Add(msg);
             }
             if (actx.EndConversation) reply.EndConversation = true;
+            // Words that state a deed as done, with no action behind them, are marked as words
+            _deedNudge = NpcActions.CheckSpokenDeeds(_s, reply.Reply, actx, _deedsNudged, reply.Quest != null) ?? _deedNudge;
 
             // A bandit leader who ambushed you ends the talk without letting you pass: you don't just walk away, it's a fight
             try

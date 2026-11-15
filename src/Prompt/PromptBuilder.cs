@@ -207,6 +207,7 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
         private static readonly Tpl TSummaryGround = new Tpl("memory/summary_grounding.txt",
 @"What was really carried out in the world during this stretch (the complete list; nothing else took effect):
 {deeds}
+An entry that begins with «Seen» was carried out by the person it names, in front of {npc_name}: it really happened, and it is that person's deed, not {npc_name}'s.
 An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a peace, a release or a change of allegiance that appears only in what was SAID, and not in that list, did NOT happen. Record it as words («said they would», «promised», «offered», «claimed»), never as done, however solemnly {npc_name} spoke it. The same goes for the memory book page.");
 
         private static readonly Tpl TSummaryFacts = new Tpl("memory/summary_facts.txt",
@@ -473,7 +474,8 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             // written from these, not from what was only said.
             try
             {
-                var deeds = oldTurns.Where(t => t.IsNote && t.Text.StartsWith("[Done", System.StringComparison.Ordinal))
+                // "[Seen: X ...]" is a deed another member of a group carried out in front of this character: as real as his own
+                var deeds = oldTurns.Where(t => t.IsNote && (t.Text.StartsWith("[Done", System.StringComparison.Ordinal) || t.Text.StartsWith("[Seen:", System.StringComparison.Ordinal)))
                                     .Select(t => "- " + t.Text.Trim().TrimStart('[').TrimEnd(']')).Distinct().ToList();
                 sb.AppendLine(TSummaryGround.Format("npc_name", s.Name,
                     "deeds", deeds.Count > 0 ? string.Join("\n", deeds) : "- (nothing: no action was carried out in this stretch; it was all talk)"));

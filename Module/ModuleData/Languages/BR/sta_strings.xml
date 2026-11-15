@@ -2011,5 +2011,10 @@
     <string id="AIL_e7b1c799" text="O que um reino em paz com todos os outros recupera por dia, em décimos: 20 são 2 pontos por dia. Enquanto houver alguma guerra aberta, nada é recuperado. Recomendado: de 10 a 30." />
     <string id="AIL_e7b1c79a" text="Cansaço extra para o lado que perde uma batalha contra um reino com o qual está em guerra, além dos homens que perdeu. Uma derrota com 250 homens perdidos ou mais conta por inteiro; uma menor, em proporção. Batalhas contra bandidos, caravanas, aldeões ou qualquer um com quem o reino não esteja em guerra nunca contam. Em décimos: 20 são 2 pontos. Recomendado: de 10 a 30." />
     <string id="AIL_e7b1c79b" text="Só quando a cidade ou o castelo é tomado à força por um reino em guerra com o dono. Não conta o que é entregue como condição de paz, concedido ou perdido numa rebelião. Recomendado: de 4 a 10." />
+    <string id="AIL_e7b1c79c" text="{0} cede {1} a você do cativeiro: era a última praça de {2}." />
+    <string id="AIL_e7b1c79d" text="{0}, prisioneiro de {1}, cedeu-lhe {2}. Pertencia ao clã {3}, que ninguém consultou e que guarda rancor dos dois." />
+    <string id="AIL_e7b1c79e" text="{0} cede {1} de sua cela" />
+    <string id="AIL_e7b1c79f" text="Detectar o que só é dito e não é feito" />
+    <string id="AIL_e7b1c7a0" text="Ativado: quando um personagem diz numa conversa que faz algo que exige uma ação (jura lealdade, entrega um castelo ou ouro, casa-se com você, junta-se a você, faz a paz, liberta alguém) mas não usa nenhuma ação, o mod anota para ele que isso não aconteceu, para que sua memória o guarde como palavras, e no turno seguinte pede uma vez que ele o faça de verdade ou diga por que não. Lê a própria resposta e não faz nenhum pedido extra à IA. Só entende respostas em inglês e em espanhol. Desativado: nada é verificado." />
   </strings>
 </base>

@@ -14,6 +14,8 @@ namespace AILegacy.World
     {
         [JsonProperty("who")] public string Who;            // ruler's name, or owner clan
         [JsonProperty("of")] public string Of;              // ruler's clan, or the owner clan's kingdom
+        /// <summary>Id of the owner clan's kingdom (fiefs only). Missing in records from before it was kept: those only have the name.</summary>
+        [JsonProperty("of_id", NullValueHandling = NullValueHandling.Ignore)] public string OfId;
         [JsonProperty("from")] public double FromDay = -1;  // -1 = already there when tracking started
         [JsonProperty("how")] public string How;            // siege, gift, barter... (fiefs only)
     }
@@ -70,10 +72,10 @@ namespace AILegacy.World
                 if (!St.Owners.TryGetValue(s.StringId, out var list)) St.Owners[s.StringId] = list = new List<TenureRecord>();
                 // First time around, also record who lost it, otherwise there's no "before"
                 if (list.Count == 0 && oldOwner?.Clan != null)
-                    list.Add(new TenureRecord { Who = oldOwner.Clan.Name.ToString(), Of = (oldOwner.MapFaction as Kingdom)?.Name?.ToString() });
+                    list.Add(new TenureRecord { Who = oldOwner.Clan.Name.ToString(), Of = (oldOwner.MapFaction as Kingdom)?.Name?.ToString(), OfId = (oldOwner.MapFaction as Kingdom)?.StringId });
                 string name = clan.Name.ToString();
                 if (list.Count > 0 && list[list.Count - 1].Who == name) return;
-                list.Add(new TenureRecord { Who = name, Of = (newOwner.MapFaction as Kingdom)?.Name?.ToString(), FromDay = CampaignTime.Now.ToDays, How = detail.ToString() });
+                list.Add(new TenureRecord { Who = name, Of = (newOwner.MapFaction as Kingdom)?.Name?.ToString(), OfId = (newOwner.MapFaction as Kingdom)?.StringId, FromDay = CampaignTime.Now.ToDays, How = detail.ToString() });
                 while (list.Count > Keep) list.RemoveAt(0);
             }
             catch (Exception ex) { Log.Error("Historia: feudo", ex); }

@@ -30,6 +30,10 @@ namespace AILegacy.Dialogue
             public bool ViaLetter;
             /// <summary>The leader of a hostile party decided to let the player pass.</summary>
             public bool LetPass;
+            /// <summary>Every action asked for in this reply, by its real name, whether or not it could be carried out.</summary>
+            public readonly List<string> Tried = new List<string>();
+            /// <summary>The ones that really took effect.</summary>
+            public readonly List<string> Executed = new List<string>();
         }
 
         private class ActionDef
@@ -259,11 +263,41 @@ namespace AILegacy.Dialogue
         private static int Rel(Speaker s) => s.IsHero ? (int)s.Hero.GetRelationWithPlayer() : 0;
         private static bool IsPlayersPrisoner(Hero h) => h.IsPrisoner && h.PartyBelongedToAsPrisoner == MobileParty.MainParty?.Party;
 
+        /// <summary>
+        /// Whoever enters the player's clan or party does so as a free man: a captivity still open is ended first,
+        /// or the game is left with someone who is a companion and a prisoner at once. Our own actions already ask
+        /// for a free man before they are offered; this is for whatever changed since.
+        /// </summary>
+        private static void FreeBeforeJoining(Hero h)
+        {
+            try
+            {
+                if (h == null || !h.IsPrisoner) return;
+                Log.Info($"{h.Name} estaba preso al unirse al jugador: se le da la libertad primero");
+                if (Captivity.HeldByPlayer(h)) EndCaptivityAction.ApplyByReleasedByChoice(h, P);
+                else EndCaptivityAction.ApplyByEscape(h, null, false);
+            }
+            catch (Exception ex) { Log.Error("Liberar antes de unirse", ex); }
+        }
+
         // --- deals forced out of a prisoner
         /// <summary>A prisoner in the player's hands (party or own dungeon) who can be made to sign things from his cell.</summary>
         private static bool Duress(Speaker s) => S.Get.AllowPrisonerDeals && s.IsHero && Captivity.HeldByPlayer(s.Hero);
         /// <summary>Free to act, or a captive of the player who can be forced to.</summary>
         private static bool FreeOrDuress(Speaker s) => s.IsHero && (!s.Hero.IsPrisoner || Duress(s));
+
+        /// <summary>
+        /// Land is only wrung out of an enemy: between two sides at peace a town signed over from a cell would be a
+        /// cession nobody is bound by. The player needs no kingdom for it: the game lets a clan without one hold
+        /// towns and castles (DefaultKingdomCreationModel asks an independent clan to own some before it can found
+        /// a kingdom), and a clan can be at war with a kingdom on its own.
+        /// </summary>
+        private static bool ForcedCessionMakesSense(Hero h)
+        {
+            var his = h?.MapFaction; var theirs = P?.MapFaction;
+            if (his == null || theirs == null) return false;
+            return his == theirs || his.IsAtWarWith(theirs);
+        }
 
         /// <summary>Towns and castles a captive can sign over: his clan's if he leads it, and the whole realm's if he rules it.</summary>
         private static List<Settlement> CedableUnderDuress(Speaker s)
@@ -273,6 +307,7 @@ namespace AILegacy.Dialogue
             {
                 if (!Duress(s) || s.Hero.Clan == null || s.Hero.Clan == PC) return list;
                 var h = s.Hero;
+                if (!ForcedCessionMakesSense(h)) return list;
                 if (h.Clan.Leader == h) list.AddRange(FiefsOf(h.Clan));
                 var k = World.Facts.Subject(h.Clan);
                 if (k != null && k.Leader == h && k != P.MapFaction)
@@ -480,6 +515,8 @@ namespace AILegacy.Dialogue
                 },
                 Execute = (s, arg, ctx) =>
                 {
+                    FreeBeforeJoining(s.Hero);
+                    if (s.Hero.IsPrisoner) return Nope(null, "you are still held prisoner and could not join them");
                     AddCompanionAction.Apply(Clan.PlayerClan, s.Hero);
                     AddHeroToPartyAction.Apply(s.Hero, MobileParty.MainParty);
                     return L.F("AIL_85a42b1a", $"{s.Name} se une a tu grupo como compañero.");
@@ -718,6 +755,7 @@ namespace AILegacy.Dialogue
                     Hero hadH = h.Spouse, hadP = P.Spouse;
                     try
                     {
+                        FreeBeforeJoining(h);
                         // A non-noble (companion, wanderer, notable without a clan) joins your clan as a noble first
                         if (!SafeSuitable(h))
                         {
@@ -1295,6 +1333,8 @@ namespace AILegacy.Dialogue
                     if (!S.Get.AllowFiefs) return "land cannot change hands in a talk in this world";
                     bool rules = h.IsKingdomLeader;
                     if (h.IsPrisoner && !Duress(s)) return "you are a prisoner and can sign nothing over from a cell";
+                    if (h.IsPrisoner && (h.IsClanLeader || rules) && !ForcedCessionMakesSense(h))
+                        return "your side is at peace with theirs: land is only forced out of an enemy in war, and a town signed over from a cell in peacetime would bind nobody";
                     if (!h.IsClanLeader && !rules) return $"the lands of clan {h.Clan.Name} are {h.Clan.Leader?.Name}'s to give, not yours";
                     if (FiefsOf(h.Clan).Count == 0 && !rules) return "your clan holds no town or castle";
                     if (!h.IsPrisoner && (KingdomOf(s) == null || KingdomOf(s) != P.MapFaction))
@@ -1310,13 +1350,40 @@ namespace AILegacy.Dialogue
                         var mine = OrderSystem.FindSettlement(arg, x => can.Contains(x));
                         if (mine == null) return Nope(null, "that is not a town or castle you can sign over (not yours or your realm's, or it is under siege)");
                         var from = mine.OwnerClan;
+                        // Whose last holding it is: the realm's when he rules it, his house's otherwise. It still goes, and everyone is told
+                        var realm = World.Facts.Subject(s.Hero.Clan);
+                        bool rules = realm != null && realm.Leader == s.Hero;
+                        bool last = (rules ? realm.Settlements.Count(x => x.IsTown || x.IsCastle) : FiefsOf(s.Hero.Clan).Count) <= 1;
+                        string holder = rules ? realm.Name.ToString() : s.Hero.Clan.Name.ToString();
                         // Across realms it changes hands the way a ceded town does in a peace; inside one realm it is a gift
                         if (mine.MapFaction != P.MapFaction) ChangeOwnerOfSettlementAction.ApplyByDefault(P, mine);
                         else ChangeOwnerOfSettlementAction.ApplyByGift(mine, P);
                         if (mine.OwnerClan != PC) return Nope(null, $"{mine.Name} could not change hands");
-                        try { if (from?.Leader != null && from.Leader != s.Hero && from.Leader != P) ChangeRelationAction.ApplyRelationChangeBetweenHeroes(s.Hero, from.Leader, -15, false); } catch { }
-                        AfterForcedDeal(s, ctx, $"you signed {mine.Name} over to them" + (from != null && from != s.Hero.Clan ? $", taking it from clan {from.Name} of your own realm" : ""), false);
-                        return L.F("AIL_e7b1c787", $"{s.Name} te cede {mine.Name} desde su cautiverio.");
+                        bool others = from != null && from != s.Hero.Clan && from.Leader != null && from.Leader != s.Hero && from.Leader != P;
+                        if (others)
+                        {
+                            // The house that held it was robbed by its own ruler, for the benefit of his captor
+                            try { ChangeRelationAction.ApplyRelationChangeBetweenHeroes(s.Hero, from.Leader, -15, false); } catch { }
+                            try { ChangeRelationAction.ApplyRelationChangeBetweenHeroes(P, from.Leader, -10, true); } catch { }
+                            try
+                            {
+                                NewsStore.Add(new NewsItem
+                                {
+                                    Type = "fief", Importance = 3, PlayerInvolved = true,
+                                    Text = $"{s.Name}, held prisoner by {P.Name}, has signed {mine.Name} over to their captor. It belonged to clan {from.Name}, who were not asked and resent both of them for it.",
+                                    TextEs = L.F("AIL_e7b1c79d", $"{s.Name}, prisionero de {P.Name}, le ha cedido {mine.Name}. Era del clan {from.Name}, al que nadie preguntó y que se lo guarda a los dos."),
+                                    TitleEs = L.F("AIL_e7b1c79e", $"{s.Name} cede {mine.Name} desde su celda"),
+                                    Heroes = new List<string> { s.Hero.StringId, P.StringId, from.Leader.StringId },
+                                    Kingdoms = new[] { s.Hero.MapFaction, P.MapFaction }.Where(f => f != null).Select(f => f.StringId).Distinct().ToList(),
+                                    SettlementId = mine.StringId,
+                                });
+                            }
+                            catch (Exception ex) { Log.Error("Noticia de la cesión forzada", ex); }
+                        }
+                        AfterForcedDeal(s, ctx, $"you signed {mine.Name} over to them" + (others ? $", taking it from clan {from.Name} of your own realm, who now hold it against you and against them" : "") +
+                                                (last ? $". It was the last holding of {holder}: there is no town or castle left to it" : ""), false);
+                        return last ? L.F("AIL_e7b1c79c", $"{s.Name} te cede {mine.Name} desde su cautiverio: era la última plaza de {holder}.")
+                                    : L.F("AIL_e7b1c787", $"{s.Name} te cede {mine.Name} desde su cautiverio.");
                     }
                     var st = OrderSystem.FindSettlement(arg, x => (x.IsTown || x.IsCastle) && x.OwnerClan == s.Hero.Clan && !x.IsUnderSiege);
                     if (st == null) return Nope(null, "that is not a town or castle your clan holds (or it is under siege)");
@@ -1404,9 +1471,10 @@ namespace AILegacy.Dialogue
                 Execute = (s, arg, ctx) =>
                 {
                     var k = KingdomOf(s); var c = s.Hero.Clan;
-                    bool forced = Duress(s) && k != P.MapFaction;
+                    bool forced = Duress(s);
                     if (c.IsUnderMercenaryService) ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(c);
                     else ChangeKingdomAction.ApplyByLeaveKingdom(c);
+                    if (c.Kingdom == k) return Nope(null, $"your clan is still in {k.Name}: it could not leave, and nothing has changed");
                     if (forced) AfterForcedDeal(s, ctx, $"you took your clan out of {k.Name}, renouncing your ruler", true);
                     return L.F("AIL_3677d2a1", $"El clan {c.Name} abandona {k.Name}.");
                 }
@@ -1450,6 +1518,8 @@ namespace AILegacy.Dialogue
                     // A governor who just switches clan leaves the town with a foreign governor (and the game crashes when you open it)
                     try { if (s.Hero.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(s.Hero); }
                     catch (Exception ex) { Log.Error("Quitar la gobernación antes de cambiar de clan", ex); }
+                    FreeBeforeJoining(s.Hero);
+                    if (s.Hero.IsPrisoner) return Nope(null, "you are still held prisoner and could not join their clan");
                     s.Hero.Clan = PC;
                     return L.F("AIL_7765746a", $"{s.Name} deja el clan {old.Name} y se une al tuyo.");
                 }
@@ -1882,6 +1952,7 @@ namespace AILegacy.Dialogue
         public static void RegisterTemplates()
         {
             foreach (var a in All) Prompt.Templates.GetOrAdd("actions/" + a.Name + ".txt", a.Description);
+            var _ = TDeedNames.Key + TNotDone.Key + TPromiseNudge.Key;
         }
 
         // --- items
@@ -2130,6 +2201,7 @@ If the talk turns to one of them, say plainly and in character that it is not in
                 var arg = colon >= 0 ? cmd.Substring(colon + 1).Trim() : "";
                 if (Aliases.TryGetValue(name, out var real) && All.All(a => a.Name != name)) { Log.Info($"Acción «{name}» entendida como «{real}»"); name = real; }
                 if (!done.Add(name)) continue;
+                ctx.Tried.Add(name);
 
                 var def = All.FirstOrDefault(a => a.Name == name);
                 if (def == null) { Log.Warn($"Acción desconocida ignorada: {cmd}"); Failed(cmd, "there is no such action: only the actions listed in your briefing exist"); continue; }
@@ -2149,6 +2221,7 @@ If the talk turns to one of them, say plainly and in character that it is not in
                     if (happened)
                     {
                         executed.Add(name);
+                        ctx.Executed.Add(name);
                         if (s.IsHero) AILegacy.Api.AILegacyApi.RaiseActionExecuted(s.Hero, name, arg, msg);
                         // News only if it really worked (otherwise you'd get, say, a wedding that never happened)
                         RecordAsNews(s, name);
@@ -2166,6 +2239,115 @@ If the talk turns to one of them, say plainly and in character that it is not in
         }
 
         private static string Clip(string t, int max) => t == null ? "" : t.Length <= max ? t : t.Substring(0, max) + "…";
+
+        // ============================================================ words spoken as deeds
+
+        // The actions that carry out each kind of deed PromiseCheck can find in a spoken line
+        private static readonly Dictionary<string, string[]> DeedActions = new Dictionary<string, string[]>
+        {
+            { "fealty", new[] { "swear_fealty", "serve_as_mercenary" } },
+            { "fief", new[] { "grant_fief" } },
+            // any action that puts the character's money in the other's hand: a sale or a purchase pays too
+            { "gold", new[] { "give_gold", "buy_goods", "sell_goods", "take_item", "take_prisoners", "take_troops", "sell_workshop" } },
+            { "marriage", new[] { "accept_marriage", "propose_marriage", "wed_now" } },
+            { "join", new[] { "join_party", "join_clan", "join_their_company", "join_with_band", "come_along", "follow_me", "join_army", "be_remembered", "escort" } },
+            { "peace", new[] { "make_peace" } },
+            { "war", new[] { "declare_war" } },
+            { "abdicate", new[] { "abdicate" } },
+            { "free", new[] { "give_prisoners", "let_go", "let_pass", "set_free" } },
+            { "leave", new[] { "leave_kingdom", "swear_fealty", "serve_as_mercenary" } },
+        };
+
+        // One line per kind of deed, picked by the word before the colon: how the note names what was only said
+        private static readonly Prompt.Tpl TDeedNames = new Prompt.Tpl("rules/promise_deeds.txt",
+@"fealty: sworn fealty to them
+fief: handed a town or castle over to them
+gold: handed them gold
+marriage: married them, or accepted the marriage
+join: joined them
+peace: made peace with them
+war: declared war on them
+abdicate: given up your crown
+free: set someone free
+leave: renounced your ruler");
+
+        private static readonly Prompt.Tpl TNotDone = new Prompt.Tpl("rules/promise_not_done.txt",
+            "you spoke as if you had {deed} («{quote}»), but you put no action with the words, so in the world it has NOT happened: it was said and nothing more. Do not speak or act as if it were done.");
+
+        private static readonly Prompt.Tpl TPromiseNudge = new Prompt.Tpl("rules/promise_nudge.txt",
+            "[In your last reply you spoke as if you had {deed}, but you put no action with the words, so nothing happened. It is in your power right now: either carry it out in this reply with the action {usage}, or tell them plainly that you will not do it, and why. Do not say the words alone again.]");
+
+        private static string DeedName(string kind)
+        {
+            foreach (var raw in TDeedNames.Text.Split('\n'))
+            {
+                string line = raw.Trim();
+                if (line.StartsWith(kind + ":", StringComparison.OrdinalIgnoreCase)) return line.Substring(kind.Length + 1).Trim();
+            }
+            return kind;
+        }
+
+        /// <summary>What the words claim is already so in the world: then they are a statement of fact, not a deed left undone.</summary>
+        private static bool AlreadySo(Speaker s, string kind)
+        {
+            try
+            {
+                var h = s.IsHero ? s.Hero : null;
+                switch (kind)
+                {
+                    case "fealty": return h?.Clan != null && PlayerKingdom != null && h.Clan.Kingdom == PlayerKingdom;
+                    case "marriage": return h != null && P.Spouse == h;
+                    case "join": return h != null && (h.Clan == PC || h.CompanionOf == PC || h.PartyBelongedTo == MobileParty.MainParty);
+                    case "peace": return !AtWarWithPlayer(s);
+                    case "war": return AtWarWithPlayer(s);
+                    case "leave": return h == null || KingdomOf(s) == null || KingdomOf(s).Leader == h;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        /// <summary>
+        /// After a reply: a deed spoken as done ("I swear fealty to you", "te entrego el castillo") with no action
+        /// for it in the same reply did not happen. It is written into the history as "[Not done: ...]", so the
+        /// character's next prompt and the summary of the talk take it for words. When the action for it was open
+        /// to him, the text of one corrective nudge for his next turn is returned (once per kind of deed and talk:
+        /// <paramref name="nudged"/> remembers which). Local, no request to the AI. Main thread.
+        /// </summary>
+        /// <param name="paidByQuest">The same reply settles or rewards an errand: gold named in it is that reward.</param>
+        public static string CheckSpokenDeeds(Speaker s, string reply, ActionContext ctx, ISet<string> nudged, bool paidByQuest = false)
+        {
+            string nudge = null;
+            try
+            {
+                if (!S.Get.EnableActions || !S.Get.CatchEmptyPromises || s == null || ctx == null) return null;
+                foreach (var d in PromiseCheck.Find(reply))
+                {
+                    if (!DeedActions.TryGetValue(d.Kind, out var names) || (paidByQuest && d.Kind == "gold")) continue;
+                    // asked for in this reply: it either happened or already has its own "did not happen" note
+                    if (ctx.Tried.Any(names.Contains) || AlreadySo(s, d.Kind)) continue;
+                    var open = new List<ActionDef>();
+                    foreach (var a in All)
+                    {
+                        if (a.Name == "wed_now" || !names.Contains(a.Name)) continue;
+                        try { if (a.IsAvailable(s)) open.Add(a); } catch { }
+                    }
+                    // "you are free to go" is also how a lord ends an audience: only a deed when there is someone he can free
+                    if (d.Kind == "free" && open.Count == 0) continue;
+                    string deed = DeedName(d.Kind);
+                    string note = "[Not done: " + TNotDone.Format("deed", deed, "quote", Clip(d.Quote, 120)) + "]";
+                    var turns = s.Memory.Turns;
+                    // said twice in a row: one note is enough
+                    if (turns.Skip(Math.Max(0, turns.Count - 6)).Any(t => t.Text == note)) continue;
+                    NoteOutcome(s, note);
+                    Log.Warn($"{s.Name} da por hecho algo que no ha hecho ({d.Kind}: «{d.Quote}»), sin acción" + (open.Count > 0 ? $"; podía hacerlo con {open[0].Name}" : "; no tenía acción para ello"));
+                    if (nudge == null && open.Count > 0 && nudged != null && nudged.Add(d.Kind))
+                        nudge = TPromiseNudge.Format("deed", deed, "usage", string.Join("  or  ", open.Take(2).Select(a => a.Usage.Split(new[] { "  or  " }, StringSplitOptions.None)[0])));
+                }
+            }
+            catch (Exception ex) { Log.Error("Promesas sin acción", ex); }
+            return nudge;
+        }
 
         /// <summary>A trailing ":return" means they agreed to come back to the player afterwards. Strips it from the argument.</summary>
         private static bool TakeReturn(ref string arg)
@@ -2463,37 +2645,8 @@ If the talk turns to one of them, say plainly and in character that it is not in
         /// <summary>
         /// Only the FIRST number in the text ("100 now and 100 later" -> 100, "200-300" -> 200).
         /// Accepts thousands separators ("1.000", "1,000", "1 000" -> 1000) and "5k" -> 5000. Decimals are dropped ("2.5" -> 2).
+        /// The parsing lives in FactCheck so that it can be tested outside the game.
         /// </summary>
-        internal static int ParseAmount(string arg)
-        {
-            var s = arg ?? "";
-            int i = 0;
-            while (i < s.Length && !char.IsDigit(s[i])) i++;
-            if (i >= s.Length) return 0;
-            long v = 0;
-            int j = i;
-            while (j < s.Length && char.IsDigit(s[j])) { v = v * 10 + (s[j] - '0'); j++; if (v > int.MaxValue) return int.MaxValue; }
-            // Thousands groups: only if the first group has 1-3 digits and each later group exactly 3, with the same separator
-            if (j - i <= 3)
-            {
-                char sep = '\0';
-                // j is the separator; s[j+1..j+3] must be digits
-                while (j + 3 < s.Length)
-                {
-                    char c = s[j];
-                    bool isSep = c == '.' || c == ',' || c == ' ' || c == ' ' || c == ' ' || c == '\'';
-                    if (!isSep || (sep != '\0' && c != sep)) break;
-                    if (!char.IsDigit(s[j + 1]) || !char.IsDigit(s[j + 2]) || !char.IsDigit(s[j + 3])) break;
-                    if (j + 4 < s.Length && char.IsDigit(s[j + 4])) break;              // four or more digits: not a thousands group
-                    sep = c;
-                    v = v * 1000 + (s[j + 1] - '0') * 100 + (s[j + 2] - '0') * 10 + (s[j + 3] - '0');
-                    if (v > int.MaxValue) return int.MaxValue;
-                    j += 4;
-                }
-            }
-            // "5k" = 5000
-            if (j < s.Length && (s[j] == 'k' || s[j] == 'K') && (j + 1 >= s.Length || !char.IsLetter(s[j + 1]))) v *= 1000;
-            return v > int.MaxValue ? int.MaxValue : (int)v;
-        }
+        internal static int ParseAmount(string arg) => FactCheck.ParseAmount(arg);
     }
 }

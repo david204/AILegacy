@@ -15,11 +15,13 @@ namespace AILegacy.Memory
 
         /// <summary>
         /// Not something said, but a note on what actually happened ("[Done: ...]", "[Did not happen: ...]", "[Since you last spoke: ...]").
-        /// Stored as a player turn so the model sees it in the right place in the history.
+        /// "[Seen: ...]" is a deed someone else carried out in front of them, "[Not done: ...]" a deed they spoke as
+        /// done without using the action for it. Stored as a player turn so the model sees it in the right place in the history.
         /// </summary>
         [JsonIgnore]
         public bool IsNote => Role == "player" && Text != null && Text.Length > 2 && Text[0] == '['
-                              && (Text.StartsWith("[Done:") || Text.StartsWith("[Did not happen:") || Text.StartsWith("[Since you last spoke:") || Text.StartsWith("[Pending:"));
+                              && (Text.StartsWith("[Done:") || Text.StartsWith("[Done under duress:") || Text.StartsWith("[Did not happen:") || Text.StartsWith("[Since you last spoke:")
+                                  || Text.StartsWith("[Pending:") || Text.StartsWith("[Seen:") || Text.StartsWith("[Not done:"));
     }
 
     /// <summary>One part of the shared-history summary, with the campaign days it covers (-1 = undated, from older saves).</summary>

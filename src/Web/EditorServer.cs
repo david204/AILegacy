@@ -610,6 +610,7 @@ namespace AILegacy.Web
                     string hint = ((string)d["hint"] ?? "").Trim();
                     string prompt = TGenerate.Format("facts", facts.ToString().TrimEnd(), "hint", hint.Length > 0 ? "The author of this world asks for this in particular: " + hint : "", "language", Settings.S.Get.Language);
                     Generating.Add(id);
+                    int session = WorldSim.Session;
                     Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "editor", maxTokensOverride: 1200, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
                     {
                         var res = t.IsFaulted ? null : t.Result;
@@ -618,6 +619,8 @@ namespace AILegacy.Web
                             Generating.Remove(id);
                             try
                             {
+                                // another save was loaded meanwhile: that memory is not this campaign's, and saving would write it here
+                                if (session != WorldSim.Session) { Log.Info("Editor: personalidad de otra partida, descartada"); return; }
                                 if (res == null || !res.Ok) { GenerateError[id] = res?.Error ?? L.T("AIL_ea76bfc7", "la IA no ha respondido"); return; }
                                 int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                                 if (a < 0 || b <= a) { GenerateError[id] = "respuesta ilegible"; return; }

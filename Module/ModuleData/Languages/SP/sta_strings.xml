@@ -2011,5 +2011,10 @@
     <string id="AIL_e7b1c799" text="Lo que recupera cada día un reino que está en paz con todos los demás, en décimas: 20 son 2 puntos al día. Mientras tenga alguna guerra abierta no recupera nada. Recomendado: de 10 a 30." />
     <string id="AIL_e7b1c79a" text="Cansancio extra para el bando que pierde una batalla contra un reino con el que está en guerra, además de los hombres que perdió. Una derrota con 250 hombres perdidos o más cuenta entera; una menor, en proporción. Las batallas contra bandidos, caravanas, aldeanos o cualquiera con quien el reino no esté en guerra no cuentan nunca. En décimas: 20 son 2 puntos. Recomendado: de 10 a 30." />
     <string id="AIL_e7b1c79b" text="Solo cuando la ciudad o el castillo lo toma por la fuerza un reino en guerra con su dueño. No cuenta el que se entrega como condición de una paz, el que se concede ni el que se pierde por una rebelión. Recomendado: de 4 a 10." />
+    <string id="AIL_e7b1c79c" text="{0} te cede {1} desde su cautiverio: era la última plaza de {2}." />
+    <string id="AIL_e7b1c79d" text="{0}, prisionero de {1}, le ha cedido {2}. Era del clan {3}, al que nadie preguntó y que se lo guarda a los dos." />
+    <string id="AIL_e7b1c79e" text="{0} cede {1} desde su celda" />
+    <string id="AIL_e7b1c79f" text="Detectar lo que solo se dice y no se hace" />
+    <string id="AIL_e7b1c7a0" text="Activado: cuando un personaje dice en una charla que hace algo que requiere una acción (jura lealtad, entrega un castillo u oro, se casa contigo, se une a ti, firma la paz, libera a alguien) pero no usa ninguna acción, el mod le anota que no ha ocurrido, para que su memoria lo guarde como palabras, y en su siguiente turno le pide una vez que lo haga de verdad o diga por qué no. Lee la propia respuesta y no hace ninguna petición extra a la IA. Solo entiende respuestas en inglés y en español. Desactivado: no se comprueba nada." />
   </strings>
 </base>

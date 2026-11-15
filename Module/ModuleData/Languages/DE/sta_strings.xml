@@ -2011,5 +2011,10 @@
     <string id="AIL_e7b1c799" text="Was ein Reich, das mit allen anderen in Frieden lebt, täglich zurückgewinnt, in Zehnteln: 20 sind 2 Punkte pro Tag. Solange ein Krieg läuft, wird nichts zurückgewonnen. Empfohlen: 10 bis 30." />
     <string id="AIL_e7b1c79a" text="Zusätzliche Kriegsmüdigkeit für die Seite, die eine Schlacht gegen ein Reich verliert, mit dem sie im Krieg liegt, zusätzlich zu den verlorenen Männern. Eine Niederlage mit 250 oder mehr verlorenen Männern zählt voll, eine kleinere anteilig. Schlachten gegen Banditen, Karawanen, Dorfbewohner oder jeden, mit dem das Reich nicht im Krieg liegt, zählen nie. In Zehnteln: 20 sind 2 Punkte. Empfohlen: 10 bis 30." />
     <string id="AIL_e7b1c79b" text="Nur wenn die Stadt oder Burg von einem Reich, das mit ihrem Besitzer im Krieg liegt, mit Gewalt genommen wird. Eine als Friedensbedingung übergebene, verliehene oder durch einen Aufstand verlorene zählt nicht. Empfohlen: 4 bis 10." />
+    <string id="AIL_e7b1c79c" text="{0} überschreibt dir {1} aus der Gefangenschaft: Es war der letzte Besitz von {2}." />
+    <string id="AIL_e7b1c79d" text="{0}, Gefangener von {1}, hat {2} an seinen Bezwinger überschrieben. Der Ort gehörte dem Clan {3}, der nicht gefragt wurde und es beiden nachträgt." />
+    <string id="AIL_e7b1c79e" text="{0} überschreibt {1} aus der Zelle" />
+    <string id="AIL_e7b1c79f" text="Erkennen, was nur gesagt und nicht getan wird" />
+    <string id="AIL_e7b1c7a0" text="An: Wenn eine Figur im Gespräch sagt, sie tue etwas, wofür es eine Aktion braucht (Treue schwören, eine Burg oder Gold übergeben, dich heiraten, sich dir anschließen, Frieden schließen, jemanden freilassen), aber keine Aktion benutzt, vermerkt die Mod für sie, dass es nicht geschehen ist, damit ihr Gedächtnis es als bloße Worte behält, und bittet sie in ihrem nächsten Zug einmal, es wirklich zu tun oder zu sagen, warum nicht. Die Mod liest nur die Antwort selbst und stellt keine zusätzliche Anfrage an die KI. Sie versteht nur englische und spanische Antworten. Aus: Es wird nichts geprüft." />
   </strings>
 </base>

@@ -2011,5 +2011,10 @@
     <string id="AIL_e7b1c799" text="What a kingdom at peace with every other kingdom recovers each day, in tenths: 20 is 2 points a day. Nothing is recovered while any war is open. Recommended: 10 to 30." />
     <string id="AIL_e7b1c79a" text="Extra weariness for the side that loses a battle against a kingdom it is at war with, on top of the men it lost. A defeat with 250 men lost or more counts in full, a smaller one in proportion. Battles against bandits, caravans, villagers or anyone the kingdom is not at war with never count. In tenths: 20 is 2 points. Recommended: 10 to 30." />
     <string id="AIL_e7b1c79b" text="Only when the town or castle is taken by force by a kingdom at war with its owner. One handed over as a term of peace, granted, or lost to a rebellion does not count. Recommended: 4 to 10." />
+    <string id="AIL_e7b1c79c" text="{0} signs {1} over to you from captivity: it was the last holding of {2}." />
+    <string id="AIL_e7b1c79d" text="{0}, held prisoner by {1}, has signed {2} over to their captor. It belonged to clan {3}, who were not asked and hold it against both of them." />
+    <string id="AIL_e7b1c79e" text="{0} signs {1} over from a cell" />
+    <string id="AIL_e7b1c79f" text="Catch deeds that are only said" />
+    <string id="AIL_e7b1c7a0" text="On: when a character says in a talk that he does something an action carries out (swears fealty, hands over a castle or gold, marries you, joins you, makes peace, frees someone) but uses no action, the mod notes for him that it did not happen, so his memory keeps it as words, and on his next turn asks him once to do it properly or say why not. It reads the reply itself and makes no extra request to the AI. It only understands English and Spanish replies. Off: nothing is checked." />
   </strings>
 </base>

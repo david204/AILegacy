@@ -1260,7 +1260,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             try
             {
                 var own = victim != null && victim.IsLord ? Facts.Subject(victim.Clan) : null;
-                if (own != null && WarTolls.KilledByEnemy(killer, detail, own) != null) AddFatigue(own, S.Get.FatiguePerLordKilled);
+                if (own != null && WarTolls.KilledByEnemy(victim, killer, detail, own) != null) AddFatigue(own, S.Get.FatiguePerLordKilled);
             }
             catch (Exception ex) { Log.Error("[mundo] cansancio por un noble muerto", ex); }
             Chronicle.OnHeroKilled(victim, killer, detail);

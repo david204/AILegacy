@@ -2011,5 +2011,10 @@
     <string id="AIL_e7b1c799" text="Quanto recupera ogni giorno un regno in pace con tutti gli altri, in decimi: 20 sono 2 punti al giorno. Finché ha una guerra aperta non recupera nulla. Consigliato: da 10 a 30." />
     <string id="AIL_e7b1c79a" text="Stanchezza aggiuntiva per la parte che perde una battaglia contro un regno con cui è in guerra, oltre agli uomini persi. Una sconfitta con 250 uomini persi o più conta per intero, una minore in proporzione. Le battaglie contro banditi, carovane, contadini o chiunque non sia in guerra con il regno non contano mai. In decimi: 20 sono 2 punti. Consigliato: da 10 a 30." />
     <string id="AIL_e7b1c79b" text="Solo quando la città o il castello viene preso con la forza da un regno in guerra con il suo proprietario. Non conta quello ceduto come condizione di pace, concesso o perso per una ribellione. Consigliato: da 4 a 10." />
+    <string id="AIL_e7b1c79c" text="{0} ti cede {1} dalla prigionia: era l’ultima roccaforte di {2}." />
+    <string id="AIL_e7b1c79d" text="{0}, prigioniero di {1}, gli ha ceduto {2}. Apparteneva al clan {3}, che nessuno ha interpellato e che non lo perdona a nessuno dei due." />
+    <string id="AIL_e7b1c79e" text="{0} cede {1} dalla sua cella" />
+    <string id="AIL_e7b1c79f" text="Rilevare ciò che viene detto ma non fatto" />
+    <string id="AIL_e7b1c7a0" text="Attivo: quando un personaggio dice in una conversazione di fare qualcosa che richiede un’azione (giura fedeltà, consegna un castello o dell’oro, ti sposa, si unisce a te, fa la pace, libera qualcuno) ma non usa alcuna azione, la mod gli annota che non è accaduto, così la sua memoria lo conserva come parole, e al turno successivo gli chiede una volta di farlo davvero o di dire perché no. Legge la risposta stessa e non invia richieste aggiuntive all’IA. Capisce solo risposte in inglese e in spagnolo. Disattivo: non si controlla nulla." />
   </strings>
 </base>

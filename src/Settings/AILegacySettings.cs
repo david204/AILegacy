@@ -531,6 +531,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
         public bool EnableActions { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c79f}Catch deeds that are only said", Order = 23, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a0}On: when a character says in a talk that he does something an action carries out (swears fealty, hands over a castle or gold, marries you, joins you, makes peace, frees someone) but uses no action, the mod notes for him that it did not happen, so his memory keeps it as words, and on his next turn asks him once to do it properly or say why not. It reads the reply itself and makes no extra request to the AI. It only understands English and Spanish replies. Off: nothing is checked.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
+        public bool CatchEmptyPromises { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_256e88f0}Maximum gold per action", 0, 1000000, Order = 1, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
         public int MaxGoldPerAction { get; set; } = 20000;
@@ -1511,37 +1516,37 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public bool EnableSeasonalDiseases { get; set; } = true;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c626}Seasonal: base chance (every 6 hours)", 0.005f, 0.1f, "0.000", Order = 51, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c626}Seasonal: base chance (every 6 hours)", 0.0005f, 0.1f, "0.0000", Order = 51, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalDiseaseBaseChance { get; set; } = 0.02f;
+        public float SeasonalDiseaseBaseChance { get; set; } = 0.002f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c627}Seasonal: highest chance after all additions", 0.1f, 0.5f, "0.00", Order = 52, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c627}Seasonal: highest chance after all additions", 0.01f, 0.5f, "0.000", Order = 52, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalDiseaseMaxChance { get; set; } = 0.35f;
+        public float SeasonalDiseaseMaxChance { get; set; } = 0.04f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c628}Seasonal: added in winter", 0f, 0.2f, "0.000", Order = 53, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c628}Seasonal: added in winter", 0f, 0.2f, "0.0000", Order = 53, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalWinterBonus { get; set; } = 0.05f;
+        public float SeasonalWinterBonus { get; set; } = 0.005f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c629}Seasonal: added in autumn", 0f, 0.2f, "0.000", Order = 54, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c629}Seasonal: added in autumn", 0f, 0.2f, "0.0000", Order = 54, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalAutumnBonus { get; set; } = 0.03f;
+        public float SeasonalAutumnBonus { get; set; } = 0.003f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62a}Seasonal: added in spring", 0f, 0.2f, "0.000", Order = 55, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62a}Seasonal: added in spring", 0f, 0.2f, "0.0000", Order = 55, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalSpringBonus { get; set; } = 0.02f;
+        public float SeasonalSpringBonus { get; set; } = 0.002f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62b}Seasonal: added in summer", 0f, 0.1f, "0.000", Order = 56, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62b}Seasonal: added in summer", 0f, 0.1f, "0.0000", Order = 56, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalSummerBonus { get; set; } = 0.01f;
+        public float SeasonalSummerBonus { get; set; } = 0.001f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62c}Seasonal: added in light rain", 0f, 0.1f, "0.000", Order = 57, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62c}Seasonal: added in light rain", 0f, 0.1f, "0.0000", Order = 57, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalWeatherLightRainBonus { get; set; } = 0.012f;
+        public float SeasonalWeatherLightRainBonus { get; set; } = 0.0012f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62d}Seasonal: added in heavy rain or a storm", 0f, 0.15f, "0.000", Order = 58, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62d}Seasonal: added in heavy rain or a storm", 0f, 0.15f, "0.0000", Order = 58, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalWeatherHeavyRainBonus { get; set; } = 0.02f;
+        public float SeasonalWeatherHeavyRainBonus { get; set; } = 0.002f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62e}Seasonal: added in snowfall", 0f, 0.15f, "0.000", Order = 59, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
@@ -2215,22 +2220,22 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int FatiguePerBattleLostX10 { get; set; } = 20;
 
-        [SettingPropertyInteger("{=AIL_e7b1c797}War weariness: per 100 men lost in battle (x10)", 0, 100, Order = 42, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_e7b1c797}War weariness: per 100 men lost in battle (x10)", 0, 100, Order = 43, RequireRestart = false,
             HintText = "{=AIL_e7b1c798}Every man a kingdom loses (killed, wounded or routed) in a battle against a kingdom it is at war with wears it down, whether it wins or loses. In tenths per 100 men: 15 means 1.5 points for every 100 men lost. Recommended: 10 to 25.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int FatiguePerHundredCasualtiesX10 { get; set; } = 15;
 
-        [SettingPropertyInteger("{=AIL_7c23f3b8}War weariness: per dead noble", 0, 50, Order = 43, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_7c23f3b8}War weariness: per dead noble", 0, 50, Order = 44, RequireRestart = false,
             HintText = "{=AIL_47dd15e0}Only when the noble is killed by a kingdom at war with his own: in battle or executed. Deaths from age, illness or childbirth do not count. A noble captured by that enemy counts as a third, given back when he goes free. Recommended: 2 to 5.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int FatiguePerLordKilled { get; set; } = 3;
 
-        [SettingPropertyInteger("{=AIL_0e578525}War weariness: per lost town or castle", 0, 50, Order = 44, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_0e578525}War weariness: per lost town or castle", 0, 50, Order = 45, RequireRestart = false,
             HintText = "{=AIL_e7b1c79b}Only when the town or castle is taken by force by a kingdom at war with its owner. One handed over as a term of peace, granted, or lost to a rebellion does not count. Recommended: 4 to 10.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public int FatiguePerSettlementLost { get; set; } = 6;
 
-        [SettingPropertyBool("{=AIL_e7b1c75b}War-weary kings speak up about their wars", Order = 45, RequireRestart = false,
+        [SettingPropertyBool("{=AIL_e7b1c75b}War-weary kings speak up about their wars", Order = 46, RequireRestart = false,
             HintText = "{=AIL_e7b1c75c}A king whose realm is weary, or who is fighting several kingdoms at once, takes a turn to decide what to do about his wars even when nothing else calls for a declaration: the wearier and the more wars, the likelier. Without this a king only speaks when an event or a proposal calls him, and wars can go on for years with nobody asking for peace. One AI request per turn, within the limits on declarations above. Recommended: on.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool WearyKingsSeekPeace { get; set; } = true;

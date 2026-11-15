@@ -245,7 +245,14 @@ namespace AILegacy.Memory
             var embed = Embeddings.EmbedAsync(new[] { query }, "embed").ContinueWith(t =>
             {
                 var r = t.IsFaulted ? null : t.Result;
-                if (r?.Vecs != null && r.Vecs.Length == 1 && session == World.WorldSim.Session) { mem.QueryModel = r.Model; mem.QueryVec = r.Vecs[0]; mem.QueryText = text; }
+                if (r?.Vecs == null || r.Vecs.Length != 1) return;
+                // The memory is written on the main thread, where the session can be trusted. It is queued before this
+                // task ends, so it lands ahead of whoever waits on the task and then posts its own work.
+                MainThread.Post(() =>
+                {
+                    if (session != World.WorldSim.Session) return;
+                    mem.QueryModel = r.Model; mem.QueryVec = r.Vecs[0]; mem.QueryText = text;
+                });
             });
             return Task.WhenAny(embed, Task.Delay(2500));
         }

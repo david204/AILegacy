@@ -326,6 +326,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             s.Waiting = true; _requests++;
             int gen = ++s.Gen;
             var m = _mission;
+            int session = AILegacy.World.WorldSim.Session;
             s.MenAtLastDecision = ownMen;
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "battle", maxTokensOverride: 500, preferredProvider: cfg.ProviderBattle).ContinueWith(t =>
             {
@@ -336,7 +337,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     s.Waiting = false;
                     try
                     {
-                        if (Mission.Current != m || _mission != m || gen != s.Gen || !BattleOn(m)) return;
+                        if (session != AILegacy.World.WorldSim.Session || Mission.Current != m || _mission != m || gen != s.Gen || !BattleOn(m)) return;
                         if (res == null || !res.Ok) { Log.Warn("[batalla] sin órdenes de la IA: " + res?.Error); return; }
                         if (m.CurrentTime - now > MaxLateSeconds) { Log.Info($"[batalla] respuesta tardía ({(int)(m.CurrentTime - now)} s), descartada"); return; }
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
@@ -379,6 +380,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                     Snapshot(team, null, out string own, out string foe, out _, out _, out _);
                     string prompt = TPlayerOrder.Format("own", own, "foe", foe, "said", text.Replace("«", "\"").Replace("»", "\""), "language", cfg.Language);
                     _playerWaiting = true;
+                    int session = AILegacy.World.WorldSim.Session;
                     Say(L.F("AIL_2bd4d43b", $"Ordenas: «{text}»"), new Color(0.55f, 0.9f, 0.55f));
                     try { Bubbles.Show(Agent.Main, text, 4f); } catch { }
                     LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "order", maxTokensOverride: 400, preferredProvider: cfg.ProviderBattle).ContinueWith(t =>
@@ -389,7 +391,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                             _playerWaiting = false;
                             try
                             {
-                                if (Mission.Current != m || !BattleOn(m)) return;
+                                if (session != AILegacy.World.WorldSim.Session || Mission.Current != m || !BattleOn(m)) return;
                                 if (res == null || !res.Ok) { Say(L.T("AIL_ab14812d", "Tus hombres no han entendido la orden (la IA no ha respondido)."), Colors.Red); return; }
                                 int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
                                 if (a < 0 || b <= a) return;

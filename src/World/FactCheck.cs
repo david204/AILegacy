@@ -565,25 +565,80 @@ namespace AILegacy.World
             return null;
         }
 
-        // Next to a dead person's name, one of these shows the text knows they are dead (or speaks of what they left).
-        // Matched as the start of a word, unless listed in ExactDeathWords.
-        private static readonly string[] DeathWords =
+        // Whole words that say a named person is dead, wherever they stand in the sentence that names them.
+        private static readonly HashSet<string> DeathWords = new HashSet<string>
         {
-            "dead", "death", "died", "dies", "dying", "late", "slain", "slew", "kill", "execut", "murder", "assassin", "behead", "hang", "fell", "fallen", "perish",
-            "mourn", "griev", "funeral", "burial", "buri", "bury", "grave", "tomb", "corpse", "body", "ghost", "memor", "legacy", "heir", "inherit", "success",
-            "widow", "orphan", "aveng", "veng", "reveng", "martyr", "former", "was", "were", "had", "once", "after", "since", "loss", "lost", "passing", "demise",
-            "gone", "vacant", "empty", "headless", "blood", "remains", "ashes", "pyre", "requiem", "beyond",
+            "dead", "death", "deaths", "died", "dies", "dying", "late", "deceased", "slain", "slew", "slaying", "killed", "killing", "murder", "murdered",
+            "assassinated", "assassination", "executed", "execution", "beheaded", "beheading", "hanged", "hanging", "fell", "fallen", "perished",
+            "mourn", "mourns", "mourned", "mourning", "mourners", "grief", "grieve", "grieves", "grieved", "grieving", "funeral", "funerals", "burial",
+            "buried", "bury", "grave", "tomb", "corpse", "ghost", "widow", "widowed", "widower", "orphan", "orphans", "orphaned",
+            "avenge", "avenges", "avenged", "avenging", "vengeance", "revenge", "martyr", "martyred", "passing", "demise", "gone", "ashes", "pyre", "requiem",
         };
-        private static readonly HashSet<string> ExactDeathWords = new HashSet<string>
+        // Words about what a dead person left. They only count when tied to the name: "the heir of X", "successor to
+        // X", "X was succeeded by". "X names his heir" has X alive.
+        private static readonly HashSet<string> LegacyWords = new HashSet<string>
         {
-            "late", "fell", "was", "were", "had", "once", "after", "since", "loss", "lost", "gone", "body", "heir", "dies", "died", "dead", "empty", "beyond",
+            "heir", "heirs", "heiress", "successor", "successors", "succession", "succeed", "succeeds", "succeeded", "succeeding",
+            "inherit", "inherits", "inherited", "inheritance", "legacy", "memory", "memorial",
+        };
+        // The death words a name can be the subject of: "X died", "X fell". Any other one right after the name has
+        // him doing it to someone else ("X executed the envoy", "X mourns his son").
+        private static readonly HashSet<string> OwnDeath = new HashSet<string> { "died", "dies", "dying", "fell", "perished" };
+        private static readonly HashSet<string> BeforeName = new HashSet<string>
+        {
+            "of", "to", "for", "by", "with", "from", "after", "since", "without", "over", "against", "like", "than", "upon", "at", "about",
+        };
+        private static readonly HashSet<string> TiesLegacy = new HashSet<string> { "of", "to", "for" };
+        private static readonly HashSet<string> PassiveBefore = new HashSet<string> { "is", "was", "be", "been", "being", "are", "were" };
+        // Words ending in "s" that can follow a name without being something he does today
+        private static readonly HashSet<string> NotActing = new HashSet<string>
+        {
+            "is", "was", "has", "dies", "lies", "rests", "falls", "perishes", "thus", "perhaps", "always", "his", "this", "its", "as", "plus", "across",
+            "towards", "besides", "unless", "sometimes", "alas", "less", "whereas", "afterwards",
+        };
+        // In a sentence that names nobody dead, one of these can stand for the dead person a claim relies on
+        private static readonly HashSet<string> RoleNouns = new HashSet<string>
+        {
+            "king", "queen", "lord", "lady", "sultan", "khan", "emperor", "empress", "prince", "princess", "ruler", "chief", "jarl", "sovereign", "monarch",
+            "leader", "liege", "master", "commander", "father", "mother", "husband", "wife", "brother", "sister", "son", "daughter",
         };
 
-        private static bool IsDeathWord(string w)
+        private struct DeadMention { public int From, To; public string Who; }
+
+        /// <summary>The same person under every name the model holds for them (full name and first name share the id).</summary>
+        private static string DeadIdentity(KeyValuePair<string, KeyValuePair<string, string>> d) => string.IsNullOrEmpty(d.Value.Value) ? d.Key : d.Value.Value;
+
+        /// <summary>The word in front of a name, past any title or article: "to Emperor X" gives "to". null at the start.</summary>
+        private static string WordBefore(string[] w, DeadMention at)
         {
-            foreach (var d in DeathWords)
-                if (ExactDeathWords.Contains(d) ? w == d : w.StartsWith(d, StringComparison.Ordinal)) return true;
-            return false;
+            int i = at.From - 1;
+            while (i >= 0 && w[i] != "of" && Titles.Contains(w[i])) i--;
+            return i >= 0 ? w[i] : null;
+        }
+
+        /// <summary>He is the subject of a verb in the present: "X musters", "X rules", "X names his heir".</summary>
+        private static bool ActsNow(string[] w, DeadMention at)
+        {
+            if (at.To >= w.Length) return false;
+            string before = WordBefore(w, at);
+            if (before != null && BeforeName.Contains(before)) return false;      // "the murder of X shocks the empire"
+            string next = w[at.To];
+            return next.Length >= 4 && next.EndsWith("s", StringComparison.Ordinal) && !next.EndsWith("ss", StringComparison.Ordinal) && !NotActing.Contains(next);
+        }
+
+        /// <summary>Whether the word at <paramref name="i"/> says that the person named at <paramref name="at"/> is dead.</summary>
+        private static bool SpeaksOfDeath(string[] w, int i, DeadMention at)
+        {
+            if (DeathWords.Contains(w[i]))
+            {
+                if (OwnDeath.Contains(w[i])) return true;
+                if (i == at.To) return false;                                                           // "X killed the envoy"
+                if (i == at.To + 1 && (w[at.To] == "has" || w[at.To] == "had")) return false;           // "X has executed"
+                return true;
+            }
+            if (!LegacyWords.Contains(w[i])) return false;
+            if (i < at.From) return at.From - i <= 5 && TiesLegacy.Contains(WordBefore(w, at) ?? "");            // "the heir of X"
+            return i >= at.To && i - at.To <= 3 && PassiveBefore.Contains(w[i - 1]);                    // "X was succeeded by"
         }
 
         /// <summary>The dead person a written name means, when nobody alive answers to it. Titles in front are dropped.</summary>
@@ -603,37 +658,66 @@ namespace AILegacy.World
 
         /// <summary>
         /// An event that has a dead person alive: acting, ruling, being served or plotted against. Read from the
-        /// claims (each one names someone the text relies on, today) and from the English summary. A sentence that
-        /// names the dead and also speaks of the death, or of what it left, is fine; so is the possessive ("X's
-        /// heirs"). A name a living lord or a clan also carries is never held against the text. null when fine.
+        /// claims (each one names someone the text relies on, today) and from the English summary. The evidence is
+        /// tied to each dead person: a sentence that names him must also speak of his death or of what he left
+        /// (whole words; when a sentence names several dead, each word goes to the name it stands nearest). A death
+        /// told in another sentence, or the death of somebody else, excuses nothing. The possessive ("X's heirs")
+        /// is not a mention. A dead person only the claims name needs a sentence that speaks of a death, names no
+        /// other dead and points at him by his rank or his realm. A name a living lord or a clan also carries is
+        /// never held against the text. null when fine.
         /// </summary>
         public static string CheckDead(IEnumerable<FactClaim> claims, string summary, FactModel m)
         {
             if (m == null || m.Dead.Count == 0) return null;
-            var dead = m.DeadOnly.ToList();
+            var dead = m.DeadOnly.Select(d => new { Who = DeadIdentity(d), Words = Words(Soft(d.Value.Key)), Written = d.Value }).Where(d => string.Concat(d.Words).Length >= 4).ToList();
             if (dead.Count == 0) return null;
-            var named = new HashSet<string>();      // keys of the dead the summary names somewhere
-            bool anyDeathWord = false;
+            var named = new Dictionary<string, KeyValuePair<string, string>>();     // the dead the summary names, by identity
+            var known = new HashSet<string>();                                       // those it knows to be dead
+            var unnamedDeaths = new List<string>();                                  // sentences that speak of a death and name nobody dead
             foreach (var part in Sentences(summary ?? ""))
             {
-                string soft = Soft(part.Key);
+                string soft = Soft(part.Key, true);
                 if (soft.Length < 4) continue;
-                bool knows = Words(soft).Any(IsDeathWord);
-                anyDeathWord |= knows;
+                var w = Words(soft);
+                var ms = new List<DeadMention>();
                 foreach (var d in dead)
+                    for (int i = 0; i + d.Words.Length <= w.Length; i++)
+                    {
+                        bool same = true;
+                        for (int k = 0; k < d.Words.Length && same; k++) same = w[i + k] == d.Words[k];
+                        if (!same) continue;
+                        ms.Add(new DeadMention { From = i, To = i + d.Words.Length, Who = d.Who });
+                        if (!named.ContainsKey(d.Who)) named[d.Who] = d.Written;
+                    }
+                if (ms.Count == 0)
                 {
-                    string name = Soft(d.Value.Key);
-                    if (name.Trim().Length < 4 || soft.IndexOf(name, StringComparison.Ordinal) < 0) continue;
-                    named.Add(d.Key);
-                    if (!knows) return $"writes of {d.Value.Key} [{d.Value.Value}] as if alive, and they are dead";
+                    if (w.Any(DeathWords.Contains)) unnamedDeaths.Add(soft);
+                    continue;
+                }
+                for (int i = 0; i < w.Length; i++)
+                {
+                    if (!DeathWords.Contains(w[i]) && !LegacyWords.Contains(w[i])) continue;
+                    Func<DeadMention, int> far = x => i < x.From ? x.From - i : i >= x.To ? i - x.To + 1 : 0;
+                    var nearest = ms.OrderBy(far).First();
+                    foreach (var x in ms)
+                    {
+                        // the nearest name, the same person under another name, and a name joined to it ("X and Y were slain")
+                        int gap = x.From >= nearest.To ? x.From - nearest.To : nearest.From >= x.To ? nearest.From - x.To : 0;
+                        if (x.Who != nearest.Who && gap > 2) continue;
+                        if (!ActsNow(w, x) && SpeaksOfDeath(w, i, x)) known.Add(x.Who);
+                    }
                 }
             }
+            foreach (var n in named)
+                if (!known.Contains(n.Key)) return $"writes of {n.Value.Key} [{n.Value.Value}] as if alive, and they are dead";
             foreach (var c in claims ?? Enumerable.Empty<FactClaim>())
             {
                 if (c == null || c.Kind == "war" || c.Kind == "allies" || string.IsNullOrWhiteSpace(c.Who)) continue;
                 if (!NamesDead(m, c.Who, out var who)) continue;
-                // named in the summary: that sentence was read above. Otherwise the summary must at least speak of a death
-                if (named.Contains(Norm(who.Key)) || anyDeathWord) continue;
+                // named in the summary: his own sentences were read above
+                if (named.ContainsKey(string.IsNullOrEmpty(who.Value) ? Norm(who.Key) : who.Value)) continue;
+                string realm = string.IsNullOrWhiteSpace(c.Kingdom) ? null : m.FindKingdom(c.Kingdom);
+                if (unnamedDeaths.Any(s => Words(s).Any(RoleNouns.Contains) || (realm != null && Mentions(s, m).Any(x => x.Id == realm)))) continue;
                 return $"relies on {who.Key} [{who.Value}] as if alive, and they are dead";
             }
             return null;
@@ -672,6 +756,70 @@ namespace AILegacy.World
         {
             int d = years > 0 ? years * daysInYear : days;
             return Math.Max(min, Math.Min(max, d));
+        }
+
+        private static bool IsThousandMark(string s, int at) =>
+            at < s.Length && (s[at] == 'k' || s[at] == 'K') && (at + 1 >= s.Length || !char.IsLetter(s[at + 1]));
+
+        /// <summary>
+        /// Only the FIRST number in the text ("100 now and 100 later" -> 100, "200-300" -> 200, "5000 denars" -> 5000).
+        /// Accepts thousands separators ("1.000", "1,000", "1 000" -> 1000) and "5k" -> 5000, "2.5k" -> 2500.
+        /// Any other decimals are dropped ("2.5" -> 2). No number is 0. Never negative.
+        /// </summary>
+        public static int ParseAmount(string text)
+        {
+            var s = text ?? "";
+            int i = 0;
+            while (i < s.Length && !char.IsDigit(s[i])) i++;
+            if (i >= s.Length) return 0;
+            long v = 0;
+            int j = i;
+            while (j < s.Length && char.IsDigit(s[j])) { v = v * 10 + (s[j] - '0'); j++; if (v > int.MaxValue) return int.MaxValue; }
+            bool grouped = false;
+            // Thousands groups: only if the first group has 1-3 digits and each later group exactly 3, with the same separator
+            if (j - i <= 3)
+            {
+                char sep = '\0';
+                // j is the separator; s[j+1..j+3] must be digits
+                while (j + 3 < s.Length)
+                {
+                    char c = s[j];
+                    bool isSep = c == '.' || c == ',' || c == ' ' || c == '\u00A0' || c == '\u202F' || c == '\'';
+                    if (!isSep || (sep != '\0' && c != sep)) break;
+                    if (!char.IsDigit(s[j + 1]) || !char.IsDigit(s[j + 2]) || !char.IsDigit(s[j + 3])) break;
+                    if (j + 4 < s.Length && char.IsDigit(s[j + 4])) break;              // four or more digits: not a thousands group
+                    sep = c;
+                    v = v * 1000 + (s[j + 1] - '0') * 100 + (s[j + 2] - '0') * 10 + (s[j + 3] - '0');
+                    if (v > int.MaxValue) return int.MaxValue;
+                    j += 4;
+                    grouped = true;
+                }
+            }
+            // "2.5k" = 2500: a decimal part only counts right in front of the k
+            if (!grouped && j + 1 < s.Length && (s[j] == '.' || s[j] == ',') && char.IsDigit(s[j + 1]))
+            {
+                int f = j + 1, digits = 0; long frac = 0;
+                while (f < s.Length && char.IsDigit(s[f])) { if (digits < 3) { frac = frac * 10 + (s[f] - '0'); digits++; } f++; }
+                if (IsThousandMark(s, f))
+                {
+                    for (; digits < 3; digits++) frac *= 10;
+                    v = v * 1000 + frac;
+                    return v > int.MaxValue ? int.MaxValue : (int)v;
+                }
+            }
+            // "5k" = 5000
+            if (IsThousandMark(s, j)) v *= 1000;
+            return v > int.MaxValue ? int.MaxValue : (int)v;
+        }
+
+        /// <summary>The same, negative when a minus sign stands right before the number ("-500").</summary>
+        public static int ParseSignedAmount(string text)
+        {
+            var s = text ?? "";
+            int i = 0;
+            while (i < s.Length && !char.IsDigit(s[i])) i++;
+            int v = ParseAmount(s);
+            return i > 0 && i < s.Length && (s[i - 1] == '-' || s[i - 1] == '\u2212') ? -v : v;
         }
     }
 }

@@ -96,7 +96,39 @@ Each line also carries ""mood"": how the speaker looks while saying it, one of: 
 Rules: 1 to {max_lines} lines in total, each under {max_chars} characters, in {language}. Each line is spoken words only (a brief *gesture* is allowed). Nobody speaks for {player}. Nobody uses a name they have not been told or would not know. Stay in character; never mention games or AI.
 Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the list>, ""text"": ""..."", ""mood"": ""..."", ""goes_to"": """", ""returns"": false, ""action"": """" } ], ""summary"": ""what was said in this exchange, ONE English sentence"", ""between"": [ { ""from"": <number>, ""to"": <number>, ""change"": -2 to 2, ""why"": ""few English words"" } ] (only if in this exchange one person present was hurt, insulted, defended, shamed or won over by ANOTHER person present, not by {player}; usually empty), ""toward_player"": [ { ""who"": <number>, ""relation"": -2 to 2, ""trust"": -3 to 3 } ] (only for someone whose opinion of {player}, or trust in their word, truly moved because of what {player} just said or did; usually empty), ""rumor_title"": ""a 3-6 word headline of that rumour in {language}, or empty"", ""rumor_local"": ""the rumour itself in {language}, or empty"", ""rumor"": ""almost always empty. Only if {player} has just told these people news of public weight that they will repeat to others whether they believe it or not (a death, a crime, a betrayal, a scandal touching named nobles or a crown), or if something happened here that the whole place will talk about: ONE neutral English sentence, worded as hearsay when it is only something they were told"" }");
 
-        public static void Touch() { var _ = TGroup.Key; }
+        // What the others in a group keep of a deed one of them really carried out. It is stored after "[Seen: ",
+        // which is what marks it as a fact for the summary.
+        private static readonly Tpl TSeen = new Tpl("group_conversation/seen_deed.txt",
+            "{name} really did this in front of you, in the group with {player}. It took effect in the world and it was {name}'s deed, not yours. From {name}'s own record, where \"you\" is {name} and \"they\" is {player}: {deed}");
+
+        public static void Touch() { var _ = TGroup.Key + TSeen.Key; }
+
+        /// <summary>
+        /// The notes of what <paramref name="doer"/> really carried out since <paramref name="turnsBefore"/> go, in the
+        /// third person, into the history of everyone else in the group: they saw it, and their own record of the
+        /// talk must not say that nothing was done.
+        /// </summary>
+        private static void ShareDeeds(Member doer, List<Member> circle, int turnsBefore, string playerName)
+        {
+            try
+            {
+                var turns = doer.Who.Memory.Turns;
+                var deeds = turns.Skip(Math.Max(0, turnsBefore)).Where(t => t.IsNote && t.Text.StartsWith("[Done", StringComparison.Ordinal)).Select(t => t.Text).ToList();
+                foreach (var note in deeds)
+                {
+                    int colon = note.IndexOf(':');
+                    string deed = (colon > 0 ? note.Substring(colon + 1) : note).Trim().TrimEnd(']').Trim();
+                    if (deed.Length < 3) continue;
+                    string seen = "[Seen: " + TSeen.Format("name", doer.Who.Name, "player", playerName, "deed", deed) + "]";
+                    foreach (var x in circle)
+                    {
+                        if (x == doer || x.Who == null || x.Who.Key == doer.Who.Key) continue;
+                        try { x.Who.Memory.Turns.Add(new ChatTurn { Role = "player", Text = seen, Day = CampaignTime.Now.ToDays }); } catch { }
+                    }
+                }
+            }
+            catch (Exception ex) { Log.Error("Corro: lo que los demás vieron hacer", ex); }
+        }
 
         /// <summary>Whether the agent is in your group talk. While it is, it won't start ambient chats of its own.</summary>
         internal static bool Has(Agent a) => Circle.Any(x => x.Agent == a);
@@ -352,6 +384,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             }
             _waiting = true;
             var circle = Circle.ToList();
+            int session = WorldSim.Session;
 
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "group", maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
             {
@@ -361,6 +394,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                     _waiting = false;
                     try
                     {
+                        // asked in another campaign: its lines, deeds and memories do not belong in this one
+                        if (session != WorldSim.Session) { Log.Info("[grupo] respuesta de otra partida, descartada"); return; }
                         if (res == null || !res.Ok) { if (!silent) Say(L.T("AIL_38907a94", "Nadie del grupo contesta (la IA no ha respondido)."), Colors.Red); Log.Warn("Grupo: sin respuesta: " + res?.Error); return; }
                         if (Mission.Current != m) return;
                         int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
@@ -436,8 +471,12 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                                         var cmds = l["do"] is JArray da ? da.Select(x => (x ?? "").ToString()).ToList() : new List<string> { l["do"].ToString() };
                                         cmds = cmds.Where(c => !string.IsNullOrWhiteSpace(c)).Take(2).ToList();
                                         if (cmds.Count > 0)
+                                        {
+                                            int turnsBefore = member.Who.Memory.Turns.Count;
                                             foreach (var shownMsg in NpcActions.Execute(member.Who, cmds, new NpcActions.ActionContext()))
                                                 Say(shownMsg, Colors.Yellow);
+                                            ShareDeeds(member, Circle.Union(circle).ToList(), turnsBefore, playerName);
+                                        }
                                     }
                                 }
                                 catch (Exception ex) { Log.Error("Corro: acción del catálogo", ex); }

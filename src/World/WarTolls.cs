@@ -58,11 +58,54 @@ namespace AILegacy.World
         private const int FullDefeatLosses = 250;
         private const float CaravanLostFatigue = 0.5f;
 
-        // Last battle each kingdom fought against a kingdom it is at war with: enemy id and campaign hour. Not saved.
-        // A lord who dies of that battle with no killer named is still that enemy's doing.
-        private static readonly Dictionary<string, KeyValuePair<string, double>> LastWarBattle = new Dictionary<string, KeyValuePair<string, double>>();
+        // The last battles between kingdoms at war, with the lords who were in them. Not saved. A lord who dies of
+        // one of them with no killer named is still that enemy's doing, but only if he fought in it.
+        private class WarBattle
+        {
+            public double Hour;
+            public string A, B;                                              // the kingdoms of the two sides
+            public readonly HashSet<string> OfA = new HashSet<string>();     // heroes on each side
+            public readonly HashSet<string> OfB = new HashSet<string>();
+        }
+        private static readonly List<WarBattle> RecentBattles = new List<WarBattle>();
+        private const int MaxRecentBattles = 24, MaxHeroesPerSide = 60;
+        private const double BattleDeathHours = 2;
 
-        public static void ResetSession() { LastWarBattle.Clear(); }
+        public static void ResetSession() { RecentBattles.Clear(); }
+
+        private static void AddHeroes(MapEventSide side, HashSet<string> into)
+        {
+            try
+            {
+                foreach (var p in side.Parties)
+                {
+                    var party = p?.Party;
+                    if (party == null) continue;
+                    if (party.LeaderHero != null && into.Count < MaxHeroesPerSide) into.Add(party.LeaderHero.StringId);
+                    var roster = party.MemberRoster;
+                    if (roster == null) continue;
+                    for (int i = 0; i < roster.Count && into.Count < MaxHeroesPerSide; i++)
+                    {
+                        var c = roster.GetCharacterAtIndex(i);
+                        if (c != null && c.IsHero && c.HeroObject != null) into.Add(c.HeroObject.StringId);
+                    }
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>The battle the victim is in right now, read from the game: the kingdom of the side he is not on.</summary>
+        private static Kingdom EnemyInCurrentBattle(Hero victim)
+        {
+            try
+            {
+                var mine = victim.PartyBelongedTo?.Party?.MapEventSide;
+                // defending the walls from inside, in no party of his own
+                if (mine == null && victim.PartyBelongedTo == null) mine = victim.CurrentSettlement?.Party?.MapEventSide;
+                return mine == null ? null : SideKingdom(mine.OtherSide, out _);
+            }
+            catch { return null; }
+        }
 
         private static readonly Tpl TWarLosses = new Tpl("kingdom_statement/war_losses.txt",
             " Men lost in battle in this war: you {mine}, they {theirs}; in the last {days} days: you {mine_recent}, they {theirs_recent}.{partial}");
@@ -121,8 +164,12 @@ namespace AILegacy.World
             WorldSim.AddFatigue(kd, lostD * perMan + (defLost ? defeat * Math.Min(1f, lostD / (float)FullDefeatLosses) : 0f));
             Record(ka, kd, lostA, lostD);
             double hour = CampaignTime.Now.ToHours;
-            LastWarBattle[ka.StringId] = new KeyValuePair<string, double>(kd.StringId, hour);
-            LastWarBattle[kd.StringId] = new KeyValuePair<string, double>(ka.StringId, hour);
+            var fought = new WarBattle { Hour = hour, A = ka.StringId, B = kd.StringId };
+            AddHeroes(att, fought.OfA);
+            AddHeroes(def, fought.OfB);
+            RecentBattles.RemoveAll(x => x.Hour > hour || hour - x.Hour > BattleDeathHours);      // x.Hour > hour: an older save was loaded
+            if (fought.OfA.Count + fought.OfB.Count > 0) RecentBattles.Add(fought);
+            while (RecentBattles.Count > MaxRecentBattles) RecentBattles.RemoveAt(0);
         }
 
         private static int Side(Kingdom k, Kingdom other) => string.CompareOrdinal(k.StringId, other.StringId) < 0 ? 0 : 1;
@@ -171,19 +218,32 @@ namespace AILegacy.World
         /// The kingdom at war with the victim's own that this death can be laid on, or null: killed in battle
         /// against it, or executed or cut down by one of its people. Old age, childbirth and the like are nobody's.
         /// </summary>
-        public static Kingdom KilledByEnemy(Hero killer, KillCharacterAction.KillCharacterActionDetail detail, Kingdom own)
+        public static Kingdom KilledByEnemy(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, Kingdom own)
         {
-            if (!Usable(own)) return null;
+            if (!Usable(own) || victim == null) return null;
             bool battle = detail == KillCharacterAction.KillCharacterActionDetail.DiedInBattle || detail == KillCharacterAction.KillCharacterActionDetail.WoundedInBattle;
             bool violent = battle || detail == KillCharacterAction.KillCharacterActionDetail.Executed
                            || detail == KillCharacterAction.KillCharacterActionDetail.ExecutionAfterMapEvent || detail == KillCharacterAction.KillCharacterActionDetail.Murdered;
             if (!violent) return null;
             var enemy = killer?.MapFaction as Kingdom;
-            // the game names no killer when the other side of the battle had no lord at its head (a garrison)
-            if (enemy == null && battle && LastWarBattle.TryGetValue(own.StringId, out var last))
+            // The game names no killer when he falls in a fought battle, or when the other side had no lord at its
+            // head (a garrison). Then it is the battle he is in that says who did it; or, when he dies of it just
+            // after it ended, a recent battle he took part in. A battle his kingdom fought without him says nothing.
+            if (enemy == null && battle)
             {
-                double since = CampaignTime.Now.ToHours - last.Value;
-                if (since >= 0 && since <= 2) enemy = Campaign.Current.Kingdoms.FirstOrDefault(x => x != null && x.StringId == last.Key);
+                enemy = EnemyInCurrentBattle(victim);
+                if (enemy == null)
+                {
+                    double now = CampaignTime.Now.ToHours;
+                    string id = victim.StringId;
+                    for (int i = RecentBattles.Count - 1; i >= 0 && enemy == null; i--)
+                    {
+                        var x = RecentBattles[i];
+                        if (now - x.Hour < 0 || now - x.Hour > BattleDeathHours) continue;
+                        string other = x.OfA.Contains(id) ? x.B : x.OfB.Contains(id) ? x.A : null;
+                        if (other != null) enemy = Campaign.Current.Kingdoms.FirstOrDefault(k => k != null && k.StringId == other);
+                    }
+                }
             }
             return Usable(enemy) && enemy != own && own.IsAtWarWith(enemy) ? enemy : null;
         }
@@ -218,6 +278,18 @@ namespace AILegacy.World
 
         // ============================================================ daily upkeep
 
+        /// <summary>A kingdom is destroyed: its wars, its strength log and the captives counted against it go, whatever the kingdom list says right now.</summary>
+        public static void OnKingdomGone(string id)
+        {
+            if (St == null || string.IsNullOrEmpty(id)) return;
+            if (St.WarTolls != null)
+                foreach (var key in St.WarTolls.Keys.Where(x => { var ids = (x ?? "").Split('|'); return ids.Length != 2 || ids[0] == id || ids[1] == id; }).ToList()) St.WarTolls.Remove(key);
+            St.StrengthLog?.Remove(id);
+            if (St.CaptiveTolls != null)
+                foreach (var h in St.CaptiveTolls.Where(x => x.Value == null || x.Value.KingdomId == id).Select(x => x.Key).ToList()) St.CaptiveTolls.Remove(h);
+            RecentBattles.RemoveAll(x => x.A == id || x.B == id);
+        }
+
         public static void OnDailyTick(double now)
         {
             if (St == null || Campaign.Current == null) return;
@@ -225,6 +297,11 @@ namespace AILegacy.World
             if (St.StrengthLog == null) St.StrengthLog = new Dictionary<string, List<DayValue>>();
             if (St.CaptiveTolls == null) St.CaptiveTolls = new Dictionary<string, CaptiveToll>();
             int day = (int)now;
+            // Entries that are broken in themselves go before anything else, so they are cleaned even on a day the
+            // kingdom list comes back empty. What depends on which kingdoms exist needs the list, and waits for it.
+            foreach (var key in St.WarTolls.Where(x => x.Value == null || (x.Key ?? "").Split('|').Length != 2).Select(x => x.Key).ToList()) St.WarTolls.Remove(key);
+            foreach (var id in St.StrengthLog.Where(x => x.Value == null).Select(x => x.Key).ToList()) St.StrengthLog.Remove(id);
+            foreach (var id in St.CaptiveTolls.Where(x => x.Value == null || x.Value.KingdomId == null).Select(x => x.Key).ToList()) St.CaptiveTolls.Remove(id);
             var all = Campaign.Current.Kingdoms.Where(Usable).ToList();
             if (all.Count == 0) return;
             var byId = new Dictionary<string, Kingdom>();

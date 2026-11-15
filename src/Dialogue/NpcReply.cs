@@ -33,15 +33,24 @@ namespace AILegacy.Dialogue
         public string MoodShown = "";
 
         // An action written inside the spoken line instead of in the "actions" array: [swear_fealty], <make_peace:they_pay=500>,
-        // [action: set_free]. Only a snake_case word counts; prose and single words in brackets are left alone.
+        // [action: set_free]. Group 1 is the explicit "action:" prefix, 2 the identifier, 3 the argument.
         private static readonly Regex InlineTag = new Regex(
-            @"[\[<]\s*/?\s*(?:actions?\s*[:=]\s*)?([A-Za-z]+(?:_[A-Za-z]+)*)\s*(?:[:=]\s*([^\]\[<>]{0,200}))?\s*/?\s*[\]>]", RegexOptions.CultureInvariant);
+            @"[\[<]\s*/?\s*(actions?\s*[:=]\s*)?([A-Za-z]+(?:_[A-Za-z]+)*)\s*(?:[:=]\s*([^\]\[<>]{0,200}))?\s*/?\s*[\]>]", RegexOptions.CultureInvariant);
+
+        /// <summary>The action name of a command as the executor reads it: what comes before the colon, lowercased, with underscores.</summary>
+        internal static string ActionName(string command)
+        {
+            string c = (command ?? "").Trim();
+            int colon = c.IndexOf(':');
+            return (colon >= 0 ? c.Substring(0, colon) : c).Trim().ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
+        }
 
         /// <summary>
         /// Takes action tags out of the spoken line. The game's dialogue box drops everything from a "[" to the next "]"
         /// (it reads them as animation tags), and to the end of the text when the bracket is never closed, so a tag
-        /// left in the line would cut the reply short. A tag naming a real action is moved to the actions; a made-up
-        /// one is just removed. The words around it stay.
+        /// left in the line would cut the reply short. Only a tag that names a real action, or that says "action:"
+        /// itself, is touched: the real one is moved to the actions, a made-up "action: x" is removed. Any other
+        /// bracketed text ([sighs], [to_the_guard], <i>) stays in the line as it is.
         /// </summary>
         internal static void LiftInlineActions(NpcReply r)
         {
@@ -50,14 +59,16 @@ namespace AILegacy.Dialogue
             {
                 string text = InlineTag.Replace(r.Reply, m =>
                 {
-                    string name = m.Groups[1].Value.ToLowerInvariant();
-                    // a single word in brackets is left alone: [leave] or [wait] can be a gesture, not an action
-                    if (name.IndexOf('_') < 0) return m.Value;
+                    string name = m.Groups[2].Value.ToLowerInvariant();
+                    bool prefixed = m.Groups[1].Success;
                     bool known = NpcActions.Knows(name);
-                    string arg = m.Groups[2].Success ? m.Groups[2].Value.Trim() : "";
+                    // a single word is only an action when it says so: [leave] or [wait] can be a gesture
+                    if (!prefixed && (!known || name.IndexOf('_') < 0)) return m.Value;
+                    string arg = m.Groups[3].Success ? m.Groups[3].Value.Trim() : "";
                     // "[swear_fealty: I, X, swear to you...]": what follows is the spoken oath, not an argument. It stays in the line.
                     bool spoken = arg.IndexOf('|') < 0 && arg.IndexOf('=') < 0 && arg.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length >= 4;
-                    if (known && !r.Actions.Any(a => (a ?? "").Trim().ToLowerInvariant().StartsWith(name)))
+                    // whole names, so a "grant" already asked for does not hide "grant_fief"
+                    if (known && !r.Actions.Any(a => ActionName(a) == name))
                         r.Actions.Add(arg.Length > 0 && !spoken ? name + ":" + arg : name);
                     return spoken ? " " + arg + " " : " ";
                 });

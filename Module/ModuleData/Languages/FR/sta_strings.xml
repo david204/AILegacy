@@ -2011,5 +2011,10 @@
     <string id="AIL_e7b1c799" text="Ce qu'un royaume en paix avec tous les autres récupère chaque jour, en dixièmes : 20 vaut 2 points par jour. Rien n'est récupéré tant qu'une guerre est en cours. Recommandé : de 10 à 30." />
     <string id="AIL_e7b1c79a" text="Lassitude supplémentaire pour le camp qui perd une bataille contre un royaume avec lequel il est en guerre, en plus des hommes perdus. Une défaite avec 250 hommes perdus ou plus compte en entier, une plus petite en proportion. Les batailles contre des bandits, des caravanes, des villageois ou quiconque n'est pas en guerre avec le royaume ne comptent jamais. En dixièmes : 20 vaut 2 points. Recommandé : de 10 à 30." />
     <string id="AIL_e7b1c79b" text="Seulement quand la ville ou le château est pris de force par un royaume en guerre avec son propriétaire. Celui qui est cédé comme condition de paix, accordé ou perdu lors d'une rébellion ne compte pas. Recommandé : de 4 à 10." />
+    <string id="AIL_e7b1c79c" text="{0} vous cède {1} depuis sa captivité : c’était la dernière place de {2}." />
+    <string id="AIL_e7b1c79d" text="{0}, prisonnier de {1}, lui a cédé {2}. La place appartenait au clan {3}, que personne n’a consulté et qui en tient rigueur aux deux." />
+    <string id="AIL_e7b1c79e" text="{0} cède {1} depuis sa cellule" />
+    <string id="AIL_e7b1c79f" text="Repérer ce qui est dit mais pas fait" />
+    <string id="AIL_e7b1c7a0" text="Activé : quand un personnage dit dans une conversation qu’il fait quelque chose qui demande une action (jurer fidélité, remettre un château ou de l’or, vous épouser, vous rejoindre, faire la paix, libérer quelqu’un) sans utiliser d’action, le mod lui note que cela n’a pas eu lieu, pour que sa mémoire le garde comme des paroles, et à son tour suivant lui demande une fois de le faire réellement ou de dire pourquoi il ne le fait pas. Il lit la réponse elle-même et n’envoie aucune requête supplémentaire à l’IA. Il ne comprend que les réponses en anglais et en espagnol. Désactivé : rien n’est vérifié." />
   </strings>
 </base>

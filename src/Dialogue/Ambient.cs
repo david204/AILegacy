@@ -525,6 +525,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
         {
             _busy = true;
             int gen = _gen;
+            int session = WorldSim.Session;
             string provider = (sa != null && sa.IsHero) || (sb != null && sb.IsHero) ? S.Get.ProviderHeroes : S.Get.ProviderResidents;
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "ambient", maxTokensOverride: tokens, preferredProvider: provider).ContinueWith(t =>
             {
@@ -534,6 +535,8 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     _busy = false;
                     try
                     {
+                        // asked in another campaign: nothing of it is said, heard or remembered in this one
+                        if (session != WorldSim.Session) { if (chain != null && _chain == chain) _chain = null; return; }
                         if (res == null || !res.Ok) { Log.Warn("[escena] la IA no ha dado la charla: " + res?.Error); if (chain != null && _chain == chain) _chain = null; return; }
                         if (Mission.Current != m || a == null || !a.IsActive() || gen != _gen) { if (chain != null && _chain == chain) _chain = null; return; }
                         int i0 = res.Text.IndexOf('{'), i1 = res.Text.LastIndexOf('}');
