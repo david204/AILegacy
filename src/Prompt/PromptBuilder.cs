@@ -223,7 +223,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
         /// <summary>Forces every template (static fields) to register before they are written to disk.</summary>
-        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); InfoExchange.Touch(); Lessons.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
+        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); InfoExchange.Touch(); Lessons.Touch(); Intrigue.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
 
         // =========================================================== dialogue
 
@@ -333,6 +333,8 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             Bonds.AppendTo(now, s);
             // A prisoner of the player: whose hands he is in, what they have done to other captives, and his fear
             Captivity.AppendTo(now, s);
+            // A scheme they run or are part of, and what the player may know of it
+            try { string plots = Intrigue.DescribeFor(s); if (plots.Length > 0) { now.AppendLine(); now.AppendLine(plots); } } catch { }
             if (relationBudgetLeft <= 0 && s.IsHero) now.AppendLine(TRelationCapped.Text);
             try { string near = Mentions.NearbyParties(s); if (near.Length > 0) { now.AppendLine(); now.AppendLine(TNearby.Text); now.AppendLine(near); } } catch { }
             try { string named = Mentions.Describe(s); if (named.Length > 0) { now.AppendLine(); now.AppendLine(TMentioned.Text); now.AppendLine(named); } } catch { }

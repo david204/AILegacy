@@ -2073,5 +2073,54 @@
     <string id="AIL_e7b1c7d8" text="*{0} si fa avanti con i suoi e vi sbarra la strada…*" />
     <string id="AIL_e7b1c7d9" text="I banditi che ti fermano parlano per primi" />
     <string id="AIL_e7b1c7da" text="Quando banditi o pirati ti sbarrano la strada sulla mappa, il loro capo apre con parole sue invece della battuta del gioco, e tu rispondi come vuoi: come finisce (uno scontro, lasciarti passare, la tua borsa, una mazzetta, la loro resa, o tutta la banda che si unisce a te) dipende da ciò che si dice. «Indietro» porta alle solite scelte del gioco. Una richiesta all’IA quando ti fermano." />
+    <string id="AIL_e7b1c7e0" text="La tua congiura con {0} contro {1} va avanti." />
+    <string id="AIL_e7b1c7e1" text="Un avvertimento, e che resti tra noi: {0} trama qualcosa contro di te: {1}. Attento a ciò che mangi e a dove cavalchi." />
+    <string id="AIL_e7b1c7e2" text="Hai la sensazione che qualcuno segua i tuoi passi e chieda di te. Meglio stare attenti in questi giorni." />
+    <string id="AIL_e7b1c7e3" text="Si scopre una congiura di {0}" />
+    <string id="AIL_e7b1c7e4" text="{0} tramava contro {1}, ed è venuto alla luce." />
+    <string id="AIL_e7b1c7e5" text="Si parla male di te alla corte di {0}: qualcuno sta spargendo menzogne." />
+    <string id="AIL_e7b1c7e6" text="Le menzogne su {0} hanno fatto il loro lavoro." />
+    <string id="AIL_e7b1c7e7" text="Cosa si dice di {0}" />
+    <string id="AIL_e7b1c7e8" text="La tua guardia ferma un sicario a {0}." />
+    <string id="AIL_e7b1c7e9" text="Prima di morire confessa che l’ha mandato {0}." />
+    <string id="AIL_e7b1c7ea" text="Il cibo di ieri sera aveva un sapore strano. Non ti senti bene." />
+    <string id="AIL_e7b1c7eb" text="veleno lento" />
+    <string id="AIL_e7b1c7ec" text="Uomini armati vi sbarrano la strada. Non sono banditi qualunque: vengono per te." />
+    <string id="AIL_e7b1c7ed" text="Sicari" />
+    <string id="AIL_e7b1c7ee" text="Morte di {0}" />
+    <string id="AIL_e7b1c7ef" text="{0} è stato trovato morto. Nessuno sa chi sia stato." />
+    <string id="AIL_e7b1c7f0" text="Si mormora che dietro ci sia {0}." />
+    <string id="AIL_e7b1c7f1" text="{0} è morto, come avevate tramato {1} e tu." />
+    <string id="AIL_e7b1c7f2" text="Tentano di uccidere {0}" />
+    <string id="AIL_e7b1c7f3" text="{0} è scampato a un tentativo di omicidio." />
+    <string id="AIL_e7b1c7f4" text="I sospetti cadono su {0}." />
+    <string id="AIL_e7b1c7f5" text="Pettegolezzi su {0}" />
+    <string id="AIL_e7b1c7f6" text="Si dice che {0} e {1} si vedano di nascosto." />
+    <string id="AIL_e7b1c7f7" text="la tua morte" />
+    <string id="AIL_e7b1c7f8" text="sedurre il tuo coniuge" />
+    <string id="AIL_e7b1c7f9" text="rovinare il tuo nome con menzogne" />
+    <string id="AIL_e7b1c7fa" text="{0} rinuncia alla sua congiura contro {1}." />
+    <string id="AIL_e7b1c7fb" text="te" />
+    <string id="AIL_e7b1c7fc" text="{0} ti racconta tutto: {1} trama contro {2} ({3})." />
+    <string id="AIL_e7b1c7fd" text="{0} condanna {1}" />
+    <string id="AIL_e7b1c7fe" text="{0} condanna {1} per aver cospirato contro di te: perde il suo favore e paga {2} denari." />
+    <string id="AIL_e7b1c7ff" text="{0} accetta di tramare contro {1}." />
+    <string id="AIL_e7b1c80e" text="la sua morte" />
+    <string id="AIL_e7b1c80f" text="sedurre il suo coniuge" />
+    <string id="AIL_e7b1c810" text="rovinare il suo nome con menzogne" />
+    <string id="AIL_e7b1c800" text="Intrighi e congiure" />
+    <string id="AIL_e7b1c801" text="I nobili con un vero rancore (contro di te o un altro nobile) e il carattere giusto tramano in segreto, passo dopo passo: menzogne che girano senza nome, un attentato alla vita di qualcuno o la corte a un coniuge. Puoi scoprirlo (un complice che parla troppo, l’avvertimento di un amico) e rispondere: affrontarli, comprare un complice, denunciarli al loro sovrano o chiedere a qualcuno di tramare per te. Nessuna richiesta all’IA, tranne per scrivere ogni menzogna." />
+    <string id="AIL_e7b1c802" text="Intrigo: congiure contemporanee al massimo" />
+    <string id="AIL_e7b1c803" text="In tutto il mondo. Con 0 non inizia nessuna nuova congiura. Consigliato: da 2 a 4." />
+    <string id="AIL_e7b1c804" text="Intrigo: giorni tra una congiura e l’altra" />
+    <string id="AIL_e7b1c805" text="Più o meno ogni quanto qualcuno nel mondo inizia una nuova congiura, se qualcuno ha un motivo. Consigliato: da 15 a 30." />
+    <string id="AIL_e7b1c806" text="Intrigo: giorni per passo" />
+    <string id="AIL_e7b1c807" text="Quanto dura più o meno ogni passo di una congiura. Una congiura ha tre passi. Consigliato: da 5 a 10." />
+    <string id="AIL_e7b1c808" text="Intrigo: anche congiure tra nobili" />
+    <string id="AIL_e7b1c809" text="Attivato: i nobili tramano anche contro altri nobili che detestano, e lo saprai dalle notizie. Disattivato: solo contro di te." />
+    <string id="AIL_e7b1c80a" text="Intrigo: tentativi di omicidio" />
+    <string id="AIL_e7b1c80b" text="I cospiratori crudeli con un odio profondo possono cercare di far uccidere qualcuno. Contro di te c’è sempre prima un avvertimento e sempre una via d’uscita: sicari che puoi affrontare, un veleno che un medico può curare o la tua guardia che li ferma. Contro altri nobili può riuscire e muoiono. Disattivato: nessuno trama una morte." />
+    <string id="AIL_e7b1c80c" text="Intrigo: sedurre un coniuge" />
+    <string id="AIL_e7b1c80d" text="Un cospiratore può corteggiare di nascosto il marito o la moglie del suo bersaglio: il coniuge si avvicina a lui e si raffredda con il bersaglio, e alla fine si chiacchiera. Anche il tuo. Consigliato: disattivato, a meno che tu non lo voglia." />
   </strings>
 </base>

@@ -2073,5 +2073,54 @@
     <string id="AIL_e7b1c7d8" text="*{0} tritt mit den Seinen vor und versperrt euch den Weg…*" />
     <string id="AIL_e7b1c7d9" text="Banditen, die dich aufhalten, sprechen zuerst" />
     <string id="AIL_e7b1c7da" text="Wenn Banditen oder Piraten dir auf der Karte den Weg versperren, eröffnet ihr Anführer mit eigenen Worten statt der Zeile des Spiels, und du antwortest, wie du willst: Wie es endet (ein Kampf, dich ziehen lassen, dein Geldbeutel, eine Bestechung, ihre Ergebung oder die ganze Bande schließt sich dir an), ergibt sich aus dem Gesagten. «Zurück» führt zu den üblichen Auswahlmöglichkeiten des Spiels. Eine KI-Anfrage, wenn sie dich aufhalten." />
+    <string id="AIL_e7b1c7e0" text="Deine Verschwörung mit {0} gegen {1} kommt voran." />
+    <string id="AIL_e7b1c7e1" text="Eine Warnung, und sie bleibt unter uns: {0} plant etwas gegen dich: {1}. Pass auf, was du isst und wo du reitest." />
+    <string id="AIL_e7b1c7e2" text="Du hast das Gefühl, dass dir jemand folgt und nach dir fragt. In diesen Tagen ist Vorsicht besser." />
+    <string id="AIL_e7b1c7e3" text="Eine Verschwörung von {0} fliegt auf" />
+    <string id="AIL_e7b1c7e4" text="{0} hat gegen {1} intrigiert, und es ist ans Licht gekommen." />
+    <string id="AIL_e7b1c7e5" text="Am Hof von {0} wird schlecht über dich geredet: Jemand verbreitet Lügen." />
+    <string id="AIL_e7b1c7e6" text="Die Lügen über {0} haben ihre Wirkung getan." />
+    <string id="AIL_e7b1c7e7" text="Was man über {0} sagt" />
+    <string id="AIL_e7b1c7e8" text="Deine Wache hält in {0} einen gedungenen Mörder auf." />
+    <string id="AIL_e7b1c7e9" text="Bevor er stirbt, gesteht er, dass {0} ihn geschickt hat." />
+    <string id="AIL_e7b1c7ea" text="Das Essen gestern Abend schmeckte seltsam. Du fühlst dich nicht gut." />
+    <string id="AIL_e7b1c7eb" text="schleichendes Gift" />
+    <string id="AIL_e7b1c7ec" text="Bewaffnete Männer versperren euch den Weg. Das sind keine gewöhnlichen Banditen: Sie sind deinetwegen hier." />
+    <string id="AIL_e7b1c7ed" text="Gedungene Mörder" />
+    <string id="AIL_e7b1c7ee" text="Tod von {0}" />
+    <string id="AIL_e7b1c7ef" text="{0} wurde tot aufgefunden. Niemand weiß, wer es war." />
+    <string id="AIL_e7b1c7f0" text="Man munkelt, dass {0} dahintersteckt." />
+    <string id="AIL_e7b1c7f1" text="{0} ist tot, wie {1} und du es geplant hattet." />
+    <string id="AIL_e7b1c7f2" text="Anschlag auf {0}" />
+    <string id="AIL_e7b1c7f3" text="{0} ist einem Mordanschlag entkommen." />
+    <string id="AIL_e7b1c7f4" text="Der Verdacht fällt auf {0}." />
+    <string id="AIL_e7b1c7f5" text="Gerede über {0}" />
+    <string id="AIL_e7b1c7f6" text="Man sagt, {0} und {1} treffen sich heimlich." />
+    <string id="AIL_e7b1c7f7" text="deinen Tod" />
+    <string id="AIL_e7b1c7f8" text="deinen Ehepartner zu verführen" />
+    <string id="AIL_e7b1c7f9" text="deinen Namen mit Lügen zu ruinieren" />
+    <string id="AIL_e7b1c7fa" text="{0} gibt seine Verschwörung gegen {1} auf." />
+    <string id="AIL_e7b1c7fb" text="dich" />
+    <string id="AIL_e7b1c7fc" text="{0} erzählt dir alles: {1} intrigiert gegen {2} ({3})." />
+    <string id="AIL_e7b1c7fd" text="{0} verurteilt {1}" />
+    <string id="AIL_e7b1c7fe" text="{0} verurteilt {1} wegen einer Verschwörung gegen dich: Er verliert die Gunst und zahlt {2} Denare." />
+    <string id="AIL_e7b1c7ff" text="{0} willigt ein, gegen {1} zu intrigieren." />
+    <string id="AIL_e7b1c80e" text="den Tod" />
+    <string id="AIL_e7b1c80f" text="den Ehepartner zu verführen" />
+    <string id="AIL_e7b1c810" text="den Namen mit Lügen zu ruinieren" />
+    <string id="AIL_e7b1c800" text="Intrigen und Verschwörungen" />
+    <string id="AIL_e7b1c801" text="Adlige mit echtem Groll (gegen dich oder einen anderen Adligen) und dem Charakter dafür intrigieren heimlich, Schritt für Schritt: Lügen, die ohne Namen umgehen, ein Anschlag auf jemandes Leben oder das Umwerben eines Ehepartners. Du kannst es erfahren (ein geschwätziger Komplize, die Warnung eines Freundes) und reagieren: sie zur Rede stellen, einen Komplizen kaufen, sie bei ihrem Herrscher anzeigen oder jemanden bitten, für dich zu intrigieren. Keine KI-Anfragen außer für den Wortlaut jeder Lüge." />
+    <string id="AIL_e7b1c802" text="Intrige: höchstens gleichzeitige Verschwörungen" />
+    <string id="AIL_e7b1c803" text="In der ganzen Welt. Mit 0 beginnt keine neue Verschwörung. Empfohlen: 2 bis 4." />
+    <string id="AIL_e7b1c804" text="Intrige: Tage zwischen neuen Verschwörungen" />
+    <string id="AIL_e7b1c805" text="Ungefähr wie oft jemand in der Welt eine neue Verschwörung beginnt, sofern jemand einen Grund hat. Empfohlen: 15 bis 30." />
+    <string id="AIL_e7b1c806" text="Intrige: Tage pro Schritt" />
+    <string id="AIL_e7b1c807" text="Wie lange ungefähr jeder Schritt einer Verschwörung dauert. Eine Verschwörung hat drei Schritte. Empfohlen: 5 bis 10." />
+    <string id="AIL_e7b1c808" text="Intrige: auch Verschwörungen zwischen Adligen" />
+    <string id="AIL_e7b1c809" text="An: Adlige intrigieren auch gegen andere Adlige, die sie hassen, und du erfährst es aus den Nachrichten. Aus: nur gegen dich." />
+    <string id="AIL_e7b1c80a" text="Intrige: Mordanschläge" />
+    <string id="AIL_e7b1c80b" text="Grausame Verschwörer mit tiefem Hass können versuchen, jemanden töten zu lassen. Gegen dich gibt es immer zuerst eine Warnung und immer einen Ausweg: gedungene Mörder, gegen die du kämpfen kannst, ein Gift, das ein Arzt behandeln kann, oder deine eigene Wache, die sie aufhält. Gegen andere Adlige kann es gelingen, und sie sterben. Aus: Niemand plant einen Tod." />
+    <string id="AIL_e7b1c80c" text="Intrige: einen Ehepartner verführen" />
+    <string id="AIL_e7b1c80d" text="Ein Verschwörer kann heimlich um den Mann oder die Frau seines Ziels werben: Der Ehepartner wendet sich ihm zu und kühlt gegenüber dem Ziel ab, und am Ende wird getratscht. Auch deiner. Empfohlen: aus, es sei denn, du willst es." />
   </strings>
 </base>

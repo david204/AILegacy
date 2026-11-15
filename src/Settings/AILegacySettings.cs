@@ -1727,6 +1727,42 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
         public int MapInitiativeDaysPerNpc { get; set; } = 7;
 
+        // Intrigue
+        [SettingPropertyBool("{=AIL_e7b1c800}Intrigues and conspiracies", Order = 20, RequireRestart = false,
+            HintText = "{=AIL_e7b1c801}Nobles with a real grudge (against you or another noble) and the character for it plot in secret, step by step: lies spread with no name on them, an attempt on someone's life, or courting a spouse. You can find out (a talkative accomplice, a friend's warning) and answer: confront them, buy an accomplice, denounce them to their ruler, or ask someone to plot for you. It costs no AI requests except to word each lie.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public bool EnableIntrigues { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c802}Intrigue: most plots at once", 0, 10, Order = 21, RequireRestart = false,
+            HintText = "{=AIL_e7b1c803}Across the whole world. 0 lets no new plot start. Recommended: 2 to 4.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public int IntrigueMaxActive { get; set; } = 3;
+
+        [SettingPropertyInteger("{=AIL_e7b1c804}Intrigue: days between new plots", 3, 120, Order = 22, RequireRestart = false,
+            HintText = "{=AIL_e7b1c805}Roughly how often someone in the world starts a new plot, if anyone has a reason. Recommended: 15 to 30.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public int IntrigueDaysBetween { get; set; } = 20;
+
+        [SettingPropertyInteger("{=AIL_e7b1c806}Intrigue: days per step", 2, 30, Order = 23, RequireRestart = false,
+            HintText = "{=AIL_e7b1c807}How long, roughly, each step of a plot takes. A plot has three steps. Recommended: 5 to 10.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public int IntrigueStageDays { get; set; } = 7;
+
+        [SettingPropertyBool("{=AIL_e7b1c808}Intrigue: plots between nobles too", Order = 24, RequireRestart = false,
+            HintText = "{=AIL_e7b1c809}On: nobles also plot against other nobles they loathe, and you hear of it in the news. Off: only against you.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public bool IntrigueAgainstNpcs { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c80a}Intrigue: attempts on someone's life", Order = 25, RequireRestart = false,
+            HintText = "{=AIL_e7b1c80b}Cruel plotters with a deep hatred may try to have someone killed. Against you it is always warned of first, and there is always a way out: hired blades you can fight, a poison a physician can treat, or your own guards stopping them. Against other nobles it can succeed and they die. Off: nobody plots a death.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public bool IntrigueMurder { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c80c}Intrigue: seducing a spouse", Order = 26, RequireRestart = false,
+            HintText = "{=AIL_e7b1c80d}A plotter may court their target's husband or wife behind their back: the spouse warms to them and cools to the target, and in the end tongues wag. Yours too. Recommended: off unless you want it.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}B. Initiative and errands", GroupOrder = 11)]
+        public bool IntrigueSeduction { get; set; } = false;
+
         // ------------------------------------------------------------ World and diplomacy
         [SettingPropertyBool("{=AIL_8a4cc812}AI world events", Order = 0, RequireRestart = false,
             HintText = "{=AIL_b057228e}From time to time the AI writes new events based on the real state of the world (politics, war, economy, society, mysteries). They appear in News and NPCs know about them.")]

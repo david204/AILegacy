@@ -2073,5 +2073,54 @@
     <string id="AIL_e7b1c7d8" text="*{0}带着手下上前，挡住了你们的去路……*" />
     <string id="AIL_e7b1c7d9" text="拦住你的强盗先开口" />
     <string id="AIL_e7b1c7da" text="当强盗或海盗在地图上拦住你时，他们的头目会用自己的话开场，而不是游戏原本的台词，你可以随意回答：结局（打一场、放你过去、交出钱袋、贿赂、他们投降，或整伙人加入你）取决于你们说了什么。“返回”会回到游戏原本的选项。拦下你时会发出一次AI请求。" />
+    <string id="AIL_e7b1c7e0" text="你与{0}针对{1}的密谋有了进展。" />
+    <string id="AIL_e7b1c7e1" text="提醒你一句，别外传：{0}在暗中对付你：{1}。注意你吃的东西和走的路。" />
+    <string id="AIL_e7b1c7e2" text="你感觉有人在跟踪你、打听你的消息。这些天最好小心些。" />
+    <string id="AIL_e7b1c7e3" text="{0}的密谋败露" />
+    <string id="AIL_e7b1c7e4" text="{0}一直在密谋对付{1}，如今东窗事发。" />
+    <string id="AIL_e7b1c7e5" text="{0}的宫廷里有人说你的坏话：有人在散布谎言。" />
+    <string id="AIL_e7b1c7e6" text="关于{0}的谎言已经起了作用。" />
+    <string id="AIL_e7b1c7e7" text="关于{0}的传言" />
+    <string id="AIL_e7b1c7e8" text="你的守卫在{0}拦下了一名刺客。" />
+    <string id="AIL_e7b1c7e9" text="他临死前招认是{0}派他来的。" />
+    <string id="AIL_e7b1c7ea" text="昨晚的饭菜味道有些古怪。你感觉不太舒服。" />
+    <string id="AIL_e7b1c7eb" text="慢性毒药" />
+    <string id="AIL_e7b1c7ec" text="一伙持械之人拦住了去路。他们不是普通强盗：他们是冲你来的。" />
+    <string id="AIL_e7b1c7ed" text="雇佣刺客" />
+    <string id="AIL_e7b1c7ee" text="{0}之死" />
+    <string id="AIL_e7b1c7ef" text="{0}被发现死了。没人知道是谁干的。" />
+    <string id="AIL_e7b1c7f0" text="有人私下说幕后黑手是{0}。" />
+    <string id="AIL_e7b1c7f1" text="{0}死了，正如你和{1}所谋划的那样。" />
+    <string id="AIL_e7b1c7f2" text="有人企图刺杀{0}" />
+    <string id="AIL_e7b1c7f3" text="{0}躲过了一次刺杀。" />
+    <string id="AIL_e7b1c7f4" text="嫌疑落在了{0}身上。" />
+    <string id="AIL_e7b1c7f5" text="关于{0}的闲话" />
+    <string id="AIL_e7b1c7f6" text="据说{0}和{1}私下幽会。" />
+    <string id="AIL_e7b1c7f7" text="要你的命" />
+    <string id="AIL_e7b1c7f8" text="勾引你的配偶" />
+    <string id="AIL_e7b1c7f9" text="用谎言毁掉你的名声" />
+    <string id="AIL_e7b1c7fa" text="{0}放弃了针对{1}的密谋。" />
+    <string id="AIL_e7b1c7fb" text="你" />
+    <string id="AIL_e7b1c7fc" text="{0}向你和盘托出：{1}正在密谋对付{2}（{3}）。" />
+    <string id="AIL_e7b1c7fd" text="{0}惩处{1}" />
+    <string id="AIL_e7b1c7fe" text="{0}以密谋害你之罪惩处{1}：失去宠信，并缴纳{2}第纳尔。" />
+    <string id="AIL_e7b1c7ff" text="{0}同意密谋对付{1}。" />
+    <string id="AIL_e7b1c80e" text="要其性命" />
+    <string id="AIL_e7b1c80f" text="勾引其配偶" />
+    <string id="AIL_e7b1c810" text="用谎言毁其名声" />
+    <string id="AIL_e7b1c800" text="阴谋与密谋" />
+    <string id="AIL_e7b1c801" text="怀有真正怨恨（对你或对其他贵族）且有此性格的贵族会一步步暗中密谋：散布无名谣言、谋害某人性命，或勾引其配偶。你可能会得知此事（多嘴的同谋、朋友的提醒）并作出回应：当面质问、收买同谋、向其君主告发，或请人替你密谋。除了撰写每条谣言外不会发出AI请求。" />
+    <string id="AIL_e7b1c802" text="阴谋：同时进行的密谋上限" />
+    <string id="AIL_e7b1c803" text="全世界范围。为0时不会开始新的密谋。建议：2 至 4。" />
+    <string id="AIL_e7b1c804" text="阴谋：新密谋之间的天数" />
+    <string id="AIL_e7b1c805" text="大约多久会有人开始新的密谋（前提是有人有动机）。建议：15 至 30。" />
+    <string id="AIL_e7b1c806" text="阴谋：每步的天数" />
+    <string id="AIL_e7b1c807" text="密谋每一步大约持续多久。一个密谋有三步。建议：5 至 10。" />
+    <string id="AIL_e7b1c808" text="阴谋：贵族之间也会密谋" />
+    <string id="AIL_e7b1c809" text="开启：贵族也会密谋对付他们憎恨的其他贵族，你会从消息中得知。关闭：只针对你。" />
+    <string id="AIL_e7b1c80a" text="阴谋：刺杀企图" />
+    <string id="AIL_e7b1c80b" text="心怀深仇的残忍阴谋者可能会设法让人丧命。针对你时，总会先有提醒，也总有出路：可以迎战的刺客、医生能治的毒，或你自己的守卫将其拦下。针对其他贵族时可能得手，对方会死去。关闭：没人会谋划杀人。" />
+    <string id="AIL_e7b1c80c" text="阴谋：勾引配偶" />
+    <string id="AIL_e7b1c80d" text="阴谋者可能背着目标去勾引其丈夫或妻子：配偶会亲近他而冷落目标，最后流言四起。你的配偶也可能。建议：关闭，除非你想要。" />
   </strings>
 </base>

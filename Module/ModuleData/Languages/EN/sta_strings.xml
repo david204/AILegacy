@@ -2073,5 +2073,54 @@
     <string id="AIL_e7b1c7d8" text="*{0} steps forward with their men and bars your way…*" />
     <string id="AIL_e7b1c7d9" text="Bandits who stop you speak first" />
     <string id="AIL_e7b1c7da" text="When bandits or pirates bar your way on the map, their leader opens with their own words instead of the game's line, and you answer as you like: how it ends (a fight, letting you pass, your purse, a bribe, their surrender, or the whole band joining you) comes out of what is said. «Back» leads to the game's usual choices. One AI request when they stop you." />
+    <string id="AIL_e7b1c7e0" text="Your plot with {0} against {1} moves forward." />
+    <string id="AIL_e7b1c7e1" text="A warning, and keep it between us: {0} is plotting something against you: {1}. Watch what you eat and where you ride." />
+    <string id="AIL_e7b1c7e2" text="You have the feeling that someone is following your steps and asking about you. Better to be careful these days." />
+    <string id="AIL_e7b1c7e3" text="A plot by {0} comes to light" />
+    <string id="AIL_e7b1c7e4" text="{0} was plotting against {1}, and it has come out." />
+    <string id="AIL_e7b1c7e5" text="People speak ill of you at the court of {0}: someone is spreading lies." />
+    <string id="AIL_e7b1c7e6" text="The lies about {0} have done their work." />
+    <string id="AIL_e7b1c7e7" text="What they say about {0}" />
+    <string id="AIL_e7b1c7e8" text="Your guard stops a hired killer in {0}." />
+    <string id="AIL_e7b1c7e9" text="Before he dies he confesses that {0} sent him." />
+    <string id="AIL_e7b1c7ea" text="Last night's food had a strange taste. You don't feel well." />
+    <string id="AIL_e7b1c7eb" text="a slow poison" />
+    <string id="AIL_e7b1c7ec" text="Armed men bar your way. They are not ordinary bandits: they have come for you." />
+    <string id="AIL_e7b1c7ed" text="Hired blades" />
+    <string id="AIL_e7b1c7ee" text="Death of {0}" />
+    <string id="AIL_e7b1c7ef" text="{0} has been found dead. Nobody knows who did it." />
+    <string id="AIL_e7b1c7f0" text="People whisper that {0} is behind it." />
+    <string id="AIL_e7b1c7f1" text="{0} is dead, as {1} and you plotted." />
+    <string id="AIL_e7b1c7f2" text="An attempt on {0}'s life" />
+    <string id="AIL_e7b1c7f3" text="{0} has escaped an attempt on their life." />
+    <string id="AIL_e7b1c7f4" text="Suspicion falls on {0}." />
+    <string id="AIL_e7b1c7f5" text="Gossip about {0}" />
+    <string id="AIL_e7b1c7f6" text="People say that {0} and {1} meet in secret." />
+    <string id="AIL_e7b1c7f7" text="your death" />
+    <string id="AIL_e7b1c7f8" text="seducing your spouse" />
+    <string id="AIL_e7b1c7f9" text="ruining your name with lies" />
+    <string id="AIL_e7b1c7fa" text="{0} gives up their plot against {1}." />
+    <string id="AIL_e7b1c7fb" text="you" />
+    <string id="AIL_e7b1c7fc" text="{0} tells you everything: {1} is plotting against {2} ({3})." />
+    <string id="AIL_e7b1c7fd" text="{0} condemns {1}" />
+    <string id="AIL_e7b1c7fe" text="{0} condemns {1} for plotting against you: they lose favour and pay {2} denars." />
+    <string id="AIL_e7b1c7ff" text="{0} agrees to plot against {1}." />
+    <string id="AIL_e7b1c80e" text="their death" />
+    <string id="AIL_e7b1c80f" text="seducing their spouse" />
+    <string id="AIL_e7b1c810" text="ruining their name with lies" />
+    <string id="AIL_e7b1c800" text="Intrigues and conspiracies" />
+    <string id="AIL_e7b1c801" text="Nobles with a real grudge (against you or another noble) and the character for it plot in secret, step by step: lies spread with no name on them, an attempt on someone's life, or courting a spouse. You can find out (a talkative accomplice, a friend's warning) and answer: confront them, buy an accomplice, denounce them to their ruler, or ask someone to plot for you. It costs no AI requests except to word each lie." />
+    <string id="AIL_e7b1c802" text="Intrigue: most plots at once" />
+    <string id="AIL_e7b1c803" text="Across the whole world. 0 lets no new plot start. Recommended: 2 to 4." />
+    <string id="AIL_e7b1c804" text="Intrigue: days between new plots" />
+    <string id="AIL_e7b1c805" text="Roughly how often someone in the world starts a new plot, if anyone has a reason. Recommended: 15 to 30." />
+    <string id="AIL_e7b1c806" text="Intrigue: days per step" />
+    <string id="AIL_e7b1c807" text="How long, roughly, each step of a plot takes. A plot has three steps. Recommended: 5 to 10." />
+    <string id="AIL_e7b1c808" text="Intrigue: plots between nobles too" />
+    <string id="AIL_e7b1c809" text="On: nobles also plot against other nobles they loathe, and you hear of it in the news. Off: only against you." />
+    <string id="AIL_e7b1c80a" text="Intrigue: attempts on someone's life" />
+    <string id="AIL_e7b1c80b" text="Cruel plotters with a deep hatred may try to have someone killed. Against you it is always warned of first, and there is always a way out: hired blades you can fight, a poison a physician can treat, or your own guards stopping them. Against other nobles it can succeed and they die. Off: nobody plots a death." />
+    <string id="AIL_e7b1c80c" text="Intrigue: seducing a spouse" />
+    <string id="AIL_e7b1c80d" text="A plotter may court their target's husband or wife behind their back: the spouse warms to them and cools to the target, and in the end tongues wag. Yours too. Recommended: off unless you want it." />
   </strings>
 </base>

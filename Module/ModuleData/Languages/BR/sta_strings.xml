@@ -2073,5 +2073,54 @@
     <string id="AIL_e7b1c7d8" text="*{0} avança com os seus e barra o caminho…*" />
     <string id="AIL_e7b1c7d9" text="Os bandidos que te param falam primeiro" />
     <string id="AIL_e7b1c7da" text="Quando bandidos ou piratas barram o seu caminho no mapa, o líder deles abre com as próprias palavras em vez da fala do jogo, e você responde como quiser: como acaba (uma luta, deixar você passar, a sua bolsa, um suborno, a rendição deles ou o bando inteiro se juntando a você) sai do que for dito. «Voltar» leva às opções de sempre do jogo. Um pedido à IA quando eles te param." />
+    <string id="AIL_e7b1c7e0" text="Sua conspiração com {0} contra {1} avança." />
+    <string id="AIL_e7b1c7e1" text="Um aviso, e que fique entre nós: {0} trama algo contra você: {1}. Cuidado com o que come e por onde cavalga." />
+    <string id="AIL_e7b1c7e2" text="Você tem a sensação de que alguém segue seus passos e pergunta por você. Melhor ter cuidado nestes dias." />
+    <string id="AIL_e7b1c7e3" text="Descobre-se uma conspiração de {0}" />
+    <string id="AIL_e7b1c7e4" text="{0} tramava contra {1}, e isso veio à tona." />
+    <string id="AIL_e7b1c7e5" text="Falam mal de você na corte de {0}: alguém está espalhando mentiras." />
+    <string id="AIL_e7b1c7e6" text="As mentiras sobre {0} fizeram seu trabalho." />
+    <string id="AIL_e7b1c7e7" text="O que se diz de {0}" />
+    <string id="AIL_e7b1c7e8" text="Sua guarda detém um assassino de aluguel em {0}." />
+    <string id="AIL_e7b1c7e9" text="Antes de morrer, confessa que foi enviado por {0}." />
+    <string id="AIL_e7b1c7ea" text="A comida de ontem à noite tinha um gosto estranho. Você não se sente bem." />
+    <string id="AIL_e7b1c7eb" text="veneno lento" />
+    <string id="AIL_e7b1c7ec" text="Homens armados barram o caminho. Não são bandidos comuns: vieram atrás de você." />
+    <string id="AIL_e7b1c7ed" text="Assassinos de aluguel" />
+    <string id="AIL_e7b1c7ee" text="Morte de {0}" />
+    <string id="AIL_e7b1c7ef" text="{0} foi encontrado morto. Ninguém sabe quem foi." />
+    <string id="AIL_e7b1c7f0" text="Murmura-se que {0} está por trás." />
+    <string id="AIL_e7b1c7f1" text="{0} morreu, como você e {1} tramaram." />
+    <string id="AIL_e7b1c7f2" text="Tentam matar {0}" />
+    <string id="AIL_e7b1c7f3" text="{0} escapou de uma tentativa de assassinato." />
+    <string id="AIL_e7b1c7f4" text="As suspeitas recaem sobre {0}." />
+    <string id="AIL_e7b1c7f5" text="Boatos sobre {0}" />
+    <string id="AIL_e7b1c7f6" text="Dizem que {0} e {1} se encontram às escondidas." />
+    <string id="AIL_e7b1c7f7" text="sua morte" />
+    <string id="AIL_e7b1c7f8" text="seduzir seu cônjuge" />
+    <string id="AIL_e7b1c7f9" text="arruinar seu nome com mentiras" />
+    <string id="AIL_e7b1c7fa" text="{0} desiste de sua conspiração contra {1}." />
+    <string id="AIL_e7b1c7fb" text="você" />
+    <string id="AIL_e7b1c7fc" text="{0} te conta tudo: {1} trama contra {2} ({3})." />
+    <string id="AIL_e7b1c7fd" text="{0} condena {1}" />
+    <string id="AIL_e7b1c7fe" text="{0} condena {1} por conspirar contra você: perde seu favor e paga {2} denários." />
+    <string id="AIL_e7b1c7ff" text="{0} aceita tramar contra {1}." />
+    <string id="AIL_e7b1c80e" text="a morte dele" />
+    <string id="AIL_e7b1c80f" text="seduzir o cônjuge" />
+    <string id="AIL_e7b1c810" text="arruinar o nome com mentiras" />
+    <string id="AIL_e7b1c800" text="Intrigas e conspirações" />
+    <string id="AIL_e7b1c801" text="Nobres com um rancor de verdade (contra você ou outro nobre) e caráter para isso tramam em segredo, passo a passo: mentiras que correm sem nome, uma tentativa contra a vida de alguém ou a corte a um cônjuge. Você pode descobrir (um cúmplice que fala demais, o aviso de um amigo) e responder: enfrentá-los, comprar um cúmplice, denunciá-los ao soberano ou pedir a alguém que trame por você. Não faz pedidos à IA, exceto para escrever cada mentira." />
+    <string id="AIL_e7b1c802" text="Intriga: máximo de conspirações ao mesmo tempo" />
+    <string id="AIL_e7b1c803" text="No mundo todo. Com 0 nenhuma conspiração nova começa. Recomendado: de 2 a 4." />
+    <string id="AIL_e7b1c804" text="Intriga: dias entre novas conspirações" />
+    <string id="AIL_e7b1c805" text="Mais ou menos a cada quanto alguém no mundo começa uma nova conspiração, se alguém tiver motivo. Recomendado: de 15 a 30." />
+    <string id="AIL_e7b1c806" text="Intriga: dias por etapa" />
+    <string id="AIL_e7b1c807" text="Quanto dura mais ou menos cada etapa de uma conspiração. Uma conspiração tem três etapas. Recomendado: de 5 a 10." />
+    <string id="AIL_e7b1c808" text="Intriga: também conspirações entre nobres" />
+    <string id="AIL_e7b1c809" text="Ativado: os nobres também tramam contra outros nobres que odeiam, e você fica sabendo pelas notícias. Desativado: só contra você." />
+    <string id="AIL_e7b1c80a" text="Intriga: tentativas de assassinato" />
+    <string id="AIL_e7b1c80b" text="Conspiradores cruéis com um ódio profundo podem tentar mandar matar alguém. Contra você sempre há um aviso antes e sempre há saída: assassinos de aluguel que você pode enfrentar, um veneno que um médico pode tratar ou sua própria guarda que os detém. Contra outros nobres pode dar certo e eles morrem. Desativado: ninguém trama uma morte." />
+    <string id="AIL_e7b1c80c" text="Intriga: seduzir um cônjuge" />
+    <string id="AIL_e7b1c80d" text="Um conspirador pode cortejar às escondidas o marido ou a esposa do alvo: o cônjuge se aproxima dele e esfria com o alvo, e no fim surgem os boatos. O seu também. Recomendado: desativado, a menos que você queira." />
   </strings>
 </base>

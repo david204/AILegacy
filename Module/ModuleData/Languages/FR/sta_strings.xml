@@ -2073,5 +2073,54 @@
     <string id="AIL_e7b1c7d8" text="*{0} s’avance avec ses hommes et vous barre la route…*" />
     <string id="AIL_e7b1c7d9" text="Les bandits qui vous arrêtent parlent en premier" />
     <string id="AIL_e7b1c7da" text="Quand des bandits ou des pirates vous barrent la route sur la carte, leur chef ouvre avec ses propres mots au lieu de la réplique du jeu, et vous répondez comme vous voulez : l’issue (un combat, vous laisser passer, votre bourse, un pot-de-vin, leur reddition, ou toute la bande qui vous rejoint) dépend de ce qui se dit. « Retour » mène aux choix habituels du jeu. Une requête à l’IA quand ils vous arrêtent." />
+    <string id="AIL_e7b1c7e0" text="Votre complot avec {0} contre {1} avance." />
+    <string id="AIL_e7b1c7e1" text="Un avertissement, et que cela reste entre nous : {0} complote quelque chose contre vous : {1}. Méfiez-vous de ce que vous mangez et des routes que vous prenez." />
+    <string id="AIL_e7b1c7e2" text="Vous avez l’impression que quelqu’un suit vos pas et pose des questions sur vous. Mieux vaut être prudent ces jours-ci." />
+    <string id="AIL_e7b1c7e3" text="Un complot de {0} est découvert" />
+    <string id="AIL_e7b1c7e4" text="{0} complotait contre {1}, et cela a éclaté au grand jour." />
+    <string id="AIL_e7b1c7e5" text="On dit du mal de vous à la cour de {0} : quelqu’un répand des mensonges." />
+    <string id="AIL_e7b1c7e6" text="Les mensonges sur {0} ont fait leur œuvre." />
+    <string id="AIL_e7b1c7e7" text="Ce que l’on dit de {0}" />
+    <string id="AIL_e7b1c7e8" text="Votre garde arrête un tueur à gages à {0}." />
+    <string id="AIL_e7b1c7e9" text="Avant de mourir, il avoue que {0} l’a envoyé." />
+    <string id="AIL_e7b1c7ea" text="Le repas d’hier soir avait un goût étrange. Vous ne vous sentez pas bien." />
+    <string id="AIL_e7b1c7eb" text="poison lent" />
+    <string id="AIL_e7b1c7ec" text="Des hommes armés vous barrent la route. Ce ne sont pas des bandits ordinaires : ils viennent pour vous." />
+    <string id="AIL_e7b1c7ed" text="Tueurs à gages" />
+    <string id="AIL_e7b1c7ee" text="Mort de {0}" />
+    <string id="AIL_e7b1c7ef" text="{0} a été retrouvé mort. Personne ne sait qui l’a fait." />
+    <string id="AIL_e7b1c7f0" text="On murmure que {0} est derrière tout cela." />
+    <string id="AIL_e7b1c7f1" text="{0} est mort, comme {1} et vous l’aviez comploté." />
+    <string id="AIL_e7b1c7f2" text="Tentative de meurtre contre {0}" />
+    <string id="AIL_e7b1c7f3" text="{0} a échappé à une tentative d’assassinat." />
+    <string id="AIL_e7b1c7f4" text="Les soupçons se portent sur {0}." />
+    <string id="AIL_e7b1c7f5" text="Rumeurs sur {0}" />
+    <string id="AIL_e7b1c7f6" text="On dit que {0} et {1} se voient en secret." />
+    <string id="AIL_e7b1c7f7" text="votre mort" />
+    <string id="AIL_e7b1c7f8" text="séduire votre conjoint" />
+    <string id="AIL_e7b1c7f9" text="ruiner votre nom par des mensonges" />
+    <string id="AIL_e7b1c7fa" text="{0} renonce à son complot contre {1}." />
+    <string id="AIL_e7b1c7fb" text="vous" />
+    <string id="AIL_e7b1c7fc" text="{0} vous dit tout : {1} complote contre {2} ({3})." />
+    <string id="AIL_e7b1c7fd" text="{0} condamne {1}" />
+    <string id="AIL_e7b1c7fe" text="{0} condamne {1} pour avoir comploté contre vous : il perd sa faveur et paie {2} deniers." />
+    <string id="AIL_e7b1c7ff" text="{0} accepte de comploter contre {1}." />
+    <string id="AIL_e7b1c80e" text="sa mort" />
+    <string id="AIL_e7b1c80f" text="séduire son conjoint" />
+    <string id="AIL_e7b1c810" text="ruiner son nom par des mensonges" />
+    <string id="AIL_e7b1c800" text="Intrigues et complots" />
+    <string id="AIL_e7b1c801" text="Les nobles qui ont une vraie rancune (contre vous ou un autre noble) et le caractère pour cela complotent en secret, pas à pas : des mensonges qui circulent sans nom, une tentative contre la vie de quelqu’un, ou la cour faite à un conjoint. Vous pouvez l’apprendre (un complice bavard, l’avertissement d’un ami) et répondre : les affronter, acheter un complice, les dénoncer à leur souverain, ou demander à quelqu’un de comploter pour vous. Aucune requête à l’IA, sauf pour rédiger chaque mensonge." />
+    <string id="AIL_e7b1c802" text="Intrigue : complots simultanés au plus" />
+    <string id="AIL_e7b1c803" text="Dans le monde entier. Avec 0, aucun nouveau complot ne commence. Recommandé : de 2 à 4." />
+    <string id="AIL_e7b1c804" text="Intrigue : jours entre deux nouveaux complots" />
+    <string id="AIL_e7b1c805" text="À peu près tous les combien quelqu’un dans le monde lance un nouveau complot, si quelqu’un a une raison. Recommandé : de 15 à 30." />
+    <string id="AIL_e7b1c806" text="Intrigue : jours par étape" />
+    <string id="AIL_e7b1c807" text="Combien de temps dure à peu près chaque étape d’un complot. Un complot a trois étapes. Recommandé : de 5 à 10." />
+    <string id="AIL_e7b1c808" text="Intrigue : complots entre nobles aussi" />
+    <string id="AIL_e7b1c809" text="Activé : les nobles complotent aussi contre d’autres nobles qu’ils détestent, et vous l’apprenez par les nouvelles. Désactivé : seulement contre vous." />
+    <string id="AIL_e7b1c80a" text="Intrigue : tentatives d’assassinat" />
+    <string id="AIL_e7b1c80b" text="Les comploteurs cruels animés d’une haine profonde peuvent tenter de faire tuer quelqu’un. Contre vous, il y a toujours un avertissement d’abord et toujours une issue : des tueurs à gages que vous pouvez combattre, un poison qu’un médecin peut soigner, ou votre propre garde qui les arrête. Contre d’autres nobles, cela peut réussir et ils meurent. Désactivé : personne ne complote une mort." />
+    <string id="AIL_e7b1c80c" text="Intrigue : séduire un conjoint" />
+    <string id="AIL_e7b1c80d" text="Un comploteur peut courtiser en cachette le mari ou la femme de sa cible : le conjoint se rapproche de lui et se refroidit envers la cible, et à la fin les langues se délient. Le vôtre aussi. Recommandé : désactivé, sauf si vous le voulez." />
   </strings>
 </base>

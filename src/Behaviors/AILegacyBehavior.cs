@@ -38,6 +38,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(this, MapInitiative.OnHourlyTick);
             // World simulation
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, WorldSim.OnDailyTick);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Intrigue.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Dialogue.Verdict.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.StorySecrets.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.UniqueCharacters.OnDailyTick);

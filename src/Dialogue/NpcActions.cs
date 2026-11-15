@@ -1756,6 +1756,42 @@ namespace AILegacy.Dialogue
                 }
             },
 
+            // ----------------------------------------------------------- intrigue
+            new ActionDef
+            {
+                Name = "abandon_plot", Usage = "abandon_plot",
+                Description = "You give up the scheme you are secretly running, for good. Only if you truly mean to: they caught you out, frightened you, bought you off or talked you out of it.",
+                IsAvailable = s => s.IsHero && Intrigue.Enabled && Intrigue.RunBy(s.Hero) != null,
+                Execute = (s, arg, ctx) => Intrigue.Abandon(s.Hero)
+            },
+            new ActionDef
+            {
+                Name = "betray_plot", Usage = "betray_plot",
+                Description = "You tell the one in front of you everything about the secret plot you are part of: who is behind it, against whom, and what it is. Only if you have decided to (for a price, out of fear, or out of conscience).",
+                IsAvailable = s => s.IsHero && Intrigue.Enabled && Intrigue.HelpedBy(s.Hero) != null,
+                Execute = (s, arg, ctx) => Intrigue.Betray(s.Hero)
+            },
+            new ActionDef
+            {
+                Name = "condemn_plot", Usage = "condemn_plot:<name of the plotter>",
+                Description = "As ruler, you condemn a noble of your realm for plotting against the one in front of you: they lose your favour and pay a heavy fine. Only if you believe the accusation and will act on it.",
+                IsAvailable = s => s.IsHero && Intrigue.Enabled && Intrigue.AnyKnownForRuler(s.Hero),
+                Execute = (s, arg, ctx) => Intrigue.Condemn(s.Hero, arg)
+            },
+            new ActionDef
+            {
+                Name = "start_plot", Usage = "start_plot:<name of a real noble>|<smear, murder or seduce>",
+                Description = "At the request of the one in front of you, you agree to scheme in secret against another real noble: smear = spread lies to ruin their name; murder = have them killed; seduce = win over their spouse. " +
+                              "Only if you are the kind of person who would, you have your own reasons or a good price, and they truly asked you to.",
+                IsAvailable = s => s.IsHero && Intrigue.Enabled && s.Hero.IsLord && !s.Hero.IsPrisoner && Intrigue.RunBy(s.Hero) == null
+                                   && s.Hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor) <= 0,
+                Execute = (s, arg, ctx) =>
+                {
+                    var parts = (arg ?? "").Split('|');
+                    return Intrigue.StartByPlayer(s.Hero, parts[0].Trim(), parts.Length > 1 ? parts[1] : "smear");
+                }
+            },
+
             // ----------------------------------------------------------- the guard decides (only the guard handling the case)
             new ActionDef
             {
