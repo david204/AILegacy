@@ -2070,5 +2070,8 @@
     <string id="AIL_e7b1c7d5" text="Ajuda seus doentes a se curarem antes." />
     <string id="AIL_e7b1c7d6" text="Sabe pouco: seus doentes dependem sobretudo de um bom hospital." />
     <string id="AIL_e7b1c7d7" text="&#10;Você não tem cirurgião: ninguém do seu grupo cuida dos doentes na estrada." />
+    <string id="AIL_e7b1c7d8" text="*{0} avança com os seus e barra o caminho…*" />
+    <string id="AIL_e7b1c7d9" text="Os bandidos que te param falam primeiro" />
+    <string id="AIL_e7b1c7da" text="Quando bandidos ou piratas barram o seu caminho no mapa, o líder deles abre com as próprias palavras em vez da fala do jogo, e você responde como quiser: como acaba (uma luta, deixar você passar, a sua bolsa, um suborno, a rendição deles ou o bando inteiro se juntando a você) sai do que for dito. «Voltar» leva às opções de sempre do jogo. Um pedido à IA quando eles te param." />
   </strings>
 </base>

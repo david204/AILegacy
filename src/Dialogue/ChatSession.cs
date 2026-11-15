@@ -587,6 +587,18 @@ namespace AILegacy.Dialogue
                 t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
         }
 
+        /// <summary>The character speaks first in a conversation the game has already opened (bandits blocking the road).</summary>
+        public void AskOpening(string instruction)
+        {
+            if (_closed || _waiting) return;
+            try
+            {
+                var messages = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk, instruction);
+                Ask(messages, "");
+            }
+            catch (Exception ex) { Log.Error("Primera frase del personaje", ex); }
+        }
+
         private void Ask(List<ChatMessage> messages, string text)
         {
             _pendingAsked = messages;
@@ -637,7 +649,8 @@ namespace AILegacy.Dialogue
 
             if (!res.Ok)
             {
-                RemoveLastPlayerTurn(playerText);
+                // an opening line has no player turn of its own to take back
+                if (!string.IsNullOrEmpty(playerText)) RemoveLastPlayerTurn(playerText);
                 Log.Error("Sin respuesta: " + res.Error);
                 UiSystem(L.T("AIL_4073a6cc", "No ha llegado respuesta de ninguna IA. Pulsa Decir para reintentar.\n") + res.Error, true);
                 return;

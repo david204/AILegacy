@@ -323,6 +323,29 @@ namespace AILegacy.Behaviors
                 },
                 () => Initiative.Done(), priority: 10000);
 
+            // Bandits who block the road speak first, in their own words. The game's own opening still runs first (its
+            // condition sets the texts its later lines use), so "Back" leads to its usual choices.
+            starter.AddDialogLine("ailegacy_band_ambush", "start", "ailegacy_d_optw", "{=!}{AIL_DLG}",
+                () =>
+                {
+                    try
+                    {
+                        if (!S.Get.UseDialogStyle || !S.Get.BanditsSpeakFirst || !CanTalkBand() || !BanditAmbush()) return false;
+                        var who = BandSpeaker();
+                        if (who == null) return false;
+                        who.SituationKind = "initiative";
+                        who.Situation = TAmbush.Format("theirs", BandParty().MemberRoster.TotalManCount, "yours", TaleWorlds.CampaignSystem.Party.MobileParty.MainParty.MemberRoster.TotalManCount,
+                            "purse", Hero.MainHero.Gold, "sea", BandParty().IsCurrentlyAtSea ? TAmbushSea.Text : "", "player", Hero.MainHero.Name.ToString());
+                        _fromPrisonerBranch = false; _fromSurrenderDemand = false; _bandReturn = "bandit_defender";
+                        var s = ChatSession.StartDialog(who);
+                        if (s == null) return false;
+                        s.AskOpening("You and your men have just blocked their way on the road. Speak first.");
+                        MBTextManager.SetTextVariable("AIL_DLG", new TextObject("{=!}" + L.F("AIL_e7b1c7d8", $"*{who.Name} se adelanta con los suyos y os corta el paso…*")));
+                        return true;
+                    }
+                    catch (Exception ex) { Log.Error("Bandidos que hablan primero", ex); return false; }
+                }, null, priority: 9000);
+
             // Entry points from heroes and from townsfolk
             starter.AddPlayerLine("ailegacy_d_start_h", "hero_main_options", "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
                 () => S.Get.UseDialogStyle && CanTalkHero(),
@@ -530,6 +553,28 @@ namespace AILegacy.Behaviors
                 return c != null && !c.IsHero && BandParty() != null;
             }
             catch { return false; }
+        }
+
+        private static readonly Prompt.Tpl TAmbush = new Prompt.Tpl("npc_initiative/bandit_ambush.txt",
+@"You lead a band of outlaws ({theirs} men) and you have just caught {player}'s party ({yours} men) on the road and barred its way. They carry {purse} denars.{sea}
+Speak first, as the leader of such men would: make your demand (their purse, their goods, a toll, or their lives), boast, or test them. Weigh the odds honestly: with fewer men than them you bluff, bargain or look for a way out; with many more you press hard.
+How it ends is decided by what is said, with your actions: take their money (take_gold), let them pass (let_pass), attack them (attack), surrender to them if you are beaten, or, if they offer something better than the road, join them with your whole band. Do not settle it in your very first words.");
+        private static readonly Prompt.Tpl TAmbushSea = new Prompt.Tpl("npc_initiative/bandit_ambush_sea.txt", " You are pirates, and it is at sea: you have come alongside their ship.");
+
+        /// <summary>Bandits stopped the player (the game's "bandit_defender" branch). Runs the game's own condition so its later lines have their texts.</summary>
+        private static bool BanditAmbush()
+        {
+            try
+            {
+                var party = PlayerEncounter.EncounteredParty;
+                if (PlayerEncounter.Current == null || party == null || !party.IsMobile || party.MapFaction == null || !party.MapFaction.IsBanditFaction) return false;
+                if (PlayerEncounter.PlayerIsAttacker) return false;
+                var behavior = Campaign.Current.GetCampaignBehavior<TaleWorlds.CampaignSystem.CampaignBehaviors.BanditInteractionsCampaignBehavior>();
+                var cond = HarmonyLib.AccessTools.Method(typeof(TaleWorlds.CampaignSystem.CampaignBehaviors.BanditInteractionsCampaignBehavior), "bandit_start_defender_condition");
+                if (behavior == null || cond == null) return false;      // without its texts, its own lines would come out empty
+                return (bool)cond.Invoke(behavior, null);
+            }
+            catch (Exception ex) { Log.Error("¿Asalto de bandidos?", ex); return false; }
         }
 
         private static Speaker BandSpeaker()

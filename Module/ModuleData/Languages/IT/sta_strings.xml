@@ -2070,5 +2070,8 @@
     <string id="AIL_e7b1c7d5" text="Aiuta i tuoi malati a guarire prima." />
     <string id="AIL_e7b1c7d6" text="Ne sa poco: i tuoi malati dipendono soprattutto da un buon ospedale." />
     <string id="AIL_e7b1c7d7" text="&#10;Non hai un chirurgo: nessuno nel tuo gruppo cura i malati in viaggio." />
+    <string id="AIL_e7b1c7d8" text="*{0} si fa avanti con i suoi e vi sbarra la strada…*" />
+    <string id="AIL_e7b1c7d9" text="I banditi che ti fermano parlano per primi" />
+    <string id="AIL_e7b1c7da" text="Quando banditi o pirati ti sbarrano la strada sulla mappa, il loro capo apre con parole sue invece della battuta del gioco, e tu rispondi come vuoi: come finisce (uno scontro, lasciarti passare, la tua borsa, una mazzetta, la loro resa, o tutta la banda che si unisce a te) dipende da ciò che si dice. «Indietro» porta alle solite scelte del gioco. Una richiesta all’IA quando ti fermano." />
   </strings>
 </base>

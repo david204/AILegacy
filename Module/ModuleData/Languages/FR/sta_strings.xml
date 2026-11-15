@@ -2070,5 +2070,8 @@
     <string id="AIL_e7b1c7d5" text="Il aide vos malades à guérir plus vite." />
     <string id="AIL_e7b1c7d6" text="Il en sait peu : vos malades dépendent surtout d’un bon hôpital." />
     <string id="AIL_e7b1c7d7" text="&#10;Vous n’avez pas de chirurgien : personne dans votre groupe ne soigne les malades en route." />
+    <string id="AIL_e7b1c7d8" text="*{0} s’avance avec ses hommes et vous barre la route…*" />
+    <string id="AIL_e7b1c7d9" text="Les bandits qui vous arrêtent parlent en premier" />
+    <string id="AIL_e7b1c7da" text="Quand des bandits ou des pirates vous barrent la route sur la carte, leur chef ouvre avec ses propres mots au lieu de la réplique du jeu, et vous répondez comme vous voulez : l’issue (un combat, vous laisser passer, votre bourse, un pot-de-vin, leur reddition, ou toute la bande qui vous rejoint) dépend de ce qui se dit. « Retour » mène aux choix habituels du jeu. Une requête à l’IA quand ils vous arrêtent." />
   </strings>
 </base>

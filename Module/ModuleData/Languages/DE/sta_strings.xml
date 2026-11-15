@@ -2070,5 +2070,8 @@
     <string id="AIL_e7b1c7d5" text="Hilft deinen Kranken, schneller zu genesen." />
     <string id="AIL_e7b1c7d6" text="Versteht wenig davon: Deine Kranken hängen vor allem von einem guten Hospital ab." />
     <string id="AIL_e7b1c7d7" text="&#10;Du hast keinen Feldscher: Niemand in deiner Gruppe kümmert sich unterwegs um die Kranken." />
+    <string id="AIL_e7b1c7d8" text="*{0} tritt mit den Seinen vor und versperrt euch den Weg…*" />
+    <string id="AIL_e7b1c7d9" text="Banditen, die dich aufhalten, sprechen zuerst" />
+    <string id="AIL_e7b1c7da" text="Wenn Banditen oder Piraten dir auf der Karte den Weg versperren, eröffnet ihr Anführer mit eigenen Worten statt der Zeile des Spiels, und du antwortest, wie du willst: Wie es endet (ein Kampf, dich ziehen lassen, dein Geldbeutel, eine Bestechung, ihre Ergebung oder die ganze Bande schließt sich dir an), ergibt sich aus dem Gesagten. «Zurück» führt zu den üblichen Auswahlmöglichkeiten des Spiels. Eine KI-Anfrage, wenn sie dich aufhalten." />
   </strings>
 </base>

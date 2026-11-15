@@ -611,6 +611,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
         public bool AllowBandRecruit { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c7d9}Bandits who stop you speak first", Order = 31, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7da}When bandits or pirates bar your way on the map, their leader opens with their own words instead of the game's line, and you answer as you like: how it ends (a fight, letting you pass, your purse, a bribe, their surrender, or the whole band joining you) comes out of what is said. «Back» leads to the game's usual choices. One AI request when they stop you.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
+        public bool BanditsSpeakFirst { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_e7b1c4dc}Relation gained (% of what the AI gives)", 10, 100, Order = 4, RequireRestart = false,
             HintText = "{=AIL_e7b1c4dd}Liking is harder to win than to lose: gains are scaled by this and losses always count in full. 100 = the same both ways.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
