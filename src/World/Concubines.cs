@@ -84,7 +84,7 @@ namespace AILegacy.World
                 try
                 {
                     var cm = Campaign.Current.ConversationManager;
-                    void Join() { try { if (h.IsAlive && h.PartyBelongedTo == null && !h.IsPrisoner) AddHeroToPartyAction.Apply(h, MobileParty.MainParty); } catch (Exception ex) { Log.Error("Concubina: unirse a la partida", ex); } }
+                    void Join() { try { if (h.IsAlive && Is(h) && h.Clan == Clan.PlayerClan && h.PartyBelongedTo == null && !h.IsPrisoner) AddHeroToPartyAction.Apply(h, MobileParty.MainParty); } catch (Exception ex) { Log.Error("Concubina: unirse a la partida", ex); } }
                     if (cm != null && cm.IsConversationInProgress) cm.ConversationEndOneShot += Join; else Join();
                 }
                 catch { }
@@ -107,8 +107,10 @@ namespace AILegacy.World
                 if (h.IsAlive)
                 {
                     if (h.PartyBelongedTo == MobileParty.MainParty) try { MobileParty.MainParty.MemberRoster.RemoveTroop(h.CharacterObject); } catch { }
+                    if (h.PartyBelongedTo == MobileParty.MainParty) Log.Warn($"Concubina: {h.Name} sigue en tu partida; se irá al soltarla");
                     var origin = c.OriginClanId != null ? Clan.All.FirstOrDefault(x => x.StringId == c.OriginClanId && !x.IsEliminated) : null;
-                    if (c.WasNotable) { h.Clan = null; h.SetNewOccupation((Occupation)c.OriginOccupation); }
+                    // a notable goes the long way round, through wanderer, so the game places them again
+                    if (c.WasNotable) { h.Clan = null; h.SetNewOccupation(Occupation.Wanderer); h.SetNewOccupation((Occupation)c.OriginOccupation); }
                     else
                     {
                         h.Clan = origin;
