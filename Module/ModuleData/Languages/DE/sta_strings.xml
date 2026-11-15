@@ -2064,5 +2064,11 @@
     <string id="AIL_e7b1c7cf" text="Das Bild der Szene ist fertig: Wähle «Die Szene ansehen»." />
     <string id="AIL_e7b1c7d0" text="{=!}Sprechen (mit Bild der Szene) [AI Legacy]" />
     <string id="AIL_e7b1c7d1" text="{=!}Die Szene ansehen" />
+    <string id="AIL_e7b1c7d2" text="&#10;Risiko, sich unterwegs eine saisonale Krankheit einzufangen, hier und jetzt: {0:0.#} % pro Tag (deine Vorsorge und deine Kräuter zählen schon)." />
+    <string id="AIL_e7b1c7d3" text="&#10;Dein Feldscher: {0} (Medizin {1}). {2}" />
+    <string id="AIL_e7b1c7d4" text="Deine Kranken genesen viel schneller, und nur wenige werden schlimmer." />
+    <string id="AIL_e7b1c7d5" text="Hilft deinen Kranken, schneller zu genesen." />
+    <string id="AIL_e7b1c7d6" text="Versteht wenig davon: Deine Kranken hängen vor allem von einem guten Hospital ab." />
+    <string id="AIL_e7b1c7d7" text="&#10;Du hast keinen Feldscher: Niemand in deiner Gruppe kümmert sich unterwegs um die Kranken." />
   </strings>
 </base>

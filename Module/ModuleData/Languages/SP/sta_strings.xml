@@ -2064,5 +2064,11 @@
     <string id="AIL_e7b1c7cf" text="La imagen de la escena está lista: elige «Ver la escena»." />
     <string id="AIL_e7b1c7d0" text="{=!}Hablar (con imagen de escena) [AI Legacy]" />
     <string id="AIL_e7b1c7d1" text="{=!}Ver la escena" />
+    <string id="AIL_e7b1c7d2" text="&#10;Riesgo de coger un mal de temporada por el camino, aquí y ahora: {0:0.#} % al día (ya cuenta tu prevención y tus hierbas)." />
+    <string id="AIL_e7b1c7d3" text="&#10;Tu cirujano: {0} (Medicina {1}). {2}" />
+    <string id="AIL_e7b1c7d4" text="Tus enfermos se curan mucho antes y pocos empeoran." />
+    <string id="AIL_e7b1c7d5" text="Ayuda a que tus enfermos se curen antes." />
+    <string id="AIL_e7b1c7d6" text="Sabe poco: tus enfermos dependen sobre todo de un buen hospital." />
+    <string id="AIL_e7b1c7d7" text="&#10;No tienes cirujano: nadie de tu partida cuida de los enfermos por el camino." />
   </strings>
 </base>

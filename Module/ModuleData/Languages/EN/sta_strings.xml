@@ -2064,5 +2064,11 @@
     <string id="AIL_e7b1c7cf" text="The picture of the scene is ready: choose «See the scene»." />
     <string id="AIL_e7b1c7d0" text="{=!}Talk (with a picture of the scene) [AI Legacy]" />
     <string id="AIL_e7b1c7d1" text="{=!}See the scene" />
+    <string id="AIL_e7b1c7d2" text="&#10;Chance of catching a seasonal illness on the road, here and now: {0:0.#} % a day (your prevention and herbs already count)." />
+    <string id="AIL_e7b1c7d3" text="&#10;Your surgeon: {0} (Medicine {1}). {2}" />
+    <string id="AIL_e7b1c7d4" text="Your sick recover much sooner and few get worse." />
+    <string id="AIL_e7b1c7d5" text="They help your sick recover sooner." />
+    <string id="AIL_e7b1c7d6" text="They know little: your sick depend mostly on a good hospital." />
+    <string id="AIL_e7b1c7d7" text="&#10;You have no surgeon: nobody in your party looks after the sick on the road." />
   </strings>
 </base>

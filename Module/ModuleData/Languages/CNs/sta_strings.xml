@@ -2064,5 +2064,11 @@
     <string id="AIL_e7b1c7cf" text="场景图片已准备好：选择“查看场景”。" />
     <string id="AIL_e7b1c7d0" text="{=!}交谈（附场景图片）[AI Legacy]" />
     <string id="AIL_e7b1c7d1" text="{=!}查看场景" />
+    <string id="AIL_e7b1c7d2" text="&#10;此时此地在路上染上时令病的几率：每天 {0:0.#} %（已计入你的预防和草药）。" />
+    <string id="AIL_e7b1c7d3" text="&#10;你的军医：{0}（医术 {1}）。{2}" />
+    <string id="AIL_e7b1c7d4" text="你的病人康复得快得多，很少有人病情恶化。" />
+    <string id="AIL_e7b1c7d5" text="能帮助你的病人更快康复。" />
+    <string id="AIL_e7b1c7d6" text="医术有限：你的病人主要得依靠一家好医馆。" />
+    <string id="AIL_e7b1c7d7" text="&#10;你没有军医：队伍里没人在路上照料病人。" />
   </strings>
 </base>

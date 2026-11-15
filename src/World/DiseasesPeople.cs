@@ -532,6 +532,45 @@ namespace AILegacy.World
             }
         }
 
+        /// <summary>
+        /// The daily chance that you catch something mild on the road where you stand now, the same sum as the six-hourly
+        /// roll (season, weather, sea, your Medicine and constitution, prevention and herbs). 0 when seasonal illness is off.
+        /// </summary>
+        internal static float PlayerRoadRiskPerDay()
+        {
+            try
+            {
+                var cfg = S.Get;
+                var p = MobileParty.MainParty;
+                if (!cfg.EnableSeasonalDiseases || p == null || Hero.MainHero == null) return 0f;
+                int season = (int)CampaignTime.Now.GetSeasonOfYear;
+                float chance = cfg.SeasonalDiseaseBaseChance + (season == 3 ? cfg.SeasonalWinterBonus : season == 2 ? cfg.SeasonalAutumnBonus : season == 0 ? cfg.SeasonalSpringBonus : cfg.SeasonalSummerBonus);
+                try
+                {
+                    if (p.IsCurrentlyAtSea) chance += cfg.SeasonalShipAtSeaBonus;
+                    var weather = Campaign.Current.Models?.MapWeatherModel;
+                    if (weather != null)
+                    {
+                        var pos = p.GetPosition2D;
+                        switch (weather.GetWeatherEventInPosition(pos))
+                        {
+                            case MapWeatherModel.WeatherEvent.LightRain: chance += cfg.SeasonalWeatherLightRainBonus; break;
+                            case MapWeatherModel.WeatherEvent.HeavyRain:
+                            case MapWeatherModel.WeatherEvent.Storm: chance += cfg.SeasonalWeatherHeavyRainBonus; break;
+                            case MapWeatherModel.WeatherEvent.Snowy: chance += cfg.SeasonalWeatherSnowyBonus; break;
+                            case MapWeatherModel.WeatherEvent.Blizzard: chance += cfg.SeasonalWeatherBlizzardBonus; break;
+                        }
+                        if (weather.GetWeatherEffectOnTerrainForPosition(pos) == MapWeatherModel.WeatherEventEffectOnTerrain.Wet) chance += cfg.SeasonalWeatherWetBonus;
+                    }
+                }
+                catch { }
+                var h = Hero.MainHero;
+                float c = Math.Min(cfg.SeasonalDiseaseMaxChance, chance * Math.Max(0.5f, 1f - h.GetSkillValue(DefaultSkills.Medicine) / 600f)) * (1f - Hardiness(h)) * PlayerGuard;
+                return 1f - (float)Math.Pow(1f - Math.Max(0f, Math.Min(1f, c)), 4);
+            }
+            catch { return 0f; }
+        }
+
         /// <summary>A strong constitution shrugs off part of what goes around (0..0.4).</summary>
         private static float Hardiness(Hero h)
         {

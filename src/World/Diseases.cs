@@ -322,6 +322,19 @@ namespace AILegacy.World
             sb.Append(L.F("AIL_3f44d794", $"Hospital de {st?.Name}\n\nNivel de sus médicos: {HospitalLevel(st)}."));
             var season = CampaignTime.Now.GetSeasonOfYear;
             sb.Append(L.F("AIL_f054b3ad", $"\nÉpoca del año: {(season == CampaignTime.Seasons.Winter ? L.T("AIL_e37fa365", "invierno (riesgo alto de enfermedad)") : season == CampaignTime.Seasons.Autumn ? L.T("AIL_8fdf1238", "otoño (riesgo medio)") : season == CampaignTime.Seasons.Spring ? L.T("AIL_62c99c8c", "primavera (riesgo medio)") : L.T("AIL_7319097c", "verano (riesgo bajo)"))}."));
+            try
+            {
+                float risk = PlayerRoadRiskPerDay();
+                if (risk > 0f) sb.Append(L.F("AIL_e7b1c7d2", $"\nRiesgo de coger un mal de temporada por el camino, aquí y ahora: {risk * 100f:0.#} % al día (ya cuenta tu prevención y tus hierbas)."));
+                var surgeon = MobileParty.MainParty?.EffectiveSurgeon;
+                if (surgeon != null)
+                {
+                    int med = surgeon.GetSkillValue(DefaultSkills.Medicine);
+                    sb.Append(L.F("AIL_e7b1c7d3", $"\nTu cirujano: {surgeon.Name} (Medicina {med}). {(med >= 150 ? L.T("AIL_e7b1c7d4", "Tus enfermos se curan mucho antes y pocos empeoran.") : med >= 60 ? L.T("AIL_e7b1c7d5", "Ayuda a que tus enfermos se curen antes.") : L.T("AIL_e7b1c7d6", "Sabe poco: tus enfermos dependen sobre todo de un buen hospital."))}"));
+                }
+                else sb.Append(L.T("AIL_e7b1c7d7", "\nNo tienes cirujano: nadie de tu partida cuida de los enfermos por el camino."));
+            }
+            catch { }
             var o = At(st);
             sb.Append(o != null ? L.F("AIL_c327ea4f", $"\n\nEn la ciudad hay {o.Name} ({SeverityEs(o.Severity)}){(o.Quarantined ? L.T("AIL_413e791f", ", y está en cuarentena") : "")}.") : L.T("AIL_2691821b", "\n\nNo hay ninguna enfermedad en la ciudad."));
             var me = Hero.MainHero;

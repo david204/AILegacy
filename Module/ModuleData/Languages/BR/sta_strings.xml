@@ -2064,5 +2064,11 @@
     <string id="AIL_e7b1c7cf" text="A imagem da cena está pronta: escolha «Ver a cena»." />
     <string id="AIL_e7b1c7d0" text="{=!}Falar (com imagem da cena) [AI Legacy]" />
     <string id="AIL_e7b1c7d1" text="{=!}Ver a cena" />
+    <string id="AIL_e7b1c7d2" text="&#10;Risco de pegar um mal sazonal na estrada, aqui e agora: {0:0.#} % ao dia (sua prevenção e suas ervas já contam)." />
+    <string id="AIL_e7b1c7d3" text="&#10;Seu cirurgião: {0} (Medicina {1}). {2}" />
+    <string id="AIL_e7b1c7d4" text="Seus doentes se curam bem antes e poucos pioram." />
+    <string id="AIL_e7b1c7d5" text="Ajuda seus doentes a se curarem antes." />
+    <string id="AIL_e7b1c7d6" text="Sabe pouco: seus doentes dependem sobretudo de um bom hospital." />
+    <string id="AIL_e7b1c7d7" text="&#10;Você não tem cirurgião: ninguém do seu grupo cuida dos doentes na estrada." />
   </strings>
 </base>
