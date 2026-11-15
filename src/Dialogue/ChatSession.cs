@@ -523,6 +523,8 @@ namespace AILegacy.Dialogue
         // The exact prompt and raw answer of the last reply shown, for "flag a mistake"
         private List<ChatMessage> _pendingAsked, _lastAsked;
         private string _lastRaw;
+        // The instruction of an opening line still waiting for its answer, so a retry asks for the same thing
+        private string _opening;
 
         public bool CanReport => S.Get.EnablePlayerLessons && _lastAsked != null && !_waiting && !_closed;
 
@@ -591,6 +593,7 @@ namespace AILegacy.Dialogue
         public void AskOpening(string instruction)
         {
             if (_closed || _waiting) return;
+            _opening = instruction;
             try
             {
                 var messages = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk, instruction);
@@ -678,7 +681,7 @@ namespace AILegacy.Dialogue
                 _retriedRepeat = true;
                 try
                 {
-                    var again = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk);
+                    var again = PromptBuilder.BuildDialogue(_s, S.Get.MaxRelationChangePerConversation - _relationMovedThisTalk, string.IsNullOrEmpty(playerText) ? _opening : null);
                     again[again.Count - 1].Content += "\n\n[Your last attempt at a reply was almost word for word something you already said. Say something new: react to what they just said, move the talk forward, or keep it very short.]";
                     Ask(again, playerText);
                     return;

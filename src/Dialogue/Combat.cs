@@ -592,6 +592,8 @@ namespace AILegacy.Dialogue
             {
                 var m = Mission.Current;
                 if (m == null || Agent.Main == null || _active == null) return;
+                var fh = m.GetMissionBehavior<MissionFightHandler>();
+                if (fh == null || !fh.IsThereActiveFight()) return;
                 // fists in a tavern are a show; steel drawn anywhere sends ordinary people running
                 bool tavern = InTavern() && _active.Kind == "brawl";
                 var here = Agent.Main.Position;
