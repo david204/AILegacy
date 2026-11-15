@@ -109,7 +109,9 @@ Answer with the prompt only, nothing else.");
                 });
             }
 
-            string ask = TPrompt.Format("people", people ?? "", "where", where ?? "", "text", exchange.Length > 1500 ? exchange.Substring(0, 1500) : exchange);
+            string ask;
+            try { ask = TPrompt.Format("people", people ?? "", "where", where ?? "", "text", exchange.Length > 1500 ? exchange.Substring(0, 1500) : exchange); }
+            catch (Exception ex) { Busy = false; Log.Error("Vídeo: descripción", ex); return; }
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", ask) }, wantJson: false, task: "image_prompt", maxTokensOverride: 300)
                 .ContinueWith(async t =>
                 {

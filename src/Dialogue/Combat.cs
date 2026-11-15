@@ -682,7 +682,8 @@ namespace AILegacy.Dialogue
                 _alarm = true;
                 Say(L.F("AIL_2f7a736d", $"¡Suena la campana de alarma en {Settlement.CurrentSettlement?.Name}: acude toda la guardia!"), Colors.Red);
             }
-            if (come.Count == 0) return;
+            // No guard left in the street: the alarm brings men from the real garrison and from the lords inside the walls
+            if (come.Count == 0) { if (_alarm && cfg.StreetGarrisonReinforcements) SpawnDefenders(fh, f, Math.Min(cfg.StreetGuardWaveSize * 2, cfg.StreetMaxGuards - f.Helpers.Count)); return; }
             int joined = come.Count(a => JoinFight(fh, a, false));
             if (joined > 0)
             {
@@ -690,6 +691,90 @@ namespace AILegacy.Dialogue
                 Say(_waves == 1 ? L.T("AIL_9f068a43", "La guardia ha oído la pelea y viene a por ti.") : L.F("AIL_5336141e", $"Llegan {joined} guardias más."), Colors.Red);
                 Unleash();
             }
+        }
+
+        // Soldiers brought in from a garrison or a lord's party, with the roster they came from, to settle the count afterwards
+        private static readonly List<(Agent agent, MobileParty from)> Defenders = new List<(Agent, MobileParty)>();
+
+        /// <summary>
+        /// Men of the settlement's real garrison, then of the lords of its realm who are inside, run up from further down the
+        /// street. Only outdoors. What happens to them counts: the dead leave their roster, the fallen are wounded there.
+        /// </summary>
+        private static void SpawnDefenders(MissionFightHandler fh, PendingFight f, int want)
+        {
+            try
+            {
+                if (want <= 0) return;
+                var m = Mission.Current; var st = Settlement.CurrentSettlement; var me = Agent.Main;
+                if (m == null || st == null || me == null) return;
+                string loc = "";
+                try { loc = CampaignMission.Current?.Location?.StringId ?? ""; } catch { }
+                if (loc != "center" && loc != "village_center") return;
+                var sources = new List<MobileParty>();
+                if (st.Town?.GarrisonParty != null) sources.Add(st.Town.GarrisonParty);
+                if (st.MapFaction != null)
+                    sources.AddRange(st.Parties.Where(p => p != null && p.IsActive && p.IsLordParty && p != MobileParty.MainParty && p.MapFaction == st.MapFaction && p.MapEvent == null));
+                var team = f.Opponent?.Team ?? m.PlayerEnemyTeam;
+                if (team == null) return;
+                var ahead = me.LookDirection.AsVec2;
+                if (ahead.Length < 0.01f) ahead = new Vec2(0f, 1f);
+                ahead = ahead.Normalized();
+                var side = new Vec2(-ahead.y, ahead.x);
+                int done = 0;
+                foreach (var src in sources)
+                {
+                    foreach (var e in src.MemberRoster.GetTroopRoster().Where(x => x.Character != null && !x.Character.IsHero && x.Number - x.WoundedNumber > 0).ToList())
+                    {
+                        int used = Defenders.Count(d => d.from == src && d.agent?.Character == e.Character);
+                        for (int i = used; i < e.Number - e.WoundedNumber && done < want; i++)
+                        {
+                            int k = Defenders.Count;
+                            var off = ahead * (22f + (k / 6) * 1.5f) + side * ((k % 6 - 2.5f) * 1.4f);
+                            var pos = me.Position + new Vec3(off.x, off.y);
+                            try { pos.z = m.Scene.GetGroundHeightAtPosition(pos); } catch { }
+                            var dir = -ahead;
+                            var data = new AgentBuildData(e.Character).TroopOrigin(new TaleWorlds.CampaignSystem.AgentOrigins.PartyAgentOrigin(src.Party, e.Character)).Team(team)
+                                .InitialPosition(in pos).InitialDirection(in dir).NoHorses(true);
+                            var a = m.SpawnAgent(data);
+                            if (a == null) continue;
+                            a.WieldInitialWeapons();
+                            Defenders.Add((a, src));
+                            JoinFight(fh, a, false);
+                            done++;
+                        }
+                        if (done >= want) break;
+                    }
+                    if (done >= want) break;
+                }
+                if (done > 0)
+                {
+                    _waves++;
+                    Say(L.F("AIL_e7b1c86d", $"Llegan {done} soldados de la guarnición y de los señores que hay en {st.Name}."), Colors.Red);
+                    Log.Info($"[pelea] {done} defensores de la guarnición y de los señores de {st.Name}");
+                    Unleash();
+                }
+            }
+            catch (Exception ex) { Log.Error("Defensores de la guarnición", ex); }
+        }
+
+        /// <summary>After the fight the defenders go back: the dead leave their roster, the fallen stay there wounded.</summary>
+        private static void DismissDefenders()
+        {
+            foreach (var (a, from) in Defenders.ToList())
+            {
+                try
+                {
+                    if (a == null || from == null) continue;
+                    if (a.Character is CharacterObject c && from.MemberRoster.GetTroopCount(c) > 0)
+                    {
+                        if (a.State == AgentState.Killed) from.MemberRoster.AddToCounts(c, -1);
+                        else if (a.State == AgentState.Unconscious || !a.IsActive()) from.MemberRoster.AddToCounts(c, 0, false, 1);
+                    }
+                    if (a.IsActive()) a.FadeOut(false, true);
+                }
+                catch { }
+            }
+            Defenders.Clear();
         }
 
         /// <summary>Your troops join the fight, spawning behind you. Streets and villages only, never indoors.</summary>
@@ -902,6 +987,7 @@ namespace AILegacy.Dialogue
                 FightBanter.End(playerWon);
                 _active = null;
                 DismissSummoned();
+                DismissDefenders();
                 var s = f.Who;
                 var mem = s.Memory;
                 string you = Prompt.ContextBuilder.PlayerNameFor(s) ?? "the stranger";

@@ -334,6 +334,22 @@ namespace AILegacy.Behaviors
                 },
                 () => Initiative.Done(), priority: 10000);
 
+            // Talk on foot by default: meeting a lord on the map you are not at war with opens the scene straight away
+            starter.AddDialogLine("ailegacy_maptalk_auto", "start", "close_window", L.T("AIL_e7b1c870", "{=!}*desmonta y te hace un gesto para que hagas lo mismo*"),
+                () =>
+                {
+                    try
+                    {
+                        var h = Hero.OneToOneConversationHero;
+                        if (!S.Get.MapTalkAutomatic || h == null || !h.IsLord || h.PartyBelongedTo?.LeaderHero != h) return false;
+                        if (Campaign.Current.CurrentConversationContext != ConversationContext.PartyEncounter || Initiative.Matches()) return false;
+                        if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction)) return false;
+                        return Scenes.MapTalk.CanOffer(h);
+                    }
+                    catch { return false; }
+                },
+                () => Scenes.MapTalk.Queue(Hero.OneToOneConversationHero), priority: 9500);
+
             // Bandits who block the road speak first, in their own words. The game's own opening still runs first (its
             // condition sets the texts its later lines use), so "Back" leads to its usual choices.
             starter.AddDialogLine("ailegacy_band_ambush", "start", "ailegacy_d_optw", "{=!}{AIL_DLG}",

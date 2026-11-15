@@ -2214,5 +2214,11 @@
     <string id="AIL_e7b1c86a" text="Video: indirizzo del server compatibile" />
     <string id="AIL_e7b1c86b" text="La parte dell’indirizzo prima di /videos." />
     <string id="AIL_e7b1c86c" text="Video: chiave del server compatibile" />
+    <string id="AIL_e7b1c86d" text="Arrivano {0} soldati della guarnigione e dei signori presenti a {1}." />
+    <string id="AIL_e7b1c86e" text="Quando suona l’allarme accorrono la guarnigione e i signori presenti" />
+    <string id="AIL_e7b1c86f" text="Con l’allarme dato e nessuna guardia in strada, arrivano a ondate soldati della vera guarnigione del luogo e dei signori del suo regno dentro le mura (solo all’aperto, fino al massimo sopra). Dopo, i morti vengono tolti dai loro elenchi e i caduti vi restano feriti." />
+    <string id="AIL_e7b1c870" text="{=!}*smonta e ti fa cenno di fare lo stesso*" />
+    <string id="AIL_e7b1c871" text="Parla nella scena: sempre, quando incontri un signore" />
+    <string id="AIL_e7b1c872" text="Attivato: incontrare sulla mappa un signore con cui non sei in guerra porta subito alla scena a piedi, senza la conversazione sulla mappa prima. Disattivato: scegli «Smontiamo e parliamo faccia a faccia» quando vuoi." />
   </strings>
 </base>

@@ -860,6 +860,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
         public int StreetMaxGuards { get; set; } = 20;
 
+        [SettingPropertyBool("{=AIL_e7b1c86e}When the alarm sounds, the garrison and the lords inside come", Order = 15, RequireRestart = false,
+            HintText = "{=AIL_e7b1c86f}With the alarm raised and no guard left in the street, soldiers of the place's real garrison, and of the lords of its realm who are inside the walls, run up in waves (outdoors only, up to the maximum above). The dead are taken off their rosters afterwards and the fallen stay wounded there.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
+        public bool StreetGarrisonReinforcements { get; set; } = true;
+
         [SettingPropertyBool("{=AIL_c61991e6}Armed fight: you can call your troops (Ctrl+X)", Order = 14, RequireRestart = false,
             HintText = "{=AIL_5b8786aa}During a fight in the street or in a village, Ctrl+X brings in ten of your soldiers and Ctrl+Alt+X as many as fit. They don't enter indoors. Those who fall are left wounded or dead in your party.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
@@ -1295,6 +1300,11 @@ namespace AILegacy.Settings
             HintText = "{=AIL_967570b4}When you meet a lord on the map you are not at war with, the option \"Let's dismount and talk face to face\" appears: a scene of the terrain opens with the two of you on foot and your people behind you. Tab to return to the map.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
         public bool EnableMapTalk { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c871}Talk in the scene: always, when you meet a lord", Order = 21, RequireRestart = false,
+            HintText = "{=AIL_e7b1c872}On: meeting a lord on the map you are not at war with goes straight to the scene on foot, without the map conversation first. Off: you choose «Let's dismount and talk face to face» when you want it.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public bool MapTalkAutomatic { get; set; } = false;
 
         [SettingPropertyInteger("{=AIL_401f90b1}Map scene: companions per side", 0, 30, Order = 21, RequireRestart = false,
             HintText = "{=AIL_297f659a}How many from each party appear behind their leader (first their heroes, then their best troops).")]

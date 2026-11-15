@@ -2214,5 +2214,11 @@
     <string id="AIL_e7b1c86a" text="Videos: Adresse des kompatiblen Servers" />
     <string id="AIL_e7b1c86b" text="Der Teil der Adresse vor /videos." />
     <string id="AIL_e7b1c86c" text="Videos: Schlüssel des kompatiblen Servers" />
+    <string id="AIL_e7b1c86d" text="{0} Soldaten der Garnison und der Herren in {1} treffen ein." />
+    <string id="AIL_e7b1c86e" text="Bei Alarm kommen die Garnison und die Herren in der Stadt" />
+    <string id="AIL_e7b1c86f" text="Ist Alarm geschlagen und keine Wache mehr auf der Straße, laufen in Wellen Soldaten der echten Garnison des Ortes und der Herren seines Reiches innerhalb der Mauern herbei (nur im Freien, bis zum Höchstwert oben). Danach werden die Toten aus ihren Listen gestrichen, die Gefallenen bleiben dort verwundet." />
+    <string id="AIL_e7b1c870" text="{=!}*steigt ab und bedeutet dir, es ihm gleichzutun*" />
+    <string id="AIL_e7b1c871" text="In der Szene sprechen: immer, wenn du einen Herrn triffst" />
+    <string id="AIL_e7b1c872" text="An: Triffst du auf der Karte einen Herrn, mit dem du nicht im Krieg bist, geht es direkt in die Szene zu Fuß, ohne Kartengespräch davor. Aus: Du wählst «Lass uns absteigen und von Angesicht zu Angesicht reden», wann du willst." />
   </strings>
 </base>

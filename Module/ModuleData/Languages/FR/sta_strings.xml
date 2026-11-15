@@ -2214,5 +2214,11 @@
     <string id="AIL_e7b1c86a" text="Vidéos : adresse du serveur compatible" />
     <string id="AIL_e7b1c86b" text="La partie de l’adresse avant /videos." />
     <string id="AIL_e7b1c86c" text="Vidéos : clé du serveur compatible" />
+    <string id="AIL_e7b1c86d" text="{0} soldats de la garnison et des seigneurs présents à {1} arrivent." />
+    <string id="AIL_e7b1c86e" text="Quand l’alarme sonne, la garnison et les seigneurs présents accourent" />
+    <string id="AIL_e7b1c86f" text="L’alarme donnée et sans garde dans la rue, des soldats de la vraie garnison du lieu et des seigneurs de son royaume présents dans les murs arrivent par vagues (en extérieur seulement, jusqu’au maximum ci-dessus). Ensuite, les morts sont retirés de leurs effectifs et les blessés y restent blessés." />
+    <string id="AIL_e7b1c870" text="{=!}*met pied à terre et vous fait signe d’en faire autant*" />
+    <string id="AIL_e7b1c871" text="Parler dans la scène : toujours, quand vous rencontrez un seigneur" />
+    <string id="AIL_e7b1c872" text="Activé : rencontrer sur la carte un seigneur avec qui vous n’êtes pas en guerre mène directement à la scène à pied, sans la conversation de carte d’abord. Désactivé : vous choisissez « Mettons pied à terre et parlons face à face » quand vous le voulez." />
   </strings>
 </base>

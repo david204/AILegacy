@@ -2214,5 +2214,11 @@
     <string id="AIL_e7b1c86a" text="视频：兼容服务器地址" />
     <string id="AIL_e7b1c86b" text="/videos 之前的地址部分。" />
     <string id="AIL_e7b1c86c" text="视频：兼容服务器密钥" />
+    <string id="AIL_e7b1c86d" text="{1}的守军和城中领主的{0}名士兵赶到了。" />
+    <string id="AIL_e7b1c86e" text="警报响起时，守军和城中领主前来" />
+    <string id="AIL_e7b1c86f" text="警报已响而街上没有守卫时，此地真正守军以及城内本国领主的士兵会成批赶来（仅限户外，不超过上方上限）。事后，阵亡者从其名册中移除，倒下者以伤员身份留在名册中。" />
+    <string id="AIL_e7b1c870" text="{=!}*下马，示意你也这样做*" />
+    <string id="AIL_e7b1c871" text="场景对话：遇到领主时总是进入" />
+    <string id="AIL_e7b1c872" text="开启：在地图上遇到未与你交战的领主时直接进入步行场景，不先进行地图对话。关闭：需要时你自己选择“下马当面谈谈”。" />
   </strings>
 </base>

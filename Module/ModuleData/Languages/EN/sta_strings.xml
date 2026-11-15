@@ -2214,5 +2214,11 @@
     <string id="AIL_e7b1c86a" text="Videos: compatible server address" />
     <string id="AIL_e7b1c86b" text="The part of the address before /videos." />
     <string id="AIL_e7b1c86c" text="Videos: compatible server key" />
+    <string id="AIL_e7b1c86d" text="{0} soldiers of the garrison and of the lords in {1} arrive." />
+    <string id="AIL_e7b1c86e" text="When the alarm sounds, the garrison and the lords inside come" />
+    <string id="AIL_e7b1c86f" text="With the alarm raised and no guard left in the street, soldiers of the place's real garrison, and of the lords of its realm who are inside the walls, run up in waves (outdoors only, up to the maximum above). The dead are taken off their rosters afterwards and the fallen stay wounded there." />
+    <string id="AIL_e7b1c870" text="{=!}*dismounts and gestures for you to do the same*" />
+    <string id="AIL_e7b1c871" text="Talk in the scene: always, when you meet a lord" />
+    <string id="AIL_e7b1c872" text="On: meeting a lord on the map you are not at war with goes straight to the scene on foot, without the map conversation first. Off: you choose «Let's dismount and talk face to face» when you want it." />
   </strings>
 </base>

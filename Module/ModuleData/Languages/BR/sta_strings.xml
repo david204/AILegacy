@@ -2214,5 +2214,11 @@
     <string id="AIL_e7b1c86a" text="Vídeos: endereço do servidor compatível" />
     <string id="AIL_e7b1c86b" text="A parte do endereço antes de /videos." />
     <string id="AIL_e7b1c86c" text="Vídeos: chave do servidor compatível" />
+    <string id="AIL_e7b1c86d" text="Chegam {0} soldados da guarnição e dos senhores que estão em {1}." />
+    <string id="AIL_e7b1c86e" text="Quando soa o alarme, a guarnição e os senhores lá dentro acorrem" />
+    <string id="AIL_e7b1c86f" text="Com o alarme dado e nenhum guarda na rua, chegam em ondas soldados da guarnição real do lugar e dos senhores do seu reino que estão dentro das muralhas (só ao ar livre, até o máximo acima). Depois, os mortos saem das listas e os caídos ficam feridos nelas." />
+    <string id="AIL_e7b1c870" text="{=!}*desmonta e faz um gesto para você fazer o mesmo*" />
+    <string id="AIL_e7b1c871" text="Falar na cena: sempre, ao encontrar um senhor" />
+    <string id="AIL_e7b1c872" text="Ativado: encontrar no mapa um senhor com quem você não está em guerra leva direto à cena a pé, sem a conversa do mapa antes. Desativado: você escolhe «Vamos desmontar e falar frente a frente» quando quiser." />
   </strings>
 </base>
