@@ -574,6 +574,50 @@ namespace AILegacy.Dialogue
         private static int _waves;
         private static bool _alarm;
         private static readonly List<Agent> Summoned = new List<Agent>();
+        private static float _crowd;
+
+        private static bool InTavern()
+        {
+            try { return TaleWorlds.CampaignSystem.CampaignMission.Current?.Location?.StringId == "tavern"; } catch { return false; }
+        }
+
+        /// <summary>
+        /// The people around a fight. In a tavern a fist fight is part of the evening: nobody runs, and anyone the game alarms
+        /// is calmed. In the street, or with steel drawn, ordinary folk near it take fright and get away. Guards, heroes and
+        /// the fighters are left alone.
+        /// </summary>
+        private static void Crowd()
+        {
+            try
+            {
+                var m = Mission.Current;
+                if (m == null || Agent.Main == null || _active == null) return;
+                // fists in a tavern are a show; steel drawn anywhere sends ordinary people running
+                bool tavern = InTavern() && _active.Kind == "brawl";
+                var here = Agent.Main.Position;
+                foreach (var a in m.Agents)
+                {
+                    if (a == null || !a.IsActive() || !a.IsHuman || a == Agent.Main || !a.IsAIControlled) continue;
+                    if (a == _active.Opponent || ActiveFoes.Contains(a) || _active.Helpers.Contains(a) || IsGuard(a)) continue;
+                    if (a.Team != null && Agent.Main.Team != null && a.Team == Agent.Main.Team) continue;
+                    if (a.Character is CharacterObject c && c.IsHero) continue;
+                    if (a.Position.Distance(here) > (tavern ? 40f : 18f)) continue;
+                    if (tavern)
+                    {
+                        if (a.IsAlarmStateNormal()) continue;
+                        a.SetAlarmState(Agent.AIStateFlag.None);
+                        try
+                        {
+                            var g = a.GetComponent<SandBox.CampaignAgentComponent>()?.AgentNavigator?.GetBehaviorGroup<SandBox.Missions.AgentBehaviors.AlarmedBehaviorGroup>();
+                            g?.DisableScriptedBehavior();
+                        }
+                        catch { }
+                    }
+                    else if (a.IsAlarmStateNormal()) a.SetAlarmState(Agent.AIStateFlag.Alarmed);
+                }
+            }
+            catch (Exception ex) { Log.Error("La gente alrededor de la pelea", ex); }
+        }
 
         private static bool IsGuard(Agent a)
         {
@@ -885,6 +929,8 @@ namespace AILegacy.Dialogue
                 }
                 ChatSession.AddNote(mem, f.Ending == null ? (playerWon ? $"{you} beat me in {what}." : $"I beat {you} in {what}.") : $"{what} with {you}: {HowItEnded(f, playerWon, true)}", S.Get.MaxNotesPerHero, s.Name);
                 if (f.Ending == "fled") { try { SceneActions.WalkAway(f.Opponent); } catch { } }
+                // Beaten in a fist fight or a friendly duel: down on the floor for a while, nursing it
+                else if (playerWon && IsFriendly(f) && (f.Ending == null || f.Ending == "yielded")) { try { SceneActions.Knockdown(f.Opponent, 40f); } catch { } }
                 mem.Tension = Math.Max(0, mem.Tension - 40);
 
                 if (s.IsHero)
@@ -1130,7 +1176,7 @@ namespace AILegacy.Dialogue
                 FightBanter.Tick(dt);
                 if (_yield != 0) EndFriendlyOnYield();
                 if (GuardedAgents.Count > 0 && Mission.Current == null) Unguard();
-                if (_active != null) { GrowFight(dt); PlayerFightKeys(); }
+                if (_active != null) { GrowFight(dt); PlayerFightKeys(); if ((_crowd -= dt) <= 0f) { _crowd = 1f; Crowd(); } }
                 if (ActiveFoes.Count > 0)
                 {
                     var fhNow = Mission.Current?.GetMissionBehavior<MissionFightHandler>();

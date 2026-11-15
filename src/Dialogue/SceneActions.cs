@@ -28,7 +28,7 @@ namespace AILegacy.Dialogue
         /// <summary>New or loaded save: drop anything pending from the previous one, above all queued arrests.</summary>
         public static void ResetSession()
         {
-            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Away.Clear(); Grounded.Clear();
+            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Away.Clear(); Grounded.Clear(); DownUntil.Clear();
             _mission = null;
             SceneTravel.Reset();
         }
@@ -80,7 +80,7 @@ namespace AILegacy.Dialogue
         {
             if (_mission == Mission.Current) return;
             _mission = Mission.Current;
-            Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Grounded.Clear();
+            Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Grounded.Clear(); DownUntil.Clear();
             SceneMove.Forget(); Gestures.Forget();
         }
 
@@ -274,6 +274,44 @@ namespace AILegacy.Dialogue
             catch { return null; }
         }
 
+        // Knocked down in a fight: when they may get up again (mission time)
+        private static readonly Dictionary<Agent, float> DownUntil = new Dictionary<Agent, float>();
+        private static readonly Random Rng = new Random();
+        private static readonly string[] Falls = { "act_fall_face_hold", "act_fall_body_back", "act_fall_abdomen_hold_front" };
+
+        /// <summary>
+        /// The loser of a fist fight goes down: a fall, then sitting on the floor nursing it for a while before getting up.
+        /// Nobody else is touched; the player's own character is never moved.
+        /// </summary>
+        internal static void Knockdown(Agent who, float seconds)
+        {
+            try
+            {
+                var m = Mission.Current;
+                if (who == null || m == null || who == Agent.Main || !who.IsActive() || !who.IsHuman || who.MountAgent != null || Grounded.Any(g => g.who == who)) return;
+                var sitIdle = ActionIndexCache.Create(SitIdleOnFloor);
+                if (sitIdle.Index < 0) return;
+                var fall = ActionIndexCache.act_none;
+                foreach (var name in Falls.OrderBy(_ => Rng.Next()))
+                {
+                    var c = ActionIndexCache.Create(name);
+                    if (c.Index >= 0) { fall = c; break; }
+                }
+                if (fall.Index < 0) fall = ActionIndexCache.Create(SitDownOnFloor);
+                if (fall.Index < 0) return;
+                Followers.Remove(who); SceneTravel.Drop(who); SceneMove.Release(who);
+                try { who.DisableScriptedMovement(); } catch { }
+                var g = Daily(who);
+                if (g != null) { g.AddBehavior<SandBox.Missions.AgentBehaviors.IdleAgentBehavior>(); g.SetScriptedBehavior<SandBox.Missions.AgentBehaviors.IdleAgentBehavior>(); }
+                else who.SetIsAIPaused(true);
+                if (!who.SetActionChannel(0, in fall, ignorePriority: true)) { Unpause(who); return; }
+                Grounded.Add((who, 0f, false));
+                DownUntil[who] = m.CurrentTime + Math.Max(5f, seconds);
+                Log.Info($"[pelea] {who.Name} queda en el suelo");
+            }
+            catch (Exception ex) { Log.Error("Caer tras la pelea", ex); }
+        }
+
         /// <summary>No free seat nearby: they sit down where they stand. False if this scene or agent can't do it.</summary>
         private static bool SitOnGround(Agent who)
         {
@@ -341,11 +379,15 @@ namespace AILegacy.Dialogue
                 try
                 {
                     var a = g.who;
-                    if (a == null || Mission.Current == null || a.Mission != Mission.Current || !a.IsActive()) { Grounded.RemoveAt(i); continue; }
+                    if (a == null || Mission.Current == null || a.Mission != Mission.Current || !a.IsActive()) { Grounded.RemoveAt(i); DownUntil.Remove(a); continue; }
+                    bool knocked = DownUntil.TryGetValue(a, out float until);
+                    // Knocked down: they stay down for their time, whatever the alarm around them; then up they get
+                    if (knocked && Mission.Current.CurrentTime >= until) { DownUntil.Remove(a); StandFromGround(a); continue; }
                     // Trouble around them, or a fight: nobody stays sitting
-                    if (Combat.Fighting || !a.IsAlarmStateNormal()) { StandFromGround(a); continue; }
+                    if (Combat.Fighting || (!knocked && !a.IsAlarmStateNormal())) { DownUntil.Remove(a); StandFromGround(a); continue; }
                     float since = g.since + dt;
-                    if (since < 1f || a.IsSitting()) { Grounded[i] = (a, since, g.settled); continue; }
+                    if (since < (knocked ? 2.5f : 1f) || (!knocked && a.IsSitting())) { Grounded[i] = (a, since, g.settled); continue; }
+                    if (knocked && g.settled) { Grounded[i] = (a, since, true); continue; }
                     // The sitting-down animation is over: hold the seated pose. If that was already done, something else moved them
                     if (g.settled) { Grounded.RemoveAt(i); Unpause(a); continue; }
                     var idle = ActionIndexCache.Create(SitIdleOnFloor);
