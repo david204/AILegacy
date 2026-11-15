@@ -242,6 +242,7 @@ namespace AILegacy.World
             foreach (var key in St.WarLastCapture.Keys.Where(Gone).ToList()) St.WarLastCapture.Remove(key);
             foreach (var key in St.AllianceSince.Keys.Where(Gone).ToList()) St.AllianceSince.Remove(key);
             foreach (var key in St.ForcedTruceUntil.Where(kv => Gone(kv.Key) || kv.Value <= now).Select(kv => kv.Key).ToList()) St.ForcedTruceUntil.Remove(key);
+            foreach (var key in St.PeaceNotes.Keys.Where(id => !alive.Contains(id)).ToList()) St.PeaceNotes.Remove(key);
         }
 
         // ============================================================ time: how long a war has lasted, the last peace, how old a kingdom is
@@ -534,11 +535,47 @@ breaking: Your realm is at breaking point. Every further week of war risks ruin 
         private static readonly Tpl TWarPeaceRefused = new Tpl("kingdom_statement/war_peace_refused.txt",
             " A peace between you was refused or left unanswered not long ago: you may not propose it again for {left} more day(s).");
 
-        private static readonly Tpl TForcedRule = new Tpl("kingdom_statement/forced_peace_rule.txt",
+        // What a peace is worth in each war, so a ruler who needs it knows he can pay for it and one who is winning knows what to ask
+        private static readonly Tpl TWarBuy = new Tpl("kingdom_statement/war_peace_buy.txt",
+            " You are the weaker side of this war: you need not only ask for peace, you can BUY it. In propose_peace, offer_reparations pays them a sum at once, offer_daily_tribute (with offer_tribute_days or offer_tribute_years) pays them by the day, offer_settlement hands them a town or castle of yours. As things stand a fair price is about {reparations} denars at once, or {daily} denars a day for {days} days{fief}. Your treasury holds {gold} denars: an offer of more than that at once is thrown away.");
+        private static readonly Tpl TWarBuyFief = new Tpl("kingdom_statement/war_peace_buy_fief.txt",
+            ", or one of your towns or castles if the coin is not there");
+        private static readonly Tpl TWarSell = new Tpl("kingdom_statement/war_peace_sell.txt",
+            " You hold the upper hand in this war: you can DEMAND a price for peace. In propose_peace, reparations, daily_tribute (with tribute_days or tribute_years) and settlement are what they would give you. As things stand a fair price is about {reparations} denars at once, or {daily} denars a day for {days} days; ask for much more and they will rather fight on.");
+        private static readonly Tpl TWarEven = new Tpl("kingdom_statement/war_peace_even.txt",
+            " Neither side holds the upper hand: the fair peace here is one with no terms either way.");
+
+        /// <summary>
+        /// Who is losing a war, from -1 (this side is winning clearly) to 1 (this side is losing clearly):
+        /// strength, towns and castles taken, and how tired each realm is.
+        /// </summary>
+        private static float WarEdge(Kingdom k, Kingdom o, int won, int lost)
+        {
+            double mine = Math.Max(1f, k.CurrentTotalStrength), theirs = Math.Max(1f, o.CurrentTotalStrength);
+            double e = Math.Log(theirs / mine, 2) * 0.5 + (lost - won) * 0.15 + (WorldSim.Fatigue(k) - WorldSim.Fatigue(o)) / 100.0 * 0.5;
+            return (float)Math.Max(-1, Math.Min(1, e));
+        }
+
+        private static string PeacePriceLine(Kingdom k, Kingdom o, int won, int lost)
+        {
+            var cfg = S.Get;
+            float edge = WarEdge(k, o, won, lost);
+            if (Math.Abs(edge) < 0.2f) return TWarEven.Text;
+            // half the caps for a war lost or won outright, less for a narrower one
+            float share = Math.Abs(edge) * 0.5f;
+            int reparations = Math.Min(cfg.MaxReparations, Math.Max(500, (int)(cfg.MaxReparations * share / 500) * 500));
+            int daily = Math.Min(cfg.MaxDailyTribute, Math.Max(10, (int)(cfg.MaxDailyTribute * share / 10) * 10));
+            int days = Math.Max(10, Math.Min(200, CampaignTime.DaysInYear));
+            if (edge < 0) return TWarSell.Format("reparations", reparations, "daily", daily, "days", days);
+            int gold = Treasury(k);
+            return TWarBuy.Format("reparations", reparations, "daily", daily, "days", days, "gold", gold, "fief", gold < reparations || edge >= 0.7f ? TWarBuyFief.Text : "");
+        }
+
+        private static readonly Tpl TForcedRule =new Tpl("kingdom_statement/forced_peace_rule.txt",
             "- A war in which no town or castle changes hands for {days} days ends by itself, from exhaustion on both sides, with no terms.");
 
         private static readonly Tpl TTaskWars = new Tpl("kingdom_statement/task_wars.txt",
-            "No event calls you today: you speak because of your wars. Read «Your wars and how tired your realm is» and decide, war by war, whether to fight on, to propose peace (asking for it without demands if you are the one who needs it) or to answer an offer. If your realm is weary or worse, or you are fighting several kingdoms at once, a statement that closes no war and offers no peace fails your realm. Issue your statement now.");
+            "No event calls you today: you speak because of your wars. Read «Your wars and how tired your realm is» and decide, war by war, whether to fight on, to propose peace or to answer an offer. Each war says what a fair peace is: if you are the one who needs it, offer a price for it when you can pay and ask for it with no terms when you cannot; if you hold the upper hand, you may demand one. If your realm is weary or worse, or you are fighting several kingdoms at once, a statement that closes no war and offers no peace fails your realm. Issue your statement now.");
 
         private static readonly Tpl TRecentChanges = new Tpl("kingdom_statement/recent_changes.txt",
             "- Changed in the last {days} days: {changes}. A chronicle, a rumour or an earlier statement of yours from before a change may speak of a peace or a war that is no longer so: the lines above are what is true today.");
@@ -556,7 +593,9 @@ breaking: Your realm is at breaking point. Every further week of war risks ruin 
             "{id} (truce after your war with them ended from exhaustion, {days} more days)");
         private static readonly Tpl TWantedPlain = new Tpl("kingdom_statement/proposal_wanted_plain.txt",
             " You asked them for a peace with no terms and they hold to these: a plain peace is not on offer from them. Accept these terms, reject them, or fight on.");
-        private static readonly Tpl TRuleRefused = new Tpl("kingdom_statement/rule_refused.txt",
+        private static readonly Tpl TCounterPeace = new Tpl("kingdom_statement/proposal_counter.txt",
+            " This is their answer to the peace you had proposed: yours is off the table and only these terms stand. Accept them, reject them, or propose other terms of your own (which would replace these).");
+        private static readonly Tpl TRuleRefused =new Tpl("kingdom_statement/rule_refused.txt",
             "- A proposal of peace, alliance or trade that was refused, or left unanswered until it ran out, may not be made again between the same two kingdoms for {days} days. Right now you may NOT propose: {barred}.");
 
         private static string PlainWeariness(float f)
@@ -591,6 +630,7 @@ breaking: Your realm is at breaking point. Every further week of war risks ruin 
                 }
                 int wait = PlayerRules(k) ? 0 : RefusalDaysLeft("peace", k, o);
                 if (wait > 0) line += TWarPeaceRefused.Format("left", wait);
+                else line += PeacePriceLine(k, o, won, lost);
                 lines.Add(line);
             }
             string text = TWeariness.Format("kingdom", k.Name, "level", WorldSim.FatigueWord(k), "score", (int)f, "plain", PlainWeariness(f),
@@ -737,24 +777,80 @@ breaking: Your realm is at breaking point. Every further week of war risks ruin 
             return p;
         }
 
-        private static string Terms(Proposal p)
+        // How the terms of a peace read to a ruler: who gives and who takes, never left to be guessed
+        private static readonly Tpl TTermsDemanded = new Tpl("kingdom_statement/peace_terms_demanded.txt",
+            "the proposer DEMANDS of the receiver: {terms}");
+        private static readonly Tpl TTermsOffered = new Tpl("kingdom_statement/peace_terms_offered.txt",
+            "the proposer OFFERS to give the receiver: {terms}");
+
+        private static readonly Tpl TTermLastFief = new Tpl("kingdom_statement/peace_term_last_fief.txt",
+            " (the LAST town or castle of the realm that gives it: that realm is left with none)");
+
+        private static List<string> TermList(int daily, int days, int amount, string settlementId, bool last = false)
         {
             var parts = new List<string>();
-            if (p.DailyTribute > 0) parts.Add($"a tribute of {p.DailyTribute} denars a day for {p.TributeDays} days");
-            if (p.Reparations > 0) parts.Add($"{p.Reparations} denars in reparations");
-            if (!string.IsNullOrEmpty(p.SettlementId)) parts.Add($"the handing over of {Settlement.Find(p.SettlementId)?.Name}");
+            if (daily > 0) parts.Add($"a tribute of {daily} denars a day for {days} days");
+            if (amount > 0) parts.Add($"{amount} denars in reparations");
+            if (!string.IsNullOrEmpty(settlementId)) parts.Add($"the handing over of {Settlement.Find(settlementId)?.Name}" + (last ? TTermLastFief.Text : ""));
+            return parts;
+        }
+
+        private static List<string> TermListEs(int daily, int days, int amount, string settlementId, bool last = false)
+        {
+            var parts = new List<string>();
+            if (daily > 0) parts.Add(L.F("AIL_fbf8b45d", $"un tributo de {daily} denarios al día durante {days} días"));
+            if (amount > 0) parts.Add(L.F("AIL_555e7801", $"{amount} denarios de reparaciones"));
+            if (!string.IsNullOrEmpty(settlementId))
+                parts.Add(last ? L.F("AIL_e7b1c77c", $"la entrega de {Settlement.Find(settlementId)?.Name}, que es la última ciudad o castillo de quien la entrega")
+                               : L.F("AIL_5c924813", $"la entrega de {Settlement.Find(settlementId)?.Name}"));
+            return parts;
+        }
+
+        private static List<string> Demands(Proposal p, bool es) =>
+            es ? TermListEs(p.DailyTribute, p.TributeDays, p.Reparations, p.SettlementId, p.SettlementLast) : TermList(p.DailyTribute, p.TributeDays, p.Reparations, p.SettlementId, p.SettlementLast);
+        private static List<string> Offers(Proposal p, bool es) =>
+            es ? TermListEs(p.OfferDailyTribute, p.OfferTributeDays, p.OfferReparations, p.OfferSettlementId, p.OfferSettlementLast)
+               : TermList(p.OfferDailyTribute, p.OfferTributeDays, p.OfferReparations, p.OfferSettlementId, p.OfferSettlementLast);
+
+        private static string Terms(Proposal p)
+        {
+            var parts = Demands(p, false);
+            if (p.Type == "peace")
+            {
+                // a peace can go either way, so each side of it is labelled
+                var offered = Offers(p, false);
+                var both = new List<string>();
+                if (offered.Count > 0) both.Add(TTermsOffered.Format("terms", string.Join(", ", offered)));
+                if (parts.Count > 0) both.Add(TTermsDemanded.Format("terms", string.Join(", ", parts)));
+                return both.Count == 0 ? "" : " (" + string.Join("; ", both) + ")";
+            }
             if (p.TradeYears > 0) parts.Add($"for {p.TradeYears} year(s)");
             return parts.Count == 0 ? "" : " (" + string.Join(", ", parts) + ")";
         }
 
         private static string TermsEs(Proposal p)
         {
-            var parts = new List<string>();
-            if (p.DailyTribute > 0) parts.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
-            if (p.Reparations > 0) parts.Add(L.F("AIL_555e7801", $"{p.Reparations} denarios de reparaciones"));
-            if (!string.IsNullOrEmpty(p.SettlementId)) parts.Add(L.F("AIL_5c924813", $"la entrega de {Settlement.Find(p.SettlementId)?.Name}"));
+            var parts = Demands(p, true);
+            if (p.Type == "peace")
+            {
+                var offered = Offers(p, true);
+                var both = new List<string>();
+                if (offered.Count > 0) both.Add(L.F("AIL_e7b1c766", $"ofrece {string.Join(", ", offered)}"));
+                if (parts.Count > 0) both.Add(L.F("AIL_e7b1c767", $"exige {string.Join(", ", parts)}"));
+                return both.Count == 0 ? "" : " (" + string.Join("; ", both) + ")";
+            }
             if (p.TradeYears > 0) parts.Add(L.F("AIL_fd19d606", $"durante {p.TradeYears} año(s)"));
             return parts.Count == 0 ? "" : " (" + string.Join(", ", parts) + ")";
+        }
+
+        /// <summary>The terms of a peace as its recipient, the player, reads them: what he is offered and what is asked of him.</summary>
+        private static string TermsForPlayer(Proposal p)
+        {
+            var both = new List<string>();
+            var offered = Offers(p, true); var demanded = Demands(p, true);
+            if (offered.Count > 0) both.Add(L.F("AIL_e7b1c768", $"te ofrece {string.Join(", ", offered)}"));
+            if (demanded.Count > 0) both.Add(L.F("AIL_e7b1c769", $"te exige {string.Join(", ", demanded)}"));
+            return both.Count == 0 ? "" : " (" + string.Join("; ", both) + ")";
         }
 
         private static string TypeEn(string t) => t == "peace" ? "peace" : t == "alliance" ? "an alliance" : t == "trade" ? "a trade agreement" : t == "tribute" ? "a tribute" : t == "reparations" ? "reparations" : "territory";
@@ -796,6 +892,7 @@ breaking: Your realm is at breaking point. Every further week of war risks ruin 
             if (st.Tributes == null) st.Tributes = new List<Tribute>();
             st.Tributes.RemoveAll(t => t == null);
             if (st.Refused == null) st.Refused = new Dictionary<string, double>();
+            if (st.PeaceNotes == null) st.PeaceNotes = new Dictionary<string, List<string>>();
             if (st.WarLastCapture == null) st.WarLastCapture = new Dictionary<string, double>();
             if (st.AllianceSince == null) st.AllianceSince = new Dictionary<string, double>();
             if (st.KingdomSeenDay == null) st.KingdomSeenDay = new Dictionary<string, double>();
@@ -1036,12 +1133,13 @@ How a sovereign acts:
 
 Actions you may take (each is an object in ""actions""; target_kingdom is always a kingdom id from the data):
 - declare_war (target_kingdom): war, at once, no consent needed. It breaks any alliance or trade agreement with them.
-- propose_peace (target_kingdom) with optional terms you DEMAND from them: daily_tribute + tribute_days (or tribute_years, in years of this world), reparations, settlement (a town or castle of theirs). Only against a realm you are at war with. Demands are for the side that is winning: a realm that needs the peace asks for it with none. If they have already offered you a peace with no terms, proposing one back signs it.
+- propose_peace (target_kingdom). Only against a realm you are at war with. A peace can carry a price, paid in either direction. Terms you DEMAND from them: daily_tribute + tribute_days (or tribute_years, in years of this world), reparations, settlement (a town or castle of theirs). Terms you OFFER to give them, to buy the peace: offer_daily_tribute + offer_tribute_days (or offer_tribute_years), offer_reparations (never more than your treasury holds), offer_settlement (a town or castle of your own realm, not under siege). Demands are for the side that is winning; the side that is losing or worn out and needs the peace offers a price when it can pay one, or asks with no terms at all; the fair price of each war is written next to it. Never demand and offer the same kind of term at once: such a proposal is thrown away, and so is one that offers what you do not have. If they have already proposed a peace to you and you propose one that asks no more than theirs gives, theirs is signed; if you propose different terms, yours replace theirs and they must answer yours.
 - accept_peace / reject_peace (target_kingdom): answer THEIR pending peace proposal.
 - propose_alliance / accept_alliance / reject_alliance / break_alliance (target_kingdom): allies stand together in war. Propose only to a crown you are on good terms with and share an enemy or an interest with.
 - propose_trade / accept_trade / reject_trade / end_trade (target_kingdom, trade_years 1-5): only between realms at peace.
 - demand_tribute (target_kingdom, daily_tribute, tribute_days or tribute_years) / accept_tribute / reject_tribute / end_tribute: outside a peace treaty, a tribute is paid only by a realm that fears you.
 - demand_reparations (target_kingdom, reparations) / accept_reparations / reject_reparations: a single payment.
+- The demand_ actions only ever take from the other realm and end no war. The offer_ fields belong to propose_peace alone: to pay for a peace, use propose_peace with them.
 - demand_territory (target_kingdom, settlement = a town or castle of theirs) / transfer_territory / reject_territory.
 - expel_clan (clan = a vassal clan of yours, never your own): cast it out of the realm for treason or defiance. A clan cast out is banished: it cannot return until you pardon it.
 - pardon_clan (clan = one of the clans you banished): lift its banishment, so it may swear to you again. Only if it has made amends or you need its swords.
@@ -1059,7 +1157,7 @@ Answer ONLY with JSON:
   ""statement"": ""the public statement, {min_len}-{max_len} characters, in {language}"",
   ""summary"": ""what you said and did, in ONE English sentence"",
   ""importance"": 1-4,
-  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""tribute_years"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ],
+  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""tribute_years"": 0, ""reparations"": 0, ""offer_daily_tribute"": 0, ""offer_tribute_days"": 0, ""offer_tribute_years"": 0, ""offer_reparations"": 0, ""offer_settlement"": ""name"", ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ],
   ""relation_changes"": [ { ""kingdom"": ""id"", ""change"": -{max_stance} to {max_stance} } ],
   ""own_people"": [ ""every lord or clan you speak of as your own"" ],
   ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
@@ -1195,8 +1293,13 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                         else if (type == "accept_peace" || type == "propose_peace")
                         {
                             var theirs = Pending("peace", o, k);
-                            bool signs = theirs != null && (type == "accept_peace" || (IsPlain(theirs) && I(a, "daily_tribute", 0, 1) == 0 && I(a, "reparations", 0, 1) == 0
-                                && OrderSystem.FindSettlement((string)(a["settlement"]?.Type == JTokenType.String ? a["settlement"] : null), x => (x.IsTown || x.IsCastle) && x.MapFaction == o) == null));
+                            // the same reading Resolve makes of it: terms offered or demanded count like any others
+                            bool signs = theirs != null && TermsBroken(theirs, o, k) == null;
+                            if (signs && type == "propose_peace")
+                            {
+                                var mine = ReadPeaceTerms(k, o, a, out _);
+                                signs = mine != null && Covers(mine, theirs);
+                            }
                             if (signs) model.Wars.Remove(FactCheck.Pair(k.StringId, o.StringId));
                         }
                     }
@@ -1215,7 +1318,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 $"- {WorldSim.FindKingdom(p.From)?.Name} [id: {p.From}] {(IsDemand(p.Type) ? "DEMANDS" : "PROPOSES")} {TypeEn(p.Type)}{Terms(p)}, {(int)(now - p.Day)} day(s) ago → answer with " +
                 (p.Type == "peace" ? "accept_peace or reject_peace" : p.Type == "alliance" ? "accept_alliance or reject_alliance" : p.Type == "trade" ? "accept_trade or reject_trade"
                  : p.Type == "tribute" ? "accept_tribute or reject_tribute" : p.Type == "reparations" ? "accept_reparations or reject_reparations" : "transfer_territory or reject_territory")
-                + (p.Type == "peace" && p.WantedPlain && !IsPlain(p) ? "." + TWantedPlain.Text : "")));
+                + (p.Type == "peace" && p.WantedPlain && !IsPlain(p) ? "." + TWantedPlain.Text : p.Type == "peace" && p.Counter ? "." + TCounterPeace.Text : "")));
         }
 
         /// <param name="wars">Nothing called this ruler: the realm is worn by its wars and the turn is to decide about them.</param>
@@ -1241,6 +1344,13 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             sys.AppendLine(); sys.AppendLine("## PENDING PROPOSALS DIRECTED AT YOU (answer them)"); sys.AppendLine(DescribeProposalsTo(k));
             // the ones this ruler is shown now: he has had his turn on them, whatever he does with it
             var shown = St.Proposals.Where(p => p.To == k.StringId).ToList();
+            // a peace of his that could not be signed: told once, on the first turn whose answer arrives
+            var fell = St.PeaceNotes.TryGetValue(k.StringId, out var notes) && notes != null ? notes.ToList() : new List<string>();
+            if (fell.Count > 0)
+            {
+                sys.AppendLine(); sys.AppendLine(TPeaceFellHeader.Text);
+                foreach (var line in fell) sys.AppendLine("- " + line);
+            }
             var own = St.Proposals.Where(p => p.From == k.StringId).ToList();
             if (own.Count > 0)
             {
@@ -1278,6 +1388,11 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     St.LastStatementDay[k.StringId] = CampaignTime.Now.ToDays;
                     if (!answer) St.LastStatementAnyDay = CampaignTime.Now.ToDays;
                     if (about != null) about.Engagement.Remove(k.StringId);
+                    if (fell.Count > 0 && St.PeaceNotes.TryGetValue(k.StringId, out var left) && left != null)
+                    {
+                        left.RemoveAll(fell.Contains);
+                        if (left.Count == 0) St.PeaceNotes.Remove(k.StringId);
+                    }
                     // a statement thrown away for contradicting the world answered nothing: those proposals still wait for a turn
                     if (ApplyStatement(k, j, null)) foreach (var p in shown) p.Seen = true;
                 }, key: "statement:" + k.StringId, failed: () => _askedSession = -1);
@@ -1353,7 +1468,275 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return true;
         }
 
-        private static bool IsPlain(Proposal p) => p.DailyTribute == 0 && p.Reparations == 0 && string.IsNullOrEmpty(p.SettlementId);
+        private static bool HasDemands(Proposal p) => p.DailyTribute > 0 || p.Reparations > 0 || !string.IsNullOrEmpty(p.SettlementId);
+        private static bool HasOffers(Proposal p) => p.OfferDailyTribute > 0 || p.OfferReparations > 0 || !string.IsNullOrEmpty(p.OfferSettlementId);
+        private static bool IsPlain(Proposal p) => !HasDemands(p) && !HasOffers(p);
+
+        /// <summary>
+        /// What a realm can hand over at once. Reparations come out of its ruler's purse and nowhere else (Pay moves
+        /// only that), so the gold of its other clans is not counted: it could not be collected.
+        /// </summary>
+        private static int Treasury(Kingdom k) => Math.Max(0, k?.Leader?.Gold ?? 0);
+
+        /// <summary>An action that carries any of the offer_ fields of propose_peace. A demand that does was meant as something else.</summary>
+        private static bool CarriesOffer(JObject a)
+        {
+            string st = Str(a["offer_settlement"]);
+            return I(a, "offer_daily_tribute", 0, 1) > 0 || I(a, "offer_reparations", 0, 1) > 0
+                   || (!string.IsNullOrWhiteSpace(st) && WorldSim.Norm(st) != "name" && WorldSim.Norm(st) != "none");
+        }
+
+        private static string Str(JToken t) => t != null && t.Type == JTokenType.String ? (string)t : null;
+
+        /// <summary>The terms of a peace as its proposer states them: what he demands and what he offers.</summary>
+        private class PeaceTerms
+        {
+            public int Daily, Days, Reparations, OfferDaily, OfferDays, OfferReparations;
+            public Settlement Fief, OfferFief;
+            // the settlement is its giver's last town or castle, and the terms will say so
+            public bool FiefLast, OfferFiefLast;
+            public bool Plain => Daily == 0 && Reparations == 0 && Fief == null && OfferDaily == 0 && OfferReparations == 0 && OfferFief == null;
+        }
+
+        /// <summary>Why a peace cannot be: for the player in his language, for an AI ruler or a character in English.</summary>
+        private class Why
+        {
+            public readonly string Es, En;
+            public Why(string es, string en) { Es = es; En = en; }
+        }
+
+        private static readonly Tpl TWhyBothWays = new Tpl("kingdom_statement/peace_why_both_ways.txt",
+            "the same kind of term cannot be demanded and offered at once");
+        private static readonly Tpl TWhyGold = new Tpl("kingdom_statement/peace_why_gold.txt",
+            "{payer} would have to pay {amount} denars and its treasury holds only {has}");
+        private static readonly Tpl TWhyFief = new Tpl("kingdom_statement/peace_why_fief.txt",
+            "«{name}» is not exactly one town or castle of {realm} that can be handed over now: no such place of theirs, more than one that the name fits, or it is besieged by a third realm");
+        private static readonly Tpl TWhyLast = new Tpl("kingdom_statement/peace_why_last_fief.txt",
+            "{name} has become the last town or castle of {realm}, and the terms did not say so");
+        private static readonly Tpl TPeaceFell = new Tpl("kingdom_statement/peace_fell.txt",
+            "The peace with {other} that {proposer} had proposed was NOT signed, and the proposal is off the table: {reason}. Nothing was paid or handed over and the war goes on. This is not a refusal: either of you may propose peace again, with terms that can be kept.");
+        private static readonly Tpl TPeaceFellHeader = new Tpl("kingdom_statement/peace_fell_header.txt",
+            "## PEACE THAT COULD NOT BE SIGNED (you are told this once)");
+
+        private static Why WhyGold(Kingdom payer, int amount) => new Why(
+            L.F("AIL_e7b1c77d", $"{payer.Name} tendría que pagar {amount} denarios y su tesoro solo tiene {Treasury(payer)}"),
+            TWhyGold.Format("payer", payer.Name, "amount", amount, "has", Treasury(payer)));
+        private static Why WhyFief(string name, Kingdom realm) => new Why(
+            L.F("AIL_e7b1c76a", $"«{name}» no es una ciudad o castillo de {realm.Name} que se pueda entregar ahora"),
+            TWhyFief.Format("name", name, "realm", realm.Name));
+        private static Why WhyLast(Settlement st, Kingdom realm) => new Why(
+            L.F("AIL_e7b1c77e", $"{st.Name} ha pasado a ser la última ciudad o castillo de {realm.Name}, y las condiciones no lo decían"),
+            TWhyLast.Format("name", st.Name, "realm", realm.Name));
+
+        /// <summary>The settlement named in a term, or null when none is: the placeholders of the answer format are not names.</summary>
+        private static string FiefName(JObject a, string key)
+        {
+            var tk = a?[key];
+            if (tk == null || tk.Type == JTokenType.Null) return null;
+            // anything that is not text is kept as written, so it fails the lookup and the action is refused
+            string name = (tk.Type == JTokenType.String ? (string)tk : tk.ToString(Newtonsoft.Json.Formatting.None)).Trim(), n = WorldSim.Norm(name);
+            return name.Length == 0 || n == "name" || n == "none" || n == "null" || n == "0" || n == "false" ? null : name;
+        }
+
+        /// <summary>
+        /// The one town or castle of <paramref name="realm"/> that the name means: by id, else by its whole name
+        /// whatever the case, else the only one whose name begins with it. null when none or more than one fits.
+        /// </summary>
+        private static Settlement FindFief(string name, Kingdom realm)
+        {
+            name = (name ?? "").Trim();
+            var all = Settlement.All.Where(x => x != null && (x.IsTown || x.IsCastle) && x.MapFaction == realm).ToList();
+            var byId = all.Where(x => x.StringId == name).ToList();
+            if (byId.Count == 1) return byId[0];
+            string n = WorldSim.Norm(name);
+            if (n.Length < 2) return null;
+            var whole = all.Where(x => WorldSim.Norm(x.Name?.ToString()) == n).ToList();
+            if (whole.Count > 0) return whole.Count == 1 ? whole[0] : null;
+            var begins = all.Where(x => WorldSim.Norm(x.Name?.ToString()).StartsWith(n, StringComparison.Ordinal)).ToList();
+            return begins.Count == 1 ? begins[0] : null;
+        }
+
+        private static bool IsLastFief(Settlement st, Kingdom realm) =>
+            !Settlement.All.Any(x => x != null && x != st && (x.IsTown || x.IsCastle) && x.MapFaction == realm);
+
+        /// <summary>
+        /// Whether <paramref name="giver"/> can hand this town or castle to <paramref name="receiver"/> as a term of
+        /// their peace. A siege laid by the receiver alone does not stand in the way (the besieger demanding the
+        /// castle he is besieging): the game lifts it when the two make peace. SiegeEventCampaignBehavior.OnMakePeace
+        /// calls FactionHelper.FinishAllRelatedHostileActions, which takes every besieging lord's party of one realm
+        /// out of the camp before a settlement of the other, and a camp left empty ends the siege. A siege by anyone
+        /// else would go on under the new owner, so that one blocks the handover.
+        /// </summary>
+        private static bool CanChangeHands(Settlement st, Kingdom giver, Kingdom receiver)
+        {
+            if (st == null || giver == null || receiver == null || !(st.IsTown || st.IsCastle) || st.MapFaction != giver) return false;
+            if (!st.IsUnderSiege) return true;
+            var camp = st.SiegeEvent?.BesiegerCamp;
+            return camp != null && camp.GetInvolvedPartiesForEventType().All(x => x != null && x.MapFaction == receiver);
+        }
+
+        /// <summary>
+        /// Reads the terms of a propose_peace from <paramref name="k"/> to <paramref name="o"/>, within the caps.
+        /// null, with the reason, when they cannot stand: the same kind of term demanded and offered at once, a
+        /// settlement named that is not exactly one town or castle of the realm that would give it (or that cannot
+        /// change hands now), or a sum offered that the proposer does not have. A name that resolves to nothing is
+        /// never read as "no such term": that would turn a peace with a price into a plain one.
+        /// </summary>
+        private static PeaceTerms ReadPeaceTerms(Kingdom k, Kingdom o, JObject a, out Why why)
+        {
+            var cfg = S.Get;
+            why = null;
+            int daysInYear = Math.Max(1, CampaignTime.DaysInYear);
+            var t = new PeaceTerms
+            {
+                Daily = I(a, "daily_tribute", 0, cfg.MaxDailyTribute), Reparations = I(a, "reparations", 0, cfg.MaxReparations),
+                OfferDaily = I(a, "offer_daily_tribute", 0, cfg.MaxDailyTribute), OfferReparations = I(a, "offer_reparations", 0, cfg.MaxReparations),
+            };
+            string demanded = FiefName(a, "settlement"), offered = FiefName(a, "offer_settlement");
+            // judged on what was written, before any lookup
+            if ((t.Daily > 0 && t.OfferDaily > 0) || (t.Reparations > 0 && t.OfferReparations > 0) || (demanded != null && offered != null))
+            { why = new Why(L.T("AIL_e7b1c76b", "no se puede exigir y ofrecer a la vez la misma clase de condición"), TWhyBothWays.Text); return null; }
+            if (demanded != null)
+            {
+                t.Fief = FindFief(demanded, o);
+                if (!CanChangeHands(t.Fief, o, k)) { why = WhyFief(demanded, o); return null; }
+                t.FiefLast = IsLastFief(t.Fief, o);
+            }
+            if (offered != null)
+            {
+                t.OfferFief = FindFief(offered, k);
+                if (!CanChangeHands(t.OfferFief, k, o)) { why = WhyFief(offered, k); return null; }
+                t.OfferFiefLast = IsLastFief(t.OfferFief, k);
+            }
+            if (t.OfferReparations > Treasury(k))
+            {
+                why = new Why(L.F("AIL_e7b1c76c", $"{k.Name} ofrece {t.OfferReparations} denarios y su tesoro solo tiene {Treasury(k)}"),
+                              TWhyGold.Format("payer", k.Name, "amount", t.OfferReparations, "has", Treasury(k)));
+                return null;
+            }
+            t.Days = t.Daily > 0 ? TributeLength(a) : 0;
+            t.OfferDays = t.OfferDaily > 0 ? FactCheck.TributeDays(I(a, "offer_tribute_days", 0, 100000), I(a, "offer_tribute_years", 0, 20), daysInYear, 10, 200) : 0;
+            return t;
+        }
+
+        /// <summary>
+        /// True when the peace <paramref name="theirs"/> already on the table gives this side everything it now
+        /// asks for and asks of it no more than it now offers. Two plain ones are the simplest case.
+        /// </summary>
+        private static bool Covers(PeaceTerms mine, Proposal theirs)
+        {
+            if (mine.Daily > theirs.OfferDailyTribute || (mine.Daily > 0 && mine.Days > theirs.OfferTributeDays)) return false;
+            if (mine.Reparations > theirs.OfferReparations) return false;
+            if (mine.Fief != null && mine.Fief.StringId != theirs.OfferSettlementId) return false;
+            if (theirs.DailyTribute > mine.OfferDaily || (theirs.DailyTribute > 0 && theirs.TributeDays > mine.OfferDays)) return false;
+            if (theirs.Reparations > mine.OfferReparations) return false;
+            return string.IsNullOrEmpty(theirs.SettlementId) || (mine.OfferFief != null && mine.OfferFief.StringId == theirs.SettlementId);
+        }
+
+        /// <summary>
+        /// Why the peace <paramref name="p"/>, proposed by <paramref name="from"/> to <paramref name="to"/>, cannot
+        /// be carried out in full right now, or null. Demands and offers are held to the same rule: the treasury and
+        /// the map move on while a proposal waits, and a peace whose price cannot be paid whole is not signed.
+        /// A realm's last town or castle only goes when the terms said it was the last (SettlementLast).
+        /// </summary>
+        private static Why TermsBroken(Proposal p, Kingdom from, Kingdom to)
+        {
+            if (p == null || from == null || to == null) return null;
+            if (p.OfferReparations > Treasury(from)) return WhyGold(from, p.OfferReparations);
+            if (p.Reparations > Treasury(to)) return WhyGold(to, p.Reparations);
+            return FiefBroken(p.OfferSettlementId, from, to, p.OfferSettlementLast) ?? FiefBroken(p.SettlementId, to, from, p.SettlementLast);
+        }
+
+        private static Why FiefBroken(string settlementId, Kingdom giver, Kingdom receiver, bool saidLast)
+        {
+            if (string.IsNullOrEmpty(settlementId)) return null;
+            var st = Settlement.Find(settlementId);
+            if (!CanChangeHands(st, giver, receiver)) return WhyFief(st?.Name?.ToString() ?? settlementId, giver);
+            return !saidLast && IsLastFief(st, giver) ? WhyLast(st, giver) : null;
+        }
+
+        /// <summary>
+        /// A peace that could not be signed because its terms can no longer be kept: the proposal is dropped, which
+        /// is no refusal (nothing has to wait), and both realms learn why. The player reads it on screen, as the
+        /// outcome of his own action when he is <paramref name="k"/>, the one accepting; an AI ruler is told on his
+        /// next turn. Returns the text for whoever was accepting.
+        /// </summary>
+        private static string DropBrokenPeace(Proposal p, Kingdom k, Kingdom o, Why broken)
+        {
+            St.Proposals.Remove(p);
+            Log.Warn($"[diplomacia] la paz que {o.Name} proponía a {k.Name} no se firma y queda sin efecto: {broken.Es}");
+            string text = L.F("AIL_e7b1c77f", $"La paz entre {k.Name} y {o.Name} no se firma y la propuesta queda sin efecto: {broken.Es}. No cuenta como rechazo: cualquiera de los dos puede volver a proponerla.");
+            void Tell(Kingdom side, Kingdom other)
+            {
+                if (PlayerRules(side)) { if (side != k) WorldSim.Say(text, Colors.Red); }
+                else AddPeaceNote(side, TPeaceFell.Format("other", other.Name, "proposer", o.Name, "reason", broken.En));
+            }
+            Tell(k, o); Tell(o, k);
+            return text;
+        }
+
+        private static void AddPeaceNote(Kingdom k, string line)
+        {
+            if (k?.StringId == null || St?.PeaceNotes == null || string.IsNullOrWhiteSpace(line)) return;
+            if (!St.PeaceNotes.TryGetValue(k.StringId, out var list) || list == null) St.PeaceNotes[k.StringId] = list = new List<string>();
+            list.Add(line);
+            while (list.Count > 4) list.RemoveAt(0);
+        }
+
+        /// <summary>
+        /// Signs the peace <paramref name="p"/> that <paramref name="o"/> proposed and <paramref name="k"/> accepts,
+        /// and carries out its terms in both directions. All or nothing: when a payment could not be made whole or
+        /// a settlement could not change hands, nothing is signed and <paramref name="broken"/> says why. Returns
+        /// what happened, or null (with no reason) when the game made no peace.
+        /// </summary>
+        private static string SignPeace(Kingdom k, Kingdom o, Proposal p, out Why broken)
+        {
+            broken = TermsBroken(p, o, k);
+            if (broken != null) return null;
+            string kn = k.Name.ToString();
+            St.Proposals.RemoveAll(x => x.Type == "peace" && ((x.From == k.StringId && x.To == o.StringId) || (x.From == o.StringId && x.To == k.StringId)));
+            St.Refused.Remove(RefusalKey("peace", k.StringId, o.StringId));
+            // The game makes its first faction the payer (ApplyInternal: stance.SetDailyTributePaid(faction1, ...)).
+            // A demanded tribute is paid by whoever accepts, an offered one by whoever proposed.
+            if (p.DailyTribute > 0) Ours(() => MakePeaceAction.ApplyByKingdomDecision(k, o, p.DailyTribute, p.TributeDays));
+            else if (p.OfferDailyTribute > 0) Ours(() => MakePeaceAction.ApplyByKingdomDecision(o, k, p.OfferDailyTribute, p.OfferTributeDays));
+            else Ours(() => MakePeaceAction.Apply(k, o));
+            // nothing is paid or handed over for a peace the game did not make
+            if (k.IsAtWarWith(o)) { Log.Warn($"[diplomacia] el juego no ha aplicado la paz entre {kn} y {o.Name}: no se paga ni se entrega nada"); return null; }
+
+            var fromK = new List<string>(); var fromO = new List<string>();
+            if (p.Reparations > 0) { int paid = Pay(k, o, p.Reparations); if (paid > 0) fromK.Add(L.F("AIL_555e7801", $"{paid} denarios de reparaciones")); }
+            if (p.OfferReparations > 0) { int paid = Pay(o, k, p.OfferReparations); if (paid > 0) fromO.Add(L.F("AIL_555e7801", $"{paid} denarios de reparaciones")); }
+            HandOver(string.IsNullOrEmpty(p.SettlementId) ? null : Settlement.Find(p.SettlementId), k, o, fromK);
+            HandOver(string.IsNullOrEmpty(p.OfferSettlementId) ? null : Settlement.Find(p.OfferSettlementId), o, k, fromO);
+            if (p.DailyTribute > 0) fromK.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
+            else if (p.OfferDailyTribute > 0) fromO.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.OfferDailyTribute} denarios al día durante {p.OfferTributeDays} días"));
+            WorldSim.ChangeStance(k.StringId, o.StringId, 10); WorldSim.ChangeStance(o.StringId, k.StringId, 10);
+            Log.Info($"[diplomacia] paz entre {kn} y {o.Name}: {kn} da [{string.Join(", ", fromK)}], {o.Name} da [{string.Join(", ", fromO)}]");
+            string text = L.F("AIL_64b1d2d4", $"{kn} y {o.Name} firman la paz") + ".";
+            if (fromK.Count > 0) text += " " + L.F("AIL_e7b1c76d", $"{kn} da a {o.Name}: {string.Join(", ", fromK)}.");
+            if (fromO.Count > 0) text += " " + L.F("AIL_e7b1c76d", $"{o.Name} da a {kn}: {string.Join(", ", fromO)}.");
+            return text;
+        }
+
+        /// <summary>A settlement changes hands as a term of the peace just made. TermsBroken has already let it through.</summary>
+        private static void HandOver(Settlement st, Kingdom giver, Kingdom receiver, List<string> given)
+        {
+            if (st == null) return;
+            // The receiver's own siege of it ends with the peace. If a camp is somehow still there, its parties
+            // (all the receiver's, or the terms would not have passed) leave it the way the game makes them leave.
+            if (st.IsUnderSiege)
+                try
+                {
+                    foreach (var party in st.SiegeEvent.BesiegerCamp.GetInvolvedPartiesForEventType().ToList())
+                        if (party?.MobileParty != null) party.MobileParty.BesiegerCamp = null;
+                }
+                catch (Exception ex) { Log.Error("[diplomacia] levantando el asedio de una plaza cedida", ex); }
+            if (st.MapFaction != giver || st.IsUnderSiege)
+            { Log.Warn($"[diplomacia] {st.Name} no ha podido cambiar de manos tras la paz entre {giver.Name} y {receiver.Name}"); return; }
+            ChangeOwnerOfSettlementAction.ApplyByDefault(receiver.Leader, st);
+            given.Add(L.F("AIL_5c924813", $"la entrega de {st.Name}"));
+        }
 
         /// <summary>
         /// War between two kingdoms, declared by the first: the pacts between them end, what was pending between
@@ -1436,44 +1819,61 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 {
                     if (o == null || o == k || !k.IsAtWarWith(o)) return Bad(L.T("AIL_a305fa83", "no están en guerra"));
                     { string no = ProposalBlocked("peace", k, o); if (no != null) return Bad(no); }
-                    int daily = I(a, "daily_tribute", 0, cfg.MaxDailyTribute), reparations = I(a, "reparations", 0, cfg.MaxReparations);
-                    var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == o);
-                    bool plain = daily == 0 && reparations == 0 && st == null, counter = false;
-                    var theirs = Pending("peace", o, k);
-                    if (theirs != null && plain && IsPlain(theirs))
+                    var t = ReadPeaceTerms(k, o, a, out Why senseless);
+                    if (t == null)
                     {
+                        Bad(senseless.Es);
+                        // the player is told why his proposal went nowhere; an AI ruler's is only logged
+                        return PlayerRules(k) ? L.F("AIL_e7b1c76e", $"Tu propuesta de paz a {o.Name} no sale: {senseless.Es}.") : null;
+                    }
+                    var theirs = Pending("peace", o, k);
+                    if (theirs != null && Covers(t, theirs))
+                    {
+                        // The peace they already proposed gives this side all it now asks for and asks of it no
+                        // more than it now offers: two plain ones, or an offer to pay answered with a plain one.
                         // The player proposing a peace that is already offered to them has not accepted it: the
                         // offer is put in front of them again and they decide there. Nothing is signed for them.
                         if (PlayerRules(k))
                         {
                             theirs.Notified = true;
                             AskPlayer(theirs);
-                            return L.F("AIL_e7b1c763", $"{o.Name} ya te había ofrecido la paz sin condiciones: tú decides si la aceptas.");
+                            return IsPlain(theirs) ? L.F("AIL_e7b1c763", $"{o.Name} ya te había ofrecido la paz sin condiciones: tú decides si la aceptas.")
+                                                   : L.F("AIL_e7b1c76f", $"{o.Name} ya te había propuesto esa paz{TermsForPlayer(theirs)}: tú decides si la aceptas.");
                         }
-                        // Both asking for a plain peace is a peace. Before, each offer sat waiting for the other side to
+                        // Both asking for the same peace is a peace. Before, each offer sat waiting for the other side to
                         // say "accept" in so many words, and two rulers who wanted the same thing never got it. When
-                        // the offer on the table is the player's, this is an AI ruler accepting what the player proposed.
+                        // the offer on the table is the player's, this is an AI ruler accepting what the player proposed:
+                        // accept_peace signs the pending proposal exactly as its proposer wrote it (Pending(o, k)), never
+                        // the terms just read here, which only had to be covered by it. The player consented to those
+                        // terms when he proposed them, so no popup; accept_peace checks again that he can still keep
+                        // them and tells him what was signed.
                         return Resolve(k, new JObject { ["type"] = "accept_peace", ["target_kingdom"] = o.StringId });
                     }
-                    if (theirs != null && plain)
+                    if (theirs != null && t.Plain)
                     {
                         // They want terms and this side asks for none. Theirs stays as the one offer on the table,
                         // no second proposal is left beside it, and this side is told so on its next turn.
                         theirs.WantedPlain = true;
                         return L.F("AIL_e7b1c764", $"{kn} pide la paz a {o.Name}, que mantiene sus condiciones{TermsEs(theirs)}.");
                     }
-                    if (theirs != null && IsPlain(theirs))
+                    bool overPlain = false, counter = false;
+                    if (theirs != null)
                     {
-                        // This side wants terms where they asked for none: its offer takes the place of theirs, and
-                        // they are told why. Not a refusal: nothing has to wait.
+                        // Different terms from theirs: this proposal takes the place of theirs, whichever way the
+                        // payments go, and they are told why. One peace on the table between two realms, the latest.
+                        // Not a refusal: nothing has to wait.
+                        overPlain = IsPlain(theirs); counter = !overPlain;
                         St.Proposals.Remove(theirs);
-                        counter = true;
                     }
                     var p = AddProposal("peace", k, o);
-                    p.DailyTribute = daily; p.TributeDays = p.DailyTribute > 0 ? TributeLength(a) : 0;
-                    p.Reparations = reparations;
-                    p.SettlementId = st?.StringId;
-                    p.WantedPlain = counter;
+                    p.DailyTribute = t.Daily; p.TributeDays = t.Days;
+                    p.Reparations = t.Reparations;
+                    p.SettlementId = t.Fief?.StringId;
+                    p.OfferDailyTribute = t.OfferDaily; p.OfferTributeDays = t.OfferDays;
+                    p.OfferReparations = t.OfferReparations;
+                    p.OfferSettlementId = t.OfferFief?.StringId;
+                    p.SettlementLast = t.FiefLast; p.OfferSettlementLast = t.OfferFiefLast;
+                    p.WantedPlain = overPlain; p.Counter = counter;
                     return L.F("AIL_cab1eaa4", $"{kn} propone la paz a {o.Name}{TermsEs(p)}.");
                 }
                 case "accept_peace":
@@ -1482,19 +1882,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     var p = Pending("peace", o, k);
                     if (p == null) return Bad("no hay propuesta de paz de ese reino");
                     if (!k.IsAtWarWith(o)) { St.Proposals.Remove(p); return Bad(L.T("AIL_e904786b", "ya no están en guerra")); }
-                    St.Proposals.Remove(p);
-                    St.Proposals.RemoveAll(x => x.Type == "peace" && x.From == k.StringId && x.To == o.StringId);
-                    St.Refused.Remove(RefusalKey("peace", k.StringId, o.StringId));
-                    // whoever accepts pays what was demanded of them
-                    if (p.DailyTribute > 0) Diplomacy.Ours(() => MakePeaceAction.ApplyByKingdomDecision(k, o, p.DailyTribute, p.TributeDays));
-                    else Diplomacy.Ours(() => MakePeaceAction.Apply(k, o));
-                    var extra = new List<string>();
-                    if (p.Reparations > 0) { int paid = Pay(k, o, p.Reparations); if (paid > 0) extra.Add(L.F("AIL_555e7801", $"{paid} denarios de reparaciones")); }
-                    var st = string.IsNullOrEmpty(p.SettlementId) ? null : Settlement.Find(p.SettlementId);
-                    if (st != null && st.MapFaction == k) { ChangeOwnerOfSettlementAction.ApplyByDefault(o.Leader, st); extra.Add(L.F("AIL_5c924813", $"la entrega de {st.Name}")); }
-                    if (p.DailyTribute > 0) extra.Add(L.F("AIL_fbf8b45d", $"un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días"));
-                    WorldSim.ChangeStance(k.StringId, o.StringId, 10); WorldSim.ChangeStance(o.StringId, k.StringId, 10);
-                    return L.F("AIL_64b1d2d4", $"{kn} y {o.Name} firman la paz") + (extra.Count > 0 ? $": {kn} acepta " + string.Join(", ", extra) : "") + ".";
+                    // The peace signed is p, whole, as its proposer wrote it. SignPeace first checks that both sides
+                    // can still keep it: every payment in full, every settlement still its giver's to hand over.
+                    string signed = SignPeace(k, o, p, out Why broken);
+                    if (broken != null) return DropBrokenPeace(p, k, o, broken);
+                    if (signed == null) return Bad("el juego no ha aplicado la paz");
+                    // an AI ruler took the peace the player had proposed: he is told so, with what was signed
+                    if (PlayerRules(o)) WorldSim.Say(L.F("AIL_e7b1c780", $"{kn} acepta la paz que tú habías propuesto. {signed}"), Colors.Green);
+                    return signed;
                 }
                 case "reject_peace":
                     return Reject("peace", k, o, L.F("AIL_c1de8329", $"{kn} rechaza la paz que ofrecía {o?.Name}."));
@@ -1570,6 +1965,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "demand_tribute":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
+                    if (CarriesOffer(a)) return Bad("los campos offer_ solo valen en propose_peace: una exigencia no ofrece nada");
                     var p = AddProposal("tribute", k, o);
                     p.DailyTribute = I(a, "daily_tribute", 10, cfg.MaxDailyTribute); p.TributeDays = TributeLength(a);
                     return L.F("AIL_c61b5727", $"{kn} exige a {o.Name} un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días.");
@@ -1594,6 +1990,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "demand_reparations":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
+                    if (CarriesOffer(a)) return Bad("los campos offer_ solo valen en propose_peace: una exigencia no ofrece nada");
                     var p = AddProposal("reparations", k, o);
                     p.Reparations = I(a, "reparations", 100, cfg.MaxReparations);
                     return L.F("AIL_cb234369", $"{kn} exige a {o.Name} {p.Reparations} denarios en reparaciones.");
@@ -1614,6 +2011,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "demand_territory":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
+                    if (CarriesOffer(a)) return Bad("los campos offer_ solo valen en propose_peace: una exigencia no ofrece nada");
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == o);
                     if (st == null) return Bad(L.T("AIL_9b65eab4", "asentamiento no válido"));
                     var p = AddProposal("territory", k, o);
@@ -1839,16 +2237,99 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 });
             }
             InformationManager.ShowInquiry(new InquiryData(L.F("AIL_f85f4507", $"Mensaje de {from.Leader.Name}, de {from.Name}"),
-                L.F("AIL_ab129b00", $"{from.Name} {verb} {TypeEs(p.Type)}{TermsEs(p)}.\n\nSi no contestas ahora, la propuesta sigue en pie {S.Get.ProposalLifetimeDays} días y puedes responder con una declaración."),
+                // a peace says which way each payment goes: what they offer the player and what they ask of him
+                L.F("AIL_ab129b00", $"{from.Name} {verb} {TypeEs(p.Type)}{(p.Type == "peace" ? TermsForPlayer(p) : TermsEs(p))}.\n\nSi no contestas ahora, la propuesta sigue en pie {S.Get.ProposalLifetimeDays} días y puedes responder con una declaración.")
+                + (p.Type == "peace" && p.Counter ? "\n\n" + L.T("AIL_e7b1c771", "Es su respuesta a la paz que tú habías propuesto: tu propuesta queda retirada y solo valen estas condiciones.") : "")
+                + (p.Type == "peace" ? "\n\n" + L.T("AIL_e7b1c772", "Con una declaración también puedes proponer otras condiciones: exigir u ofrecer un pago, un tributo o una plaza. Tu propuesta sustituiría a esta.") : ""),
                 true, true, "Aceptar", "Rechazar", () => Answer(accept), () => Answer(reject)), true);
         }
 
-        private static readonly Tpl TPlayerStatement = new Tpl("kingdom_statement/player_statement_analysis.txt",
+        // ============================================================ a peace talked out face to face
+
+        private static readonly Tpl TChatNotAtWar = new Tpl("kingdom_statement/chat_peace_not_at_war.txt", "your realms are not at war, or one of you no longer rules");
+        private static readonly Tpl TChatNoTreaty = new Tpl("kingdom_statement/chat_peace_no_treaty.txt", "no treaty can be drawn up right now");
+        private static readonly Tpl TChatNotApplied = new Tpl("kingdom_statement/chat_peace_not_applied.txt", "the peace did not take effect");
+
+        /// <summary>
+        /// A peace that an AI ruler and the player, who rules, settled in a chat, with terms or with none. It is
+        /// built and checked here, shown to the player by the caller, and signed only on his yes (SignChatPeace): it
+        /// never enters the list of pending proposals. <paramref name="terms"/> has the fields of propose_peace as
+        /// the AI ruler would write them: the plain ones are what the player gives, the offer_ ones what the AI
+        /// ruler gives. Sums are held to the caps, so the treaty may carry less than was said: the player is shown
+        /// the real figures. null, with the reason in English for the character, when it cannot be.
+        /// </summary>
+        public static Proposal DraftChatPeace(Kingdom theirs, Kingdom mine, JObject terms, out string why)
+        {
+            why = null;
+            try
+            {
+                if (theirs == null || mine == null || theirs == mine || !theirs.IsAtWarWith(mine)) { why = TChatNotAtWar.Text; return null; }
+                if (St?.Proposals == null || St.Refused == null) { why = TChatNoTreaty.Text; return null; }
+                var t = ReadPeaceTerms(theirs, mine, terms ?? new JObject(), out Why no);
+                if (t == null) { why = no.En; return null; }
+                double now = CampaignTime.Now.ToDays;
+                var p = new Proposal
+                {
+                    Id = WorldSim.NewId("pr"), Type = "peace", From = theirs.StringId, To = mine.StringId, Day = now, ExpiresDay = now, Notified = true,
+                    DailyTribute = t.Daily, TributeDays = t.Days, Reparations = t.Reparations, SettlementId = t.Fief?.StringId, SettlementLast = t.FiefLast,
+                    OfferDailyTribute = t.OfferDaily, OfferTributeDays = t.OfferDays, OfferReparations = t.OfferReparations, OfferSettlementId = t.OfferFief?.StringId, OfferSettlementLast = t.OfferFiefLast,
+                };
+                // a treaty that could not be signed as it stands is not put in front of the player
+                var broken = TermsBroken(p, theirs, mine);
+                if (broken != null) { why = broken.En; return null; }
+                return p;
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] redactando una paz hablada", ex); why = TChatNoTreaty.Text; return null; }
+        }
+
+        /// <summary>The terms of a chat peace as the player reads them before signing: who pays whom, or that nobody does.</summary>
+        public static string ChatPeaceText(Proposal p)
+        {
+            var from = WorldSim.FindKingdom(p.From);
+            return IsPlain(p)
+                ? L.F("AIL_e7b1c781", $"{from?.Name} te propone firmar la paz ahora, sin condiciones: nadie paga ni entrega nada.\n\nSi firmas, la guerra termina en el acto. Si no, no cambia nada.")
+                : L.F("AIL_e7b1c774", $"{from?.Name} te propone firmar la paz ahora{TermsForPlayer(p)}.\n\nSi firmas, se paga y se entrega en el acto. Si no, no cambia nada.");
+        }
+
+        /// <summary>The terms of a chat peace in English, for the character's own record of it.</summary>
+        public static string ChatPeaceNote(Proposal p) => IsPlain(p) ? "none" : Terms(p).Trim(' ', '(', ')');
+
+        /// <summary>
+        /// The player said yes to a chat peace: checked again and signed, all of it or none. null when it no longer
+        /// can be, with the reason in English for the character and, when there is one to show, for the player.
+        /// </summary>
+        public static string SignChatPeace(Proposal p, out string why, out string whyForPlayer)
+        {
+            why = null; whyForPlayer = null;
+            try
+            {
+                var theirs = WorldSim.FindKingdom(p.From); var mine = WorldSim.FindKingdom(p.To);
+                if (theirs == null || mine == null || !PlayerRules(mine) || theirs.Leader == null || !theirs.IsAtWarWith(mine)) { why = TChatNotAtWar.Text; return null; }
+                string r = SignPeace(mine, theirs, p, out Why broken);
+                if (broken != null)
+                {
+                    Log.Warn($"[diplomacia] la paz hablada entre {mine.Name} y {theirs.Name} no se firma: {broken.Es}");
+                    why = broken.En; whyForPlayer = broken.Es; return null;
+                }
+                if (r == null) { why = TChatNotApplied.Text; return null; }
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "statement", Importance = 3,
+                    Text = $"{Hero.MainHero.Name}, ruler of {mine.Name}, and {theirs.Leader?.Name}, ruler of {theirs.Name}, signed a peace face to face. Terms, with {theirs.Name} as the proposer and {mine.Name} as the receiver: {(IsPlain(p) ? "none" : Terms(p).Trim(' ', '(', ')'))}.",
+                    TitleEs = L.F("AIL_e7b1c775", $"Paz entre {mine.Name} y {theirs.Name}"), TextEs = r, Kingdoms = new List<string> { mine.StringId, theirs.StringId },
+                });
+                return r;
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] firmando una paz hablada", ex); why = TChatNotApplied.Text; return null; }
+        }
+
+        private static readonly Tpl TPlayerStatement =new Tpl("kingdom_statement/player_statement_analysis.txt",
 @"{ruler}, ruler of {kingdom} [id: {kingdom_id}], has issued the public statement below. You are the chancellor: turn the words into the actions they really contain, nothing more.
 - Use only what the statement clearly says. If it only speaks and decides nothing, return no actions.
-- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days or tribute_years, reparations, settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days or tribute_years), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects = a list of effects from the catalogue of law effects below), repeal_law (law_name), enact_policy (policy = id of an established policy from the lists below), repeal_policy (policy), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
+- A peace can carry a price in either direction, and the two must never be mixed up. What the ruler DEMANDS that the other realm pay or hand over goes in daily_tribute, tribute_days or tribute_years, reparations, settlement (a town or castle of theirs). What the ruler OFFERS to pay or hand over himself goes in offer_daily_tribute, offer_tribute_days or offer_tribute_years, offer_reparations, offer_settlement (a town or castle of his own realm). ""I will pay you 5000 denars for peace"" is offer_reparations 5000; ""pay me 5000 and there will be peace"" is reparations 5000. Use an offer_ field only when the statement plainly says the ruler himself pays or gives. Accepting a proposal that is pending is accept_peace, not a new propose_peace.
+- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days or tribute_years, reparations, settlement, offer_daily_tribute, offer_tribute_days or offer_tribute_years, offer_reparations, offer_settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days or tribute_years), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects = a list of effects from the catalogue of law effects below), repeal_law (law_name), enact_policy (policy = id of an established policy from the lists below), repeal_policy (policy), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
 - target_kingdom must be a kingdom id from the data.
-Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
+Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""offer_daily_tribute"": 0, ""offer_tribute_days"": 0, ""offer_reparations"": 0, ""offer_settlement"": ""name"", ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
 For a law, law_name and law_text are the ruler's own words; choose law_effects that do what those words say, within the ranges.");
 
         public static void Touch() { var _ = TStatement.Key + TPlayerStatement.Key + TRealmFacts.Key; }
@@ -1861,7 +2342,8 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
             var k = PlayerRealm;
             if (!PlayerCanDeclare) { WorldSim.Say(L.T("AIL_76f7a56d", "Solo quien reina puede hacer una declaración."), Colors.Red); return; }
             InformationManager.ShowTextInquiry(new TextInquiryData(L.T("AIL_fec92cb7", "Declaración de la corona"),
-                L.T("AIL_f00983f3", "Escribe lo que proclamas ante Calradia. Lo que decidas con claridad (guerra, paz, alianza, tributo, impuestos, feudos…) se llevará a cabo; lo demás quedará como palabras."),
+                L.T("AIL_f00983f3", "Escribe lo que proclamas ante Calradia. Lo que decidas con claridad (guerra, paz, alianza, tributo, impuestos, feudos…) se llevará a cabo; lo demás quedará como palabras.")
+                + "\n\n" + L.T("AIL_e7b1c773", "Para la paz puedes exigir o también ofrecer: un pago de una vez, un tributo diario o una ciudad o castillo de tu reino. Di con claridad quién paga a quién."),
                 true, true, L.T("AIL_e5c9b3ad", "Proclamar"), L.T("AIL_e5c9b3a4", "Cancelar"), text =>
                 {
                     text = (text ?? "").Trim();

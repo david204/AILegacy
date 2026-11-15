@@ -472,15 +472,34 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
-                Name = "make_peace", Usage = "make_peace",
-                Description = "As ruler, you agree to peace between your kingdom and theirs, effective immediately. Only when you have truly accepted the terms " +
-                              "(often after tribute was paid with take_gold).",
+                Name = "make_peace", Usage = "make_peace  or  make_peace:<terms>",
+                Description = "As ruler, you agree to peace between your kingdom and theirs. Only when you have truly accepted the terms. " +
+                              "When the two of you settled a price for the peace in this talk, in either direction, write it after the colon " +
+                              "as terms separated by semicolons, and do NOT use take_gold or give_gold for it: " +
+                              "they_pay=<denars they pay you at once>; you_pay=<denars you pay them at once>; they_pay_daily=<denars a day>x<days>; you_pay_daily=<denars a day>x<days>; " +
+                              "they_cede=<a town or castle of their realm>; you_cede=<a town or castle of your realm>. " +
+                              "Example: make_peace:they_pay=8000;they_cede=Varcheg — or, if you are the one buying the peace: make_peace:you_pay=5000. " +
+                              "Only terms that both of you agreed to in so many words. The side that is losing the war is the one that pays; you never pay more than your treasury holds. " +
+                              "Each term at most once, sums as plain whole numbers above zero, and a town or castle by its full name. " +
+                              "With or without terms, they are shown the treaty and nothing is signed, paid or handed over until they confirm it.",
                 IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction),
+                Extra = s => $"Your treasury holds {Math.Max(0, s.Hero.Gold)} denars.",
                 Execute = (s, arg, ctx) =>
                 {
-                    MarkWarPeace(s.Hero.MapFaction);
-                    World.Diplomacy.Ours(() => MakePeaceAction.Apply(s.Hero.MapFaction, PlayerKingdom));
-                    return L.F("AIL_7def1f8e", $"{s.Hero.MapFaction.Name} y {PlayerKingdom.Name} firman la paz.");
+                    // With a price either way or with none, the peace is drawn up, shown to the player, and signed
+                    // only on his yes: a talk never ends a war without a click. Whatever the character wrote after
+                    // the colon, nothing here may throw into the dialogue.
+                    try
+                    {
+                        var terms = PeaceTermsFrom(arg, out string badTerm);
+                        if (badTerm != null) return Nope(null, badTerm);
+                        return OfferTreaty(s, terms ?? new Newtonsoft.Json.Linq.JObject());
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Tratado de paz en una charla", ex);
+                        return Nope(null, "the treaty could not be drawn up; nothing was signed, paid or handed over");
+                    }
                 }
             },
 
@@ -2025,6 +2044,143 @@ namespace AILegacy.Dialogue
                     Memory.SaveFiles.Flush();
                 });
             return L.F("AIL_b8f2e6b6", $"{s.Name} está dispuesto a batirse contigo.");
+        }
+
+        private static readonly string[] PeaceTermKeys = { "they_pay", "you_pay", "they_pay_daily", "you_pay_daily", "they_cede", "you_cede" };
+        // a whole number, plain or in groups of three, with nothing after it but the coin's name
+        private static readonly System.Text.RegularExpressions.Regex TermAmount = new System.Text.RegularExpressions.Regex(
+            @"^(\d{1,3}(?:[.,' ]\d{3})+|\d+)(?:\s*(?:denars?|denarii|gold|coins?))?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        private static readonly System.Text.RegularExpressions.Regex TermDays = new System.Text.RegularExpressions.Regex(
+            @"^(\d+)(?:\s*days?)?$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+        /// <summary>A sum or a count written cleanly, above zero. "200xabc", "-500", "0" and "a lot" are not one.</summary>
+        private static bool TermNumber(System.Text.RegularExpressions.Regex shape, string val, out int n)
+        {
+            n = 0;
+            var m = shape.Match((val ?? "").Trim());
+            if (!m.Success) return false;
+            long v = 0;
+            foreach (char c in m.Groups[1].Value)
+                if (c >= '0' && c <= '9') { v = v * 10 + (c - '0'); if (v > int.MaxValue) v = int.MaxValue; }
+            n = (int)v;
+            return n > 0;
+        }
+
+        /// <summary>
+        /// The terms written after "make_peace:", turned into the fields of a ruler's propose_peace as the character
+        /// would write them: what "they" (the player) give goes in the plain fields, what "you" (the character) give
+        /// in the offer_ ones. null when there are none, which is a plain peace. <paramref name="bad"/> says, in
+        /// English for the character, what could not be read: a term not written name=value, an unknown or repeated
+        /// name, a sum or a length that is not a clean number above zero, a missing value. Sums over the caps and
+        /// settlement names are settled where the treaty is drawn up (Diplomacy.DraftChatPeace).
+        /// </summary>
+        private static Newtonsoft.Json.Linq.JObject PeaceTermsFrom(string arg, out string bad)
+        {
+            bad = null;
+            try
+            {
+                arg = (arg ?? "").Trim().Trim(';', '|').Trim();
+                if (arg.Length == 0) return null;
+                if (arg.IndexOf('=') < 0)
+                {
+                    // Loose words with no figure and no term in them ("make_peace:agreed") stay a plain peace, which
+                    // the player still has to sign. Anything that looks like a price must be written properly.
+                    string low = arg.ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
+                    if (!arg.Any(char.IsDigit) && !PeaceTermKeys.Any(k => low.Contains(k))) return null;
+                    bad = "the terms must be written as name=value separated by semicolons, for example they_pay=8000;they_cede=Varcheg. For a peace with no terms write make_peace alone";
+                    return null;
+                }
+                var j = new Newtonsoft.Json.Linq.JObject();
+                var seen = new HashSet<string>();
+                foreach (var raw in arg.Split(';', '|', '\n'))
+                {
+                    string part = raw.Trim();
+                    if (part.Length == 0) continue;
+                    int eq = part.IndexOf('=');
+                    if (eq <= 0) { bad = $"the term «{Clip(part, 40)}» is not written as name=value"; return null; }
+                    string key = part.Substring(0, eq).Trim().ToLowerInvariant().Replace(' ', '_').Replace('-', '_'), val = part.Substring(eq + 1).Trim();
+                    // two terms run together with a comma would lose the second one
+                    if (val.IndexOf('=') >= 0) { bad = "the terms must be separated by semicolons, one name=value each"; return null; }
+                    if (Array.IndexOf(PeaceTermKeys, key) < 0)
+                    {
+                        bad = $"«{Clip(key, 30)}» is not a term of a peace: only they_pay, you_pay, they_pay_daily, you_pay_daily, they_cede and you_cede exist";
+                        return null;
+                    }
+                    if (!seen.Add(key)) { bad = $"the term {key} is written twice: each term goes once, with its whole amount"; return null; }
+                    if (val.Length == 0) { bad = $"the term {key} has no value"; return null; }
+                    switch (key)
+                    {
+                        case "they_pay": case "you_pay":
+                        {
+                            if (!TermNumber(TermAmount, val, out int amount)) { bad = $"«{Clip(part, 40)}» is not a sum: write a whole number of denars above zero, like {key}=8000"; return null; }
+                            j[key == "you_pay" ? "offer_reparations" : "reparations"] = amount;
+                            break;
+                        }
+                        case "they_pay_daily": case "you_pay_daily":
+                        {
+                            int cut = val.IndexOfAny(new[] { 'x', 'X', '×', '*', '/' });
+                            // no length given at all: one year of this world, and the treaty shows the days
+                            int days = Math.Max(1, CampaignTime.DaysInYear);
+                            if (!TermNumber(TermAmount, cut >= 0 ? val.Substring(0, cut) : val, out int daily) || (cut >= 0 && !TermNumber(TermDays, val.Substring(cut + 1), out days)))
+                            { bad = $"«{Clip(part, 40)}» is not a tribute: write denars a day and days as whole numbers above zero, like {key}=200x90"; return null; }
+                            string pre = key == "you_pay_daily" ? "offer_" : "";
+                            j[pre + "daily_tribute"] = daily; j[pre + "tribute_days"] = days;
+                            break;
+                        }
+                        default:
+                            j[key == "you_cede" ? "offer_settlement" : "settlement"] = val;
+                            break;
+                    }
+                }
+                return j.Count > 0 ? j : null;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Condiciones de una paz hablada", ex);
+                bad = "the terms could not be read";
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// A peace settled in the talk, with a price or without: the player is shown who pays whom and decides.
+        /// Nothing is signed, paid or handed over without his yes.
+        /// </summary>
+        private static string OfferTreaty(Speaker s, Newtonsoft.Json.Linq.JObject terms)
+        {
+            var theirs = s.Hero.MapFaction as Kingdom;
+            var p = World.Diplomacy.DraftChatPeace(theirs, PlayerKingdom, terms, out string why);
+            if (p == null) return Nope(null, (why ?? "the treaty could not be drawn up") + ". Nothing was signed, paid or handed over");
+            if (Repeated(s, "treaty", 1)) return null;
+            LastDone[s.Key + "|treaty"] = (1, DateTime.UtcNow);
+            NoteOutcome(s, $"[Pending: you have put a treaty of peace in front of them. Its terms as written in it, with your realm as the proposer and theirs as the receiver: {World.Diplomacy.ChatPeaceNote(p)}. " +
+                           "Nothing is signed, paid or handed over unless they confirm it now.]");
+            Ask(L.F("AIL_e7b1c776", $"Tratado de paz con {theirs.Name}"), World.Diplomacy.ChatPeaceText(p),
+                L.T("AIL_e7b1c777", "Firmar"), L.T("AIL_e7b1c778", "No firmar"),
+                () =>
+                {
+                    string done = World.Diplomacy.SignChatPeace(p, out string no, out string noForPlayer);
+                    if (done == null)
+                    {
+                        NoteOutcome(s, $"[Did not happen: the peace was not signed, because {no}. Your realms are still at war and nothing was paid or handed over. This is not a refusal by them.]");
+                        Say(noForPlayer != null ? L.F("AIL_e7b1c782", $"La paz no se ha firmado: {noForPlayer}. No se ha pagado ni entregado nada.")
+                                                : L.T("AIL_e7b1c779", "La paz no se ha firmado: lo acordado ya no se puede cumplir."));
+                        Memory.SaveFiles.Flush();
+                        return;
+                    }
+                    MarkWarPeace(theirs);
+                    NoteOutcome(s, $"[Done: they signed and the war between your realms is over. The terms, with your realm as the proposer and theirs as the receiver: {World.Diplomacy.ChatPeaceNote(p)}. " +
+                                   "All of it has been paid and handed over already: do not use make_peace, take_gold or give_gold for it again.]");
+                    Say(done);
+                    Memory.SaveFiles.Flush();
+                },
+                () =>
+                {
+                    NoteOutcome(s, "[Did not happen: they read the treaty and would not sign it. Your realms are still at war and nothing was paid or handed over.]");
+                    Say(L.F("AIL_e7b1c77a", $"No firmas la paz con {theirs.Name}."));
+                    Memory.SaveFiles.Flush();
+                });
+            return L.F("AIL_e7b1c77b", $"{s.Name} te pone delante un tratado de paz.");
         }
 
         // War and peace decided in a chat: a few days must pass between one and the other with the same kingdom

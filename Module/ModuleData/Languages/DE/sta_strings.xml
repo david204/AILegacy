@@ -1957,5 +1957,34 @@
     <string id="AIL_e7b1c763" text="{0} hatte dir bereits einen Frieden ohne Bedingungen angeboten: Du entscheidest, ob du ihn annimmst." />
     <string id="AIL_e7b1c764" text="{0} bittet {1} um Frieden; {1} hält an seinen Bedingungen fest{2}." />
     <string id="AIL_e7b1c765" text="{0} kann {1} im Moment nicht den Krieg erklären." />
+    <string id="AIL_e7b1c766" text="bietet {0}" />
+    <string id="AIL_e7b1c767" text="fordert {0}" />
+    <string id="AIL_e7b1c768" text="man bietet dir {0}" />
+    <string id="AIL_e7b1c769" text="man fordert von dir {0}" />
+    <string id="AIL_e7b1c76a" text="„{0}“ ist keine Stadt oder Burg von {1}, die jetzt übergeben werden kann" />
+    <string id="AIL_e7b1c76b" text="dieselbe Art von Bedingung kann nicht zugleich gefordert und angeboten werden" />
+    <string id="AIL_e7b1c76c" text="{0} bietet {1} Denare, hat aber nur {2} in der Schatzkammer" />
+    <string id="AIL_e7b1c76d" text="{0} gibt an {1}: {2}." />
+    <string id="AIL_e7b1c76e" text="Dein Friedensvorschlag an {0} geht nicht hinaus: {1}." />
+    <string id="AIL_e7b1c76f" text="{0} hatte dir diesen Frieden bereits vorgeschlagen{1}: du entscheidest, ob du ihn annimmst." />
+    <string id="AIL_e7b1c770" text="{0} kann nicht mehr leisten, was es {1} für den Frieden geboten hatte: der Vorschlag ist hinfällig." />
+    <string id="AIL_e7b1c771" text="Das ist ihre Antwort auf den Frieden, den du vorgeschlagen hattest: dein Vorschlag ist zurückgezogen, es gelten nur diese Bedingungen." />
+    <string id="AIL_e7b1c772" text="Mit einer Erklärung kannst du auch andere Bedingungen vorschlagen: eine Zahlung, einen Tribut oder eine Festung fordern oder anbieten. Dein Vorschlag würde diesen ersetzen." />
+    <string id="AIL_e7b1c773" text="Für einen Frieden kannst du fordern oder auch anbieten: eine einmalige Zahlung, einen täglichen Tribut oder eine Stadt oder Burg deines Reiches. Sag klar, wer wem zahlt." />
+    <string id="AIL_e7b1c774" text="{0} schlägt dir vor, jetzt Frieden zu schließen{1}.&#10;&#10;Wenn du unterzeichnest, wird sofort gezahlt und übergeben. Wenn nicht, ändert sich nichts." />
+    <string id="AIL_e7b1c775" text="Frieden zwischen {0} und {1}" />
+    <string id="AIL_e7b1c776" text="Friedensvertrag mit {0}" />
+    <string id="AIL_e7b1c777" text="Unterzeichnen" />
+    <string id="AIL_e7b1c778" text="Nicht unterzeichnen" />
+    <string id="AIL_e7b1c779" text="Der Frieden wurde nicht geschlossen: das Vereinbarte lässt sich nicht mehr erfüllen." />
+    <string id="AIL_e7b1c77a" text="Du unterzeichnest den Frieden mit {0} nicht." />
+    <string id="AIL_e7b1c77b" text="{0} legt dir einen Friedensvertrag vor." />
+    <string id="AIL_e7b1c77c" text="die Übergabe von {0}, der letzten Stadt oder Burg des Reiches, das sie abgibt" />
+    <string id="AIL_e7b1c77d" text="{0} müsste {1} Denare zahlen, hat aber nur {2} in der Schatzkammer" />
+    <string id="AIL_e7b1c77e" text="{0} ist inzwischen die letzte Stadt oder Burg von {1}, und davon stand nichts in den Bedingungen" />
+    <string id="AIL_e7b1c77f" text="Der Frieden zwischen {0} und {1} wird nicht geschlossen und der Vorschlag ist hinfällig: {2}. Das gilt nicht als Ablehnung: beide Seiten können ihn erneut vorschlagen." />
+    <string id="AIL_e7b1c780" text="{0} nimmt den Frieden an, den du vorgeschlagen hattest. {1}" />
+    <string id="AIL_e7b1c781" text="{0} schlägt dir vor, den Frieden jetzt zu unterzeichnen, ohne Bedingungen: niemand zahlt oder übergibt etwas.&#10;&#10;Unterzeichnest du, endet der Krieg sofort. Wenn nicht, ändert sich nichts." />
+    <string id="AIL_e7b1c782" text="Der Frieden wurde nicht geschlossen: {0}. Es wurde nichts gezahlt oder übergeben." />
   </strings>
 </base>

@@ -253,11 +253,14 @@ namespace AILegacy.World
             "yearn", "crav", "need", "longs", "longed", "longing", "dream", "pray", "restor", "return", "lasting", "terms", "price",
             // a peace still to be made: "let there be peace between", "time for a truce with", "to make peace between"
             "let", "lets", "time", "path", "road", "way", "chance", "bring", "make", "making", "achiev", "secur", "forg",
+            // a peace still to be paid for: "to pay a tribute in exchange for peace between", "to buy a truce with".
+            // These count only where UntiePayments leaves them: tied to a peace or a tribute in the same clause.
+            "exchang", "pay", "buy", "purchas",
         };
         private static readonly HashSet<string> ExactPeaceHedges = new HashSet<string>
         {
             "war", "sue", "sues", "sued", "fell", "dead", "gone", "lost", "longs", "longed", "longing", "need", "terms", "price",
-            "let", "lets", "time", "path", "road", "way", "chance", "make", "making",
+            "let", "lets", "time", "path", "road", "way", "chance", "make", "making", "pay", "buy",
         };
 
         // "a truce with X", "any truce with X": one that is wished for, offered or refused, not one in force
@@ -271,6 +274,45 @@ namespace AILegacy.World
             foreach (var h in PeaceOnlyHedges)
                 if (ExactPeaceHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal)) return true;
             return false;
+        }
+
+        private static bool IsPaymentWord(string w) =>
+            w == "pay" || w == "buy" || w.StartsWith("exchang", StringComparison.Ordinal) || w.StartsWith("purchas", StringComparison.Ordinal);
+        private static readonly HashSet<string> PaidFor = new HashSet<string> { "peace", "truce", "tribute", "tributes" };
+        private const int PaidForReach = 8;
+
+        /// <summary>
+        /// The sentence with every pay / buy / purchase / exchange word blanked out unless a peace, a truce or a
+        /// tribute follows it within a few words of the same clause ("pay ... for peace", "buy a truce", "in
+        /// exchange for peace", "pay tribute"). "We pay our soldiers and X is at peace with Y" hedges nothing.
+        /// Blanked words keep their length, so positions in the sentence still hold.
+        /// </summary>
+        private static string UntiePayments(string soft)
+        {
+            var starts = new List<int>(); var words = new List<string>();
+            for (int i = 0; i < soft.Length;)
+            {
+                if (soft[i] == ' ') { i++; continue; }
+                int j = soft.IndexOf(' ', i);
+                if (j < 0) j = soft.Length;
+                starts.Add(i); words.Add(soft.Substring(i, j - i));
+                i = j;
+            }
+            StringBuilder sb = null;
+            for (int i = 0; i < words.Count; i++)
+            {
+                if (!IsPaymentWord(words[i])) continue;
+                bool tied = false;
+                for (int j = i + 1; j < words.Count && j <= i + PaidForReach; j++)
+                {
+                    if (words[j] == "|" || ClauseOpeners.Contains(words[j])) break;
+                    if (PaidFor.Contains(words[j])) { tied = true; break; }
+                }
+                if (tied) continue;
+                if (sb == null) sb = new StringBuilder(soft);
+                for (int c = 0; c < words[i].Length; c++) sb[starts[i] + c] = '_';
+            }
+            return sb == null ? soft : sb.ToString();
         }
 
         private static readonly char[] Space = { ' ' };
@@ -466,6 +508,8 @@ namespace AILegacy.World
         private static string Peace(string soft, List<Mention> ms, HashSet<string> wars, string speaker)
         {
             Func<string, bool> hedge = IsPeaceHedge;
+            // what the hedges are read from: paying or buying only counts where it is a peace that is paid for
+            string hs = UntiePayments(soft);
             foreach (var w in PeaceWords)
                 for (int at = soft.IndexOf(w, StringComparison.Ordinal); at >= 0; at = soft.IndexOf(w, at + 1, StringComparison.Ordinal))
                 {
@@ -477,12 +521,12 @@ namespace AILegacy.World
                         var lead = Words(soft.Substring(0, at + 1));
                         if (lead.Length > 0 && OpenTruce.Contains(lead[lead.Length - 1])) continue;
                     }
-                    if (HedgeIn(soft.Substring(phraseEnd, b.Start - phraseEnd), hedge) || HedgeAfter(soft.Substring(b.End), HedgeTail, hedge)) continue;
+                    if (HedgeIn(hs.Substring(phraseEnd, b.Start - phraseEnd), hedge) || HedgeAfter(hs.Substring(b.End), HedgeTail, hedge)) continue;
                     var a = ms.LastOrDefault(x => x.End <= at + 1);
                     string subject;
                     if (a.Id != null && Words(soft.Substring(a.End, at + 1 - a.End)).Count(x => x != "|") <= SubjectReach)
                     {
-                        if (HedgeIn(soft.Substring(a.End, at + 1 - a.End), hedge) || HedgeBefore(soft.Substring(0, a.Start), HedgeLead, hedge)) continue;
+                        if (HedgeIn(hs.Substring(a.End, at + 1 - a.End), hedge) || HedgeBefore(hs.Substring(0, a.Start), HedgeLead, hedge)) continue;
                         subject = a.Id;
                     }
                     else
@@ -490,7 +534,7 @@ namespace AILegacy.World
                         // no kingdom close enough to be the subject: it is the speaker's own peace, unless the
                         // sentence has already named some other kingdom
                         if (speaker == null || ms.Any(x => x.End <= at + 1 && x.Id != speaker)) continue;
-                        if (HedgeBefore(soft.Substring(0, at + 1), SubjectReach, hedge)) continue;
+                        if (HedgeBefore(hs.Substring(0, at + 1), SubjectReach, hedge)) continue;
                         subject = speaker;
                     }
                     if (subject != b.Id && wars.Contains(Pair(subject, b.Id))) return subject + " and " + b.Id;
@@ -501,8 +545,8 @@ namespace AILegacy.World
                     int phraseEnd = at + w.Length - 1;
                     var after = ms.Where(x => x.Start >= phraseEnd && x.Start <= at + w.Length + NearChars * 3).ToList();
                     if (after.Count < 2 || after[0].Id == after[1].Id) continue;
-                    if (HedgeIn(soft.Substring(phraseEnd, after[0].Start - phraseEnd), hedge) || HedgeIn(soft.Substring(after[0].End, after[1].Start - after[0].End), hedge)) continue;
-                    if (HedgeBefore(soft.Substring(0, at + 1), HedgeLeadBetween, hedge) || HedgeAfter(soft.Substring(after[1].End), HedgeTail, hedge)) continue;
+                    if (HedgeIn(hs.Substring(phraseEnd, after[0].Start - phraseEnd), hedge) || HedgeIn(hs.Substring(after[0].End, after[1].Start - after[0].End), hedge)) continue;
+                    if (HedgeBefore(hs.Substring(0, at + 1), HedgeLeadBetween, hedge) || HedgeAfter(hs.Substring(after[1].End), HedgeTail, hedge)) continue;
                     if (wars.Contains(Pair(after[0].Id, after[1].Id))) return after[0].Id + " and " + after[1].Id;
                 }
             return null;

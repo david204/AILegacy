@@ -1957,5 +1957,34 @@
     <string id="AIL_e7b1c763" text="{0}此前已向你提出无条件议和：是否接受由你决定。" />
     <string id="AIL_e7b1c764" text="{0}向{1}求和，{1}坚持其条件{2}。" />
     <string id="AIL_e7b1c765" text="{0}现在不能向{1}宣战。" />
+    <string id="AIL_e7b1c766" text="愿意给予：{0}" />
+    <string id="AIL_e7b1c767" text="要求：{0}" />
+    <string id="AIL_e7b1c768" text="对方愿意给你：{0}" />
+    <string id="AIL_e7b1c769" text="对方要求你：{0}" />
+    <string id="AIL_e7b1c76a" text="“{0}”不是{1}现在可以交出的城镇或城堡" />
+    <string id="AIL_e7b1c76b" text="同一类条件不能既要求又给予" />
+    <string id="AIL_e7b1c76c" text="{0}愿意支付 {1} 第纳尔，但国库只有 {2}" />
+    <string id="AIL_e7b1c76d" text="{0}给予{1}：{2}。" />
+    <string id="AIL_e7b1c76e" text="你向{0}提出的和约未能送出：{1}。" />
+    <string id="AIL_e7b1c76f" text="{0}已经向你提出过这份和约{1}：是否接受由你决定。" />
+    <string id="AIL_e7b1c770" text="{0}已无法兑现为求和而向{1}许下的条件：该提议作废。" />
+    <string id="AIL_e7b1c771" text="这是对方对你所提和约的答复：你的提议已撤回，现在只有这些条件有效。" />
+    <string id="AIL_e7b1c772" text="你也可以通过声明提出别的条件：要求或给予一笔款项、一份贡金或一座据点。你的提议将取代这一份。" />
+    <string id="AIL_e7b1c773" text="议和时你既可以要求，也可以给予：一次性款项、每日贡金，或你王国的一座城镇或城堡。请说清楚谁付给谁。" />
+    <string id="AIL_e7b1c774" text="{0}提议现在就与你签订和约{1}。&#10;&#10;你若签字，款项与城池立即交付；若不签，一切照旧。" />
+    <string id="AIL_e7b1c775" text="{0}与{1}议和" />
+    <string id="AIL_e7b1c776" text="与{0}的和约" />
+    <string id="AIL_e7b1c777" text="签字" />
+    <string id="AIL_e7b1c778" text="不签" />
+    <string id="AIL_e7b1c779" text="和约没有签成：约定的条件已无法兑现。" />
+    <string id="AIL_e7b1c77a" text="你没有与{0}签订和约。" />
+    <string id="AIL_e7b1c77b" text="{0}把一份和约摆在你面前。" />
+    <string id="AIL_e7b1c77c" text="交出{0}（这是交出方最后一座城镇或城堡）" />
+    <string id="AIL_e7b1c77d" text="{0}需要支付 {1} 第纳尔，但国库只有 {2}" />
+    <string id="AIL_e7b1c77e" text="{0}已成为{1}最后一座城镇或城堡，而条件中并未写明" />
+    <string id="AIL_e7b1c77f" text="{0}与{1}的和约没有签成，提议作废：{2}。这不算拒绝：任何一方都可以重新提出。" />
+    <string id="AIL_e7b1c780" text="{0}接受了你提出的和约。{1}" />
+    <string id="AIL_e7b1c781" text="{0}提议你现在签订和约，不附带任何条件：双方都不必支付或交出任何东西。&#10;&#10;签字则战争立即结束；不签则一切照旧。" />
+    <string id="AIL_e7b1c782" text="和约没有签成：{0}。没有支付或交出任何东西。" />
   </strings>
 </base>

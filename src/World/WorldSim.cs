@@ -98,6 +98,19 @@ namespace AILegacy.World
         [JsonProperty("amount")] public int Reparations;       // paid by "to" to "from"
         [JsonProperty("settlement")] public string SettlementId;   // given up by "to" to "from"
         [JsonProperty("years")] public int TradeYears;
+        // Peace only: what "from" offers to give "to". The fields above stay what "from" demands of "to".
+        [JsonProperty("offer_daily", DefaultValueHandling = DefaultValueHandling.Ignore)] public int OfferDailyTribute;      // paid by "from" to "to"
+        [JsonProperty("offer_days", DefaultValueHandling = DefaultValueHandling.Ignore)] public int OfferTributeDays;
+        [JsonProperty("offer_amount", DefaultValueHandling = DefaultValueHandling.Ignore)] public int OfferReparations;      // paid by "from" to "to"
+        [JsonProperty("offer_settlement", DefaultValueHandling = DefaultValueHandling.Ignore)] public string OfferSettlementId;   // given up by "from" to "to"
+        /// <summary>
+        /// The settlement demanded (or offered) was its giver's last town or castle when the peace was proposed, and
+        /// the terms said so. Without this a realm's last one is never handed over.
+        /// </summary>
+        [JsonProperty("last", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool SettlementLast;
+        [JsonProperty("offer_last", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool OfferSettlementLast;
+        /// <summary>A peace that took the place of the one its recipient had proposed: they are told theirs is off the table.</summary>
+        [JsonProperty("counter", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Counter;
         /// <summary>Already shown to the player (when it's aimed at their kingdom).</summary>
         [JsonProperty("notified")] public bool Notified;
         /// <summary>Its recipient has had a turn to answer it. One that runs out without that was never refused.</summary>
@@ -192,6 +205,8 @@ namespace AILegacy.World
         [JsonProperty("war_seen")] public Dictionary<string, double> WarSeenDay = new Dictionary<string, double>();
         /// <summary>Day until which neither may declare war on the other after a peace forced by exhaustion ("a|b").</summary>
         [JsonProperty("forced_truce")] public Dictionary<string, double> ForcedTruceUntil = new Dictionary<string, double>();
+        /// <summary>Per kingdom id: what its AI ruler is told on his next turn about a peace that could not be signed (English).</summary>
+        [JsonProperty("peace_notes")] public Dictionary<string, List<string>> PeaceNotes = new Dictionary<string, List<string>>();
     }
 
     // ===================================================================== engine

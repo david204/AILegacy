@@ -1957,5 +1957,34 @@
     <string id="AIL_e7b1c763" text="{0} had already offered you peace with no terms: it is for you to decide whether you accept it." />
     <string id="AIL_e7b1c764" text="{0} asks {1} for peace; {1} holds to its terms{2}." />
     <string id="AIL_e7b1c765" text="{0} cannot declare war on {1} right now." />
+    <string id="AIL_e7b1c766" text="offers {0}" />
+    <string id="AIL_e7b1c767" text="demands {0}" />
+    <string id="AIL_e7b1c768" text="they offer you {0}" />
+    <string id="AIL_e7b1c769" text="they demand from you {0}" />
+    <string id="AIL_e7b1c76a" text="“{0}” is not a town or castle of {1} that can be handed over right now" />
+    <string id="AIL_e7b1c76b" text="the same kind of term cannot be demanded and offered at once" />
+    <string id="AIL_e7b1c76c" text="{0} offers {1} denars and its treasury holds only {2}" />
+    <string id="AIL_e7b1c76d" text="{0} gives {1}: {2}." />
+    <string id="AIL_e7b1c76e" text="Your peace proposal to {0} is not sent: {1}." />
+    <string id="AIL_e7b1c76f" text="{0} had already proposed that peace to you{1}: it is for you to accept it or not." />
+    <string id="AIL_e7b1c770" text="{0} can no longer deliver what it offered {1} for peace: the proposal is void." />
+    <string id="AIL_e7b1c771" text="This is their answer to the peace you had proposed: your proposal is withdrawn and only these terms stand." />
+    <string id="AIL_e7b1c772" text="With a declaration you can also propose other terms: demand or offer a payment, a tribute or a stronghold. Your proposal would replace this one." />
+    <string id="AIL_e7b1c773" text="For a peace you can demand or also offer: a single payment, a daily tribute or a town or castle of your realm. Say clearly who pays whom." />
+    <string id="AIL_e7b1c774" text="{0} proposes to sign the peace with you now{1}.&#10;&#10;If you sign, everything is paid and handed over at once. If you do not, nothing changes." />
+    <string id="AIL_e7b1c775" text="Peace between {0} and {1}" />
+    <string id="AIL_e7b1c776" text="Peace treaty with {0}" />
+    <string id="AIL_e7b1c777" text="Sign" />
+    <string id="AIL_e7b1c778" text="Do not sign" />
+    <string id="AIL_e7b1c779" text="The peace was not signed: what was agreed can no longer be delivered." />
+    <string id="AIL_e7b1c77a" text="You do not sign the peace with {0}." />
+    <string id="AIL_e7b1c77b" text="{0} lays a peace treaty before you." />
+    <string id="AIL_e7b1c77c" text="the handing over of {0}, which is the last town or castle of the realm giving it" />
+    <string id="AIL_e7b1c77d" text="{0} would have to pay {1} denars and its treasury holds only {2}" />
+    <string id="AIL_e7b1c77e" text="{0} has become the last town or castle of {1}, and the terms did not say so" />
+    <string id="AIL_e7b1c77f" text="The peace between {0} and {1} is not signed and the proposal is void: {2}. It does not count as a refusal: either side may propose it again." />
+    <string id="AIL_e7b1c780" text="{0} accepts the peace you had proposed. {1}" />
+    <string id="AIL_e7b1c781" text="{0} proposes that you sign the peace now, with no terms: nobody pays or hands over anything.&#10;&#10;If you sign, the war ends at once. If you do not, nothing changes." />
+    <string id="AIL_e7b1c782" text="The peace was not signed: {0}. Nothing was paid or handed over." />
   </strings>
 </base>

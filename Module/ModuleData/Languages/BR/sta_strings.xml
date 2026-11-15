@@ -1957,5 +1957,34 @@
     <string id="AIL_e7b1c763" text="{0} já havia oferecido a você a paz sem condições: cabe a você decidir se aceita." />
     <string id="AIL_e7b1c764" text="{0} pede a paz a {1}, que mantém as suas condições{2}." />
     <string id="AIL_e7b1c765" text="{0} não pode declarar guerra a {1} agora." />
+    <string id="AIL_e7b1c766" text="oferece {0}" />
+    <string id="AIL_e7b1c767" text="exige {0}" />
+    <string id="AIL_e7b1c768" text="oferece a você {0}" />
+    <string id="AIL_e7b1c769" text="exige de você {0}" />
+    <string id="AIL_e7b1c76a" text="“{0}” não é uma cidade ou castelo de {1} que possa ser entregue agora" />
+    <string id="AIL_e7b1c76b" text="não se pode exigir e oferecer ao mesmo tempo o mesmo tipo de condição" />
+    <string id="AIL_e7b1c76c" text="{0} oferece {1} denários e o seu tesouro só tem {2}" />
+    <string id="AIL_e7b1c76d" text="{0} dá a {1}: {2}." />
+    <string id="AIL_e7b1c76e" text="A sua proposta de paz a {0} não é enviada: {1}." />
+    <string id="AIL_e7b1c76f" text="{0} já havia proposto essa paz a você{1}: você decide se a aceita." />
+    <string id="AIL_e7b1c770" text="{0} já não pode cumprir o que oferecia a {1} pela paz: a proposta fica sem efeito." />
+    <string id="AIL_e7b1c771" text="É a resposta deles à paz que você havia proposto: a sua proposta fica retirada e só valem estas condições." />
+    <string id="AIL_e7b1c772" text="Com uma declaração você também pode propor outras condições: exigir ou oferecer um pagamento, um tributo ou uma praça-forte. A sua proposta substituiria esta." />
+    <string id="AIL_e7b1c773" text="Para a paz você pode exigir ou também oferecer: um pagamento único, um tributo diário ou uma cidade ou castelo do seu reino. Diga com clareza quem paga a quem." />
+    <string id="AIL_e7b1c774" text="{0} propõe a você assinar a paz agora{1}.&#10;&#10;Se você assinar, tudo é pago e entregue na hora. Se não, nada muda." />
+    <string id="AIL_e7b1c775" text="Paz entre {0} e {1}" />
+    <string id="AIL_e7b1c776" text="Tratado de paz com {0}" />
+    <string id="AIL_e7b1c777" text="Assinar" />
+    <string id="AIL_e7b1c778" text="Não assinar" />
+    <string id="AIL_e7b1c779" text="A paz não foi assinada: o que foi combinado já não pode ser cumprido." />
+    <string id="AIL_e7b1c77a" text="Você não assina a paz com {0}." />
+    <string id="AIL_e7b1c77b" text="{0} coloca um tratado de paz diante de você." />
+    <string id="AIL_e7b1c77c" text="a entrega de {0}, que é a última cidade ou castelo do reino que a entrega" />
+    <string id="AIL_e7b1c77d" text="{0} teria de pagar {1} denários e o seu tesouro só tem {2}" />
+    <string id="AIL_e7b1c77e" text="{0} passou a ser a última cidade ou castelo de {1}, e as condições não diziam isso" />
+    <string id="AIL_e7b1c77f" text="A paz entre {0} e {1} não é assinada e a proposta fica sem efeito: {2}. Não conta como recusa: qualquer um dos dois pode propô-la de novo." />
+    <string id="AIL_e7b1c780" text="{0} aceita a paz que você havia proposto. {1}" />
+    <string id="AIL_e7b1c781" text="{0} propõe que você assine a paz agora, sem condições: ninguém paga nem entrega nada.&#10;&#10;Se assinar, a guerra termina na hora. Se não, nada muda." />
+    <string id="AIL_e7b1c782" text="A paz não foi assinada: {0}. Nada foi pago nem entregue." />
   </strings>
 </base>
