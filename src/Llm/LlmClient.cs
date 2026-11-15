@@ -408,7 +408,7 @@ namespace AILegacy.Llm
             string key = p.Name + "|" + p.Model;
             bool stream = opts.Stream && !IsFlagged(NoStream, key);
             bool usageOpt = stream && !IsFlagged(NoStreamUsage, key);
-            bool droppedUsage = false, suspectStream = false;
+            bool droppedUsage = false, suspectStream = false, streamNamed = false;
             for (int level = start; level < 4; level++)
             {
                 ClearPartial(opts);
@@ -438,7 +438,7 @@ namespace AILegacy.Llm
                         lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
                         // First suspect is the usage option, then streaming itself. Only after that, the usual parameter ladder
                         if (usageOpt) { usageOpt = false; droppedUsage = true; }
-                        else { stream = false; suspectStream = true; }
+                        else { stream = false; suspectStream = true; streamNamed = ((err ?? "") + (text ?? "")).IndexOf("stream", StringComparison.OrdinalIgnoreCase) >= 0; }
                         level--;
                         continue;
                     }
@@ -458,7 +458,9 @@ namespace AILegacy.Llm
                     if (suspectStream)
                     {
                         suspectStream = false;
-                        if (status == 200)
+                        // Only when the provider's own error named streaming. A 400 about something else that happened
+                        // to pass on the retry must not switch streaming off for the whole session.
+                        if (status == 200 && streamNamed)
                         {
                             Flag(NoStream, key);
                             Log.Warn($"{p.Name}: rechaza las peticiones en streaming; no vuelvo a pedírselo en esta sesión");

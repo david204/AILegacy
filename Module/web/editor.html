@@ -42,6 +42,23 @@
   .checks input { width:auto; }
   .news div { padding:8px 0; border-bottom:1px solid #2e2418; display:flex; gap:10px; }
   .news span.t { color:var(--gold); min-width:110px; } .news .txt { flex:1; }
+  .help { border-left:3px solid var(--gold); background:var(--panel2); padding:8px 14px; margin:0 0 16px; color:var(--muted); font-size:13px; }
+  .err { color:var(--red); font-size:12px; margin:3px 0 0; }
+  .bad { border-color:#a44 !important; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { border:1px solid var(--line); background:#120e09; color:var(--muted); padding:2px 9px; font-size:13px; cursor:pointer; user-select:none; }
+  .chip.on { color:var(--gold); border-color:var(--gold); }
+  .entry { border:1px solid var(--line); background:#1b150e; padding:8px 12px; margin-bottom:8px; }
+  .entry summary { cursor:pointer; }
+  .entry summary small { color:var(--muted); margin-left:8px; }
+  .tag { font-size:12px; border:1px solid var(--line); padding:1px 7px; color:var(--muted); margin-left:8px; text-transform:none; letter-spacing:0; }
+  .tag.own { color:var(--gold); border-color:var(--gold); }
+  .star { float:right; color:var(--line); padding:0 2px 0 8px; font-size:17px; line-height:1; }
+  .star.on, .star:hover { color:var(--gold); }
+  .filters { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:6px 0; }
+  .bk { width:100%; border-collapse:collapse; font-size:13px; }
+  .bk th { text-align:left; border-bottom:1px solid var(--line); padding:4px 6px; color:var(--muted); font-weight:normal; }
+  .bk td { padding:4px 6px; border-bottom:1px solid #2e2418; vertical-align:middle; }
   #toast { position:fixed; right:20px; bottom:20px; background:#2a2117; border:1px solid var(--gold); padding:10px 16px; display:none; z-index:9; }
   @media (max-width:900px) { .grid2, .npcs { grid-template-columns:1fr; } }
 </style>
@@ -61,24 +78,57 @@
 </header>
 <main>
   <section class="tab on" id="t-world">
+    <p class="help">Aquí se edita lo que los personajes saben del mundo y de ti en esta partida: quién eres, la descripción del mundo, los hechos, los secretos, los moldes de carácter y la fe y las costumbres de cada pueblo. Lo que guardes vale desde la siguiente frase. Los hechos y secretos nuevos se reparten la próxima vez que hables con cada personaje.</p>
     <div class="card">
-      <h2>Descripción del mundo</h2>
+      <h2>Archivos de esta partida</h2>
+      <p class="hint">Cada partida puede tener su propia copia de los archivos del mundo. Mientras no la tenga, usa los del módulo, que valen para todas las partidas. Al guardar en esta pestaña se crea la copia de esta partida; los del módulo no se tocan.</p>
+      <div class="row"><button class="btn" onclick="copyDefaults()">Copiar los valores del módulo a esta partida</button></div>
+    </div>
+    <div class="card">
+      <h2>Tu personaje</h2>
+      <p class="hint">Lo que se sabe y se dice de tu personaje, y quién es su familia. Lo reciben los personajes que saben quién eres; un desconocido solo ve tu aspecto. Mejor en inglés. Se guarda con esta partida.</p>
+      <label>Quién eres para los demás</label>
+      <textarea id="p_desc" maxlength="3000"></textarea>
+      <label>Tu familia</label>
+      <textarea id="p_family" maxlength="3000"></textarea>
+      <div class="row"><button class="btn main" onclick="savePlayer()">Guardar</button></div>
+    </div>
+    <div class="card">
+      <h2>Descripción del mundo <span class="tag" data-own="world.txt"></span></h2>
       <p class="hint">Va al principio de cada conversación. Escríbelo en inglés (las respuestas salen en tu idioma). Se aplica en la siguiente frase.</p>
       <textarea id="world" style="min-height:260px"></textarea>
-      <div class="row"><button class="btn main" onclick="saveWorld()">Guardar</button></div>
+      <div class="row"><button class="btn main" onclick="saveWorld()">Guardar</button><button class="btn" data-reset="world.txt" onclick="resetWD('world.txt')">Volver a los del módulo</button></div>
+    </div>
+    <div class="card">
+      <h2>Hechos públicos <span class="tag" data-own="info.json"></span></h2>
+      <p class="hint">Cosas que se saben en el mundo. Cada personaje que encaja tira una vez la probabilidad; si le sale, lo sabe para siempre.</p>
+      <div id="k_info"></div>
+      <div class="row"><button class="btn" onclick="addK('info')">Añadir hecho</button><button class="btn main" onclick="saveK('info')">Guardar</button><button class="btn" data-reset="info.json" onclick="resetWD('info.json')">Volver a los del módulo</button></div>
+    </div>
+    <div class="card">
+      <h2>Secretos <span class="tag" data-own="secrets.json"></span></h2>
+      <p class="hint">Como los hechos, pero quien lo sabe solo lo cuenta si se fía de ti lo bastante.</p>
+      <div id="k_secrets"></div>
+      <div class="row"><button class="btn" onclick="addK('secrets')">Añadir secreto</button><button class="btn main" onclick="saveK('secrets')">Guardar</button><button class="btn" data-reset="secrets.json" onclick="resetWD('secrets.json')">Volver a los del módulo</button></div>
+    </div>
+    <div class="card">
+      <h2>Moldes de carácter <span class="tag" data-own="archetypes.json"></span></h2>
+      <p class="hint">Cada personaje nace de uno de estos moldes según lo que es. Cambiar un molde no cambia a quien ya lo tiene asignado.</p>
+      <div id="a_list"></div>
+      <div class="row"><button class="btn" onclick="addArch()">Añadir molde</button><button class="btn main" onclick="saveArch()">Guardar</button><button class="btn" data-reset="archetypes.json" onclick="resetWD('archetypes.json')">Volver a los del módulo</button></div>
     </div>
     <div class="grid2">
       <div class="card">
-        <h2>Hechos públicos (info.json)</h2>
-        <p class="hint">Lista JSON: id, text, chance (0-100), who (all, lords, faction_leaders, clan_leaders, companions, wanderers, merchants, gang_leaders, town_notables, village_notables, townsfolk, villagers, guards, culture:id, kingdom:id o id de héroe).</p>
-        <textarea id="info" style="min-height:300px"></textarea>
-        <div class="row"><button class="btn main" onclick="saveJson('info')">Guardar</button></div>
+        <h2>Fe de cada pueblo <span class="tag" data-own="religion.json"></span></h2>
+        <p class="hint">Un texto por cultura. El de «default» vale para las culturas que no tengan el suyo.</p>
+        <div id="m_religion"></div>
+        <div class="row"><select id="m_religion_add" style="width:auto" onchange="addMap('religion', this)"></select><button class="btn main" onclick="saveMap('religion')">Guardar</button><button class="btn" data-reset="religion.json" onclick="resetWD('religion.json')">Volver a los del módulo</button></div>
       </div>
       <div class="card">
-        <h2>Secretos (secrets.json)</h2>
-        <p class="hint">Igual que los hechos, más "access": low / medium / high (cuánta confianza hace falta para contarlo).</p>
-        <textarea id="secrets" style="min-height:300px"></textarea>
-        <div class="row"><button class="btn main" onclick="saveJson('secrets')">Guardar</button></div>
+        <h2>Costumbres de cada pueblo <span class="tag" data-own="cultural_traditions.json"></span></h2>
+        <p class="hint">Un texto por cultura. El de «default» vale para las culturas que no tengan el suyo.</p>
+        <div id="m_traditions"></div>
+        <div class="row"><select id="m_traditions_add" style="width:auto" onchange="addMap('traditions', this)"></select><button class="btn main" onclick="saveMap('traditions')">Guardar</button><button class="btn" data-reset="cultural_traditions.json" onclick="resetWD('cultural_traditions.json')">Volver a los del módulo</button></div>
       </div>
     </div>
       <div class="card">
@@ -89,9 +139,22 @@
   </section>
 
   <section class="tab" id="t-npc">
+    <p class="help">Aquí se edita la ficha y la memoria de cada personaje con el que has tratado. Lo que guardes vale desde la siguiente frase; guarda la partida en el juego para que quede también dentro del guardado. La estrella marca favoritos, que salen los primeros.</p>
     <div class="npcs">
       <div>
         <input id="npcSearch" placeholder="Buscar en tus NPC…" oninput="renderNpcs()">
+        <div class="filters">
+          <select id="nf_kingdom" onchange="renderNpcs()"></select>
+          <select id="nf_clan" onchange="renderNpcs()"></select>
+          <select id="nf_life" onchange="renderNpcs()"><option value="">Vivos y muertos</option><option value="1">Solo vivos</option><option value="0">Solo muertos</option></select>
+          <select id="nf_talk" onchange="renderNpcs()"><option value="">Con o sin charlas</option><option value="1">Con charlas</option><option value="0">Sin charlas</option></select>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="nf_fav" onchange="renderNpcs()"> Favoritos</label>
+          <label><input type="checkbox" id="nf_rom" onchange="renderNpcs()"> Con romance</label>
+          <label><input type="checkbox" id="nf_pri" onchange="renderNpcs()"> Prisioneros</label>
+        </div>
+        <p class="hint" id="npcCount" style="margin:6px 0"></p>
         <div class="list" id="npcList"></div>
         <div class="card" style="margin-top:12px">
           <h2>Añadir personaje</h2>
@@ -182,6 +245,7 @@
   </section>
 
   <section class="tab" id="t-events">
+    <p class="help">Aquí se publican noticias a mano y se borran las que hay. Una noticia publicada llega a los personajes al momento, según su importancia.</p>
     <div class="card">
       <h2>Crear evento</h2>
       <p class="hint">Se publica al momento como noticia: los NPC se enteran según la importancia (1 = el lugar, 2 = la corte, 3 = todo el reino, 4 = todo el mundo). Los implicados y su clan lo saben siempre.</p>
@@ -208,6 +272,7 @@
   </section>
 
   <section class="tab" id="t-files">
+    <p class="help">Aquí están los archivos de datos del módulo, que valen para todas las partidas, y las plantillas de lo que se le dice a la IA, que son solo de esta partida. Todo se aplica al guardar.</p>
     <div class="npcs">
       <div>
         <input id="fileSearch" placeholder="Buscar archivo…" oninput="renderFiles()">
@@ -226,6 +291,7 @@
   </section>
 
   <section class="tab" id="t-items">
+    <p class="help">Aquí se crean y se quitan los objetos de rol que llevas. Cuentan desde la siguiente conversación.</p>
     <div class="card">
       <h2>Objetos de rol que llevas</h2>
       <p class="hint">Cartas, sellos, contratos, prendas… No son objetos del juego: existen para la historia. Los personajes saben que los llevas si se los enseñas o entregas en una charla.</p>
@@ -241,6 +307,7 @@
   </section>
 
   <section class="tab" id="t-service">
+    <p class="help">Aquí se ve el gasto de IA y se manejan las copias de la memoria de esta partida. Restaurar o importar sustituye la memoria al momento, y antes se guarda siempre una copia de lo que había.</p>
     <div class="card">
       <h2>Gasto de IA (esta sesión)</h2>
       <p class="hint">Peticiones, tokens y coste estimado por proveedor y tarea. El coste solo sale si has puesto el precio del proveedor en MCM › 0. Claves de IA.</p>
@@ -265,6 +332,12 @@
         <input type="file" id="importFile" accept=".json" style="width:auto">
         <button class="btn danger" onclick="importData()">Restaurar desde archivo</button>
       </div>
+    </div>
+    <div class="card">
+      <h2>Copias guardadas</h2>
+      <p class="hint">Las copias que el mod hace solo: antes de importar, borrar o restaurar desde el editor, al cargar un guardado anterior (rama archivada) y los archivos que retira (papelera). Al restaurar una, antes se guarda una copia de lo que hay ahora.</p>
+      <div class="row"><button class="btn" onclick="loadBackups()">Actualizar</button></div>
+      <div style="max-height:420px;overflow:auto;margin-top:10px"><table class="bk" id="bkTable"></table></div>
     </div>
   </section>
 </main>
@@ -314,7 +387,7 @@ async function loadUsage() {
   $('usageTable').innerHTML = '<tr>' + ['Proveedor', 'Tarea', 'Peticiones', 'Entrada', 'En caché', 'Salida', 'Coste ($)'].map(th).join('') + '</tr>' +
     rows.map(r => '<tr>' + [esc(r.provider), esc(r.task), n(r.calls) + (r.failed ? ` (${n(r.failed)} ✗)` : ''), n(r['in']), n(r.cached) + (r['in'] > 0 ? ` (${Math.round(r.cached * 100 / r['in'])} %)` : ''), n(r.out), Number(r.usd || 0).toFixed(4)].map(td).join('') + '</tr>').join('');
 }
-document.querySelector('nav button[data-t="service"]').addEventListener('click', () => loadUsage().catch(() => {}));
+document.querySelector('nav button[data-t="service"]').addEventListener('click', () => { loadUsage().catch(() => {}); loadBackups().catch(() => {}); });
 
 async function loadLang() {
   try { const r = await (await authFetch('/api/lang')).json(); LANG = r.table || {}; document.documentElement.lang = r.code || 'en'; } catch { LANG = {}; }
@@ -322,10 +395,12 @@ async function loadLang() {
   new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(trNode))).observe(document.body, { childList:true, subtree:true });
 }
 
-let state = null, npcId = null, eventHeroes = [], files = [], curFile = null;
+let state = null, npcId = null, eventHeroes = [], files = [], curFile = null, cultures = [], backups = [];
 const PKEYS = ['personality','backstory','speech_style','goals','secret','given_name','drives','values','social_behavior','cognitive_style','religion','reputation'];
 const $ = id => document.getElementById(id);
 const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// For a value that goes inside '…' in an inline handler
+const escJ = s => esc((s ?? '').toString().replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
 function toast(msg, bad) { const t = $('toast'); t.textContent = msg; t.style.borderColor = bad ? '#d77' : '#d9b25f'; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3500); }
 async function api(path, body) {
   const r = await authFetch(path, body === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
@@ -340,14 +415,215 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
 
 async function load() {
   if (!load.lang) { load.lang = true; await loadLang(); }
+  await loadCultures();
   state = await api('/api/state');
   $('camp').textContent = state.player + ' · ' + state.campaign;
-  $('world').value = state.world;
-  $('info').value = pretty(state.info);
-  $('secrets').value = pretty(state.secrets);
+  loadWorld();
   $('e_kingdoms').innerHTML = state.kingdoms.map(k => `<label><input type="checkbox" value="${esc(k.id)}"> ${esc(k.name)}</label>`).join('');
-  renderNpcs(); renderNews();
-  files = await api('/api/files'); renderFiles(); loadItems(); loadCultures(); loadStorySecrets();
+  npcFilters(); renderNpcs(); renderNews();
+  files = await api('/api/files'); renderFiles(); loadItems(); loadStorySecrets();
+  if ($('t-service').classList.contains('on')) loadBackups().catch(() => {});
+}
+// Fresh state for the NPC list only: the world forms keep whatever is being typed in them
+async function refreshState() { state = await api('/api/state'); npcFilters(); renderNpcs(); }
+
+// ---------------------------------------------------------------- world files of this campaign
+const WHO = ['all','lords','faction_leaders','clan_leaders','companions','wanderers','merchants','gang_leaders','town_notables','village_notables','townsfolk','villagers','guards'];
+const WHO_L = { all:'Todos', lords:'Nobles', faction_leaders:'Soberanos', clan_leaders:'Jefes de clan', companions:'Compañeros', wanderers:'Errantes', merchants:'Mercaderes', gang_leaders:'Jefes de banda', town_notables:'Notables de ciudad', village_notables:'Notables de aldea', townsfolk:'Gente de ciudad', villagers:'Aldeanos', guards:'Guardias' };
+const ROLES = ['ruler','lord','town_notable','village_notable','gang','wanderer','commoner','guard','merchant'];
+const ROLE_L = { ruler:'Soberanos', lord:'Nobles', town_notable:'Notables de ciudad', village_notable:'Notables de aldea', gang:'Jefes de banda', wanderer:'Errantes', commoner:'Gente corriente', guard:'Guardias', merchant:'Mercaderes' };
+const KFILE = { info:'info.json', secrets:'secrets.json' }, MFILE = { religion:'religion.json', traditions:'cultural_traditions.json' };
+const OPTS = { morality:['principled','pragmatic','ruthless'], profanity:['none','mild','heavy'], piety:['devout','observant','indifferent','skeptic'] };
+let WD = {}, K = { info:[], secrets:[] }, ARCH = [], MAPS = { religion:[], traditions:[] }, BROKEN = {}, heroNames = {}, found = [];
+const cut = s => { s = (s || '').replace(/\s+/g, ' ').trim(); return s.length > 90 ? s.slice(0, 90) + '…' : s; };
+const errP = m => m ? `<p class="err">${esc(m)}</p>` : '';
+const slug = s => (s || '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 32);
+const brokenMsg = () => `<p class="err">${T('Este archivo tiene un error de formato y no se puede mostrar aquí. Corrígelo a mano en la carpeta de la partida.')}</p>`;
+function readJson(name, wantArray) {
+  BROKEN[name] = false;
+  try { const v = JSON.parse(WD[name].text); if (wantArray ? Array.isArray(v) : (v && typeof v === 'object' && !Array.isArray(v))) return v; } catch {}
+  BROKEN[name] = true;
+  return wantArray ? [] : {};
+}
+function loadWorld() {
+  WD = state.files; heroNames = state.hero_names || {};
+  $('world').value = WD['world.txt'].text;
+  $('p_desc').value = state.player_description || ''; $('p_family').value = state.player_family || '';
+  for (const k in KFILE) K[k] = readJson(KFILE[k], true).map(e => ({ id:e.id || '', text:e.text || '', chance:e.chance ?? 50, access:e.access || 'medium', who:[...(e.who || [])], about:[...(e.about || [])] }));
+  ARCH = readJson('archetypes.json', true).map(a => ({ id:a.id || '', name:a.name || '', description:a.description || '', roles:[...(a.roles || [])], morality:a.morality || 'pragmatic', profanity:a.profanity || 'mild', piety:a.piety || 'observant' }));
+  for (const k in MFILE) MAPS[k] = Object.entries(readJson(MFILE[k], false)).map(([key, text]) => ({ key, text:text || '' }));
+  renderOwn(); renderK('info'); renderK('secrets'); renderArch(); renderMap('religion'); renderMap('traditions');
+}
+function renderOwn() {
+  document.querySelectorAll('[data-own]').forEach(el => { const own = !!(WD[el.dataset.own] || {}).own; el.textContent = own ? T('copia de esta partida') : T('valores del módulo'); el.classList.toggle('own', own); });
+  document.querySelectorAll('[data-reset]').forEach(el => { el.style.display = (WD[el.dataset.reset] || {}).own ? '' : 'none'; });
+}
+async function saveWD(name, text) { const r = await api('/api/worlddata/save', { name, text }); WD[name] = { text, own:true }; BROKEN[name] = false; renderOwn(); return r; }
+async function reloadWorld() { state = await api('/api/state'); loadWorld(); npcFilters(); renderNpcs(); }
+async function resetWD(name) {
+  if (!confirm(T('¿Dejar de usar la copia de esta partida y volver a los valores del módulo? La copia se guarda al lado como .bak.'))) return;
+  await api('/api/worlddata/reset', { name }); await reloadWorld(); toast(T('Ahora se usan los valores del módulo'));
+}
+async function copyDefaults() { const r = await api('/api/worlddata/copy', {}); await reloadWorld(); toast(T('Archivos copiados a esta partida: ') + r.copied); }
+async function saveWorld() { await saveWD('world.txt', $('world').value); toast(T('Mundo guardado')); }
+async function savePlayer() { await api('/api/player/save', { description:$('p_desc').value, family:$('p_family').value }); toast(T('Guardado')); }
+
+function whoLabel(w) {
+  if (w.startsWith('kingdom:')) { const k = state.kingdoms.find(x => x.id === w.slice(8)); return k ? k.name : w; }
+  if (w.startsWith('culture:')) { const c = cultures.find(x => x.id === w.slice(8)); return c ? c.name : w; }
+  return heroNames[w] || w;
+}
+function renderK(kind) {
+  const box = $('k_' + kind);
+  if (BROKEN[KFILE[kind]]) { box.innerHTML = brokenMsg(); return; }
+  const sec = kind === 'secrets', lvl = { low:'fácil de sonsacar', medium:'solo a quien se fía', high:'solo con mucha confianza' };
+  box.innerHTML = K[kind].map((e, i) => {
+    const er = e._err || {}, a = `'${kind}',${i}`;
+    return `<details class="entry"${e._open ? ' open' : ''} ontoggle="kSet(${a},'_open',this.open)">
+      <summary>${esc(cut(e.text)) || T('(nuevo)')}<small>${esc(e.id)}</small></summary>
+      <label>Texto</label><textarea class="${er.text ? 'bad' : ''}" oninput="kSet(${a},'text',this.value)">${esc(e.text)}</textarea>${errP(er.text)}
+      <div class="grid2">
+        <div><label>Identificador</label><input class="${er.id ? 'bad' : ''}" value="${esc(e.id)}" placeholder="Se pone solo si lo dejas vacío" oninput="kSet(${a},'id',this.value)">${errP(er.id)}</div>
+        <div><label>Probabilidad de saberlo (0 a 100)</label><input type="number" min="0" max="100" class="${er.chance ? 'bad' : ''}" value="${esc(e.chance)}" oninput="kSet(${a},'chance',this.value)">${errP(er.chance)}</div>
+      </div>
+      ${sec ? `<label>Cuánto cuesta sonsacarlo</label><select onchange="kSet(${a},'access',this.value)">${['low','medium','high'].map(v => `<option value="${v}"${e.access === v ? ' selected' : ''}>${T(lvl[v])}</option>`).join('')}</select>` : ''}
+      <label>Quién puede saberlo (ninguno marcado = todos)</label>
+      <div class="chips">${WHO.map(w => `<span class="chip${e.who.includes(w) ? ' on' : ''}" onclick="kWho(${a},'${w}')">${T(WHO_L[w])}</span>`).join('')}${e.who.map((w, j) => WHO.includes(w) ? '' : `<span class="chip on" title="Quitar" onclick="kDel(${a},'who',${j})">${esc(whoLabel(w))} ✕</span>`).join('')}</div>
+      <div class="row">
+        <select style="width:auto" onchange="kWho(${a},this.value)"><option value="">Añadir reino…</option>${state.kingdoms.map(k => `<option value="kingdom:${esc(k.id)}">${esc(k.name)}</option>`).join('')}</select>
+        <select style="width:auto" onchange="kWho(${a},this.value)"><option value="">Añadir cultura…</option>${cultures.map(c => `<option value="culture:${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select>
+      </div>
+      <label>De quién trata (esa persona lo sabe seguro)</label>
+      <div class="chips">${e.about.map((w, j) => `<span class="chip on" title="Quitar" onclick="kDel(${a},'about',${j})">${esc(whoLabel(w))} ✕</span>`).join('')}</div>
+      <input style="margin-top:6px" placeholder="Buscar héroe para añadir…" oninput="kSearch(${a},this.value)">
+      <div class="list" id="ks_${kind}_${i}" style="max-height:140px"></div>
+      <div class="row"><button class="btn danger" onclick="kRemove(${a})">Quitar</button></div>
+    </details>`;
+  }).join('') || `<p class="hint">${T('No hay ninguno.')}</p>`;
+}
+function kSet(kind, i, field, value) { K[kind][i][field] = value; }
+function kWho(kind, i, w) { if (!w) return; const e = K[kind][i], at = e.who.indexOf(w); if (at >= 0) e.who.splice(at, 1); else e.who.push(w); e._open = true; renderK(kind); }
+function kDel(kind, i, field, j) { K[kind][i][field].splice(j, 1); K[kind][i]._open = true; renderK(kind); }
+function kRemove(kind, i) { K[kind].splice(i, 1); renderK(kind); }
+function addK(kind) { if (BROKEN[KFILE[kind]]) return; K[kind].push({ id:'', text:'', chance:50, access:'medium', who:[], about:[], _open:true }); renderK(kind); }
+let kTimer;
+function kSearch(kind, i, q) { clearTimeout(kTimer); kTimer = setTimeout(async () => {
+  const box = $(`ks_${kind}_${i}`); if (!box) return;
+  q = q.trim(); if (q.length < 2) { box.innerHTML = ''; return; }
+  found = await api('/api/heroes?q=' + encodeURIComponent(q));
+  box.innerHTML = found.map((h, n) => `<div onclick="kAbout('${kind}',${i},${n})">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
+}, 250); }
+function kAbout(kind, i, n) { const h = found[n], e = K[kind][i]; if (!h) return; heroNames[h.id] = h.name; if (!e.about.includes(h.id)) e.about.push(h.id); e._open = true; renderK(kind); }
+async function saveK(kind) {
+  const list = K[kind]; if (BROKEN[KFILE[kind]]) return;
+  const seen = new Set(); let bad = false;
+  for (const e of list) {
+    e._err = {}; e.text = e.text.trim(); e.id = e.id.trim();
+    if (!e.text) e._err.text = T('Escribe el texto.');
+    if (!e.id && e.text) { const b = slug(e.text) || kind; let id = b, n = 2; while (list.some(o => o !== e && o.id.trim().toLowerCase() === id)) id = b + '_' + n++; e.id = id; }
+    const key = e.id.toLowerCase();
+    if (e.id.startsWith('-')) e._err.id = T('El identificador no puede empezar por un guion.');
+    else if (e.id && seen.has(key)) e._err.id = T('Este identificador está repetido.');
+    seen.add(key);
+    const c = Number(e.chance);
+    if (String(e.chance).trim() === '' || !Number.isInteger(c) || c < 0 || c > 100) e._err.chance = T('Pon un número entero entre 0 y 100.');
+    if (Object.keys(e._err).length) { bad = true; e._open = true; }
+  }
+  renderK(kind);
+  if (bad) { toast(T('Revisa los campos marcados en rojo.'), true); return; }
+  const out = list.map(e => { const o = { id:e.id, text:e.text, chance:Number(e.chance), who:e.who }; if (kind === 'secrets') o.access = e.access; if (e.about.length) o.about = e.about; return o; });
+  const r = await saveWD(KFILE[kind], JSON.stringify(out, null, 2)); toast(T('Guardado') + ' (' + r.count + ')');
+}
+
+function renderArch() {
+  const box = $('a_list');
+  if (BROKEN['archetypes.json']) { box.innerHTML = brokenMsg(); return; }
+  const sel = (i, f, v) => `<select onchange="aSet(${i},'${f}',this.value)">${OPTS[f].map(o => `<option${o === v ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
+  box.innerHTML = ARCH.map((a, i) => {
+    const er = a._err || {};
+    return `<details class="entry"${a._open ? ' open' : ''} ontoggle="aSet(${i},'_open',this.open)">
+      <summary>${esc(a.name) || T('(nuevo)')}<small>${esc(cut(a.description))}</small></summary>
+      <label>Nombre</label><input class="${er.name ? 'bad' : ''}" value="${esc(a.name)}" oninput="aSet(${i},'name',this.value)">${errP(er.name)}
+      <label>Descripción</label><textarea class="${er.description ? 'bad' : ''}" oninput="aSet(${i},'description',this.value)">${esc(a.description)}</textarea>${errP(er.description)}
+      <label>A quién se le puede asignar</label>
+      <div class="chips">${ROLES.map(r => `<span class="chip${a.roles.includes(r) ? ' on' : ''}" onclick="aRole(${i},'${r}')">${T(ROLE_L[r])}</span>`).join('')}</div>${errP(er.roles)}
+      <div class="grid2">
+        <div><label>Moral</label>${sel(i, 'morality', a.morality)}</div>
+        <div><label>Palabrotas</label>${sel(i, 'profanity', a.profanity)}</div>
+        <div><label>Piedad</label>${sel(i, 'piety', a.piety)}</div>
+      </div>
+      <div class="row"><button class="btn danger" onclick="aRemove(${i})">Quitar</button></div>
+    </details>`;
+  }).join('') || `<p class="hint">${T('No hay ninguno.')}</p>`;
+}
+function aSet(i, field, value) { ARCH[i][field] = value; }
+function aRole(i, r) { const a = ARCH[i], at = a.roles.indexOf(r); if (at >= 0) a.roles.splice(at, 1); else a.roles.push(r); a._open = true; renderArch(); }
+function aRemove(i) { ARCH.splice(i, 1); renderArch(); }
+function addArch() { if (BROKEN['archetypes.json']) return; ARCH.push({ id:'', name:'', description:'', roles:[], morality:'pragmatic', profanity:'mild', piety:'observant', _open:true }); renderArch(); }
+async function saveArch() {
+  if (BROKEN['archetypes.json']) return;
+  const seen = new Set(); let bad = false;
+  for (const a of ARCH) {
+    a._err = {}; a.name = a.name.trim(); a.description = a.description.trim();
+    const key = a.name.toLowerCase();
+    if (!a.name) a._err.name = T('Escribe el nombre.'); else if (seen.has(key)) a._err.name = T('Este nombre está repetido.');
+    seen.add(key);
+    if (!a.description) a._err.description = T('Escribe el texto.');
+    if (!a.roles.length) a._err.roles = T('Marca al menos uno.');
+    if (!OPTS.morality.includes(a.morality)) a.morality = 'pragmatic';
+    if (!OPTS.profanity.includes(a.profanity)) a.profanity = 'mild';
+    if (!OPTS.piety.includes(a.piety)) a.piety = 'observant';
+    if (Object.keys(a._err).length) { bad = true; a._open = true; }
+  }
+  renderArch();
+  if (bad) { toast(T('Revisa los campos marcados en rojo.'), true); return; }
+  const out = ARCH.map(a => ({ id:a.id || slug(a.name), name:a.name, description:a.description, roles:a.roles, morality:a.morality, profanity:a.profanity, piety:a.piety }));
+  const r = await saveWD('archetypes.json', JSON.stringify(out, null, 2)); toast(T('Guardado') + ' (' + r.count + ')');
+}
+
+function renderMap(kind) {
+  const box = $('m_' + kind), add = $('m_' + kind + '_add'), rows = MAPS[kind];
+  if (BROKEN[MFILE[kind]]) { box.innerHTML = brokenMsg(); add.style.display = 'none'; return; }
+  add.style.display = '';
+  const name = key => { const c = cultures.find(x => x.id === key); return c ? c.name : key; };
+  box.innerHTML = rows.map((r, i) => `<div class="entry">
+      <label style="margin-top:0">${esc(name(r.key))}${name(r.key) === r.key ? '' : ` <small>(${esc(r.key)})</small>`}</label>
+      <textarea class="${r._err ? 'bad' : ''}" oninput="mSet('${kind}',${i},this.value)">${esc(r.text)}</textarea>${errP(r._err)}
+      <div class="row"><button class="btn danger" onclick="mRemove('${kind}',${i})">Quitar</button></div>
+    </div>`).join('') || `<p class="hint">${T('No hay ninguno.')}</p>`;
+  const have = new Set(rows.map(r => r.key));
+  add.innerHTML = `<option value="">${T('Añadir cultura…')}</option>` + [...cultures, { id:'default', name:'default' }].filter(c => !have.has(c.id)).map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+}
+function mSet(kind, i, value) { MAPS[kind][i].text = value; }
+function mRemove(kind, i) { MAPS[kind].splice(i, 1); renderMap(kind); }
+function addMap(kind, sel) { if (!sel.value) return; MAPS[kind].push({ key:sel.value, text:'' }); renderMap(kind); }
+async function saveMap(kind) {
+  if (BROKEN[MFILE[kind]]) return;
+  let bad = false; const out = {};
+  for (const r of MAPS[kind]) { r.text = r.text.trim(); r._err = r.text ? '' : T('Escribe el texto.'); if (r._err) bad = true; out[r.key] = r.text; }
+  renderMap(kind);
+  if (bad) { toast(T('Revisa los campos marcados en rojo.'), true); return; }
+  const r = await saveWD(MFILE[kind], JSON.stringify(out, null, 2)); toast(T('Guardado') + ' (' + r.count + ')');
+}
+
+// ---------------------------------------------------------------- copies kept by the mod
+function fmtSize(b) { return b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB'; }
+async function loadBackups() {
+  backups = await api('/api/backups');
+  const kind = { editor:'Copia del editor', branch:'Rama archivada', trash:'Papelera' };
+  const why = { importar:'antes de importar', borrar_npc:'antes de borrar un personaje', restaurar:'antes de restaurar' };
+  const holds = b => b.kind === 'editor' ? T('Toda la memoria') + ' · ' + (why[b.label] ? T(why[b.label]) : esc(b.label))
+                   : b.kind === 'branch' ? b.files + ' ' + T('archivo(s) de la partida') : esc(b.label);
+  $('bkTable').innerHTML = !backups.length ? `<tr><td class="hint">${T('No hay copias todavía.')}</td></tr>`
+    : '<tr>' + ['Fecha', 'Tipo', 'Contiene', 'Tamaño', ''].map(h => `<th>${h ? T(h) : ''}</th>`).join('') + '</tr>' +
+      backups.map((b, i) => `<tr><td>${esc(b.when)}</td><td>${T(kind[b.kind] || b.kind)}</td><td>${holds(b)}</td><td>${fmtSize(b.size)}</td><td>${b.can_restore ? `<button class="btn" onclick="restoreBackup(${i})">Restaurar</button>` : ''}</td></tr>`).join('');
+}
+async function restoreBackup(i) {
+  const b = backups[i]; if (!b) return;
+  if (!confirm(T('¿Restaurar esta copia? Antes se guarda una copia de lo que hay ahora.'))) return;
+  const r = await api('/api/backups/restore', { kind:b.kind, name:b.name });
+  npcId = null; $('npcForm').style.display = 'none';
+  await load(); toast(T('Restaurado. Lo que había queda en: ') + r.backup + '. ' + T('Guarda la partida en el juego para que el cambio quede en el guardado.'));
 }
 
 function renderFiles() {
@@ -362,7 +638,7 @@ async function openFile(kind, name) {
   $('fileText').value = kind === 'world' ? pretty(f.text) : f.text;
   $('fileReset').style.display = kind === 'prompt' ? '' : 'none';
   $('fileHint').textContent = kind === 'world'
-    ? T('Datos del mundo (JSON). Valen para todas las partidas. Al guardar se deja una copia .bak del anterior.')
+    ? T('Datos del mundo (JSON). Valen para todas las partidas. Al guardar se deja una copia .bak del anterior.') + ' ' + T('Si esta partida tiene su propia copia (pestaña Mundo), manda la copia.')
     : T('Plantilla de lo que se le dice a la IA, solo para esta partida. Lo que va entre {llaves} lo rellena el mod: no lo borres ni lo traduzcas. Se aplica al momento.');
 }
 async function saveFile() {
@@ -388,11 +664,11 @@ async function addItem() {
 async function delItem(name) { await api('/api/item/delete', { name }); loadItems(); }
 async function openDir(what) { await api('/api/open', { what }); toast(T('Carpeta abierta en el equipo del juego')); }
 
-async function loadCultures() { const c = await api('/api/cultures'); $('c_culture').innerHTML = $('fam_culture').innerHTML = c.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); }
+async function loadCultures() { const c = cultures = await api('/api/cultures'); $('c_culture').innerHTML = $('fam_culture').innerHTML = c.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); }
 async function createCompanion() {
   const r = await api('/api/companion/create', { name:$('c_name').value, female:$('c_female').value === '1', age:parseInt($('c_age').value || '25'), culture:$('c_culture').value, backstory:$('c_backstory').value, personality:$('c_personality').value });
   toast(r.name + T(' se une a tu partida')); $('c_name').value = ''; $('c_backstory').value = ''; $('c_personality').value = '';
-  state = await api('/api/state'); renderNpcs(); openNpc(r.id);
+  await refreshState(); openNpc(r.id);
 }
 
 async function loadStorySecrets() {
@@ -405,7 +681,7 @@ async function delStorySecret(id) { await api('/api/storysecrets/delete', { id }
 async function createFamily() {
   const r = await api('/api/family/create', { relation:$('fam_rel').value, name:$('fam_name').value, female:$('fam_female').value === '1', age:parseInt($('fam_age').value || '20'), culture:$('fam_culture').value, backstory:$('fam_backstory').value });
   toast(r.name + T(' ya es de tu familia')); $('fam_name').value = ''; $('fam_backstory').value = '';
-  state = await api('/api/state'); renderNpcs(); openNpc(r.id);
+  await refreshState(); openNpc(r.id);
 }
 
 async function generateNpc() {
@@ -418,22 +694,37 @@ async function generateNpc() {
     if (g.busy) { setTimeout(tick, 1500); return; }
     $('genBtn').disabled = false; $('genBtn').textContent = T('Generar personalidad');
     if (g.error) toast(T('No se pudo generar: ') + g.error, true);
-    else { toast(T('Personalidad generada')); if (npcId === id) openNpc(id); state = await api('/api/state'); renderNpcs(); }
+    else { toast(T('Personalidad generada')); if (npcId === id) openNpc(id); await refreshState(); }
   };
   setTimeout(tick, 1500);
 }
 function pretty(s) { try { return JSON.stringify(JSON.parse(s), null, 2); } catch { return s; } }
 
-async function saveWorld() { await api('/api/world', { text:$('world').value }); toast(T('Mundo guardado')); }
-async function saveJson(which) {
-  try { JSON.parse($(which).value); } catch (e) { toast(T('JSON no válido: ') + e.message, true); return; }
-  const r = await api('/api/' + which, { json:$(which).value }); toast(T('Guardado') + ' (' + r.count + ')');
+// Fills the kingdom and clan filters from the characters there are, keeping what was picked
+function npcFilters() {
+  const k = $('nf_kingdom').value, c = $('nf_clan').value;
+  const ks = new Set(state.npcs.map(n => n.kingdom)), clans = [...new Set(state.npcs.map(n => n.clan).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  $('nf_kingdom').innerHTML = `<option value="">${T('Todos los reinos')}</option>` + state.kingdoms.filter(x => ks.has(x.id)).map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('') + `<option value="-">${T('Sin reino')}</option>`;
+  $('nf_clan').innerHTML = `<option value="">${T('Todos los clanes')}</option>` + clans.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+  $('nf_kingdom').value = [...$('nf_kingdom').options].some(o => o.value === k) ? k : '';
+  $('nf_clan').value = clans.includes(c) ? c : '';
 }
-
+// Search and filters run on the list already in the page: no request per keystroke
 function renderNpcs() {
-  const q = $('npcSearch').value.toLowerCase();
-  $('npcList').innerHTML = state.npcs.filter(n => !q || n.name.toLowerCase().includes(q))
-    .map(n => `<div class="${n.id === npcId ? 'on' : ''}" onclick="openNpc('${esc(n.id)}')">${esc(n.name)}<small>${n.talks} ${T('charla(s)')}${n.profile ? T(' · personalidad') : ''}</small></div>`).join('') || '<div><small>Aún no hay nadie.</small></div>';
+  const q = $('npcSearch').value.trim().toLowerCase(), k = $('nf_kingdom').value, c = $('nf_clan').value, life = $('nf_life').value, talk = $('nf_talk').value;
+  const fav = $('nf_fav').checked, rom = $('nf_rom').checked, pri = $('nf_pri').checked;
+  const list = state.npcs.filter(n => (!q || n.name.toLowerCase().includes(q) || (n.clan || '').toLowerCase().includes(q))
+    && (!k || (k === '-' ? !n.kingdom : n.kingdom === k)) && (!c || n.clan === c)
+    && (!life || (life === '1') === !!n.alive) && (!talk || (talk === '1') === (n.talks > 0))
+    && (!fav || n.fav) && (!rom || n.romance > 0) && (!pri || n.prisoner));
+  list.sort((a, b) => ((b.fav ? 1 : 0) - (a.fav ? 1 : 0)) || a.name.localeCompare(b.name));
+  $('npcCount').textContent = list.length + ' / ' + state.npcs.length;
+  $('npcList').innerHTML = list.map(n => `<div class="${n.id === npcId ? 'on' : ''}" onclick="openNpc('${escJ(n.id)}')"><span class="star${n.fav ? ' on' : ''}" title="Favorito" onclick="event.stopPropagation();toggleFav('${escJ(n.id)}')">★</span>${esc(n.name)}<small>${n.clan ? esc(n.clan) + ' · ' : ''}${n.talks} ${T('charla(s)')}${n.profile ? T(' · personalidad') : ''}${n.romance > 0 ? T(' · romance') : ''}${n.prisoner ? T(' · prisionero') : ''}${n.alive ? '' : T(' · muerto o fuera de la partida')}</small></div>`).join('') || '<div><small>Aún no hay nadie.</small></div>';
+}
+async function toggleFav(id) {
+  const n = state.npcs.find(x => x.id === id); if (!n) return;
+  n.fav = !n.fav; renderNpcs();
+  try { await api('/api/favorite', { id, on:n.fav }); } catch { n.fav = !n.fav; renderNpcs(); }
 }
 async function openNpc(id) {
   npcId = id; renderNpcs();
@@ -455,15 +746,15 @@ async function saveNpc() {
   const profile = {}; for (const k of PKEYS) profile[k] = $('f_' + k).value;
   await api('/api/npc/save', { id:npcId, profile, summary:$('f_summary').value, notes:$('f_notes').value, custom:$('f_custom').value, player_name:$('f_player_name').value, mood:$('f_mood').value, trust:String($('f_trust').value), romance:String($('f_romance').value),
     tension:String($('f_tension').value), archetype:$('f_archetype').value, morality:$('f_morality').value, profanity:$('f_profanity').value, piety:$('f_piety').value });
-  toast(T('Guardado. Recuerda guardar la partida en el juego.')); state = await api('/api/state'); renderNpcs();
+  toast(T('Guardado. Recuerda guardar la partida en el juego.')); await refreshState();
 }
 async function clearHistory() { if (!confirm(T('¿Borrar sus frases y resumen?'))) return; await api('/api/npc/clearhistory', { id:npcId }); openNpc(npcId); toast(T('Historial borrado')); }
-async function deleteNpc() { if (!confirm(T('¿Borrar TODA su memoria?'))) return; await api('/api/npc/delete', { id:npcId }); npcId = null; $('npcForm').style.display = 'none'; state = await api('/api/state'); renderNpcs(); toast(T('Memoria borrada')); }
+async function deleteNpc() { if (!confirm(T('¿Borrar TODA su memoria?'))) return; await api('/api/npc/delete', { id:npcId }); npcId = null; $('npcForm').style.display = 'none'; await refreshState(); toast(T('Memoria borrada')); }
 let heroTimer;
 function searchHeroes() { clearTimeout(heroTimer); heroTimer = setTimeout(async () => {
   const q = $('heroSearch').value.trim(); if (q.length < 2) { $('heroResults').innerHTML = ''; return; }
   const hs = await api('/api/heroes?q=' + encodeURIComponent(q));
-  $('heroResults').innerHTML = hs.map(h => `<div onclick="openNpc('${esc(h.id)}');setTimeout(load,300)">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
+  $('heroResults').innerHTML = hs.map(h => `<div onclick="openNpc('${escJ(h.id)}');setTimeout(refreshState,300)">${esc(h.name)}<small>${esc(h.clan)}</small></div>`).join('');
 }, 250); }
 
 function renderNews() {

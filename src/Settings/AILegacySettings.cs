@@ -1034,6 +1034,16 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
         public int MinDaysBetweenLetters { get; set; } = 4;
 
+        [SettingPropertyBool("{=AIL_e7b1c64e}A letter arrives as a map notice", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c64f}A letter from a character shows as one of the round notices at the right of the map; click it to read and answer it, right click to discard it. Notices last until you leave the game (the letter stays in their memory either way). Off: the letter opens in a window as it arrives.")]
+        [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
+        public bool LetterMapNotification { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1c650}Also open the letter at once", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1c651}With the map notice on, the letter also opens in a window as it arrives, as it did before.")]
+        [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
+        public bool LetterPopup { get; set; } = false;
+
         [SettingPropertyInteger("{=AIL_9d30d4f1}Messenger cost per distance unit", 0, 100, Order = 3, RequireRestart = false,
             HintText = "{=AIL_0ebbc439}Denars per distance unit on the map. Letters are sent from the tavern district.")]
         [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
@@ -2046,6 +2056,42 @@ namespace AILegacy.Settings
         [SettingPropertyButton("{=AIL_4eb0fc2d}Make a declaration (if you rule)", Content = "{=AIL_c7acc8b1}Declare", Order = 53, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public Action PlayerDeclaration { get; set; } = () => Later(World.Diplomacy.PlayerStatement);
+
+        // ------------------------------------------------------------ Keys
+        [SettingPropertyText("{=AIL_e7b1c653}Talk to the group", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeyGroupTalk { get; set; } = "Alt+T";
+
+        [SettingPropertyText("{=AIL_e7b1c655}End the group talk", Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeyGroupEnd { get; set; } = "Alt+G";
+
+        [SettingPropertyText("{=AIL_e7b1c656}Battle orders in your own words", Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeyBattleOrders { get; set; } = "Alt+B";
+
+        [SettingPropertyText("{=AIL_e7b1c657}Fight: yield", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeyYield { get; set; } = "Alt+Y";
+
+        [SettingPropertyText("{=AIL_e7b1c658}Fight: ask for a truce", Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeyTruce { get; set; } = "Alt+P";
+
+        [SettingPropertyText("{=AIL_e7b1c659}Fight: call ten of your men", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeySummonTen { get; set; } = "Ctrl+X";
+
+        [SettingPropertyText("{=AIL_e7b1c65a}Fight: call all the men that fit", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeySummonAll { get; set; } = "Ctrl+Alt+X";
 
         // ------------------------------------------------------------ Editor
         [SettingPropertyButton("{=AIL_1cb10851}Open the AI Legacy editor", Content = "{=AIL_5a216c13}Open", Order = 0, RequireRestart = false,

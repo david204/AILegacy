@@ -35,9 +35,15 @@ namespace AILegacy.Patches
             {
                 if (!PoliciesScreen.On) return;
                 var laws = Laws.DisplayPolicies(Clan.PlayerClan?.Kingdom);
-                if (laws.Count == 0) return;
+                if (laws == null || laws.Count == 0 || __instance.ActivePolicies == null) return;
                 var select = AccessTools.MethodDelegate<Action<KingdomPolicyItemVM>>(AccessTools.Method(typeof(KingdomPoliciesVM), "OnPolicySelect"), __instance);
-                foreach (var p in laws) __instance.ActivePolicies.Add(new KingdomPolicyItemVM(p, select, x => true));
+                // a refresh that keeps the list must not add the same law twice
+                foreach (var p in laws)
+                {
+                    bool there = false;
+                    foreach (var it in __instance.ActivePolicies) if (it != null && it.Policy == p) { there = true; break; }
+                    if (!there) __instance.ActivePolicies.Add(new KingdomPolicyItemVM(p, select, x => true));
+                }
                 GameTexts.SetVariable("STR", __instance.ActivePolicies.Count);
                 __instance.NumOfActivePoliciesText = GameTexts.FindText("str_STR_in_parentheses").ToString();
                 // A kingdom with no voted policy would open the active list with nothing selected

@@ -277,6 +277,11 @@ namespace AILegacy.Prompt
         private static readonly Tpl TClaimsVsTruth = new Tpl("context/player_claims_vs_truth.txt",
             "Before you knew who they really were, they gave their name as {name} and told you: {claims} Set that against what you now know to be true (above). Where it does not match, they lied to you then, and you have not forgotten it.");
 
+        private static readonly Tpl TPlayerDescribed = new Tpl("context/player_described.txt",
+            "What is commonly known and said of them, which you take for true unless you have seen otherwise: {description}");
+        private static readonly Tpl TPlayerFamily = new Tpl("context/player_family.txt",
+            "Their family, as it is known: {family}");
+
         public static string DescribePlayer(Speaker s)
         {
             var p = Hero.MainHero;
@@ -312,6 +317,10 @@ namespace AILegacy.Prompt
                 if (pBanned.Length > 0) sb.AppendLine("Their clan is " + pBanned);
                 var fiefs = clan != null ? string.Join(", ", clan.Settlements.Where(x => x.IsTown || x.IsCastle).Take(6).Select(x => x.Name.ToString())) : "";
                 if (fiefs.Length > 0) sb.AppendLine("Holds: " + fiefs);
+                // The player's own account of their character (editor), only for those who know who they are
+                var ws = AILegacy.World.WorldSim.State;
+                if (!string.IsNullOrWhiteSpace(ws?.PlayerDescription)) sb.AppendLine(TPlayerDescribed.Format("description", ws.PlayerDescription.Trim()));
+                if (!string.IsNullOrWhiteSpace(ws?.PlayerFamily)) sb.AppendLine(TPlayerFamily.Format("family", ws.PlayerFamily.Trim()));
                 // What they said they were, back when this character could not know better, against what is true
                 if (!string.IsNullOrWhiteSpace(mem.KnownPlayerClaims))
                     sb.AppendLine(TClaimsVsTruth.Format("claims", mem.KnownPlayerClaims,

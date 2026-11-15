@@ -138,7 +138,18 @@ namespace AILegacy.World
         private static volatile bool _dirty = true;
 
         /// <summary>Call after the list of laws or the limits change. The daily tick calls it too, so MCM changes land within a day.</summary>
-        public static void Invalidate() => _dirty = true;
+        public static void Invalidate()
+        {
+            // Old saves are brought up to date here, on the game thread, so the snapshot builder (which a worker thread
+            // may run) never changes a law
+            try
+            {
+                var src = WorldSim.State?.Laws;
+                if (src != null) foreach (var law in src.ToArray()) if (law != null) Upgrade(law);
+            }
+            catch (Exception ex) { Log.Error("[leyes] poner al día leyes antiguas", ex); }
+            _dirty = true;
+        }
 
         // The game models read this many times a second, some from worker threads: they only ever see a finished snapshot.
         private static Snapshot Current()
@@ -158,11 +169,10 @@ namespace AILegacy.World
                         var tmp = new Dictionary<string, Dictionary<string, List<Entry>>>();
                         foreach (var law in src.ToArray())
                         {
-                            if (law == null || string.IsNullOrEmpty(law.KingdomId)) continue;
-                            Upgrade(law);
+                            if (law == null || string.IsNullOrEmpty(law.KingdomId) || law.Effects == null) continue;
                             string label = L.T("AIL_a9c3e7f2", "Ley: ") + SafeName(law);
                             var reason = new TextObject("{=!}" + label);
-                            foreach (var fx in law.Effects)
+                            foreach (var fx in law.Effects.ToArray())
                             {
                                 var kind = Kind(fx?.Kind);
                                 if (kind == null) continue;

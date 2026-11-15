@@ -1682,5 +1682,127 @@
     <string id="AIL_e7b1c64b" text="等你们谈完，{0}会在门口等你。" />
     <string id="AIL_e7b1c64c" text="对话框只显示对方的话" />
     <string id="AIL_e7b1c64d" text="对话框只显示角色所说的话，上方不显示你的话，前面也不带名字。如果你使用会朗读对话框的语音模组，请开启此项，以免它把你的话也读出来。你的话仍然会出现在“历史”面板中。" />
+    <string id="AIL_e7b1c64e" text="来信显示为地图通知" />
+    <string id="AIL_e7b1c64f" text="角色的来信会显示为地图右侧的圆形通知之一；点击阅读并回复，右键丢弃。通知保留到你退出游戏为止（信件无论如何都会留在对方的记忆里）。关闭：来信到达时直接弹出窗口。" />
+    <string id="AIL_e7b1c650" text="同时立即打开来信" />
+    <string id="AIL_e7b1c651" text="开启地图通知时，来信到达时也会像以前一样弹出窗口。" />
+    <string id="AIL_e7b1c652" text="按键" />
+    <string id="AIL_e7b1c653" text="对众人说话" />
+    <string id="AIL_e7b1c654" text="用文字写出快捷键：Alt+T、Ctrl+Shift+F5、F9。修饰键：Alt、Ctrl、Shift。按键：字母、数字、F1 到 F12、Space、Tab、Insert、Home、PageUp、Numpad0……留空则关闭该快捷键；无法识别的文字按默认值处理。其他菜单里的文字仍写着默认按键。" />
+    <string id="AIL_e7b1c655" text="结束群聊" />
+    <string id="AIL_e7b1c656" text="用自己的话下达战斗命令" />
+    <string id="AIL_e7b1c657" text="打斗：认输" />
+    <string id="AIL_e7b1c658" text="打斗：请求停手" />
+    <string id="AIL_e7b1c659" text="打斗：召来十名部下" />
+    <string id="AIL_e7b1c65a" text="打斗：召来所有容得下的部下" />
+    <string id="AIL_e7b1c65b" text="该副本已不存在或不完整。" />
+    <string id="AIL_e7b1c65c" text="该文件不是角色的记忆，无法从这里恢复。" />
+    <string id="AIL_e7b1c65d" text="第 {0} 条：缺少「{1}」。" />
+    <string id="AIL_e7b1c65e" text="第 {0} 条：「{1}」重复。" />
+    <string id="AIL_e7b1c65f" text="第 {0} 条：「{1}」的值无效。" />
+    <string id="AIL_e7b1c660" text="这里编辑本存档中角色对世界和对你的了解：你是谁、世界描述、事实、秘密、性格模板以及各民族的信仰与习俗。保存的内容从下一句话起生效。新的事实和秘密会在你下次与各角色交谈时分发。" />
+    <string id="AIL_e7b1c661" text="每个存档都可以有自己的一份世界文件。没有时使用模组的文件，它们对所有存档有效。在此标签页保存会创建本存档的副本，模组的文件不会被改动。" />
+    <string id="AIL_e7b1c662" text="把模组的默认值复制到本存档" />
+    <string id="AIL_e7b1c663" text="你的角色" />
+    <string id="AIL_e7b1c664" text="关于你的角色，人们知道什么、传说什么，以及其家人是谁。知道你是谁的角色会收到这些；陌生人只看得到你的外表。最好用英文书写。随本存档保存。" />
+    <string id="AIL_e7b1c665" text="别人眼中的你" />
+    <string id="AIL_e7b1c666" text="你的家人" />
+    <string id="AIL_e7b1c667" text="恢复为模组的默认值" />
+    <string id="AIL_e7b1c668" text="公开事实" />
+    <string id="AIL_e7b1c669" text="世界上为人所知的事。每个符合条件的角色掷一次概率；掷中就永远知道。" />
+    <string id="AIL_e7b1c66a" text="添加事实" />
+    <string id="AIL_e7b1c66b" text="秘密" />
+    <string id="AIL_e7b1c66c" text="和事实一样，但知情者只有足够信任你时才会说出来。" />
+    <string id="AIL_e7b1c66d" text="添加秘密" />
+    <string id="AIL_e7b1c66e" text="性格模板" />
+    <string id="AIL_e7b1c66f" text="每个角色按其身份从这些模板之一塑造而成。修改模板不会改变已经套用它的人。" />
+    <string id="AIL_e7b1c670" text="添加模板" />
+    <string id="AIL_e7b1c671" text="各民族的信仰" />
+    <string id="AIL_e7b1c672" text="每种文化一段文字。「default」那段用于没有自己文字的文化。" />
+    <string id="AIL_e7b1c673" text="各民族的习俗" />
+    <string id="AIL_e7b1c674" text="这里编辑你打过交道的每个角色的档案和记忆。保存的内容从下一句话起生效；请在游戏里存档，让它也写进存档。星标表示收藏，收藏的排在最前。" />
+    <string id="AIL_e7b1c675" text="在世与已故" />
+    <string id="AIL_e7b1c676" text="仅在世" />
+    <string id="AIL_e7b1c677" text="仅已故" />
+    <string id="AIL_e7b1c678" text="有无交谈均可" />
+    <string id="AIL_e7b1c679" text="交谈过" />
+    <string id="AIL_e7b1c67a" text="未交谈过" />
+    <string id="AIL_e7b1c67b" text="收藏" />
+    <string id="AIL_e7b1c67c" text="有恋情" />
+    <string id="AIL_e7b1c67d" text="被俘" />
+    <string id="AIL_e7b1c67e" text="这里手动发布新闻并删除已有新闻。发布的新闻会按其重要程度立刻传到角色耳中。" />
+    <string id="AIL_e7b1c67f" text="这里是模组的数据文件（对所有存档有效）和发给 AI 的提示模板（仅属于本存档）。保存后立即生效。" />
+    <string id="AIL_e7b1c680" text="这里创建和移除你携带的角色扮演物品。从下一次对话起生效。" />
+    <string id="AIL_e7b1c681" text="这里查看 AI 花费并管理本存档记忆的副本。恢复或导入会立即替换记忆，之前总会先保存一份原有内容的副本。" />
+    <string id="AIL_e7b1c682" text="已保存的副本" />
+    <string id="AIL_e7b1c683" text="模组自动制作的副本：在编辑器中导入、删除或恢复之前，读取较早的存档时（归档分支），以及它移走的文件（回收站）。恢复某个副本前会先保存当前内容的副本。" />
+    <string id="AIL_e7b1c684" text="所有人" />
+    <string id="AIL_e7b1c685" text="贵族" />
+    <string id="AIL_e7b1c686" text="君主" />
+    <string id="AIL_e7b1c687" text="氏族首领" />
+    <string id="AIL_e7b1c688" text="同伴" />
+    <string id="AIL_e7b1c689" text="流浪者" />
+    <string id="AIL_e7b1c68a" text="商人" />
+    <string id="AIL_e7b1c68b" text="帮派头目" />
+    <string id="AIL_e7b1c68c" text="城镇名流" />
+    <string id="AIL_e7b1c68d" text="村庄名流" />
+    <string id="AIL_e7b1c68e" text="市民" />
+    <string id="AIL_e7b1c68f" text="村民" />
+    <string id="AIL_e7b1c690" text="卫兵" />
+    <string id="AIL_e7b1c691" text="平民" />
+    <string id="AIL_e7b1c692" text="该文件格式有误，无法在此显示。请在存档文件夹里手动修正。" />
+    <string id="AIL_e7b1c693" text="本存档的副本" />
+    <string id="AIL_e7b1c694" text="模组的默认值" />
+    <string id="AIL_e7b1c695" text="停止使用本存档的副本并恢复为模组的默认值吗？副本会以 .bak 保留在旁边。" />
+    <string id="AIL_e7b1c696" text="现在使用模组的默认值" />
+    <string id="AIL_e7b1c697" text="已复制到本存档的文件数：" />
+    <string id="AIL_e7b1c698" text="（新）" />
+    <string id="AIL_e7b1c699" text="文字" />
+    <string id="AIL_e7b1c69a" text="标识符" />
+    <string id="AIL_e7b1c69b" text="留空则自动生成" />
+    <string id="AIL_e7b1c69c" text="知道的概率（0 到 100）" />
+    <string id="AIL_e7b1c69d" text="套出它有多难" />
+    <string id="AIL_e7b1c69e" text="谁可能知道（都不选 = 所有人）" />
+    <string id="AIL_e7b1c69f" text="添加王国…" />
+    <string id="AIL_e7b1c6a0" text="添加文化…" />
+    <string id="AIL_e7b1c6a1" text="涉及谁（此人必定知道）" />
+    <string id="AIL_e7b1c6a2" text="还没有。" />
+    <string id="AIL_e7b1c6a3" text="请填写文字。" />
+    <string id="AIL_e7b1c6a4" text="标识符不能以连字符开头。" />
+    <string id="AIL_e7b1c6a5" text="该标识符重复了。" />
+    <string id="AIL_e7b1c6a6" text="请输入 0 到 100 之间的整数。" />
+    <string id="AIL_e7b1c6a7" text="请检查标红的字段。" />
+    <string id="AIL_e7b1c6a8" text="描述" />
+    <string id="AIL_e7b1c6a9" text="可以分配给谁" />
+    <string id="AIL_e7b1c6aa" text="道德" />
+    <string id="AIL_e7b1c6ab" text="粗话" />
+    <string id="AIL_e7b1c6ac" text="虔诚" />
+    <string id="AIL_e7b1c6ad" text="请填写名称。" />
+    <string id="AIL_e7b1c6ae" text="该名称重复了。" />
+    <string id="AIL_e7b1c6af" text="至少选择一项。" />
+    <string id="AIL_e7b1c6b0" text="编辑器副本" />
+    <string id="AIL_e7b1c6b1" text="归档分支" />
+    <string id="AIL_e7b1c6b2" text="回收站" />
+    <string id="AIL_e7b1c6b3" text="导入之前" />
+    <string id="AIL_e7b1c6b4" text="删除角色之前" />
+    <string id="AIL_e7b1c6b5" text="恢复之前" />
+    <string id="AIL_e7b1c6b6" text="全部记忆" />
+    <string id="AIL_e7b1c6b7" text="个存档文件" />
+    <string id="AIL_e7b1c6b8" text="还没有副本。" />
+    <string id="AIL_e7b1c6b9" text="日期" />
+    <string id="AIL_e7b1c6ba" text="内容" />
+    <string id="AIL_e7b1c6bb" text="大小" />
+    <string id="AIL_e7b1c6bc" text="恢复" />
+    <string id="AIL_e7b1c6bd" text="恢复这个副本吗？之前会先保存当前内容的副本。" />
+    <string id="AIL_e7b1c6be" text="已恢复。原有内容保存在：" />
+    <string id="AIL_e7b1c6bf" text="如果本存档有自己的副本（「世界」标签页），以副本为准。" />
+    <string id="AIL_e7b1c6c0" text="所有王国" />
+    <string id="AIL_e7b1c6c1" text="无王国" />
+    <string id="AIL_e7b1c6c2" text="所有氏族" />
+    <string id="AIL_e7b1c6c3" text="收藏" />
+    <string id="AIL_e7b1c6c4" text=" · 恋情" />
+    <string id="AIL_e7b1c6c5" text=" · 被俘" />
+    <string id="AIL_e7b1c6c6" text=" · 已故或已不在存档中" />
+    <string id="AIL_e7b1c6c7" text="请在游戏里存档，让改动写进存档。" />
   </strings>
 </base>

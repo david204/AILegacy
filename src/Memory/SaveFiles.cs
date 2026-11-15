@@ -132,6 +132,9 @@ namespace AILegacy.Memory
         // so a write that failed does not look like a file edited by hand on the next load.
         private static Dictionary<string, string> _onDisk = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static bool _manifestDirty;
+        // The manifest could not be written: it stays dirty, and is tried again with the next batch, not in a tight loop
+        private static bool _manifestHold;
+        private static bool _exitHooked;
         private static readonly HashSet<string> _failed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>Queues the file if its content changed since the last time it was queued or written.</summary>
@@ -161,8 +164,15 @@ namespace AILegacy.Memory
         {
             if (_writerRunning) return;
             _writerRunning = true;
-            // Not a background thread: if the game closes with files still queued, the process waits for them
-            new System.Threading.Thread(WriterLoop) { IsBackground = false, Name = "AILegacyFiles" }.Start();
+            _manifestHold = false;
+            // A background thread, so a hung disk can never keep the game's process alive. On a normal exit the queue
+            // is given up to 30 seconds to finish (Drain) before the process goes.
+            if (!_exitHooked)
+            {
+                _exitHooked = true;
+                try { AppDomain.CurrentDomain.ProcessExit += (s, e) => Drain(); } catch { }
+            }
+            new System.Threading.Thread(WriterLoop) { IsBackground = true, Name = "AILegacyFiles" }.Start();
         }
 
         private static void WriterLoop()
@@ -180,7 +190,7 @@ namespace AILegacy.Memory
                         job = IoQueue[at];
                         IoQueue.RemoveAt(at);
                     }
-                    else if (_manifestDirty && _ioDir != null)
+                    else if (_manifestDirty && !_manifestHold && _ioDir != null)
                     {
                         _manifestDirty = false;
                         manifestDir = _ioDir;
@@ -205,7 +215,12 @@ namespace AILegacy.Memory
                             else _failed.Add(job.Name);
                         }
                     }
-                    else if (manifest != null) WriteAtomic(Path.Combine(manifestDir, ManifestFile), manifest);
+                    else if (manifest != null && !WriteAtomic(Path.Combine(manifestDir, ManifestFile), manifest))
+                    {
+                        // An old manifest next to newer files would make them look hand-edited on the next load
+                        lock (IoGate) { _manifestDirty = true; _manifestHold = true; }
+                        Log.Warn("No se pudo escribir el índice de archivos de la campaña; se reintenta con el próximo guardado");
+                    }
                 }
                 catch (Exception ex) { Log.Error("Escritura de archivos en segundo plano", ex); }
             }
@@ -356,13 +371,13 @@ namespace AILegacy.Memory
         /// The files reach the disk a moment later, from the writer thread. The flush after loading (keepStamp) waits for them.
         /// </summary>
         /// <param name="recheck">Also compare in full a share of the characters whose signature did not change (the daily flush).</param>
-        public static void Flush(bool heroes = true, bool keepStamp = false, bool recheck = false)
+        public static void Flush(bool heroes = true, bool keepStamp = false, bool recheck = false, bool wait = false)
         {
             try
             {
                 var c = TaleWorlds.CampaignSystem.Campaign.Current;
                 if (c == null || string.IsNullOrEmpty(c.UniqueGameId)) return;
-                Save(c.UniqueGameId, TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, heroes, keepStamp, wait: keepStamp, recheck: recheck);
+                Save(c.UniqueGameId, TaleWorlds.CampaignSystem.CampaignTime.Now.ToDays, heroes, keepStamp, wait: keepStamp || wait, recheck: recheck);
             }
             catch (Exception ex) { Log.Error("Volcado de archivos de la campaña", ex); }
         }
@@ -545,6 +560,16 @@ namespace AILegacy.Memory
                 Drain();
                 RecoverTemp(dir);
                 UseDir(dir);
+                return ReadDir(dir, campaignId);
+            }
+            catch (Exception ex) { Log.Error("No se pudieron leer los archivos de la campaña", ex); return false; }
+        }
+
+        /// <summary>Puts a folder of campaign files into memory. Loading a campaign and restoring an archived branch both end here.</summary>
+        private static bool ReadDir(string dir, string campaignId)
+        {
+            try
+            {
                 var heroes = new List<HeroMemory>();
                 int bad = 0;
                 foreach (var f in Directory.GetFiles(dir, "*.json"))
@@ -651,6 +676,143 @@ namespace AILegacy.Memory
                 return path;
             }
             catch (Exception ex) { Log.Error("Copia de la memoria", ex); return null; }
+        }
+
+        // ============================================================ copies the editor lists and restores
+
+        public class BackupInfo
+        {
+            /// <summary>editor (whole memory, one file), branch (a folder of campaign files) or trash (one discarded file).</summary>
+            [JsonProperty("kind")] public string Kind;
+            [JsonProperty("name")] public string Name;
+            /// <summary>What it was made for (editor copies) or the file's own name (trash).</summary>
+            [JsonProperty("label")] public string Label;
+            [JsonProperty("when")] public string When;
+            [JsonProperty("size")] public long Size;
+            [JsonProperty("files")] public int Files;
+            /// <summary>False for trash files that are not a character's memory.</summary>
+            [JsonProperty("can_restore")] public bool CanRestore = true;
+        }
+
+        private static string BackupRoot(string campaignId, string kind)
+        {
+            string sub = kind == "editor" ? EditorBackupsDir : kind == "branch" ? BranchesDir : kind == "trash" ? TrashDir : null;
+            return sub == null ? null : Path.Combine(DirFor(campaignId), sub);
+        }
+
+        /// <summary>Full path of a direct child of root, or null if the name tries to reach anywhere else.</summary>
+        private static string ChildOf(string root, string name)
+        {
+            if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(name)) return null;
+            if (name.IndexOfAny(new[] { '/', '\\', ':' }) >= 0 || name.Contains("..") || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return null;
+            try
+            {
+                string full = Path.GetFullPath(Path.Combine(root, name));
+                string dir = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                return full.StartsWith(dir, StringComparison.OrdinalIgnoreCase) && string.Equals(Path.GetDirectoryName(full) + Path.DirectorySeparatorChar, dir, StringComparison.OrdinalIgnoreCase) ? full : null;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>"20261115_101500_importar.json" gives the date and "importar".</summary>
+        private static void SplitStamp(string name, DateTime fallback, out string when, out string rest)
+        {
+            rest = name;
+            var at = fallback;
+            if (name.Length >= 15 && DateTime.TryParseExact(name.Substring(0, 15), "yyyyMMdd_HHmmss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+            {
+                at = d;
+                rest = name.Substring(15).TrimStart('_');
+            }
+            when = at.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        /// <summary>The copies the mod keeps for this campaign, newest first: editor copies, archived branches and the trash.</summary>
+        public static List<BackupInfo> ListBackups(string campaignId)
+        {
+            var list = new List<BackupInfo>();
+            if (string.IsNullOrEmpty(campaignId)) return list;
+            foreach (var kind in new[] { "editor", "branch", "trash" })
+            {
+                try
+                {
+                    var root = BackupRoot(campaignId, kind);
+                    if (!Directory.Exists(root)) continue;
+                    if (kind == "branch")
+                    {
+                        foreach (var d in Directory.GetDirectories(root))
+                        {
+                            var files = Directory.GetFiles(d, "*.json");
+                            SplitStamp(Path.GetFileName(d), Directory.GetLastWriteTime(d), out var when, out _);
+                            list.Add(new BackupInfo { Kind = kind, Name = Path.GetFileName(d), Label = "", When = when, Files = files.Length, Size = files.Sum(f => new FileInfo(f).Length) });
+                        }
+                        continue;
+                    }
+                    foreach (var f in Directory.GetFiles(root, "*.json"))
+                    {
+                        var fi = new FileInfo(f);
+                        SplitStamp(fi.Name, fi.LastWriteTime, out var when, out var rest);
+                        rest = Path.GetFileNameWithoutExtension(rest);
+                        // A character's file ends in "(hero id)"; the rest of the trash is not memory that can go back
+                        bool ok = kind == "editor" || rest.EndsWith(")");
+                        list.Add(new BackupInfo { Kind = kind, Name = fi.Name, Label = rest, When = when, Files = 1, Size = fi.Length, CanRestore = ok });
+                    }
+                }
+                catch (Exception ex) { Log.Warn("Lista de copias (" + kind + "): " + ex.Message); }
+            }
+            return list.OrderByDescending(b => b.When, StringComparer.Ordinal).ToList();
+        }
+
+        /// <summary>
+        /// Brings a copy back. The current memory is copied to _copias_editor first, and nothing changes if that fails.
+        /// An editor copy goes through MemoryStore.Deserialize (what loading a save does), a branch through ReadDir
+        /// (what loading the campaign files does), and a trash file puts that one character back. Then everything is
+        /// written, so disk and memory match. Returns the safety copy's file name, or null with the reason in error.
+        /// </summary>
+        public static string RestoreBackup(string campaignId, string kind, string name, out string error)
+        {
+            error = null;
+            try
+            {
+                var path = ChildOf(BackupRoot(campaignId, kind), name);
+                if (path == null) { error = L.T("AIL_61be9174", "Archivo no válido."); return null; }
+                Drain();
+                string text = null;
+                HeroMemory one = null;
+                if (kind == "branch")
+                {
+                    if (!Directory.Exists(path) || !File.Exists(Path.Combine(path, CampaignFile))) { error = L.T("AIL_e7b1c65b", "Esa copia ya no existe o está incompleta."); return null; }
+                }
+                else
+                {
+                    if (!File.Exists(path)) { error = L.T("AIL_e7b1c65b", "Esa copia ya no existe o está incompleta."); return null; }
+                    text = File.ReadAllText(path, Encoding.UTF8);
+                    if (kind == "editor")
+                    {
+                        // Deserialize empties the memory before reading, so make sure it can be read
+                        var j = JToken.Parse(text) as JObject;
+                        if (j == null || !(j["heroes"] is JArray)) { error = L.T("AIL_61be9174", "Archivo no válido."); return null; }
+                    }
+                    else
+                    {
+                        one = JsonConvert.DeserializeObject<HeroMemory>(text);
+                        if (one == null || string.IsNullOrEmpty(one.HeroId)) { error = L.T("AIL_e7b1c65c", "Ese archivo no es la memoria de un personaje; no se puede restaurar desde aquí."); return null; }
+                    }
+                }
+
+                var safety = BackupMemory(campaignId, "restaurar");
+                if (safety == null) { error = L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."); return null; }
+
+                if (kind == "editor") MemoryStore.Deserialize(text);
+                else if (kind == "branch") { if (!ReadDir(path, campaignId)) { error = L.T("AIL_e7b1c65b", "Esa copia ya no existe o está incompleta."); return null; } }
+                else MemoryStore.Put(one);
+
+                Dirty();
+                Flush();
+                Log.Info($"Copia restaurada ({kind}): {name}; lo que había queda en {Path.GetFileName(safety)}");
+                return Path.GetFileName(safety);
+            }
+            catch (Exception ex) { Log.Error("Restaurar copia", ex); error = ex.Message; return null; }
         }
 
         /// <summary>Moves the given characters' files to a subfolder, so an import can be undone without losing anything.</summary>

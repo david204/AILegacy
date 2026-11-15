@@ -28,9 +28,11 @@ namespace AILegacy.Letters
         private static readonly Queue<(Hero from, string text)> ToShow = new Queue<(Hero, string)>();
         private static bool _generating;
         private static bool _showing;
+        // Letters opened from their map notice while another letter's window was still up
+        private static readonly Queue<(Hero from, string text)> ToRead = new Queue<(Hero, string)>();
 
         /// <summary>New, loaded or imported save: drop queued letters and half-finished generations from the previous one.</summary>
-        public static void ResetSession() { ToShow.Clear(); _generating = false; _showing = false; }
+        public static void ResetSession() { ToShow.Clear(); ToRead.Clear(); _generating = false; _showing = false; }
 
         // ============================================================ backstreet menu
 
@@ -281,15 +283,37 @@ namespace AILegacy.Letters
         /// <summary>Call often. Shows the next letter once the player is free on the map.</summary>
         public static void TryShowPending()
         {
-            if (_showing || ToShow.Count == 0) return;
+            if (_showing || (ToShow.Count == 0 && ToRead.Count == 0)) return;
             if (Mission.Current != null) return;
             if (Campaign.Current?.ConversationManager?.IsConversationInProgress == true) return;
             if (ChatSession.IsBusy) return;
 
+            // A letter clicked on the map while another window was up: wait until no window is (the reply box is one)
+            if (ToRead.Count > 0)
+            {
+                bool busy = false;
+                try { busy = InformationManager.IsAnyInquiryActive(); } catch { }
+                if (!busy) { var (h, t) = ToRead.Dequeue(); Open(h, t); }
+                return;
+            }
+
             var (hero, text) = ToShow.Dequeue();
             text = (text ?? "").Replace("\\r\\n", "\n").Replace("\\n", "\n");      // some letters were saved with literal "\n"
-            _showing = true;
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
+            // As a notice on the map, opened when the player clicks it. The window comes at once only if asked for,
+            // or when the notice could not be placed
+            var cfg = S.Get;
+            bool noticed = cfg.LetterMapNotification && LetterNotice.Add(hero, text);
+            if (noticed && !cfg.LetterPopup) return;
+            Open(hero, text);
+        }
+
+        /// <summary>Shows a received letter in a window, with the reply button if a messenger can be sent back.</summary>
+        internal static void Open(Hero hero, string text)
+        {
+            if (hero == null) return;
+            if (_showing) { ToRead.Enqueue((hero, text)); return; }     // one window at a time, the rest wait their turn
+            _showing = true;
             // Reply on the spot (the messenger waits) or just acknowledge
             bool canReply = CanWrite(hero);
             InformationManager.ShowInquiry(new InquiryData(

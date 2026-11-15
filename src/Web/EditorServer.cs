@@ -221,30 +221,129 @@ namespace AILegacy.Web
             switch (path)
             {
                 case "/api/state":
+                {
+                    World.Lore.EnsureFiles();
+                    var byId = new Dictionary<string, Hero>();
+                    foreach (var h in Hero.AllAliveHeroes) byId[h.StringId] = h;
+                    foreach (var h in Hero.DeadOrDisabledHeroes) if (!byId.ContainsKey(h.StringId)) byId[h.StringId] = h;
+                    var favs = new HashSet<string>(WorldSim.State.EditorFavorites ?? new List<string>());
+                    // The world files as the game reads them now: this campaign's copy if it has one, else the module's
+                    var files = new Dictionary<string, object>();
+                    foreach (var n in WorldFiles.Names)
+                        files[n] = new { text = ReadText(WorldFiles.Resolve(n), n == WorldFiles.World ? "" : n == "religion.json" || n == "cultural_traditions.json" ? "{}" : "[]"), own = WorldFiles.HasOwn(n) };
+                    // Names for the hero ids the facts and secrets point at
+                    var names = new Dictionary<string, string>();
+                    foreach (var n in new[] { "info.json", "secrets.json" })
+                    {
+                        try
+                        {
+                            foreach (var e in JsonConvert.DeserializeObject<List<KnowledgeEntry>>(ReadText(WorldFiles.Resolve(n), "[]")) ?? new List<KnowledgeEntry>())
+                                foreach (var id in (e.About ?? new List<string>()).Concat(e.Who ?? new List<string>()))
+                                    if (id != null && byId.TryGetValue(id, out var hh)) names[id] = hh.Name.ToString();
+                        }
+                        catch { }
+                    }
                     return new
                     {
                         campaign = Campaign.Current.UniqueGameId,
                         player = Hero.MainHero.Name.ToString(),
-                        world = ReadText(Path.Combine(Paths.ModuleDir, "world.txt")),
-                        info = ReadText(Path.Combine(wd, "info.json"), "[]"),
-                        secrets = ReadText(Path.Combine(wd, "secrets.json"), "[]"),
+                        files,
+                        hero_names = names,
+                        player_description = WorldSim.State.PlayerDescription ?? "",
+                        player_family = WorldSim.State.PlayerFamily ?? "",
                         kingdoms = Campaign.Current.Kingdoms.Where(k => !k.IsEliminated).Select(k => new { id = k.StringId, name = k.Name.ToString() }),
-                        npcs = MemoryStore.AllHeroes.Select(m => new { id = m.HeroId, name = m.HeroName, talks = m.ConversationCount, profile = m.Profile != null && !m.Profile.IsEmpty })
-                                                    .OrderBy(x => x.name),
+                        npcs = MemoryStore.AllHeroes.Select(m =>
+                        {
+                            byId.TryGetValue(m.HeroId ?? "", out var h);
+                            var k = h?.MapFaction as Kingdom;
+                            return new
+                            {
+                                id = m.HeroId, name = m.HeroName, talks = m.ConversationCount, profile = m.Profile != null && !m.Profile.IsEmpty,
+                                kingdom = k?.StringId ?? "", clan = h?.Clan?.Name?.ToString() ?? "",
+                                in_game = h != null, alive = h != null && h.IsAlive, prisoner = h != null && h.IsPrisoner,
+                                romance = m.Romance, fav = favs.Contains(m.HeroId ?? ""),
+                            };
+                        }).OrderBy(x => x.name),
                         news = NewsStore.All.OrderByDescending(n => n.Day).Take(300).Select(n => new { n.Id, n.Type, n.Text, n.Importance, days = (int)(CampaignTime.Now.ToDays - n.Day), n.Kingdoms }),
                     };
+                }
 
-                case "/api/world":
-                    WriteText(Path.Combine(Paths.ModuleDir, "world.txt"), (string)d["text"] ?? "");
-                    return new { ok = true };
-
-                case "/api/info":
-                case "/api/secrets":
+                // ---------------------------------------------------------------- world files of this campaign
+                case "/api/worlddata/save":
                 {
-                    var arr = JArray.Parse((string)d["json"] ?? "[]"); // throws if it isn't valid JSON
-                    Directory.CreateDirectory(wd);
-                    WriteText(Path.Combine(wd, path == "/api/info" ? "info.json" : "secrets.json"), arr.ToString(Formatting.Indented));
-                    return new { ok = true, count = arr.Count };
+                    string name = (string)d["name"] ?? "";
+                    // Only the listed names exist for this route, so a name can't point anywhere else
+                    if (!WorldFiles.IsKnown(name)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
+                    string text = CheckWorldFile(name, (string)d["text"] ?? "", out int count);
+                    var p = WorldFiles.CampaignPath(name);
+                    Directory.CreateDirectory(Path.GetDirectoryName(p));
+                    WriteText(p, text);
+                    World.Lore.Reload();
+                    Log.Info("Editor: " + name + " guardado para esta partida");
+                    return new { ok = true, count };
+                }
+
+                case "/api/worlddata/copy":
+                {
+                    World.Lore.EnsureFiles();
+                    var dir = WorldFiles.CampaignDir;
+                    Directory.CreateDirectory(dir);
+                    int copied = 0;
+                    foreach (var n in WorldFiles.Names)
+                    {
+                        string from = WorldFiles.DefaultPath(n), to = WorldFiles.CampaignPath(n);
+                        if (File.Exists(to) || !File.Exists(from)) continue;    // never over a copy the campaign already has
+                        File.Copy(from, to);
+                        copied++;
+                    }
+                    World.Lore.Reload();
+                    return new { ok = true, copied };
+                }
+
+                case "/api/worlddata/reset":
+                {
+                    string name = (string)d["name"] ?? "";
+                    if (!WorldFiles.IsKnown(name)) throw new Exception(L.T("AIL_61be9174", "Archivo no válido."));
+                    var p = WorldFiles.CampaignPath(name);
+                    if (File.Exists(p))
+                    {
+                        // Kept next to it as .bak, the game stops reading it
+                        File.Copy(p, p + ".bak", true);
+                        File.Delete(p);
+                    }
+                    World.Lore.Reload();
+                    return new { ok = true };
+                }
+
+                case "/api/player/save":
+                {
+                    string Cut(string s) { s = (s ?? "").Trim(); return s.Length > 3000 ? s.Substring(0, 3000) : s; }
+                    WorldSim.State.PlayerDescription = Cut((string)d["description"]);
+                    WorldSim.State.PlayerFamily = Cut((string)d["family"]);
+                    SaveFiles.Flush(heroes: false);
+                    return new { ok = true };
+                }
+
+                case "/api/favorite":
+                {
+                    string id = (string)d["id"] ?? "";
+                    var list = WorldSim.State.EditorFavorites ?? (WorldSim.State.EditorFavorites = new List<string>());
+                    list.RemoveAll(x => x == id);
+                    if ((bool?)d["on"] == true && MemoryStore.Find(id) != null) list.Add(id);
+                    SaveFiles.Flush(heroes: false);
+                    return new { ok = true };
+                }
+
+                // ---------------------------------------------------------------- copies kept by the mod
+                case "/api/backups":
+                    return SaveFiles.ListBackups(Campaign.Current.UniqueGameId);
+
+                case "/api/backups/restore":
+                {
+                    // Names only: SaveFiles resolves them inside the campaign's own backup folders and refuses the rest
+                    var safety = SaveFiles.RestoreBackup(Campaign.Current.UniqueGameId, (string)d["kind"] ?? "", (string)d["name"] ?? "", out string err);
+                    if (safety == null) throw new Exception(err ?? L.T("AIL_61be9174", "Archivo no válido."));
+                    return new { ok = true, backup = safety, npcs = MemoryStore.Count };
                 }
 
                 case "/api/heroes":
@@ -577,6 +676,77 @@ Write every field in {language}, each 1 to 3 sentences, concrete (habits, a fear
 - reputation: what is said of them behind their back.
 - sample_lines: 3 short things they would typically say, in their voice.
 Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_style"": """", ""goals"": """", ""secret"": """", ""drives"": """", ""values"": """", ""social_behavior"": """", ""cognitive_style"": """", ""religion"": """", ""reputation"": """", ""sample_lines"": ["""", """", """"] }");
+
+        private static readonly string[] Moralities = { "principled", "pragmatic", "ruthless" };
+        private static readonly string[] Profanities = { "none", "mild", "heavy" };
+        private static readonly string[] Pieties = { "devout", "observant", "indifferent", "skeptic" };
+        private static readonly string[] Accesses = { "low", "medium", "high" };
+
+        /// <summary>Checks a world file before it is written and returns it tidied. Throws with the entry and field at fault.</summary>
+        private static string CheckWorldFile(string name, string text, out int count)
+        {
+            count = 0;
+            if (name == WorldFiles.World) return text;
+            Exception Missing(int i, string field) => new Exception(L.F("AIL_e7b1c65d", $"Entrada {i + 1}: falta «{field}»."));
+            Exception Repeated(int i, string field) => new Exception(L.F("AIL_e7b1c65e", $"Entrada {i + 1}: «{field}» está repetido."));
+            Exception Bad(int i, string field) => new Exception(L.F("AIL_e7b1c65f", $"Entrada {i + 1}: valor no válido en «{field}»."));
+            if (name == "info.json" || name == "secrets.json")
+            {
+                var list = JsonConvert.DeserializeObject<List<KnowledgeEntry>>(text) ?? new List<KnowledgeEntry>();
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var e = list[i] ?? throw Missing(i, "text");
+                    e.Id = (e.Id ?? "").Trim(); e.Text = (e.Text ?? "").Trim();
+                    if (e.Id.Length == 0) throw Missing(i, "id");
+                    if (e.Id.StartsWith("-")) throw Bad(i, "id");      // a leading dash marks a failed roll in a character's memory
+                    if (!seen.Add(e.Id)) throw Repeated(i, "id");
+                    if (e.Text.Length == 0) throw Missing(i, "text");
+                    if (e.Chance < 0 || e.Chance > 100) throw Bad(i, "chance");
+                    e.Access = string.IsNullOrWhiteSpace(e.Access) ? "medium" : e.Access.Trim().ToLowerInvariant();
+                    if (Array.IndexOf(Accesses, e.Access) < 0) throw Bad(i, "access");
+                    e.Who = (e.Who ?? new List<string>()).Select(x => (x ?? "").Trim()).Where(x => x.Length > 0).Distinct().ToList();
+                    e.About = (e.About ?? new List<string>()).Select(x => (x ?? "").Trim()).Where(x => x.Length > 0).Distinct().ToList();
+                }
+                count = list.Count;
+                return JsonConvert.SerializeObject(list, Formatting.Indented);
+            }
+            if (name == "archetypes.json")
+            {
+                var list = JsonConvert.DeserializeObject<List<Archetype>>(text) ?? new List<Archetype>();
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var a = list[i] ?? throw Missing(i, "name");
+                    a.Name = (a.Name ?? "").Trim(); a.Description = (a.Description ?? "").Trim(); a.Id = (a.Id ?? "").Trim();
+                    if (a.Name.Length == 0) throw Missing(i, "name");
+                    if (!seen.Add(a.Name)) throw Repeated(i, "name");
+                    if (a.Description.Length == 0) throw Missing(i, "description");
+                    if (Array.IndexOf(Moralities, a.Morality) < 0) throw Bad(i, "morality");
+                    if (Array.IndexOf(Profanities, a.Profanity) < 0) throw Bad(i, "profanity");
+                    if (Array.IndexOf(Pieties, a.Piety) < 0) throw Bad(i, "piety");
+                    a.Roles = (a.Roles ?? new List<string>()).Select(x => (x ?? "").Trim()).Where(x => x.Length > 0).Distinct().ToList();
+                    if (a.Roles.Count == 0) throw Missing(i, "roles");
+                }
+                count = list.Count;
+                return JsonConvert.SerializeObject(list, Formatting.Indented);
+            }
+            // religion.json and cultural_traditions.json: culture id to text
+            var map = JsonConvert.DeserializeObject<Dictionary<string, string>>(text) ?? new Dictionary<string, string>();
+            var clean = new Dictionary<string, string>();
+            int at = 0;
+            foreach (var kv in map)
+            {
+                string key = (kv.Key ?? "").Trim(), val = (kv.Value ?? "").Trim();
+                if (key.Length == 0) throw Missing(at, "culture");
+                if (val.Length == 0) throw Missing(at, "text");
+                if (clean.ContainsKey(key)) throw Repeated(at, "culture");
+                clean[key] = val;
+                at++;
+            }
+            count = clean.Count;
+            return JsonConvert.SerializeObject(clean, Formatting.Indented);
+        }
 
         /// <summary>Path of a world_data file. Refuses anything outside that folder.</summary>
         private static string WorldFile(string wd, string name)

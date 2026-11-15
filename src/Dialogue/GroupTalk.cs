@@ -165,10 +165,9 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
                 // In case the popup closed without going through its buttons, don't leave the world in slow motion
                 if (_slowed != null) { bool open = true; try { open = InformationManager.IsAnyInquiryActive(); } catch { } if (!open) Unslow(); }
 
-                bool alt = Input.IsKeyDown(InputKey.LeftAlt) || Input.IsKeyDown(InputKey.RightAlt);
-                // Alt+G ends the talk
-                if (alt && Input.IsKeyPressed(InputKey.G) && Circle.Count > 0 && !_waiting) { End(true); return; }
-                if (!alt || !Input.IsKeyPressed(InputKey.T)) return;
+                // Alt+G ends the talk, Alt+T opens it (keys set in MCM)
+                if (Circle.Count > 0 && !_waiting && Hotkeys.Pressed(Hotkeys.Id.GroupEnd)) { End(true); return; }
+                if (!Hotkeys.Pressed(Hotkeys.Id.GroupTalk)) return;
                 if (_waiting || ChatSession.IsBusy || Initiative.Busy || Campaign.Current.ConversationManager.IsConversationInProgress) return;
                 Open();
             }
@@ -211,7 +210,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             string last = Transcript.Count == 0 ? "" : L.T("AIL_cbe9f6a8", "\n\nLo último:\n") + string.Join("\n", Transcript.Skip(Math.Max(0, Transcript.Count - 4)));
             var looked = _addressed != null ? Circle.FirstOrDefault(x => x.Agent == _addressed) : null;
             string title = L.T("AIL_6d3c2db8", "Hablas al grupo");
-            string how = L.T("AIL_dd02342f", "\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)");
+            string how = Hotkeys.Fix(L.T("AIL_dd02342f", "\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)"));
             // The world doesn't pause while you type, it goes into slow motion
             bool slow = cfg.GroupSlowMotion;
             if (slow) { try { m.AddTimeSpeedRequest(new Mission.TimeSpeedRequest(0.2f, SlowId)); _slowed = m; } catch { slow = false; } }

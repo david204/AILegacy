@@ -1682,5 +1682,127 @@
     <string id="AIL_e7b1c64b" text="{0} will wait for you at the door when you finish talking." />
     <string id="AIL_e7b1c64c" text="Dialogue box shows only their words" />
     <string id="AIL_e7b1c64d" text="The dialogue box shows only what the character says, without your own line above it and without their name in front. Turn it on if you use a voice mod that reads the dialogue box aloud, so it does not read your line too. Your line is still in the History panel." />
+    <string id="AIL_e7b1c64e" text="A letter arrives as a map notice" />
+    <string id="AIL_e7b1c64f" text="A letter from a character shows as one of the round notices at the right of the map; click it to read and answer it, right click to discard it. Notices last until you leave the game (the letter stays in their memory either way). Off: the letter opens in a window as it arrives." />
+    <string id="AIL_e7b1c650" text="Also open the letter at once" />
+    <string id="AIL_e7b1c651" text="With the map notice on, the letter also opens in a window as it arrives, as it did before." />
+    <string id="AIL_e7b1c652" text="Keys" />
+    <string id="AIL_e7b1c653" text="Talk to the group" />
+    <string id="AIL_e7b1c654" text="Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys." />
+    <string id="AIL_e7b1c655" text="End the group talk" />
+    <string id="AIL_e7b1c656" text="Battle orders in your own words" />
+    <string id="AIL_e7b1c657" text="Fight: yield" />
+    <string id="AIL_e7b1c658" text="Fight: ask for a truce" />
+    <string id="AIL_e7b1c659" text="Fight: call ten of your men" />
+    <string id="AIL_e7b1c65a" text="Fight: call all the men that fit" />
+    <string id="AIL_e7b1c65b" text="That copy no longer exists or is incomplete." />
+    <string id="AIL_e7b1c65c" text="That file is not a character's memory; it can't be restored from here." />
+    <string id="AIL_e7b1c65d" text="Entry {0}: «{1}» is missing." />
+    <string id="AIL_e7b1c65e" text="Entry {0}: «{1}» is repeated." />
+    <string id="AIL_e7b1c65f" text="Entry {0}: invalid value in «{1}»." />
+    <string id="AIL_e7b1c660" text="This tab edits what characters know about the world and about you in this campaign: who you are, the world description, facts, secrets, character moulds and each people's faith and customs. What you save counts from the next sentence. New facts and secrets are dealt out the next time you talk to each character." />
+    <string id="AIL_e7b1c661" text="Each campaign can have its own copy of the world files. Until it does, it uses the module's, which count for every campaign. Saving in this tab creates this campaign's copy; the module's files are left alone." />
+    <string id="AIL_e7b1c662" text="Copy the module's values to this campaign" />
+    <string id="AIL_e7b1c663" text="Your character" />
+    <string id="AIL_e7b1c664" text="What is known and said about your character, and who their family is. Characters who know who you are get it; a stranger only sees how you look. Best written in English. It is saved with this campaign." />
+    <string id="AIL_e7b1c665" text="Who you are to others" />
+    <string id="AIL_e7b1c666" text="Your family" />
+    <string id="AIL_e7b1c667" text="Back to the module's" />
+    <string id="AIL_e7b1c668" text="Public facts" />
+    <string id="AIL_e7b1c669" text="Things that are known in the world. Each character who fits rolls the chance once; if it comes up, they know it for good." />
+    <string id="AIL_e7b1c66a" text="Add fact" />
+    <string id="AIL_e7b1c66b" text="Secrets" />
+    <string id="AIL_e7b1c66c" text="Like facts, but whoever knows it only tells it if they trust you enough." />
+    <string id="AIL_e7b1c66d" text="Add secret" />
+    <string id="AIL_e7b1c66e" text="Character moulds" />
+    <string id="AIL_e7b1c66f" text="Each character is cast from one of these moulds according to what they are. Changing a mould does not change those who already have it." />
+    <string id="AIL_e7b1c670" text="Add mould" />
+    <string id="AIL_e7b1c671" text="Faith of each people" />
+    <string id="AIL_e7b1c672" text="One text per culture. The «default» one counts for cultures that have none of their own." />
+    <string id="AIL_e7b1c673" text="Customs of each people" />
+    <string id="AIL_e7b1c674" text="This tab edits the sheet and memory of each character you have dealt with. What you save counts from the next sentence; save the game so it is also kept inside the save. The star marks favourites, which are listed first." />
+    <string id="AIL_e7b1c675" text="Alive and dead" />
+    <string id="AIL_e7b1c676" text="Alive only" />
+    <string id="AIL_e7b1c677" text="Dead only" />
+    <string id="AIL_e7b1c678" text="Talked to or not" />
+    <string id="AIL_e7b1c679" text="Talked to" />
+    <string id="AIL_e7b1c67a" text="Never talked to" />
+    <string id="AIL_e7b1c67b" text="Favourites" />
+    <string id="AIL_e7b1c67c" text="With romance" />
+    <string id="AIL_e7b1c67d" text="Prisoners" />
+    <string id="AIL_e7b1c67e" text="This tab publishes news by hand and deletes existing news. A published item reaches characters at once, according to its importance." />
+    <string id="AIL_e7b1c67f" text="Here are the module's data files, which count for every campaign, and the templates of what the AI is told, which belong to this campaign only. Everything applies on saving." />
+    <string id="AIL_e7b1c680" text="This tab creates and removes the roleplay items you carry. They count from the next conversation." />
+    <string id="AIL_e7b1c681" text="This tab shows AI spending and handles the copies of this campaign's memory. Restoring or importing replaces the memory at once, and a copy of what was there is always saved first." />
+    <string id="AIL_e7b1c682" text="Saved copies" />
+    <string id="AIL_e7b1c683" text="The copies the mod makes by itself: before importing, deleting or restoring from the editor, when loading an earlier save (archived branch), and the files it retires (trash). Restoring one first saves a copy of what there is now." />
+    <string id="AIL_e7b1c684" text="Everyone" />
+    <string id="AIL_e7b1c685" text="Nobles" />
+    <string id="AIL_e7b1c686" text="Rulers" />
+    <string id="AIL_e7b1c687" text="Clan leaders" />
+    <string id="AIL_e7b1c688" text="Companions" />
+    <string id="AIL_e7b1c689" text="Wanderers" />
+    <string id="AIL_e7b1c68a" text="Merchants" />
+    <string id="AIL_e7b1c68b" text="Gang leaders" />
+    <string id="AIL_e7b1c68c" text="Town notables" />
+    <string id="AIL_e7b1c68d" text="Village notables" />
+    <string id="AIL_e7b1c68e" text="Townsfolk" />
+    <string id="AIL_e7b1c68f" text="Villagers" />
+    <string id="AIL_e7b1c690" text="Guards" />
+    <string id="AIL_e7b1c691" text="Common folk" />
+    <string id="AIL_e7b1c692" text="This file has a format error and can't be shown here. Fix it by hand in the campaign's folder." />
+    <string id="AIL_e7b1c693" text="this campaign's copy" />
+    <string id="AIL_e7b1c694" text="module's values" />
+    <string id="AIL_e7b1c695" text="Stop using this campaign's copy and go back to the module's values? The copy is kept next to it as .bak." />
+    <string id="AIL_e7b1c696" text="The module's values are in use now" />
+    <string id="AIL_e7b1c697" text="Files copied to this campaign: " />
+    <string id="AIL_e7b1c698" text="(new)" />
+    <string id="AIL_e7b1c699" text="Text" />
+    <string id="AIL_e7b1c69a" text="Identifier" />
+    <string id="AIL_e7b1c69b" text="Filled in by itself if left empty" />
+    <string id="AIL_e7b1c69c" text="Chance of knowing it (0 to 100)" />
+    <string id="AIL_e7b1c69d" text="How hard it is to get out of them" />
+    <string id="AIL_e7b1c69e" text="Who can know it (none ticked = everyone)" />
+    <string id="AIL_e7b1c69f" text="Add kingdom…" />
+    <string id="AIL_e7b1c6a0" text="Add culture…" />
+    <string id="AIL_e7b1c6a1" text="Who it is about (that person knows it for sure)" />
+    <string id="AIL_e7b1c6a2" text="There are none." />
+    <string id="AIL_e7b1c6a3" text="Write the text." />
+    <string id="AIL_e7b1c6a4" text="The identifier can't start with a hyphen." />
+    <string id="AIL_e7b1c6a5" text="This identifier is repeated." />
+    <string id="AIL_e7b1c6a6" text="Enter a whole number from 0 to 100." />
+    <string id="AIL_e7b1c6a7" text="Check the fields marked in red." />
+    <string id="AIL_e7b1c6a8" text="Description" />
+    <string id="AIL_e7b1c6a9" text="Who can be given it" />
+    <string id="AIL_e7b1c6aa" text="Morality" />
+    <string id="AIL_e7b1c6ab" text="Swearing" />
+    <string id="AIL_e7b1c6ac" text="Piety" />
+    <string id="AIL_e7b1c6ad" text="Write the name." />
+    <string id="AIL_e7b1c6ae" text="This name is repeated." />
+    <string id="AIL_e7b1c6af" text="Tick at least one." />
+    <string id="AIL_e7b1c6b0" text="Editor copy" />
+    <string id="AIL_e7b1c6b1" text="Archived branch" />
+    <string id="AIL_e7b1c6b2" text="Trash" />
+    <string id="AIL_e7b1c6b3" text="before importing" />
+    <string id="AIL_e7b1c6b4" text="before deleting a character" />
+    <string id="AIL_e7b1c6b5" text="before restoring" />
+    <string id="AIL_e7b1c6b6" text="The whole memory" />
+    <string id="AIL_e7b1c6b7" text="campaign file(s)" />
+    <string id="AIL_e7b1c6b8" text="No copies yet." />
+    <string id="AIL_e7b1c6b9" text="Date" />
+    <string id="AIL_e7b1c6ba" text="Holds" />
+    <string id="AIL_e7b1c6bb" text="Size" />
+    <string id="AIL_e7b1c6bc" text="Restore" />
+    <string id="AIL_e7b1c6bd" text="Restore this copy? A copy of what there is now is saved first." />
+    <string id="AIL_e7b1c6be" text="Restored. What was there is kept in: " />
+    <string id="AIL_e7b1c6bf" text="If this campaign has its own copy (World tab), the copy wins." />
+    <string id="AIL_e7b1c6c0" text="All kingdoms" />
+    <string id="AIL_e7b1c6c1" text="No kingdom" />
+    <string id="AIL_e7b1c6c2" text="All clans" />
+    <string id="AIL_e7b1c6c3" text="Favourite" />
+    <string id="AIL_e7b1c6c4" text=" · romance" />
+    <string id="AIL_e7b1c6c5" text=" · prisoner" />
+    <string id="AIL_e7b1c6c6" text=" · dead or gone from the campaign" />
+    <string id="AIL_e7b1c6c7" text="Save the game so the change is kept in the save." />
   </strings>
 </base>

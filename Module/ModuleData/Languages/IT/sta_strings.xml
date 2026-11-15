@@ -1682,5 +1682,127 @@
     <string id="AIL_e7b1c64b" text="{0} ti aspetterà alla porta quando avrai finito di parlare." />
     <string id="AIL_e7b1c64c" text="Il riquadro di dialogo mostra solo le loro parole" />
     <string id="AIL_e7b1c64d" text="Il riquadro di dialogo mostra solo ciò che dice il personaggio, senza la tua frase sopra e senza il suo nome davanti. Attivalo se usi una mod vocale che legge il riquadro ad alta voce, così non legge anche la tua frase. La tua frase resta nel pannello Cronologia." />
+    <string id="AIL_e7b1c64e" text="Una lettera arriva come avviso sulla mappa" />
+    <string id="AIL_e7b1c64f" text="La lettera di un personaggio compare come uno degli avvisi rotondi a destra della mappa; clic per leggerla e rispondere, clic destro per scartarla. Gli avvisi durano finché non esci dal gioco (la lettera resta comunque nella sua memoria). Spento: la lettera si apre in una finestra all'arrivo." />
+    <string id="AIL_e7b1c650" text="Apri anche subito la lettera" />
+    <string id="AIL_e7b1c651" text="Con l'avviso sulla mappa attivo, la lettera si apre anche in una finestra all'arrivo, come prima." />
+    <string id="AIL_e7b1c652" text="Tasti" />
+    <string id="AIL_e7b1c653" text="Parla al gruppo" />
+    <string id="AIL_e7b1c654" text="Scrivi la scorciatoia come testo: Alt+T, Ctrl+Shift+F5, F9. Modificatori: Alt, Ctrl, Shift. Tasti: una lettera, una cifra, da F1 a F12, Space, Tab, Insert, Home, PageUp, Numpad0... Vuoto disattiva la scorciatoia; un testo illeggibile vale come quello predefinito. I testi degli altri menu citano ancora i tasti predefiniti." />
+    <string id="AIL_e7b1c655" text="Termina la conversazione di gruppo" />
+    <string id="AIL_e7b1c656" text="Ordini di battaglia con parole tue" />
+    <string id="AIL_e7b1c657" text="Rissa: arrendersi" />
+    <string id="AIL_e7b1c658" text="Rissa: chiedere una tregua" />
+    <string id="AIL_e7b1c659" text="Rissa: chiama dieci dei tuoi uomini" />
+    <string id="AIL_e7b1c65a" text="Rissa: chiama tutti gli uomini che ci stanno" />
+    <string id="AIL_e7b1c65b" text="Quella copia non esiste più o è incompleta." />
+    <string id="AIL_e7b1c65c" text="Quel file non è la memoria di un personaggio; non si può ripristinare da qui." />
+    <string id="AIL_e7b1c65d" text="Voce {0}: manca «{1}»." />
+    <string id="AIL_e7b1c65e" text="Voce {0}: «{1}» è ripetuto." />
+    <string id="AIL_e7b1c65f" text="Voce {0}: valore non valido in «{1}»." />
+    <string id="AIL_e7b1c660" text="Qui si modifica ciò che i personaggi sanno del mondo e di te in questa partita: chi sei, la descrizione del mondo, i fatti, i segreti, gli stampi di carattere e la fede e i costumi di ogni popolo. Ciò che salvi vale dalla frase successiva. I nuovi fatti e segreti vengono distribuiti la prossima volta che parli con ciascun personaggio." />
+    <string id="AIL_e7b1c661" text="Ogni partita può avere la propria copia dei file del mondo. Finché non ce l'ha, usa quelli del modulo, validi per tutte le partite. Salvando in questa scheda si crea la copia di questa partita; quelli del modulo non vengono toccati." />
+    <string id="AIL_e7b1c662" text="Copia i valori del modulo in questa partita" />
+    <string id="AIL_e7b1c663" text="Il tuo personaggio" />
+    <string id="AIL_e7b1c664" text="Ciò che si sa e si dice del tuo personaggio, e chi è la sua famiglia. Lo ricevono i personaggi che sanno chi sei; uno sconosciuto vede solo il tuo aspetto. Meglio in inglese. Si salva con questa partita." />
+    <string id="AIL_e7b1c665" text="Chi sei per gli altri" />
+    <string id="AIL_e7b1c666" text="La tua famiglia" />
+    <string id="AIL_e7b1c667" text="Torna a quelli del modulo" />
+    <string id="AIL_e7b1c668" text="Fatti pubblici" />
+    <string id="AIL_e7b1c669" text="Cose che si sanno nel mondo. Ogni personaggio adatto tira la probabilità una volta; se gli riesce, lo sa per sempre." />
+    <string id="AIL_e7b1c66a" text="Aggiungi fatto" />
+    <string id="AIL_e7b1c66b" text="Segreti" />
+    <string id="AIL_e7b1c66c" text="Come i fatti, ma chi lo sa lo racconta solo se si fida abbastanza di te." />
+    <string id="AIL_e7b1c66d" text="Aggiungi segreto" />
+    <string id="AIL_e7b1c66e" text="Stampi di carattere" />
+    <string id="AIL_e7b1c66f" text="Ogni personaggio nasce da uno di questi stampi in base a ciò che è. Cambiare uno stampo non cambia chi lo ha già." />
+    <string id="AIL_e7b1c670" text="Aggiungi stampo" />
+    <string id="AIL_e7b1c671" text="Fede di ogni popolo" />
+    <string id="AIL_e7b1c672" text="Un testo per cultura. Quello di «default» vale per le culture che non hanno il proprio." />
+    <string id="AIL_e7b1c673" text="Costumi di ogni popolo" />
+    <string id="AIL_e7b1c674" text="Qui si modifica la scheda e la memoria di ogni personaggio con cui hai avuto a che fare. Ciò che salvi vale dalla frase successiva; salva la partita nel gioco perché resti anche nel salvataggio. La stella segna i preferiti, che compaiono per primi." />
+    <string id="AIL_e7b1c675" text="Vivi e morti" />
+    <string id="AIL_e7b1c676" text="Solo vivi" />
+    <string id="AIL_e7b1c677" text="Solo morti" />
+    <string id="AIL_e7b1c678" text="Con o senza conversazioni" />
+    <string id="AIL_e7b1c679" text="Con conversazioni" />
+    <string id="AIL_e7b1c67a" text="Senza conversazioni" />
+    <string id="AIL_e7b1c67b" text="Preferiti" />
+    <string id="AIL_e7b1c67c" text="Con romance" />
+    <string id="AIL_e7b1c67d" text="Prigionieri" />
+    <string id="AIL_e7b1c67e" text="Qui si pubblicano notizie a mano e si cancellano quelle esistenti. Una notizia pubblicata arriva subito ai personaggi, secondo la sua importanza." />
+    <string id="AIL_e7b1c67f" text="Qui ci sono i file di dati del modulo, validi per tutte le partite, e i modelli di ciò che si dice all'IA, solo di questa partita. Tutto si applica al salvataggio." />
+    <string id="AIL_e7b1c680" text="Qui si creano e si tolgono gli oggetti di ruolo che porti. Valgono dalla prossima conversazione." />
+    <string id="AIL_e7b1c681" text="Qui si vede la spesa di IA e si gestiscono le copie della memoria di questa partita. Ripristinare o importare sostituisce subito la memoria, e prima si salva sempre una copia di ciò che c'era." />
+    <string id="AIL_e7b1c682" text="Copie salvate" />
+    <string id="AIL_e7b1c683" text="Le copie che il mod fa da solo: prima di importare, cancellare o ripristinare dall'editor, al caricamento di un salvataggio precedente (ramo archiviato) e i file che ritira (cestino). Ripristinandone una, prima si salva una copia di ciò che c'è ora." />
+    <string id="AIL_e7b1c684" text="Tutti" />
+    <string id="AIL_e7b1c685" text="Nobili" />
+    <string id="AIL_e7b1c686" text="Sovrani" />
+    <string id="AIL_e7b1c687" text="Capi clan" />
+    <string id="AIL_e7b1c688" text="Compagni" />
+    <string id="AIL_e7b1c689" text="Viandanti" />
+    <string id="AIL_e7b1c68a" text="Mercanti" />
+    <string id="AIL_e7b1c68b" text="Capibanda" />
+    <string id="AIL_e7b1c68c" text="Notabili di città" />
+    <string id="AIL_e7b1c68d" text="Notabili di villaggio" />
+    <string id="AIL_e7b1c68e" text="Gente di città" />
+    <string id="AIL_e7b1c68f" text="Paesani" />
+    <string id="AIL_e7b1c690" text="Guardie" />
+    <string id="AIL_e7b1c691" text="Gente comune" />
+    <string id="AIL_e7b1c692" text="Questo file ha un errore di formato e non può essere mostrato qui. Correggilo a mano nella cartella della partita." />
+    <string id="AIL_e7b1c693" text="copia di questa partita" />
+    <string id="AIL_e7b1c694" text="valori del modulo" />
+    <string id="AIL_e7b1c695" text="Smettere di usare la copia di questa partita e tornare ai valori del modulo? La copia resta accanto come .bak." />
+    <string id="AIL_e7b1c696" text="Ora si usano i valori del modulo" />
+    <string id="AIL_e7b1c697" text="File copiati in questa partita: " />
+    <string id="AIL_e7b1c698" text="(nuovo)" />
+    <string id="AIL_e7b1c699" text="Testo" />
+    <string id="AIL_e7b1c69a" text="Identificatore" />
+    <string id="AIL_e7b1c69b" text="Si compila da solo se lo lasci vuoto" />
+    <string id="AIL_e7b1c69c" text="Probabilità di saperlo (da 0 a 100)" />
+    <string id="AIL_e7b1c69d" text="Quanto è difficile farselo dire" />
+    <string id="AIL_e7b1c69e" text="Chi può saperlo (nessuno selezionato = tutti)" />
+    <string id="AIL_e7b1c69f" text="Aggiungi regno…" />
+    <string id="AIL_e7b1c6a0" text="Aggiungi cultura…" />
+    <string id="AIL_e7b1c6a1" text="Di chi parla (quella persona lo sa di certo)" />
+    <string id="AIL_e7b1c6a2" text="Non ce n'è nessuno." />
+    <string id="AIL_e7b1c6a3" text="Scrivi il testo." />
+    <string id="AIL_e7b1c6a4" text="L'identificatore non può iniziare con un trattino." />
+    <string id="AIL_e7b1c6a5" text="Questo identificatore è ripetuto." />
+    <string id="AIL_e7b1c6a6" text="Inserisci un numero intero tra 0 e 100." />
+    <string id="AIL_e7b1c6a7" text="Controlla i campi segnati in rosso." />
+    <string id="AIL_e7b1c6a8" text="Descrizione" />
+    <string id="AIL_e7b1c6a9" text="A chi si può assegnare" />
+    <string id="AIL_e7b1c6aa" text="Morale" />
+    <string id="AIL_e7b1c6ab" text="Parolacce" />
+    <string id="AIL_e7b1c6ac" text="Devozione" />
+    <string id="AIL_e7b1c6ad" text="Scrivi il nome." />
+    <string id="AIL_e7b1c6ae" text="Questo nome è ripetuto." />
+    <string id="AIL_e7b1c6af" text="Selezionane almeno uno." />
+    <string id="AIL_e7b1c6b0" text="Copia dell'editor" />
+    <string id="AIL_e7b1c6b1" text="Ramo archiviato" />
+    <string id="AIL_e7b1c6b2" text="Cestino" />
+    <string id="AIL_e7b1c6b3" text="prima di importare" />
+    <string id="AIL_e7b1c6b4" text="prima di cancellare un personaggio" />
+    <string id="AIL_e7b1c6b5" text="prima di ripristinare" />
+    <string id="AIL_e7b1c6b6" text="Tutta la memoria" />
+    <string id="AIL_e7b1c6b7" text="file della partita" />
+    <string id="AIL_e7b1c6b8" text="Ancora nessuna copia." />
+    <string id="AIL_e7b1c6b9" text="Data" />
+    <string id="AIL_e7b1c6ba" text="Contiene" />
+    <string id="AIL_e7b1c6bb" text="Dimensione" />
+    <string id="AIL_e7b1c6bc" text="Ripristina" />
+    <string id="AIL_e7b1c6bd" text="Ripristinare questa copia? Prima si salva una copia di ciò che c'è ora." />
+    <string id="AIL_e7b1c6be" text="Ripristinato. Ciò che c'era resta in: " />
+    <string id="AIL_e7b1c6bf" text="Se questa partita ha la propria copia (scheda Mondo), vale la copia." />
+    <string id="AIL_e7b1c6c0" text="Tutti i regni" />
+    <string id="AIL_e7b1c6c1" text="Senza regno" />
+    <string id="AIL_e7b1c6c2" text="Tutti i clan" />
+    <string id="AIL_e7b1c6c3" text="Preferito" />
+    <string id="AIL_e7b1c6c4" text=" · romance" />
+    <string id="AIL_e7b1c6c5" text=" · prigioniero" />
+    <string id="AIL_e7b1c6c6" text=" · morto o fuori dalla partita" />
+    <string id="AIL_e7b1c6c7" text="Salva la partita nel gioco perché la modifica resti nel salvataggio." />
   </strings>
 </base>

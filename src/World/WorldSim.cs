@@ -122,6 +122,11 @@ namespace AILegacy.World
         /// <summary>Secrets born from this campaign's story, and the kingdoms whose origin secrets are already written.</summary>
         [JsonProperty("secrets")] public List<StorySecret> Secrets = new List<StorySecret>();
         [JsonProperty("secret_kingdoms")] public List<string> SecretKingdoms = new List<string>();
+        /// <summary>Written in the editor: who the player's character is taken for, and their family. Goes to those who know who the player is.</summary>
+        [JsonProperty("player_description")] public string PlayerDescription = "";
+        [JsonProperty("player_family")] public string PlayerFamily = "";
+        /// <summary>Characters starred in the editor's NPC list.</summary>
+        [JsonProperty("editor_favorites")] public List<string> EditorFavorites = new List<string>();
         /// <summary>Arenas you already trained at (settlement id -> campaign hour).</summary>
         [JsonProperty("arena_last")] public Dictionary<string, double> ArenaLastAt = new Dictionary<string, double>();
         /// <summary>Current dungeon sentence: where, and until which day.</summary>
@@ -243,6 +248,7 @@ namespace AILegacy.World
             try { Dialogue.Verdict.ResetSession(); } catch { }
             try { Dialogue.Initiative.ResetSession(); } catch { }
             try { SceneImages.ResetSession(); } catch { }
+            try { Laws.Invalidate(); } catch { }
             Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
         }
 

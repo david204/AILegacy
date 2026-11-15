@@ -133,7 +133,7 @@ namespace AILegacy.Behaviors
                 SeedCharacters();
                 GameJournal.Reconcile();
                 // The files now match this save and carry its stamp, so reloading it isn't taken as another branch
-                SaveFiles.Flush(keepStamp: adopt);
+                SaveFiles.Flush(keepStamp: adopt, wait: true);
             }
             catch (Exception ex) { Log.Error("Error cargando los datos de la campaña", ex); }
         }

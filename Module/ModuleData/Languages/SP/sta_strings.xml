@@ -1682,5 +1682,127 @@
     <string id="AIL_e7b1c64b" text="{0} te espera en la puerta cuando termines de hablar." />
     <string id="AIL_e7b1c64c" text="El cuadro de diálogo muestra solo sus palabras" />
     <string id="AIL_e7b1c64d" text="El cuadro de diálogo muestra solo lo que dice el personaje, sin tu frase encima y sin su nombre delante. Actívalo si usas un mod de voz que lee el cuadro en alto, para que no lea también tu frase. Tu frase sigue estando en el panel de Historial." />
+    <string id="AIL_e7b1c64e" text="Una carta llega como aviso en el mapa" />
+    <string id="AIL_e7b1c64f" text="La carta de un personaje sale como uno de los avisos redondos a la derecha del mapa; haz clic para leerla y contestarla, clic derecho para descartarla. Los avisos duran hasta que sales del juego (la carta queda en su memoria de todos modos). Apagado: la carta se abre en una ventana al llegar." />
+    <string id="AIL_e7b1c650" text="Abrir además la carta al momento" />
+    <string id="AIL_e7b1c651" text="Con el aviso en el mapa encendido, la carta se abre además en una ventana al llegar, como antes." />
+    <string id="AIL_e7b1c652" text="Teclas" />
+    <string id="AIL_e7b1c653" text="Hablar al grupo" />
+    <string id="AIL_e7b1c654" text="Escribe el atajo como texto: Alt+T, Ctrl+Shift+F5, F9. Modificadores: Alt, Ctrl, Shift. Teclas: una letra, un dígito, F1 a F12, Space, Tab, Insert, Home, PageUp, Numpad0... Vacío apaga el atajo; un texto que no se entienda cuenta como el de fábrica. Los textos de otros menús siguen nombrando las teclas de fábrica." />
+    <string id="AIL_e7b1c655" text="Terminar la charla en grupo" />
+    <string id="AIL_e7b1c656" text="Órdenes de batalla con tus palabras" />
+    <string id="AIL_e7b1c657" text="Pelea: rendirte" />
+    <string id="AIL_e7b1c658" text="Pelea: pedir tregua" />
+    <string id="AIL_e7b1c659" text="Pelea: llamar a diez de tus hombres" />
+    <string id="AIL_e7b1c65a" text="Pelea: llamar a todos los hombres que quepan" />
+    <string id="AIL_e7b1c65b" text="Esa copia ya no existe o está incompleta." />
+    <string id="AIL_e7b1c65c" text="Ese archivo no es la memoria de un personaje; no se puede restaurar desde aquí." />
+    <string id="AIL_e7b1c65d" text="Entrada {0}: falta «{1}»." />
+    <string id="AIL_e7b1c65e" text="Entrada {0}: «{1}» está repetido." />
+    <string id="AIL_e7b1c65f" text="Entrada {0}: valor no válido en «{1}»." />
+    <string id="AIL_e7b1c660" text="Aquí se edita lo que los personajes saben del mundo y de ti en esta partida: quién eres, la descripción del mundo, los hechos, los secretos, los moldes de carácter y la fe y las costumbres de cada pueblo. Lo que guardes vale desde la siguiente frase. Los hechos y secretos nuevos se reparten la próxima vez que hables con cada personaje." />
+    <string id="AIL_e7b1c661" text="Cada partida puede tener su propia copia de los archivos del mundo. Mientras no la tenga, usa los del módulo, que valen para todas las partidas. Al guardar en esta pestaña se crea la copia de esta partida; los del módulo no se tocan." />
+    <string id="AIL_e7b1c662" text="Copiar los valores del módulo a esta partida" />
+    <string id="AIL_e7b1c663" text="Tu personaje" />
+    <string id="AIL_e7b1c664" text="Lo que se sabe y se dice de tu personaje, y quién es su familia. Lo reciben los personajes que saben quién eres; un desconocido solo ve tu aspecto. Mejor en inglés. Se guarda con esta partida." />
+    <string id="AIL_e7b1c665" text="Quién eres para los demás" />
+    <string id="AIL_e7b1c666" text="Tu familia" />
+    <string id="AIL_e7b1c667" text="Volver a los del módulo" />
+    <string id="AIL_e7b1c668" text="Hechos públicos" />
+    <string id="AIL_e7b1c669" text="Cosas que se saben en el mundo. Cada personaje que encaja tira una vez la probabilidad; si le sale, lo sabe para siempre." />
+    <string id="AIL_e7b1c66a" text="Añadir hecho" />
+    <string id="AIL_e7b1c66b" text="Secretos" />
+    <string id="AIL_e7b1c66c" text="Como los hechos, pero quien lo sabe solo lo cuenta si se fía de ti lo bastante." />
+    <string id="AIL_e7b1c66d" text="Añadir secreto" />
+    <string id="AIL_e7b1c66e" text="Moldes de carácter" />
+    <string id="AIL_e7b1c66f" text="Cada personaje nace de uno de estos moldes según lo que es. Cambiar un molde no cambia a quien ya lo tiene asignado." />
+    <string id="AIL_e7b1c670" text="Añadir molde" />
+    <string id="AIL_e7b1c671" text="Fe de cada pueblo" />
+    <string id="AIL_e7b1c672" text="Un texto por cultura. El de «default» vale para las culturas que no tengan el suyo." />
+    <string id="AIL_e7b1c673" text="Costumbres de cada pueblo" />
+    <string id="AIL_e7b1c674" text="Aquí se edita la ficha y la memoria de cada personaje con el que has tratado. Lo que guardes vale desde la siguiente frase; guarda la partida en el juego para que quede también dentro del guardado. La estrella marca favoritos, que salen los primeros." />
+    <string id="AIL_e7b1c675" text="Vivos y muertos" />
+    <string id="AIL_e7b1c676" text="Solo vivos" />
+    <string id="AIL_e7b1c677" text="Solo muertos" />
+    <string id="AIL_e7b1c678" text="Con o sin charlas" />
+    <string id="AIL_e7b1c679" text="Con charlas" />
+    <string id="AIL_e7b1c67a" text="Sin charlas" />
+    <string id="AIL_e7b1c67b" text="Favoritos" />
+    <string id="AIL_e7b1c67c" text="Con romance" />
+    <string id="AIL_e7b1c67d" text="Prisioneros" />
+    <string id="AIL_e7b1c67e" text="Aquí se publican noticias a mano y se borran las que hay. Una noticia publicada llega a los personajes al momento, según su importancia." />
+    <string id="AIL_e7b1c67f" text="Aquí están los archivos de datos del módulo, que valen para todas las partidas, y las plantillas de lo que se le dice a la IA, que son solo de esta partida. Todo se aplica al guardar." />
+    <string id="AIL_e7b1c680" text="Aquí se crean y se quitan los objetos de rol que llevas. Cuentan desde la siguiente conversación." />
+    <string id="AIL_e7b1c681" text="Aquí se ve el gasto de IA y se manejan las copias de la memoria de esta partida. Restaurar o importar sustituye la memoria al momento, y antes se guarda siempre una copia de lo que había." />
+    <string id="AIL_e7b1c682" text="Copias guardadas" />
+    <string id="AIL_e7b1c683" text="Las copias que el mod hace solo: antes de importar, borrar o restaurar desde el editor, al cargar un guardado anterior (rama archivada) y los archivos que retira (papelera). Al restaurar una, antes se guarda una copia de lo que hay ahora." />
+    <string id="AIL_e7b1c684" text="Todos" />
+    <string id="AIL_e7b1c685" text="Nobles" />
+    <string id="AIL_e7b1c686" text="Soberanos" />
+    <string id="AIL_e7b1c687" text="Jefes de clan" />
+    <string id="AIL_e7b1c688" text="Compañeros" />
+    <string id="AIL_e7b1c689" text="Errantes" />
+    <string id="AIL_e7b1c68a" text="Mercaderes" />
+    <string id="AIL_e7b1c68b" text="Jefes de banda" />
+    <string id="AIL_e7b1c68c" text="Notables de ciudad" />
+    <string id="AIL_e7b1c68d" text="Notables de aldea" />
+    <string id="AIL_e7b1c68e" text="Gente de ciudad" />
+    <string id="AIL_e7b1c68f" text="Aldeanos" />
+    <string id="AIL_e7b1c690" text="Guardias" />
+    <string id="AIL_e7b1c691" text="Gente corriente" />
+    <string id="AIL_e7b1c692" text="Este archivo tiene un error de formato y no se puede mostrar aquí. Corrígelo a mano en la carpeta de la partida." />
+    <string id="AIL_e7b1c693" text="copia de esta partida" />
+    <string id="AIL_e7b1c694" text="valores del módulo" />
+    <string id="AIL_e7b1c695" text="¿Dejar de usar la copia de esta partida y volver a los valores del módulo? La copia se guarda al lado como .bak." />
+    <string id="AIL_e7b1c696" text="Ahora se usan los valores del módulo" />
+    <string id="AIL_e7b1c697" text="Archivos copiados a esta partida: " />
+    <string id="AIL_e7b1c698" text="(nuevo)" />
+    <string id="AIL_e7b1c699" text="Texto" />
+    <string id="AIL_e7b1c69a" text="Identificador" />
+    <string id="AIL_e7b1c69b" text="Se pone solo si lo dejas vacío" />
+    <string id="AIL_e7b1c69c" text="Probabilidad de saberlo (0 a 100)" />
+    <string id="AIL_e7b1c69d" text="Cuánto cuesta sonsacarlo" />
+    <string id="AIL_e7b1c69e" text="Quién puede saberlo (ninguno marcado = todos)" />
+    <string id="AIL_e7b1c69f" text="Añadir reino…" />
+    <string id="AIL_e7b1c6a0" text="Añadir cultura…" />
+    <string id="AIL_e7b1c6a1" text="De quién trata (esa persona lo sabe seguro)" />
+    <string id="AIL_e7b1c6a2" text="No hay ninguno." />
+    <string id="AIL_e7b1c6a3" text="Escribe el texto." />
+    <string id="AIL_e7b1c6a4" text="El identificador no puede empezar por un guion." />
+    <string id="AIL_e7b1c6a5" text="Este identificador está repetido." />
+    <string id="AIL_e7b1c6a6" text="Pon un número entero entre 0 y 100." />
+    <string id="AIL_e7b1c6a7" text="Revisa los campos marcados en rojo." />
+    <string id="AIL_e7b1c6a8" text="Descripción" />
+    <string id="AIL_e7b1c6a9" text="A quién se le puede asignar" />
+    <string id="AIL_e7b1c6aa" text="Moral" />
+    <string id="AIL_e7b1c6ab" text="Palabrotas" />
+    <string id="AIL_e7b1c6ac" text="Piedad" />
+    <string id="AIL_e7b1c6ad" text="Escribe el nombre." />
+    <string id="AIL_e7b1c6ae" text="Este nombre está repetido." />
+    <string id="AIL_e7b1c6af" text="Marca al menos uno." />
+    <string id="AIL_e7b1c6b0" text="Copia del editor" />
+    <string id="AIL_e7b1c6b1" text="Rama archivada" />
+    <string id="AIL_e7b1c6b2" text="Papelera" />
+    <string id="AIL_e7b1c6b3" text="antes de importar" />
+    <string id="AIL_e7b1c6b4" text="antes de borrar un personaje" />
+    <string id="AIL_e7b1c6b5" text="antes de restaurar" />
+    <string id="AIL_e7b1c6b6" text="Toda la memoria" />
+    <string id="AIL_e7b1c6b7" text="archivo(s) de la partida" />
+    <string id="AIL_e7b1c6b8" text="No hay copias todavía." />
+    <string id="AIL_e7b1c6b9" text="Fecha" />
+    <string id="AIL_e7b1c6ba" text="Contiene" />
+    <string id="AIL_e7b1c6bb" text="Tamaño" />
+    <string id="AIL_e7b1c6bc" text="Restaurar" />
+    <string id="AIL_e7b1c6bd" text="¿Restaurar esta copia? Antes se guarda una copia de lo que hay ahora." />
+    <string id="AIL_e7b1c6be" text="Restaurado. Lo que había queda en: " />
+    <string id="AIL_e7b1c6bf" text="Si esta partida tiene su propia copia (pestaña Mundo), manda la copia." />
+    <string id="AIL_e7b1c6c0" text="Todos los reinos" />
+    <string id="AIL_e7b1c6c1" text="Sin reino" />
+    <string id="AIL_e7b1c6c2" text="Todos los clanes" />
+    <string id="AIL_e7b1c6c3" text="Favorito" />
+    <string id="AIL_e7b1c6c4" text=" · romance" />
+    <string id="AIL_e7b1c6c5" text=" · prisionero" />
+    <string id="AIL_e7b1c6c6" text=" · muerto o fuera de la partida" />
+    <string id="AIL_e7b1c6c7" text="Guarda la partida en el juego para que el cambio quede en el guardado." />
   </strings>
 </base>

@@ -427,7 +427,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 }
                 float now = m.CurrentTime;
 
-                if (cfg.BattleAITextOrders && (Input.IsKeyDown(InputKey.LeftAlt) || Input.IsKeyDown(InputKey.RightAlt)) && Input.IsKeyPressed(InputKey.B) && Agent.Main.IsActive() && !_playerWaiting)
+                if (cfg.BattleAITextOrders && Hotkeys.Pressed(Hotkeys.Id.BattleOrders) && Agent.Main.IsActive() && !_playerWaiting)
                     PlayerOrder();
 
                 if (!cfg.EnableBattleAI) return;        // leader AI is a separate toggle

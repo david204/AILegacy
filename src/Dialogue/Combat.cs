@@ -134,7 +134,7 @@ namespace AILegacy.Dialogue
                 Say(f.Unprovoked ? L.F("AIL_1ee35da7", $"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F("AIL_96bdc93c", $"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F("AIL_70eda317", $"¡Duelo a muerte con {f.Who.Name}!") : L.F("AIL_e97439d8", $"¡Duelo con {f.Who.Name}!"), Colors.Red);
                 Log.Info($"Pelea empezada con {f.Who.Name}: {f.Kind}");
                 FightBanter.Begin(f.Who, f.Opponent, f.Kind, IsFriendly(f) ? null : foes.Where(x => x != f.Opponent).ToList());
-                Say(L.T("AIL_e7b1c508", "(Alt+Y: rendirte · Alt+P: pedir tregua)"), Colors.Gray);
+                Say(Hotkeys.Fix(L.T("AIL_e7b1c508", "(Alt+Y: rendirte · Alt+P: pedir tregua)")), Colors.Gray);
             }
             catch (Exception ex) { Log.Error("Empezar la pelea", ex); }
         }
@@ -421,8 +421,8 @@ namespace AILegacy.Dialogue
         {
             try
             {
-                if (_active == null || _asking || !(Input.IsKeyDown(InputKey.LeftAlt) || Input.IsKeyDown(InputKey.RightAlt))) return;
-                bool yield = Input.IsKeyPressed(InputKey.Y), parley = Input.IsKeyPressed(InputKey.P);
+                if (_active == null || _asking) return;
+                bool yield = Hotkeys.Pressed(Hotkeys.Id.Yield), parley = !yield && Hotkeys.Pressed(Hotkeys.Id.Truce);
                 if (!yield && !parley) return;
                 var fh = Mission.Current?.GetMissionBehavior<MissionFightHandler>();
                 if (fh == null || !fh.IsThereActiveFight()) return;
@@ -583,13 +583,12 @@ namespace AILegacy.Dialogue
             if (fh == null || !fh.IsThereActiveFight()) return;
             var cfg = S.Get;
 
-            // Ctrl+X calls your troops ten at a time, Ctrl+Alt+X calls as many as fit
-            bool ctrl = TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.LeftControl) || TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.RightControl);
+            // Ctrl+X calls your troops ten at a time, Ctrl+Alt+X calls as many as fit (keys set in MCM)
             // No troops in a friendly fight
-            if (ctrl && TaleWorlds.InputSystem.Input.IsKeyPressed(TaleWorlds.InputSystem.InputKey.X) && cfg.StreetSummonTroops && !IsFriendly(f))
+            if (cfg.StreetSummonTroops && !IsFriendly(f))
             {
-                bool alt = TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.LeftAlt) || TaleWorlds.InputSystem.Input.IsKeyDown(TaleWorlds.InputSystem.InputKey.RightAlt);
-                SummonTroops(fh, alt ? cfg.StreetMaxOwnTroops : 10);
+                bool all = Hotkeys.Pressed(Hotkeys.Id.SummonAll);
+                if (all || Hotkeys.Pressed(Hotkeys.Id.SummonTen)) SummonTroops(fh, all ? cfg.StreetMaxOwnTroops : 10);
             }
 
             if (!f.Unprovoked || f.Kind == "brawl" || !cfg.StreetGuardWaves) return;
@@ -762,7 +761,7 @@ namespace AILegacy.Dialogue
                     Say(L.F("AIL_9ccbdf55", $"{a.Name} sale en defensa de {sp.Name}."), Colors.Red);
                 }
                 Log.Info($"[escena] el jugador golpea a {sp.Name} sin mediar palabra ({f.Kind}; {f.Helpers.Count} en su defensa)");
-                if (armed && cfg.StreetSummonTroops) Say(L.T("AIL_c4f81902", "Puedes llamar a tus hombres: Ctrl+X (diez) o Ctrl+Alt+X (todos los que quepan). Solo en la calle."), Colors.Gray);
+                if (armed && cfg.StreetSummonTroops) Say(Hotkeys.Fix(L.T("AIL_c4f81902", "Puedes llamar a tus hombres: Ctrl+X (diez) o Ctrl+Alt+X (todos los que quepan). Solo en la calle.")), Colors.Gray);
                 _fight = f;
                 StartFight();
             }

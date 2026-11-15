@@ -35,6 +35,7 @@ namespace AILegacy.World
     /// Editable character background: Modules\AILegacy\world_data\archetypes.json (character archetypes),
     /// religion.json (faith per culture) and cultural_traditions.json (customs per culture).
     /// Missing files are created with the defaults, and edits are picked up without a restart.
+    /// A campaign's own copy (see WorldFiles) wins over the module's.
     /// </summary>
     internal static class Lore
     {
@@ -43,8 +44,9 @@ namespace AILegacy.World
         private class Cache<T> where T : class
         {
             private readonly string _file; private readonly Func<T> _defaults;
-            private T _value; private DateTime _stamp; private DateTime _nextCheck;
+            private T _value; private DateTime _stamp; private DateTime _nextCheck; private string _path;
             public Cache(string file, Func<T> defaults) { _file = file; _defaults = defaults; }
+            public void Forget() { _value = null; }
             public T Value
             {
                 get
@@ -52,19 +54,20 @@ namespace AILegacy.World
                     try
                     {
                         var now = DateTime.UtcNow;
-                        if (_value != null && now < _nextCheck) return _value;
+                        var path = WorldFiles.Resolve(_file);
+                        if (_value != null && path == _path && now < _nextCheck) return _value;
                         _nextCheck = now.AddSeconds(5);
-                        var path = Path.Combine(Dir, _file);
-                        if (!File.Exists(path))
+                        var def = Path.Combine(Dir, _file);
+                        if (!File.Exists(def))
                         {
                             Directory.CreateDirectory(Dir);
-                            File.WriteAllText(path, JsonConvert.SerializeObject(_defaults(), Formatting.Indented), new UTF8Encoding(false));
+                            File.WriteAllText(def, JsonConvert.SerializeObject(_defaults(), Formatting.Indented), new UTF8Encoding(false));
                         }
                         var stamp = File.GetLastWriteTimeUtc(path);
-                        if (_value == null || stamp != _stamp)
+                        if (_value == null || stamp != _stamp || path != _path)
                         {
                             _value = JsonConvert.DeserializeObject<T>(File.ReadAllText(path, Encoding.UTF8)) ?? _defaults();
-                            _stamp = stamp;
+                            _stamp = stamp; _path = path;
                         }
                     }
                     catch (Exception ex) { Log.Warn($"world_data\\{_file} ilegible, uso el de fábrica: {ex.Message}"); _value = _value ?? _defaults(); }
@@ -160,6 +163,15 @@ namespace AILegacy.World
             }
             return r;
         }
+
+        /// <summary>Writes the module's default files if they are not there yet, so the editor has something to show.</summary>
+        public static void EnsureFiles()
+        {
+            var a = ArchetypesFile.Value; var r = ReligionFile.Value; var t = TraditionsFile.Value;
+        }
+
+        /// <summary>Drops what is cached so an edit made from the editor counts from the next sentence on.</summary>
+        public static void Reload() { ArchetypesFile.Forget(); ReligionFile.Forget(); TraditionsFile.Forget(); }
 
         public static List<KeyValuePair<string, string>> ArchetypeList() =>
             ArchetypesFile.Value.Select(a => new KeyValuePair<string, string>(a.Name, a.Description)).ToList();

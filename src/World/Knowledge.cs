@@ -19,10 +19,13 @@ namespace AILegacy.World
         [JsonProperty("who")] public List<string> Who = new List<string>();
         /// <summary>Secrets only: low / medium / high, how much trust it takes to share it.</summary>
         [JsonProperty("access")] public string Access = "medium";
+        /// <summary>Hero string_ids this entry is about. They know it for certain, whatever the chance says.</summary>
+        [JsonProperty("about")] public List<string> About = new List<string>();
     }
 
     /// <summary>
-    /// Editable world knowledge: Modules\AILegacy\world_data\info.json (common knowledge) and secrets.json.
+    /// Editable world knowledge: Modules\AILegacy\world_data\info.json (common knowledge) and secrets.json,
+    /// or the campaign's own copies when it has them (see WorldFiles).
     /// Each character rolls once per entry, and whatever they get they know for good.
     /// </summary>
     internal static class Knowledge
@@ -46,9 +49,10 @@ namespace AILegacy.World
             foreach (var e in entries)
             {
                 if (string.IsNullOrWhiteSpace(e.Id) || known.Contains(e.Id) || known.Contains("-" + e.Id)) continue;
-                bool fits = e.Who == null || e.Who.Count == 0 || e.Who.Any(tags.Contains);
+                bool own = e.About != null && e.About.Any(tags.Contains);   // tags carry the hero's own id
+                bool fits = own || e.Who == null || e.Who.Count == 0 || e.Who.Any(tags.Contains);
                 if (!fits) continue;
-                if (Rng.Next(100) < e.Chance) { known.Add(e.Id); Log.Info($"{who} sabe [{e.Id}]"); }
+                if (own || Rng.Next(100) < e.Chance) { known.Add(e.Id); Log.Info($"{who} sabe [{e.Id}]"); }
                 else known.Add("-" + e.Id); // failed roll, never rolled again
             }
         }
@@ -72,6 +76,7 @@ namespace AILegacy.World
             private readonly string _name;
             private List<KnowledgeEntry> _entries = new List<KnowledgeEntry>();
             private DateTime _stamp = DateTime.MinValue;
+            private string _path;
 
             public FileCache(string name) { _name = name; }
 
@@ -79,15 +84,15 @@ namespace AILegacy.World
             {
                 get
                 {
-                    var path = Path.Combine(Paths.ModuleDir, "world_data", _name);
+                    var path = WorldFiles.Resolve(_name);
                     try
                     {
                         if (!File.Exists(path)) return _entries;
                         var st = File.GetLastWriteTimeUtc(path);
-                        if (st != _stamp)
+                        if (st != _stamp || path != _path)
                         {
                             _entries = JsonConvert.DeserializeObject<List<KnowledgeEntry>>(File.ReadAllText(path)) ?? new List<KnowledgeEntry>();
-                            _stamp = st;
+                            _stamp = st; _path = path;
                             Log.Info($"world_data/{_name}: {_entries.Count} entradas");
                         }
                     }

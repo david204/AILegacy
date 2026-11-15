@@ -1682,5 +1682,127 @@
     <string id="AIL_e7b1c64b" text="{0} wartet an der Tür auf dich, wenn ihr fertig geredet habt." />
     <string id="AIL_e7b1c64c" text="Dialogfeld zeigt nur ihre Worte" />
     <string id="AIL_e7b1c64d" text="Das Dialogfeld zeigt nur, was die Figur sagt, ohne deinen Satz darüber und ohne ihren Namen davor. Schalte es ein, wenn du eine Sprach-Mod nutzt, die das Dialogfeld vorliest, damit sie nicht auch deinen Satz vorliest. Dein Satz steht weiterhin im Verlauf." />
+    <string id="AIL_e7b1c64e" text="Ein Brief kommt als Hinweis auf der Karte" />
+    <string id="AIL_e7b1c64f" text="Der Brief einer Figur erscheint als einer der runden Hinweise rechts auf der Karte; Klick zum Lesen und Antworten, Rechtsklick zum Verwerfen. Hinweise bleiben, bis du das Spiel verlässt (der Brief bleibt so oder so in ihrem Gedächtnis). Aus: Der Brief öffnet sich bei Ankunft in einem Fenster." />
+    <string id="AIL_e7b1c650" text="Den Brief zusätzlich sofort öffnen" />
+    <string id="AIL_e7b1c651" text="Mit dem Kartenhinweis an öffnet sich der Brief bei Ankunft zusätzlich in einem Fenster, wie bisher." />
+    <string id="AIL_e7b1c652" text="Tasten" />
+    <string id="AIL_e7b1c653" text="Zur Gruppe sprechen" />
+    <string id="AIL_e7b1c654" text="Schreib das Kürzel als Text: Alt+T, Ctrl+Shift+F5, F9. Zusatztasten: Alt, Ctrl, Shift. Tasten: ein Buchstabe, eine Ziffer, F1 bis F12, Space, Tab, Insert, Home, PageUp, Numpad0... Leer schaltet das Kürzel ab; unlesbarer Text gilt als Standard. Texte in anderen Menüs nennen weiter die Standardtasten." />
+    <string id="AIL_e7b1c655" text="Gruppengespräch beenden" />
+    <string id="AIL_e7b1c656" text="Schlachtbefehle in eigenen Worten" />
+    <string id="AIL_e7b1c657" text="Kampf: aufgeben" />
+    <string id="AIL_e7b1c658" text="Kampf: um Waffenruhe bitten" />
+    <string id="AIL_e7b1c659" text="Kampf: zehn deiner Männer rufen" />
+    <string id="AIL_e7b1c65a" text="Kampf: alle Männer rufen, die Platz haben" />
+    <string id="AIL_e7b1c65b" text="Diese Kopie gibt es nicht mehr oder sie ist unvollständig." />
+    <string id="AIL_e7b1c65c" text="Diese Datei ist kein Figurengedächtnis; sie lässt sich von hier nicht wiederherstellen." />
+    <string id="AIL_e7b1c65d" text="Eintrag {0}: «{1}» fehlt." />
+    <string id="AIL_e7b1c65e" text="Eintrag {0}: «{1}» ist doppelt." />
+    <string id="AIL_e7b1c65f" text="Eintrag {0}: ungültiger Wert in «{1}»." />
+    <string id="AIL_e7b1c660" text="Hier bearbeitest du, was die Figuren in diesem Spielstand über die Welt und über dich wissen: wer du bist, die Weltbeschreibung, Fakten, Geheimnisse, Charakterformen sowie Glaube und Bräuche jedes Volkes. Gespeichertes gilt ab dem nächsten Satz. Neue Fakten und Geheimnisse werden verteilt, wenn du das nächste Mal mit der jeweiligen Figur sprichst." />
+    <string id="AIL_e7b1c661" text="Jeder Spielstand kann eine eigene Kopie der Weltdateien haben. Solange er keine hat, nutzt er die des Moduls, die für alle Spielstände gelten. Speichern in diesem Reiter legt die Kopie dieses Spielstands an; die des Moduls bleiben unberührt." />
+    <string id="AIL_e7b1c662" text="Werte des Moduls in diesen Spielstand kopieren" />
+    <string id="AIL_e7b1c663" text="Deine Figur" />
+    <string id="AIL_e7b1c664" text="Was man über deine Figur weiß und sagt, und wer ihre Familie ist. Figuren, die wissen, wer du bist, bekommen es; ein Fremder sieht nur dein Äußeres. Am besten auf Englisch. Wird mit diesem Spielstand gespeichert." />
+    <string id="AIL_e7b1c665" text="Wer du für andere bist" />
+    <string id="AIL_e7b1c666" text="Deine Familie" />
+    <string id="AIL_e7b1c667" text="Zurück zu denen des Moduls" />
+    <string id="AIL_e7b1c668" text="Öffentliche Fakten" />
+    <string id="AIL_e7b1c669" text="Dinge, die in der Welt bekannt sind. Jede passende Figur würfelt die Chance einmal; gelingt es, weiß sie es für immer." />
+    <string id="AIL_e7b1c66a" text="Fakt hinzufügen" />
+    <string id="AIL_e7b1c66b" text="Geheimnisse" />
+    <string id="AIL_e7b1c66c" text="Wie Fakten, aber wer es weiß, erzählt es nur, wenn er dir genug vertraut." />
+    <string id="AIL_e7b1c66d" text="Geheimnis hinzufügen" />
+    <string id="AIL_e7b1c66e" text="Charakterformen" />
+    <string id="AIL_e7b1c66f" text="Jede Figur entsteht je nach dem, was sie ist, aus einer dieser Formen. Eine Form zu ändern ändert nicht die, die sie schon haben." />
+    <string id="AIL_e7b1c670" text="Form hinzufügen" />
+    <string id="AIL_e7b1c671" text="Glaube jedes Volkes" />
+    <string id="AIL_e7b1c672" text="Ein Text pro Kultur. Der unter «default» gilt für Kulturen ohne eigenen." />
+    <string id="AIL_e7b1c673" text="Bräuche jedes Volkes" />
+    <string id="AIL_e7b1c674" text="Hier bearbeitest du Bogen und Gedächtnis jeder Figur, mit der du zu tun hattest. Gespeichertes gilt ab dem nächsten Satz; speichere im Spiel, damit es auch im Spielstand liegt. Der Stern markiert Favoriten, die zuerst stehen." />
+    <string id="AIL_e7b1c675" text="Lebende und Tote" />
+    <string id="AIL_e7b1c676" text="Nur Lebende" />
+    <string id="AIL_e7b1c677" text="Nur Tote" />
+    <string id="AIL_e7b1c678" text="Mit oder ohne Gespräche" />
+    <string id="AIL_e7b1c679" text="Mit Gesprächen" />
+    <string id="AIL_e7b1c67a" text="Ohne Gespräche" />
+    <string id="AIL_e7b1c67b" text="Favoriten" />
+    <string id="AIL_e7b1c67c" text="Mit Romanze" />
+    <string id="AIL_e7b1c67d" text="Gefangene" />
+    <string id="AIL_e7b1c67e" text="Hier veröffentlichst du Nachrichten von Hand und löschst vorhandene. Eine veröffentlichte Nachricht erreicht die Figuren sofort, je nach Wichtigkeit." />
+    <string id="AIL_e7b1c67f" text="Hier liegen die Datendateien des Moduls, die für alle Spielstände gelten, und die Vorlagen dessen, was der KI gesagt wird, die nur zu diesem Spielstand gehören. Alles gilt ab dem Speichern." />
+    <string id="AIL_e7b1c680" text="Hier legst du Rollenspiel-Gegenstände an, die du trägst, und entfernst sie. Sie gelten ab dem nächsten Gespräch." />
+    <string id="AIL_e7b1c681" text="Hier siehst du die KI-Kosten und verwaltest die Kopien des Gedächtnisses dieses Spielstands. Wiederherstellen oder Importieren ersetzt das Gedächtnis sofort, und vorher wird immer eine Kopie des Bisherigen gespeichert." />
+    <string id="AIL_e7b1c682" text="Gespeicherte Kopien" />
+    <string id="AIL_e7b1c683" text="Die Kopien, die der Mod selbst anlegt: vor dem Importieren, Löschen oder Wiederherstellen im Editor, beim Laden eines früheren Spielstands (archivierter Zweig) und die Dateien, die er aussortiert (Papierkorb). Beim Wiederherstellen wird zuerst eine Kopie des jetzigen Stands gespeichert." />
+    <string id="AIL_e7b1c684" text="Alle" />
+    <string id="AIL_e7b1c685" text="Adlige" />
+    <string id="AIL_e7b1c686" text="Herrscher" />
+    <string id="AIL_e7b1c687" text="Clanführer" />
+    <string id="AIL_e7b1c688" text="Gefährten" />
+    <string id="AIL_e7b1c689" text="Wanderer" />
+    <string id="AIL_e7b1c68a" text="Händler" />
+    <string id="AIL_e7b1c68b" text="Bandenführer" />
+    <string id="AIL_e7b1c68c" text="Stadtnotabeln" />
+    <string id="AIL_e7b1c68d" text="Dorfnotabeln" />
+    <string id="AIL_e7b1c68e" text="Stadtvolk" />
+    <string id="AIL_e7b1c68f" text="Dorfbewohner" />
+    <string id="AIL_e7b1c690" text="Wachen" />
+    <string id="AIL_e7b1c691" text="Einfache Leute" />
+    <string id="AIL_e7b1c692" text="Diese Datei hat einen Formatfehler und kann hier nicht angezeigt werden. Korrigiere sie von Hand im Ordner des Spielstands." />
+    <string id="AIL_e7b1c693" text="Kopie dieses Spielstands" />
+    <string id="AIL_e7b1c694" text="Werte des Moduls" />
+    <string id="AIL_e7b1c695" text="Die Kopie dieses Spielstands nicht mehr verwenden und zu den Werten des Moduls zurückkehren? Die Kopie bleibt daneben als .bak erhalten." />
+    <string id="AIL_e7b1c696" text="Jetzt gelten die Werte des Moduls" />
+    <string id="AIL_e7b1c697" text="In diesen Spielstand kopierte Dateien: " />
+    <string id="AIL_e7b1c698" text="(neu)" />
+    <string id="AIL_e7b1c699" text="Text" />
+    <string id="AIL_e7b1c69a" text="Kennung" />
+    <string id="AIL_e7b1c69b" text="Wird selbst gesetzt, wenn leer" />
+    <string id="AIL_e7b1c69c" text="Chance, es zu wissen (0 bis 100)" />
+    <string id="AIL_e7b1c69d" text="Wie schwer es zu entlocken ist" />
+    <string id="AIL_e7b1c69e" text="Wer es wissen kann (nichts markiert = alle)" />
+    <string id="AIL_e7b1c69f" text="Reich hinzufügen…" />
+    <string id="AIL_e7b1c6a0" text="Kultur hinzufügen…" />
+    <string id="AIL_e7b1c6a1" text="Von wem es handelt (diese Person weiß es sicher)" />
+    <string id="AIL_e7b1c6a2" text="Es gibt keine." />
+    <string id="AIL_e7b1c6a3" text="Schreib den Text." />
+    <string id="AIL_e7b1c6a4" text="Die Kennung darf nicht mit einem Bindestrich beginnen." />
+    <string id="AIL_e7b1c6a5" text="Diese Kennung ist doppelt." />
+    <string id="AIL_e7b1c6a6" text="Gib eine ganze Zahl von 0 bis 100 ein." />
+    <string id="AIL_e7b1c6a7" text="Prüfe die rot markierten Felder." />
+    <string id="AIL_e7b1c6a8" text="Beschreibung" />
+    <string id="AIL_e7b1c6a9" text="Wem sie zugewiesen werden kann" />
+    <string id="AIL_e7b1c6aa" text="Moral" />
+    <string id="AIL_e7b1c6ab" text="Flüche" />
+    <string id="AIL_e7b1c6ac" text="Frömmigkeit" />
+    <string id="AIL_e7b1c6ad" text="Schreib den Namen." />
+    <string id="AIL_e7b1c6ae" text="Dieser Name ist doppelt." />
+    <string id="AIL_e7b1c6af" text="Markiere mindestens einen." />
+    <string id="AIL_e7b1c6b0" text="Editor-Kopie" />
+    <string id="AIL_e7b1c6b1" text="Archivierter Zweig" />
+    <string id="AIL_e7b1c6b2" text="Papierkorb" />
+    <string id="AIL_e7b1c6b3" text="vor dem Importieren" />
+    <string id="AIL_e7b1c6b4" text="vor dem Löschen einer Figur" />
+    <string id="AIL_e7b1c6b5" text="vor dem Wiederherstellen" />
+    <string id="AIL_e7b1c6b6" text="Das ganze Gedächtnis" />
+    <string id="AIL_e7b1c6b7" text="Datei(en) des Spielstands" />
+    <string id="AIL_e7b1c6b8" text="Noch keine Kopien." />
+    <string id="AIL_e7b1c6b9" text="Datum" />
+    <string id="AIL_e7b1c6ba" text="Enthält" />
+    <string id="AIL_e7b1c6bb" text="Größe" />
+    <string id="AIL_e7b1c6bc" text="Wiederherstellen" />
+    <string id="AIL_e7b1c6bd" text="Diese Kopie wiederherstellen? Vorher wird eine Kopie des jetzigen Stands gespeichert." />
+    <string id="AIL_e7b1c6be" text="Wiederhergestellt. Das Bisherige liegt in: " />
+    <string id="AIL_e7b1c6bf" text="Hat dieser Spielstand eine eigene Kopie (Reiter Welt), gilt die Kopie." />
+    <string id="AIL_e7b1c6c0" text="Alle Reiche" />
+    <string id="AIL_e7b1c6c1" text="Ohne Reich" />
+    <string id="AIL_e7b1c6c2" text="Alle Clans" />
+    <string id="AIL_e7b1c6c3" text="Favorit" />
+    <string id="AIL_e7b1c6c4" text=" · Romanze" />
+    <string id="AIL_e7b1c6c5" text=" · gefangen" />
+    <string id="AIL_e7b1c6c6" text=" · tot oder nicht mehr im Spiel" />
+    <string id="AIL_e7b1c6c7" text="Speichere im Spiel, damit die Änderung im Spielstand bleibt." />
   </strings>
 </base>

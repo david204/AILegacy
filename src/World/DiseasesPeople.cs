@@ -135,7 +135,19 @@ namespace AILegacy.World
         public static List<Sickness> OfTroops(MobileParty p) => p == null || !AnySick ? null : Index().Troops.TryGetValue(p.StringId, out var l) ? l : null;
         public static List<Sickness> OfPrisoners(MobileParty p) => p == null || !AnySick ? null : Index().Prisoners.TryGetValue(p.StringId, out var l) ? l : null;
 
-        private static Sickness Worst(List<Sickness> l) => l == null || l.Count == 0 ? null : l.OrderByDescending(x => x.Severity).ThenByDescending(x => x.Progress).First();
+        // Called from the game's models many times a second: a plain scan, no sorting and no allocation
+        private static Sickness Worst(List<Sickness> l)
+        {
+            if (l == null) return null;
+            Sickness best = null;
+            for (int i = 0; i < l.Count; i++)
+            {
+                var x = l[i];
+                if (x == null) continue;
+                if (best == null || x.Severity > best.Severity || (x.Severity == best.Severity && x.Progress > best.Progress)) best = x;
+            }
+            return best;
+        }
         private static Hero FindHero(string id) { try { return Campaign.Current.CampaignObjectManager.Find<Hero>(id); } catch { return null; } }
         private static MobileParty FindParty(string id) { try { return Campaign.Current.CampaignObjectManager.Find<MobileParty>(id); } catch { return null; } }
         private static void Remove(Sickness s) { Sick.Remove(s); Touch(); }
@@ -766,6 +778,20 @@ namespace AILegacy.World
             // never in the middle of a battle or siege, never someone a running quest hangs on
             if (h.PartyBelongedTo?.MapEvent != null || h.PartyBelongedTo?.SiegeEvent != null || (h.IsNotable && h.Issue != null)
                 || !h.CanDie(KillCharacterAction.KillCharacterActionDetail.DiedOfOldAge)) { s.Progress = Math.Min(s.Progress, 95f); return; }
+            // Not while a scene is open or someone is talking: the dead hero may be standing in it. It waits a day.
+            try
+            {
+                if (TaleWorlds.MountAndBlade.Mission.Current != null || Campaign.Current.ConversationManager?.IsConversationInProgress == true)
+                { s.Progress = Math.Min(s.Progress, 95f); return; }
+            }
+            catch { }
+            // An illness never ends the campaign: the player only dies of it when someone is left to carry on
+            if (h == Hero.MainHero)
+            {
+                bool heir = false;
+                try { heir = Clan.PlayerClan != null && Clan.PlayerClan.Heroes.Any(x => x != null && x != h && x.IsAlive && !x.IsChild && !x.IsPrisoner); } catch { }
+                if (!heir) { s.Progress = Math.Min(s.Progress, 95f); return; }
+            }
             string who = h.Name.ToString();
             bool close = Close(h), isPlayer = h == Hero.MainHero;
             Settlement where = h.CurrentSettlement ?? h.HomeSettlement;
