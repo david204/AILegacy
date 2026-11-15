@@ -2016,5 +2016,12 @@
     <string id="AIL_e7b1c79e" text="{0} signs {1} over from a cell" />
     <string id="AIL_e7b1c79f" text="Catch deeds that are only said" />
     <string id="AIL_e7b1c7a0" text="On: when a character says in a talk that he does something an action carries out (swears fealty, hands over a castle or gold, marries you, joins you, makes peace, frees someone) but uses no action, the mod notes for him that it did not happen, so his memory keeps it as words, and on his next turn asks him once to do it properly or say why not. It reads the reply itself and makes no extra request to the AI. It only understands English and Spanish replies. Off: nothing is checked." />
+    <string id="AIL_e7b1c7a1" text="Chance, every 6 hours, that a hero or a band travelling the map catches something mild. The season and the weather below are added to it, and the total never goes above the highest chance. Recommended: 0.001 to 0.003." />
+    <string id="AIL_e7b1c7a2" text="The chance never goes above this, however many additions pile up (winter, a blizzard, at sea). Recommended: 0.02 to 0.05." />
+    <string id="AIL_e7b1c7a3" text="Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest." />
+    <string id="AIL_e7b1c7a4" text="Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004." />
+    <string id="AIL_e7b1c7a5" text="After getting over a seasonal illness, a hero cannot catch another one for this many days. Recommended: 14 to 30." />
+    <string id="AIL_e7b1c7a6" text="Seasonal: most cases at once in the campaign (0 = no limit)" />
+    <string id="AIL_e7b1c7a7" text="Seasonal illnesses alive at the same time across the whole map, counting each sick hero and each sick band once. At the limit no lord or caravan catches a new one until someone recovers; you and your party still can. Outbreaks in towns do not count. Recommended: 20 to 60." />
   </strings>
 </base>

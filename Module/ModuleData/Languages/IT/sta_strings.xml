@@ -2016,5 +2016,12 @@
     <string id="AIL_e7b1c79e" text="{0} cede {1} dalla sua cella" />
     <string id="AIL_e7b1c79f" text="Rilevare ciò che viene detto ma non fatto" />
     <string id="AIL_e7b1c7a0" text="Attivo: quando un personaggio dice in una conversazione di fare qualcosa che richiede un’azione (giura fedeltà, consegna un castello o dell’oro, ti sposa, si unisce a te, fa la pace, libera qualcuno) ma non usa alcuna azione, la mod gli annota che non è accaduto, così la sua memoria lo conserva come parole, e al turno successivo gli chiede una volta di farlo davvero o di dire perché no. Legge la risposta stessa e non invia richieste aggiuntive all’IA. Capisce solo risposte in inglese e in spagnolo. Disattivo: non si controlla nulla." />
+    <string id="AIL_e7b1c7a1" text="Probabilità, ogni 6 ore, che un eroe o una truppa in viaggio sulla mappa prenda un malanno lieve. Vi si sommano la stagione e il tempo qui sotto, e il totale non supera mai la probabilità massima. Consigliato: da 0.001 a 0.003." />
+    <string id="AIL_e7b1c7a2" text="La probabilità non supera mai questo valore, per quante aggiunte si accumulino (inverno, bufera, in mare). Consigliato: da 0.02 a 0.05." />
+    <string id="AIL_e7b1c7a3" text="Si somma alla probabilità base durante quella stagione. Consigliato: da 0 a 0.005, l’inverno il più alto." />
+    <string id="AIL_e7b1c7a4" text="Si somma alla probabilità base mentre il gruppo è con quel tempo o in mare. Consigliato: da 0 a 0.004." />
+    <string id="AIL_e7b1c7a5" text="Dopo essere guarito da un malanno di stagione, un eroe non può prenderne un altro per questi giorni. Consigliato: da 14 a 30." />
+    <string id="AIL_e7b1c7a6" text="Stagione: casi contemporanei al massimo nella campagna (0 = nessun limite)" />
+    <string id="AIL_e7b1c7a7" text="Malanni di stagione attivi nello stesso momento su tutta la mappa; ogni eroe malato e ogni truppa malata contano una volta. Al limite nessun signore né carovana ne prende uno nuovo finché qualcuno non guarisce; tu e il tuo gruppo sì. Le epidemie nelle città non contano. Consigliato: da 20 a 60." />
   </strings>
 </base>

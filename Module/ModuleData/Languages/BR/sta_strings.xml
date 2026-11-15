@@ -2016,5 +2016,12 @@
     <string id="AIL_e7b1c79e" text="{0} cede {1} de sua cela" />
     <string id="AIL_e7b1c79f" text="Detectar o que só é dito e não é feito" />
     <string id="AIL_e7b1c7a0" text="Ativado: quando um personagem diz numa conversa que faz algo que exige uma ação (jura lealdade, entrega um castelo ou ouro, casa-se com você, junta-se a você, faz a paz, liberta alguém) mas não usa nenhuma ação, o mod anota para ele que isso não aconteceu, para que sua memória o guarde como palavras, e no turno seguinte pede uma vez que ele o faça de verdade ou diga por que não. Lê a própria resposta e não faz nenhum pedido extra à IA. Só entende respostas em inglês e em espanhol. Desativado: nada é verificado." />
+    <string id="AIL_e7b1c7a1" text="Chance, a cada 6 horas, de um herói ou uma tropa viajando pelo mapa pegar um mal leve. A estação e o tempo abaixo somam-se a ela, e o total nunca passa da chance máxima. Recomendado: de 0.001 a 0.003." />
+    <string id="AIL_e7b1c7a2" text="A chance nunca passa disto, por mais acréscimos que se juntem (inverno, nevasca, no mar). Recomendado: de 0.02 a 0.05." />
+    <string id="AIL_e7b1c7a3" text="Somado à chance base durante essa estação. Recomendado: de 0 a 0.005, o inverno o mais alto." />
+    <string id="AIL_e7b1c7a4" text="Somado à chance base enquanto o grupo está nesse tempo ou no mar. Recomendado: de 0 a 0.004." />
+    <string id="AIL_e7b1c7a5" text="Depois de se recuperar de um mal sazonal, um herói não pode pegar outro por estes dias. Recomendado: de 14 a 30." />
+    <string id="AIL_e7b1c7a6" text="Sazonal: máximo de casos ao mesmo tempo na campanha (0 = sem limite)" />
+    <string id="AIL_e7b1c7a7" text="Males sazonais ativos ao mesmo tempo em todo o mapa; cada herói doente e cada tropa doente contam uma vez. No limite nenhum senhor nem caravana pega um novo até alguém se curar; você e seu grupo ainda podem. Surtos nas cidades não contam. Recomendado: de 20 a 60." />
   </strings>
 </base>

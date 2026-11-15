@@ -2016,5 +2016,12 @@
     <string id="AIL_e7b1c79e" text="{0} überschreibt {1} aus der Zelle" />
     <string id="AIL_e7b1c79f" text="Erkennen, was nur gesagt und nicht getan wird" />
     <string id="AIL_e7b1c7a0" text="An: Wenn eine Figur im Gespräch sagt, sie tue etwas, wofür es eine Aktion braucht (Treue schwören, eine Burg oder Gold übergeben, dich heiraten, sich dir anschließen, Frieden schließen, jemanden freilassen), aber keine Aktion benutzt, vermerkt die Mod für sie, dass es nicht geschehen ist, damit ihr Gedächtnis es als bloße Worte behält, und bittet sie in ihrem nächsten Zug einmal, es wirklich zu tun oder zu sagen, warum nicht. Die Mod liest nur die Antwort selbst und stellt keine zusätzliche Anfrage an die KI. Sie versteht nur englische und spanische Antworten. Aus: Es wird nichts geprüft." />
+    <string id="AIL_e7b1c7a1" text="Chance alle 6 Stunden, dass ein Held oder eine Truppe auf der Karte sich etwas Leichtes einfängt. Jahreszeit und Wetter unten kommen hinzu, und die Summe steigt nie über die Höchstchance. Empfohlen: 0.001 bis 0.003." />
+    <string id="AIL_e7b1c7a2" text="Die Chance steigt nie darüber, egal wie viele Zuschläge zusammenkommen (Winter, Schneesturm, auf See). Empfohlen: 0.02 bis 0.05." />
+    <string id="AIL_e7b1c7a3" text="Kommt in dieser Jahreszeit zur Grundchance hinzu. Empfohlen: 0 bis 0.005, der Winter am höchsten." />
+    <string id="AIL_e7b1c7a4" text="Kommt zur Grundchance hinzu, solange die Gruppe in diesem Wetter oder auf See ist. Empfohlen: 0 bis 0.004." />
+    <string id="AIL_e7b1c7a5" text="Nach überstandener saisonaler Krankheit kann ein Held so viele Tage lang keine neue bekommen. Empfohlen: 14 bis 30." />
+    <string id="AIL_e7b1c7a6" text="Saisonal: höchstens gleichzeitige Fälle in der Kampagne (0 = unbegrenzt)" />
+    <string id="AIL_e7b1c7a7" text="Saisonale Krankheiten, die gleichzeitig auf der ganzen Karte bestehen; jeder kranke Held und jede kranke Truppe zählt einmal. An der Grenze steckt sich kein Lord und keine Karawane neu an, bis jemand genest; du und deine Gruppe schon. Seuchen in Städten zählen nicht. Empfohlen: 20 bis 60." />
   </strings>
 </base>

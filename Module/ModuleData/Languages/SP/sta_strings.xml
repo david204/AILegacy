@@ -2016,5 +2016,12 @@
     <string id="AIL_e7b1c79e" text="{0} cede {1} desde su celda" />
     <string id="AIL_e7b1c79f" text="Detectar lo que solo se dice y no se hace" />
     <string id="AIL_e7b1c7a0" text="Activado: cuando un personaje dice en una charla que hace algo que requiere una acción (jura lealtad, entrega un castillo u oro, se casa contigo, se une a ti, firma la paz, libera a alguien) pero no usa ninguna acción, el mod le anota que no ha ocurrido, para que su memoria lo guarde como palabras, y en su siguiente turno le pide una vez que lo haga de verdad o diga por qué no. Lee la propia respuesta y no hace ninguna petición extra a la IA. Solo entiende respuestas en inglés y en español. Desactivado: no se comprueba nada." />
+    <string id="AIL_e7b1c7a1" text="Probabilidad, cada 6 horas, de que un héroe o una tropa que viaja por el mapa coja un mal leve. Se le suman la estación y el tiempo de abajo, y el total nunca pasa de la probabilidad máxima. Recomendado: de 0.001 a 0.003." />
+    <string id="AIL_e7b1c7a2" text="La probabilidad nunca pasa de aquí, por muchas sumas que se junten (invierno, ventisca, en el mar). Recomendado: de 0.02 a 0.05." />
+    <string id="AIL_e7b1c7a3" text="Se suma a la probabilidad base durante esa estación. Recomendado: de 0 a 0.005, el invierno el más alto." />
+    <string id="AIL_e7b1c7a4" text="Se suma a la probabilidad base mientras la partida está con ese tiempo o en el mar. Recomendado: de 0 a 0.004." />
+    <string id="AIL_e7b1c7a5" text="Después de pasar un mal de temporada, un héroe no puede coger otro durante estos días. Recomendado: de 14 a 30." />
+    <string id="AIL_e7b1c7a6" text="Temporada: casos a la vez en la campaña como máximo (0 = sin límite)" />
+    <string id="AIL_e7b1c7a7" text="Males de temporada vivos a la vez en todo el mapa; cada héroe enfermo y cada tropa enferma cuentan una vez. En el límite ningún señor ni caravana coge uno nuevo hasta que alguien se cure; tú y tu partida sí podéis. Los brotes de las ciudades no cuentan. Recomendado: de 20 a 60." />
   </strings>
 </base>

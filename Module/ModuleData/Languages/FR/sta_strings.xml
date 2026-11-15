@@ -2016,5 +2016,12 @@
     <string id="AIL_e7b1c79e" text="{0} cède {1} depuis sa cellule" />
     <string id="AIL_e7b1c79f" text="Repérer ce qui est dit mais pas fait" />
     <string id="AIL_e7b1c7a0" text="Activé : quand un personnage dit dans une conversation qu’il fait quelque chose qui demande une action (jurer fidélité, remettre un château ou de l’or, vous épouser, vous rejoindre, faire la paix, libérer quelqu’un) sans utiliser d’action, le mod lui note que cela n’a pas eu lieu, pour que sa mémoire le garde comme des paroles, et à son tour suivant lui demande une fois de le faire réellement ou de dire pourquoi il ne le fait pas. Il lit la réponse elle-même et n’envoie aucune requête supplémentaire à l’IA. Il ne comprend que les réponses en anglais et en espagnol. Désactivé : rien n’est vérifié." />
+    <string id="AIL_e7b1c7a1" text="Chance, toutes les 6 heures, qu’un héros ou une troupe en route sur la carte attrape un mal bénin. La saison et le temps ci-dessous s’y ajoutent, et le total ne dépasse jamais la chance maximale. Recommandé : de 0.001 à 0.003." />
+    <string id="AIL_e7b1c7a2" text="La chance ne dépasse jamais cette valeur, quels que soient les ajouts (hiver, blizzard, en mer). Recommandé : de 0.02 à 0.05." />
+    <string id="AIL_e7b1c7a3" text="S’ajoute à la chance de base pendant cette saison. Recommandé : de 0 à 0.005, l’hiver le plus haut." />
+    <string id="AIL_e7b1c7a4" text="S’ajoute à la chance de base tant que le groupe est sous ce temps ou en mer. Recommandé : de 0 à 0.004." />
+    <string id="AIL_e7b1c7a5" text="Après s’être remis d’un mal de saison, un héros ne peut en attraper un autre pendant ce nombre de jours. Recommandé : de 14 à 30." />
+    <string id="AIL_e7b1c7a6" text="Saison : cas simultanés au plus dans la campagne (0 = sans limite)" />
+    <string id="AIL_e7b1c7a7" text="Maux de saison actifs en même temps sur toute la carte ; chaque héros malade et chaque troupe malade comptent une fois. À la limite, aucun seigneur ni caravane n’en attrape de nouveau tant que personne ne guérit ; vous et votre groupe, si. Les épidémies des villes ne comptent pas. Recommandé : de 20 à 60." />
   </strings>
 </base>

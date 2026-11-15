@@ -482,10 +482,14 @@ namespace AILegacy.World
             int season = (int)CampaignTime.Now.GetSeasonOfYear;
             float seasonAdd = season == 3 ? cfg.SeasonalWinterBonus : season == 2 ? cfg.SeasonalAutumnBonus : season == 0 ? cfg.SeasonalSpringBonus : cfg.SeasonalSummerBonus;
             var weather = Campaign.Current.Models?.MapWeatherModel;
+            // the cap keeps the whole map from going sick at once; the player's own party is never held back by it
+            int cap = cfg.SeasonalMaxLiveCases;
+            int live = cap > 0 ? Sick.Count(x => x.Seasonal) : 0;
             foreach (var p in MobileParty.All.ToList())
             {
                 if (p == null || !p.IsActive || p.CurrentSettlement != null || p.MapEvent != null) continue;
                 if (!p.IsMainParty && !p.IsLordParty && !p.IsCaravan) continue;
+                if (cap > 0 && live >= cap && !p.IsMainParty) continue;
                 float chance = cfg.SeasonalDiseaseBaseChance + seasonAdd;
                 bool sea = false, snow = false, rain = false;
                 try
@@ -516,14 +520,15 @@ namespace AILegacy.World
                     float c = Math.Min(cfg.SeasonalDiseaseMaxChance, chance * Math.Max(0.5f, 1f - h.GetSkillValue(DefaultSkills.Medicine) / 600f)) * (1f - Hardiness(h)) * guard;
                     if (!Roll(c)) continue;
                     var k = PickSeasonal(season, sea, snow, rain);
-                    InfectHero(h, L.T(k.Id, k.Es), k.En, k.Severity, true, null, now + SeasonalDays);
+                    if (InfectHero(h, L.T(k.Id, k.Es), k.En, k.Severity, true, null, now + SeasonalDays) != null) live++;
                 }
+                if (cap > 0 && live >= cap && !p.IsMainParty) continue;
                 int regulars = p.MemberRoster.TotalRegulars;
                 if (regulars <= 0 || (OfTroops(p)?.Any(x => x.Seasonal) ?? false)) continue;
                 float ct = Math.Min(cfg.SeasonalDiseaseMaxChance, chance * Math.Max(0.5f, 1f - (p.LeaderHero?.GetSkillValue(DefaultSkills.Medicine) ?? 0) / 600f)) * guard;
                 if (!Roll(ct)) continue;
                 var kind = PickSeasonal(season, sea, snow, rain);
-                InfectBand(p, Sickness.Troops, L.T(kind.Id, kind.Es), kind.En, kind.Severity, true, null, now + SeasonalDays, Math.Max(1, (int)(regulars * 0.02f)));
+                if (InfectBand(p, Sickness.Troops, L.T(kind.Id, kind.Es), kind.En, kind.Severity, true, null, now + SeasonalDays, Math.Max(1, (int)(regulars * 0.02f))) > 0) live++;
             }
         }
 

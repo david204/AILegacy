@@ -1516,57 +1516,75 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public bool EnableSeasonalDiseases { get; set; } = true;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c626}Seasonal: base chance (every 6 hours)", 0.0005f, 0.1f, "0.0000", Order = 51, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c626}Seasonal: base chance (every 6 hours)", 0.0005f, 0.1f, "0.0000", Order = 51, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a1}Chance, every 6 hours, that a hero or a band travelling the map catches something mild. The season and the weather below are added to it, and the total never goes above the highest chance. Recommended: 0.001 to 0.003.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalDiseaseBaseChance { get; set; } = 0.002f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c627}Seasonal: highest chance after all additions", 0.01f, 0.5f, "0.000", Order = 52, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c627}Seasonal: highest chance after all additions", 0.01f, 0.5f, "0.000", Order = 52, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a2}The chance never goes above this, however many additions pile up (winter, a blizzard, at sea). Recommended: 0.02 to 0.05.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalDiseaseMaxChance { get; set; } = 0.04f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c628}Seasonal: added in winter", 0f, 0.2f, "0.0000", Order = 53, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c628}Seasonal: added in winter", 0f, 0.2f, "0.0000", Order = 53, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalWinterBonus { get; set; } = 0.005f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c629}Seasonal: added in autumn", 0f, 0.2f, "0.0000", Order = 54, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c629}Seasonal: added in autumn", 0f, 0.2f, "0.0000", Order = 54, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalAutumnBonus { get; set; } = 0.003f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62a}Seasonal: added in spring", 0f, 0.2f, "0.0000", Order = 55, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62a}Seasonal: added in spring", 0f, 0.2f, "0.0000", Order = 55, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalSpringBonus { get; set; } = 0.002f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62b}Seasonal: added in summer", 0f, 0.1f, "0.0000", Order = 56, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62b}Seasonal: added in summer", 0f, 0.1f, "0.0000", Order = 56, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalSummerBonus { get; set; } = 0.001f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62c}Seasonal: added in light rain", 0f, 0.1f, "0.0000", Order = 57, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62c}Seasonal: added in light rain", 0f, 0.1f, "0.0000", Order = 57, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalWeatherLightRainBonus { get; set; } = 0.0012f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62d}Seasonal: added in heavy rain or a storm", 0f, 0.15f, "0.0000", Order = 58, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62d}Seasonal: added in heavy rain or a storm", 0f, 0.15f, "0.0000", Order = 58, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public float SeasonalWeatherHeavyRainBonus { get; set; } = 0.002f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62e}Seasonal: added in snowfall", 0f, 0.15f, "0.000", Order = 59, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62e}Seasonal: added in snowfall", 0f, 0.15f, "0.0000", Order = 59, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalWeatherSnowyBonus { get; set; } = 0.02f;
+        public float SeasonalWeatherSnowyBonus { get; set; } = 0.002f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c62f}Seasonal: added in a blizzard", 0f, 0.2f, "0.000", Order = 60, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c62f}Seasonal: added in a blizzard", 0f, 0.2f, "0.0000", Order = 60, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalWeatherBlizzardBonus { get; set; } = 0.03f;
+        public float SeasonalWeatherBlizzardBonus { get; set; } = 0.003f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c630}Seasonal: added on wet ground", 0f, 0.1f, "0.000", Order = 61, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c630}Seasonal: added on wet ground", 0f, 0.1f, "0.0000", Order = 61, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalWeatherWetBonus { get; set; } = 0.01f;
+        public float SeasonalWeatherWetBonus { get; set; } = 0.001f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c631}Seasonal: added aboard ship at sea", 0f, 0.15f, "0.000", Order = 62, RequireRestart = false)]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1c631}Seasonal: added aboard ship at sea", 0f, 0.15f, "0.0000", Order = 62, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
-        public float SeasonalShipAtSeaBonus { get; set; } = 0.02f;
+        public float SeasonalShipAtSeaBonus { get; set; } = 0.002f;
 
-        [SettingPropertyInteger("{=AIL_e7b1c63a}Seasonal: days of immunity after getting over one (0 = none)", 0, 60, Order = 63, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_e7b1c63a}Seasonal: days of immunity after getting over one (0 = none)", 0, 60, Order = 63, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a5}After getting over a seasonal illness, a hero cannot catch another one for this many days. Recommended: 14 to 30.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
         public int SeasonalPostRecoveryImmunityDays { get; set; } = 21;
+
+        [SettingPropertyInteger("{=AIL_e7b1c7a6}Seasonal: most cases at once in the campaign (0 = no limit)", 0, 300, Order = 64, RequireRestart = false,
+            HintText = "{=AIL_e7b1c7a7}Seasonal illnesses alive at the same time across the whole map, counting each sick hero and each sick band once. At the limit no lord or caravan catches a new one until someone recovers; you and your party still can. Outbreaks in towns do not count. Recommended: 20 to 60.")]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        public int SeasonalMaxLiveCases { get; set; } = 40;
 
         // Treatment and healing
         [SettingPropertyFloatingInteger("{=AIL_e7b1c632}Treatment: base cost in the hospital", 50f, 500f, "0", Order = 70, RequireRestart = false,
