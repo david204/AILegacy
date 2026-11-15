@@ -767,8 +767,9 @@ namespace AILegacy.Dialogue
                     if (a == null || from == null) continue;
                     if (a.Character is CharacterObject c && from.MemberRoster.GetTroopCount(c) > 0)
                     {
+                        // counts are read again for each one, so nothing goes below what the roster holds
                         if (a.State == AgentState.Killed) from.MemberRoster.AddToCounts(c, -1);
-                        else if (a.State == AgentState.Unconscious || !a.IsActive()) from.MemberRoster.AddToCounts(c, 0, false, 1);
+                        else if (a.State == AgentState.Unconscious && from.MemberRoster.GetElementWoundedNumber(from.MemberRoster.FindIndexOfTroop(c)) < from.MemberRoster.GetTroopCount(c)) from.MemberRoster.AddToCounts(c, 0, false, 1);
                     }
                     if (a.IsActive()) a.FadeOut(false, true);
                 }
@@ -1264,6 +1265,7 @@ namespace AILegacy.Dialogue
                 FightBanter.Tick(dt);
                 if (_yield != 0) EndFriendlyOnYield();
                 if (GuardedAgents.Count > 0 && Mission.Current == null) Unguard();
+                if (Defenders.Count > 0 && Mission.Current == null) DismissDefenders();      // the scene closed without the fight's own end: settle the count anyway
                 if (_active != null) { GrowFight(dt); PlayerFightKeys(); if ((_crowd -= dt) <= 0f) { _crowd = 1f; Crowd(); } }
                 if (ActiveFoes.Count > 0)
                 {

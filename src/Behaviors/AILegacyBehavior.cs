@@ -341,7 +341,8 @@ namespace AILegacy.Behaviors
                     try
                     {
                         var h = Hero.OneToOneConversationHero;
-                        if (!S.Get.MapTalkAutomatic || h == null || !h.IsLord || h.PartyBelongedTo?.LeaderHero != h) return false;
+                        if (!S.Get.MapTalkAutomatic || h == null || !h.IsLord || h.IsPrisoner || h.Clan == Clan.PlayerClan || h.PartyBelongedTo?.LeaderHero != h) return false;
+                        if (h.PartyBelongedTo.Army != null && h.PartyBelongedTo.Army == TaleWorlds.CampaignSystem.Party.MobileParty.MainParty.Army) return false;
                         if (Campaign.Current.CurrentConversationContext != ConversationContext.PartyEncounter || Initiative.Matches()) return false;
                         if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction)) return false;
                         return Scenes.MapTalk.CanOffer(h);
