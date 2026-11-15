@@ -2060,5 +2060,9 @@
     <string id="AIL_e7b1c7cb" text="Cuando una lección nueva pasa de este número, se quita la más antigua. Cada lección hace un poco más larga cada petición de charla. Recomendado: de 10 a 20." />
     <string id="AIL_e7b1c7cc" text="Lecciones comunes a todas las campañas" />
     <string id="AIL_e7b1c7cd" text="Desactivado: cada campaña guarda sus propias lecciones, con ella. Activado: una sola lista para todas las campañas, en el archivo lessons.txt de la carpeta del mod, que también puedes editar a mano (una lección por línea). Cambiarlo no pasa las lecciones de una lista a la otra. Recomendado: desactivado." />
+    <string id="AIL_e7b1c7ce" text="La escena con {0}" />
+    <string id="AIL_e7b1c7cf" text="La imagen de la escena está lista: elige «Ver la escena»." />
+    <string id="AIL_e7b1c7d0" text="{=!}Hablar (con imagen de escena) [AI Legacy]" />
+    <string id="AIL_e7b1c7d1" text="{=!}Ver la escena" />
   </strings>
 </base>

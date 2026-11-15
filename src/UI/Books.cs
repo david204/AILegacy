@@ -426,6 +426,20 @@ namespace AILegacy.UI
             vm.Select(e, h.Name.ToString(), b.ToString().Replace("{", "(").Replace("}", ")"));
         }
 
+        /// <summary>A picture of a moment of a conversation, in the book window, with what was said beside it.</summary>
+        public static void OpenPicture(string path, string title, string text)
+        {
+            try
+            {
+                var vm = new BookVM { Title = title };
+                var e = new BookEntryVM(title, "", null, x => { });
+                vm.Entries.Add(e);
+                vm.Select(e, title, (text ?? "").Replace("{", "(").Replace("}", ")"), path);
+                Open("AILegacyBook", vm);
+            }
+            catch (Exception ex) { Log.Error("Imagen de la escena", ex); }
+        }
+
         private static void Open(string movie, BookVM vm)
         {
             GauntletWindow w = null;

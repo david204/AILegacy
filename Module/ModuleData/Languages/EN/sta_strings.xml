@@ -2060,5 +2060,9 @@
     <string id="AIL_e7b1c7cb" text="When a new lesson goes past this number, the oldest one is dropped. Every lesson makes each conversation request a little longer. Recommended: 10 to 20." />
     <string id="AIL_e7b1c7cc" text="Lessons shared by every campaign" />
     <string id="AIL_e7b1c7cd" text="Off: each campaign keeps its own lessons, saved with it. On: one list for every campaign, in the file lessons.txt in the mod folder, which you can also edit by hand (one lesson per line). Switching does not move lessons from one list to the other. Recommended: off." />
+    <string id="AIL_e7b1c7ce" text="The scene with {0}" />
+    <string id="AIL_e7b1c7cf" text="The picture of the scene is ready: choose «See the scene»." />
+    <string id="AIL_e7b1c7d0" text="{=!}Talk (with a picture of the scene) [AI Legacy]" />
+    <string id="AIL_e7b1c7d1" text="{=!}See the scene" />
   </strings>
 </base>

@@ -2060,5 +2060,9 @@
     <string id="AIL_e7b1c7cb" text="Geht eine neue Lehre über diese Zahl, fällt die älteste weg. Jede Lehre macht jede Gesprächsanfrage etwas länger. Empfohlen: 10 bis 20." />
     <string id="AIL_e7b1c7cc" text="Lehren für alle Kampagnen" />
     <string id="AIL_e7b1c7cd" text="Aus: Jede Kampagne behält ihre eigenen Lehren, mit ihr gespeichert. An: eine Liste für alle Kampagnen, in der Datei lessons.txt im Mod-Ordner, die du auch von Hand bearbeiten kannst (eine Lehre pro Zeile). Umschalten verschiebt keine Lehren von einer Liste in die andere. Empfohlen: aus." />
+    <string id="AIL_e7b1c7ce" text="Die Szene mit {0}" />
+    <string id="AIL_e7b1c7cf" text="Das Bild der Szene ist fertig: Wähle «Die Szene ansehen»." />
+    <string id="AIL_e7b1c7d0" text="{=!}Sprechen (mit Bild der Szene) [AI Legacy]" />
+    <string id="AIL_e7b1c7d1" text="{=!}Die Szene ansehen" />
   </strings>
 </base>

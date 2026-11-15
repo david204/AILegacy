@@ -2060,5 +2060,9 @@
     <string id="AIL_e7b1c7cb" text="Quand une nouvelle leçon dépasse ce nombre, la plus ancienne est retirée. Chaque leçon allonge un peu chaque requête de conversation. Recommandé : de 10 à 20." />
     <string id="AIL_e7b1c7cc" text="Leçons communes à toutes les campagnes" />
     <string id="AIL_e7b1c7cd" text="Désactivé : chaque campagne garde ses propres leçons, enregistrées avec elle. Activé : une seule liste pour toutes les campagnes, dans le fichier lessons.txt du dossier du mod, que vous pouvez aussi modifier à la main (une leçon par ligne). Changer ne déplace pas les leçons d’une liste à l’autre. Recommandé : désactivé." />
+    <string id="AIL_e7b1c7ce" text="La scène avec {0}" />
+    <string id="AIL_e7b1c7cf" text="L’image de la scène est prête : choisissez « Voir la scène »." />
+    <string id="AIL_e7b1c7d0" text="{=!}Parler (avec une image de la scène) [AI Legacy]" />
+    <string id="AIL_e7b1c7d1" text="{=!}Voir la scène" />
   </strings>
 </base>

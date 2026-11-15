@@ -526,6 +526,39 @@ namespace AILegacy.Dialogue
 
         public bool CanReport => S.Get.EnablePlayerLessons && _lastAsked != null && !_waiting && !_closed;
 
+        /// <summary>"Talk (with a picture of the scene)": every reply also gets a picture of that moment.</summary>
+        public bool WithPictures;
+        private string _picture, _pictureText;
+        public bool HasPicture => _picture != null && System.IO.File.Exists(_picture);
+
+        public void ShowPicture()
+        {
+            if (!HasPicture) return;
+            UI.Books.OpenPicture(_picture, L.F("AIL_e7b1c7ce", $"La escena con {_s.Name}"), _pictureText);
+        }
+
+        private void AskPicture(string playerText, string npcText)
+        {
+            try
+            {
+                if (!WithPictures || !World.SceneImages.Enabled) return;
+                string player = Hero.MainHero?.Name?.ToString() ?? "";
+                var st = TaleWorlds.CampaignSystem.Settlements.Settlement.CurrentSettlement;
+                string where = (st != null ? st.Name.ToString() : "the open country") + ", " + (CampaignTime.Now.IsNightTime ? "at night" : "by day")
+                               + ", " + CampaignTime.Now.GetSeasonOfYear.ToString().ToLowerInvariant();
+                string exchange = $"{player}: {playerText}\n{_s.Name}: {npcText}";
+                string shown = $"{L.T("AIL_63ea9af4", "Tú: ")}{playerText}\n\n{_s.Name}: {npcText}";
+                var self = this;
+                World.SceneImages.RequestMoment(Mem, where, exchange, path =>
+                {
+                    self._picture = path; self._pictureText = shown;
+                    if (self.UseWindow && !self._closed) self.ShowPicture();
+                    else Notify(L.T("AIL_e7b1c7cf", "La imagen de la escena está lista: elige «Ver la escena»."), Colors.Gray);
+                });
+            }
+            catch (Exception ex) { Log.Error("Imagen de la charla", ex); }
+        }
+
         /// <summary>The player says what the last reply got wrong; the review runs and may propose a lesson.</summary>
         public void ReportMistake() => ReportMistake(null);
 
@@ -641,6 +674,7 @@ namespace AILegacy.Dialogue
             }
             Mem.Turns.Add(new ChatTurn { Role = "npc", Text = reply.Reply, Day = CampaignTime.Now.ToDays });
             _lastAsked = _pendingAsked; _lastRaw = res.Text;
+            AskPicture(playerText, reply.Reply);
             if (_s.IsHero) AILegacy.Api.AILegacyApi.RaiseNpcReplied(_s.Hero, reply.Reply);
             UiNpc(reply.Reply);
             _lines++;

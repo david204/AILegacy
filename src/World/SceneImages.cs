@@ -38,7 +38,32 @@ Page:
 {text}
 Answer with the prompt only, nothing else.");
 
-        private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done)> Pending = new Queue<(HeroMemory, MemoryPage, Action)>();
+        private static readonly Tpl TMoment = new Tpl("images/talk_moment.txt",
+@"Turn this moment of a conversation into ONE prompt in English for an illustration of it, as if it were a still from the scene. 40 to 70 words.
+Describe only what would be seen: the two people face to face (man or woman, rough age, build, hair, clothing that fits their culture and station; no names), their posture and expressions as the words suggest, the place, the time of day and the light.
+The world is Calradia, a medieval land with 12th-century technology: no magic, no modern objects. No writing or letters in the picture.
+The people in it:
+{people}
+Where and when: {title}
+What was just said:
+{text}
+Answer with the prompt only, nothing else.");
+
+        private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done, Tpl tpl)> Pending = new Queue<(HeroMemory, MemoryPage, Action, Tpl)>();
+
+        /// <summary>
+        /// A picture of the moment just spoken in a conversation. Skipped while another picture is being made, so a quick
+        /// talk does not pile up requests. <paramref name="shown"/> gets the file path on the main thread when it is ready.
+        /// </summary>
+        public static bool RequestMoment(HeroMemory mem, string where, string exchange, Action<string> shown)
+        {
+            if (!Enabled || mem == null || Dir == null || string.IsNullOrWhiteSpace(exchange)) return false;
+            if (IsBusy) { Log.Info("Imagen de la charla: ya hay otra en curso, esta respuesta se queda sin imagen"); return false; }
+            var page = new MemoryPage { Title = where ?? "", Text = exchange, Day = CampaignTime.Now.ToDays };
+            Pending.Enqueue((mem, page, () => { string path = PathOf(page); if (path != null) shown?.Invoke(path); }, TMoment));
+            Next();
+            return true;
+        }
         private static bool _busy;
         private static int _failures;
         // Bumped on every session reset. A request that finishes after a reset belongs to nobody and must not touch
@@ -79,7 +104,7 @@ Answer with the prompt only, nothing else.");
         {
             if (!Enabled || mem == null || page == null || Dir == null) { done?.Invoke(); return; }
             if (_active == page || Pending.Any(x => x.page == page)) return;
-            Pending.Enqueue((mem, page, done));
+            Pending.Enqueue((mem, page, done, null));
             Next();
         }
 
@@ -112,8 +137,8 @@ Answer with the prompt only, nothing else.");
                     {
                         _failures = 0;
                         job.page.Image = file; job.page.ImagePrompt = prompt;
-                        SaveFiles.Dirty();
-                        Log.Info($"Imagen de la página «{job.page.Title}»: {file}");
+                        if (job.tpl == null) SaveFiles.Dirty();
+                        Log.Info($"Imagen {(job.tpl == null ? "de la página" : "de la charla en")} «{job.page.Title}»: {file}");
                     }
                     else
                     {
@@ -135,7 +160,7 @@ Answer with the prompt only, nothing else.");
                 string people = People(job.mem);
                 string text = job.page.Text ?? "";
                 if (text.Length > 1800) text = text.Substring(0, 1800);
-                string ask = TPrompt.Format("people", people, "title", job.page.Title ?? "", "text", text);
+                string ask = (job.tpl ?? TPrompt).Format("people", people, "title", job.page.Title ?? "", "text", text);
                 describe = LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", ask) }, wantJson: false, task: "image_prompt", maxTokensOverride: 300)
                     .ContinueWith(t =>
                     {
@@ -160,7 +185,7 @@ Answer with the prompt only, nothing else.");
                                : await FromLocal(full, localUrl).ConfigureAwait(false);
                     if (raw == null || raw.Length < 2000) { Finish(false, null, prompt, "el servicio no devolvió una imagen"); return; }
                     Directory.CreateDirectory(dir);
-                    string file = "p_" + Guid.NewGuid().ToString("N").Substring(0, 12) + ".png";
+                    string file = (job.tpl == null ? "p_" : "t_") + Guid.NewGuid().ToString("N").Substring(0, 12) + ".png";
                     SavePng(raw, Path.Combine(dir, file));
                     Finish(true, file, prompt, null);
                 }

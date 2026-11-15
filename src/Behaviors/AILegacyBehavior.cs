@@ -357,6 +357,26 @@ namespace AILegacy.Behaviors
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
+            // The same, with a picture of each moment (only with an image service set up)
+            starter.AddPlayerLine("ailegacy_d_start_hi", "hero_main_options", "ailegacy_d_wait", L.T("AIL_e7b1c7d0", "{=!}Hablar (con imagen de escena) [AI Legacy]"),
+                () => S.Get.UseDialogStyle && World.SceneImages.Enabled && CanTalkHero(),
+                () =>
+                {
+                    _fromPrisonerBranch = false;
+                    _fromSurrenderDemand = false;
+                    _bandReturn = null;
+                    var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
+                    if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
+                }, priority: 119);
+            starter.AddPlayerLine("ailegacy_d_start_ri", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_e7b1c7d0", "{=!}Hablar (con imagen de escena) [AI Legacy]"),
+                () => S.Get.UseDialogStyle && World.SceneImages.Enabled && CanTalkResident(),
+                () =>
+                {
+                    _bandReturn = null;
+                    var cm = Campaign.Current.ConversationManager;
+                    var s = ChatSession.StartDialog(Speaker.FromResident(cm.OneToOneConversationCharacter, cm.OneToOneConversationAgent));
+                    if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
+                }, priority: 119);
             // On the map: dismount and talk face to face in a terrain scene
             starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),
@@ -408,6 +428,9 @@ namespace AILegacy.Behaviors
             starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_cdf7046b", "{=!}Repasar lo hablado"),
                 () => { var c = Cur(); return c != null && c.Who != null && c.Who.Memory.Turns.Count > 2; },
                 () => { var c = Cur(); if (c != null) { var who = c.Who; MainThread.Post(() => UI.Books.OpenTranscript(who)); } }, priority: 109);
+            starter.AddPlayerLine("ailegacy_d_picture", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c7d1", "{=!}Ver la escena"),
+                () => { var c = Cur(); return c != null && c.HasPicture; },
+                () => { var c = Cur(); if (c != null) MainThread.Post(c.ShowPicture); }, priority: 123);
             // The last reply went wrong: the player says how, and it may become a lesson
             starter.AddPlayerLine("ailegacy_d_flag", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c7b6", "{=!}Señalar un error de la IA"),
                 () => { var c = Cur(); return c != null && c.CanReport; },

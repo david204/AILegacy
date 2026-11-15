@@ -2060,5 +2060,9 @@
     <string id="AIL_e7b1c7cb" text="新教训超过这个数量时，最早的一条会被移除。每条教训都会让每次对话请求稍长一些。建议：10 至 20。" />
     <string id="AIL_e7b1c7cc" text="所有战役共用教训" />
     <string id="AIL_e7b1c7cd" text="关闭：每个战役保存自己的教训，随战役存档。开启：所有战役共用一个列表，保存在模组文件夹的 lessons.txt 中，也可以手动编辑（每行一条）。切换不会把教训从一个列表移到另一个。建议：关闭。" />
+    <string id="AIL_e7b1c7ce" text="与{0}的场景" />
+    <string id="AIL_e7b1c7cf" text="场景图片已准备好：选择“查看场景”。" />
+    <string id="AIL_e7b1c7d0" text="{=!}交谈（附场景图片）[AI Legacy]" />
+    <string id="AIL_e7b1c7d1" text="{=!}查看场景" />
   </strings>
 </base>
