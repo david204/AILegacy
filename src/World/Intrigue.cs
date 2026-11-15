@@ -132,7 +132,9 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
         {
             var cfg = S.Get;
             var options = new List<(Hero plotter, Hero target, string why, double w)>();
-            foreach (var h in Hero.AllAliveHeroes)
+            // One list of nobles for both loops: scanning every living hero twice made this quadratic
+            var lords = Hero.AllAliveHeroes.Where(o => o != null && o != P && o.IsLord && !o.IsChild).ToList();
+            foreach (var h in lords)
             {
                 if (!CanPlot(h) || !Schemer(h)) continue;
                 // Against the player: a real grudge
@@ -146,8 +148,14 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                 if (!cfg.IntrigueAgainstNpcs) continue;
                 try
                 {
-                    var foe = Hero.AllAliveHeroes.Where(o => o != h && o != P && o.IsLord && !o.IsChild && o.Clan != h.Clan && h.GetRelation(o) <= -60)
-                                                 .OrderBy(o => h.GetRelation(o)).FirstOrDefault();
+                    Hero foe = null; int worst = -60;
+                    foreach (var o in lords)
+                    {
+                        // the player's own people are never a target of someone else's plot without the player knowing
+                        if (o == h || o.Clan == h.Clan || o.Clan == Clan.PlayerClan) continue;
+                        int r = h.GetRelation(o);
+                        if (r <= worst) { worst = r; foe = o; }
+                    }
                     if (foe != null && !Active.Any(p => p.TargetId == foe.StringId)) options.Add((h, foe, "you loathe them", 1.0));
                 }
                 catch { }
@@ -412,6 +420,14 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
 
         private static void AttemptOnNpc(Plot p, Hero plotter, Hero target)
         {
+            // Not while they are held, fighting or on a throne: the killers wait for a better moment (and give up after a while)
+            bool unreachable = target.IsPrisoner || target.PartyBelongedTo?.MapEvent != null || (target.MapFaction is Kingdom tk && tk.Leader == target) || target.Clan == Clan.PlayerClan;
+            if (unreachable)
+            {
+                if (CampaignTime.Now.ToDays - p.StartDay > 90) { End(p, "no chance"); return; }
+                p.NextDay = CampaignTime.Now.ToDays + 3;
+                return;
+            }
             bool guarded = target.CurrentSettlement != null && target.CurrentSettlement.OwnerClan == target.Clan;
             int chance = guarded ? 15 : 30;
             bool blamed = Rng.Next(100) < 45;

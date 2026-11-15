@@ -1035,13 +1035,20 @@ siege: far away, but under your siege right now");
                 if (!truce) return;
                 if (St.Pariahs == null) St.Pariahs = new Dictionary<string, Pariah>();
                 St.Pariahs[k.StringId] = new Pariah { VictimId = o.StringId, Day = CampaignTime.Now.ToDays, Until = CampaignTime.Now.ToDays + S.Get.PariahDays };
-                // their pacts go with their good name
-                foreach (var x in WorldSim.Kingdoms.Where(x => x != k && x != o).ToList())
+                // their pacts go with their good name: after the game has finished handling the declaration
+                MainThread.Post(() =>
                 {
-                    if (PlayerRules(x)) continue;
-                    if (Allied(k, x)) { EndAlliance(k, x); Log.Info($"[diplomacia] {x.Name} rompe su alianza con {k.Name}, que rompió una tregua"); }
-                    if (HasTrade(k, x)) EndTrade(k, x);
-                }
+                    try
+                    {
+                        foreach (var x in WorldSim.Kingdoms.Where(x => x != k && x != o).ToList())
+                        {
+                            if (PlayerRules(x)) continue;
+                            if (Allied(k, x)) { EndAlliance(k, x); Log.Info($"[diplomacia] {x.Name} rompe su alianza con {k.Name}, que rompió una tregua"); }
+                            if (HasTrade(k, x)) EndTrade(k, x);
+                        }
+                    }
+                    catch (Exception ex) { Log.Error("[diplomacia] pactos del que rompió la tregua", ex); }
+                });
                 WorldSim.Say(L.F("AIL_e7b1c811", $"{k.Name} ha roto la tregua con {o.Name}: los demás reinos le dan la espalda."), PlayerRules(k) ? Colors.Red : Colors.Yellow);
                 NewsStore.Add(new NewsItem
                 {
