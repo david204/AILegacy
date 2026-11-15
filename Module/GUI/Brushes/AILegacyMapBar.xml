@@ -7,7 +7,8 @@
   </Brush>
   <Brush Name="AILegacy.MapBar.Left.Icons" OverrideBrush="MapBar.Left.Icons">
     <Layers>
-      <BrushLayer Name="ailegacy_memories" Sprite="MPLobby\Generic\edit_name_icon" YOffset="1" ExtendTop="-2" ExtendBottom="-2" ExtendLeft="-2" ExtendRight="-2" ImageFit.Type="Contain" ImageFit.VerticalAlignment="Center" ImageFit.HorizontalAlignment="Center" />
+      <!-- A book of the game's own interface (ui_group1, always loaded). The multiplayer pencil it replaces lives in a lobby sprite group -->
+      <BrushLayer Name="ailegacy_memories" Sprite="StdAssets\history_button" YOffset="1" ExtendTop="-2" ExtendBottom="-2" ExtendLeft="-2" ExtendRight="-2" ImageFit.Type="Contain" ImageFit.VerticalAlignment="Center" ImageFit.HorizontalAlignment="Center" />
     </Layers>
   </Brush>
 </Brushes>
