@@ -2172,5 +2172,23 @@
     <string id="AIL_e7b1c840" text="amant" />
     <string id="AIL_e7b1c841" text="concubine" />
     <string id="AIL_e7b1c842" text="concubin" />
+    <string id="AIL_e7b1c843" text="Voix des personnages" />
+    <string id="AIL_e7b1c844" text="Les personnages disent leurs répliques à voix haute : seulement ce qu’ils disent, jamais votre réplique ni un nom devant. Windows utilise les voix installées sur votre PC : gratuit, hors ligne, sans clé. OpenAI utilise le fournisseur OpenAI de 0. Clés d’IA et coûte un peu par réplique (environ un demi-centime). Serveur compatible : tout programme avec la même API /audio/speech, comme un Kokoro local. Piper utilise un modèle de voix local. Désactivé = silence." />
+    <string id="AIL_e7b1c845" text="G. Voix" />
+    <string id="AIL_e7b1c846" text="Voix : volume" />
+    <string id="AIL_e7b1c847" text="Voix : vitesse (-10 lente, 10 rapide)" />
+    <string id="AIL_e7b1c848" text="Voix : aussi en groupe et dans les conversations de scène" />
+    <string id="AIL_e7b1c849" text="Activé : les répliques des conversations de groupe et entre les gens de la scène sont lues aussi, l’une après l’autre. Désactivé : seulement la personne à qui vous parlez." />
+    <string id="AIL_e7b1c84a" text="Voix : voix masculines (séparées par des virgules)" />
+    <string id="AIL_e7b1c84b" text="Chaque homme reçoit toujours la même de ces voix. Windows : une partie du nom d’une voix (vide = n’importe quelle voix masculine installée). OpenAI : onyx, echo, ash… Serveur compatible : ses propres noms de voix. Piper : chemins complets vers des modèles .onnx." />
+    <string id="AIL_e7b1c84c" text="Voix : voix féminines (séparées par des virgules)" />
+    <string id="AIL_e7b1c84d" text="Chaque femme reçoit toujours la même de ces voix. Windows : une partie du nom d’une voix (vide = n’importe quelle voix féminine installée). OpenAI : nova, shimmer, coral… Serveur compatible : ses propres noms de voix. Piper : chemins complets vers des modèles .onnx." />
+    <string id="AIL_e7b1c84e" text="Voix : modèle (OpenAI ou serveur compatible)" />
+    <string id="AIL_e7b1c84f" text="Vide = gpt-4o-mini-tts pour OpenAI, kokoro pour un serveur compatible." />
+    <string id="AIL_e7b1c850" text="Voix : adresse du serveur compatible" />
+    <string id="AIL_e7b1c851" text="La partie de l’adresse avant /audio/speech, par exemple http://127.0.0.1:8880/v1 pour un Kokoro local." />
+    <string id="AIL_e7b1c852" text="Voix : clé du serveur compatible (s’il en demande une)" />
+    <string id="AIL_e7b1c853" text="Voix : programme Piper (piper.exe)" />
+    <string id="AIL_e7b1c854" text="Chemin complet vers piper.exe. Les modèles de voix vont dans les listes masculine et féminine ci-dessus." />
   </strings>
 </base>

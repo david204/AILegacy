@@ -2172,5 +2172,23 @@
     <string id="AIL_e7b1c840" text="lover" />
     <string id="AIL_e7b1c841" text="concubine" />
     <string id="AIL_e7b1c842" text="concubine" />
+    <string id="AIL_e7b1c843" text="Voice of the characters" />
+    <string id="AIL_e7b1c844" text="Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Off = silent." />
+    <string id="AIL_e7b1c845" text="G. Voice" />
+    <string id="AIL_e7b1c846" text="Voice: volume" />
+    <string id="AIL_e7b1c847" text="Voice: speed (-10 slow, 10 fast)" />
+    <string id="AIL_e7b1c848" text="Voice: also in groups and scene talk" />
+    <string id="AIL_e7b1c849" text="On: lines spoken in group talk and between people in the scene are read out too, one after another. Off: only the person you are talking to." />
+    <string id="AIL_e7b1c84a" text="Voice: male voices (comma-separated)" />
+    <string id="AIL_e7b1c84b" text="Each man always gets the same one of these. Windows: part of a voice's name (empty = any male voice installed). OpenAI: onyx, echo, ash… Compatible server: its own voice names. Piper: full paths to .onnx voice models." />
+    <string id="AIL_e7b1c84c" text="Voice: female voices (comma-separated)" />
+    <string id="AIL_e7b1c84d" text="Each woman always gets the same one of these. Windows: part of a voice's name (empty = any female voice installed). OpenAI: nova, shimmer, coral… Compatible server: its own voice names. Piper: full paths to .onnx voice models." />
+    <string id="AIL_e7b1c84e" text="Voice: model (OpenAI or compatible server)" />
+    <string id="AIL_e7b1c84f" text="Empty = gpt-4o-mini-tts for OpenAI, kokoro for a compatible server." />
+    <string id="AIL_e7b1c850" text="Voice: compatible server address" />
+    <string id="AIL_e7b1c851" text="The part of the address before /audio/speech, for example http://127.0.0.1:8880/v1 for a local Kokoro." />
+    <string id="AIL_e7b1c852" text="Voice: compatible server key (if it asks for one)" />
+    <string id="AIL_e7b1c853" text="Voice: Piper program (piper.exe)" />
+    <string id="AIL_e7b1c854" text="Full path to piper.exe. The voice models go in the male and female lists above." />
   </strings>
 </base>

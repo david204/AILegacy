@@ -811,6 +811,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                             {
                                 float secs = Math.Max(2.5f, Math.Min(9f, 1.5f + l.Text.Length * 0.06f));
                                 Bubbles.Show(l.Who, l.Text, secs);
+                                if (cfg.VoiceInGroups) AILegacy.Voice.Speech.Say((l.Who.Character?.StringId ?? "") + "|" + l.Who.Name, l.Who.IsFemale, l.Text);
                                 Gestures.Play(l.Who, l.Mood); _speaking = l.Who;
                                 if (!l.Quiet && cfg.AmbientToLog)
                                     InformationManager.DisplayMessage(new InformationMessage($"{l.Who.Name}: {l.Text}", new Color(0.78f, 0.78f, 0.7f)));

@@ -56,6 +56,8 @@ namespace AILegacy.Dialogue
         /// <summary>Word the player carries by hand for this person is given over as the talk begins.</summary>
         private static void HandOverCarried(Speaker s)
         {
+            // a new conversation: whoever was still speaking stops
+            try { AILegacy.Voice.Speech.Stop(); } catch { }
             try
             {
                 string shown = World.InfoExchange.DeliverCarried(s);
@@ -212,6 +214,7 @@ namespace AILegacy.Dialogue
             _lastNpc = npcText ?? "";
             HasUnreadReply = true;
             Seeded = true;
+            try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, _lastNpc); } catch { }
             _lines++;
             _answered++;
         }
@@ -366,6 +369,8 @@ namespace AILegacy.Dialogue
 
         private void UiNpc(string text)
         {
+            // Said aloud, only their words (never the player's line or a name in front)
+            try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, text); } catch { }
             if (_dialogMode)
             {
                 _lastNpc = text;

@@ -347,6 +347,54 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
         public string ImageOpenAiModel { get; set; } = "gpt-image-1";
 
+        // ------------------------------------------------------------ Voice
+        [SettingPropertyDropdown("{=AIL_e7b1c843}Voice of the characters", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1c844}Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Off = silent.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public MCM.Common.Dropdown<string> VoiceEngine { get; set; } = new MCM.Common.Dropdown<string>(AILegacy.Voice.Speech.EngineNames, AILegacy.Voice.Speech.Off);
+
+        [SettingPropertyInteger("{=AIL_e7b1c846}Voice: volume", 0, 100, Order = 1, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public int VoiceVolume { get; set; } = 80;
+
+        [SettingPropertyInteger("{=AIL_e7b1c847}Voice: speed (-10 slow, 10 fast)", -10, 10, Order = 2, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public int VoiceRate { get; set; } = 0;
+
+        [SettingPropertyBool("{=AIL_e7b1c848}Voice: also in groups and scene talk", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c849}On: lines spoken in group talk and between people in the scene are read out too, one after another. Off: only the person you are talking to.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public bool VoiceInGroups { get; set; } = true;
+
+        [SettingPropertyText("{=AIL_e7b1c84a}Voice: male voices (comma-separated)", Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1c84b}Each man always gets the same one of these. Windows: part of a voice's name (empty = any male voice installed). OpenAI: onyx, echo, ash… Compatible server: its own voice names. Piper: full paths to .onnx voice models.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public string VoiceMaleVoices { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1c84c}Voice: female voices (comma-separated)", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c84d}Each woman always gets the same one of these. Windows: part of a voice's name (empty = any female voice installed). OpenAI: nova, shimmer, coral… Compatible server: its own voice names. Piper: full paths to .onnx voice models.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public string VoiceFemaleVoices { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1c84e}Voice: model (OpenAI or compatible server)", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1c84f}Empty = gpt-4o-mini-tts for OpenAI, kokoro for a compatible server.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public string VoiceModel { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1c850}Voice: compatible server address", Order = 7, RequireRestart = false,
+            HintText = "{=AIL_e7b1c851}The part of the address before /audio/speech, for example http://127.0.0.1:8880/v1 for a local Kokoro.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public string VoiceEndpointUrl { get; set; } = "http://127.0.0.1:8880/v1";
+
+        [SettingPropertyText("{=AIL_e7b1c852}Voice: compatible server key (if it asks for one)", Order = 8, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public string VoiceEndpointKey { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1c853}Voice: Piper program (piper.exe)", Order = 9, RequireRestart = false,
+            HintText = "{=AIL_e7b1c854}Full path to piper.exe. The voice models go in the male and female lists above.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}G. Voice", GroupOrder = 16)]
+        public string VoicePiperPath { get; set; } = "";
+
         // ------------------------------------------------------------ General
         [SettingPropertyDropdown("{=AIL_e250598b}Interface language", Order = -2, RequireRestart = false,
             HintText = "{=AIL_5fd4967b}Language of AI Legacy's menus, notices and windows. \"Auto\" uses the game's language. To see this menu in the new language, leave the options and come back in.")]
