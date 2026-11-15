@@ -74,6 +74,8 @@ namespace AILegacy.Voice
         {
             if (_worker != null && _worker.IsAlive) return;
             _worker = new Thread(Run) { IsBackground = true, Name = "AILegacy voice" };
+            // SAPI wants a single-threaded apartment
+            _worker.SetApartmentState(ApartmentState.STA);
             _worker.Start();
         }
 
@@ -89,11 +91,20 @@ namespace AILegacy.Voice
                     if (wav == null || wav.Length < 100 || job.gen != _gen) continue;
                     wav = Scale(wav, Math.Max(0, Math.Min(100, cfg.VoiceVolume)) / 100f);
                     using (var ms = new MemoryStream(wav))
+                    using (var player = new System.Media.SoundPlayer(ms))
                     {
-                        var player = new System.Media.SoundPlayer(ms);
-                        lock (PlayerGate) _player = player;
-                        if (job.gen == _gen) player.PlaySync();
-                        lock (PlayerGate) _player = null;
+                        player.Load();
+                        // started under the same lock Stop takes, so a Stop can never slip in between the check and the start
+                        lock (PlayerGate)
+                        {
+                            if (job.gen != _gen) continue;
+                            _player = player;
+                            player.Play();
+                        }
+                        double secs = Duration(wav);
+                        var watch = Stopwatch.StartNew();
+                        while (watch.Elapsed.TotalSeconds < secs + 0.15 && job.gen == _gen) Thread.Sleep(50);
+                        lock (PlayerGate) { if (job.gen != _gen) { try { player.Stop(); } catch { } } _player = null; }
                     }
                 }
                 catch (Exception ex) { Log.Warn("Voz: no se pudo decir la frase: " + ex.GetBaseException().Message); }
@@ -207,8 +218,8 @@ namespace AILegacy.Voice
             {
                 var psi = new ProcessStartInfo(exe, $"--model \"{model}\" --output_file \"{outFile}\"")
                 {
-                    UseShellExecute = false, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
+                    // only stdin is redirected: output nobody reads would fill its pipe and stall Piper
+                    UseShellExecute = false, RedirectStandardInput = true, CreateNoWindow = true,
                 };
                 using (var p = Process.Start(psi))
                 {
@@ -219,6 +230,31 @@ namespace AILegacy.Voice
                 return File.Exists(outFile) ? File.ReadAllBytes(outFile) : null;
             }
             finally { try { if (File.Exists(outFile)) File.Delete(outFile); } catch { } }
+        }
+
+        /// <summary>Seconds of sound in a WAV, from its byte rate and data size. A long guess if it cannot be read.</summary>
+        private static double Duration(byte[] wav)
+        {
+            try
+            {
+                if (wav.Length < 44 || Encoding.ASCII.GetString(wav, 0, 4) != "RIFF") return 30;
+                int pos = 12, byteRate = 0;
+                while (pos + 8 <= wav.Length)
+                {
+                    string id = Encoding.ASCII.GetString(wav, pos, 4);
+                    int size = BitConverter.ToInt32(wav, pos + 4);
+                    if (id == "fmt ") byteRate = BitConverter.ToInt32(wav, pos + 16);
+                    else if (id == "data")
+                    {
+                        long bytes = size < 0 ? wav.Length - pos - 8 : Math.Min(size, wav.Length - pos - 8);
+                        return byteRate > 0 ? bytes / (double)byteRate : 30;
+                    }
+                    if (size < 0) break;
+                    pos += 8 + size + (size % 2);
+                }
+            }
+            catch { }
+            return 30;
         }
 
         /// <summary>16-bit PCM WAV at a lower volume. Anything else is played as it came.</summary>
@@ -238,8 +274,10 @@ namespace AILegacy.Voice
                     {
                         if (format != 1 || bits != 16) return wav;
                         var copy = (byte[])wav.Clone();
-                        int end = Math.Min(copy.Length - 1, pos + 8 + (size < 0 || size == int.MaxValue ? copy.Length : size));
-                        for (int i = pos + 8; i + 1 <= end; i += 2)
+                        // a streamed WAV may carry 0xFFFFFFFF (read as -1) for the data size: then it runs to the end of the file
+                        long declared = size < 0 ? long.MaxValue : size;
+                        int end = (int)Math.Min(copy.Length, pos + 8 + declared);
+                        for (int i = pos + 8; i + 1 < end; i += 2)
                         {
                             short s = BitConverter.ToInt16(copy, i);
                             short v = (short)Math.Max(short.MinValue, Math.Min(short.MaxValue, s * volume));
