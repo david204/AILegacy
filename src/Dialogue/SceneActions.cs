@@ -102,6 +102,7 @@ namespace AILegacy.Dialogue
                 switch (verb.ToLowerInvariant())
                 {
                     case "follow":
+                    case "go_with":      // the name some models bring from other mods
                         if (Followers.Contains(who) || !SceneMove.GoTo(who, Agent.Main)) return false;
                         Guides.RemoveAll(g => g.Who == who);
                         Followers.Add(who);

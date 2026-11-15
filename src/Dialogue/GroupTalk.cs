@@ -31,6 +31,10 @@ namespace AILegacy.Dialogue
         private static readonly List<string> Transcript = new List<string>();     // "Name: line", in order
         private static Mission _mission;
         private static bool _waiting;
+        // The reply as it is being written (set on the HTTP thread) and who could be speaking, for the live bubble
+        private static volatile string _liveRaw;
+        private static string _livePainted;
+        private static List<Member> _liveCircle;
         private static float _idle;
         private static Agent _addressed;      // who you were looking at when the window opened
         // If you stay quiet, someone carries the talk on by themselves (a couple of times at most)
@@ -152,6 +156,95 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
 
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
 
+        /// <summary>The first line of the reply being written, over its speaker's head. Bystanders who would butt in wait for the whole reply.</summary>
+        private static void PaintLive()
+        {
+            string raw = _liveRaw;
+            var circle = _liveCircle;
+            if (raw == null || circle == null || !_waiting) return;
+            if (!FirstLineSoFar(raw, out int idx, out string text) || idx < 1 || idx > circle.Count || text.Length < 2) return;
+            if (text == _livePainted) return;
+            var who = circle[idx - 1].Agent;
+            if (who == null || !who.IsActive()) return;
+            _livePainted = text;
+            Bubbles.ShowLive(who, text, 8f);
+        }
+
+        /// <summary>
+        /// Reads the first entry of "lines" from a reply that is still arriving: the speaker's number and the text so far.
+        /// False while the speaker is not known yet, or when it is a bystander ("B1").
+        /// </summary>
+        internal static bool FirstLineSoFar(string raw, out int idx, out string text)
+        {
+            idx = 0; text = "";
+            if (string.IsNullOrEmpty(raw)) return false;
+            int lines = raw.IndexOf("\"lines\"", StringComparison.Ordinal);
+            if (lines < 0) return false;
+            int open = raw.IndexOf('{', lines);
+            if (open < 0) return false;
+            int close = ObjectEnd(raw, open);
+            string obj = close > 0 ? raw.Substring(open, close - open + 1) : raw.Substring(open);
+            string whoRaw = StringOrBare(obj, "who", out _);
+            if (whoRaw == null || whoRaw.StartsWith("B", StringComparison.OrdinalIgnoreCase)) return false;
+            if (!int.TryParse(new string(whoRaw.Where(char.IsDigit).ToArray()), out idx)) return false;
+            text = (StringOrBare(obj, "text", out _) ?? "").Trim();
+            return true;
+        }
+
+        // Index of the brace that closes the object opened at 'open', or -1 if it has not arrived yet
+        private static int ObjectEnd(string s, int open)
+        {
+            int depth = 0; bool inStr = false;
+            for (int i = open; i < s.Length; i++)
+            {
+                char c = s[i];
+                if (inStr) { if (c == '\\') i++; else if (c == '"') inStr = false; continue; }
+                if (c == '"') inStr = true;
+                else if (c == '{') depth++;
+                else if (c == '}' && --depth == 0) return i;
+            }
+            return -1;
+        }
+
+        // The value of a key inside a (maybe unfinished) object: a string decoded so far, or a bare token. Null if absent.
+        private static string StringOrBare(string obj, string key, out bool finished)
+        {
+            finished = false;
+            int k = obj.IndexOf("\"" + key + "\"", StringComparison.Ordinal);
+            if (k < 0) return null;
+            int i = k + key.Length + 2;
+            while (i < obj.Length && (obj[i] == ' ' || obj[i] == '\t' || obj[i] == '\r' || obj[i] == '\n')) i++;
+            if (i >= obj.Length || obj[i] != ':') return null;
+            i++;
+            while (i < obj.Length && (obj[i] == ' ' || obj[i] == '\t' || obj[i] == '\r' || obj[i] == '\n')) i++;
+            if (i >= obj.Length) return null;
+            var sb = new StringBuilder();
+            if (obj[i] != '"')
+            {
+                while (i < obj.Length && obj[i] != ',' && obj[i] != '}' && !char.IsWhiteSpace(obj[i])) sb.Append(obj[i++]);
+                finished = i < obj.Length;
+                return finished ? sb.ToString() : null;      // a bare number may still be growing
+            }
+            for (i++; i < obj.Length; i++)
+            {
+                char c = obj[i];
+                if (c == '"') { finished = true; break; }
+                if (c != '\\') { sb.Append(c); continue; }
+                if (i + 1 >= obj.Length) break;              // escape cut in half: wait for the rest
+                char e = obj[++i];
+                if (e == 'n') sb.Append(' ');
+                else if (e == 't') sb.Append(' ');
+                else if (e == 'u')
+                {
+                    if (i + 4 >= obj.Length) break;
+                    if (int.TryParse(obj.Substring(i + 1, 4), System.Globalization.NumberStyles.HexNumber, null, out int code)) sb.Append((char)code);
+                    i += 4;
+                }
+                else if (e != 'r') sb.Append(e);
+            }
+            return sb.ToString();
+        }
+
         private static bool SceneOk()
         {
             try
@@ -170,6 +263,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             {
                 var cfg = S.Get;
                 if (!cfg.EnableGroupTalk || !SceneOk()) { if (Circle.Count > 0) End(false); return; }
+                PaintLive();
 
                 // The group breaks up if you walk away, change scene or stay silent too long
                 if (Circle.Count > 0)
@@ -386,12 +480,16 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the person from the 
             var circle = Circle.ToList();
             int session = WorldSim.Session;
 
-            LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "group", maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes).ContinueWith(t =>
+            // The first line shows over its speaker's head while it is written; the round itself starts when the reply is whole
+            _liveRaw = null; _livePainted = null; _liveCircle = circle;
+            Func<string, bool> onPartial = raw => { if (session != WorldSim.Session) return false; _liveRaw = raw; return true; };
+            LlmClient.CompleteStreamedAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, onPartial: onPartial, task: "group", maxTokensOverride: 500, preferredProvider: cfg.ProviderHeroes, raw: true).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>
                 {
                     _waiting = false;
+                    _liveRaw = null; _liveCircle = null;
                     try
                     {
                         // asked in another campaign: its lines, deeds and memories do not belong in this one

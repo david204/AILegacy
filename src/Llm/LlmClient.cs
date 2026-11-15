@@ -89,6 +89,8 @@ namespace AILegacy.Llm
             public DateTime Deadline;
             /// <summary>Streamed request: gets the reply text written so far, on a background thread. Returning false drops the request.</summary>
             public Func<string, bool> OnPartial;
+        /// <summary>OnPartial gets the whole text so far instead of the "reply" field (a reply with several lines).</summary>
+        public bool RawPartial;
             public bool Stream;
             /// <summary>Some text of an attempt was already handed over, so a new attempt has to clear it first.</summary>
             public bool PartialSent;
@@ -122,8 +124,9 @@ namespace AILegacy.Llm
                 o.BackgroundFreeOnly = s.BackgroundOnFreeProviders;
                 o.DailyCapUsd = Math.Max(0, s.DailySpendCapCents) / 100.0;
                 _debugBodies = s.DebugLogBodies;
-                // Only what is shown in the dialogue as it is written is streamed. World, summaries, letters and battles never are.
-                o.Stream = onPartial != null && s.StreamReplies && o.Task == "dialogue";
+                // Only what is shown in the dialogue or over a speaker's head as it is written is streamed.
+                // World, summaries, letters and battles never are.
+                o.Stream = onPartial != null && s.StreamReplies && (o.Task == "dialogue" || o.Task == "group");
                 if (o.Stream) o.OnPartial = onPartial;
             }
             catch { if (maxTokensOverride.HasValue) o.MaxTokens = maxTokensOverride.Value; }
@@ -155,9 +158,10 @@ namespace AILegacy.Llm
         /// when an attempt is thrown away and another starts. Return false from it to drop the request.
         /// The final result is the same as without streaming. Only the "dialogue" task streams, and only if the setting is on.
         /// </summary>
-        public static Task<LlmResult> CompleteStreamedAsync(List<ChatMessage> messages, bool wantJson, Func<string, bool> onPartial, int? maxTokensOverride = null, string preferredProvider = null, string task = null)
+        public static Task<LlmResult> CompleteStreamedAsync(List<ChatMessage> messages, bool wantJson, Func<string, bool> onPartial, int? maxTokensOverride = null, string preferredProvider = null, string task = null, bool raw = false)
         {
             var opts = CaptureOptions(maxTokensOverride, task, preferredProvider, onPartial);
+            opts.RawPartial = raw;
             var job = new Job { Messages = messages, WantJson = wantJson, Opts = opts, Seq = Interlocked.Increment(ref _seq) };
             lock (QueueGate) Queue.Add(job);
             Pump();
@@ -659,7 +663,7 @@ namespace AILegacy.Llm
 
             var sse = new SseReader();
             var asm = new StreamAssembler();
-            var scanner = wantJson ? new ReplyFieldScanner() : null;
+            var scanner = wantJson && !opts.RawPartial ? new ReplyFieldScanner() : null;
             var raw = new StringBuilder();
             bool reading = false;
             var timedOut = new bool[1];

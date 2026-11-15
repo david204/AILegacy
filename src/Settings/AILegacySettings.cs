@@ -1898,8 +1898,8 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool EnableDiplomacy { get; set; } = true;
 
-        [SettingPropertyBool("{=AIL_e7b1c512}Only rulers start and end wars between AI kingdoms", Order = 3, RequireRestart = false,
-            HintText = "{=AIL_e7b1c513}Stops the game's own votes, call-to-war agreements and other mods from declaring war or making peace between two AI kingdoms: only their rulers' declarations do. Wars that come from what happens in the world (an attack, a rebellion, a new kingdom) and anything involving your own kingdom are not touched.")]
+        [SettingPropertyBool("{=AIL_e7b1c512}Only rulers decide wars and pacts between AI kingdoms", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c513}Stops the game's own votes, call-to-war agreements and other mods from declaring war, making peace, sealing an alliance or a trade agreement between two AI kingdoms: only their rulers' declarations do. An alliance that runs out is no longer renewed by a vote; it ends, and the rulers may propose it again. Wars that come from what happens in the world (an attack, a rebellion, a new kingdom) and anything involving your own kingdom are not touched.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}A. World and diplomacy", GroupOrder = 10)]
         public bool BlockForeignWarPeace { get; set; } = true;
 
@@ -2339,7 +2339,7 @@ namespace AILegacy.Settings
         public int DailySpendCapCents { get; set; } = 0;
 
         [SettingPropertyBool("{=AIL_e7b1c63c}Show the reply as it is written (streaming)", Order = 12, RequireRestart = false,
-            HintText = "{=AIL_e7b1c63d}The character's line grows in the dialogue box while the AI writes it, instead of appearing all at once. Dialogue only. If a provider does not support it, the mod goes back to the whole reply with that provider on its own.")]
+            HintText = "{=AIL_e7b1c63d}The character's line grows in the dialogue box while the AI writes it, instead of appearing all at once. In a group talk, the first line grows over its speaker's head. If a provider does not support it, the mod goes back to the whole reply with that provider on its own.")]
         [SettingPropertyGroup("{=AIL_a96fe2c6}7. AI", GroupOrder = 7)]
         public bool StreamReplies { get; set; } = true;
 

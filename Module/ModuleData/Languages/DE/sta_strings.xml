@@ -1375,8 +1375,8 @@
     <string id="AIL_e7b1c50f" text="Tägliche Chance, dass eine Werbung beginnt (%)" />
     <string id="AIL_e7b1c510" text="Werbungen gleichzeitig, höchstens" />
     <string id="AIL_e7b1c511" text="Tage der Werbung, bevor sie heiraten können" />
-    <string id="AIL_e7b1c512" text="Nur Herrscher beginnen und beenden Kriege zwischen KI-Reichen" />
-    <string id="AIL_e7b1c513" text="Verhindert, dass Abstimmungen des Spiels, Kriegsbündnisse und andere Mods zwischen zwei KI-Reichen Krieg erklären oder Frieden schließen: Das tun nur die Erklärungen ihrer Herrscher. Kriege, die aus Ereignissen der Welt entstehen (ein Angriff, eine Rebellion, ein neues Reich), und alles, was dein eigenes Reich betrifft, bleiben unberührt." />
+    <string id="AIL_e7b1c512" text="Nur Herrscher entscheiden über Kriege und Bündnisse zwischen KI-Reichen" />
+    <string id="AIL_e7b1c513" text="Verhindert, dass Abstimmungen des Spiels, Kriegsruf-Abkommen und andere Mods zwischen zwei KI-Reichen Krieg erklären, Frieden schließen oder ein Bündnis oder Handelsabkommen besiegeln: Das tun nur die Erklärungen ihrer Herrscher. Ein auslaufendes Bündnis wird nicht mehr per Abstimmung verlängert; es endet, und die Herrscher können es erneut vorschlagen. Kriege, die aus dem Geschehen in der Welt entstehen (ein Angriff, eine Rebellion, ein neues Reich), und alles, was dein eigenes Reich betrifft, bleiben unberührt." />
     <string id="AIL_e7b1c514" text="{0} trifft es mit einem Schlag: {1}" />
     <string id="AIL_e7b1c515" text="Tage, die sie sich an Mitgeteiltes erinnern (0 = immer)" />
     <string id="AIL_e7b1c516" text="Was eine Figur durch jemand anderen erfahren hat, verblasst nach so vielen Tagen. Was sie nur im Vorbeigehen aufgeschnappt hat, hat eine eigene, kürzere Einstellung unter D. Szenen." />
@@ -1665,7 +1665,7 @@
     <string id="AIL_e7b1c63a" text="Saisonal: Tage Immunität nach überstandener Krankheit (0 = keine)" />
     <string id="AIL_e7b1c63b" text="Anteil der verbleibenden Tage, den ein Ausbruch weitergibt, wenn er auf einen anderen Ort überspringt" />
     <string id="AIL_e7b1c63c" text="Antwort anzeigen, während sie geschrieben wird (Streaming)" />
-    <string id="AIL_e7b1c63d" text="Der Satz der Figur wächst im Dialogfeld, während die KI ihn schreibt, statt auf einmal zu erscheinen. Nur im Dialog. Unterstützt ein Anbieter das nicht, kehrt die Mod bei diesem Anbieter von selbst zur ganzen Antwort zurück." />
+    <string id="AIL_e7b1c63d" text="Die Zeile der Figur wächst im Dialogfenster, während die KI sie schreibt, statt auf einmal zu erscheinen. In einem Gruppengespräch wächst die erste Zeile über dem Kopf des Sprechers. Unterstützt ein Anbieter das nicht, kehrt die Mod bei diesem Anbieter von selbst zur ganzen Antwort zurück." />
     <string id="AIL_e7b1c63e" text="{0} kommt mit dir herein." />
     <string id="AIL_e7b1c63f" text="{0} folgt dir nicht durch die Tür." />
     <string id="AIL_e7b1c640" text="{0} wartet draußen auf dich." />

@@ -1375,8 +1375,8 @@
     <string id="AIL_e7b1c50f" text="Daily chance that a new courtship begins (%)" />
     <string id="AIL_e7b1c510" text="Courtships at the same time, at most" />
     <string id="AIL_e7b1c511" text="Days of courtship before they can marry" />
-    <string id="AIL_e7b1c512" text="Only rulers start and end wars between AI kingdoms" />
-    <string id="AIL_e7b1c513" text="Stops the game’s own votes, call-to-war agreements and other mods from declaring war or making peace between two AI kingdoms: only their rulers’ declarations do. Wars that come from what happens in the world (an attack, a rebellion, a new kingdom) and anything involving your own kingdom are not touched." />
+    <string id="AIL_e7b1c512" text="Only rulers decide wars and pacts between AI kingdoms" />
+    <string id="AIL_e7b1c513" text="Stops the game's own votes, call-to-war agreements and other mods from declaring war, making peace, sealing an alliance or a trade agreement between two AI kingdoms: only their rulers' declarations do. An alliance that runs out is no longer renewed by a vote; it ends, and the rulers may propose it again. Wars that come from what happens in the world (an attack, a rebellion, a new kingdom) and anything involving your own kingdom are not touched." />
     <string id="AIL_e7b1c514" text="{0} takes the blow at once: {1}" />
     <string id="AIL_e7b1c515" text="Days they remember what they were told (0 = always)" />
     <string id="AIL_e7b1c516" text="What reached a character through someone else fades after this many days. What they only overheard has its own, shorter setting in D. Scenes." />
@@ -1665,7 +1665,7 @@
     <string id="AIL_e7b1c63a" text="Seasonal: days of immunity after getting over one (0 = none)" />
     <string id="AIL_e7b1c63b" text="Share of its remaining days an outbreak passes on when it jumps to another place" />
     <string id="AIL_e7b1c63c" text="Show the reply as it is written (streaming)" />
-    <string id="AIL_e7b1c63d" text="The character's line grows in the dialogue box while the AI writes it, instead of appearing all at once. Dialogue only. If a provider does not support it, the mod goes back to the whole reply with that provider on its own." />
+    <string id="AIL_e7b1c63d" text="The character's line grows in the dialogue box while the AI writes it, instead of appearing all at once. In a group talk, the first line grows over its speaker's head. If a provider does not support it, the mod goes back to the whole reply with that provider on its own." />
     <string id="AIL_e7b1c63e" text="{0} comes in with you." />
     <string id="AIL_e7b1c63f" text="{0} does not follow you past the door." />
     <string id="AIL_e7b1c640" text="{0} waits for you outside." />

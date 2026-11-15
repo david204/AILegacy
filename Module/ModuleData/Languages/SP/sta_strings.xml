@@ -1375,8 +1375,8 @@
     <string id="AIL_e7b1c50f" text="Probabilidad diaria de que empiece un cortejo (%)" />
     <string id="AIL_e7b1c510" text="Cortejos a la vez, como máximo" />
     <string id="AIL_e7b1c511" text="Días de cortejo antes de poder casarse" />
-    <string id="AIL_e7b1c512" text="Solo los soberanos empiezan y acaban guerras entre reinos de la IA" />
-    <string id="AIL_e7b1c513" text="Impide que las votaciones del juego, los acuerdos de llamada a la guerra y otros mods declaren guerras o firmen paces entre dos reinos de la IA: solo lo hacen las declaraciones de sus soberanos. No toca las guerras que nacen de lo que pasa en el mundo (un ataque, una rebelión, un reino nuevo) ni nada que afecte a tu propio reino." />
+    <string id="AIL_e7b1c512" text="Solo los soberanos deciden guerras y pactos entre reinos de la IA" />
+    <string id="AIL_e7b1c513" text="Impide que las votaciones del juego, los acuerdos de llamada a la guerra y otros mods declaren la guerra, firmen la paz o sellen una alianza o un acuerdo comercial entre dos reinos de la IA: solo lo hacen las declaraciones de sus soberanos. Una alianza que caduca ya no se renueva por votación; se acaba, y los soberanos pueden volver a proponerla. No se tocan las guerras que nacen de lo que pasa en el mundo (un ataque, una rebelión, un reino nuevo) ni nada que afecte a tu propio reino." />
     <string id="AIL_e7b1c514" text="{0} lo sufre de golpe: {1}" />
     <string id="AIL_e7b1c515" text="Días que recuerdan lo que les contaron (0 = siempre)" />
     <string id="AIL_e7b1c516" text="Lo que le llegó a un personaje por boca de otro se le olvida pasados estos días. Lo que solo oyó de pasada tiene su propio ajuste, más corto, en D. Escenas." />
@@ -1665,7 +1665,7 @@
     <string id="AIL_e7b1c63a" text="Temporada: días de inmunidad tras pasar una (0 = ninguno)" />
     <string id="AIL_e7b1c63b" text="Parte de los días que le quedan a un brote que hereda el nuevo al saltar a otro lugar" />
     <string id="AIL_e7b1c63c" text="Mostrar la respuesta mientras se escribe (streaming)" />
-    <string id="AIL_e7b1c63d" text="La frase del personaje va creciendo en el cuadro de diálogo mientras la IA la escribe, en vez de aparecer de golpe. Solo en el diálogo. Si un proveedor no lo admite, el mod vuelve por sí solo a la respuesta entera con ese proveedor." />
+    <string id="AIL_e7b1c63d" text="La frase del personaje va creciendo en el cuadro de diálogo mientras la IA la escribe, en vez de aparecer de golpe. En un corro, la primera frase crece sobre la cabeza de quien la dice. Si un proveedor no lo admite, el mod vuelve solo a la respuesta entera con ese proveedor." />
     <string id="AIL_e7b1c63e" text="{0} entra contigo." />
     <string id="AIL_e7b1c63f" text="{0} no te sigue más allá de la puerta." />
     <string id="AIL_e7b1c640" text="{0} te espera fuera." />

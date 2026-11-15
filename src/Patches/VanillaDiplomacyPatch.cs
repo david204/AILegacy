@@ -94,6 +94,58 @@ namespace AILegacy.Patches
     }
 
     /// <summary>
+    /// Same rule as wars and peace for pacts between two AI kingdoms: the game renews an expired alliance by putting it
+    /// to the vote (AddAllianceDecision), and the vote, a call to war or another mod can seal an alliance or a trade
+    /// agreement. With AI Legacy diplomacy on, only the rulers' declarations do. An expired alliance simply ends, and
+    /// the rulers may propose it again. Anything that involves the player's kingdom goes through untouched.
+    /// </summary>
+    [HarmonyPatch]
+    internal static class ForeignPactPatch
+    {
+        private static readonly string[][] Targets =
+        {
+            new[] { "TaleWorlds.CampaignSystem.CampaignBehaviors.AllianceCampaignBehavior", "AddAllianceDecision" },
+            new[] { "TaleWorlds.CampaignSystem.CampaignBehaviors.AllianceCampaignBehavior", "StartAlliance" },
+            new[] { "TaleWorlds.CampaignSystem.CampaignBehaviors.TradeAgreementsCampaignBehavior", "MakeTradeAgreement" },
+        };
+
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            foreach (var target in Targets)
+            {
+                var t = AccessTools.TypeByName(target[0]);
+                var m = t != null ? AccessTools.Method(t, target[1]) : null;
+                if (m != null) yield return m;
+                else Log.Warn("Diplomacia: no encuentro " + target[1] + " en esta versión del juego");
+            }
+        }
+
+        private static bool Prepare()
+        {
+            foreach (var target in Targets)
+            {
+                var t = AccessTools.TypeByName(target[0]);
+                if (t != null && AccessTools.Method(t, target[1]) != null) return true;
+            }
+            return false;
+        }
+
+        private static bool Prefix(object[] __args, MethodBase __originalMethod)
+        {
+            try
+            {
+                if (!Diplomacy.Enabled || Diplomacy.IsOurs || !AILegacy.Settings.S.Get.BlockForeignWarPeace) return true;
+                if (__args == null || __args.Length < 2 || !(__args[0] is Kingdom a) || !(__args[1] is Kingdom b)) return true;
+                var mine = Hero.MainHero?.MapFaction;
+                if (mine != null && (a == mine || b == mine)) return true;
+                Log.Info($"[diplomacia] {__originalMethod.Name} entre {a.Name} y {b.Name} parado: lo deciden sus soberanos");
+                return false;
+            }
+            catch (Exception ex) { Log.Error("Bloqueo de pactos ajenos", ex); return true; }
+        }
+    }
+
+    /// <summary>
     /// The game's alliance and trade code reads the ruler and the ruling clan of both kingdoms without checking
     /// them. With a kingdom that is destroyed or has no ruler at that moment it throws inside the campaign tick:
     /// when an alliance runs out and its renewal is put to the vote, when one is sealed, and when the penalty for

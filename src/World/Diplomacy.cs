@@ -2335,7 +2335,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     { string no = AllianceBlocked(k, o); if (no != null) return Bad(no); }
                     // The new alliance is sealed and seen to exist before anything else: only then, with "a new
                     // alliance replaces the old one", does a kingdom left over its limit end its oldest other one.
-                    try { Alli.StartAlliance(o, k); }
+                    try { Ours(() => Alli.StartAlliance(o, k)); }
                     catch (Exception ex) { Log.Error($"[diplomacia] sellando la alianza entre {kn} y {o.Name}", ex); }
                     if (!Allied(k, o)) return Bad("el juego no ha sellado la alianza: no se rompe ninguna otra");
                     {
@@ -2374,7 +2374,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     St.Proposals.Remove(p);
                     if (k.IsAtWarWith(o) || Trade == null) return Bad(L.T("AIL_6ee119bd", "comercio imposible ahora"));
                     { string no = TradeBlocked(k, o); if (no != null) return Bad(no); }
-                    Trade.MakeTradeAgreement(o, k, CampaignTime.YearsFromNow(Math.Max(1, p.TradeYears)));
+                    Ours(() => Trade.MakeTradeAgreement(o, k, CampaignTime.YearsFromNow(Math.Max(1, p.TradeYears))));
                     St.Refused.Remove(RefusalKey("trade", k.StringId, o.StringId));
                     WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
                     return L.F("AIL_4e5e61ea", $"{kn} y {o.Name} firman un acuerdo comercial de {Math.Max(1, p.TradeYears)} año(s).");

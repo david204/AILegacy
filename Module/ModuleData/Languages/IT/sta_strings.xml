@@ -1375,8 +1375,8 @@
     <string id="AIL_e7b1c50f" text="Probabilità giornaliera che inizi un corteggiamento (%)" />
     <string id="AIL_e7b1c510" text="Corteggiamenti contemporanei, al massimo" />
     <string id="AIL_e7b1c511" text="Giorni di corteggiamento prima di potersi sposare" />
-    <string id="AIL_e7b1c512" text="Solo i sovrani iniziano e chiudono le guerre tra regni IA" />
-    <string id="AIL_e7b1c513" text="Impedisce ai voti del gioco, agli accordi di chiamata alle armi e ad altre mod di dichiarare guerra o fare pace tra due regni IA: lo fanno solo le dichiarazioni dei loro sovrani. Le guerre nate da ciò che accade nel mondo (un attacco, una ribellione, un nuovo regno) e tutto ciò che riguarda il tuo regno non vengono toccati." />
+    <string id="AIL_e7b1c512" text="Solo i sovrani decidono guerre e patti tra regni IA" />
+    <string id="AIL_e7b1c513" text="Impedisce alle votazioni del gioco, agli accordi di chiamata alle armi e ad altre mod di dichiarare guerra, fare la pace o stringere un’alleanza o un accordo commerciale tra due regni IA: lo fanno solo le dichiarazioni dei loro sovrani. Un’alleanza che scade non viene più rinnovata con un voto; finisce, e i sovrani possono riproporla. Le guerre che nascono da ciò che accade nel mondo (un attacco, una ribellione, un nuovo regno) e tutto ciò che riguarda il tuo regno non vengono toccati." />
     <string id="AIL_e7b1c514" text="{0} lo subisce di colpo: {1}" />
     <string id="AIL_e7b1c515" text="Giorni in cui ricordano ciò che è stato detto loro (0 = sempre)" />
     <string id="AIL_e7b1c516" text="Ciò che è arrivato a un personaggio tramite qualcun altro svanisce dopo questi giorni. Ciò che ha solo sentito di passaggio ha una sua impostazione, più breve, in D. Scene." />
@@ -1665,7 +1665,7 @@
     <string id="AIL_e7b1c63a" text="Stagione: giorni di immunità dopo esserne guariti (0 = nessuno)" />
     <string id="AIL_e7b1c63b" text="Quota dei giorni rimanenti che un focolaio trasmette quando salta in un altro luogo" />
     <string id="AIL_e7b1c63c" text="Mostra la risposta mentre viene scritta (streaming)" />
-    <string id="AIL_e7b1c63d" text="La battuta del personaggio cresce nel riquadro di dialogo mentre l'IA la scrive, invece di apparire tutta insieme. Solo nel dialogo. Se un fornitore non lo supporta, la mod torna da sola alla risposta intera con quel fornitore." />
+    <string id="AIL_e7b1c63d" text="La battuta del personaggio cresce nel riquadro del dialogo mentre l’IA la scrive, invece di apparire tutta insieme. In una conversazione di gruppo, la prima battuta cresce sopra la testa di chi parla. Se un fornitore non lo supporta, la mod torna da sola alla risposta intera con quel fornitore." />
     <string id="AIL_e7b1c63e" text="{0} entra con te." />
     <string id="AIL_e7b1c63f" text="{0} non ti segue oltre la porta." />
     <string id="AIL_e7b1c640" text="{0} ti aspetta fuori." />

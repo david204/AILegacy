@@ -1375,8 +1375,8 @@
     <string id="AIL_e7b1c50f" text="Chance quotidienne qu’une cour commence (%)" />
     <string id="AIL_e7b1c510" text="Cours en même temps, au maximum" />
     <string id="AIL_e7b1c511" text="Jours de cour avant de pouvoir se marier" />
-    <string id="AIL_e7b1c512" text="Seuls les souverains déclenchent et terminent les guerres entre royaumes IA" />
-    <string id="AIL_e7b1c513" text="Empêche les votes du jeu, les accords d’appel à la guerre et les autres mods de déclarer la guerre ou de faire la paix entre deux royaumes IA : seules les déclarations de leurs souverains le font. Les guerres nées de ce qui se passe dans le monde (une attaque, une rébellion, un nouveau royaume) et tout ce qui touche votre royaume ne sont pas concernés." />
+    <string id="AIL_e7b1c512" text="Seuls les souverains décident des guerres et des pactes entre royaumes IA" />
+    <string id="AIL_e7b1c513" text="Empêche les votes du jeu, les accords d’appel aux armes et les autres mods de déclarer la guerre, de faire la paix ou de sceller une alliance ou un accord commercial entre deux royaumes IA : seules les déclarations de leurs souverains le font. Une alliance qui expire n’est plus renouvelée par un vote ; elle prend fin, et les souverains peuvent la proposer de nouveau. Les guerres nées de ce qui se passe dans le monde (une attaque, une rébellion, un nouveau royaume) et tout ce qui concerne votre royaume ne sont pas touchés." />
     <string id="AIL_e7b1c514" text="{0} le subit d’un coup : {1}" />
     <string id="AIL_e7b1c515" text="Jours de mémoire de ce qu’on leur a dit (0 = toujours)" />
     <string id="AIL_e7b1c516" text="Ce qu’un personnage a appris par quelqu’un d’autre s’efface après ce nombre de jours. Ce qu’il a seulement entendu au passage a son propre réglage, plus court, dans D. Scènes." />
@@ -1665,7 +1665,7 @@
     <string id="AIL_e7b1c63a" text="Saison : jours d'immunité après en avoir guéri (0 = aucun)" />
     <string id="AIL_e7b1c63b" text="Part de ses jours restants qu'une épidémie transmet en gagnant un autre lieu" />
     <string id="AIL_e7b1c63c" text="Afficher la réponse pendant qu'elle s'écrit (streaming)" />
-    <string id="AIL_e7b1c63d" text="La réplique du personnage s'allonge dans la boîte de dialogue pendant que l'IA l'écrit, au lieu d'apparaître d'un coup. Dialogue uniquement. Si un fournisseur ne le permet pas, le mod revient de lui-même à la réponse entière avec ce fournisseur." />
+    <string id="AIL_e7b1c63d" text="La réplique du personnage grandit dans la boîte de dialogue pendant que l’IA l’écrit, au lieu d’apparaître d’un coup. Dans une conversation de groupe, la première réplique grandit au-dessus de la tête de celui qui parle. Si un fournisseur ne le permet pas, le mod revient de lui-même à la réponse entière avec ce fournisseur." />
     <string id="AIL_e7b1c63e" text="{0} entre avec vous." />
     <string id="AIL_e7b1c63f" text="{0} ne vous suit pas au-delà de la porte." />
     <string id="AIL_e7b1c640" text="{0} vous attend dehors." />
