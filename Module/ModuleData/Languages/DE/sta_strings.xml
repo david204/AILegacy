@@ -2159,5 +2159,18 @@
     <string id="AIL_e7b1c833" text="Außerhalb der Ehe: Heirat macht ehelich" />
     <string id="AIL_e7b1c834" text="An: Ein uneheliches Kind, das heiratet, wird ehelich. Heiraten die Eltern einander, wird es das immer." />
     <string id="AIL_e7b1c835" text="Du hast entbunden: {0}, dein Kind und das von {1}. Ziehst du es in deinem Haus groß? Wenn nicht, bleibt es bei {2}, und wer davon erfährt, wird es nicht vergessen." />
+    <string id="AIL_e7b1c836" text="{0} verlässt das eigene Haus, um als Konkubine bei dir zu leben." />
+    <string id="AIL_e7b1c837" text="{0} ist nicht mehr deine Konkubine und kehrt in das eigene Haus zurück." />
+    <string id="AIL_e7b1c838" text="Konkubinen" />
+    <string id="AIL_e7b1c839" text="Jemand Unverheiratetes, der dich tief liebt, kann in einem Gespräch zustimmen, das eigene Haus zu verlassen und als Konkubine bei dir zu leben: tritt deinem Clan und deiner Gruppe bei, das frühere Hausoberhaupt nimmt es übel, und Kinder können kommen (unehelich, mit dir als bekanntem Elternteil). Es endet, wenn einer von euch es beschließt, wenn einer stirbt oder wenn du sie heiratest. Solange kann niemand sonst sie heiraten." />
+    <string id="AIL_e7b1c83a" text="Konkubinen: nötige Romanze" />
+    <string id="AIL_e7b1c83b" text="Wie tief die Romanze sein muss, bevor jemand es überhaupt in Betracht zieht. Empfohlen: 60 bis 85." />
+    <string id="AIL_e7b1c83c" text="Konkubinen: Chance auf Kinder (% der eines Ehepaars)" />
+    <string id="AIL_e7b1c83d" text="Beim Zusammenleben kommen Kinder im täglichen Takt des Spiels für ein Paar unter einem Dach, mal diesem Wert. 100 = wie Ehepartner; 0 = nie. Empfohlen: 50 bis 100." />
+    <string id="AIL_e7b1c83e" text="Deine Konkubine" />
+    <string id="AIL_e7b1c83f" text="Dein Geliebter" />
+    <string id="AIL_e7b1c840" text="Liebschaft" />
+    <string id="AIL_e7b1c841" text="Konkubine" />
+    <string id="AIL_e7b1c842" text="Geliebter" />
   </strings>
 </base>

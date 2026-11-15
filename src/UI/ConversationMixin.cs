@@ -148,6 +148,7 @@ namespace AILegacy.UI
                 {
                     var pc = Hero.MainHero;
                     if (h.Spouse == pc) family = L.T("AIL_e7b1c4e4", "Tu cónyuge");
+                    else if (AILegacy.World.Concubines.Is(h)) family = h.IsFemale ? L.T("AIL_e7b1c83e", "Tu concubina") : L.T("AIL_e7b1c83f", "Tu concubino");
                     int kids = h.Children.Count(c => c != null && (c.Father == pc || c.Mother == pc));
                     if (kids > 0) family += (family.Length > 0 ? " · " : "") + L.F("AIL_e7b1c4e5", $"{kids} hijo(s) en común");
                     // expecting your child, or children of yours out of wedlock that pass for someone else's

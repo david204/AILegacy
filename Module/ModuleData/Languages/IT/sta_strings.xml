@@ -2159,5 +2159,18 @@
     <string id="AIL_e7b1c833" text="Fuori dal matrimonio: sposarsi legittima" />
     <string id="AIL_e7b1c834" text="Attivato: un figlio bastardo che si sposa diventa legittimo. Il matrimonio dei genitori lo legittima sempre." />
     <string id="AIL_e7b1c835" text="Hai partorito: {0}, figlio tuo e di {1}. Lo crescerai nella tua casa? Altrimenti resta con {2}, e chi lo verrà a sapere non lo dimenticherà." />
+    <string id="AIL_e7b1c836" text="{0} lascia la sua casa per vivere con te come concubina." />
+    <string id="AIL_e7b1c837" text="{0} non è più la tua concubina e torna alla sua casa." />
+    <string id="AIL_e7b1c838" text="Concubine" />
+    <string id="AIL_e7b1c839" text="Una persona non sposata che ti ama profondamente può accettare, in una conversazione, di lasciare la sua casa e vivere con te come concubina: entra nel tuo clan e nel tuo gruppo, il suo vecchio capo della casa la prende male, e possono arrivare figli (fuori dal matrimonio, con te come genitore noto). Finisce quando uno dei due lo decide, quando uno muore o quando la sposi. Nel frattempo nessun altro può sposarla." />
+    <string id="AIL_e7b1c83a" text="Concubine: romance necessario" />
+    <string id="AIL_e7b1c83b" text="Quanto deve essere profondo il romance prima che qualcuno ci pensi anche solo. Consigliato: da 60 a 85." />
+    <string id="AIL_e7b1c83c" text="Concubine: probabilità di figli (% di quella di una coppia sposata)" />
+    <string id="AIL_e7b1c83d" text="Vivendo insieme, i figli arrivano al ritmo quotidiano del gioco per una coppia sotto lo stesso tetto, moltiplicato per questo. 100 = come i coniugi; 0 = mai. Consigliato: da 50 a 100." />
+    <string id="AIL_e7b1c83e" text="La tua concubina" />
+    <string id="AIL_e7b1c83f" text="Il tuo concubino" />
+    <string id="AIL_e7b1c840" text="amante" />
+    <string id="AIL_e7b1c841" text="concubina" />
+    <string id="AIL_e7b1c842" text="concubino" />
   </strings>
 </base>

@@ -56,6 +56,9 @@ namespace AILegacy.Behaviors
             CampaignEvents.BeforeHeroKilledEvent.AddNonSerializedListener(this, Bastards.OnHeroKilled);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Bastards.OnDailyTick);
             CampaignEvents.DailyTickHeroEvent.AddNonSerializedListener(this, Bastards.OnDailyTickHero);
+            CampaignEvents.BeforeHeroesMarried.AddNonSerializedListener(this, Concubines.OnMarried);
+            CampaignEvents.BeforeHeroKilledEvent.AddNonSerializedListener(this, Concubines.OnHeroKilled);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Concubines.OnDailyTick);
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             // Political history: rulers and fief owners
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.History.OnRulingClanChanged);

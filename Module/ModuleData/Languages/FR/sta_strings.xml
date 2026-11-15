@@ -2159,5 +2159,18 @@
     <string id="AIL_e7b1c833" text="Hors mariage : se marier légitime" />
     <string id="AIL_e7b1c834" text="Activé : un enfant bâtard qui se marie devient légitime. Le mariage de ses parents le légitime toujours." />
     <string id="AIL_e7b1c835" text="Vous avez donné naissance : {0}, votre enfant et celui de {1}. L’élèverez-vous dans votre maison ? Sinon, l’enfant reste avec {2}, et qui l’apprendra ne l’oubliera pas." />
+    <string id="AIL_e7b1c836" text="{0} quitte sa maison pour vivre avec vous comme concubine." />
+    <string id="AIL_e7b1c837" text="{0} n’est plus votre concubine et retourne dans sa maison." />
+    <string id="AIL_e7b1c838" text="Concubines" />
+    <string id="AIL_e7b1c839" text="Une personne célibataire qui vous aime profondément peut accepter, au cours d’une conversation, de quitter sa maison pour vivre avec vous comme concubine : elle rejoint votre clan et votre groupe, son ancien chef de maison le prend mal, et des enfants peuvent naître (hors mariage, avec vous comme parent connu). Cela prend fin quand l’un de vous le décide, quand l’un de vous meurt, ou quand vous l’épousez. En attendant, personne d’autre ne peut l’épouser." />
+    <string id="AIL_e7b1c83a" text="Concubines : romance nécessaire" />
+    <string id="AIL_e7b1c83b" text="Le niveau de romance nécessaire avant que quelqu’un l’envisage seulement. Recommandé : de 60 à 85." />
+    <string id="AIL_e7b1c83c" text="Concubines : chance d’enfants (% de celle d’un couple marié)" />
+    <string id="AIL_e7b1c83d" text="En vivant ensemble, les enfants arrivent au rythme quotidien du jeu pour un couple sous le même toit, multiplié par ceci. 100 = comme des époux ; 0 = jamais. Recommandé : de 50 à 100." />
+    <string id="AIL_e7b1c83e" text="Votre concubine" />
+    <string id="AIL_e7b1c83f" text="Votre concubin" />
+    <string id="AIL_e7b1c840" text="amant" />
+    <string id="AIL_e7b1c841" text="concubine" />
+    <string id="AIL_e7b1c842" text="concubin" />
   </strings>
 </base>

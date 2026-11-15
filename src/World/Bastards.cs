@@ -137,7 +137,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         {
             try
             {
-                if (!Enabled || other == null || other.IsFemale == P.IsFemale || other.Spouse == P) return;
+                if (!Enabled || other == null || P == null || other.IsFemale == P.IsFemale || other.Spouse == P) return;
                 var mother = other.IsFemale ? other : P; var father = other.IsFemale ? P : other;
                 if (mother.IsPregnant || mother.Age < 18 || mother.Age >= 46) return;
                 float chance = S.Get.BastardChancePercent * 10f * Mood.FertilityFactor(mother);
@@ -228,9 +228,10 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             try
             {
                 if (!Enabled || mother == null) return;
-                var b = All.FirstOrDefault(x => !x.Born && !x.Lost && x.MotherId == mother.StringId);
+                // a record marked lost the same day still gets its child: the newest one for this mother wins
+                var b = All.Where(x => !x.Born && x.MotherId == mother.StringId).OrderByDescending(x => x.ConceivedDay).FirstOrDefault();
                 if (b == null) return;
-                b.Born = true;
+                b.Born = true; b.Lost = false;
                 var father = Hero.Find(b.FatherId);
                 if (children == null || children.Count == 0 || father == null) { Log.Info($"[bastardos] el hijo de {mother.Name} y {b.FatherId} nace muerto"); return; }
                 foreach (var c in children) if (c != null) { b.Children.Add(c.StringId); b.BirthNames[c.StringId] = c.FirstName?.ToString() ?? c.Name.ToString(); }
@@ -254,6 +255,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         private static void AskGuardian(Bastard b, List<Hero> children, Hero other)
         {
             string names = string.Join(", ", children.Select(c => c.FirstName?.ToString() ?? c.Name.ToString()));
+            int session = WorldSim.Session;
             string question = other.IsFemale
                 ? L.F("AIL_e7b1c817", $"{other.Name} ha dado a luz: {names}, hijo de los dos. ¿Lo crías como tuyo, en tu casa? Si no, se queda con {other.Name}, y quien se entere no lo olvidará.")
                 : L.F("AIL_e7b1c835", $"Has dado a luz: {names}, hijo tuyo y de {other.Name}. ¿Lo crías en tu casa? Si no, se queda con {other.Name}, y quien se entere no lo olvidará.");
@@ -261,11 +263,13 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 true, true, L.T("AIL_e7b1c818", "Criarlo en tu casa"), L.T("AIL_e7b1c819", "Que se quede con su madre o su padre"),
                 () =>
                 {
+                    if (session != WorldSim.Session || Campaign.Current == null) return;
                     try { foreach (var c in children) { if (c.Clan != Clan.PlayerClan) c.Clan = Clan.PlayerClan; Name(b, c); } Log.Info("[bastardos] el jugador cría al niño en su casa"); }
                     catch (Exception ex) { Log.Error("[bastardos] tutela: en casa", ex); }
                 },
                 () =>
                 {
+                    if (session != WorldSim.Session || Campaign.Current == null) return;
                     try { foreach (var c in children) RaiseWith(b, c, other, P); }
                     catch (Exception ex) { Log.Error("[bastardos] tutela: con el otro", ex); }
                 }), true);
@@ -283,9 +287,12 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 // Kept secret: the world takes the child for the husband's
                 try
                 {
-                    var children = HarmonyLib.AccessTools.Field(typeof(Hero), "_children")?.GetValue(father) as IList;
-                    children?.Remove(child);
+                    var field = HarmonyLib.AccessTools.Field(typeof(Hero), "_children");
+                    // the setter adds the child to the new father's list but never takes it off the old one
+                    while ((field?.GetValue(father) as IList)?.Contains(child) == true) ((IList)field.GetValue(father)).Remove(child);
                     child.Father = husband;
+                    var theirs = field?.GetValue(husband) as IList;
+                    if (theirs != null) { int seen = 0; for (int i = theirs.Count - 1; i >= 0; i--) if (theirs[i] == child && ++seen > 1) theirs.RemoveAt(i); }
                     b.Secret = true;
                     var sec = StorySecrets.AddEvent($"{child.Name} is not the child of {husband.Name}: the true father is {father?.Name}.",
                         L.F("AIL_e7b1c81a", $"{child.Name} no es hijo de {husband.Name}: su verdadero padre es {father?.Name}."), new[] { mother, father, child }, new[] { mother, father }, "high");
@@ -357,7 +364,6 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             try
             {
                 if (b == null || child == null || b.Legitimized.Contains(child.StringId)) return;
-                b.Legitimized.Add(child.StringId);
                 if (b.BirthNames.TryGetValue(child.StringId, out string first) && !string.IsNullOrWhiteSpace(first))
                     child.SetName(new TextObject("{=!}" + first), new TextObject("{=!}" + first));
                 // a child still in no house of either parent goes to the father's (or the player's)
@@ -365,6 +371,8 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 var home = father == P || mother == P ? Clan.PlayerClan : father?.Clan ?? mother?.Clan;
                 if (home != null && !home.IsBanditFaction && child.Clan != home && child.Spouse == null && child.Clan?.Leader != child) child.Clan = home;
                 if (b.SecretId != null) StorySecrets.Reveal(b.SecretId, null);
+                // marked only once it is all done, so a failure can be tried again
+                b.Legitimized.Add(child.StringId);
                 Log.Info($"[bastardos] {child.Name} queda legitimado");
                 if (!quiet) WorldSim.Say(L.F("AIL_e7b1c81d", $"{child.Name} es ahora hijo legítimo."), Colors.Yellow);
                 SaveFiles.Dirty();
@@ -397,7 +405,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         public static bool CanAcknowledge(Hero child)
         {
             var b = RecordOf(child);
-            return Enabled && b != null && IsBaseborn(child) && child.Age >= 18 && (b.FatherId == P?.StringId || b.MotherId == P?.StringId);
+            return child != null && Enabled && b != null && IsBaseborn(child) && child.Age >= 18 && (b.FatherId == P?.StringId || b.MotherId == P?.StringId);
         }
 
         public static void Acknowledge(Hero child)
@@ -515,6 +523,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         public static string ConceiveCmd(List<string> args)
         {
             if (Campaign.Current == null || args == null || args.Count < 2) return "Uso: ailegacy.conceive <madre> <padre> (nombres sin espacios o con _)";
+            if (string.IsNullOrWhiteSpace(args[0]) || string.IsNullOrWhiteSpace(args[1])) return "Uso: ailegacy.conceive <madre> <padre>";
             Hero Find(string n) { n = n.Replace('_', ' ').ToLowerInvariant(); return Hero.AllAliveHeroes.FirstOrDefault(h => h.Name.ToString().ToLowerInvariant() == n) ?? Hero.AllAliveHeroes.FirstOrDefault(h => h.Name.ToString().ToLowerInvariant().Contains(n)); }
             var m = Find(args[0]); var f = Find(args[1]);
             if (m == null || f == null) return "No encuentro a uno de los dos.";

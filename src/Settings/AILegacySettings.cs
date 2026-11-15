@@ -925,6 +925,22 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public bool BastardLegitimizeOnMarriage { get; set; } = true;
 
+        // Concubines
+        [SettingPropertyBool("{=AIL_e7b1c838}Concubines", Order = 60, RequireRestart = false,
+            HintText = "{=AIL_e7b1c839}Someone unmarried who loves you deeply can agree, in a conversation, to leave their house and live with you as your concubine: they join your clan and your company, their old head of house takes it badly, and children may come (born out of wedlock, with you known as the parent). It ends when either of you decides, when one of you dies, or when you marry them. Meanwhile nobody else can marry them.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public bool EnableConcubines { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c83a}Concubines: romance needed", 0, 100, Order = 61, RequireRestart = false,
+            HintText = "{=AIL_e7b1c83b}How deep the romance must be before someone will even consider it. Recommended: 60 to 85.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubineMinRomance { get; set; } = 70;
+
+        [SettingPropertyInteger("{=AIL_e7b1c83c}Concubines: chance of children (% of a married couple's)", 0, 200, Order = 62, RequireRestart = false,
+            HintText = "{=AIL_e7b1c83d}Living together, children come at the game's own daily pace for a couple who share a roof, times this. 100 = the same as spouses; 0 = never. Recommended: 50 to 100.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubinePregnancyPercent { get; set; } = 100;
+
         [SettingPropertyBool("{=AIL_cae619f6}Tasks (quests created by the AI)", Order = 15, RequireRestart = false,
             HintText = "{=AIL_745a654d}NPCs can give you tasks, note your progress, and mark them fulfilled (with reward) or failed. They appear in the game's quest log. Careful: a saved game with tasks needs AI Legacy to load.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]

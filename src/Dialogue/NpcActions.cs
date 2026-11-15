@@ -798,6 +798,28 @@ namespace AILegacy.Dialogue
                                    && (s.Memory.LastIntimacyDay < 0 || CampaignTime.Now.ToDays - s.Memory.LastIntimacyDay >= 1),
                 Execute = (s, arg, ctx) => Bonds.Intimacy(s)
             },
+            new ActionDef
+            {
+                Name = "accept_concubine", Usage = "accept_concubine",
+                Description = "You leave your house to live with the other person as their concubine: not their spouse, but sharing their roof and their bed, in their household. " +
+                              "Only if they clearly asked you, you love them deeply, and you would rather this than lose them. Your old head of house will take it badly.",
+                IsAvailable = s => s.IsHero && World.Concubines.Enabled && World.Concubines.WhyNot(s.Hero) == null,
+                WhyNot = s => s.IsHero && World.Concubines.Enabled && !World.Concubines.Is(s.Hero) ? World.Concubines.WhyNot(s.Hero) : null,
+                Execute = (s, arg, ctx) =>
+                {
+                    var h = s.Hero;
+                    try { FreeBeforeJoining(h); StepDownAsClanLeader(h); if (h.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(h); }
+                    catch (Exception ex) { Log.Error("Concubina: preparar", ex); }
+                    return World.Concubines.Take(h);
+                }
+            },
+            new ActionDef
+            {
+                Name = "end_concubine", Usage = "end_concubine",
+                Description = "You stop being the other person's concubine and go back to your own house. Only if one of you has truly decided it is over.",
+                IsAvailable = s => s.IsHero && World.Concubines.Is(s.Hero),
+                Execute = (s, arg, ctx) => World.Concubines.End(s.Hero)
+            },
 
             // ----------------------------------------------------------- real trade with local people
             new ActionDef

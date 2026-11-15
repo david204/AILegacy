@@ -2159,5 +2159,18 @@
     <string id="AIL_e7b1c833" text="Out of wedlock: marrying makes one legitimate" />
     <string id="AIL_e7b1c834" text="On: a baseborn child who marries becomes legitimate. The parents marrying each other always does." />
     <string id="AIL_e7b1c835" text="You have given birth: {0}, your child and {1}'s. Will you raise them in your house? If not, they stay with {2}, and whoever finds out will not forget it." />
+    <string id="AIL_e7b1c836" text="{0} leaves their house to live with you as your concubine." />
+    <string id="AIL_e7b1c837" text="{0} is no longer your concubine and goes back to their house." />
+    <string id="AIL_e7b1c838" text="Concubines" />
+    <string id="AIL_e7b1c839" text="Someone unmarried who loves you deeply can agree, in a conversation, to leave their house and live with you as your concubine: they join your clan and your company, their old head of house takes it badly, and children may come (born out of wedlock, with you known as the parent). It ends when either of you decides, when one of you dies, or when you marry them. Meanwhile nobody else can marry them." />
+    <string id="AIL_e7b1c83a" text="Concubines: romance needed" />
+    <string id="AIL_e7b1c83b" text="How deep the romance must be before someone will even consider it. Recommended: 60 to 85." />
+    <string id="AIL_e7b1c83c" text="Concubines: chance of children (% of a married couple's)" />
+    <string id="AIL_e7b1c83d" text="Living together, children come at the game's own daily pace for a couple who share a roof, times this. 100 = the same as spouses; 0 = never. Recommended: 50 to 100." />
+    <string id="AIL_e7b1c83e" text="Your concubine" />
+    <string id="AIL_e7b1c83f" text="Your concubine" />
+    <string id="AIL_e7b1c840" text="lover" />
+    <string id="AIL_e7b1c841" text="concubine" />
+    <string id="AIL_e7b1c842" text="concubine" />
   </strings>
 </base>

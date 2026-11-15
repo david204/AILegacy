@@ -2159,5 +2159,18 @@
     <string id="AIL_e7b1c833" text="婚外：结婚即获合法身份" />
     <string id="AIL_e7b1c834" text="开启：私生子女结婚后获得合法身份。父母彼此成婚则总能使其合法。" />
     <string id="AIL_e7b1c835" text="你生下了孩子：{0}，是你和{1}的骨肉。你要在你家中抚养吗？否则孩子留给{2}，知道此事的人不会忘记。" />
+    <string id="AIL_e7b1c836" text="{0}离开了自己的家族，作为侍妾与你同住。" />
+    <string id="AIL_e7b1c837" text="{0}不再是你的侍妾，回到了自己的家族。" />
+    <string id="AIL_e7b1c838" text="侍妾" />
+    <string id="AIL_e7b1c839" text="深爱你的未婚之人可以在交谈中同意离开自己的家族，作为侍妾与你同住：加入你的家族和队伍，其原家主会很不满，也可能有孩子（婚外所生，你是公认的父亲或母亲）。当你们任何一方决定、一方死亡或你娶其为妻时结束。在此期间，其他人不能与其成婚。" />
+    <string id="AIL_e7b1c83a" text="侍妾：所需浪漫值" />
+    <string id="AIL_e7b1c83b" text="浪漫值要多高，对方才会考虑此事。建议：60 至 85。" />
+    <string id="AIL_e7b1c83c" text="侍妾：生子几率（相对夫妻的%）" />
+    <string id="AIL_e7b1c83d" text="同住时，孩子按游戏中同住夫妻的每日节奏到来，再乘以此值。100 = 与夫妻相同；0 = 从不。建议：50 至 100。" />
+    <string id="AIL_e7b1c83e" text="你的侍妾" />
+    <string id="AIL_e7b1c83f" text="你的男宠" />
+    <string id="AIL_e7b1c840" text="情人" />
+    <string id="AIL_e7b1c841" text="侍妾" />
+    <string id="AIL_e7b1c842" text="男宠" />
   </strings>
 </base>
