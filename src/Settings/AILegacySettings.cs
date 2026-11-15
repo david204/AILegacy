@@ -347,6 +347,42 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
         public string ImageOpenAiModel { get; set; } = "gpt-image-1";
 
+        [SettingPropertyDropdown("{=AIL_e7b1c861}Videos of a scene", Order = 10, RequireRestart = false,
+            HintText = "{=AIL_e7b1c862}In a conversation, «Record this scene on video» makes a clip of a few seconds of the last moment. You are always asked first, with what it will cost. OpenAI uses the OpenAI provider in 0. AI Keys and charges per second of video (Sora: roughly 10 cents a second). An OpenAI-compatible server is any program with the same /videos API. Off = no videos.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public MCM.Common.Dropdown<string> VideoSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneVideos.SourceNames, World.SceneVideos.Off);
+
+        [SettingPropertyInteger("{=AIL_e7b1c863}Videos: seconds", 4, 12, Order = 11, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public int VideoSeconds { get; set; } = 4;
+
+        [SettingPropertyInteger("{=AIL_e7b1c864}Videos: most a day", 0, 50, Order = 12, RequireRestart = false,
+            HintText = "{=AIL_e7b1c865}A cap on spending: no more videos than this in a real day. 0 = no cap. Recommended: 2 to 5.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public int VideoPerDay { get; set; } = 3;
+
+        [SettingPropertyInteger("{=AIL_e7b1c866}Videos: price per second (cents, for the warning)", 0, 100, Order = 13, RequireRestart = false,
+            HintText = "{=AIL_e7b1c867}Only to tell you what a video will cost before you accept. Check your provider's current price.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public int VideoCentsPerSecond { get; set; } = 10;
+
+        [SettingPropertyText("{=AIL_e7b1c868}Videos: model", Order = 14, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string VideoModel { get; set; } = "sora-2";
+
+        [SettingPropertyText("{=AIL_e7b1c869}Videos: size", Order = 15, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string VideoSize { get; set; } = "1280x720";
+
+        [SettingPropertyText("{=AIL_e7b1c86a}Videos: compatible server address", Order = 16, RequireRestart = false,
+            HintText = "{=AIL_e7b1c86b}The part of the address before /videos.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string VideoEndpointUrl { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1c86c}Videos: compatible server key", Order = 17, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string VideoEndpointKey { get; set; } = "";
+
         // ------------------------------------------------------------ Voice
         [SettingPropertyDropdown("{=AIL_e7b1c843}Voice of the characters", Order = 0, RequireRestart = false,
             HintText = "{=AIL_e7b1c844}Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Off = silent.")]

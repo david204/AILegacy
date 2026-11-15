@@ -19,6 +19,7 @@ namespace AILegacy.Web
     internal static class EditorWindow
     {
         private static Form _form;
+        private static WebView2 _web;
         private static Thread _thread;
 
         // Share of the game area the panel covers
@@ -43,7 +44,8 @@ namespace AILegacy.Web
             {
                 if (_form != null && !_form.IsDisposed)
                 {
-                    _form.BeginInvoke(new Action(() => { _form.Show(); _form.Activate(); }));
+                    // already open: go to the new page (the editor, or a video of a scene)
+                    _form.BeginInvoke(new Action(() => { try { if (_web?.CoreWebView2 != null) _web.Source = new Uri(url); } catch { } _form.Show(); _form.Activate(); }));
                     return;
                 }
                 IntPtr game = IntPtr.Zero;
@@ -103,6 +105,7 @@ namespace AILegacy.Web
                     KeyPreview = true,
                 };
                 var web = new WebView2 { Dock = DockStyle.Fill, DefaultBackgroundColor = Dark };
+                _web = web;
                 form.Controls.Add(web);
 
                 // Make the game window the owner, so the panel stays above the game and nothing else
@@ -157,7 +160,7 @@ namespace AILegacy.Web
                 };
                 form.FormClosed += (s, e) =>
                 {
-                    _form = null;
+                    _form = null; _web = null;
                     try { follow.Stop(); follow.Dispose(); } catch { }
                     // Give focus back to the game
                     try { if (game != IntPtr.Zero && IsWindow(game)) SetForegroundWindow(game); } catch { }

@@ -77,7 +77,7 @@ Answer with the prompt only, nothing else.");
 
         public static void ResetSession() { _gen++; Pending.Clear(); _busy = false; _active = null; _failures = 0; }
 
-        private static string Dir
+        internal static string Dir
         {
             get
             {
@@ -194,7 +194,7 @@ Answer with the prompt only, nothing else.");
         }
 
         /// <summary>Who appears, in plain visual terms, so the same people look alike from page to page.</summary>
-        private static string People(HeroMemory mem)
+        internal static string People(HeroMemory mem)
         {
             var sb = new StringBuilder();
             try

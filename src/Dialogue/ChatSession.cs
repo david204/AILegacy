@@ -544,8 +544,36 @@ namespace AILegacy.Dialogue
             UI.Books.OpenPicture(_picture, L.F("AIL_e7b1c7ce", $"La escena con {_s.Name}"), _pictureText);
         }
 
+        // ---- a video of the scene, on request
+
+        private string _video, _pairPlayer, _pairNpc;
+        public bool CanMakeVideo => World.SceneVideos.Enabled && !World.SceneVideos.Busy && !string.IsNullOrEmpty(_pairNpc) && !_waiting && !_closed;
+        public bool HasVideo => _video != null && System.IO.File.Exists(_video);
+
+        public void MakeVideo()
+        {
+            if (!CanMakeVideo) return;
+            string player = Hero.MainHero?.Name?.ToString() ?? "";
+            var st = TaleWorlds.CampaignSystem.Settlements.Settlement.CurrentSettlement;
+            string where = (st != null ? st.Name.ToString() : "the open country") + ", " + (CampaignTime.Now.IsNightTime ? "at night" : "by day");
+            string exchange = $"{player}: {_pairPlayer}\n{_s.Name}: {_pairNpc}";
+            var self = this;
+            World.SceneVideos.Offer(World.SceneImages.People(Mem), where, exchange, path =>
+            {
+                self._video = path;
+                if (self.UseWindow && !self._closed) self.ShowVideo();
+                else Notify(L.T("AIL_e7b1c85e", "El vídeo de la escena está listo: elige «Ver el vídeo»."), Colors.Gray);
+            });
+        }
+
+        public void ShowVideo()
+        {
+            if (HasVideo) World.SceneVideos.Play(_video, L.F("AIL_e7b1c7ce", $"La escena con {_s.Name}"));
+        }
+
         private void AskPicture(string playerText, string npcText)
         {
+            _pairPlayer = playerText; _pairNpc = npcText;
             try
             {
                 if (!WithPictures || !World.SceneImages.Enabled) return;

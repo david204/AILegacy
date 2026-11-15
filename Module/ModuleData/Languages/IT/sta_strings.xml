@@ -2190,5 +2190,29 @@
     <string id="AIL_e7b1c852" text="Voce: chiave del server compatibile (se la chiede)" />
     <string id="AIL_e7b1c853" text="Voce: programma Piper (piper.exe)" />
     <string id="AIL_e7b1c854" text="Percorso completo di piper.exe. I modelli di voce vanno nelle liste maschile e femminile qui sopra." />
+    <string id="AIL_e7b1c855" text="Hai già fatto i {0} video di oggi (limite delle impostazioni)." />
+    <string id="AIL_e7b1c856" text="Circa {0:0.00} $ dal tuo account OpenAI ({1} s)." />
+    <string id="AIL_e7b1c857" text="Lo fa il tuo server video ({0} s)." />
+    <string id="AIL_e7b1c858" text="Video della scena" />
+    <string id="AIL_e7b1c859" text="{0} Ci vogliono alcuni minuti; puoi continuare a giocare e ti avviso quando è pronto.&#10;&#10;Lo faccio?" />
+    <string id="AIL_e7b1c85a" text="Fallo" />
+    <string id="AIL_e7b1c85b" text="Nessun fornitore OpenAI con chiave in 0. Chiavi IA." />
+    <string id="AIL_e7b1c85c" text="Preparazione del video della scena…" />
+    <string id="AIL_e7b1c85d" text="Il video non è stato possibile farlo: {0}" />
+    <string id="AIL_e7b1c85e" text="Il video della scena è pronto: scegli «Guarda il video»." />
+    <string id="AIL_e7b1c85f" text="{=!}Registra questa scena in video" />
+    <string id="AIL_e7b1c860" text="{=!}Guarda il video" />
+    <string id="AIL_e7b1c861" text="Video di una scena" />
+    <string id="AIL_e7b1c862" text="In una conversazione, «Registra questa scena in video» fa un clip di pochi secondi dell’ultimo momento. Ti viene sempre chiesto prima, con quanto costerà. OpenAI usa il fornitore OpenAI in 0. Chiavi IA e fa pagare per secondo di video (Sora: circa 10 centesimi al secondo). Un server compatibile è qualsiasi programma con la stessa API /videos. Disattivato = niente video." />
+    <string id="AIL_e7b1c863" text="Video: secondi" />
+    <string id="AIL_e7b1c864" text="Video: massimo al giorno" />
+    <string id="AIL_e7b1c865" text="Un limite di spesa: non più video di questi in un giorno reale. 0 = nessun limite. Consigliato: da 2 a 5." />
+    <string id="AIL_e7b1c866" text="Video: prezzo al secondo (centesimi, per l’avviso)" />
+    <string id="AIL_e7b1c867" text="Solo per dirti quanto costerà un video prima di accettare. Controlla il prezzo attuale del tuo fornitore." />
+    <string id="AIL_e7b1c868" text="Video: modello" />
+    <string id="AIL_e7b1c869" text="Video: dimensione" />
+    <string id="AIL_e7b1c86a" text="Video: indirizzo del server compatibile" />
+    <string id="AIL_e7b1c86b" text="La parte dell’indirizzo prima di /videos." />
+    <string id="AIL_e7b1c86c" text="Video: chiave del server compatibile" />
   </strings>
 </base>

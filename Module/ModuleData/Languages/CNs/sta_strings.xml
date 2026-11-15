@@ -2190,5 +2190,29 @@
     <string id="AIL_e7b1c852" text="语音：兼容服务器密钥（如需要）" />
     <string id="AIL_e7b1c853" text="语音：Piper 程序（piper.exe）" />
     <string id="AIL_e7b1c854" text="piper.exe 的完整路径。语音模型填在上方的男声和女声列表中。" />
+    <string id="AIL_e7b1c855" text="你今天已经做了{0}个视频（设置中的上限）。" />
+    <string id="AIL_e7b1c856" text="从你的 OpenAI 账户扣约 {0:0.00} 美元（{1} 秒）。" />
+    <string id="AIL_e7b1c857" text="由你的视频服务器生成（{0} 秒）。" />
+    <string id="AIL_e7b1c858" text="场景视频" />
+    <string id="AIL_e7b1c859" text="{0} 需要几分钟；你可以继续游戏，好了我会告诉你。&#10;&#10;要生成吗？" />
+    <string id="AIL_e7b1c85a" text="生成" />
+    <string id="AIL_e7b1c85b" text="“0. AI密钥”中没有带密钥的 OpenAI 服务商。" />
+    <string id="AIL_e7b1c85c" text="正在准备场景视频……" />
+    <string id="AIL_e7b1c85d" text="视频没能生成：{0}" />
+    <string id="AIL_e7b1c85e" text="场景视频已准备好：选择“观看视频”。" />
+    <string id="AIL_e7b1c85f" text="{=!}把这一幕录成视频" />
+    <string id="AIL_e7b1c860" text="{=!}观看视频" />
+    <string id="AIL_e7b1c861" text="场景视频" />
+    <string id="AIL_e7b1c862" text="在对话中，“把这一幕录成视频”会把最后一刻做成几秒的短片。生成前总会先询问你并告知费用。OpenAI 使用“0. AI密钥”中的OpenAI服务商，按视频秒数收费（Sora：约每秒10美分）。兼容服务器是任何具有相同 /videos 接口的程序。关闭 = 不做视频。" />
+    <string id="AIL_e7b1c863" text="视频：秒数" />
+    <string id="AIL_e7b1c864" text="视频：每天上限" />
+    <string id="AIL_e7b1c865" text="花费上限：一个现实日内不超过这么多视频。0 = 不限。建议：2 至 5。" />
+    <string id="AIL_e7b1c866" text="视频：每秒价格（美分，用于提示）" />
+    <string id="AIL_e7b1c867" text="仅用于在你同意前告知视频费用。请查看服务商的当前价格。" />
+    <string id="AIL_e7b1c868" text="视频：模型" />
+    <string id="AIL_e7b1c869" text="视频：尺寸" />
+    <string id="AIL_e7b1c86a" text="视频：兼容服务器地址" />
+    <string id="AIL_e7b1c86b" text="/videos 之前的地址部分。" />
+    <string id="AIL_e7b1c86c" text="视频：兼容服务器密钥" />
   </strings>
 </base>

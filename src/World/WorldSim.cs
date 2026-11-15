@@ -330,6 +330,7 @@ namespace AILegacy.World
             try { Dialogue.Verdict.ResetSession(); } catch { }
             try { Dialogue.Initiative.ResetSession(); } catch { }
             try { SceneImages.ResetSession(); } catch { }
+            try { SceneVideos.ResetSession(); } catch { }
             try { Dialogue.TalkMusic.ResetSession(); } catch { }
             try { NewsStore.ResetSession(); } catch { }
             try { Laws.Invalidate(); } catch { }

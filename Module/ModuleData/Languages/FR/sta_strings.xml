@@ -2190,5 +2190,29 @@
     <string id="AIL_e7b1c852" text="Voix : clé du serveur compatible (s’il en demande une)" />
     <string id="AIL_e7b1c853" text="Voix : programme Piper (piper.exe)" />
     <string id="AIL_e7b1c854" text="Chemin complet vers piper.exe. Les modèles de voix vont dans les listes masculine et féminine ci-dessus." />
+    <string id="AIL_e7b1c855" text="Vous avez déjà fait les {0} vidéos d’aujourd’hui (plafond des réglages)." />
+    <string id="AIL_e7b1c856" text="Environ {0:0.00} $ sur votre compte OpenAI ({1} s)." />
+    <string id="AIL_e7b1c857" text="C’est votre serveur vidéo qui le fait ({0} s)." />
+    <string id="AIL_e7b1c858" text="Vidéo de la scène" />
+    <string id="AIL_e7b1c859" text="{0} Cela prend quelques minutes ; vous pouvez continuer à jouer, je vous préviens quand c’est prêt.&#10;&#10;Je le fais ?" />
+    <string id="AIL_e7b1c85a" text="Le faire" />
+    <string id="AIL_e7b1c85b" text="Aucun fournisseur OpenAI avec clé dans 0. Clés d’IA." />
+    <string id="AIL_e7b1c85c" text="Préparation de la vidéo de la scène…" />
+    <string id="AIL_e7b1c85d" text="La vidéo n’a pas pu être faite : {0}" />
+    <string id="AIL_e7b1c85e" text="La vidéo de la scène est prête : choisissez « Voir la vidéo »." />
+    <string id="AIL_e7b1c85f" text="{=!}Filmer cette scène" />
+    <string id="AIL_e7b1c860" text="{=!}Voir la vidéo" />
+    <string id="AIL_e7b1c861" text="Vidéos d’une scène" />
+    <string id="AIL_e7b1c862" text="Dans une conversation, « Filmer cette scène » fait un clip de quelques secondes du dernier moment. On vous demande toujours avant, avec le coût. OpenAI utilise le fournisseur OpenAI de 0. Clés d’IA et facture à la seconde de vidéo (Sora : environ 10 centimes la seconde). Un serveur compatible est tout programme avec la même API /videos. Désactivé = pas de vidéos." />
+    <string id="AIL_e7b1c863" text="Vidéos : secondes" />
+    <string id="AIL_e7b1c864" text="Vidéos : maximum par jour" />
+    <string id="AIL_e7b1c865" text="Un plafond de dépense : pas plus de vidéos que cela par jour réel. 0 = sans plafond. Recommandé : de 2 à 5." />
+    <string id="AIL_e7b1c866" text="Vidéos : prix par seconde (centimes, pour l’avertissement)" />
+    <string id="AIL_e7b1c867" text="Seulement pour vous dire ce que coûtera une vidéo avant d’accepter. Vérifiez le prix actuel de votre fournisseur." />
+    <string id="AIL_e7b1c868" text="Vidéos : modèle" />
+    <string id="AIL_e7b1c869" text="Vidéos : taille" />
+    <string id="AIL_e7b1c86a" text="Vidéos : adresse du serveur compatible" />
+    <string id="AIL_e7b1c86b" text="La partie de l’adresse avant /videos." />
+    <string id="AIL_e7b1c86c" text="Vidéos : clé du serveur compatible" />
   </strings>
 </base>

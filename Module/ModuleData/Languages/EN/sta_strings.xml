@@ -2190,5 +2190,29 @@
     <string id="AIL_e7b1c852" text="Voice: compatible server key (if it asks for one)" />
     <string id="AIL_e7b1c853" text="Voice: Piper program (piper.exe)" />
     <string id="AIL_e7b1c854" text="Full path to piper.exe. The voice models go in the male and female lists above." />
+    <string id="AIL_e7b1c855" text="You have already made today's {0} videos (cap in the settings)." />
+    <string id="AIL_e7b1c856" text="About {0:0.00} $ from your OpenAI account ({1} s)." />
+    <string id="AIL_e7b1c857" text="Your video server makes it ({0} s)." />
+    <string id="AIL_e7b1c858" text="Video of the scene" />
+    <string id="AIL_e7b1c859" text="{0} It takes a few minutes; you can keep playing and I will tell you when it is ready.&#10;&#10;Shall I make it?" />
+    <string id="AIL_e7b1c85a" text="Make it" />
+    <string id="AIL_e7b1c85b" text="There is no OpenAI provider with a key in 0. AI Keys." />
+    <string id="AIL_e7b1c85c" text="Preparing the video of the scene…" />
+    <string id="AIL_e7b1c85d" text="The video could not be made: {0}" />
+    <string id="AIL_e7b1c85e" text="The video of the scene is ready: choose «See the video»." />
+    <string id="AIL_e7b1c85f" text="{=!}Record this scene on video" />
+    <string id="AIL_e7b1c860" text="{=!}See the video" />
+    <string id="AIL_e7b1c861" text="Videos of a scene" />
+    <string id="AIL_e7b1c862" text="In a conversation, «Record this scene on video» makes a clip of a few seconds of the last moment. You are always asked first, with what it will cost. OpenAI uses the OpenAI provider in 0. AI Keys and charges per second of video (Sora: roughly 10 cents a second). An OpenAI-compatible server is any program with the same /videos API. Off = no videos." />
+    <string id="AIL_e7b1c863" text="Videos: seconds" />
+    <string id="AIL_e7b1c864" text="Videos: most a day" />
+    <string id="AIL_e7b1c865" text="A cap on spending: no more videos than this in a real day. 0 = no cap. Recommended: 2 to 5." />
+    <string id="AIL_e7b1c866" text="Videos: price per second (cents, for the warning)" />
+    <string id="AIL_e7b1c867" text="Only to tell you what a video will cost before you accept. Check your provider's current price." />
+    <string id="AIL_e7b1c868" text="Videos: model" />
+    <string id="AIL_e7b1c869" text="Videos: size" />
+    <string id="AIL_e7b1c86a" text="Videos: compatible server address" />
+    <string id="AIL_e7b1c86b" text="The part of the address before /videos." />
+    <string id="AIL_e7b1c86c" text="Videos: compatible server key" />
   </strings>
 </base>

@@ -468,6 +468,12 @@ namespace AILegacy.Behaviors
             starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_cdf7046b", "{=!}Repasar lo hablado"),
                 () => { var c = Cur(); return c != null && c.Who != null && c.Who.Memory.Turns.Count > 2; },
                 () => { var c = Cur(); if (c != null) { var who = c.Who; MainThread.Post(() => UI.Books.OpenTranscript(who)); } }, priority: 109);
+            starter.AddPlayerLine("ailegacy_d_video_make", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c85f", "{=!}Grabar esta escena en vídeo"),
+                () => { var c = Cur(); return c != null && c.CanMakeVideo && !c.HasVideo; },
+                () => { var c = Cur(); if (c != null) MainThread.Post(c.MakeVideo); }, priority: 106);
+            starter.AddPlayerLine("ailegacy_d_video_show", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c860", "{=!}Ver el vídeo"),
+                () => { var c = Cur(); return c != null && c.HasVideo; },
+                () => { var c = Cur(); if (c != null) MainThread.Post(c.ShowVideo); }, priority: 122);
             starter.AddPlayerLine("ailegacy_d_picture", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c7d1", "{=!}Ver la escena"),
                 () => { var c = Cur(); return c != null && c.HasPicture; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.ShowPicture); }, priority: 123);
