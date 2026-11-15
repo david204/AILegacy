@@ -96,8 +96,10 @@ namespace AILegacy.Prompt
             var fiefs = DescribeFiefs(npc);
             if (fiefs.Length > 0) sb.AppendLine("Your clan holds: " + fiefs);
 
-            var wars = DescribeWars(npc.MapFaction);
-            if (wars.Length > 0) sb.AppendLine((AILegacy.World.Facts.IsHired(npc) ? "The kingdom that pays you is at war with: " : "Your faction is at war with: ") + wars);
+            // Hero.MapFaction of a hired sword is the crown paying it: those wars are the employer's, told as such
+            var paidBy = AILegacy.World.Facts.Employer(npc.Clan);
+            var wars = DescribeWars((IFaction)paidBy ?? npc.MapFaction);
+            if (wars.Length > 0) sb.AppendLine(paidBy != null ? TEmployerWars.Format("employer", paidBy.Name, "wars", wars) : "Your faction is at war with: " + wars);
 
             var bio = SafeText(npc.EncyclopediaText);
             if (!string.IsNullOrWhiteSpace(bio)) sb.AppendLine("Known background: " + Clip(bio, 700));
@@ -181,9 +183,15 @@ namespace AILegacy.Prompt
             }
             sb.AppendLine("You are a commoner: you know local gossip, prices and people, little of high politics, and you are careful around armed strangers and nobles.");
             var wars = DescribeWars(s.Faction);
-            if (wars.Length > 0) sb.AppendLine("Your lord's realm is at war with: " + wars);
+            // a place held by a clan under no crown (rebels, a landed minor clan, a player without a kingdom) is in no realm
+            if (wars.Length > 0) sb.AppendLine(s.Faction is Kingdom ? "Your lord's realm is at war with: " + wars : TLordClanWars.Format("wars", wars));
             return sb.ToString().TrimEnd();
         }
+
+        private static readonly Tpl TEmployerWars = new Tpl("context/wars_of_employer.txt",
+            "The kingdom that pays you, {employer}, is at war with: {wars}. These are its wars, not your clan's: you fight them for pay while the contract lasts, and you are not its subject.");
+        private static readonly Tpl TLordClanWars = new Tpl("context/wars_of_lord_clan.txt",
+            "Your lord's clan answers to no crown and belongs to no realm. It is at war with: {wars}");
 
         private static string ResidentRole(CharacterObject c)
         {
@@ -432,7 +440,9 @@ namespace AILegacy.Prompt
             Put("player_party_size", () => MobileParty.MainParty?.MemberRoster.TotalManCount.ToString());
             Put("relation_with_player", () => { int r = (int)h.GetRelationWithPlayer(); return $"{r} ({DescribeRelation(r)})"; });
             Put("knows_player_because", () => WhyKnowsPlayer(Speaker.FromHero(h)) ?? "does not know who the player is");
-            Put("wars", () => DescribeWars(h.MapFaction));
+            // a hired sword has no wars of its own through the contract: they are filed under the crown that pays
+            Put("wars", () => AILegacy.World.Facts.IsHired(h) ? null : DescribeWars(h.MapFaction));
+            Put("employer_wars", () => { var e = AILegacy.World.Facts.Employer(h.Clan); var w = e == null ? "" : DescribeWars(e); return w.Length == 0 ? null : $"{e.Name} (the crown paying them; its wars, not their own) is at war with: {w}"; });
             Put("fiefs", () => DescribeFiefs(h));
             Put("wealth", () => DescribeWealth(h.Gold));
             Put("traits", () => DescribeTraits(h));

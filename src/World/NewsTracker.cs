@@ -275,8 +275,12 @@ namespace AILegacy.World
             public Hero Prisoner, By;
             public IFaction Captor;
             public Settlement Near;
+            public int Rank;
         }
+        // Filled by the game's events and emptied every hour, both on the game thread
         private static readonly List<Capture> Captures = new List<Capture>();
+        // A rout can take dozens of lords in one hour. Past this the least notable captives are let go of first
+        private const int MaxCaptures = 200;
 
         /// <summary>4 = a ruler (world news), 3 = the head of a kingdom's own noble clan (kingdom news), 1 = anyone else (local).</summary>
         private static int CaptiveRank(Hero h)
@@ -292,14 +296,25 @@ namespace AILegacy.World
             if (prisoner == null || !prisoner.IsLord) return;
             Settlement near = null;
             try { near = captor?.MapEvent?.MapEventSettlement ?? captor?.Settlement; } catch { }
-            Captures.Add(new Capture { Prisoner = prisoner, By = captor?.LeaderHero, Captor = captor?.MapFaction, Near = near });
+            var by = captor?.MapFaction;
+            // the game can raise the same capture twice (taken in battle, then handed to a party or a dungeon)
+            if (Captures.Any(c => c.Prisoner == prisoner && c.Captor == by)) return;
+            Captures.Add(new Capture { Prisoner = prisoner, By = captor?.LeaderHero, Captor = by, Near = near, Rank = CaptiveRank(prisoner) });
+            if (Captures.Count > MaxCaptures)
+            {
+                // the oldest of the least notable goes
+                int low = Captures.Min(c => c.Rank);
+                Captures.RemoveAt(Captures.FindIndex(c => c.Rank == low));
+            }
         });
 
+        // Both flushes take each entry out of its list before working on it and guard it on its own, so one that
+        // fails costs that one piece of news and nothing else
         private static void OnHourlyTick()
         {
             if (!On) { Captures.Clear(); SiegeEnds.Clear(); return; }
-            try { FlushCaptures(); } catch (Exception ex) { Log.Error("Noticia prisioneros", ex); Captures.Clear(); }
-            try { FlushSieges(); } catch (Exception ex) { Log.Error("Noticia fin de asedio", ex); SiegeEnds.Clear(); }
+            try { FlushCaptures(); } catch (Exception ex) { Log.Error("Noticia prisioneros", ex); }
+            try { FlushSieges(); } catch (Exception ex) { Log.Error("Noticia fin de asedio", ex); }
         }
 
         private static string Short(Hero h)
@@ -327,18 +342,39 @@ namespace AILegacy.World
             var all = Captures.ToList();
             Captures.Clear();
             int mode = S.Get.PrisonerNewsMode();      // 0 all, 1 notable only, 2 rulers only
-            foreach (var g in all.GroupBy(c => (c.Captor?.StringId ?? "") + "|" + (c.Near?.StringId ?? "")))
+            // the captives of one battle are one piece of news; the key is read entry by entry so a bad one falls out alone
+            var groups = new Dictionary<string, List<Capture>>();
+            foreach (var c in all)
             {
-                var list = g.GroupBy(c => c.Prisoner).Select(x => x.First()).OrderByDescending(c => CaptiveRank(c.Prisoner)).ToList();
-                int top = CaptiveRank(list[0].Prisoner);
+                try
+                {
+                    if (c?.Prisoner == null) continue;
+                    string key = (c.Captor?.StringId ?? "") + "|" + (c.Near?.StringId ?? "");
+                    if (!groups.TryGetValue(key, out var same)) groups[key] = same = new List<Capture>();
+                    same.Add(c);
+                }
+                catch (Exception ex) { Log.Error("Noticia prisioneros: una captura descartada", ex); }
+            }
+            foreach (var g in groups.Values)
+            {
+                try { FlushCaptureGroup(g, mode); }
+                catch (Exception ex) { Log.Error("Noticia prisioneros: un grupo descartado", ex); }
+            }
+        }
+
+        private static void FlushCaptureGroup(List<Capture> g, int mode)
+        {
+            {
+                var list = g.GroupBy(c => c.Prisoner).Select(x => x.First()).OrderByDescending(c => c.Rank).ToList();
+                int top = list[0].Rank;
                 var by = list.Select(c => c.By).FirstOrDefault(h => h != null);
                 var captor = list[0].Captor; var near = list[0].Near;
                 // what the player did or suffered is always told
                 bool player = list.Any(c => c.Prisoner == Hero.MainHero || c.By == Hero.MainHero);
-                if (!player && ((mode >= 2 && top < 4) || (mode == 1 && top < 3))) continue;
+                if (!player && ((mode >= 2 && top < 4) || (mode == 1 && top < 3))) return;
                 // who gets named: everyone, or only those the setting keeps
                 int floor = player || mode == 0 ? 1 : mode == 1 ? 3 : 4;
-                var named = list.Where(c => CaptiveRank(c.Prisoner) >= floor).Take(6).ToList();
+                var named = list.Where(c => c.Rank >= floor).Take(6).ToList();
                 int others = list.Count - named.Count;
 
                 var factions = new List<IFaction> { captor };
@@ -378,22 +414,37 @@ namespace AILegacy.World
             public Settlement Place;
             public IFaction Owner, Besieger;
             public Hero Leader;
-            public bool Beaten;
+            /// <summary>true = beaten in the field, false = gave it up, null = the game would not say.</summary>
+            public bool? Beaten;
             public double Hour;
         }
         private static readonly List<SiegeEnd> SiegeEnds = new List<SiegeEnd>();
         private static readonly System.Reflection.FieldInfo BesiegerDefeated = HarmonyLib.AccessTools.Field(typeof(SiegeEvent), "_isBesiegerDefeated");
+        private static bool _siegeFieldWarned;
+
+        /// <summary>How the besiegers fared, from a private field of the game. null when it cannot be read (another game version).</summary>
+        private static bool? WasBesiegerBeaten(SiegeEvent siege)
+        {
+            try { if (BesiegerDefeated != null) return (bool)BesiegerDefeated.GetValue(siege); }
+            catch { }
+            if (!_siegeFieldWarned)
+            {
+                _siegeFieldWarned = true;
+                Log.Warn("Noticias: no se puede leer SiegeEvent._isBesiegerDefeated en esta versión del juego; el fin de un asedio se contará sin decir si fue roto o levantado");
+            }
+            return null;
+        }
 
         private static void OnSiegeEnded(SiegeEvent siege) => Safe("fin de asedio", () =>
         {
             var s = siege?.BesiegedSettlement;
             if (s == null) return;
-            bool beaten = false;
-            try { beaten = BesiegerDefeated != null && (bool)BesiegerDefeated.GetValue(siege); } catch { }
+            SiegeEnds.RemoveAll(x => x.Place == s);      // one pending verdict per place: the latest siege
+            if (SiegeEnds.Count >= MaxSiegeEnds) SiegeEnds.RemoveAt(0);
             SiegeEnds.Add(new SiegeEnd
             {
                 Place = s, Owner = s.MapFaction, Besieger = siege.BesiegerCamp?.MapFaction, Leader = siege.BesiegerCamp?.LeaderParty?.LeaderHero,
-                Beaten = beaten, Hour = CampaignTime.Now.ToHours,
+                Beaten = WasBesiegerBeaten(siege), Hour = CampaignTime.Now.ToHours,
             });
         });
 
@@ -404,17 +455,43 @@ namespace AILegacy.World
         private static void FlushSieges()
         {
             if (SiegeEnds.Count == 0) return;
-            double hour = CampaignTime.Now.ToHours, day = CampaignTime.Now.ToDays;
+            double hour = CampaignTime.Now.ToHours;
             foreach (var e in SiegeEnds.Where(x => hour - x.Hour >= 1 || hour < x.Hour).ToList())
             {
                 SiegeEnds.Remove(e);
+                try { TellSiegeEnd(e); }
+                catch (Exception ex) { Log.Error("Noticia fin de asedio: una descartada", ex); }
+            }
+        }
+
+        private const int MaxSiegeEnds = 100;
+
+        private static void TellSiegeEnd(SiegeEnd e)
+        {
+            {
+                double day = CampaignTime.Now.ToDays;
                 var s = e.Place;
-                if (s.MapFaction != e.Owner) continue;
-                if (NewsStore.All.Any(n => n.SettlementId == s.StringId && (n.Type == "capture" || n.Type == "fief") && day - n.Day < 1.0)) continue;
+                // The place was held for an hour and the world moved on meanwhile. Nothing is told if it is no longer
+                // the settlement the game knows by that id, if it changed hands, or if it is besieged again (that
+                // siege has its own news, and its own verdict when it ends).
+                if (s == null || e.Owner == null || Settlement.Find(s.StringId) != s) return;
+                if (s.MapFaction != e.Owner) return;
+                if (s.IsUnderSiege || s.SiegeEvent != null) return;
+                // it fell, or was handed over, at any moment from the end of the siege (or just before it) until now
+                double since = Math.Min(e.Hour / 24.0, day) - 0.5;
+                if (NewsStore.All.Any(n => n.SettlementId == s.StringId && (n.Type == "capture" || n.Type == "fief") && n.Day >= since)) return;
                 string who = e.Leader != null ? e.Leader.Name + FactionOf(e.Leader) : e.Besieger != null ? "the host of " + e.Besieger.Name : "the besiegers";
                 string whoEs = e.Leader != null ? e.Leader.Name + DeEs(e.Leader) : e.Besieger != null ? e.Besieger.Name.ToString() : L.T("AIL_a2104812", "Un ejército enemigo");
                 var n = new NewsItem { Type = "siege", SettlementId = s.StringId, Kingdoms = Ids(e.Owner, e.Besieger), Heroes = HeroIds(e.Leader, s.OwnerClan?.Leader) };
-                if (e.Beaten)
+                if (e.Beaten == null)
+                {
+                    // the game would not say how it ended: only what is certain is told
+                    n.Importance = 2;
+                    n.Text = $"The siege of {s.Name} has ended and {s.Name} remains in the hands of {e.Owner?.Name}.";
+                    n.TitleEs = L.F("AIL_e7b1c74d", $"Termina el asedio de {s.Name}");
+                    n.TextEs = L.F("AIL_e7b1c74e", $"El asedio de {s.Name} ha terminado y {s.Name} sigue en manos de {e.Owner?.Name}.");
+                }
+                else if (e.Beaten == true)
                 {
                     n.Importance = 3;
                     n.Text = $"The siege of {s.Name} has been broken: {who} was beaten in the field and {s.Name} remains in the hands of {e.Owner?.Name}.";

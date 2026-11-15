@@ -1932,5 +1932,7 @@
     <string id="AIL_e7b1c74a" text="El cambio ha fallado y la memoria no ha podido volver a como estaba. Carga la partida de nuevo sin guardar. Lo que había queda en {0}." />
     <string id="AIL_e7b1c74b" text="La copia se ha restaurado, pero {0} archivos no se pudieron escribir en disco. Guarda la partida para volver a intentarlo. Lo que había queda en {1}." />
     <string id="AIL_e7b1c74c" text="El archivo {0} es demasiado grande para abrirlo en el editor." />
+    <string id="AIL_e7b1c74d" text="Termina el asedio de {0}" />
+    <string id="AIL_e7b1c74e" text="El asedio de {0} ha terminado y {1} sigue en manos de {2}." />
   </strings>
 </base>

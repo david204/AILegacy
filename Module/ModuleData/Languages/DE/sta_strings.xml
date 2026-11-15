@@ -1932,5 +1932,7 @@
     <string id="AIL_e7b1c74a" text="Die Änderung ist fehlgeschlagen und das Gedächtnis konnte nicht in den vorherigen Zustand zurückversetzt werden. Lade den Spielstand neu, ohne zu speichern. Der vorherige Stand liegt in {0}." />
     <string id="AIL_e7b1c74b" text="Die Kopie wurde wiederhergestellt, aber {0} Dateien konnten nicht auf die Festplatte geschrieben werden. Speichere das Spiel, um es erneut zu versuchen. Der vorherige Stand liegt in {1}." />
     <string id="AIL_e7b1c74c" text="Die Datei {0} ist zu groß, um sie im Editor zu öffnen." />
+    <string id="AIL_e7b1c74d" text="Die Belagerung von {0} endet" />
+    <string id="AIL_e7b1c74e" text="Die Belagerung von {0} ist beendet, und {1} bleibt in der Hand von {2}." />
   </strings>
 </base>

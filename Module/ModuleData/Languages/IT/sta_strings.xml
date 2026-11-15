@@ -1932,5 +1932,7 @@
     <string id="AIL_e7b1c74a" text="La modifica non è riuscita e non è stato possibile riportare la memoria com’era. Ricarica la partita senza salvare. Quello che c’era resta in {0}." />
     <string id="AIL_e7b1c74b" text="La copia è stata ripristinata, ma {0} file non sono stati scritti su disco. Salva la partita per riprovare. Quello che c’era resta in {1}." />
     <string id="AIL_e7b1c74c" text="Il file {0} è troppo grande per essere aperto nell’editor." />
+    <string id="AIL_e7b1c74d" text="Finisce l’assedio di {0}" />
+    <string id="AIL_e7b1c74e" text="L’assedio di {0} è terminato e {1} resta nelle mani di {2}." />
   </strings>
 </base>

@@ -69,10 +69,14 @@ namespace AILegacy.World
             catch { return 0; }
         }
 
-        /// <summary>Why an AI ruler may not declare war on that kingdom under the house rules, or null. The player is never bound.</summary>
+        /// <summary>
+        /// Why an AI ruler may not declare war on that kingdom under the house rules, or null. The rules are between AI
+        /// crowns: the realm the player rules is never bound by them, and never shielded by them either. Whether an AI
+        /// ruler may declare war on the player at all is the AllowAiWarOnPlayer setting, checked by the callers.
+        /// </summary>
         public static string WarBlocked(Kingdom k, Kingdom o)
         {
-            if (k == null || o == null || PlayerRules(k)) return null;
+            if (k == null || o == null || PlayerRules(k) || PlayerRules(o)) return null;
             int truce = TruceDaysLeft(k, o);
             if (truce > 0) return $"tregua tras la paz con {o.Name}: faltan {truce} días";
             int max = S.Get.MaxWarsPerKingdom;
@@ -84,7 +88,7 @@ namespace AILegacy.World
         private static string AllianceBlocked(Kingdom k, Kingdom o)
         {
             int max = S.Get.MaxAlliancesPerKingdom;
-            if (max <= 0 || k == null || o == null || PlayerRules(k)) return null;
+            if (max <= 0 || k == null || o == null || PlayerRules(k) || PlayerRules(o)) return null;
             if (AllianceCount(k) >= max) return $"{k.Name} ya tiene {AllianceCount(k)} alianzas (límite {max})";
             return AllianceCount(o) >= max ? $"{o.Name} ya tiene {AllianceCount(o)} alianzas (límite {max})" : null;
         }
@@ -92,7 +96,7 @@ namespace AILegacy.World
         private static string TradeBlocked(Kingdom k, Kingdom o)
         {
             int max = S.Get.MaxTradePactsPerKingdom;
-            if (max <= 0 || k == null || o == null || PlayerRules(k)) return null;
+            if (max <= 0 || k == null || o == null || PlayerRules(k) || PlayerRules(o)) return null;
             if (TradeCount(k) >= max) return $"{k.Name} ya tiene {TradeCount(k)} acuerdos comerciales (límite {max})";
             return TradeCount(o) >= max ? $"{o.Name} ya tiene {TradeCount(o)} acuerdos comerciales (límite {max})" : null;
         }
@@ -107,7 +111,8 @@ namespace AILegacy.World
             if (cfg.MaxWarsPerKingdom > 0 || cfg.MinTruceDays > 0)
             {
                 var no = new List<string>();
-                foreach (var o in WorldSim.Kingdoms.Where(x => x != k && !k.IsAtWarWith(x)))
+                // the realm the player rules is outside the house rules (WarBlocked), so it is never listed as barred
+                foreach (var o in WorldSim.Kingdoms.Where(x => x != k && !k.IsAtWarWith(x) && !PlayerRules(x)))
                 {
                     int truce = TruceDaysLeft(k, o);
                     if (truce > 0) no.Add($"{o.StringId} (truce, {truce} more days)");
@@ -118,12 +123,12 @@ namespace AILegacy.World
             }
             if (cfg.MaxAlliancesPerKingdom > 0)
             {
-                var full = WorldSim.Kingdoms.Where(x => x != k && AllianceCount(x) >= cfg.MaxAlliancesPerKingdom).Select(x => x.StringId).ToList();
+                var full = WorldSim.Kingdoms.Where(x => x != k && !PlayerRules(x) && AllianceCount(x) >= cfg.MaxAlliancesPerKingdom).Select(x => x.StringId).ToList();
                 lines.Add($"- At most {cfg.MaxAlliancesPerKingdom} alliance(s) per kingdom. You have {AllianceCount(k)}." + (full.Count > 0 ? " Already at their limit: " + string.Join(", ", full) + "." : ""));
             }
             if (cfg.MaxTradePactsPerKingdom > 0)
             {
-                var full = WorldSim.Kingdoms.Where(x => x != k && TradeCount(x) >= cfg.MaxTradePactsPerKingdom).Select(x => x.StringId).ToList();
+                var full = WorldSim.Kingdoms.Where(x => x != k && !PlayerRules(x) && TradeCount(x) >= cfg.MaxTradePactsPerKingdom).Select(x => x.StringId).ToList();
                 lines.Add($"- At most {cfg.MaxTradePactsPerKingdom} trade agreement(s) per kingdom. You have {TradeCount(k)}." + (full.Count > 0 ? " Already at their limit: " + string.Join(", ", full) + "." : ""));
             }
             return lines.Count == 0 ? "" : "House rules of this world (enforced: an action that breaks one is thrown away, so do not try):\n" + string.Join("\n", lines);
@@ -151,7 +156,12 @@ namespace AILegacy.World
             try
             {
                 if (!S.Get.PeaceAtCampaignStart || Campaign.Current == null) return;
-                var ks = WorldSim.Kingdoms.ToList();
+                // Campaign.Kingdoms holds crowns only: bandits, minor factions and rebels are clans and never appear in
+                // it. WorldSim.Kingdoms drops the destroyed and the leaderless. What is left to rule out here is a
+                // crown in the hands of rebels or outlaws (mods), and the realm the player starts in, whose wars
+                // are the player's to end.
+                var mine = PlayerRealm;
+                var ks = WorldSim.Kingdoms.Where(k => k != mine && k.RulingClan != null && !k.RulingClan.IsRebelClan && !k.RulingClan.IsBanditFaction).ToList();
                 int made = 0;
                 bool live = NewsTracker.Live;
                 NewsTracker.Live = false;      // a dozen treaties signed at once are one piece of news, not a dozen
@@ -169,6 +179,10 @@ namespace AILegacy.World
                 finally { NewsTracker.Live = live; }
                 Log.Info($"[diplomacia] partida nueva en paz: {made} guerras entre reinos terminadas al empezar");
                 if (made == 0) return;
+                // "no kingdom is at war" is only said when it is true: a war left alone (the player's realm) or one that
+                // would not end keeps it quiet
+                var all = WorldSim.Kingdoms.ToList();
+                if (all.Any(a => all.Any(b => a != b && a.IsAtWarWith(b)))) { Log.Info("[diplomacia] quedan guerras entre reinos (las del reino del jugador no se tocan): no se anuncia la paz general"); return; }
                 NewsStore.Add(new NewsItem
                 {
                     Type = "custom", Importance = 3, Kingdoms = ks.Select(x => x.StringId).ToList(),
@@ -506,7 +520,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             sys.AppendLine(); sys.AppendLine($"## Your realm, {k.Name} [id: {k.StringId}] — clans and their fiefs"); sys.AppendLine(DescribeRealm(k));
             sys.AppendLine(); sys.AppendLine(DescribeFacts(k));
             sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth, right now)"); sys.AppendLine(WorldSim.DescribeKingdoms(k));
-            sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap());
+            sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap(new[] { k.StringId }));
             var lawsText = Laws.ForRuler(k);
             if (lawsText.Length > 0) { sys.AppendLine(); sys.AppendLine(lawsText); }
             sys.AppendLine(); sys.AppendLine("## PENDING PROPOSALS DIRECTED AT YOU (answer them)"); sys.AppendLine(DescribeProposalsTo(k));
@@ -1054,7 +1068,7 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
                     sys.AppendLine(TPlayerStatement.Format("ruler", Hero.MainHero.Name, "kingdom", k.Name, "kingdom_id", k.StringId));
                     sys.AppendLine(); sys.AppendLine($"## The realm of {k.Name}: clans and fiefs"); sys.AppendLine(DescribeRealm(k));
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
-                    sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap());
+                    sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap(new[] { k.StringId }));
                     var lawsText = Laws.ForRuler(k);
                     if (lawsText.Length > 0) { sys.AppendLine(); sys.AppendLine(lawsText); }
                     sys.AppendLine(); sys.AppendLine("## Pending proposals directed at this realm"); sys.AppendLine(DescribeProposalsTo(k));

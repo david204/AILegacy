@@ -1932,5 +1932,7 @@
     <string id="AIL_e7b1c74a" text="A alteração falhou e a memória não pôde voltar a como estava. Carregue o jogo de novo sem salvar. O que havia ficou em {0}." />
     <string id="AIL_e7b1c74b" text="A cópia foi restaurada, mas {0} arquivos não puderam ser gravados em disco. Salve o jogo para tentar de novo. O que havia ficou em {1}." />
     <string id="AIL_e7b1c74c" text="O arquivo {0} é grande demais para ser aberto no editor." />
+    <string id="AIL_e7b1c74d" text="Termina o cerco de {0}" />
+    <string id="AIL_e7b1c74e" text="O cerco de {0} terminou e {1} continua nas mãos de {2}." />
   </strings>
 </base>

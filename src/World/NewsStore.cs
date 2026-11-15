@@ -97,7 +97,8 @@ namespace AILegacy.World
         }
 
         // Hero.Find walks the game's whole hero list. Reach asks for the same few ids for every news item of every
-        // prompt, so the answers are kept for the campaign day.
+        // prompt, so the answers are kept for the campaign day. Game thread only: KnownBy is called while a prompt is
+        // built (ticks, UI callbacks, MainThread.Post) or by the editor through MainThread.Invoke, never from a reply's continuation.
         private static readonly Dictionary<string, Hero> HeroCache = new Dictionary<string, Hero>();
         private static int _heroCacheDay = -1;
         private static Campaign _heroCacheFor;

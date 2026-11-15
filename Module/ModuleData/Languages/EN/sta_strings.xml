@@ -1932,5 +1932,7 @@
     <string id="AIL_e7b1c74a" text="The change failed and the memory could not be put back as it was. Load your save again without saving. What was there is kept in {0}." />
     <string id="AIL_e7b1c74b" text="The copy was restored, but {0} files could not be written to disk. Save your game to try again. What was there is kept in {1}." />
     <string id="AIL_e7b1c74c" text="The file {0} is too large to open in the editor." />
+    <string id="AIL_e7b1c74d" text="The siege of {0} ends" />
+    <string id="AIL_e7b1c74e" text="The siege of {0} has ended and {1} remains in the hands of {2}." />
   </strings>
 </base>

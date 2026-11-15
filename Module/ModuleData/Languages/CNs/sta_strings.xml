@@ -1932,5 +1932,7 @@
     <string id="AIL_e7b1c74a" text="更改失败，记忆也无法恢复到原来的状态。请不要存档，重新读取存档。原有内容保留在 {0}。" />
     <string id="AIL_e7b1c74b" text="备份已恢复，但有 {0} 个文件未能写入磁盘。请保存游戏以重试。原有内容保留在 {1}。" />
     <string id="AIL_e7b1c74c" text="文件 {0} 过大，无法在编辑器中打开。" />
+    <string id="AIL_e7b1c74d" text="{0}之围结束" />
+    <string id="AIL_e7b1c74e" text="{0}之围已经结束，{1}仍在{2}手中。" />
   </strings>
 </base>

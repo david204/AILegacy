@@ -198,6 +198,9 @@ namespace AILegacy.World
             catch { return null; }
         }
 
+        // Game thread only, like everything in this class: it reads live game objects and the day caches below
+        // (roster, geography) are plain statics. Every caller is a campaign tick, a game event, WorldSim.Pump or an
+        // action queued through MainThread; nothing here runs in an LLM continuation or on the editor's HTTP thread.
         public static FactModel BuildModel()
         {
             var m = new FactModel();
@@ -230,36 +233,71 @@ namespace AILegacy.World
 
         // ============================================================ roster: who serves whom
 
-        private static string _roster;
+        private static List<KeyValuePair<string, string>> _roster;      // kingdom id (null for the clans under no crown) and its line
         private static int _rosterDay = -1;
         private static Campaign _rosterFor;
 
+        // Most the roster and the map may add to a prompt. A modded world can have dozens of kingdoms
+        private const int RosterBudget = 6000, GeographyBudget = 2500;
+
         private static string Led(Clan c) => c.Leader != null ? $"{c.Name} (led by {c.Leader.Name})" : c.Name.ToString();
 
-        /// <summary>Every clan under its true banner, for the chronicler. Kept for the campaign day.</summary>
-        public static string Roster()
+        /// <summary>
+        /// Lines that fit in <paramref name="budget"/> characters. They come most relevant first and are dropped whole
+        /// from the end, never cut. A line whose id is in <paramref name="keep"/> always stays, even over the budget.
+        /// What was dropped is counted in a last line.
+        /// </summary>
+        private static string Fit(List<KeyValuePair<string, string>> lines, int budget, ICollection<string> keep, string indent)
+        {
+            var left = lines.ToList();
+            int total = left.Sum(l => l.Value.Length + 1), dropped = 0;
+            const int tail = 60;      // room for the closing line
+            for (int i = left.Count - 1; i >= 0 && total + (dropped > 0 ? tail : 0) > budget; i--)
+            {
+                if (left[i].Key != null && keep != null && keep.Contains(left[i].Key)) continue;
+                total -= left[i].Value.Length + 1;
+                left.RemoveAt(i);
+                dropped++;
+            }
+            var sb = new StringBuilder();
+            foreach (var l in left) sb.AppendLine(l.Value);
+            if (dropped > 0) sb.AppendLine($"{indent}- (and {dropped} more, left out for length)");
+            return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>
+        /// Every clan under its true banner, for the chronicler. Built once per campaign day, strongest kingdom first.
+        /// When it does not fit, the weakest go first; the kingdoms in <paramref name="keep"/> (those tied to what
+        /// the prompt is about) are never left out.
+        /// </summary>
+        public static string Roster(ICollection<string> keep = null)
         {
             int day = (int)CampaignTime.Now.ToDays;
-            if (_roster != null && day == _rosterDay && _rosterFor == Campaign.Current) return _roster;
-            var sb = new StringBuilder();
-            try
+            if (_roster == null || day != _rosterDay || _rosterFor != Campaign.Current)
             {
-                foreach (var k in WorldSim.Kingdoms.OrderByDescending(x => x.CurrentTotalStrength))
+                var lines = new List<KeyValuePair<string, string>>();
+                try
                 {
-                    var vassals = k.Clans.Where(c => !c.IsEliminated && c != k.RulingClan && !c.IsUnderMercenaryService).OrderByDescending(c => c.Tier).Take(20).Select(Led).ToList();
-                    var hired = k.Clans.Where(c => !c.IsEliminated && c.IsUnderMercenaryService).Select(Led).ToList();
-                    sb.AppendLine($"- {Tag(k)}: ruling clan {k.RulingClan?.Name} (ruler {k.Leader?.Name}); vassal clans: {(vassals.Count > 0 ? string.Join(", ", vassals) : "none")}; " +
-                                  $"mercenary clans in its pay (hired, not subjects): {(hired.Count > 0 ? string.Join(", ", hired) : "none")}.");
+                    foreach (var k in WorldSim.Kingdoms.OrderByDescending(x => x.CurrentTotalStrength))
+                    {
+                        var vassals = k.Clans.Where(c => !c.IsEliminated && c != k.RulingClan && !c.IsUnderMercenaryService).OrderByDescending(c => c.Tier).Take(20).Select(Led).ToList();
+                        var hiredAll = k.Clans.Where(c => !c.IsEliminated && c.IsUnderMercenaryService).OrderByDescending(c => c.Tier).ToList();
+                        var hired = hiredAll.Take(12).Select(Led).ToList();
+                        if (hiredAll.Count > hired.Count) hired.Add($"and {hiredAll.Count - hired.Count} more hired clans");
+                        lines.Add(new KeyValuePair<string, string>(k.StringId,
+                            $"- {Tag(k)}: ruling clan {k.RulingClan?.Name} (ruler {k.Leader?.Name}); vassal clans: {(vassals.Count > 0 ? string.Join(", ", vassals) : "none")}; " +
+                            $"mercenary clans in its pay (hired, not subjects): {(hired.Count > 0 ? string.Join(", ", hired) : "none")}."));
+                    }
+                    var free = Clan.All.Where(c => c != null && !c.IsEliminated && !c.IsBanditFaction && c.Kingdom == null && c.Leader != null && c.Leader.IsAlive).ToList();
+                    var rebels = free.Where(c => c.IsRebelClan).Take(10).Select(Led).ToList();
+                    var minor = free.Where(c => !c.IsRebelClan).OrderByDescending(c => c.Tier).Take(30).Select(Led).ToList();
+                    if (minor.Count > 0) lines.Add(new KeyValuePair<string, string>(null, "- Under no crown (minor and independent clans; nobody's subjects): " + string.Join(", ", minor) + "."));
+                    if (rebels.Count > 0) lines.Add(new KeyValuePair<string, string>(null, "- Rebel clans, under no crown: " + string.Join(", ", rebels) + "."));
                 }
-                var free = Clan.All.Where(c => c != null && !c.IsEliminated && !c.IsBanditFaction && c.Kingdom == null && c.Leader != null && c.Leader.IsAlive).ToList();
-                var rebels = free.Where(c => c.IsRebelClan).Take(10).Select(Led).ToList();
-                var minor = free.Where(c => !c.IsRebelClan).OrderByDescending(c => c.Tier).Take(30).Select(Led).ToList();
-                if (minor.Count > 0) sb.AppendLine("- Under no crown (minor and independent clans; nobody's subjects): " + string.Join(", ", minor) + ".");
-                if (rebels.Count > 0) sb.AppendLine("- Rebel clans, under no crown: " + string.Join(", ", rebels) + ".");
+                catch (Exception ex) { Log.Error("Lista de clanes por reino", ex); }
+                _roster = lines; _rosterDay = day; _rosterFor = Campaign.Current;
             }
-            catch (Exception ex) { Log.Error("Lista de clanes por reino", ex); }
-            _roster = sb.ToString().TrimEnd(); _rosterDay = day; _rosterFor = Campaign.Current;
-            return _roster;
+            return Fit(_roster, RosterBudget, keep, "");
         }
 
         // ============================================================ calendar and geography
@@ -341,14 +379,19 @@ namespace AILegacy.World
             return best;
         }
 
-        public static string Geography()
+        /// <summary>
+        /// A line per kingdom, strongest first. Over the budget the weakest are left out, never those in
+        /// <paramref name="keep"/>. A kingdom left out still shows in the lines of its neighbours.
+        /// </summary>
+        public static string Geography(ICollection<string> keep = null)
         {
-            var sb = new StringBuilder();
+            var lines = new List<KeyValuePair<string, string>>();
             try
             {
-                var all = WorldSim.Kingdoms.ToList();
+                var all = WorldSim.Kingdoms.OrderByDescending(x => x.CurrentTotalStrength).ToList();
                 foreach (var k in all)
                 {
+                    var sb = new StringBuilder();
                     var by = new List<string>[4] { new List<string>(), new List<string>(), new List<string>(), new List<string>() };
                     bool any = false;
                     foreach (var o in all)
@@ -357,23 +400,24 @@ namespace AILegacy.World
                         if (d < 0) continue;
                         by[d].Add(o.StringId); any = true;
                     }
-                    if (!any) { sb.AppendLine($"  - {k.Name} [id: {k.StringId}]: holds no town or castle; no borders of its own."); continue; }
+                    if (!any) { lines.Add(new KeyValuePair<string, string>(k.StringId, $"  - {k.Name} [id: {k.StringId}]: holds no town or castle; no borders of its own.")); continue; }
                     sb.Append($"  - {k.Name} [id: {k.StringId}]: neighbours (shared border): {(by[0].Count > 0 ? string.Join(", ", by[0]) : "none")}");
                     if (by[1].Count > 0) sb.Append("; near: " + string.Join(", ", by[1]));
                     if (by[2].Count > 0) sb.Append("; far: " + string.Join(", ", by[2]));
                     if (by[3].Count > 0) sb.Append("; at the opposite end of the map: " + string.Join(", ", by[3]));
-                    sb.AppendLine(".");
+                    lines.Add(new KeyValuePair<string, string>(k.StringId, sb.Append('.').ToString()));
                 }
             }
             catch (Exception ex) { Log.Error("Geografía para la IA", ex); }
-            return sb.Length == 0 ? "  (unknown)" : sb.ToString().TrimEnd();
+            return lines.Count == 0 ? "  (unknown)" : Fit(lines, GeographyBudget, keep, "  ");
         }
 
-        public static string CalendarAndMap()
+        /// <param name="keep">Kingdoms the prompt is about: their line of the map is never left out for length.</param>
+        public static string CalendarAndMap(ICollection<string> keep = null)
         {
             int year = CampaignTime.DaysInYear, season = CampaignTime.DaysInSeason, week = CampaignTime.DaysInWeek;
             if (year <= 0) { year = 84; season = 21; week = 7; }
-            return TCalendarMap.Format("week", week, "season", season, "year", year, "half", year / 2, "geography", Geography());
+            return TCalendarMap.Format("week", week, "season", season, "year", year, "half", year / 2, "geography", Geography(keep));
         }
     }
 }

@@ -591,8 +591,10 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             sys.AppendLine("## Kingdoms (technical truth, right now)");
             sys.AppendLine(DescribeKingdoms());
             sys.AppendLine("## Who serves whom (exact, right now; nobody else belongs to these kingdoms)");
-            sys.AppendLine(Facts.Roster());
-            sys.AppendLine(Facts.CalendarAndMap());
+            // the kingdoms of what happened are never the ones left out when the lists run over their budget
+            var tied = reactive ? new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)) : null;
+            sys.AppendLine(Facts.Roster(tied));
+            sys.AppendLine(Facts.CalendarAndMap(tied));
             sys.AppendLine("## What really happened lately");
             sys.AppendLine(DescribeRecentNews(14));
             sys.AppendLine("## Developments already in the air (do not repeat them; you may continue one)");
@@ -732,8 +734,15 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         e.Engagement[kg.StringId] = Math.Max(0, Math.Min(100, chance));
                     }
                 if (strangers.Count > 0) Log.Info($"[mundo] «{e.Title}»: reinos ajenos al suceso real, descartados: {string.Join(", ", strangers)}");
+                // A reaction left with no kingdom is local talk. With importance 3 or 4 and no kingdom the news would
+                // reach every court in the world, so it is held at 2: only the place it names hears of it.
+                if (allowed != null && e.Kingdoms.Count == 0 && e.Importance > 2)
+                {
+                    Log.Info($"[mundo] «{e.Title}»: sin reinos ligados al suceso, importancia {e.Importance} → 2");
+                    e.Importance = 2;
+                }
                 Publish(e);
-                if (x["economic_effects"] is JArray fx) foreach (var f in fx.OfType<JObject>().Take(4)) AddEffect(e, f);
+                if (x["economic_effects"] is JArray fx) foreach (var f in fx.OfType<JObject>().Take(4)) AddEffect(e, f, allowed);
                 if (x["clan_effects"] is JArray cfx) foreach (var f in cfx.OfType<JObject>().Take(2)) AddClanEffect(e, f);
                 // What's behind the event, known only to a few
                 if (S.Get.StorySecrets && x["secret"] is JObject sec)
@@ -860,7 +869,8 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
 
         private static readonly HashSet<string> PriceCategories = new HashSet<string> { "food", "goods", "weapons", "armor", "horses" };
 
-        private static void AddEffect(WorldEvent e, JObject f)
+        /// <param name="allowed">For a reaction to a real event: the only kingdoms a realm-wide effect may fall on. null for the scheduled batch.</param>
+        private static void AddEffect(WorldEvent e, JObject f, HashSet<string> allowed = null)
         {
             var cfg = S.Get;
             if (!cfg.EnableEconomicEffects) return;
@@ -870,6 +880,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             {
                 var kg = FindKingdom(kname);
                 if (kg == null) return;
+                if (allowed != null && !allowed.Contains(kg.StringId)) { Log.Info($"[mundo] «{e.Title}»: efecto sobre {kg.Name} descartado, reino ajeno al suceso real"); return; }
                 foreach (var town in kg.Settlements.Where(s0 => s0.IsTown).Take(14))
                 {
                     var one = (JObject)f.DeepClone();

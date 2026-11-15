@@ -61,12 +61,25 @@ namespace AILegacy.World
             foreach (var kv in KingdomNames) if (FactCheck.Norm(kv.Key) == n) return kv.Key;
             foreach (var kv in KingdomNames) if (kv.Value.Any(x => FactCheck.Norm(x) == n)) return kv.Key;
             if (n.Length < 4) return null;
-            string best = null; int bestLen = 0;
+            // Whole words only from here on, so "Nord" is not found inside "Nordvyg".
+            // First a known name inside what was written ("the realm of the Northern Empire"): the longest one wins.
+            string soft = FactCheck.Soft(idOrName);
+            string best = null; int bestLen = 0; bool tie = false;
             foreach (var kv in KingdomNames)
                 foreach (var x in kv.Value)
                 {
-                    string m = FactCheck.Norm(x);
-                    if (m.Length >= 4 && m.Length > bestLen && (n.Contains(m) || m.Contains(n))) { best = kv.Key; bestLen = m.Length; }
+                    string m = FactCheck.Soft(x);
+                    if (m.Trim().Length < 4 || !soft.Contains(m)) continue;
+                    if (m.Length > bestLen) { best = kv.Key; bestLen = m.Length; tie = false; }
+                    else if (m.Length == bestLen && kv.Key != best) tie = true;
+                }
+            if (best != null) return tie ? null : best;
+            // Then what was written as part of a known name ("Empire"): only when a single kingdom carries it
+            foreach (var kv in KingdomNames)
+                if (kv.Value.Any(x => FactCheck.Soft(x).Contains(soft)))
+                {
+                    if (best != null && best != kv.Key) return null;
+                    best = kv.Key;
                 }
             return best;
         }
@@ -79,7 +92,10 @@ namespace AILegacy.World
         public static string Pair(string a, string b) => string.CompareOrdinal(a, b) < 0 ? a + "|" + b : b + "|" + a;
 
         /// <summary>Lowercase words separated by single spaces, with a space at each end.</summary>
-        public static string Soft(string s)
+        public static string Soft(string s) => Soft(s, false);
+
+        /// <summary>The same, with a lone "|" as a word wherever a comma, a bracket or a dash split the sentence into clauses.</summary>
+        private static string Soft(string s, bool clauseMarks)
         {
             var sb = new StringBuilder(" ");
             bool space = true;
@@ -87,7 +103,12 @@ namespace AILegacy.World
             {
                 if (char.IsLetterOrDigit(c)) { sb.Append(c); space = false; }
                 else if (c == '\'' || c == '’') { }      // "Vlandia's" reads as one word
-                else if (!space) { sb.Append(' '); space = true; }
+                else
+                {
+                    if (!space) { sb.Append(' '); space = true; }
+                    bool mark = c == ',' || c == '(' || c == ')' || c == '—' || c == '–';
+                    if (clauseMarks && mark && !(sb.Length >= 2 && sb[sb.Length - 2] == '|')) sb.Append("| ");
+                }
             }
             if (!space) sb.Append(' ');
             return sb.ToString();
@@ -187,7 +208,8 @@ namespace AILegacy.World
             return null;
         }
 
-        // A sentence with one of these is talk, fear or wish, not a statement that the war or alliance exists
+        // Next to a war or alliance phrase, one of these makes it talk, fear, wish, past or future: not a statement
+        // that the war or alliance exists today. Matched as the start of a word, unless listed in ExactHedges.
         private static readonly string[] Hedges =
         {
             "not", "no", "never", "nor", "neither", "if", "should", "would", "could", "may", "might", "threat", "fear", "rumo", "urg", "call", "demand", "risk",
@@ -196,16 +218,62 @@ namespace AILegacy.World
             "negotiat", "possib", "potential", "rather", "instead", "whether", "wonder", "ask", "plead", "beg", "envoy", "suspect", "accus", "claim", "alleg",
             "said", "say", "despite", "although", "without", "until", "break", "broke", "betray", "truce", "weary", "tired", "question", "doubt", "debate",
             "will", "shall", "ready", "warn", "vow", "swear", "swore", "promis", "must",
+            // past: "was at war with", "had been allied with", "used to be", "the war between them is over"
+            "was", "were", "had", "used", "over", "previous", "earlier", "remember", "recall", "memor", "histor", "past", "ancient",
+            // still to come or not quite: "is about to be", "is going to be", "nearly at war with"
+            "about", "going", "almost", "nearly", "can", "cannot",
+            // a noun, not a state: "its wars with", "their alliance with"
+            "its", "their", "his", "her",
+            // "isn't" and the like, which Soft writes without the apostrophe
+            "isnt", "arent", "wasnt", "werent", "dont", "doesnt", "didnt", "wont", "cant", "couldnt", "wouldnt", "shouldnt", "hasnt", "havent", "hadnt", "aint",
+            "ends", "ending",
         };
-        private static readonly string[] ExactHedges = { "not", "no", "nor", "if", "may", "end", "old", "ago", "say", "ask", "beg", "once", "last", "said", "will", "must", "vow" };
-
-        private static bool Hedged(string soft)
+        private static readonly HashSet<string> ExactHedges = new HashSet<string>
         {
-            foreach (var w in soft.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
-                foreach (var h in Hedges)
-                    if (ExactHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal)) return true;
+            "not", "no", "nor", "if", "may", "end", "old", "ago", "say", "ask", "beg", "once", "last", "said", "will", "must", "vow",
+            "was", "were", "had", "used", "over", "past", "about", "going", "can", "cannot", "its", "their", "his", "her",
+            "isnt", "arent", "wasnt", "werent", "dont", "doesnt", "didnt", "wont", "cant", "couldnt", "wouldnt", "shouldnt", "hasnt", "havent", "hadnt", "aint",
+            "ends", "ending",
+        };
+
+        private static bool IsHedge(string w)
+        {
+            foreach (var h in Hedges)
+                if (ExactHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal)) return true;
             return false;
         }
+
+        private static readonly char[] Space = { ' ' };
+        private static string[] Words(string soft) => soft.Split(Space, StringSplitOptions.RemoveEmptyEntries);
+
+        /// <summary>A hedge among the last <paramref name="max"/> words of this stretch, going back no further than its last clause mark.</summary>
+        private static bool HedgeBefore(string stretch, int max)
+        {
+            var w = Words(stretch.Substring(stretch.LastIndexOf('|') + 1));
+            for (int i = Math.Max(0, w.Length - max); i < w.Length; i++) if (IsHedge(w[i])) return true;
+            return false;
+        }
+
+        // Words that open a new clause: what follows them is no longer about the war or alliance just named
+        private static readonly HashSet<string> ClauseOpeners = new HashSet<string> { "and", "but", "while", "as", "so", "yet", "because", "which", "who", "whose", "where", "when" };
+
+        /// <summary>A hedge among the first <paramref name="max"/> words of this stretch, stopping where the clause ends.</summary>
+        private static bool HedgeAfter(string stretch, int max)
+        {
+            var w = Words(stretch);
+            for (int i = 0; i < w.Length && i < max; i++)
+            {
+                if (w[i] == "|" || ClauseOpeners.Contains(w[i])) break;
+                if (IsHedge(w[i])) return true;
+            }
+            return false;
+        }
+
+        /// <summary>A hedge anywhere in this stretch: the claim's own words, between its subject and its object.</summary>
+        private static bool HedgeIn(string stretch) => Words(stretch).Any(IsHedge);
+
+        // A sentence opening with one of these is a condition or a supposition from its first word to its last
+        private static readonly HashSet<string> Suppositions = new HashSet<string> { "if", "unless", "should", "suppose", "imagine", "whether", "were", "had" };
 
         private struct Mention { public int Start, End; public string Id; }
 
@@ -246,9 +314,10 @@ namespace AILegacy.World
         public static string CheckSummary(string text, FactModel m)
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
-            foreach (var sentence in text.Split('.', ';', '!', '?', '\n'))
+            foreach (var part in Sentences(text))
             {
-                string soft = Soft(sentence);
+                string sentence = part.Key;
+                string soft = Soft(sentence, true);
                 if (soft.Length < 8) continue;
                 var ms = Mentions(soft, m);
                 if (ms.Count == 0) continue;
@@ -274,7 +343,12 @@ namespace AILegacy.World
                     }
                 }
 
-                if (ms.Select(x => x.Id).Distinct().Count() < 2 || Hedged(soft)) continue;
+                if (ms.Select(x => x.Id).Distinct().Count() < 2) continue;
+                // A question, quoted speech or an outright supposition states nothing. Anything else is read phrase by
+                // phrase, and only the words around each phrase can hedge it (see Between).
+                if (part.Value == '?' || sentence.IndexOfAny(Quotes) >= 0) continue;
+                var first = Words(soft).FirstOrDefault(w => w != "|");
+                if (first != null && Suppositions.Contains(first)) continue;
                 string bad = Between(soft, ms, WarWords, WarBetween, m.Wars);
                 if (bad != null) return $"speaks of a war between {bad}, and they are not at war";
                 bad = Between(soft, ms, AllyWords, AllyBetween, m.Alliances);
@@ -283,29 +357,61 @@ namespace AILegacy.World
             return null;
         }
 
+        private static readonly char[] Quotes = { '"', '“', '”', '«', '»', '„', '‹', '›' };
+
+        /// <summary>The text cut into sentences, each with the mark that ended it ('.' when the text just stops).</summary>
+        private static List<KeyValuePair<string, char>> Sentences(string text)
+        {
+            var list = new List<KeyValuePair<string, char>>();
+            int from = 0;
+            for (int i = 0; i <= text.Length; i++)
+            {
+                char c = i < text.Length ? text[i] : '.';
+                if (i < text.Length && c != '.' && c != ';' && c != '!' && c != '?' && c != '\n') continue;
+                if (i > from) list.Add(new KeyValuePair<string, char>(text.Substring(from, i - from), c));
+                from = i + 1;
+            }
+            return list;
+        }
+
         // "at war with the realm of X": the second kingdom has to follow the phrase closely to be its object
         private const int NearChars = 16;
+        // "Battania has long been at war with": the subject has to stand this close (in words) before the phrase
+        private const int SubjectReach = 6;
+        // How far the hedge is looked for: before the subject, before a "war between" phrase, and after the object
+        private const int HedgeLead = 4, HedgeLeadBetween = 7, HedgeTail = 3;
 
-        /// <summary>The two kingdoms a phrase joins, when the set says they are not joined that way. null when fine.</summary>
+        /// <summary>
+        /// The two kingdoms a phrase joins, when the set says they are not joined that way. null when fine.
+        /// Every place the phrase appears is read on its own. It only counts as a statement when both kingdoms stand
+        /// right by it and nothing in its own clause denies it, doubts it or puts it in the past or the future: a hedge
+        /// elsewhere in the sentence no longer excuses it, and anything unclear is let through.
+        /// </summary>
         private static string Between(string soft, List<Mention> ms, string[] middle, string[] leading, HashSet<string> truth)
         {
             foreach (var w in middle)
-            {
-                int at = soft.IndexOf(w, StringComparison.Ordinal);
-                if (at < 0) continue;
-                var a = ms.LastOrDefault(x => x.End <= at + 1);
-                var b = ms.FirstOrDefault(x => x.Start >= at + w.Length - 1 && x.Start <= at + w.Length + NearChars);
-                if (a.Id == null || b.Id == null || a.Id == b.Id) continue;
-                if (!truth.Contains(Pair(a.Id, b.Id))) return a.Id + " and " + b.Id;
-            }
+                for (int at = soft.IndexOf(w, StringComparison.Ordinal); at >= 0; at = soft.IndexOf(w, at + 1, StringComparison.Ordinal))
+                {
+                    int phraseEnd = at + w.Length - 1;      // the space that closes the phrase
+                    var a = ms.LastOrDefault(x => x.End <= at + 1);
+                    var b = ms.FirstOrDefault(x => x.Start >= phraseEnd && x.Start <= at + w.Length + NearChars);
+                    if (a.Id == null || b.Id == null || a.Id == b.Id) continue;
+                    string own = soft.Substring(a.End, at + 1 - a.End);      // from the subject to the phrase
+                    if (Words(own).Count(x => x != "|") > SubjectReach) continue;
+                    if (HedgeIn(own) || HedgeIn(soft.Substring(phraseEnd, b.Start - phraseEnd))) continue;
+                    if (HedgeBefore(soft.Substring(0, a.Start), HedgeLead) || HedgeAfter(soft.Substring(b.End), HedgeTail)) continue;
+                    if (!truth.Contains(Pair(a.Id, b.Id))) return a.Id + " and " + b.Id;
+                }
             foreach (var w in leading)
-            {
-                int at = soft.IndexOf(w, StringComparison.Ordinal);
-                if (at < 0) continue;
-                var after = ms.Where(x => x.Start >= at + w.Length - 1 && x.Start <= at + w.Length + NearChars * 3).ToList();
-                if (after.Count < 2 || after[0].Id == after[1].Id) continue;
-                if (!truth.Contains(Pair(after[0].Id, after[1].Id))) return after[0].Id + " and " + after[1].Id;
-            }
+                for (int at = soft.IndexOf(w, StringComparison.Ordinal); at >= 0; at = soft.IndexOf(w, at + 1, StringComparison.Ordinal))
+                {
+                    int phraseEnd = at + w.Length - 1;
+                    var after = ms.Where(x => x.Start >= phraseEnd && x.Start <= at + w.Length + NearChars * 3).ToList();
+                    if (after.Count < 2 || after[0].Id == after[1].Id) continue;
+                    if (HedgeIn(soft.Substring(phraseEnd, after[0].Start - phraseEnd)) || HedgeIn(soft.Substring(after[0].End, after[1].Start - after[0].End))) continue;
+                    if (HedgeBefore(soft.Substring(0, at + 1), HedgeLeadBetween) || HedgeAfter(soft.Substring(after[1].End), HedgeTail)) continue;
+                    if (!truth.Contains(Pair(after[0].Id, after[1].Id))) return after[0].Id + " and " + after[1].Id;
+                }
             return null;
         }
 
@@ -332,14 +438,15 @@ namespace AILegacy.World
         }
 
         /// <summary>
-        /// Length of a tribute in days. A length given in years, or in days as a multiple of an Earth year, is turned
-        /// into Calradian years.
+        /// Length of a tribute in days. Only tribute_years is in years, and those are Calradian years
+        /// (<paramref name="daysInYear"/> days, 84 in the base game). tribute_days is taken as written: 365 means 365
+        /// days, not "one year", because nothing says the AI meant an Earth year. When both come, the years win.
+        /// The result is then held between <paramref name="min"/> and <paramref name="max"/>. The caller's cap is
+        /// 200 days, so two years (168) fit, and three years or a raw 365 days come out as 200.
         /// </summary>
         public static int TributeDays(int days, int years, int daysInYear, int min, int max)
         {
-            int d = days;
-            if (years > 0) d = years * daysInYear;
-            else if (days >= 360 && (days % 365 == 0 || days % 360 == 0)) d = days / (days % 365 == 0 ? 365 : 360) * daysInYear;
+            int d = years > 0 ? years * daysInYear : days;
             return Math.Max(min, Math.Min(max, d));
         }
     }

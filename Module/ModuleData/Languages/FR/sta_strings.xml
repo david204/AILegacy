@@ -1932,5 +1932,7 @@
     <string id="AIL_e7b1c74a" text="Le changement a échoué et la mémoire n’a pas pu être remise comme avant. Rechargez votre partie sans sauvegarder. Ce qu’il y avait est conservé dans {0}." />
     <string id="AIL_e7b1c74b" text="La copie a été restaurée, mais {0} fichiers n’ont pas pu être écrits sur le disque. Sauvegardez la partie pour réessayer. Ce qu’il y avait est conservé dans {1}." />
     <string id="AIL_e7b1c74c" text="Le fichier {0} est trop volumineux pour être ouvert dans l’éditeur." />
+    <string id="AIL_e7b1c74d" text="Fin du siège de {0}" />
+    <string id="AIL_e7b1c74e" text="Le siège de {0} a pris fin et {1} reste aux mains de {2}." />
   </strings>
 </base>
