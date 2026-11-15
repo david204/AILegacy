@@ -126,6 +126,8 @@ namespace AILegacy.World
         [JsonProperty("daily")] public int Daily;
         [JsonProperty("until")] public double UntilDay;
         [JsonProperty("total")] public int TotalPaid;
+        /// <summary>Days in a row the payer could not pay the day in full.</summary>
+        [JsonProperty("unpaid", DefaultValueHandling = DefaultValueHandling.Ignore)] public int UnpaidDays;
     }
 
     /// <summary>All world simulation state. Stored in ailegacy_world.json and in the in-save copy.</summary>
@@ -210,6 +212,12 @@ namespace AILegacy.World
         [JsonProperty("forced_truce")] public Dictionary<string, double> ForcedTruceUntil = new Dictionary<string, double>();
         /// <summary>Per kingdom id: what its AI ruler is told on his next turn about a peace that could not be signed (English).</summary>
         [JsonProperty("peace_notes")] public Dictionary<string, List<string>> PeaceNotes = new Dictionary<string, List<string>>();
+        /// <summary>Men each open war has cost its two sides ("a|b"), in all and day by day for the last few days (World/WarTolls.cs).</summary>
+        [JsonProperty("war_tolls")] public Dictionary<string, WarToll> WarTolls = new Dictionary<string, WarToll>();
+        /// <summary>Strength of each kingdom on each of the last few days.</summary>
+        [JsonProperty("strength_log")] public Dictionary<string, List<DayValue>> StrengthLog = new Dictionary<string, List<DayValue>>();
+        /// <summary>Lords held by a kingdom at war with their own (hero id), and the weariness given back when they go free.</summary>
+        [JsonProperty("captive_tolls")] public Dictionary<string, CaptiveToll> CaptiveTolls = new Dictionary<string, CaptiveToll>();
     }
 
     // ===================================================================== engine
@@ -301,6 +309,7 @@ namespace AILegacy.World
             try { NewsStore.ResetSession(); } catch { }
             try { Laws.Invalidate(); } catch { }
             try { Diplomacy.ResetSession(); } catch { }
+            try { WarTolls.ResetSession(); } catch { }
             Log.Info("[mundo] estado de sesión limpiado (partida nueva o cargada)");
         }
 
@@ -444,7 +453,7 @@ namespace AILegacy.World
                 var allies = Kingdoms.Where(o => o != k && Diplomacy.Allied(k, o)).Select(o => o.StringId).ToList();
                 var trade = Kingdoms.Where(o => o != k && Diplomacy.HasTrade(k, o)).Select(o => o.StringId).ToList();
                 var peaces = Diplomacy.RecentPeaces(k, Math.Max(1, CampaignTime.DaysInYear));
-                sb.Append($"- {k.Name} [id: {k.StringId}]{(k == Hero.MainHero.MapFaction ? " (the realm of " + Hero.MainHero.Name + ")" : "")}: ruler {k.Leader.Name}; {Diplomacy.Age(k)}; ")
+                sb.Append($"- {k.Name} [id: {k.StringId}]{(k == Hero.MainHero.MapFaction ? " (the realm of " + Hero.MainHero.Name + ")" : "")}: ruler {k.Leader.Name}{Diplomacy.CaptiveNote(k)}; {Diplomacy.Age(k)}; ")
                   .Append($"strength {(int)k.CurrentTotalStrength}; towns ({towns.Count}): {(towns.Count > 0 ? string.Join(", ", towns.Take(8)) : "none")}; castles {castles}; ")
                   .Append($"AT WAR with: {(wars.Count > 0 ? string.Join(", ", wars) : "nobody")}; ")
                   .Append(peaces.Count > 0 ? $"peace made lately with: {string.Join(", ", peaces)}; " : "")
@@ -508,7 +517,7 @@ Answer ONLY with JSON:
   ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30, ""spread_rate"": 0.3, ""death_chance"": 0, ""combat_modifier"": 0.9, ""map_speed_modifier"": 0.9, ""morale_penalty"": -5, ""skill_penalty"": -6 } } ] }
 Leave out economic_effects, clan_effects, secret, clan_rebellion and disease when they do not apply.");
 
-        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key; Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); }
+        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key; Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); WarTolls.Touch(); }
 
         // REAL game events that just happened and deserve a world reaction (not saved, they only matter right now).
         // Each one carries its fact sheet: the news line alone does not say whose man anyone is.
@@ -1010,6 +1019,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 NpcRomance.OnDailyTick();
                 // each on its own: one that fails must not take the others with it
                 try { TickFatigue(); } catch (Exception ex) { Log.Error("[mundo] cansancio de guerra", ex); }
+                try { WarTolls.OnDailyTick(now); } catch (Exception ex) { Log.Error("[mundo] bajas y fuerza de las guerras", ex); }
                 Diplomacy.TrackKingdoms();
                 try { Diplomacy.OnDailyTick(now); } catch (Exception ex) { Log.Error("[diplomacia] tick diario", ex); }
 
@@ -1140,6 +1150,12 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             return list.Count == 0 ? "" : "Life here is being affected by: " + string.Join("; ", list) + ".";
         }
 
+        // A tribute agreed outside a peace that goes this many days in a row without being paid in full is over
+        private const int TributeUnpaidDays = 7;
+
+        private static readonly Tpl TTributeBroken = new Tpl("world/tribute_broken_news.txt",
+            "{payer} has gone {days} days without being able to pay in full the tribute of {daily} denars a day it owed {receiver}: the tribute is broken and nothing more is owed.");
+
         private static void PayTributes(double now)
         {
             foreach (var t in State.Tributes.ToList())
@@ -1147,9 +1163,24 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 var payer = FindKingdom(t.Payer); var receiver = FindKingdom(t.Receiver);
                 if (now >= t.UntilDay || payer == null || receiver == null || payer.IsAtWarWith(receiver)) { State.Tributes.Remove(t); continue; }
                 int amount = Math.Min(t.Daily, Math.Max(0, payer.Leader.Gold));
-                if (amount <= 0) continue;
-                TaleWorlds.CampaignSystem.Actions.GiveGoldAction.ApplyBetweenCharacters(payer.Leader, receiver.Leader, amount, true);
-                t.TotalPaid += amount;
+                if (amount > 0)
+                {
+                    TaleWorlds.CampaignSystem.Actions.GiveGoldAction.ApplyBetweenCharacters(payer.Leader, receiver.Leader, amount, true);
+                    t.TotalPaid += amount;
+                }
+                if (amount >= t.Daily) { t.UnpaidDays = 0; continue; }
+                if (++t.UnpaidDays < TributeUnpaidDays) continue;
+                State.Tributes.Remove(t);
+                Log.Info($"[mundo] tributo de {payer.Name} a {receiver.Name} roto: {t.UnpaidDays} días sin pagarlo entero");
+                string text = L.F("AIL_e7b1c795", $"{payer.Name} lleva {t.UnpaidDays} días sin poder pagar entero el tributo que debía a {receiver.Name}: el tributo queda roto.");
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "custom", Importance = 2, Kingdoms = new List<string> { payer.StringId, receiver.StringId },
+                    Heroes = new List<string> { payer.Leader.StringId, receiver.Leader.StringId },
+                    Text = TTributeBroken.Format("payer", payer.Name, "days", t.UnpaidDays, "daily", t.Daily, "receiver", receiver.Name),
+                    TitleEs = L.F("AIL_e7b1c794", $"{payer.Name} deja de pagar tributo a {receiver.Name}"), TextEs = text,
+                });
+                if (payer.Leader == Hero.MainHero || receiver.Leader == Hero.MainHero) Say(text, Colors.Yellow);
             }
         }
 
@@ -1216,29 +1247,36 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
 
         public static void OnMapEventEnded(MapEvent e)
         {
-            try
-            {
-                if (e == null || !e.HasWinner) return;
-                var loser = e.WinningSide == BattleSideEnum.Attacker ? e.DefenderSide : e.AttackerSide;
-                var winner = e.WinningSide == BattleSideEnum.Attacker ? e.AttackerSide : e.DefenderSide;
-                AddFatigue(loser?.LeaderParty?.MapFaction as Kingdom, S.Get.FatiguePerBattleLostX10 / 10f);
-                AddFatigue(winner?.LeaderParty?.MapFaction as Kingdom, S.Get.FatiguePerBattleLostX10 / 40f);
-            }
-            catch { }
+            // only a battle between two kingdoms at war wears them down, by the men each lost (World/WarTolls.cs)
+            try { WarTolls.OnBattleEnded(e); }
+            catch (Exception ex) { Log.Error("[mundo] cansancio por una batalla", ex); }
             Mood.OnMapEventEnded(e);
         }
 
         public static void OnHeroKilled(Hero victim, Hero killer, TaleWorlds.CampaignSystem.Actions.KillCharacterAction.KillCharacterActionDetail detail, bool show)
         {
-            // only its own lords weary a kingdom: a hired sword lost is not its blood (MapFaction would give the paymaster)
-            try { if (victim != null && victim.IsLord) AddFatigue(Facts.Subject(victim.Clan), S.Get.FatiguePerLordKilled); } catch { }
+            // Only its own lords weary a kingdom: a hired sword lost is not its blood (MapFaction would give the
+            // paymaster). And only a death that a kingdom at war with it brought about: not old age or sickness.
+            try
+            {
+                var own = victim != null && victim.IsLord ? Facts.Subject(victim.Clan) : null;
+                if (own != null && WarTolls.KilledByEnemy(killer, detail, own) != null) AddFatigue(own, S.Get.FatiguePerLordKilled);
+            }
+            catch (Exception ex) { Log.Error("[mundo] cansancio por un noble muerto", ex); }
             Chronicle.OnHeroKilled(victim, killer, detail);
             Mood.OnHeroKilled(victim, killer);
         }
 
         public static void OnPrisonerTaken(PartyBase captor, Hero prisoner)
         {
-            try { if (prisoner != null && prisoner.IsLord) AddFatigue(Facts.Subject(prisoner.Clan), S.Get.FatiguePerLordKilled / 3f); } catch { }
+            try { WarTolls.OnPrisonerTaken(captor, prisoner); }
+            catch (Exception ex) { Log.Error("[mundo] cansancio por un noble preso", ex); }
+        }
+
+        public static void OnPrisonerReleased(Hero prisoner, PartyBase captor, IFaction faction, TaleWorlds.CampaignSystem.Actions.EndCaptivityDetail detail, bool show)
+        {
+            try { WarTolls.OnPrisonerReleased(prisoner); }
+            catch (Exception ex) { Log.Error("[mundo] cansancio devuelto por un noble libre", ex); }
         }
 
         public static void OnSettlementOwnerChanged(Settlement s, bool openToClaim, Hero newOwner, Hero oldOwner, Hero capturer,
@@ -1247,7 +1285,11 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             try
             {
                 var oldK = oldOwner?.MapFaction as Kingdom; var newK = newOwner?.MapFaction as Kingdom;
-                if (oldK != null && oldK != newK && s != null && (s.IsTown || s.IsCastle)) AddFatigue(oldK, S.Get.FatiguePerSettlementLost);
+                // Lost to the enemy's arms. One handed over as a term of peace or granted in a chat changes hands with
+                // another detail (and the war is over by then), and one lost to rebels goes to no kingdom.
+                if (oldK != null && newK != null && oldK != newK && s != null && (s.IsTown || s.IsCastle) && oldK.IsAtWarWith(newK)
+                    && detail == TaleWorlds.CampaignSystem.Actions.ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail.BySiege)
+                    AddFatigue(oldK, S.Get.FatiguePerSettlementLost);
                 // a town or castle passing from one crown to another: their war, if they have one, is not a stalemate
                 if (oldK != null && newK != null && oldK != newK && s != null && (s.IsTown || s.IsCastle))
                     State.WarLastCapture[FactCheck.Pair(oldK.StringId, newK.StringId)] = CampaignTime.Now.ToDays;

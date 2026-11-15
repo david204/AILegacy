@@ -54,6 +54,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, World.History.OnSettlementOwnerChanged);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, WorldSim.OnHeroKilled);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, WorldSim.OnPrisonerTaken);
+            CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener(this, WorldSim.OnPrisonerReleased);
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, World.Mood.OnPrisonerTaken);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, WorldSim.OnSettlementOwnerChanged);
             CampaignEvents.MobilePartyDestroyed.AddNonSerializedListener(this, QuestObjectives.OnPartyDestroyed);
@@ -74,6 +75,8 @@ namespace AILegacy.Behaviors
             // The lists of who serves whom are built once a day: a clan changing crown rebuilds them at once
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, World.Facts.OnClanChangedKingdom);
             CampaignEvents.KingdomDestroyedEvent.AddNonSerializedListener(this, World.Facts.OnKingdomChanged);
+            // A kingdom that falls leaves nothing behind it: pacts, proposals, turns to speak
+            CampaignEvents.KingdomDestroyedEvent.AddNonSerializedListener(this, Diplomacy.OnKingdomDestroyed);
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.Facts.OnRulingClanChanged);
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, World.Facts.OnHeroKilled);
             // Whom the player puts to death, read before the game hands their clan and crown to someone else
@@ -245,6 +248,7 @@ namespace AILegacy.Behaviors
             LoadCampaignData();
             World.NewsTracker.Live = true;       // from here on, what happens counts as news
             World.History.Snapshot();
+            Diplomacy.CleanPacts();               // a save may carry an alliance with a kingdom that is gone or has no ruler
             QuarantineRules.NotePlayerInside();   // loading a save inside a quarantined place doesn't kick you out
             AddDialogStyleLines(starter);
             LetterSystem.AddMenu(starter);

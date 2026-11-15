@@ -93,6 +93,62 @@ namespace AILegacy.Patches
         }
     }
 
+    /// <summary>
+    /// The game's alliance and trade code reads the ruler and the ruling clan of both kingdoms without checking
+    /// them. With a kingdom that is destroyed or has no ruler at that moment it throws inside the campaign tick:
+    /// when an alliance runs out and its renewal is put to the vote, when one is sealed, and when the penalty for
+    /// breaking a pact by war is applied. Those calls are skipped; everything else runs as the game wrote it.
+    /// </summary>
+    [HarmonyPatch]
+    internal static class PactGuardPatch
+    {
+        private const string Alliances = "TaleWorlds.CampaignSystem.CampaignBehaviors.AllianceCampaignBehavior";
+        private const string Trade = "TaleWorlds.CampaignSystem.CampaignBehaviors.TradeAgreementsCampaignBehavior";
+        private static readonly string[][] Targets =
+        {
+            new[] { Alliances, "AddAllianceDecision" }, new[] { Alliances, "StartAlliance" },
+            new[] { Alliances, "ApplyBrokenAlliancePenalty" }, new[] { Trade, "ApplyBrokenTradeAgreementPenalty" },
+        };
+
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            foreach (var target in Targets)
+            {
+                var t = AccessTools.TypeByName(target[0]);
+                var m = t != null ? AccessTools.Method(t, target[1]) : null;
+                if (m != null) yield return m;
+                else Log.Warn("Diplomacia: no encuentro " + target[1] + " en esta versión del juego");
+            }
+        }
+
+        private static bool Prepare()
+        {
+            foreach (var target in Targets)
+            {
+                var t = AccessTools.TypeByName(target[0]);
+                if (t != null && AccessTools.Method(t, target[1]) != null) return true;
+            }
+            return false;
+        }
+
+        private static bool Prefix(object[] __args, MethodBase __originalMethod)
+        {
+            try
+            {
+                if (__args == null) return true;
+                foreach (var arg in __args)
+                {
+                    if (!(arg is Kingdom k)) continue;
+                    if (!k.IsEliminated && k.Leader != null && k.RulingClan != null) continue;
+                    Log.Info($"[diplomacia] {__originalMethod.Name} con {k.Name}, destruido o sin soberano: no se ejecuta");
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex) { Log.Error("Guarda de alianzas", ex); return true; }
+        }
+    }
+
     /// <summary>The game won't marry off someone who is in a romance with the player.</summary>
     [HarmonyPatch(typeof(DefaultMarriageModel), nameof(DefaultMarriageModel.IsCoupleSuitableForMarriage))]
     internal static class CourtshipGuardPatch

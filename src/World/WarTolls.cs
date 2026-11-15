@@ -1,0 +1,308 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using AILegacy.Core;
+using AILegacy.Prompt;
+using AILegacy.Settings;
+using Newtonsoft.Json;
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.MapEvents;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.Core;
+
+namespace AILegacy.World
+{
+    /// <summary>Men lost on one day by each side of a war.</summary>
+    public class TollDay
+    {
+        [JsonProperty("d")] public int Day;
+        [JsonProperty("a")] public int A;
+        [JsonProperty("b")] public int B;
+    }
+
+    /// <summary>What an open war has cost each side in men. The sides are the two ids of its key ("a|b"), in that order.</summary>
+    public class WarToll
+    {
+        /// <summary>Day the count began: the start of the war, or the day we first saw it.</summary>
+        [JsonProperty("since")] public double SinceDay;
+        [JsonProperty("lost")] public int[] Lost = new int[2];
+        [JsonProperty("days")] public List<TollDay> Days = new List<TollDay>();
+    }
+
+    public class DayValue
+    {
+        [JsonProperty("d")] public int Day;
+        [JsonProperty("v")] public float Value;
+    }
+
+    /// <summary>A lord held by a kingdom at war with his own, and the weariness that cost his realm.</summary>
+    public class CaptiveToll
+    {
+        [JsonProperty("kingdom")] public string KingdomId;
+        [JsonProperty("amount")] public float Amount;
+    }
+
+    /// <summary>
+    /// What the wars between kingdoms cost: men lost in each war, lords held by the enemy, and how the strength of
+    /// each realm moves. It only counts. Which wars exist is always read from the game, never from here.
+    /// </summary>
+    internal static class WarTolls
+    {
+        private static WorldState St => WorldSim.State;
+
+        public const int TrendDays = 10;
+        private const int KeepDays = TrendDays + 1, MaxCaptives = 300;
+        // A defeat counts in full from this many men lost, a smaller one in proportion
+        private const int FullDefeatLosses = 250;
+        private const float CaravanLostFatigue = 0.5f;
+
+        // Last battle each kingdom fought against a kingdom it is at war with: enemy id and campaign hour. Not saved.
+        // A lord who dies of that battle with no killer named is still that enemy's doing.
+        private static readonly Dictionary<string, KeyValuePair<string, double>> LastWarBattle = new Dictionary<string, KeyValuePair<string, double>>();
+
+        public static void ResetSession() { LastWarBattle.Clear(); }
+
+        private static readonly Tpl TWarLosses = new Tpl("kingdom_statement/war_losses.txt",
+            " Men lost in battle in this war: you {mine}, they {theirs}; in the last {days} days: you {mine_recent}, they {theirs_recent}.{partial}");
+        private static readonly Tpl TWarLossesPartial = new Tpl("kingdom_statement/war_losses_partial.txt",
+            " (The count only covers the last {counted} day(s) of this war.)");
+        private static readonly Tpl TWarStrength = new Tpl("kingdom_statement/war_strength_trend.txt",
+            " Strength {days} day(s) ago: yours {mine_then}, theirs {theirs_then}; change since then: yours {mine_change}%, theirs {theirs_change}%.");
+
+        public static void Touch() { var _ = TWarLosses.Key + TWarLossesPartial.Key + TWarStrength.Key; }
+
+        private static bool Usable(Kingdom k) => k != null && !k.IsEliminated;
+
+        /// <summary>
+        /// The kingdom a side of a battle fights for, from its leading party. null for bandits, villagers and anyone
+        /// under no crown. A caravan is told apart: its guards are not the realm's army.
+        /// </summary>
+        private static Kingdom SideKingdom(MapEventSide side, out bool caravan)
+        {
+            caravan = false;
+            var party = side?.LeaderParty;
+            if (party == null) return null;
+            var mobile = party.MobileParty;
+            if (mobile != null)
+            {
+                if (mobile.IsVillager) return null;
+                caravan = mobile.IsCaravan;
+            }
+            var k = party.MapFaction as Kingdom;
+            return Usable(k) ? k : null;
+        }
+
+        // ============================================================ battles
+
+        /// <summary>
+        /// A battle is over. It wears a kingdom down only when the leaders of the two sides fight for two kingdoms
+        /// at war with each other: each pays for the men it lost, and the loser a little more for the defeat.
+        /// </summary>
+        public static void OnBattleEnded(MapEvent e)
+        {
+            if (e == null || St == null || Campaign.Current == null) return;
+            var att = e.AttackerSide; var def = e.DefenderSide;
+            Kingdom ka = SideKingdom(att, out bool caravanA), kd = SideKingdom(def, out bool caravanD);
+            if (ka == null || kd == null || ka == kd || !ka.IsAtWarWith(kd)) return;
+            bool attLost = e.HasWinner && e.WinningSide == BattleSideEnum.Defender, defLost = e.HasWinner && e.WinningSide == BattleSideEnum.Attacker;
+            if (caravanA || caravanD)
+            {
+                // a caravan taken by the enemy is a loss to its realm; nothing else about such a fight counts
+                if (caravanA && attLost) WorldSim.AddFatigue(ka, CaravanLostFatigue);
+                if (caravanD && defLost) WorldSim.AddFatigue(kd, CaravanLostFatigue);
+                return;
+            }
+            int lostA = Math.Max(0, att.TroopCasualties), lostD = Math.Max(0, def.TroopCasualties);
+            var cfg = S.Get;
+            float perMan = cfg.FatiguePerHundredCasualtiesX10 / 1000f, defeat = cfg.FatiguePerBattleLostX10 / 10f;
+            WorldSim.AddFatigue(ka, lostA * perMan + (attLost ? defeat * Math.Min(1f, lostA / (float)FullDefeatLosses) : 0f));
+            WorldSim.AddFatigue(kd, lostD * perMan + (defLost ? defeat * Math.Min(1f, lostD / (float)FullDefeatLosses) : 0f));
+            Record(ka, kd, lostA, lostD);
+            double hour = CampaignTime.Now.ToHours;
+            LastWarBattle[ka.StringId] = new KeyValuePair<string, double>(kd.StringId, hour);
+            LastWarBattle[kd.StringId] = new KeyValuePair<string, double>(ka.StringId, hour);
+        }
+
+        private static int Side(Kingdom k, Kingdom other) => string.CompareOrdinal(k.StringId, other.StringId) < 0 ? 0 : 1;
+
+        /// <summary>The count of the war between these two, or null. A count left from an earlier war between them is started again.</summary>
+        private static WarToll Toll(Kingdom a, Kingdom b, bool create)
+        {
+            if (St.WarTolls == null) St.WarTolls = new Dictionary<string, WarToll>();
+            string key = FactCheck.Pair(a.StringId, b.StringId);
+            double now = CampaignTime.Now.ToDays;
+            St.WarTolls.TryGetValue(key, out var t);
+            if (t != null)
+            {
+                int war = Diplomacy.WarDays(a, b);
+                if (t.SinceDay > now || (war >= 0 && now - t.SinceDay > war + 1.5)) t = null;      // SinceDay > now: an older save was loaded
+            }
+            if (t == null)
+            {
+                if (!create) { St.WarTolls.Remove(key); return null; }
+                St.WarTolls[key] = t = new WarToll { SinceDay = now };
+            }
+            if (t.Lost == null || t.Lost.Length != 2) t.Lost = new int[2];
+            if (t.Days == null) t.Days = new List<TollDay>();
+            return t;
+        }
+
+        private static void Record(Kingdom a, Kingdom b, int lostA, int lostB)
+        {
+            if (lostA <= 0 && lostB <= 0) return;
+            var t = Toll(a, b, true);
+            int ia = Side(a, b), day = (int)CampaignTime.Now.ToDays;
+            t.Days.RemoveAll(d => d == null || d.Day > day || d.Day < day - KeepDays);
+            var today = t.Days.Count > 0 ? t.Days[t.Days.Count - 1] : null;
+            if (today == null || today.Day != day) t.Days.Add(today = new TollDay { Day = day });
+            int first = ia == 0 ? lostA : lostB, second = ia == 0 ? lostB : lostA;
+            today.A += first; today.B += second;
+            t.Lost[0] += first; t.Lost[1] += second;
+        }
+
+        private static int Recent(WarToll t, int side, int day) =>
+            t.Days.Where(d => d != null && d.Day <= day && d.Day > day - TrendDays).Sum(d => side == 0 ? d.A : d.B);
+
+        // ============================================================ lords killed and held
+
+        /// <summary>
+        /// The kingdom at war with the victim's own that this death can be laid on, or null: killed in battle
+        /// against it, or executed or cut down by one of its people. Old age, childbirth and the like are nobody's.
+        /// </summary>
+        public static Kingdom KilledByEnemy(Hero killer, KillCharacterAction.KillCharacterActionDetail detail, Kingdom own)
+        {
+            if (!Usable(own)) return null;
+            bool battle = detail == KillCharacterAction.KillCharacterActionDetail.DiedInBattle || detail == KillCharacterAction.KillCharacterActionDetail.WoundedInBattle;
+            bool violent = battle || detail == KillCharacterAction.KillCharacterActionDetail.Executed
+                           || detail == KillCharacterAction.KillCharacterActionDetail.ExecutionAfterMapEvent || detail == KillCharacterAction.KillCharacterActionDetail.Murdered;
+            if (!violent) return null;
+            var enemy = killer?.MapFaction as Kingdom;
+            // the game names no killer when the other side of the battle had no lord at its head (a garrison)
+            if (enemy == null && battle && LastWarBattle.TryGetValue(own.StringId, out var last))
+            {
+                double since = CampaignTime.Now.ToHours - last.Value;
+                if (since >= 0 && since <= 2) enemy = Campaign.Current.Kingdoms.FirstOrDefault(x => x != null && x.StringId == last.Key);
+            }
+            return Usable(enemy) && enemy != own && own.IsAtWarWith(enemy) ? enemy : null;
+        }
+
+        /// <summary>A lord taken by a kingdom at war with his own wears his realm down until he goes free.</summary>
+        public static void OnPrisonerTaken(PartyBase captor, Hero prisoner)
+        {
+            if (prisoner == null || !prisoner.IsLord || St == null) return;
+            if (St.CaptiveTolls == null) St.CaptiveTolls = new Dictionary<string, CaptiveToll>();
+            // moved from one enemy party or dungeon to another: already counted
+            if (St.CaptiveTolls.ContainsKey(prisoner.StringId)) return;
+            var own = Facts.Subject(prisoner.Clan);
+            var holder = captor?.MapFaction as Kingdom;
+            if (!Usable(own) || !Usable(holder) || own == holder || !own.IsAtWarWith(holder)) return;
+            float amount = S.Get.FatiguePerLordKilled / 3f;
+            if (amount <= 0f || St.CaptiveTolls.Count >= MaxCaptives) return;
+            WorldSim.AddFatigue(own, amount);
+            St.CaptiveTolls[prisoner.StringId] = new CaptiveToll { KingdomId = own.StringId, Amount = amount };
+        }
+
+        /// <summary>Free again, however it came about: what his captivity cost his realm is given back.</summary>
+        public static void OnPrisonerReleased(Hero prisoner)
+        {
+            if (prisoner == null || St?.CaptiveTolls == null) return;
+            if (!St.CaptiveTolls.TryGetValue(prisoner.StringId, out var c)) return;
+            St.CaptiveTolls.Remove(prisoner.StringId);
+            // one who died in his cell is not given back: his death is counted on its own
+            if (c == null || !prisoner.IsAlive) return;
+            var own = Campaign.Current.Kingdoms.FirstOrDefault(k => k != null && k.StringId == c.KingdomId);
+            if (Usable(own)) WorldSim.AddFatigue(own, -Math.Abs(c.Amount));
+        }
+
+        // ============================================================ daily upkeep
+
+        public static void OnDailyTick(double now)
+        {
+            if (St == null || Campaign.Current == null) return;
+            if (St.WarTolls == null) St.WarTolls = new Dictionary<string, WarToll>();
+            if (St.StrengthLog == null) St.StrengthLog = new Dictionary<string, List<DayValue>>();
+            if (St.CaptiveTolls == null) St.CaptiveTolls = new Dictionary<string, CaptiveToll>();
+            int day = (int)now;
+            var all = Campaign.Current.Kingdoms.Where(Usable).ToList();
+            if (all.Count == 0) return;
+            var byId = new Dictionary<string, Kingdom>();
+            foreach (var k in all) if (k.StringId != null) byId[k.StringId] = k;
+
+            // every open war has its count from the day it is first seen, so a ruler is told how much of it is covered
+            var ruled = WorldSim.Kingdoms.ToList();
+            for (int i = 0; i < ruled.Count; i++)
+                for (int j = i + 1; j < ruled.Count; j++)
+                    if (ruled[i].IsAtWarWith(ruled[j])) Toll(ruled[i], ruled[j], true);
+            // wars that are over, and kingdoms that are gone
+            foreach (var key in St.WarTolls.Keys.ToList())
+            {
+                var ids = (key ?? "").Split('|');
+                if (ids.Length != 2 || !byId.TryGetValue(ids[0], out var a) || !byId.TryGetValue(ids[1], out var b) || !a.IsAtWarWith(b)) { St.WarTolls.Remove(key); continue; }
+                var t = St.WarTolls[key];
+                if (t == null) { St.WarTolls.Remove(key); continue; }
+                t.Days?.RemoveAll(d => d == null || d.Day > day || d.Day < day - KeepDays);
+            }
+
+            foreach (var k in ruled)
+            {
+                if (!St.StrengthLog.TryGetValue(k.StringId, out var log) || log == null) St.StrengthLog[k.StringId] = log = new List<DayValue>();
+                log.RemoveAll(v => v == null || v.Day >= day || v.Day < day - KeepDays);
+                log.Add(new DayValue { Day = day, Value = k.CurrentTotalStrength });
+            }
+            foreach (var id in St.StrengthLog.Keys.Where(x => !byId.ContainsKey(x)).ToList()) St.StrengthLog.Remove(id);
+
+            // captives whose release we never heard of (an event missed, a save from another branch)
+            foreach (var id in St.CaptiveTolls.Keys.ToList())
+            {
+                var c = St.CaptiveTolls[id];
+                Hero h = null;
+                try { h = Hero.Find(id); } catch { }
+                if (c == null || h == null || !h.IsAlive || c.KingdomId == null || !byId.ContainsKey(c.KingdomId)) { St.CaptiveTolls.Remove(id); continue; }
+                if (!h.IsPrisoner) OnPrisonerReleased(h);
+            }
+        }
+
+        // ============================================================ for the ruler's prompt
+
+        /// <summary>How the war between these two is going for <paramref name="k"/>: men lost by each side and how the strength of both has moved.</summary>
+        public static string Trend(Kingdom k, Kingdom o)
+        {
+            var sb = new StringBuilder();
+            try
+            {
+                if (St == null || k == null || o == null) return "";
+                double now = CampaignTime.Now.ToDays;
+                int day = (int)now;
+                var t = Toll(k, o, false);
+                if (t != null)
+                {
+                    int mine = Side(k, o), theirs = 1 - mine;
+                    int counted = Math.Max(0, (int)(now - t.SinceDay)), war = Diplomacy.WarDays(k, o);
+                    sb.Append(TWarLosses.Format("mine", t.Lost[mine], "theirs", t.Lost[theirs], "days", TrendDays,
+                        "mine_recent", Recent(t, mine, day), "theirs_recent", Recent(t, theirs, day),
+                        "partial", war < 0 || war - counted > 2 ? TWarLossesPartial.Format("counted", counted) : ""));
+                }
+                if (St.StrengthLog != null && St.StrengthLog.TryGetValue(k.StringId, out var a) && St.StrengthLog.TryGetValue(o.StringId, out var b) && a != null && b != null)
+                {
+                    // the oldest day within the window that both were measured on
+                    DayValue va = null, vb = null;
+                    foreach (var x in a.Where(v => v != null && v.Day < day && v.Day >= day - TrendDays).OrderBy(v => v.Day))
+                    {
+                        vb = b.FirstOrDefault(v => v != null && v.Day == x.Day);
+                        if (vb != null) { va = x; break; }
+                    }
+                    if (va != null && va.Value > 0f && vb.Value > 0f)
+                        sb.Append(TWarStrength.Format("days", day - va.Day, "mine_then", (int)va.Value, "theirs_then", (int)vb.Value,
+                            "mine_change", Change(va.Value, k.CurrentTotalStrength), "theirs_change", Change(vb.Value, o.CurrentTotalStrength)));
+                }
+            }
+            catch (Exception ex) { Log.Error("[diplomacia] tendencia de una guerra", ex); }
+            return sb.ToString();
+        }
+
+        private static string Change(float then, float now) =>
+            ((int)Math.Round((now - then) / then * 100f)).ToString("+0;-0;0", System.Globalization.CultureInfo.InvariantCulture);
+    }
+}

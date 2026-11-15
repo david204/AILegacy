@@ -473,6 +473,28 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
             return r <= 0.28f ? 1 : r <= 0.5f ? 2 : 3;
         }
 
+        /// <summary>
+        /// How far a town or castle lies from the lands of a kingdom, by the nearest town or castle that kingdom
+        /// holds: 0 = on its border, 1 = near, 2 = far, 3 = out of its reach altogether, -1 = unknown (the kingdom
+        /// holds no land). Measured against the size of the map, like Distance, so it holds on any map.
+        /// </summary>
+        public static int Reach(Settlement st, Kingdom k, out float gap)
+        {
+            gap = float.MaxValue;
+            if (st == null || k == null) return -1;
+            EnsureGeography();
+            if (_span <= 0f) return -1;
+            Vec2 p = st.GetPosition2D;
+            foreach (var f in k.Fiefs)
+            {
+                if (f?.Settlement == null || f.Settlement == st) continue;
+                gap = Math.Min(gap, p.Distance(f.Settlement.GetPosition2D));
+            }
+            if (gap == float.MaxValue) return -1;
+            float r = gap / _span;
+            return r <= 0.10f ? 0 : r <= 0.20f ? 1 : r <= 0.40f ? 2 : 3;
+        }
+
         private static float Nearest(string id)
         {
             float best = float.MaxValue;
