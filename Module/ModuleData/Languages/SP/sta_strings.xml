@@ -2032,5 +2032,10 @@
     <string id="AIL_e7b1c7ae" text="{0} te pide que lleves en mano un recado a {1}." />
     <string id="AIL_e7b1c7af" text="Entregas a {0} el recado de {1}." />
     <string id="AIL_e7b1c7b0" text="El recado de {0} para {1} ya no vale: no lo entregaste." />
+    <string id="AIL_e7b1c7b1" text="1. Límites" />
+    <string id="AIL_e7b1c7b2" text="2. Contagio" />
+    <string id="AIL_e7b1c7b3" text="3. Males de temporada" />
+    <string id="AIL_e7b1c7b4" text="4. Tratamiento y curación" />
+    <string id="AIL_e7b1c7b5" text="5. Partidas de la IA y guarniciones" />
   </strings>
 </base>

@@ -2032,5 +2032,10 @@
     <string id="AIL_e7b1c7ae" text="{0} bittet dich, {1} persönlich eine Nachricht zu überbringen." />
     <string id="AIL_e7b1c7af" text="Du überbringst {0} die Nachricht von {1}." />
     <string id="AIL_e7b1c7b0" text="Die Nachricht von {0} für {1} ist nichts mehr wert: Du hast sie nie überbracht." />
+    <string id="AIL_e7b1c7b1" text="1. Grenzen" />
+    <string id="AIL_e7b1c7b2" text="2. Ansteckung" />
+    <string id="AIL_e7b1c7b3" text="3. Saisonale Krankheiten" />
+    <string id="AIL_e7b1c7b4" text="4. Behandlung und Heilung" />
+    <string id="AIL_e7b1c7b5" text="5. KI-Trupps und Garnisonen" />
   </strings>
 </base>

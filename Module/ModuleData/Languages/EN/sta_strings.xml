@@ -2032,5 +2032,10 @@
     <string id="AIL_e7b1c7ae" text="{0} asks you to carry word by hand to {1}." />
     <string id="AIL_e7b1c7af" text="You give {0} the word from {1}." />
     <string id="AIL_e7b1c7b0" text="The word from {0} for {1} is no longer worth anything: you never delivered it." />
+    <string id="AIL_e7b1c7b1" text="1. Limits" />
+    <string id="AIL_e7b1c7b2" text="2. Contagion" />
+    <string id="AIL_e7b1c7b3" text="3. Seasonal illnesses" />
+    <string id="AIL_e7b1c7b4" text="4. Treatment and healing" />
+    <string id="AIL_e7b1c7b5" text="5. AI parties and garrisons" />
   </strings>
 </base>

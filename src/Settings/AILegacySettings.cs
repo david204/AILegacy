@@ -1456,209 +1456,209 @@ namespace AILegacy.Settings
         // People and parties fall ill: limits of what a disease may do
         [SettingPropertyFloatingInteger("{=AIL_e7b1c611}Limits: highest spread rate of a disease", 0.1f, 1f, "0.00", Order = 30, RequireRestart = false,
             HintText = "{=AIL_e7b1c612}How catching a disease can be at most, whether the event that brought it says so or it is worked out from its severity. It scales every contagion chance below.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public float DiseaseMaxSpreadRate { get; set; } = 0.8f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c613}Limits: highest daily chance of dying (0 = nobody dies of disease)", 0f, 1f, "0.00", Order = 31, RequireRestart = false,
             HintText = "{=AIL_e7b1c614}Only serious diseases (severity 3 or more) kill: surely when they run their full course untreated, and with this daily risk at most from the halfway point. At 0 no hero and no soldier dies of disease.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public float DiseaseMaxDeathChance { get; set; } = 0.3f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c615}Limits: lowest combat multiplier", 0.1f, 1f, "0.00", Order = 32, RequireRestart = false,
             HintText = "{=AIL_e7b1c616}The weakest a sick fighter can get: damage, weapon speed and, by half, movement in a fight. 1 = disease never weakens anyone in combat.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public float DiseaseMinCombatModifier { get; set; } = 0.5f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c617}Limits: lowest map speed multiplier", 0.1f, 1f, "0.00", Order = 33, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public float DiseaseMinMapSpeedModifier { get; set; } = 0.5f;
 
         [SettingPropertyInteger("{=AIL_e7b1c618}Limits: largest morale penalty", -50, 0, Order = 34, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public int DiseaseMaxMoralePenalty { get; set; } = -30;
 
         [SettingPropertyInteger("{=AIL_e7b1c619}Limits: largest penalty to fighting skills", -50, 0, Order = 35, RequireRestart = false,
             HintText = "{=AIL_e7b1c61a}Points a sick hero loses, at worst, in weapon skills, Riding and Athletics while fighting in a scene.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public int DiseaseMaxPhysicalSkillPenalty { get; set; } = -30;
 
         // How it is caught
         [SettingPropertyFloatingInteger("{=AIL_e7b1c61b}Contagion: inside a stricken place (every 6 hours)", 0f, 0.3f, "0.000", Order = 40, RequireRestart = false,
             HintText = "{=AIL_e7b1c61c}Base chance, every 6 hours, that a hero staying in a town, castle or village with an outbreak catches it. Severity, crowding, the spread rate and a good healer change it.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b2}2. Contagion", GroupOrder = 2)]
         public float SettlementInfectionBaseChance { get; set; } = 0.05f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c61d}Contagion: walking the streets of a stricken place (per minute)", 0f, 0.3f, "0.000", Order = 41, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b2}2. Contagion", GroupOrder = 2)]
         public float MissionInfectionBaseChance { get; set; } = 0.08f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c61e}Contagion: a leader from their own sick soldiers (daily)", 0f, 0.5f, "0.000", Order = 42, RequireRestart = false,
             HintText = "{=AIL_e7b1c61f}Daily chance when every soldier is sick; with fewer sick it shrinks in proportion. It applies to you, your companions and every lord.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b2}2. Contagion", GroupOrder = 2)]
         public float PlayerFromTroopsBaseChance { get; set; } = 0.175f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c620}Contagion: in the lord's hall, per sick lord present", 0f, 0.1f, "0.000", Order = 43, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b2}2. Contagion", GroupOrder = 2)]
         public float LordHallInfectionChancePerLord { get; set; } = 0.025f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c621}Contagion: multiplier inside a quarantined place", 0f, 1f, "0.00", Order = 44, RequireRestart = false,
             HintText = "{=AIL_e7b1c622}With the gates shut and the sick kept apart, those inside catch it less. 1 = quarantine does not help those inside; 0 = nobody inside catches it.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b2}2. Contagion", GroupOrder = 2)]
         public float QuarantineInfectionReduction { get; set; } = 0.5f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c623}Contagion: multiplier to and from prisoners (0 = off)", 0f, 1f, "0.00", Order = 45, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b2}2. Contagion", GroupOrder = 2)]
         public float PrisonerSpreadModifier { get; set; } = 0.5f;
 
         // Seasonal illnesses
         [SettingPropertyBool("{=AIL_e7b1c624}Seasonal illnesses on the road", Order = 50, RequireRestart = false,
             HintText = "{=AIL_e7b1c625}Mild illnesses (a cold, a camp cough, the ague) for heroes and soldiers travelling the map. More likely in winter, in rain or snow, and at sea. They pass in two weeks and weaken a little meanwhile.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public bool EnableSeasonalDiseases { get; set; } = true;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c626}Seasonal: base chance (every 6 hours)", 0.0005f, 0.1f, "0.0000", Order = 51, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a1}Chance, every 6 hours, that a hero or a band travelling the map catches something mild. The season and the weather below are added to it, and the total never goes above the highest chance. Recommended: 0.001 to 0.003.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalDiseaseBaseChance { get; set; } = 0.002f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c627}Seasonal: highest chance after all additions", 0.01f, 0.5f, "0.000", Order = 52, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a2}The chance never goes above this, however many additions pile up (winter, a blizzard, at sea). Recommended: 0.02 to 0.05.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalDiseaseMaxChance { get; set; } = 0.04f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c628}Seasonal: added in winter", 0f, 0.2f, "0.0000", Order = 53, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalWinterBonus { get; set; } = 0.005f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c629}Seasonal: added in autumn", 0f, 0.2f, "0.0000", Order = 54, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalAutumnBonus { get; set; } = 0.003f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62a}Seasonal: added in spring", 0f, 0.2f, "0.0000", Order = 55, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalSpringBonus { get; set; } = 0.002f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62b}Seasonal: added in summer", 0f, 0.1f, "0.0000", Order = 56, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalSummerBonus { get; set; } = 0.001f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62c}Seasonal: added in light rain", 0f, 0.1f, "0.0000", Order = 57, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalWeatherLightRainBonus { get; set; } = 0.0012f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62d}Seasonal: added in heavy rain or a storm", 0f, 0.15f, "0.0000", Order = 58, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalWeatherHeavyRainBonus { get; set; } = 0.002f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62e}Seasonal: added in snowfall", 0f, 0.15f, "0.0000", Order = 59, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalWeatherSnowyBonus { get; set; } = 0.002f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62f}Seasonal: added in a blizzard", 0f, 0.2f, "0.0000", Order = 60, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalWeatherBlizzardBonus { get; set; } = 0.003f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c630}Seasonal: added on wet ground", 0f, 0.1f, "0.0000", Order = 61, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalWeatherWetBonus { get; set; } = 0.001f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c631}Seasonal: added aboard ship at sea", 0f, 0.15f, "0.0000", Order = 62, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public float SeasonalShipAtSeaBonus { get; set; } = 0.002f;
 
         [SettingPropertyInteger("{=AIL_e7b1c63a}Seasonal: days of immunity after getting over one (0 = none)", 0, 60, Order = 63, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a5}After getting over a seasonal illness, a hero cannot catch another one for this many days. Recommended: 14 to 30.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public int SeasonalPostRecoveryImmunityDays { get; set; } = 21;
 
         [SettingPropertyInteger("{=AIL_e7b1c7a6}Seasonal: most cases at once in the campaign (0 = no limit)", 0, 300, Order = 64, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a7}Seasonal illnesses alive at the same time across the whole map, counting each sick hero and each sick band once. At the limit no lord or caravan catches a new one until someone recovers; you and your party still can. Outbreaks in towns do not count. Recommended: 20 to 60.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
         public int SeasonalMaxLiveCases { get; set; } = 40;
 
         // Treatment and healing
         [SettingPropertyFloatingInteger("{=AIL_e7b1c632}Treatment: base cost in the hospital", 50f, 500f, "0", Order = 70, RequireRestart = false,
             HintText = "{=AIL_e7b1c633}Treating a sick hero costs this, times the severity of the disease, times the price level of the town. Lords pay the same when they ride in sick.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public float DiseaseTreatmentBaseCost { get; set; } = 100f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c634}Treatment: cost multiplier for soldiers and prisoners", 0.1f, 2f, "0.00", Order = 71, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public float DiseaseTreatmentTroopMultiplier { get; set; } = 0.5f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c635}Treatment: price multiplier of prevention", 0.5f, 3f, "0.00", Order = 72, RequireRestart = false,
             HintText = "{=AIL_e7b1c6f5}Multiplies the price of the hospital's prevention and of the healing herbs it sells.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public float DiseasePreventionHerbCostMultiplier { get; set; } = 1f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c636}Treatment: share of the surgeon's Medicine that reaches the soldiers", 0.5f, 1f, "0.00", Order = 73, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public float DiseaseMedicineSkillForTroopsMultiplier { get; set; } = 0.75f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c637}Speed at which an untreated disease worsens", 0.25f, 3f, "0.00", Order = 74, RequireRestart = false,
             HintText = "{=AIL_e7b1c638}1 = a mild disease takes about three months to reach its worst and a plague under three weeks. Treatment, or a surgeon good enough for that disease, turns it back.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public float DiseaseProgressionMultiplier { get; set; } = 1f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c639}Speed of recovery under treatment", 0.25f, 3f, "0.00", Order = 75, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public float DiseaseRecoveryMultiplier { get; set; } = 1f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c63b}Share of its remaining days an outbreak passes on when it jumps to another place", 0.25f, 1f, "0.00", Order = 76, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public float DiseaseSpreadInheritFactor { get; set; } = 0.75f;
 
         // Lords who ride off to be treated
         [SettingPropertyBool("{=AIL_e7b1c6e0}AI parties ride to be treated", Order = 80, RequireRestart = false,
             HintText = "{=AIL_e7b1c6e1}A lord whose party is sick enough rides to the nearest friendly town or castle within reach, pays its physicians, rests there and then goes back to his own affairs. Never a party in an army, in a battle or a siege, or doing something you asked of it.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b5}5. AI parties and garrisons", GroupOrder = 5)]
         public bool DiseaseAiSeekTreatment { get; set; } = true;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c6e2}AI treatment: urgency needed to set out (3 = any illness, 10 = only the gravest)", 3f, 10f, "0.0", Order = 81, RequireRestart = false,
             HintText = "{=AIL_e7b1c6e3}Urgency grows with how far the illness has gone and how severe it is: 3 at the first symptoms, 10 for a plague halfway through its course. At 5 a lord sets out for a mild illness once it reaches a quarter of its course, and at once for a deadly one.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b5}5. AI parties and garrisons", GroupOrder = 5)]
         public float DiseaseAiTreatmentMinUrgency { get; set; } = 5f;
 
         [SettingPropertyInteger("{=AIL_e7b1c6e4}AI treatment: share of sick soldiers that counts (%)", 1, 100, Order = 82, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b5}5. AI parties and garrisons", GroupOrder = 5)]
         public int DiseaseAiTreatmentMinTroopShare { get; set; } = 10;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c6e5}AI treatment: farthest they will ride (days)", 0.5f, 10f, "0.0", Order = 83, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b5}5. AI parties and garrisons", GroupOrder = 5)]
         public float DiseaseAiTreatmentMaxDays { get; set; } = 3f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c6e6}AI treatment: days they rest where they are treated", 0.5f, 7f, "0.0", Order = 84, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b5}5. AI parties and garrisons", GroupOrder = 5)]
         public float DiseaseAiTreatmentStayDays { get; set; } = 2f;
 
         // Herbs, garrisons, tooltips, deaths, debt
         [SettingPropertyBool("{=AIL_e7b1c6e7}Healing herbs", Order = 85, RequireRestart = false,
             HintText = "{=AIL_e7b1c6e8}Five qualities of herbs sold in the hospitals, better ones in richer towns and the best only in a capital. They are goods in your inventory: use them anywhere (Alt+H on the map, or in the hospital) to treat your sick or to make your party catch less for some days.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public bool EnableHealingHerbs { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_e7b1c6e9}Herbs: treat your sick with them automatically", Order = 86, RequireRestart = false,
             HintText = "{=AIL_e7b1c6ea}Each day, your sick heroes and soldiers with no treatment get the herbs you carry: the best ones for the grave cases, the plainest for the rest. Off: only when you use them yourself.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public bool HerbsAutoUse { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_e7b1c6eb}Garrisons and militias fall ill", Order = 87, RequireRestart = false,
             HintText = "{=AIL_e7b1c6ec}Where there is an outbreak, the garrison and the militia may catch it. It spreads among them, the physicians of the place see to them every few days, and a serious disease left to run kills some each day. It shows in the settlement's tooltip and in the militia's daily change.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b5}5. AI parties and garrisons", GroupOrder = 5)]
         public bool DiseaseGarrisonsFallIll { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_e7b1c6ed}Garrisons: days between the physicians' rounds", 1, 30, Order = 88, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b5}5. AI parties and garrisons", GroupOrder = 5)]
         public int DiseaseForceCareEveryDays { get; set; } = 4;
 
         [SettingPropertyBool("{=AIL_e7b1c6ee}Disease in the map tooltips", Order = 89, RequireRestart = false,
@@ -1735,7 +1735,7 @@ namespace AILegacy.Settings
 
         [SettingPropertyBool("{=AIL_77793b62}Hospital in the towns", Order = 1, RequireRestart = true,
             HintText = "{=AIL_f683eca5}In each town's menu, \"Visit the hospital\": they tell you about the diseases going around, treat you, your companions, your wounded or sick troops and your prisoners (for a fee; cheaper in prosperous towns), and sell prevention so your men fall ill less for a few days.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases", GroupOrder = 12)]
+        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public bool EnableHospital { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_29e73294}Maximum effect of an event on a market's prices (%)", 0, 80, Order = 1, RequireRestart = false,

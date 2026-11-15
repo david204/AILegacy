@@ -2032,5 +2032,10 @@
     <string id="AIL_e7b1c7ae" text="{0} vous demande de porter en main propre un message à {1}." />
     <string id="AIL_e7b1c7af" text="Vous remettez à {0} le message de {1}." />
     <string id="AIL_e7b1c7b0" text="Le message de {0} pour {1} ne vaut plus rien : vous ne l’avez jamais remis." />
+    <string id="AIL_e7b1c7b1" text="1. Limites" />
+    <string id="AIL_e7b1c7b2" text="2. Contagion" />
+    <string id="AIL_e7b1c7b3" text="3. Maux de saison" />
+    <string id="AIL_e7b1c7b4" text="4. Traitement et guérison" />
+    <string id="AIL_e7b1c7b5" text="5. Groupes de l’IA et garnisons" />
   </strings>
 </base>

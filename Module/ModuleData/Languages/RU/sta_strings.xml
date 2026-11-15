@@ -2032,5 +2032,10 @@
     <string id="AIL_e7b1c7ae" text="{0} просит вас лично передать весть {1}." />
     <string id="AIL_e7b1c7af" text="Вы передаёте {0} весть от {1}." />
     <string id="AIL_e7b1c7b0" text="Весть от {0} для {1} больше ничего не стоит: вы её так и не передали." />
+    <string id="AIL_e7b1c7b1" text="1. Пределы" />
+    <string id="AIL_e7b1c7b2" text="2. Заражение" />
+    <string id="AIL_e7b1c7b3" text="3. Сезонные хвори" />
+    <string id="AIL_e7b1c7b4" text="4. Лечение" />
+    <string id="AIL_e7b1c7b5" text="5. Отряды ИИ и гарнизоны" />
   </strings>
 </base>
