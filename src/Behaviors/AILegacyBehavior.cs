@@ -75,6 +75,9 @@ namespace AILegacy.Behaviors
             CampaignEvents.OnClanChangedKingdomEvent.AddNonSerializedListener(this, World.Facts.OnClanChangedKingdom);
             CampaignEvents.KingdomDestroyedEvent.AddNonSerializedListener(this, World.Facts.OnKingdomChanged);
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.Facts.OnRulingClanChanged);
+            CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, World.Facts.OnHeroKilled);
+            // Whom the player puts to death, read before the game hands their clan and crown to someone else
+            CampaignEvents.BeforeHeroKilledEvent.AddNonSerializedListener(this, World.Captivity.OnBeforeHeroKilled);
         }
 
         public override void SyncData(IDataStore dataStore)

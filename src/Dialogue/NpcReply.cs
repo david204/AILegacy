@@ -32,8 +32,53 @@ namespace AILegacy.Dialogue
         public string MoodReason = "";
         public string MoodShown = "";
 
+        // An action written inside the spoken line instead of in the "actions" array: [swear_fealty], <make_peace:they_pay=500>,
+        // [action: set_free]. Only a snake_case word counts; prose and single words in brackets are left alone.
+        private static readonly Regex InlineTag = new Regex(
+            @"[\[<]\s*/?\s*(?:actions?\s*[:=]\s*)?([A-Za-z]+(?:_[A-Za-z]+)*)\s*(?:[:=]\s*([^\]\[<>]{0,200}))?\s*/?\s*[\]>]", RegexOptions.CultureInvariant);
+
+        /// <summary>
+        /// Takes action tags out of the spoken line. The game's dialogue box drops everything from a "[" to the next "]"
+        /// (it reads them as animation tags), and to the end of the text when the bracket is never closed, so a tag
+        /// left in the line would cut the reply short. A tag naming a real action is moved to the actions; a made-up
+        /// one is just removed. The words around it stay.
+        /// </summary>
+        internal static void LiftInlineActions(NpcReply r)
+        {
+            if (r == null || string.IsNullOrEmpty(r.Reply) || r.Reply.IndexOfAny(new[] { '[', '<' }) < 0) return;
+            try
+            {
+                string text = InlineTag.Replace(r.Reply, m =>
+                {
+                    string name = m.Groups[1].Value.ToLowerInvariant();
+                    // a single word in brackets is left alone: [leave] or [wait] can be a gesture, not an action
+                    if (name.IndexOf('_') < 0) return m.Value;
+                    bool known = NpcActions.Knows(name);
+                    string arg = m.Groups[2].Success ? m.Groups[2].Value.Trim() : "";
+                    // "[swear_fealty: I, X, swear to you...]": what follows is the spoken oath, not an argument. It stays in the line.
+                    bool spoken = arg.IndexOf('|') < 0 && arg.IndexOf('=') < 0 && arg.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length >= 4;
+                    if (known && !r.Actions.Any(a => (a ?? "").Trim().ToLowerInvariant().StartsWith(name)))
+                        r.Actions.Add(arg.Length > 0 && !spoken ? name + ":" + arg : name);
+                    return spoken ? " " + arg + " " : " ";
+                });
+                if (text == r.Reply) return;
+                text = Regex.Replace(text, @"[ 	]{2,}", " ");
+                text = Regex.Replace(text, @" +([,.;:!?])", "$1").Trim();
+                AILegacy.Core.Log.Warn("Acción escrita dentro de la frase: se saca del texto para que no lo corte");
+                r.Reply = text;
+            }
+            catch { }
+        }
+
         /// <summary>Parses the model's JSON reply. If it isn't valid JSON, the raw text is used as the reply.</summary>
         public static NpcReply Parse(string raw)
+        {
+            var r = ParseCore(raw);
+            LiftInlineActions(r);
+            return r;
+        }
+
+        private static NpcReply ParseCore(string raw)
         {
             var r = new NpcReply();
             if (string.IsNullOrWhiteSpace(raw)) return r;

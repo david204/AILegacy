@@ -75,6 +75,10 @@ namespace AILegacy.World
         public static string HeroFacts(Hero h)
         {
             if (h == null) return "";
+            // The dead keep no office: said first and plainly, so nobody is written as still ruling or acting
+            if (h.IsDead)
+                return $"- {h.Name}: DEAD ({HowDied(h)})" + (h.Clan != null ? $"; was of clan {h.Clan.Name} ({ClanKind(h.Clan)})" : "") +
+                       ". The dead hold no title and do nothing: nobody can obey, depose or plot against them.";
             var sb = new StringBuilder($"- {h.Name}: {(h.IsFemale ? "woman" : "man")}");
             if (h.Culture != null) sb.Append($"; {h.Culture.Name} by birth");
             var c = h.Clan;
@@ -222,6 +226,51 @@ namespace AILegacy.World
         public static void OnClanChangedKingdom(Clan clan, Kingdom oldKingdom, Kingdom newKingdom, TaleWorlds.CampaignSystem.Actions.ChangeKingdomAction.ChangeKingdomActionDetail detail, bool show) => Invalidate();
         public static void OnKingdomChanged(Kingdom k) => Invalidate();
         public static void OnRulingClanChanged(Kingdom k, Clan c) => Invalidate();
+        public static void OnHeroKilled(Hero victim, Hero killer, TaleWorlds.CampaignSystem.Actions.KillCharacterAction.KillCharacterActionDetail detail, bool show) => Invalidate();
+
+        /// <summary>How and when someone died, in English: "executed by X 3 day(s) ago".</summary>
+        public static string HowDied(Hero h)
+        {
+            string how;
+            switch (h.DeathMark.ToString())
+            {
+                case "Executed": case "ExecutionAfterMapEvent": how = h.DeathMarkKillerHero != null ? $"executed by {h.DeathMarkKillerHero.Name}" : "executed"; break;
+                case "Murdered": how = h.DeathMarkKillerHero != null ? $"killed by {h.DeathMarkKillerHero.Name}" : "murdered"; break;
+                case "DiedInBattle": case "WoundedInBattle": how = "fell in battle"; break;
+                case "DiedOfOldAge": how = "died of old age"; break;
+                case "DiedInLabor": how = "died in childbirth"; break;
+                default: how = "died"; break;
+            }
+            try { int ago = (int)(CampaignTime.Now.ToDays - h.DeathDay.ToDays); if (ago >= 0) how += ago == 0 ? " today" : $" {ago} day(s) ago"; } catch { }
+            return how;
+        }
+
+        private static readonly Tpl TDead = new Tpl("world/the_dead.txt",
+@"## The dead (exact)
+These people are DEAD. Nobody can obey them, serve them, meet them, plot against them, depose them or wait for their answer, and they do nothing. Write of one of them only as dead: the death itself, who answers for it, and what it leaves behind.
+{dead}");
+
+        /// <summary>Lords who died lately, for the chronicler. Empty when nobody did.</summary>
+        public static string RecentDead(int days = 120, int max = 25)
+        {
+            try
+            {
+                double now = CampaignTime.Now.ToDays;
+                var lines = new List<KeyValuePair<double, string>>();
+                foreach (var h in Hero.DeadOrDisabledHeroes)
+                {
+                    if (h == null || !h.IsDead || !h.IsLord || h.Clan == null || h.Clan.IsBanditFaction) continue;
+                    double ago;
+                    try { ago = now - h.DeathDay.ToDays; } catch { continue; }
+                    if (ago < 0 || ago > days) continue;
+                    var k = h.Clan.Kingdom;
+                    lines.Add(new KeyValuePair<double, string>(ago, $"- {h.Name}, of clan {h.Clan.Name}{(k != null ? $" ({k.Name})" : "")}: {HowDied(h)}."));
+                }
+                if (lines.Count == 0) return "";
+                return TDead.Format("dead", string.Join("\n", lines.OrderBy(l => l.Key).Take(max).Select(l => l.Value)));
+            }
+            catch (Exception ex) { Log.Error("Lista de muertos para la IA", ex); return ""; }
+        }
 
         // ============================================================ the world as plain data, for the checks
 
@@ -268,6 +317,19 @@ namespace AILegacy.World
                     if (!string.IsNullOrEmpty(first) && first != name) m.AddHero(first, subject, hired);
                 }
             }
+            // Dead lords, so a text that has one of them acting can be told apart. A name a living person also
+            // carries is not held against anyone (FactModel.DeadOnly).
+            try
+            {
+                foreach (var h in Hero.DeadOrDisabledHeroes)
+                {
+                    if (h == null || !h.IsDead || !h.IsLord || h.Clan == null) continue;
+                    string name = h.Name?.ToString(), first = h.FirstName?.ToString();
+                    m.AddDead(name, h.StringId);
+                    if (!string.IsNullOrEmpty(first) && first != name) m.AddDead(first, h.StringId);
+                }
+            }
+            catch (Exception ex) { Log.Error("Muertos para la comprobación de hechos", ex); }
             return m;
         }
 
@@ -350,7 +412,7 @@ namespace AILegacy.World
 {geography}
 - Armies, envoys and merchants travel by road. An alliance or a trade agreement makes sense between neighbours, or between two crowns with a common neighbour they both have reason to fear. Crowns far apart, with other realms between them, have no reason to ally, to trade, to demand anything of each other or to go to war, and a distant war is not their concern.");
 
-        public static void Touch() { var _ = TCalendarMap.Key + TToday.Key; }
+        public static void Touch() { var _ = TCalendarMap.Key + TToday.Key + TDead.Key; }
 
         private static Dictionary<string, float> _gap = new Dictionary<string, float>();
         private static float _span;

@@ -1986,5 +1986,18 @@
     <string id="AIL_e7b1c780" text="{0}接受了你提出的和约。{1}" />
     <string id="AIL_e7b1c781" text="{0}提议你现在签订和约，不附带任何条件：双方都不必支付或交出任何东西。&#10;&#10;签字则战争立即结束；不签则一切照旧。" />
     <string id="AIL_e7b1c782" text="和约没有签成：{0}。没有支付或交出任何东西。" />
+    <string id="AIL_e7b1c783" text="可以逼迫俘虏达成协议" />
+    <string id="AIL_e7b1c784" text="开启：被你俘虏的领主在威胁之下可以带领家族向你宣誓效忠、作为雇佣兵为你效力、背弃自己的王国，或在牢中把一座城镇或城堡让给你，即使他不喜欢你（被俘的统治者可以让出其王国的任何封地）。这样立下的誓言会让他获得自由，但心怀怨恨、对你更不信任。关闭：俘虏只能付钱、身为统治者时议和、被释放或死去。" />
+    <string id="AIL_e7b1c785" text="{0}不再是你的俘虏，重获自由。" />
+    <string id="AIL_e7b1c786" text="这是在威胁下逼出来的：{0}不会忘记。" />
+    <string id="AIL_e7b1c787" text="{0}在囚禁中把{1}让给了你。" />
+    <string id="AIL_e7b1c788" text="按照你的命令，{0}已被处决。" />
+    <string id="AIL_e7b1c789" text="{0}死于你手。" />
+    <string id="AIL_e7b1c78a" text="{0}自尽了。" />
+    <string id="AIL_e7b1c78b" text="{0}中毒身亡。" />
+    <string id="AIL_e7b1c78c" text="{0}伤重而亡。" />
+    <string id="AIL_e7b1c78d" text="{0}病逝了。" />
+    <string id="AIL_e7b1c78e" text="{0}死于意外。" />
+    <string id="AIL_e7b1c78f" text="在遗体旁发现：{0}。这只是故事的一部分：你的物品栏不会增加任何东西。" />
   </strings>
 </base>

@@ -1986,5 +1986,18 @@
     <string id="AIL_e7b1c780" text="{0} accetta la pace che avevi proposto. {1}" />
     <string id="AIL_e7b1c781" text="{0} ti propone di firmare la pace ora, senza condizioni: nessuno paga né cede nulla.&#10;&#10;Se firmi, la guerra finisce subito. Altrimenti non cambia nulla." />
     <string id="AIL_e7b1c782" text="La pace non è stata firmata: {0}. Nulla è stato pagato né ceduto." />
+    <string id="AIL_e7b1c783" text="I prigionieri possono essere costretti a patti" />
+    <string id="AIL_e7b1c784" text="Attivo: un signore che tieni prigioniero può, sotto minaccia, giurarti fedeltà con il suo clan, servirti come mercenario, rinnegare il suo regno o cederti una città o un castello dalla sua cella, anche se non ti sopporta (un sovrano prigioniero può cedere qualsiasi feudo del suo regno). Ciò che giura lo lascia libero, pieno di rancore e meno fiducioso verso di te. Disattivo: un prigioniero può solo pagare, firmare la pace se è un sovrano, essere liberato o morire." />
+    <string id="AIL_e7b1c785" text="{0} non è più tuo prigioniero e torna in libertà." />
+    <string id="AIL_e7b1c786" text="Strappato sotto minaccia: {0} non lo dimenticherà." />
+    <string id="AIL_e7b1c787" text="{0} ti cede {1} dalla prigionia." />
+    <string id="AIL_e7b1c788" text="L’esecuzione di {0} è stata compiuta, per tuo ordine." />
+    <string id="AIL_e7b1c789" text="{0} è morto per mano tua." />
+    <string id="AIL_e7b1c78a" text="{0} si è tolto la vita." />
+    <string id="AIL_e7b1c78b" text="{0} è morto per il veleno." />
+    <string id="AIL_e7b1c78c" text="{0} è morto per le ferite." />
+    <string id="AIL_e7b1c78d" text="{0} è morto di malattia." />
+    <string id="AIL_e7b1c78e" text="{0} è morto in un incidente." />
+    <string id="AIL_e7b1c78f" text="Accanto al corpo si trova: {0}. Fa parte del racconto: nulla viene aggiunto al tuo inventario." />
   </strings>
 </base>

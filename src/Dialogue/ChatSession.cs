@@ -315,8 +315,11 @@ namespace AILegacy.Dialogue
 
         public string WaitText => _waiting || _lastNpc.Length == 0 ? L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)") : Sanitize(_lastNpc);
 
+        // Braces are text variables to the game. Square brackets are animation tags: the dialogue box drops everything
+        // from a "[" to the next "]", and to the end of the line when it is never closed, so both become parentheses.
         private static string Sanitize(string s) =>
-            (s ?? "").Replace("{newline}", "\u0001").Replace("{", "(").Replace("}", ")").Replace("\u0001", "{newline}").Replace("\r", "").Replace("\n", "{newline}");
+            (s ?? "").Replace("{newline}", "\u0001").Replace("{", "(").Replace("}", ")").Replace("[", "(").Replace("]", ")")
+                     .Replace("\u0001", "{newline}").Replace("\r", "").Replace("\n", "{newline}");
 
         // =============================================================== UI
 

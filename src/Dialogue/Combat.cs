@@ -531,6 +531,36 @@ namespace AILegacy.Dialogue
             }
         }
 
+        /// <summary>A sentence the character wrote, tidied to stand on its own: no stray quotes, a capital, a full stop.</summary>
+        private static string AsSentence(string t, bool capital)
+        {
+            t = (t ?? "").Replace("\r", " ").Replace("\n", " ").Trim().Trim('"', '«', '»', '“', '”', ' ').TrimEnd('.', ',', ';', ':').Trim();
+            if (t.Length == 0) return "";
+            if (capital) t = char.ToUpper(t[0]) + t.Substring(1);
+            return t;
+        }
+
+        /// <summary>The death as the player reads it, in their language: the fact, how it went, and what was found.</summary>
+        private static string DeathForPlayer(string kind, string victim, string how, string found)
+        {
+            string fact;
+            switch (kind)
+            {
+                case "executed": fact = L.F("AIL_e7b1c788", $"Se ha cumplido la ejecución de {victim}, por orden tuya."); break;
+                case "killed": fact = L.F("AIL_e7b1c789", $"{victim} ha muerto por tu mano."); break;
+                case "suicide": fact = L.F("AIL_e7b1c78a", $"{victim} se ha quitado la vida."); break;
+                case "poison": fact = L.F("AIL_e7b1c78b", $"{victim} ha muerto por el veneno."); break;
+                case "wounds": fact = L.F("AIL_e7b1c78c", $"{victim} ha muerto de sus heridas."); break;
+                case "illness": fact = L.F("AIL_e7b1c78d", $"{victim} ha muerto de enfermedad."); break;
+                default: fact = L.F("AIL_e7b1c78e", $"{victim} ha muerto en un accidente."); break;
+            }
+            var sb = new System.Text.StringBuilder(fact);
+            string h = AsSentence(how, true), f = AsSentence(found, false);
+            if (h.Length > 2) sb.Append("\n\n").Append(h).Append('.');
+            if (f.Length > 2) sb.Append("\n\n").Append(L.F("AIL_e7b1c78f", $"Junto al cuerpo se encuentra: {f}. Es parte del relato: no se añade nada a tu inventario."));
+            return sb.ToString();
+        }
+
         // Whoever leaves with you fades out of the scene when the talk ends
         private static readonly List<Agent> ToFade = new List<Agent>();
         public static void FadeAfterTalk(Agent a) { if (a != null && !ToFade.Contains(a)) ToFade.Add(a); }
@@ -1151,11 +1181,13 @@ namespace AILegacy.Dialogue
                                 Kingdoms = clanId != null ? new List<string> { clanId } : new List<string>(),
                                 Heroes = byPlayer ? new List<string> { heroId, P.StringId } : new List<string> { heroId },
                             };
-                            if (d.found.Length > 2)
+                            // What the player reads: how they died as a sentence, then how it went and what was on them
+                            // when the character said so. Nothing found is ever added to the inventory, and it says so.
+                            if (d.how.Length > 2 || d.found.Length > 2)
                             {
                                 item.TitleEs = L.F("AIL_e7b1c4e0", $"Muerte de {victim}");
-                                item.TextEs = d.found;
-                                InformationManager.ShowInquiry(new InquiryData(item.TitleEs, d.found, true, false, L.T("AIL_f6d0c4b4", "Enterado"), "", null, null), true);
+                                item.TextEs = DeathForPlayer(d.kind, victim, d.how, d.found);
+                                InformationManager.ShowInquiry(new InquiryData(item.TitleEs, item.TextEs, true, false, L.T("AIL_f6d0c4b4", "Enterado"), "", null, null), true);
                             }
                             NewsStore.Add(item);
                         }

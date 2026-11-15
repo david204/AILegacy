@@ -1986,5 +1986,18 @@
     <string id="AIL_e7b1c780" text="{0} nimmt den Frieden an, den du vorgeschlagen hattest. {1}" />
     <string id="AIL_e7b1c781" text="{0} schlägt dir vor, den Frieden jetzt zu unterzeichnen, ohne Bedingungen: niemand zahlt oder übergibt etwas.&#10;&#10;Unterzeichnest du, endet der Krieg sofort. Wenn nicht, ändert sich nichts." />
     <string id="AIL_e7b1c782" text="Der Frieden wurde nicht geschlossen: {0}. Es wurde nichts gezahlt oder übergeben." />
+    <string id="AIL_e7b1c783" text="Gefangene können zu Abmachungen gezwungen werden" />
+    <string id="AIL_e7b1c784" text="An: Ein Fürst, den du gefangen hältst, kann unter Drohung mit seinem Clan Treue schwören, dir als Söldner dienen, seinem Reich entsagen oder dir aus der Zelle eine Stadt oder Burg überschreiben, auch wenn er dich nicht mag (ein gefangener Herrscher kann jedes Lehen seines Reiches überschreiben). Was er schwört, macht ihn frei, voller Groll und misstrauischer dir gegenüber. Aus: Ein Gefangener kann nur zahlen, als Herrscher Frieden schließen, freikommen oder sterben." />
+    <string id="AIL_e7b1c785" text="{0} ist nicht länger dein Gefangener und kommt frei." />
+    <string id="AIL_e7b1c786" text="Unter Drohung erpresst: {0} wird es nicht vergessen." />
+    <string id="AIL_e7b1c787" text="{0} überschreibt dir {1} aus der Gefangenschaft." />
+    <string id="AIL_e7b1c788" text="Die Hinrichtung von {0} wurde auf deinen Befehl vollstreckt." />
+    <string id="AIL_e7b1c789" text="{0} ist durch deine Hand gestorben." />
+    <string id="AIL_e7b1c78a" text="{0} hat sich das Leben genommen." />
+    <string id="AIL_e7b1c78b" text="{0} ist am Gift gestorben." />
+    <string id="AIL_e7b1c78c" text="{0} ist den Wunden erlegen." />
+    <string id="AIL_e7b1c78d" text="{0} ist an einer Krankheit gestorben." />
+    <string id="AIL_e7b1c78e" text="{0} ist bei einem Unfall gestorben." />
+    <string id="AIL_e7b1c78f" text="Bei der Leiche findet sich: {0}. Das gehört zur Erzählung: Deinem Inventar wird nichts hinzugefügt." />
   </strings>
 </base>

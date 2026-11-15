@@ -545,6 +545,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
         public bool AllowFealty { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1c783}Prisoners can be forced into deals", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1c784}On: a lord you hold prisoner can, under threat, swear fealty with his clan, serve you as a mercenary, renounce his kingdom or sign a town or castle over to you from his cell, even if he dislikes you (a captive ruler can sign over any fief of his realm). What he swears leaves him free, resentful and trusting you less. Off: a prisoner can only pay, make peace if he is a ruler, be released or die.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
+        public bool AllowPrisonerDeals { get; set; } = true;
+
         [SettingPropertyBool("{=AIL_26eb718e}Marriage", Order = 4, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]
         public bool AllowMarriage { get; set; } = true;

@@ -44,7 +44,15 @@ namespace AILegacy.Dialogue
             public Func<Speaker, string> Extra;
             /// <summary>Returns a line for the game log, or null.</summary>
             public Func<Speaker, string, ActionContext, string> Execute;
+            /// <summary>
+            /// For the few actions a talk is often about (fealty, land, peace, marriage, joining): while it is not
+            /// available, why not, in English and addressed to the character. null when it does not concern them.
+            /// </summary>
+            public Func<Speaker, string> WhyNot;
         }
+
+        /// <summary>A real action name, or a name models use for one.</summary>
+        internal static bool Knows(string name) => !string.IsNullOrEmpty(name) && (All.Any(a => a.Name == name) || Aliases.ContainsKey(name));
 
         private static Hero P => Hero.MainHero;
 
@@ -251,6 +259,69 @@ namespace AILegacy.Dialogue
         private static int Rel(Speaker s) => s.IsHero ? (int)s.Hero.GetRelationWithPlayer() : 0;
         private static bool IsPlayersPrisoner(Hero h) => h.IsPrisoner && h.PartyBelongedToAsPrisoner == MobileParty.MainParty?.Party;
 
+        // --- deals forced out of a prisoner
+        /// <summary>A prisoner in the player's hands (party or own dungeon) who can be made to sign things from his cell.</summary>
+        private static bool Duress(Speaker s) => S.Get.AllowPrisonerDeals && s.IsHero && Captivity.HeldByPlayer(s.Hero);
+        /// <summary>Free to act, or a captive of the player who can be forced to.</summary>
+        private static bool FreeOrDuress(Speaker s) => s.IsHero && (!s.Hero.IsPrisoner || Duress(s));
+
+        /// <summary>Towns and castles a captive can sign over: his clan's if he leads it, and the whole realm's if he rules it.</summary>
+        private static List<Settlement> CedableUnderDuress(Speaker s)
+        {
+            var list = new List<Settlement>();
+            try
+            {
+                if (!Duress(s) || s.Hero.Clan == null || s.Hero.Clan == PC) return list;
+                var h = s.Hero;
+                if (h.Clan.Leader == h) list.AddRange(FiefsOf(h.Clan));
+                var k = World.Facts.Subject(h.Clan);
+                if (k != null && k.Leader == h && k != P.MapFaction)
+                    foreach (var f in k.Settlements) if ((f.IsTown || f.IsCastle) && !list.Contains(f)) list.Add(f);
+                list.RemoveAll(x => x.IsUnderSiege || x.OwnerClan == null || x.OwnerClan == PC);
+            }
+            catch { }
+            return list;
+        }
+
+        /// <summary>
+        /// After a captive did what was forced out of him. When it left him on the player's side or at peace with
+        /// it, the game frees him on its own (PrisonerReleaseCampaignBehavior releases prisoners who are no longer
+        /// enemies when a clan changes kingdom); if he is somehow still held, he is let go here. The deal leaves its
+        /// mark either way: he remembers it was forced, trusts and likes the player less.
+        /// </summary>
+        private static void AfterForcedDeal(Speaker s, ActionContext ctx, string whatEn, bool release)
+        {
+            try
+            {
+                var h = s.Hero;
+                if (release)
+                {
+                    if (h.IsPrisoner && !AtWarWithPlayer(s))
+                    {
+                        try { EndCaptivityAction.ApplyByReleasedByChoice(h, P); }
+                        catch (Exception ex) { Log.Error("Soltar al prisionero tras el trato", ex); }
+                    }
+                    if (!h.IsPrisoner)
+                    {
+                        Say(L.F("AIL_e7b1c785", $"{s.Name} deja de ser tu prisionero y queda libre."));
+                        ctx.EndConversation = true;
+                    }
+                }
+                ctx.TrustDelta -= 15;
+                ctx.RelationDelta -= 3;
+                string note = $"Forced under threat of death while their prisoner: {whatEn}. It was not given freely.";
+                if (!s.Memory.Notes.Contains(note))
+                {
+                    s.Memory.Notes.Add(note);
+                    while (s.Memory.Notes.Count > Math.Max(1, S.Get.MaxNotesPerHero)) s.Memory.Notes.RemoveAt(0);
+                }
+                NoteOutcome(s, $"[Done under duress: {whatEn}. It has really taken effect in the world" + (release && !h.IsPrisoner ? ", and you are no longer their prisoner" : "") +
+                               ". You did it to save your life, not out of loyalty: the resentment stays with you.]");
+                Say(L.F("AIL_e7b1c786", $"Arrancado bajo amenaza: {s.Name} no lo olvidará."));
+            }
+            catch (Exception ex) { Log.Error("Trato forzado con un prisionero", ex); }
+        }
+
         // --- orders on the map
         // With an order running, only resume_duties is offered, so half-finished orders don't pile up
         private static bool CanOrder(Speaker s) => s.IsHero && OrderSystem.CanTakeOrders(s.Hero) && OrderSystem.Find(s.Hero) == null;
@@ -395,6 +466,18 @@ namespace AILegacy.Dialogue
                               "(usually after being paid your price with take_gold in the same reply or earlier).",
                 IsAvailable = s => s.IsHero && s.Hero.IsWanderer && s.Hero.CompanionOf == null && !s.Hero.IsPrisoner && s.Hero.PartyBelongedTo == null
                                    && Clan.PlayerClan != null && Clan.PlayerClan.Companions.Count < Clan.PlayerClan.CompanionLimit,
+                WhyNot = s =>
+                {
+                    var h = s.Hero;
+                    if (h.Clan == PC || h.CompanionOf != null || h.IsChild) return null;
+                    if (h.IsLord) return h.IsPrisoner ? "you are a noble and their prisoner: you cannot ride in their band, as a companion or otherwise, while you are held"
+                                                      : "you are a noble with a house of your own: you do not enter anyone's band as a hired companion";
+                    if (!h.IsWanderer) return "you have your own life and place here and are not for hire as a companion";
+                    if (h.IsPrisoner) return "you are a prisoner: you cannot take up arms in their band until you are set free";
+                    if (h.PartyBelongedTo != null) return "you are already travelling with a party";
+                    if (PC != null && PC.Companions.Count >= PC.CompanionLimit) return "their company has no room for another companion";
+                    return null;
+                },
                 Execute = (s, arg, ctx) =>
                 {
                     AddCompanionAction.Apply(Clan.PlayerClan, s.Hero);
@@ -424,14 +507,33 @@ namespace AILegacy.Dialogue
                 Name = "swear_fealty", Usage = "swear_fealty",
                 Description = "You and your whole clan swear fealty to the other person's kingdom and become their vassals, leaving your current realm if you have one. " +
                               "A huge decision: only after real persuasion, good relations and a clear offer from them, and only if it suits your interests.",
-                IsAvailable = s => S.Get.AllowFealty && s.IsHero && s.Hero.IsLord && s.Hero.IsClanLeader && !s.Hero.IsKingdomLeader && !s.Hero.IsPrisoner
-                                   && PlayerIsRuler && s.Hero.Clan != null && !s.Hero.Clan.IsMinorFaction && s.Hero.Clan.Kingdom != PlayerKingdom && Rel(s) >= 0,
+                // A captive of the player can be made to swear: the liking it normally takes is not asked of him
+                IsAvailable = s => S.Get.AllowFealty && s.IsHero && s.Hero.IsLord && s.Hero.IsClanLeader && !s.Hero.IsKingdomLeader && FreeOrDuress(s)
+                                   && PlayerIsRuler && s.Hero.Clan != null && !s.Hero.Clan.IsMinorFaction && s.Hero.Clan.Kingdom != PlayerKingdom && (Rel(s) >= 0 || Duress(s)),
+                Extra = s => Duress(s) ? "As their prisoner you can swear it from your chains to save your life: the oath is real, it binds your whole clan, and it sets you free." : "",
+                WhyNot = s =>
+                {
+                    var h = s.Hero;
+                    if (!h.IsLord || h.Clan == null || h.Clan == PC || h.Clan.IsBanditFaction) return null;
+                    if (!S.Get.AllowFealty) return "oaths of fealty cannot be sworn in a talk in this world";
+                    if (!PlayerIsRuler) return "they rule no kingdom, so there is no crown of theirs for a clan to swear to";
+                    if (h.Clan.Kingdom == PlayerKingdom) return h.Clan.IsUnderMercenaryService ? null : "your clan is already sworn to their kingdom";
+                    if (h.IsKingdomLeader) return $"you are the ruler of {h.MapFaction?.Name}: a crown cannot swear itself to another crown. What a ruler can do is make peace, with whatever it costs written into the treaty";
+                    if (!h.IsClanLeader) return $"you are not the head of clan {h.Clan.Name}: only {h.Clan.Leader?.Name} can swear for it, and your word alone binds nobody";
+                    if (h.Clan.IsMinorFaction) return "yours is a free company, not a landed house: it can be hired, not sworn as a vassal";
+                    if (h.IsPrisoner) return "you are a prisoner and cannot bind your house from a cell";
+                    if (Rel(s) < 0) return $"you think too ill of them to swear to them (relation {Rel(s)}; it would have to be 0 or better)";
+                    return null;
+                },
                 Execute = (s, arg, ctx) =>
                 {
                     var clan = s.Hero.Clan;
+                    bool forced = Duress(s);
                     AILegacy.World.Banished.Pardon(clan, PlayerKingdom);      // you took them in, so they're pardoned
                     if (clan.Kingdom != null) ChangeKingdomAction.ApplyByJoinToKingdomByDefection(clan, clan.Kingdom, PlayerKingdom);
                     else ChangeKingdomAction.ApplyByJoinToKingdom(clan, PlayerKingdom);
+                    if (clan.Kingdom != PlayerKingdom) return Nope(null, "the oath did not take effect: your clan is not in their kingdom");
+                    if (forced) AfterForcedDeal(s, ctx, $"you swore fealty with your whole clan to {PlayerKingdom.Name}, their kingdom, and are now their vassal", true);
                     return L.F("AIL_bdc30505", $"El clan {clan.Name} jura lealtad a {PlayerKingdom.Name}.");
                 }
             },
@@ -439,12 +541,28 @@ namespace AILegacy.Dialogue
             {
                 Name = "serve_as_mercenary", Usage = "serve_as_mercenary",
                 Description = "Your clan enters the other person's kingdom as paid mercenaries. Only after you agreed to the deal.",
-                IsAvailable = s => S.Get.AllowFealty && s.IsHero && s.Hero.IsClanLeader && !s.Hero.IsPrisoner && s.Hero.Clan != null && s.Hero.Clan.IsMinorFaction
+                IsAvailable = s => S.Get.AllowFealty && s.IsHero && s.Hero.IsClanLeader && FreeOrDuress(s) && s.Hero.Clan != null && s.Hero.Clan.IsMinorFaction
                                    && s.Hero.Clan.Kingdom == null && !s.Hero.Clan.IsBanditFaction && PlayerIsRuler,
+                Extra = s => Duress(s) ? "As their prisoner you can agree to it from your chains: the contract is real and it sets you free." : "",
+                WhyNot = s =>
+                {
+                    var h = s.Hero;
+                    if (h.Clan == null || !h.Clan.IsMinorFaction || h.Clan.IsBanditFaction || h.Clan == PC) return null;
+                    if (!S.Get.AllowFealty) return "mercenary contracts cannot be made in a talk in this world";
+                    if (!PlayerIsRuler) return "they rule no kingdom that could hire a company";
+                    if (h.Clan.Kingdom == PlayerKingdom) return null;
+                    if (h.Clan.Kingdom != null) return $"your company is under contract with {h.Clan.Kingdom.Name} and cannot take a second one";
+                    if (!h.IsClanLeader) return $"you do not lead your company: only {h.Clan.Leader?.Name} can sign a contract for it";
+                    if (h.IsPrisoner) return "you are a prisoner and cannot sign for your company from a cell";
+                    return null;
+                },
                 Execute = (s, arg, ctx) =>
                 {
+                    bool forced = Duress(s);
                     AILegacy.World.Banished.Pardon(s.Hero.Clan, PlayerKingdom);
                     ChangeKingdomAction.ApplyByJoinFactionAsMercenary(s.Hero.Clan, PlayerKingdom);
+                    if (s.Hero.Clan.Kingdom != PlayerKingdom) return Nope(null, "the contract did not take effect");
+                    if (forced) AfterForcedDeal(s, ctx, $"you put your company in the service of {PlayerKingdom.Name}, their kingdom, as mercenaries", true);
                     return L.F("AIL_cdf9a5fc", $"El clan {s.Hero.Clan.Name} sirve ahora a {PlayerKingdom.Name} como mercenarios.");
                 }
             },
@@ -483,7 +601,19 @@ namespace AILegacy.Dialogue
                               "Each term at most once, sums as plain whole numbers above zero, and a town or castle by its full name. " +
                               "With or without terms, they are shown the treaty and nothing is signed, paid or handed over until they confirm it.",
                 IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction),
-                Extra = s => $"Your treasury holds {Math.Max(0, s.Hero.Gold)} denars.",
+                Extra = s => $"Your treasury holds {Math.Max(0, s.Hero.Gold)} denars." +
+                             (Duress(s) ? " You are their prisoner: a peace you agree to from your chains is as binding as any other, and what they wring out of you goes into its terms (you_pay, you_pay_daily, you_cede)." : ""),
+                WhyNot = s =>
+                {
+                    var h = s.Hero;
+                    if (!h.IsLord || !AtWarWithPlayer(s)) return null;
+                    if (!S.Get.AllowDiplomacy) return "war and peace cannot be settled in a talk in this world";
+                    if (!(h.MapFaction is Kingdom k)) return "your side is no kingdom: there is no treaty for you to sign";
+                    if (!h.IsKingdomLeader) return $"you are not the ruler of {k.Name}: only {k.Leader?.Name} can make peace for it. You can say you will speak for it, never that it is agreed";
+                    if (!PlayerIsRuler) return $"they do not rule their side: peace is made between rulers, and theirs is {(P.MapFaction as Kingdom)?.Leader?.Name}";
+                    if (!WarPeaceSettled(h.MapFaction)) return "war or peace between your two realms was settled only days ago: it is too soon to change it again";
+                    return null;
+                },
                 Execute = (s, arg, ctx) =>
                 {
                     // With a price either way or with none, the peace is drawn up, shown to the player, and signed
@@ -538,6 +668,23 @@ namespace AILegacy.Dialogue
                 IsAvailable = s => S.Get.AllowMarriage && s.IsHero && !s.Hero.IsPrisoner && Rel(s) >= S.Get.MinRelationForMarriage
                                    && (!S.Get.EnableRomance || s.Memory.Romance >= S.Get.RomanceForMarriage)
                                    && CanWed(s.Hero),
+                // Covers propose_marriage too: both ask for the same things
+                WhyNot = s =>
+                {
+                    var h = s.Hero;
+                    if (h.IsChild || h.Age < 18 || P.Spouse == h || Bonds.IsCloseFamily(h)) return null;
+                    if (h.IsFemale == P.IsFemale && !S.Get.RomanceSameSex) return null;
+                    if (!S.Get.AllowMarriage) return "no marriage can be made in a talk in this world";
+                    if (h.IsPrisoner) return "you are a prisoner: no wedding can be held from a cell, and a promise of one is only a promise";
+                    if (!CanWed(h))
+                        return h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan ? "you are the head of your own house and will not leave it to marry into theirs"
+                             : h.Spouse != null && h.Spouse.IsAlive ? $"you are married to {h.Spouse.Name}"
+                             : P.Spouse != null && P.Spouse.IsAlive ? "they are already married"
+                             : "a marriage between the two of you is not possible";
+                    if (Rel(s) < S.Get.MinRelationForMarriage) return $"you do not think well enough of them to marry them (relation {Rel(s)}; it would have to be {S.Get.MinRelationForMarriage} or better)";
+                    if (S.Get.EnableRomance && s.Memory.Romance < S.Get.RomanceForMarriage) return "you do not love them enough to marry them yet";
+                    return null;
+                },
                 Execute = (s, arg, ctx) =>
                 {
                     var h = s.Hero;
@@ -1129,11 +1276,48 @@ namespace AILegacy.Dialogue
                 Name = "grant_fief", Usage = "grant_fief:<town or castle of yours>",
                 Description = "You give one of your clan's towns or castles to the other person's clan, for good. A lord's lands are his power: only as a ruler rewarding great service, " +
                               "to settle a heavy debt of honour, or under real duress. Never your last fief unless you are truly beaten.",
-                IsAvailable = s => S.Get.AllowFiefs && s.IsHero && s.Hero.IsClanLeader && !s.Hero.IsPrisoner && KingdomOf(s) != null && KingdomOf(s) == P.MapFaction
-                                   && !PlayerMercenary && s.Hero.Clan != PC && FiefsOf(s.Hero.Clan).Count > 0,
-                Extra = s => "Your clan holds: " + string.Join(", ", FiefsOf(s.Hero.Clan).Select(x => x.Name.ToString())) + ".",
+                // Freely: a clan head to a lord of his own realm. Forced: a captive of the player signs over a fief of his
+                // clan, or of his whole realm if he rules it, whatever realm he belongs to.
+                IsAvailable = s => S.Get.AllowFiefs && s.IsHero && s.Hero.Clan != PC
+                                   && ((s.Hero.IsClanLeader && !s.Hero.IsPrisoner && KingdomOf(s) != null && KingdomOf(s) == P.MapFaction && !PlayerMercenary && FiefsOf(s.Hero.Clan).Count > 0)
+                                       || CedableUnderDuress(s).Count > 0),
+                Extra = s =>
+                {
+                    if (!Duress(s)) return "Your clan holds: " + string.Join(", ", FiefsOf(s.Hero.Clan).Select(x => x.Name.ToString())) + ".";
+                    var can = CedableUnderDuress(s);
+                    return "As their prisoner you can sign one over from your chains to buy your life or your freedom; it changes hands at once. You can sign over: " +
+                           string.Join(", ", can.Take(14).Select(x => x.Name.ToString())) + (can.Count > 14 ? $" and {can.Count - 14} more" : "") + ".";
+                },
+                WhyNot = s =>
+                {
+                    var h = s.Hero;
+                    if (!h.IsLord || h.Clan == null || h.Clan == PC) return null;
+                    if (!S.Get.AllowFiefs) return "land cannot change hands in a talk in this world";
+                    bool rules = h.IsKingdomLeader;
+                    if (h.IsPrisoner && !Duress(s)) return "you are a prisoner and can sign nothing over from a cell";
+                    if (!h.IsClanLeader && !rules) return $"the lands of clan {h.Clan.Name} are {h.Clan.Leader?.Name}'s to give, not yours";
+                    if (FiefsOf(h.Clan).Count == 0 && !rules) return "your clan holds no town or castle";
+                    if (!h.IsPrisoner && (KingdomOf(s) == null || KingdomOf(s) != P.MapFaction))
+                        return "you can only grant land to a lord of your own realm; between realms a town or castle changes hands in a peace treaty" + (rules ? " (make_peace with you_cede, when you are at war)" : ", which only your ruler can make");
+                    if (!h.IsPrisoner && PlayerMercenary) return "they only serve your realm for pay: land is not granted to a hired company";
+                    return null;
+                },
                 Execute = (s, arg, ctx) =>
                 {
+                    if (Duress(s))
+                    {
+                        var can = CedableUnderDuress(s);
+                        var mine = OrderSystem.FindSettlement(arg, x => can.Contains(x));
+                        if (mine == null) return Nope(null, "that is not a town or castle you can sign over (not yours or your realm's, or it is under siege)");
+                        var from = mine.OwnerClan;
+                        // Across realms it changes hands the way a ceded town does in a peace; inside one realm it is a gift
+                        if (mine.MapFaction != P.MapFaction) ChangeOwnerOfSettlementAction.ApplyByDefault(P, mine);
+                        else ChangeOwnerOfSettlementAction.ApplyByGift(mine, P);
+                        if (mine.OwnerClan != PC) return Nope(null, $"{mine.Name} could not change hands");
+                        try { if (from?.Leader != null && from.Leader != s.Hero && from.Leader != P) ChangeRelationAction.ApplyRelationChangeBetweenHeroes(s.Hero, from.Leader, -15, false); } catch { }
+                        AfterForcedDeal(s, ctx, $"you signed {mine.Name} over to them" + (from != null && from != s.Hero.Clan ? $", taking it from clan {from.Name} of your own realm" : ""), false);
+                        return L.F("AIL_e7b1c787", $"{s.Name} te cede {mine.Name} desde su cautiverio.");
+                    }
                     var st = OrderSystem.FindSettlement(arg, x => (x.IsTown || x.IsCastle) && x.OwnerClan == s.Hero.Clan && !x.IsUnderSiege);
                     if (st == null) return Nope(null, "that is not a town or castle your clan holds (or it is under siege)");
                     if (FiefsOf(s.Hero.Clan).Count <= 1) return Nope(null, $"{st.Name} is the last fief of your house: you cannot give it away");
@@ -1214,13 +1398,16 @@ namespace AILegacy.Dialogue
                 Name = "leave_kingdom", Usage = "leave_kingdom",
                 Description = "You take your clan out of the kingdom you serve, breaking your oath (or ending your mercenary contract), effective now. You lose your place at court and may lose your lands. " +
                               "Only when you have truly broken with your ruler: betrayal, ruin, or a far better future elsewhere.",
-                IsAvailable = s => S.Get.AllowFealty && s.IsHero && s.Hero.IsClanLeader && !s.Hero.IsPrisoner && KingdomOf(s) != null && KingdomOf(s).Leader != s.Hero
+                IsAvailable = s => S.Get.AllowFealty && s.IsHero && s.Hero.IsClanLeader && FreeOrDuress(s) && KingdomOf(s) != null && KingdomOf(s).Leader != s.Hero
                                    && s.Hero.Clan != PC,
+                Extra = s => Duress(s) ? "As their prisoner you can renounce your ruler from your chains: your clan leaves that kingdom and its wars, and you stop being their enemy." : "",
                 Execute = (s, arg, ctx) =>
                 {
                     var k = KingdomOf(s); var c = s.Hero.Clan;
+                    bool forced = Duress(s) && k != P.MapFaction;
                     if (c.IsUnderMercenaryService) ChangeKingdomAction.ApplyByLeaveKingdomAsMercenary(c);
                     else ChangeKingdomAction.ApplyByLeaveKingdom(c);
+                    if (forced) AfterForcedDeal(s, ctx, $"you took your clan out of {k.Name}, renouncing your ruler", true);
                     return L.F("AIL_3677d2a1", $"El clan {c.Name} abandona {k.Name}.");
                 }
             },
@@ -1869,6 +2056,48 @@ namespace AILegacy.Dialogue
             if (brief.Count > 0)
                 sb.AppendLine("- Also open to you if the talk turns to them (same rules; written exactly like this): " + string.Join(" · ", brief.Select(a => a.Usage)));
             return sb.ToString().TrimEnd();
+        }
+
+        private static readonly Prompt.Tpl TCannot = new Prompt.Tpl("rules/actions_unavailable.txt",
+@"## What you CANNOT do right now, and why
+These are not in your list of actions, so they cannot happen in this talk:
+{list}
+If the talk turns to one of them, say plainly and in character that it is not in your power, and why. Never promise it, never speak or narrate as if it were done or being arranged, and do not send them away with ""it will be seen to"": with no action for it, nothing happens.");
+
+        private static readonly Prompt.Tpl TActNow = new Prompt.Tpl("rules/actions_act_now.txt",
+            "When you agree to something that one of the actions above carries out, put that action in THIS reply, together with the words. Never put it off (\"before the moon sets\", \"my scribes will see to it\", \"it will be entered in the ledgers\"): " +
+            "nothing happens later by itself, and agreeing without the action changes nothing in the world. In \"remember\", never record as done something you used no action for: write it as said or promised.");
+
+        /// <summary>The instruction that goes under the list of open actions.</summary>
+        public static string ActNowRule => TActNow.Text;
+
+        /// <summary>
+        /// The important things this character cannot do right now (fealty, land, peace, marriage, joining), each
+        /// with its reason, so that he says so instead of promising or narrating them. Empty when there are none.
+        /// </summary>
+        public static string DescribeUnavailable(Speaker s)
+        {
+            if (!S.Get.EnableActions || s == null || !s.IsHero) return "";
+            var lines = new List<string>();
+            foreach (var a in All.ToList())
+            {
+                if (a.WhyNot == null) continue;
+                try
+                {
+                    if (a.IsAvailable(s)) continue;
+                    // one line for a marriage, whichever of the two is asked
+                    if (a.Name == "accept_marriage" && All.Any(o => o.Name == "propose_marriage" && o.IsAvailable(s))) continue;
+                    string why = a.WhyNot(s);
+                    if (string.IsNullOrWhiteSpace(why)) continue;
+                    string what = a.Name == "swear_fealty" ? "Swear fealty to them with your clan" : a.Name == "serve_as_mercenary" ? "Enter their service as mercenaries"
+                                : a.Name == "grant_fief" ? "Give or sign over a town or castle to them" : a.Name == "make_peace" ? "Make peace between your side and theirs"
+                                : a.Name == "accept_marriage" ? "Marry them" : a.Name == "join_party" ? "Join their band as a companion" : a.Name.Replace('_', ' ');
+                    lines.Add($"- {what}: {why}.");
+                }
+                catch { }
+                if (lines.Count >= 6) break;
+            }
+            return lines.Count == 0 ? "" : TCannot.Format("list", string.Join("\n", lines));
         }
 
         /// <summary>Runs the requested actions (main thread). Returns the messages to show.</summary>

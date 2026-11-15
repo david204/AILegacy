@@ -203,13 +203,23 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             "The older records have grown too many. ALSO fold the ones marked [MERGE] into one single record of at most {words} words, in English, same point of view: keep every promise, debt, deal, grudge, favour, " +
             "secret and every named person or place, in the order they happened; drop only small talk and repetition.");
 
+        // Separate templates so they also reach campaigns whose summary_part.txt was edited
+        private static readonly Tpl TSummaryGround = new Tpl("memory/summary_grounding.txt",
+@"What was really carried out in the world during this stretch (the complete list; nothing else took effect):
+{deeds}
+An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a peace, a release or a change of allegiance that appears only in what was SAID, and not in that list, did NOT happen. Record it as words («said they would», «promised», «offered», «claimed»), never as done, however solemnly {npc_name} spoke it. The same goes for the memory book page.");
+
+        private static readonly Tpl TSummaryFacts = new Tpl("memory/summary_facts.txt",
+@"Who {npc_name} really is today, from the world itself (where the talk says otherwise, the talk was only words):
+{facts}");
+
         private static readonly Tpl TGap = new Tpl("memory/time_gap.txt", "[{days} day(s) later]");
 
         private static readonly Tpl TOpeners = new Tpl("rules/used_openers.txt",
             "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
         /// <summary>Forces every template (static fields) to register before they are written to disk.</summary>
-        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); }
+        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
 
         // =========================================================== dialogue
 
@@ -315,12 +325,16 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
             now.AppendLine(TTurn.Text);
             AppendNow(now, s);
             Bonds.AppendTo(now, s);
+            // A prisoner of the player: whose hands he is in, what they have done to other captives, and his fear
+            Captivity.AppendTo(now, s);
             if (relationBudgetLeft <= 0 && s.IsHero) now.AppendLine(TRelationCapped.Text);
             try { string near = Mentions.NearbyParties(s); if (near.Length > 0) { now.AppendLine(); now.AppendLine(TNearby.Text); now.AppendLine(near); } } catch { }
             try { string named = Mentions.Describe(s); if (named.Length > 0) { now.AppendLine(); now.AppendLine(TMentioned.Text); now.AppendLine(named); } } catch { }
             AppendRecall(now, s);
             var actions = NpcActions.DescribeAvailable(s);
-            if (actions.Length > 0) { now.AppendLine(); now.AppendLine(TActionsNow.Text); now.AppendLine(actions); }
+            if (actions.Length > 0) { now.AppendLine(); now.AppendLine(TActionsNow.Text); now.AppendLine(actions); now.AppendLine(NpcActions.ActNowRule); }
+            // What the talk is likely to be about and he cannot do, with the reason, so he says so instead of promising it
+            try { string cannot = NpcActions.DescribeUnavailable(s); if (cannot.Length > 0) { now.AppendLine(); now.AppendLine(cannot); } } catch { }
             // Anti-repetition: how their last replies started
             try
             {
@@ -455,6 +469,22 @@ Answer ONLY with JSON: { ""summary"": ""the record of this stretch, in English""
                 "merge_task", merging ? "\n" + TSummaryMerge.Format("words", MemorySummarizer.MergedWords) : "",
                 "merge_field", merging ? ", \"merged\": \"the [MERGE] records folded into one, in English\"" : ""));
             sb.AppendLine();
+            // What was really carried out in this stretch, and who this character really is today: the record is
+            // written from these, not from what was only said.
+            try
+            {
+                var deeds = oldTurns.Where(t => t.IsNote && t.Text.StartsWith("[Done", System.StringComparison.Ordinal))
+                                    .Select(t => "- " + t.Text.Trim().TrimStart('[').TrimEnd(']')).Distinct().ToList();
+                sb.AppendLine(TSummaryGround.Format("npc_name", s.Name,
+                    "deeds", deeds.Count > 0 ? string.Join("\n", deeds) : "- (nothing: no action was carried out in this stretch; it was all talk)"));
+                if (s.IsHero)
+                {
+                    string truth = ContextBuilder.StandingForRecord(s.Hero);
+                    if (truth.Length > 0) sb.AppendLine(TSummaryFacts.Format("npc_name", s.Name, "facts", truth));
+                }
+                sb.AppendLine();
+            }
+            catch (System.Exception ex) { AILegacy.Core.Log.Error("Hechos reales para el resumen", ex); }
             if (mem.Summaries.Count > 0)
             {
                 sb.AppendLine("Older records, oldest first:");

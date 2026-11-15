@@ -45,6 +45,19 @@ namespace AILegacy.World
         public void AddHero(string name, string kingdom, string hiredBy) => Add(Heroes, name, kingdom, hiredBy);
         public void AddClan(string name, string kingdom, string hiredBy) => Add(Clans, name, kingdom, hiredBy);
 
+        /// <summary>Dead people by name, with the name as written and their id.</summary>
+        public readonly Dictionary<string, KeyValuePair<string, string>> Dead = new Dictionary<string, KeyValuePair<string, string>>();
+
+        public void AddDead(string name, string id)
+        {
+            string key = FactCheck.Norm(name);
+            if (key.Length >= 4 && !Dead.ContainsKey(key)) Dead[key] = new KeyValuePair<string, string>(name.Trim(), id ?? "");
+        }
+
+        /// <summary>The dead whose name no living lord and no clan carries: only those can be told apart by name.</summary>
+        public IEnumerable<KeyValuePair<string, KeyValuePair<string, string>>> DeadOnly =>
+            Dead.Where(d => !Heroes.ContainsKey(d.Key) && !Clans.ContainsKey(d.Key));
+
         private static void Add(Dictionary<string, List<FactTie>> map, string name, string kingdom, string hiredBy)
         {
             string key = FactCheck.Norm(name);
@@ -549,6 +562,80 @@ namespace AILegacy.World
                     if (HedgeBefore(hs.Substring(0, at + 1), HedgeLeadBetween, hedge) || HedgeAfter(hs.Substring(after[1].End), HedgeTail, hedge)) continue;
                     if (wars.Contains(Pair(after[0].Id, after[1].Id))) return after[0].Id + " and " + after[1].Id;
                 }
+            return null;
+        }
+
+        // Next to a dead person's name, one of these shows the text knows they are dead (or speaks of what they left).
+        // Matched as the start of a word, unless listed in ExactDeathWords.
+        private static readonly string[] DeathWords =
+        {
+            "dead", "death", "died", "dies", "dying", "late", "slain", "slew", "kill", "execut", "murder", "assassin", "behead", "hang", "fell", "fallen", "perish",
+            "mourn", "griev", "funeral", "burial", "buri", "bury", "grave", "tomb", "corpse", "body", "ghost", "memor", "legacy", "heir", "inherit", "success",
+            "widow", "orphan", "aveng", "veng", "reveng", "martyr", "former", "was", "were", "had", "once", "after", "since", "loss", "lost", "passing", "demise",
+            "gone", "vacant", "empty", "headless", "blood", "remains", "ashes", "pyre", "requiem", "beyond",
+        };
+        private static readonly HashSet<string> ExactDeathWords = new HashSet<string>
+        {
+            "late", "fell", "was", "were", "had", "once", "after", "since", "loss", "lost", "gone", "body", "heir", "dies", "died", "dead", "empty", "beyond",
+        };
+
+        private static bool IsDeathWord(string w)
+        {
+            foreach (var d in DeathWords)
+                if (ExactDeathWords.Contains(d) ? w == d : w.StartsWith(d, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        /// <summary>The dead person a written name means, when nobody alive answers to it. Titles in front are dropped.</summary>
+        private static bool NamesDead(FactModel m, string written, out KeyValuePair<string, string> who)
+        {
+            who = default(KeyValuePair<string, string>);
+            var words = Soft(written).Split(Space, StringSplitOptions.RemoveEmptyEntries).ToList();
+            for (int from = 0; from < words.Count; from++)
+            {
+                string key = string.Concat(words.Skip(from));
+                if (m.Heroes.ContainsKey(key) || m.Clans.ContainsKey(key)) return false;
+                if (m.Dead.TryGetValue(key, out who)) return true;
+                if (!Titles.Contains(words[from])) break;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// An event that has a dead person alive: acting, ruling, being served or plotted against. Read from the
+        /// claims (each one names someone the text relies on, today) and from the English summary. A sentence that
+        /// names the dead and also speaks of the death, or of what it left, is fine; so is the possessive ("X's
+        /// heirs"). A name a living lord or a clan also carries is never held against the text. null when fine.
+        /// </summary>
+        public static string CheckDead(IEnumerable<FactClaim> claims, string summary, FactModel m)
+        {
+            if (m == null || m.Dead.Count == 0) return null;
+            var dead = m.DeadOnly.ToList();
+            if (dead.Count == 0) return null;
+            var named = new HashSet<string>();      // keys of the dead the summary names somewhere
+            bool anyDeathWord = false;
+            foreach (var part in Sentences(summary ?? ""))
+            {
+                string soft = Soft(part.Key);
+                if (soft.Length < 4) continue;
+                bool knows = Words(soft).Any(IsDeathWord);
+                anyDeathWord |= knows;
+                foreach (var d in dead)
+                {
+                    string name = Soft(d.Value.Key);
+                    if (name.Trim().Length < 4 || soft.IndexOf(name, StringComparison.Ordinal) < 0) continue;
+                    named.Add(d.Key);
+                    if (!knows) return $"writes of {d.Value.Key} [{d.Value.Value}] as if alive, and they are dead";
+                }
+            }
+            foreach (var c in claims ?? Enumerable.Empty<FactClaim>())
+            {
+                if (c == null || c.Kind == "war" || c.Kind == "allies" || string.IsNullOrWhiteSpace(c.Who)) continue;
+                if (!NamesDead(m, c.Who, out var who)) continue;
+                // named in the summary: that sentence was read above. Otherwise the summary must at least speak of a death
+                if (named.Contains(Norm(who.Key)) || anyDeathWord) continue;
+                return $"relies on {who.Key} [{who.Value}] as if alive, and they are dead";
+            }
             return null;
         }
 

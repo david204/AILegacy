@@ -1986,5 +1986,18 @@
     <string id="AIL_e7b1c780" text="{0} accepte la paix que tu avais proposée. {1}" />
     <string id="AIL_e7b1c781" text="{0} te propose de signer la paix maintenant, sans conditions : personne ne paie ni ne cède rien.&#10;&#10;Si tu signes, la guerre prend fin sur-le-champ. Sinon, rien ne change." />
     <string id="AIL_e7b1c782" text="La paix n’a pas été signée : {0}. Rien n’a été payé ni cédé." />
+    <string id="AIL_e7b1c783" text="Les prisonniers peuvent être contraints à des accords" />
+    <string id="AIL_e7b1c784" text="Activé : un seigneur que vous tenez prisonnier peut, sous la menace, vous jurer fidélité avec son clan, vous servir comme mercenaire, renier son royaume ou vous céder une ville ou un château depuis sa cellule, même s’il ne vous aime pas (un souverain captif peut céder n’importe quel fief de son royaume). Ce qu’il jure le laisse libre, rancunier et moins confiant envers vous. Désactivé : un prisonnier peut seulement payer, signer la paix s’il est souverain, être libéré ou mourir." />
+    <string id="AIL_e7b1c785" text="{0} n’est plus votre prisonnier et retrouve la liberté." />
+    <string id="AIL_e7b1c786" text="Arraché sous la menace : {0} ne l’oubliera pas." />
+    <string id="AIL_e7b1c787" text="{0} vous cède {1} depuis sa captivité." />
+    <string id="AIL_e7b1c788" text="L’exécution de {0} a été accomplie, sur votre ordre." />
+    <string id="AIL_e7b1c789" text="{0} est mort de votre main." />
+    <string id="AIL_e7b1c78a" text="{0} s’est donné la mort." />
+    <string id="AIL_e7b1c78b" text="{0} est mort empoisonné." />
+    <string id="AIL_e7b1c78c" text="{0} est mort de ses blessures." />
+    <string id="AIL_e7b1c78d" text="{0} est mort de maladie." />
+    <string id="AIL_e7b1c78e" text="{0} est mort dans un accident." />
+    <string id="AIL_e7b1c78f" text="Trouvé près du corps : {0}. Cela fait partie du récit : rien n’est ajouté à votre inventaire." />
   </strings>
 </base>

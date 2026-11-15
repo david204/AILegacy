@@ -1986,5 +1986,18 @@
     <string id="AIL_e7b1c780" text="{0} accepts the peace you had proposed. {1}" />
     <string id="AIL_e7b1c781" text="{0} proposes that you sign the peace now, with no terms: nobody pays or hands over anything.&#10;&#10;If you sign, the war ends at once. If you do not, nothing changes." />
     <string id="AIL_e7b1c782" text="The peace was not signed: {0}. Nothing was paid or handed over." />
+    <string id="AIL_e7b1c783" text="Prisoners can be forced into deals" />
+    <string id="AIL_e7b1c784" text="On: a lord you hold prisoner can, under threat, swear fealty with his clan, serve you as a mercenary, renounce his kingdom or sign a town or castle over to you from his cell, even if he dislikes you (a captive ruler can sign over any fief of his realm). What he swears leaves him free, resentful and trusting you less. Off: a prisoner can only pay, make peace if he is a ruler, be released or die." />
+    <string id="AIL_e7b1c785" text="{0} is no longer your prisoner and goes free." />
+    <string id="AIL_e7b1c786" text="Wrung out under threat: {0} will not forget it." />
+    <string id="AIL_e7b1c787" text="{0} signs {1} over to you from captivity." />
+    <string id="AIL_e7b1c788" text="The execution of {0} has been carried out, on your order." />
+    <string id="AIL_e7b1c789" text="{0} has died by your hand." />
+    <string id="AIL_e7b1c78a" text="{0} has taken their own life." />
+    <string id="AIL_e7b1c78b" text="{0} has died of poison." />
+    <string id="AIL_e7b1c78c" text="{0} has died of their wounds." />
+    <string id="AIL_e7b1c78d" text="{0} has died of illness." />
+    <string id="AIL_e7b1c78e" text="{0} has died in an accident." />
+    <string id="AIL_e7b1c78f" text="Found by the body: {0}. This is part of the story: nothing is added to your inventory." />
   </strings>
 </base>

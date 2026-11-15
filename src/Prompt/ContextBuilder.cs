@@ -382,8 +382,48 @@ namespace AILegacy.Prompt
                 sb.AppendLine(s.IsHero && AILegacy.World.Facts.IsHired(s.Hero) != AILegacy.World.Facts.IsHired(p)
                         ? "You fight under the same banner, one of you as a vassal and the other for pay." : "You serve the same kingdom.");
 
+            // Whether this character's clan is under the crown the player wears, said outright: a talk about swearing
+            // fealty that ended in words must not leave him believing he is their vassal.
+            try { if (s.IsHero && why != null) { string standing = StandingWithPlayerCrown(s.Hero); if (standing.Length > 0) sb.AppendLine(standing); } } catch { }
+
             sb.AppendLine($"Judging by their gear, they seem {DescribeWealth(p.Gold)}.");
             return sb.ToString().TrimEnd();
+        }
+
+        private static readonly Tpl TTheirVassal = new Tpl("context/standing_their_vassal.txt",
+            "Your clan is sworn to {kingdom}, the kingdom they rule: they are your sovereign.");
+        private static readonly Tpl TNotTheirVassal = new Tpl("context/standing_not_their_vassal.txt",
+            "Your clan is NOT part of {kingdom}, the kingdom they rule, and you are not their vassal, whatever may have been said between you: {own}. Only a real oath (the swear_fealty action, when it is open to you) changes that.");
+
+        /// <summary>For a lord facing a player who rules a kingdom: whether his clan belongs to it. Empty for everyone else.</summary>
+        private static string StandingWithPlayerCrown(Hero npc)
+        {
+            var p = Hero.MainHero;
+            if (!(p.MapFaction is Kingdom pk) || pk.Leader != p || npc.Clan == null || npc.Clan == Clan.PlayerClan || !npc.IsLord) return "";
+            var subject = AILegacy.World.Facts.Subject(npc.Clan);
+            var employer = AILegacy.World.Facts.Employer(npc.Clan);
+            if (subject == pk) return TTheirVassal.Format("kingdom", pk.Name);
+            if (employer == pk) return "";      // said above: one of you a vassal, the other for pay
+            string own = subject != null ? (subject.Leader == npc ? $"you rule {subject.Name} yourself" : $"your clan is sworn to {subject.Name}, whose ruler is {subject.Leader?.Name}")
+                       : employer != null ? $"your clan is in the pay of {employer.Name} and sworn to no crown"
+                       : "your clan answers to no crown";
+            return TNotTheirVassal.Format("kingdom", pk.Name, "own", own);
+        }
+
+        /// <summary>The same truth in the third person, for whoever writes this character's memory.</summary>
+        public static string StandingForRecord(Hero npc)
+        {
+            try
+            {
+                var p = Hero.MainHero;
+                var sb = new StringBuilder(AILegacy.World.Facts.HeroFacts(npc));
+                if (p.MapFaction is Kingdom pk && pk.Leader == p && npc.Clan != null && npc.Clan != Clan.PlayerClan)
+                    sb.Append(AILegacy.World.Facts.Subject(npc.Clan) == pk ? $" Their clan IS a vassal of {pk.Name}, the kingdom {p.Name} rules."
+                                                                         : $" Their clan is NOT a vassal of {pk.Name}, the kingdom {p.Name} rules, and has sworn nothing to it.");
+                if (npc.IsPrisoner) sb.Append(AILegacy.World.Captivity.HeldByPlayer(npc) ? $" Held prisoner by {p.Name} right now." : " A prisoner right now.");
+                return sb.ToString();
+            }
+            catch { return ""; }
         }
 
         private static string DescribeAppearance(Hero p)

@@ -157,6 +157,9 @@ namespace AILegacy.World
         /// <summary>Events that weigh on someone's (or a kingdom's) mood for a few days, and who killed whom.</summary>
         [JsonProperty("mood_events")] public List<MoodEvent> MoodEvents = new List<MoodEvent>();
         [JsonProperty("recent_kills")] public List<KillRecord> RecentKills = new List<KillRecord>();
+        /// <summary>Everyone the player has executed or killed with their own hand, and whether the game's own log was already read for the older ones.</summary>
+        [JsonProperty("executions")] public List<ExecutionRecord> Executions = new List<ExecutionRecord>();
+        [JsonProperty("executions_seeded")] public bool ExecutionsSeeded;
         /// <summary>Day each current pregnancy was conceived (the mother takes a few days to find out).</summary>
         [JsonProperty("conceived")] public Dictionary<string, double> Conceived = new Dictionary<string, double>();
         /// <summary>Last day a chat changed war or peace between two kingdoms ("a|b").</summary>
@@ -638,6 +641,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             // the kingdoms of what happened are never the ones left out when the lists run over their budget
             var tied = reactive ? new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)) : null;
             sys.AppendLine(Facts.Roster(tied));
+            { string dead = Facts.RecentDead(); if (dead.Length > 0) sys.AppendLine(dead); }
             sys.AppendLine(Facts.CalendarAndMap(tied));
             sys.AppendLine("## What really happened lately");
             sys.AppendLine(DescribeRecentNews(14));
@@ -734,6 +738,12 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 if (e.Title.Length < 3 || e.Text.Length < 20) continue;
                 // A stated allegiance, war or alliance that the game denies: the event is not published
                 string wrong = Contradiction(ref model, x["claims"], e.SummaryEn, e.Text);
+                // Someone dead written as acting, ruling or being plotted against
+                if (wrong == null && S.Get.FactCheckEvents)
+                {
+                    try { wrong = FactCheck.CheckDead(ParseClaims(x["claims"]), e.SummaryEn, model ?? (model = Facts.BuildModel())); }
+                    catch (Exception ex) { Log.Error("[mundo] comprobando muertos", ex); }
+                }
                 if (wrong != null) { Log.Warn($"[mundo] evento descartado por contradecir el mundo: «{e.Title}» {wrong}"); continue; }
                 // A next chapter of an open story keeps its id (so its effects and its news stay tied to it) and its past
                 string cont = ((string)(x["continues"]?.Type == JTokenType.String ? x["continues"] : null) ?? "").Trim();
