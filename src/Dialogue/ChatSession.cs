@@ -53,6 +53,17 @@ namespace AILegacy.Dialogue
 
         public static bool IsBusy => Active != null && !Active._closed;
 
+        /// <summary>Word the player carries by hand for this person is given over as the talk begins.</summary>
+        private static void HandOverCarried(Speaker s)
+        {
+            try
+            {
+                string shown = World.InfoExchange.DeliverCarried(s);
+                if (shown.Length > 0) Notify(shown, Colors.Green);
+            }
+            catch (Exception ex) { Log.Error("Recados en mano", ex); }
+        }
+
         public static void Start(Speaker s)
         {
             if (s == null) return;
@@ -67,6 +78,7 @@ namespace AILegacy.Dialogue
             var session = new ChatSession(s);
             Active = session;
             Log.Info($"Conversación iniciada con {s.Name} ({s.Key})");
+            HandOverCarried(s);
 
             var vm = new ChatVM(s.Name, session.OnPlayerSaid, () => session.Close(session._npcEnded));
             session._win = ChatWindow.Open(vm);
@@ -222,6 +234,7 @@ namespace AILegacy.Dialogue
             var session = new ChatSession(s) { _dialogMode = true };
             Active = session;
             Log.Info($"Conversación (diálogo) iniciada con {s.Name} ({s.Key})");
+            HandOverCarried(s);
             try { Campaign.Current.ConversationManager.ConversationEndOneShot += () => session.Close(false); }
             catch (Exception ex) { Log.Error("No pude engancharme al final de la conversación", ex); }
             return session;

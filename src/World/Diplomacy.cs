@@ -861,6 +861,9 @@ breaking: Your realm is at breaking point. Every further week of war risks ruin 
             PickLine(TWearinessLevels, f < 15 ? "fresh" : f < 35 ? "strained" : f < 60 ? "weary" : f < 85 ? "exhausted" : "breaking");
 
         /// <summary>The line of a template that begins with "key:", without the key.</summary>
+        /// <summary>The line of a tag template whose first word is <paramref name="key"/>, or "".</summary>
+        internal static string Line(Tpl t, string key) => PickLine(t, key);
+
         private static string PickLine(Tpl t, string key)
         {
             key += ":";

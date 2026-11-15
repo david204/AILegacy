@@ -2029,5 +2029,8 @@
     <string id="AIL_e7b1c7ab" text="weapons" />
     <string id="AIL_e7b1c7ac" text="armour" />
     <string id="AIL_e7b1c7ad" text="horses" />
+    <string id="AIL_e7b1c7ae" text="{0} asks you to carry word by hand to {1}." />
+    <string id="AIL_e7b1c7af" text="You give {0} the word from {1}." />
+    <string id="AIL_e7b1c7b0" text="The word from {0} for {1} is no longer worth anything: you never delivered it." />
   </strings>
 </base>

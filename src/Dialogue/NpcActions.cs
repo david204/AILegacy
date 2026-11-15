@@ -175,7 +175,7 @@ namespace AILegacy.Dialogue
             "join_army", "form_army", "leave_army", "give_troops", "take_troops", "give_prisoners", "take_prisoners",
             "swear_fealty", "serve_as_mercenary", "declare_war", "make_peace", "grant_fief", "accept_fief", "accept_vassal",
             "hire_as_mercenary", "dismiss_from_kingdom", "leave_kingdom", "abdicate", "accept_crown", "join_clan", "leave_clan",
-            "send_word", "be_remembered", "join_their_company",
+            "send_word", "give_message", "be_remembered", "join_their_company",
         };
 
         private static readonly Dictionary<string, sbyte[]> ActionVecs = new Dictionary<string, sbyte[]>();
@@ -1711,19 +1711,48 @@ namespace AILegacy.Dialogue
             // ----------------------------------------------------------- messages to other NPCs
             new ActionDef
             {
-                Name = "send_word", Usage = "send_word:<name of a real person>|<what you tell them, one or two sentences in English>|<public, private or secret>|<answer, or empty>",
-                Description = "You pass on to another real person something about the one in front of you: what they said, did, asked of you, promised, threatened or confessed. " +
+                Name = "send_word", Usage = "send_word:<name of a real person>|<what you tell them, one or two sentences in English>|<public, private or secret>|<answer, or empty>|about=<name>|pass_to=<name>|importance=<1-3>",
+                Description = "You pass on to another real person something about the one in front of you, or about someone else: what they said, did, asked of you, promised, threatened or confessed. " +
                               "Use it when your duty, loyalty or interest calls for it (warn your lord, tell your spouse, alert a friend, denounce them), or when they ask you to carry a message. " +
                               "It travels at the speed of a rider. public = you will tell it around; private = for that person only; secret = in confidence. They do not see this unless you tell them. " +
-                              "Write answer as the last part when you need that person's reply (you are asking them something, or carrying a question for the one in front of you): their word comes back to you by the same road, and you can pass it on when you next speak.",
+                              "Write answer when you need that person's reply (you are asking them something, or carrying a question for the one in front of you): their word comes back to you by the same road, and you can pass it on when you next speak. " +
+                              "The last three parts are optional: about = who it is about when it is not the one in front of you; pass_to = someone the recipient must hand it on to; importance = 1 small talk, 2 worth telling, 3 urgent.",
                 IsAvailable = s => S.Get.EnableInfoExchange && s.IsHero && !s.Hero.IsPrisoner && InfoExchange.Confidants(s.Hero, 1).Count > 0,
                 Extra = s => InfoExchange.DescribeConfidants(s.Hero),
                 Execute = (s, arg, ctx) =>
                 {
                     var parts = (arg ?? "").Split('|');
                     if (parts.Length < 2) return null;
-                    bool wants = parts.Length > 3 && parts[3].Trim().ToLowerInvariant().StartsWith("answer");
-                    return InfoExchange.Send(s, parts[0].Trim(), parts[1].Trim(), parts.Length > 2 ? parts[2] : "private", wants);
+                    string secrecy = "private", about = null, passTo = null; bool wants = false; int importance = 2;
+                    // after the first two, parts may come in order (secrecy, answer) or as key=value, in any order
+                    for (int i = 2; i < parts.Length; i++)
+                    {
+                        string p = parts[i].Trim();
+                        int eq = p.IndexOf('=');
+                        string key = eq > 0 ? p.Substring(0, eq).Trim().ToLowerInvariant() : "", val = eq > 0 ? p.Substring(eq + 1).Trim() : p;
+                        if (key == "about") about = val;
+                        else if (key == "pass_to" || key == "relay_to" || key == "forward_to") passTo = val;
+                        else if (key == "importance") int.TryParse(new string(val.Where(char.IsDigit).ToArray()), out importance);
+                        else if (key == "secrecy") secrecy = val;
+                        else if (key == "answer") wants = true;
+                        else if (i == 2) secrecy = val;
+                        else if (val.ToLowerInvariant().StartsWith("answer")) wants = true;
+                    }
+                    if (importance == 0) importance = 2;
+                    return InfoExchange.Send(s, parts[0].Trim(), parts[1].Trim(), secrecy, wants, about, passTo, importance);
+                }
+            },
+            new ActionDef
+            {
+                Name = "give_message", Usage = "give_message:<name of a real person>|<what the one in front of you must tell them, in English>",
+                Description = "You ask the one in front of you to carry word by hand to another real person, because you trust them more than a rider or you want them to hear it from that mouth. " +
+                              "Only when they have agreed to carry it. It reaches that person when they next speak to them, and you will learn whether it was delivered.",
+                IsAvailable = s => S.Get.EnableInfoExchange && s.IsHero && !s.Hero.IsPrisoner && !(Hero.MainHero?.IsPrisoner ?? true),
+                Execute = (s, arg, ctx) =>
+                {
+                    var parts = (arg ?? "").Split('|');
+                    if (parts.Length < 2) return null;
+                    return InfoExchange.GiveToPlayer(s, parts[0].Trim(), string.Join("|", parts.Skip(1)).Trim());
                 }
             },
 

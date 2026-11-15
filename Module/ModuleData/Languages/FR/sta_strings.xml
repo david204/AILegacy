@@ -2029,5 +2029,8 @@
     <string id="AIL_e7b1c7ab" text="armes" />
     <string id="AIL_e7b1c7ac" text="armures" />
     <string id="AIL_e7b1c7ad" text="chevaux" />
+    <string id="AIL_e7b1c7ae" text="{0} vous demande de porter en main propre un message à {1}." />
+    <string id="AIL_e7b1c7af" text="Vous remettez à {0} le message de {1}." />
+    <string id="AIL_e7b1c7b0" text="Le message de {0} pour {1} ne vaut plus rien : vous ne l’avez jamais remis." />
   </strings>
 </base>

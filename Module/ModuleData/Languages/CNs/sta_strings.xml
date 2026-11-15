@@ -2029,5 +2029,8 @@
     <string id="AIL_e7b1c7ab" text="武器" />
     <string id="AIL_e7b1c7ac" text="护甲" />
     <string id="AIL_e7b1c7ad" text="马匹" />
+    <string id="AIL_e7b1c7ae" text="{0}请你亲手把口信带给{1}。" />
+    <string id="AIL_e7b1c7af" text="你把{1}的口信交给了{0}。" />
+    <string id="AIL_e7b1c7b0" text="{0}给{1}的口信已经没用了：你一直没有送到。" />
   </strings>
 </base>

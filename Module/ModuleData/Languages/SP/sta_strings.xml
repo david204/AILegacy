@@ -2029,5 +2029,8 @@
     <string id="AIL_e7b1c7ab" text="armas" />
     <string id="AIL_e7b1c7ac" text="armaduras" />
     <string id="AIL_e7b1c7ad" text="caballos" />
+    <string id="AIL_e7b1c7ae" text="{0} te pide que lleves en mano un recado a {1}." />
+    <string id="AIL_e7b1c7af" text="Entregas a {0} el recado de {1}." />
+    <string id="AIL_e7b1c7b0" text="El recado de {0} para {1} ya no vale: no lo entregaste." />
   </strings>
 </base>

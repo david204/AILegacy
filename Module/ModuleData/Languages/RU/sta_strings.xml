@@ -2029,5 +2029,8 @@
     <string id="AIL_e7b1c7ab" text="оружие" />
     <string id="AIL_e7b1c7ac" text="доспехи" />
     <string id="AIL_e7b1c7ad" text="лошади" />
+    <string id="AIL_e7b1c7ae" text="{0} просит вас лично передать весть {1}." />
+    <string id="AIL_e7b1c7af" text="Вы передаёте {0} весть от {1}." />
+    <string id="AIL_e7b1c7b0" text="Весть от {0} для {1} больше ничего не стоит: вы её так и не передали." />
   </strings>
 </base>

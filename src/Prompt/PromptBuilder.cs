@@ -14,6 +14,9 @@ namespace AILegacy.Prompt
     {
         // =========================================================== templates (editable in save_data\<campaign>\prompts)
 
+        private static readonly Tpl THeardOthers = new Tpl("context/heard_about_others.txt",
+            "## Word you have been sent about other people (claims, not proven facts: weigh who said it, and keep a secret to yourself unless you choose to share it)");
+
         private static readonly Tpl TIntro = new Tpl("dialogue/intro.txt",
             "You are {npc_name}, a living person in Calradia, the medieval world of Mount & Blade II: Bannerlord. You are talking face to face with {player_name}.");
 
@@ -220,7 +223,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
         /// <summary>Forces every template (static fields) to register before they are written to disk.</summary>
-        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
+        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); InfoExchange.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
 
         // =========================================================== dialogue
 
@@ -682,6 +685,13 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
                 sys.AppendLine();
                 sys.AppendLine("## What others have told you about them (claims, not proven facts: weigh who said it)");
                 sys.AppendLine(heard);
+            }
+            var others = InfoExchange.DescribeHeardOthers(mem);
+            if (others.Length > 0)
+            {
+                sys.AppendLine();
+                sys.AppendLine(THeardOthers.Text.Trim());
+                sys.AppendLine(others);
             }
         }
     }
