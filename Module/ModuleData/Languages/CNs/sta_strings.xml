@@ -2639,5 +2639,11 @@
     <string id="AIL_e7b1d831" text="{0}到处在说：「{1}」" />
     <string id="AIL_e7b1d832" text="家族声望提高了 {0}" />
     <string id="AIL_e7b1d833" text="，声望 +{0}" />
+    <string id="AIL_e7b1d900" text="不再接收{0}的来信" />
+    <string id="AIL_e7b1d901" text="你可以请{0}别再给你写信：在你再次与其交谈或给其写信之前，不会再收到其来信。" />
+    <string id="AIL_e7b1d902" text="收好信件" />
+    <string id="AIL_e7b1d903" text="在你再次与{0}交谈或给其写信之前，{0}不会再给你写信。" />
+    <string id="AIL_e7b1d904" text="禁止王室将家族逐出王国" />
+    <string id="AIL_e7b1d905" text="禁止王室没收封地" />
   </strings>
 </base>

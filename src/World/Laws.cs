@@ -416,7 +416,118 @@ namespace AILegacy.World
         public static List<string> DescribeAll(KingdomLaw law)
         {
             Upgrade(law);
-            return Shown(law, S.Get).Select(Describe).Where(x => x.Length > 0).ToList();
+            var lines = Shown(law, S.Get).Select(Describe).Where(x => x.Length > 0).ToList();
+            foreach (var act in Forbids(law))
+                lines.Add(act == ExpelClan ? L.T("AIL_e7b1d904", "Prohíbe a la corona expulsar clanes del reino") : L.T("AIL_e7b1d905", "Prohíbe a la corona confiscar feudos"));
+            return lines;
+        }
+
+        // ============================================================ what a law forbids the crown
+
+        public const string ExpelClan = "expel_clan", ConfiscateFief = "confiscate_fief";
+        /// <summary>Acts of the crown a law may forbid. Kept among the law's effects as "forbid:act", which older builds simply skip.</summary>
+        public static readonly string[] Forbiddable = { ExpelClan, ConfiscateFief };
+        private const string ForbidPrefix = "forbid:";
+
+        /// <summary>The acts a new law forbids, from law_forbids (a list or a single id) of enact_law.</summary>
+        public static List<LawEffect> ParseForbids(JToken raw)
+        {
+            var res = new List<LawEffect>();
+            try
+            {
+                var items = raw is JArray arr ? arr.Select(x => x?.ToString()) : raw != null && raw.Type == JTokenType.String ? new[] { (string)raw } : Enumerable.Empty<string>();
+                foreach (var item in items)
+                {
+                    string id = (item ?? "").Trim().ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
+                    if (id == "expel" || id == "expulsion" || id == "expel_clans") id = ExpelClan;
+                    if (id == "confiscate" || id == "confiscation" || id == "confiscate_fiefs") id = ConfiscateFief;
+                    if (Forbiddable.Contains(id) && !res.Any(e => e.Kind == ForbidPrefix + id)) res.Add(new LawEffect { Kind = ForbidPrefix + id, Value = 1f });
+                }
+            }
+            catch { }
+            return res;
+        }
+
+        /// <summary>
+        /// What the law forbids the crown: what it says so in law_forbids, and what its own name or text plainly
+        /// forbids ("No clan shall be expelled...", "Se prohíbe confiscar los feudos..."), for laws proclaimed before
+        /// law_forbids existed or written without it.
+        /// </summary>
+        public static List<string> Forbids(KingdomLaw law)
+        {
+            var res = new List<string>();
+            if (law == null) return res;
+            foreach (var e in law.Effects ?? new List<LawEffect>())
+                if (e?.Kind != null && e.Kind.StartsWith(ForbidPrefix, StringComparison.Ordinal) && Forbiddable.Contains(e.Kind.Substring(ForbidPrefix.Length)) && !res.Contains(e.Kind.Substring(ForbidPrefix.Length)))
+                    res.Add(e.Kind.Substring(ForbidPrefix.Length));
+            string words = (law.Name ?? "") + ". " + (law.Text ?? "");
+            if (!res.Contains(ExpelClan) && TextForbids(words, ExpelStems)) res.Add(ExpelClan);
+            if (!res.Contains(ConfiscateFief) && TextForbids(words, ConfiscateStems)) res.Add(ConfiscateFief);
+            return res;
+        }
+
+        /// <summary>The law of that kingdom which forbids the act, or null. Created laws only bind while laws are enabled.</summary>
+        public static KingdomLaw Forbidding(Kingdom k, string act)
+        {
+            if (k == null || !Enabled) return null;
+            try { return Of(k).FirstOrDefault(l => Forbids(l).Contains(act)); }
+            catch { return null; }
+        }
+
+        private static readonly string[] ExpelStems = { "expel", "expuls", "banish", "exile", "exili", "destierr", "desterr" };
+        private static readonly string[] ConfiscateStems = { "confisc", "expropia", "requisa" };
+        // A word that forbids, or protects from, what follows or what came before it ("expulsions are forbidden")
+        private static readonly string[] ForbidStems = { "forbid", "forbade", "prohibit", "protect", "shield", "immun", "prohib", "proteg", "impid", "imped", "outlaw" };
+        private static readonly HashSet<string> ForbidWords = new HashSet<string>
+        {
+            "no", "not", "never", "none", "nor", "cannot", "cant", "ban", "bans", "banned", "barred", "unlawful", "illegal",
+            "nunca", "jamas", "ningun", "ninguno", "ninguna", "nadie", "ilegal", "veda", "vedada", "vedado",
+        };
+        // "on pain of expulsion", "so pena de destierro": the punishment the law threatens, not something it forbids
+        private static readonly string[] PenaltyBefore = { " pain of", " penalty of", " pena de", " bajo pena", " punishable by", " castigado con", " castigada con" };
+
+        private static bool TextForbids(string text, string[] stems)
+        {
+            var w = Fold(text).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < w.Length; i++)
+            {
+                if (!stems.Any(s => w[i].StartsWith(s, StringComparison.Ordinal))) continue;
+                string before = " " + string.Join(" ", w.Skip(Math.Max(0, i - 3)).Take(Math.Min(3, i)));
+                if (PenaltyBefore.Any(p => before.EndsWith(p, StringComparison.Ordinal) || before.Contains(p + " "))) continue;
+                for (int j = Math.Max(0, i - 6); j <= Math.Min(w.Length - 1, i + 4); j++)
+                {
+                    if (j == i) continue;
+                    if (ForbidWords.Contains(w[j]) || ForbidStems.Any(s => w[j].StartsWith(s, StringComparison.Ordinal))) return true;
+                }
+            }
+            return false;
+        }
+
+        private static string Fold(string s)
+        {
+            var sb = new StringBuilder();
+            bool space = true;
+            foreach (char c in (s ?? "").Normalize(NormalizationForm.FormD).ToLowerInvariant())
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark || c == '\'' || c == '’') continue;
+                if (char.IsLetterOrDigit(c)) { sb.Append(c); space = false; }
+                else if (!space) { sb.Append(' '); space = true; }
+            }
+            return sb.ToString().Trim();
+        }
+
+        private static readonly Tpl TBinding = new Tpl("kingdom_statement/laws_forbid.txt",
+@"A law may also forbid the crown an act: enact_law takes law_forbids, a list of expel_clan and/or confiscate_fief. Such a law binds you while it stands: an action it forbids is thrown away. To do it anyway you must first repeal the law, in the open, and your lords will remember.
+{bound}");
+
+        /// <summary>For the ruler: what his own laws forbid him, and that law_forbids exists.</summary>
+        private static string BindingEn(Kingdom k)
+        {
+            var bound = new List<string>();
+            foreach (var law in Of(k))
+                foreach (var act in Forbids(law))
+                    bound.Add($"«{SafeName(law)}» forbids {act}");
+            return TBinding.Format("bound", bound.Count == 0 ? "Right now no law of yours forbids the crown anything." : "Right now your own laws forbid you: " + string.Join("; ", bound) + ".");
         }
 
         /// <summary>The same for a prompt, in English.</summary>
@@ -541,7 +652,7 @@ Effects on the parties led by the lords of the realm. target = all, ruler (only 
 @"The law of {kingdom}, the realm you live under. You know it as anyone here does, and you feel it in your purse, your fields or your banner. Speak of it only when it comes up or touches what is being talked about; do not recite it.
 {laws}");
 
-        public static void Touch() { var _ = TRuler.Key + TSubject.Key; }
+        public static void Touch() { var _ = TRuler.Key + TSubject.Key + TBinding.Key; }
 
         /// <summary>Section for a ruler about to speak: laws, policies and what a new law may do.</summary>
         public static string ForRuler(Kingdom k)
@@ -563,7 +674,7 @@ Effects on the parties led by the lords of the realm. target = all, ruler (only 
                     pairs.Add("range_" + kind.Id);
                     pairs.Add(lo.ToString("0.##", CultureInfo.InvariantCulture) + unit + " to " + hi.ToString("0.##", CultureInfo.InvariantCulture) + unit);
                 }
-                return TRuler.Format(pairs.ToArray());
+                return TRuler.Format(pairs.ToArray()) + "\n\n" + BindingEn(k);
             }
             catch (Exception ex) { Log.Error("[laws] text for the ruler", ex); return ""; }
         }

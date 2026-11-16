@@ -2639,5 +2639,11 @@
     <string id="AIL_e7b1d831" text="{0} anda contando por aí: «{1}»" />
     <string id="AIL_e7b1d832" text="O renome do seu clã aumenta em {0}" />
     <string id="AIL_e7b1d833" text=", +{0} de renome" />
+    <string id="AIL_e7b1d900" text="Chega de cartas de {0}" />
+    <string id="AIL_e7b1d901" text="Você pode pedir a {0} que pare de lhe escrever: não lhe mandará mais cartas até que você volte a falar ou a escrever com essa pessoa." />
+    <string id="AIL_e7b1d902" text="Guardar a carta" />
+    <string id="AIL_e7b1d903" text="{0} não voltará a lhe escrever até que você volte a falar ou a escrever com essa pessoa." />
+    <string id="AIL_e7b1d904" text="Proíbe a coroa de expulsar clãs do reino" />
+    <string id="AIL_e7b1d905" text="Proíbe a coroa de confiscar feudos" />
   </strings>
 </base>

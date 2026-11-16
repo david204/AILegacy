@@ -2640,5 +2640,11 @@
     <string id="AIL_e7b1d831" text="{0} has been telling people: «{1}»" />
     <string id="AIL_e7b1d832" text="Clan renown increased by {0}" />
     <string id="AIL_e7b1d833" text=", +{0} renown" />
+    <string id="AIL_e7b1d900" text="No more letters from {0}" />
+    <string id="AIL_e7b1d901" text="You can ask {0} to stop writing to you: they will send you no more letters until you speak to them or write to them again." />
+    <string id="AIL_e7b1d902" text="Keep the letter" />
+    <string id="AIL_e7b1d903" text="{0} will not write to you again until you speak to them or write to them." />
+    <string id="AIL_e7b1d904" text="Forbids the crown to expel clans from the realm" />
+    <string id="AIL_e7b1d905" text="Forbids the crown to confiscate fiefs" />
   </strings>
 </base>

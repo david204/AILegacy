@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using AILegacy.Core;
 using AILegacy.Dialogue;
 using AILegacy.Llm;
@@ -28,7 +30,8 @@ namespace AILegacy.Letters
     {
         private static readonly Random Rng = new Random();
         // Letters that arrived and wait to pop up, oldest first. One window at a time.
-        private static readonly Queue<(Hero from, string text)> ToShow = new Queue<(Hero, string)>();
+        // reply = it answers a letter of the player (no "keep receiving letters?" question after it)
+        private static readonly Queue<(Hero from, string text, bool reply)> ToShow = new Queue<(Hero, string, bool)>();
         private static bool _generating;
         private static bool _showing;
         private static int _lostChecks;
@@ -98,6 +101,9 @@ namespace AILegacy.Letters
                         return;
                     }
                     if (cost > 0) Hero.MainHero.ChangeHeroGold(-cost);
+                    // Writing to someone opens the door again; a letter that tells them to stop writing closes it
+                    Unmute(hero, "the player wrote to them");
+                    if (AsksToStopWriting(text)) Mute(hero, "the player's letter asks them to stop writing");
                     MemoryStore.Letters.Add(new PendingLetter { HeroId = hero.StringId, Text = text, FromPlayer = true, ArriveDay = CampaignTime.Now.ToDays + hours / 24.0 });
                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_c27c3eed", $"El mensajero parte hacia {hero.Name}. Llegará en {TravelText(hours)}."), Colors.Yellow));
                     Log.Info($"Letter for {hero.Name} ({cost} denars, {hours:0} h)");
@@ -149,10 +155,12 @@ namespace AILegacy.Letters
                 foreach (var l in arrived)
                 {
                     MemoryStore.Letters.Remove(l);
+                    // an answer to the player's letter is told apart from a letter of their own, and the mark goes with it
+                    bool reply = !l.FromPlayer && l.HeroId != null && (World.WorldSim.State.LettersReplying?.Remove(l.HeroId) ?? false);
                     var hero = Hero.Find(l.HeroId);
                     if (hero == null || hero.IsDead) continue;
                     if (l.FromPlayer) Deliver(hero, l.Text);
-                    else Receive(hero, l.Text);
+                    else Receive(hero, l.Text, reply);
                 }
             }
             catch (Exception ex) { Log.Error("Letters: hourly tick", ex); }
@@ -184,7 +192,7 @@ namespace AILegacy.Letters
                 var candidates = MemoryStore.AllHeroes
                     .Where(m => m.ConversationCount >= 1 && !m.OwesReplyToPlayer && (m.LastLetterDay < 0 || now - m.LastLetterDay >= 10))
                     .Select(m => (mem: m, hero: Hero.Find(m.HeroId)))
-                    .Where(x => CanWrite(x.hero))
+                    .Where(x => CanWrite(x.hero) && !IsMuted(x.hero))
                     .ToList();
                 if (candidates.Count == 0) return;
 
@@ -226,6 +234,8 @@ namespace AILegacy.Letters
             List<ChatMessage> msgs;
             try { msgs = PromptBuilder.BuildLetter(s, playerLetter); }
             catch (Exception ex) { Log.Error("Letters: prompt", ex); return; }
+            // As AIInfluence's allows_letters: the one answering says when the player wants no more letters from them
+            if (isReply && msgs.Count > 0 && msgs[0] != null) msgs[0].Content = (msgs[0].Content ?? "").TrimEnd() + "\n" + StopField;
 
             _generating = true;
             int session = World.WorldSim.Session;
@@ -240,6 +250,7 @@ namespace AILegacy.Letters
 
                     string letter = res.Text, remember = "";
                     var actions = new List<string>();
+                    bool stop = false;
                     try
                     {
                         var a = res.Text.IndexOf('{'); var b = res.Text.LastIndexOf('}');
@@ -249,6 +260,7 @@ namespace AILegacy.Letters
                             letter = ((string)j["letter"] ?? letter).Trim();
                             remember = ((string)j["remember"] ?? "").Trim();
                             if (j["actions"] is JArray arr) actions = arr.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                            stop = IsTrue(j["stop_letters"]) || IsFalse(j["allows_letters"]);
                         }
                     }
                     catch { }
@@ -272,6 +284,14 @@ namespace AILegacy.Letters
                         catch (Exception ex) { Log.Error("Letters: actions", ex); }
                     }
 
+                    // Their answer still reaches the player; after it, they write no more until the player seeks them out
+                    if (isReply && (stop || AsksToStopWriting(playerLetter))) Mute(hero, stop ? "their answer says the player asked them to stop writing" : "the player's letter asks them to stop writing");
+                    if (isReply)
+                    {
+                        var replying = World.WorldSim.State.LettersReplying ?? (World.WorldSim.State.LettersReplying = new List<string>());
+                        if (!replying.Contains(hero.StringId)) replying.Add(hero.StringId);
+                    }
+
                     var (_, hours) = Quote(hero);
                     MemoryStore.Letters.Add(new PendingLetter { HeroId = hero.StringId, Text = letter, FromPlayer = false, ArriveDay = now + hours / 24.0 });
                     Log.Info($"{s.Name} writes a letter ({(isReply ? "reply" : "own initiative")}); arrives in {hours:0} h");
@@ -280,13 +300,132 @@ namespace AILegacy.Letters
             });
         }
 
+        // ============================================================ no more letters from someone
+
+        // As AIInfluence's allows_letters, asked of the one answering the player's letter
+        private static readonly Tpl TStopField = new Tpl("letter/stop_letters.txt",
+            "If their letter asks you to stop writing to them (no more letters), also put \"stop_letters\": true in the JSON object: this answer is then your last letter until they speak with you or write to you again. Otherwise leave it out.");
+        private static string StopField => TStopField.Text;
+
+        private static bool IsTrue(JToken t) => t != null && (t.Type == JTokenType.Boolean ? (bool)t : string.Equals(t.ToString().Trim(), "true", StringComparison.OrdinalIgnoreCase));
+        private static bool IsFalse(JToken t) => t != null && (t.Type == JTokenType.Boolean ? !(bool)t : string.Equals(t.ToString().Trim(), "false", StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>
+        /// The player asked them to write no more. Lasts until the player talks to them (a conversation after the day
+        /// it was set) or writes to them. Kept per campaign in the world file.
+        /// </summary>
+        public static bool IsMuted(Hero h)
+        {
+            try
+            {
+                var map = World.WorldSim.State?.LettersMuted;
+                if (h == null || map == null || !map.TryGetValue(h.StringId, out double day)) return false;
+                var mem = MemoryStore.Find(h.StringId);
+                if (mem != null && mem.LastConversationDay > day)
+                {
+                    map.Remove(h.StringId);
+                    Log.Info($"Letters: {h.Name} may write again, the player has talked to them");
+                    return false;
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        internal static void Mute(Hero h, string why)
+        {
+            try
+            {
+                var st = World.WorldSim.State;
+                if (h == null || st == null || IsMuted(h)) return;
+                if (st.LettersMuted == null) st.LettersMuted = new Dictionary<string, double>();
+                st.LettersMuted[h.StringId] = CampaignTime.Now.ToDays;
+                Log.Info($"Letters: {h.Name} will send no letters until the player talks or writes to them ({why})");
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1d903", $"{h.Name} no volverá a escribirte hasta que vuelvas a hablarle o a escribirle."), Colors.Yellow));
+                SaveFiles.Flush();
+            }
+            catch (Exception ex) { Log.Error("Letters: no more letters", ex); }
+        }
+
+        internal static void Unmute(Hero h, string why)
+        {
+            try
+            {
+                var map = World.WorldSim.State?.LettersMuted;
+                if (h != null && map != null && map.Remove(h.StringId)) Log.Info($"Letters: {h.Name} may write again ({why})");
+            }
+            catch { }
+        }
+
+        /// <summary>After an unanswered letter of their own: the choice of no more letters from them.</summary>
+        private static void AskMute(Hero hero)
+        {
+            try
+            {
+                InformationManager.ShowInquiry(new InquiryData(
+                    L.F("AIL_da85936f", $"Carta de {hero.Name}"),
+                    L.F("AIL_e7b1d901", $"Puedes pedirle a {hero.Name} que deje de escribirte: no te mandará más cartas hasta que vuelvas a hablarle o a escribirle."),
+                    true, true, L.F("AIL_e7b1d900", $"No más cartas de {hero.Name}"), L.T("AIL_e7b1d902", "Guardar la carta"),
+                    () => { _showing = false; Mute(hero, "the player chose no more letters from them"); },
+                    () => { _showing = false; }), true);
+            }
+            catch (Exception ex)
+            {
+                _showing = false;
+                Log.Error("Letters: ask about more letters", ex);
+            }
+        }
+
+        // Plain ways to say it in English and Spanish, folded (lower case, no accents, no apostrophes). The one answering
+        // the letter flags it too (stop_letters), which covers any other wording or language.
+        private static readonly string[] StopPhrases =
+        {
+            "stop writing", "stop sending me", "stop sending letters", "stop sending your letters", "stop your letters", "no more letters", "no more of your letters",
+            "dont write to me", "do not write to me", "dont write me", "do not write me", "never write to me", "never write me", "dont ever write", "do not ever write",
+            "dont send me letters", "do not send me letters", "dont send me any more", "do not send me any more", "quit writing", "cease writing", "write to me no more",
+            "deja de escribir", "dejes de escribir", "dejad de escribir", "deje de escribir", "dejen de escribir", "deja de mandarme", "deja de enviarme",
+            "no me escribas", "no me escriba", "no me escribais", "no me vuelvas a escribir", "no vuelvas a escribirme", "no me mandes mas cartas", "no me envies mas cartas",
+            "no mas cartas", "basta de cartas", "ni una carta mas",
+        };
+        private static readonly string[] StopNegations = { " no", " not", " dont", " never", " nunca", " jamas" };
+
+        /// <summary>The player's letter plainly asks them to stop writing ("stop sending me letters", "deja de escribirme"). "Don't stop writing" does not.</summary>
+        public static bool AsksToStopWriting(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            string t = " " + Fold(text) + " ";
+            foreach (var p in StopPhrases)
+                for (int at = t.IndexOf(" " + p, StringComparison.Ordinal); at >= 0; at = t.IndexOf(" " + p, at + 1, StringComparison.Ordinal))
+                {
+                    string before = t.Substring(0, at);
+                    if (!p.StartsWith("no ") && StopNegations.Any(n => before.EndsWith(n, StringComparison.Ordinal))) continue;
+                    return true;
+                }
+            return false;
+        }
+
+        private static string Fold(string s)
+        {
+            var sb = new StringBuilder();
+            bool space = true;
+            foreach (char c in s.Normalize(NormalizationForm.FormD).ToLowerInvariant())
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark || c == '\'' || c == '’') continue;
+                if (char.IsLetterOrDigit(c)) { sb.Append(c); space = false; }
+                else if (!space) { sb.Append(' '); space = true; }
+            }
+            return sb.ToString().Trim();
+        }
+
         // ============================================================ showing received letters
 
         /// <summary>A letter for the player has arrived: it pops up at once if the player is free on the map, otherwise as soon as they are.</summary>
-        internal static void Receive(Hero from, string text)
+        /// <param name="reply">It answers a letter of the player. A muted character's answer still arrives; any other letter of theirs is dropped.</param>
+        internal static void Receive(Hero from, string text, bool reply = false)
         {
             if (from == null) return;
-            ToShow.Enqueue((from, text));
+            if (!reply && IsMuted(from)) { Log.Info($"Letters: a letter from {from.Name} dropped, the player asked them to stop writing"); return; }
+            ToShow.Enqueue((from, text, reply));
             Log.Info($"Letters: a letter from {from.Name} arrived ({ToShow.Count} waiting to be shown)");
             TryShowPending();
         }
@@ -329,31 +468,40 @@ namespace AILegacy.Letters
             if (ToShow.Count == 0) return;
             if (!PlayerFreeOnMap()) return;
 
-            var (hero, text) = ToShow.Dequeue();
+            var (hero, text, reply) = ToShow.Dequeue();
             if (hero == null) return;
+            // muted while it waited in the queue
+            if (!reply && IsMuted(hero)) { Log.Info($"Letters: a waiting letter from {hero.Name} dropped, the player asked them to stop writing"); return; }
             text = (text ?? "").Replace("\\r\\n", "\n").Replace("\\n", "\n");      // some letters were saved with literal "\n"
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
-            Open(hero, text);
+            Open(hero, text, reply);
         }
 
         /// <summary>
         /// Shows a received letter in a window that pauses the game, with the reply button if a messenger can be sent back.
         /// Only one at a time: the next waits in the queue until this one (and the reply box, if any) is closed.
         /// </summary>
-        internal static void Open(Hero hero, string text)
+        /// <param name="reply">It answers a letter of the player: closing it asks nothing more.</param>
+        internal static void Open(Hero hero, string text, bool reply = false)
         {
             if (hero == null) return;
-            if (_showing) { ToShow.Enqueue((hero, text)); return; }
+            if (_showing) { ToShow.Enqueue((hero, text, reply)); return; }
             _showing = true; _lostChecks = 0;
             try
             {
-                // Reply on the spot (the messenger waits) or just acknowledge
+                // Reply on the spot (the messenger waits) or just acknowledge. A letter they wrote on their own, put away
+                // unanswered, brings the choice of no more letters from them (the game's window has room for two buttons only).
                 bool canReply = CanWrite(hero);
                 InformationManager.ShowInquiry(new InquiryData(
                     L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, canReply,
                     canReply ? L.T("AIL_f6d0c4b3", "Responder") : L.T("AIL_f6d0c4b4", "Enterado"), L.T("AIL_f6d0c4b4", "Enterado"),
-                    () => { _showing = false; if (canReply) MainThread.Post(() => Compose(hero, reply: true)); },
-                    () => { _showing = false; }), true);
+                    () =>
+                    {
+                        if (canReply) { _showing = false; MainThread.Post(() => Compose(hero, reply: true)); }
+                        else if (reply) _showing = false;
+                        else MainThread.Post(() => AskMute(hero));
+                    },
+                    () => { if (reply) _showing = false; else MainThread.Post(() => AskMute(hero)); }), true);
                 Log.Info($"Letters: showing the letter from {hero.Name}");
             }
             catch (Exception ex)

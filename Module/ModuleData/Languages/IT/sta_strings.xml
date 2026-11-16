@@ -2639,5 +2639,11 @@
     <string id="AIL_e7b1d831" text="{0} va raccontando in giro: «{1}»" />
     <string id="AIL_e7b1d832" text="La fama del tuo clan aumenta di {0}" />
     <string id="AIL_e7b1d833" text=", +{0} di fama" />
+    <string id="AIL_e7b1d900" text="Basta lettere da {0}" />
+    <string id="AIL_e7b1d901" text="Puoi chiedere a {0} di smettere di scriverti: non ti manderà più lettere finché non tornerai a parlargli o a scrivergli." />
+    <string id="AIL_e7b1d902" text="Tieni la lettera" />
+    <string id="AIL_e7b1d903" text="{0} non ti scriverà più finché non tornerai a parlargli o a scrivergli." />
+    <string id="AIL_e7b1d904" text="Vieta alla corona di espellere clan dal regno" />
+    <string id="AIL_e7b1d905" text="Vieta alla corona di confiscare feudi" />
   </strings>
 </base>

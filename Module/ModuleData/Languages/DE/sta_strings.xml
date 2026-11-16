@@ -2639,5 +2639,11 @@
     <string id="AIL_e7b1d831" text="{0} erzählt überall herum: «{1}»" />
     <string id="AIL_e7b1d832" text="Das Ansehen deines Clans steigt um {0}" />
     <string id="AIL_e7b1d833" text=", +{0} Ansehen" />
+    <string id="AIL_e7b1d900" text="Keine Briefe mehr von {0}" />
+    <string id="AIL_e7b1d901" text="Du kannst {0} bitten, dir nicht mehr zu schreiben: Du bekommst keine Briefe mehr, bis du wieder mit dieser Person sprichst oder ihr schreibst." />
+    <string id="AIL_e7b1d902" text="Brief aufbewahren" />
+    <string id="AIL_e7b1d903" text="{0} schreibt dir nicht mehr, bis du wieder mit dieser Person sprichst oder ihr schreibst." />
+    <string id="AIL_e7b1d904" text="Verbietet der Krone, Clans aus dem Reich zu verstoßen" />
+    <string id="AIL_e7b1d905" text="Verbietet der Krone, Lehen einzuziehen" />
   </strings>
 </base>

@@ -99,6 +99,46 @@ namespace AILegacy.Patches
     }
 
     /// <summary>
+    /// A law of the realm that forbids expelling clans (World/Laws.cs) also holds against the game's own vote: lords
+    /// other than the player may not put an expulsion to the council while it stands.
+    /// </summary>
+    [HarmonyPatch(typeof(ExpelClanFromKingdomDecision), nameof(ExpelClanFromKingdomDecision.IsAllowed))]
+    internal static class ExpelLawAllowedPatch
+    {
+        private static void Postfix(ExpelClanFromKingdomDecision __instance, ref bool __result)
+        {
+            try
+            {
+                if (!__result || __instance == null || __instance.ProposerClan == Clan.PlayerClan) return;
+                if (Laws.Forbidding(__instance.OldKingdom ?? __instance.ClanToExpel?.Kingdom, Laws.ExpelClan) != null) __result = false;
+            }
+            catch (Exception ex) { Log.Error("Expulsion law: proposal", ex); }
+        }
+    }
+
+    /// <summary>
+    /// ...and an expulsion vote an AI lord had already started, or that a new law came to forbid while it ran, is not
+    /// carried out. The player's own proposals are left to the vote.
+    /// </summary>
+    [HarmonyPatch(typeof(ExpelClanFromKingdomDecision), nameof(ExpelClanFromKingdomDecision.ApplyChosenOutcome))]
+    internal static class ExpelLawOutcomePatch
+    {
+        private static bool Prefix(ExpelClanFromKingdomDecision __instance, DecisionOutcome chosenOutcome)
+        {
+            try
+            {
+                if (__instance == null || __instance.ProposerClan == Clan.PlayerClan) return true;
+                if (!(chosenOutcome is ExpelClanFromKingdomDecision.ExpelClanDecisionOutcome o) || !o.ShouldBeExpelled) return true;
+                var law = Laws.Forbidding(__instance.OldKingdom ?? __instance.ClanToExpel?.Kingdom, Laws.ExpelClan);
+                if (law == null) return true;
+                Log.Info($"[laws] the vote to expel {__instance.ClanToExpel?.Name} from {__instance.OldKingdom?.Name} is not carried out: the law «{law.Name}» forbids expelling clans");
+                return false;
+            }
+            catch (Exception ex) { Log.Error("Expulsion law: outcome", ex); return true; }
+        }
+    }
+
+    /// <summary>
     /// After a while the game disbands a clan with no kingdom and no fiefs, and kills its members. Skip that for a banished
     /// clan (it can still be pardoned) and for clans with someone the player has talked to.
     /// </summary>

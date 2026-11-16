@@ -745,6 +745,278 @@ namespace AILegacy.World
             return null;
         }
 
+        // ============================================================ names written slightly wrong
+
+        /// <summary>Letters changed, added or dropped to turn one word into the other, ignoring case. Past max it gives max + 1.</summary>
+        public static int EditDistance(string a, string b, int max)
+        {
+            a = (a ?? "").ToLowerInvariant(); b = (b ?? "").ToLowerInvariant();
+            if (Math.Abs(a.Length - b.Length) > max) return max + 1;
+            var prev = new int[b.Length + 1];
+            var cur = new int[b.Length + 1];
+            for (int j = 0; j <= b.Length; j++) prev[j] = j;
+            for (int i = 1; i <= a.Length; i++)
+            {
+                cur[0] = i;
+                int best = i;
+                for (int j = 1; j <= b.Length; j++)
+                {
+                    cur[j] = Math.Min(Math.Min(prev[j] + 1, cur[j - 1] + 1), prev[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1));
+                    best = Math.Min(best, cur[j]);
+                }
+                if (best > max) return max + 1;
+                var t = prev; prev = cur; cur = t;
+            }
+            return Math.Min(prev[b.Length], max + 1);
+        }
+
+        /// <summary>The words of a name that can stand for it alone: four letters or more, titles left out ("Omor", "Sturgia").</summary>
+        public static List<string> NameWords(string name)
+        {
+            var res = new List<string>();
+            var sb = new StringBuilder();
+            foreach (char c in (name ?? "") + " ")
+            {
+                if (char.IsLetter(c)) { sb.Append(c); continue; }
+                if (sb.Length >= 4 && !Titles.Contains(sb.ToString().ToLowerInvariant())) res.Add(sb.ToString());
+                sb.Clear();
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// A proper name written slightly wrong set right ("Opor's fields" in the title of an event about Omor).
+        /// <paramref name="right"/> holds the names the event itself relies on: those its other texts use and its own
+        /// places, kingdoms and people. <paramref name="known"/> holds every word of every real name in the world (Norm
+        /// form), so a real name is never touched. A word of four letters or more that starts with a capital, is no real
+        /// name and is not written in <paramref name="reference"/> either is replaced by the one word of
+        /// <paramref name="right"/> it is closest to: one letter off for a word of four letters, two for a longer one
+        /// (two only when the first letter matches). A word as close to two different names is left alone. Each change
+        /// goes into <paramref name="changes"/>.
+        /// </summary>
+        public static string FixNames(string text, IEnumerable<string> right, ICollection<string> known, string reference, List<string> changes)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            var cands = (right ?? Enumerable.Empty<string>()).SelectMany(NameWords)
+                .GroupBy(x => x.ToLowerInvariant()).Select(g => g.First()).ToList();
+            if (cands.Count == 0) return text;
+            string refSoft = Soft(reference);
+            var sb = new StringBuilder(text.Length);
+            int i = 0;
+            while (i < text.Length)
+            {
+                if (!char.IsLetter(text[i])) { sb.Append(text[i]); i++; continue; }
+                int j = i;
+                while (j < text.Length && char.IsLetter(text[j])) j++;
+                string word = text.Substring(i, j - i);
+                string fixedWord = FixWord(word, cands, known, refSoft);
+                if (fixedWord != word) changes?.Add(word + " -> " + fixedWord);
+                sb.Append(fixedWord);
+                i = j;
+            }
+            return sb.ToString();
+        }
+
+        private static string FixWord(string word, List<string> cands, ICollection<string> known, string refSoft)
+        {
+            if (word.Length < 4 || !char.IsUpper(word[0])) return word;
+            string low = word.ToLowerInvariant();
+            if ((known != null && known.Contains(low)) || refSoft.Contains(" " + low + " ")) return word;
+            int limit = word.Length <= 4 ? 1 : 2;
+            string best = null;
+            int bestD = limit + 1;
+            bool tie = false;
+            foreach (var c in cands)
+            {
+                string cl = c.ToLowerInvariant();
+                // the name itself, or the name with an ending ("Sturgians", "Vlandian", "Khuzaits")
+                if (cl == low || low.StartsWith(cl, StringComparison.Ordinal) || cl.StartsWith(low, StringComparison.Ordinal)) return word;
+                int d = EditDistance(low, cl, limit);
+                // two letters off only for longer words that start the same ("Burning" is not "Bruning")
+                if (d > limit || (d == 2 && (low.Length < 6 || cl[0] != low[0] || cl[1] != low[1]))) continue;
+                if (d < bestD) { best = c; bestD = d; tie = false; }
+                else if (d == bestD && !string.Equals(best, c, StringComparison.OrdinalIgnoreCase)) tie = true;
+            }
+            if (best == null || tie) return word;
+            return word.ToUpperInvariant() == word && word.Length > 1 ? best.ToUpperInvariant() : best;
+        }
+
+        // ============================================================ who holds a place
+
+        // "Sturgia must recover Omor": a realm that sets out to win back a place it already holds
+        private static readonly HashSet<string> RecoverWords = new HashSet<string>
+        {
+            "recover", "recovers", "recovering", "retake", "retakes", "retaking", "reclaim", "reclaims", "reclaiming", "regain", "regains", "regaining",
+            "recapture", "recaptures", "recapturing", "reconquer", "reconquers", "reconquering", "reconquest", "liberate", "liberates", "liberating", "liberation",
+            "recuperar", "recupere", "recuperen", "recuperara", "recuperará", "recuperación", "recuperacion", "reconquistar", "reconquiste", "reconquisten",
+            "reconquista", "retomar", "retome", "retomen", "liberar", "libere", "liberen", "liberación", "liberacion", "recobrar", "recobre",
+        };
+        // Freeing one's own town from a siege, or a village from raiders, is no contradiction: these only count for a place left in peace
+        private static readonly HashSet<string> FreeWords = new HashSet<string>
+        {
+            "liberate", "liberates", "liberating", "liberation", "liberated", "liberar", "libere", "liberen", "liberación", "liberacion", "liberada", "liberado",
+        };
+        private static readonly HashSet<string> BackVerbs = new HashSet<string> { "take", "takes", "taking", "win", "wins", "winning", "get", "gets", "getting" };
+        // "Omor must be retaken by Sturgia": the passive, only after "be" (a plain "recovered" is the past)
+        private static readonly HashSet<string> RecoveredWords = new HashSet<string>
+        {
+            "recovered", "retaken", "reclaimed", "regained", "recaptured", "reconquered", "liberated", "recuperada", "recuperado", "reconquistada", "reconquistado", "liberada", "liberado",
+        };
+        private static readonly HashSet<string> BeWords = new HashSet<string> { "be", "being", "ser", "sea" };
+        // "Sturgia need not retake Omor", "Sturgia no tiene que recuperar Omor"
+        private static readonly HashSet<string> NotWords = new HashSet<string>
+        {
+            "not", "no", "never", "nor", "neednt", "doesnt", "dont", "didnt", "cannot", "cant", "wont", "nunca", "jamás", "jamas", "ni",
+        };
+        // "Omor, held by the Khuzaits": who holds it now, said outright
+        private static readonly string[][] HeldBy =
+        {
+            new[] { "held", "by" }, new[] { "occupied", "by" }, new[] { "controlled", "by" }, new[] { "ruled", "by" }, new[] { "in", "the", "hands", "of" },
+            new[] { "under", "the", "rule", "of" }, new[] { "under", "the", "control", "of" }, new[] { "en", "manos", "de" }, new[] { "en", "poder", "de" },
+            new[] { "bajo", "el", "control", "de" }, new[] { "ocupada", "por" }, new[] { "ocupado", "por" }, new[] { "controlada", "por" }, new[] { "controlado", "por" },
+            new[] { "gobernada", "por" }, new[] { "gobernado", "por" },
+        };
+        // "once held by", "until lately held by", "que fue de": the past, which proves nothing about today
+        private static readonly HashSet<string> PastWords = new HashSet<string>
+        {
+            "once", "formerly", "previously", "was", "were", "had", "been", "until", "long", "lately", "recently", "ago", "fue", "era", "estuvo", "antes", "antaño", "hasta",
+        };
+
+        private struct Place { public string[] Words; public string Name, Owner; }
+        private struct Realm { public int From, To; public string Id; }
+
+        /// <summary>
+        /// A text that has a kingdom set out to recover, retake, reclaim or liberate a town, castle or village it already
+        /// holds, or says a place is held by a kingdom that does not hold it. <paramref name="owners"/> maps each
+        /// place's name to the id of the kingdom that holds it now. Kingdoms are found by their names in the model and
+        /// by the names of their people ("the Sturgians", "los khuzaits"). English and Spanish; questions, negations and
+        /// the past are let through. <paramref name="threatened"/> are the places under siege or being raided right now:
+        /// a realm may well set out to liberate its own. null when fine.
+        /// </summary>
+        public static string CheckOwnership(string text, IDictionary<string, string> owners, FactModel m, ICollection<string> threatened = null)
+        {
+            if (string.IsNullOrWhiteSpace(text) || owners == null || owners.Count == 0 || m == null) return null;
+            var places = owners.Where(kv => !string.IsNullOrWhiteSpace(kv.Key) && !string.IsNullOrEmpty(kv.Value))
+                .Select(kv => new Place { Words = Words(Soft(kv.Key)), Name = kv.Key.Trim(), Owner = kv.Value })
+                .Where(p => p.Words.Length > 0 && string.Concat(p.Words).Length >= 3).ToList();
+            foreach (var part in Sentences(text))
+            {
+                if (part.Value == '?') continue;
+                var w = Words(Soft(part.Key, true));
+                if (w.Length < 3) continue;
+                var realms = Realms(w, m);
+                if (realms.Count == 0) continue;
+                for (int i = 0; i < w.Length; i++)
+                {
+                    // a realm that sets out to win back a place
+                    bool recover = RecoverWords.Contains(w[i]) || (w[i] == "back" && i > 0 && BackVerbs.Contains(w[i - 1]))
+                                   || (i > 0 && RecoveredWords.Contains(w[i]) && BeWords.Contains(w[i - 1]));
+                    if (recover)
+                    {
+                        // the place: after the verb, or before it in the passive ("Omor must be retaken by Sturgia")
+                        bool passive = RecoveredWords.Contains(w[i]);
+                        int at = -1; Place place = default(Place);
+                        for (int j = i + 1; j <= Math.Min(w.Length - 1, i + 5) && at < 0; j++)
+                            foreach (var p in places)
+                                if (Matches(w, j, p.Words)) { at = j; place = p; break; }
+                        for (int j = i - 1; passive && j >= Math.Max(0, i - 6) && at < 0; j--)
+                            foreach (var p in places)
+                                if (Matches(w, j, p.Words)) { at = j; place = p; break; }
+                        if (at < 0) continue;
+                        if (FreeWords.Contains(w[i]) && threatened != null && threatened.Contains(place.Name)) continue;
+                        // its subject: the nearest realm before the verb (and before the place in the passive), or the one after "by"
+                        var subject = realms.Where(r => r.To <= Math.Min(i, at) && i - r.To <= 8).OrderByDescending(r => r.To).FirstOrDefault();
+                        int subjectEnd = subject.Id != null ? subject.To : -1;
+                        if (subject.Id == null)
+                        {
+                            int end = Math.Max(at + place.Words.Length, i + 1);
+                            for (int j = end; j <= Math.Min(w.Length - 1, end + 3); j++)
+                                if (w[j] == "by" || w[j] == "por")
+                                {
+                                    subject = realms.FirstOrDefault(r => r.From > j && r.From <= j + 3);
+                                    break;
+                                }
+                        }
+                        if (subject.Id == null || subject.Id != place.Owner) continue;
+                        if (subjectEnd >= 0 && Range(w, subjectEnd, i).Any(NotWords.Contains)) continue;
+                        return $"has {subject.Id} set out to recover {place.Name}, and {place.Name} already belongs to {place.Owner}";
+                    }
+                }
+                // a place said to be held by a realm that does not hold it
+                foreach (var p in places)
+                    for (int j = 0; j + p.Words.Length <= w.Length; j++)
+                    {
+                        if (!Matches(w, j, p.Words)) continue;
+                        int end = j + p.Words.Length;
+                        if (end < w.Length && w[end] == "|") end++;
+                        foreach (var phrase in HeldBy)
+                        {
+                            int k = end;
+                            if (k < w.Length && (w[k] == "now" || w[k] == "still" || w[k] == "ahora" || w[k] == "aún" || w[k] == "aun")) k++;
+                            int lead = k;
+                            if (!Matches(w, k, phrase)) continue;
+                            k += phrase.Length;
+                            if (k < w.Length && (w[k] == "the" || w[k] == "los" || w[k] == "las" || w[k] == "el" || w[k] == "la")) k++;
+                            var holder = realms.FirstOrDefault(r => r.From == k);
+                            if (holder.Id == null || holder.Id == p.Owner) continue;
+                            if (Range(w, Math.Max(0, lead - 3), lead + phrase.Length).Any(x => PastWords.Contains(x) || NotWords.Contains(x))) continue;
+                            return $"says {p.Name} is held by {holder.Id}, and it belongs to {p.Owner}";
+                        }
+                    }
+            }
+            return null;
+        }
+
+        private static IEnumerable<string> Range(string[] w, int from, int to)
+        {
+            for (int i = Math.Max(0, from); i < Math.Min(w.Length, to); i++) yield return w[i];
+        }
+
+        private static bool Matches(string[] w, int at, string[] words)
+        {
+            if (at < 0 || at + words.Length > w.Length) return false;
+            for (int k = 0; k < words.Length; k++) if (w[at + k] != words[k]) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Every kingdom named in the words: by any of its names, or a one-word name followed by the ending of its people
+        /// ("sturgians", "vlandianos", "khuzaits"). A word several kingdoms could be is nobody's.
+        /// </summary>
+        private static List<Realm> Realms(string[] w, FactModel m)
+        {
+            var names = new List<KeyValuePair<string[], string>>();
+            foreach (var kv in m.KingdomNames)
+                foreach (var n in kv.Value)
+                {
+                    var words = Words(Soft(n));
+                    if (words.Length > 0 && words[0] == "the") words = words.Skip(1).ToArray();
+                    if (words.Length > 0 && string.Concat(words).Length >= 4) names.Add(new KeyValuePair<string[], string>(words, kv.Key));
+                }
+            var found = new List<Realm>();
+            for (int i = 0; i < w.Length; i++)
+            {
+                if (found.Any(f => i >= f.From && i < f.To)) continue;
+                int len = 0; string id = null; bool tie = false;
+                foreach (var n in names.OrderByDescending(x => x.Key.Length))
+                {
+                    bool hit = n.Key.Length == 1 ? People(w[i], n.Key[0]) : Matches(w, i, n.Key);
+                    if (!hit || n.Key.Length < len) continue;
+                    if (id == null || n.Key.Length > len) { id = n.Value; len = n.Key.Length; tie = false; }
+                    else if (id != n.Value) tie = true;
+                }
+                if (id != null && !tie) found.Add(new Realm { From = i, To = i + len, Id = id });
+            }
+            return found;
+        }
+
+        private static bool People(string word, string name)
+        {
+            if (word == name || word == name + "s") return true;
+            string stem = name.TrimEnd('a', 'e', 'i', 'o', 'u');
+            return stem.Length >= 5 && word.StartsWith(stem, StringComparison.Ordinal) && word.Length <= name.Length + 4;
+        }
+
         /// <summary>
         /// Length of a tribute in days. Only tribute_years is in years, and those are Calradian years
         /// (<paramref name="daysInYear"/> days, 84 in the base game). tribute_days is taken as written: 365 means 365

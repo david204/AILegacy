@@ -270,6 +270,10 @@ namespace AILegacy.World
         [JsonProperty("captive_tolls")] public Dictionary<string, CaptiveToll> CaptiveTolls = new Dictionary<string, CaptiveToll>();
         /// <summary>Nobles taken together, watched until they have been held two weeks: only then does the world react (World/NewsTracker.cs).</summary>
         [JsonProperty("captive_watch")] public List<CaptiveWatch> CaptiveWatch = new List<CaptiveWatch>();
+        /// <summary>Characters the player asked to stop writing (hero id -> day): no letters from them until the player talks to them or writes first (Letters/LetterSystem.cs).</summary>
+        [JsonProperty("letters_muted")] public Dictionary<string, double> LettersMuted = new Dictionary<string, double>();
+        /// <summary>Characters whose answer to a letter of the player is on its way. That answer still arrives if they were muted meanwhile.</summary>
+        [JsonProperty("letters_replying")] public List<string> LettersReplying = new List<string>();
     }
 
     // ===================================================================== engine
@@ -574,7 +578,7 @@ Answer ONLY with JSON:
   ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30, ""spread_rate"": 0.3, ""death_chance"": 0, ""combat_modifier"": 0.9, ""map_speed_modifier"": 0.9, ""morale_penalty"": -5, ""skill_penalty"": -6 } } ] }
 Leave out economic_effects, clan_effects, secret, clan_rebellion and disease when they do not apply.");
 
-        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key + TEventMix.Key + TCaptivesNow.Key; Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); WarTolls.Touch(); }
+        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key + TEventMix.Key + TCaptivesNow.Key + TReach.Key;Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); WarTolls.Touch(); }
 
         // ---- the mix of kinds the scheduled batch is asked for (settings "Event mix")
 
@@ -862,6 +866,9 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             sys.AppendLine(Facts.Roster(tied));
             { string dead = Facts.RecentDead(); if (dead.Length > 0) sys.AppendLine(dead); }
             sys.AppendLine(Facts.CalendarAndMap(tied));
+            // where each realm's armies can strike, and who holds those places
+            try { sys.AppendLine(ReachBlock(tied)); }
+            catch (Exception ex) { Log.Error("[world] places within reach", ex); }
             sys.AppendLine("## What really happened lately");
             sys.AppendLine(DescribeRecentNews(14));
             sys.AppendLine("## Developments already in the air (do not repeat them; you may continue one)");
@@ -977,6 +984,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             bool continued = false, engaged = false;
             int published = 0;
             FactModel model = null;
+            WorldNames names = null;
             foreach (var x in arr.OfType<JObject>().Take(Math.Max(1, max)))
             {
                 var e = new WorldEvent
@@ -986,6 +994,12 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     SummaryEn = Clean((string)x["summary"], 350), Importance = Math.Max(1, Math.Min(4, (int?)x["importance"] ?? 2)),
                 };
                 if (e.Title.Length < 3 || e.Text.Length < 20) continue;
+                // A place, realm or person written slightly wrong ("Opor's fields" over a text about Omor) is set right
+                if (S.Get.FactCheckEvents)
+                {
+                    try { FixEventNames(e, x, names ?? (names = BuildNames())); }
+                    catch (Exception ex) { Log.Error("[world] setting names right", ex); }
+                }
                 // A stated allegiance, war or alliance that the game denies: the event is not published
                 string wrong = Contradiction(ref model, x["claims"], e.SummaryEn, e.Text);
                 // Someone dead written as acting, ruling or being plotted against
@@ -993,6 +1007,12 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 {
                     try { wrong = FactCheck.CheckDead(ParseClaims(x["claims"]), e.SummaryEn, model ?? (model = Facts.BuildModel())); }
                     catch (Exception ex) { Log.Error("[world] checking dead", ex); }
+                }
+                // A realm set to recover a place it already holds, or a raid half the map away from the raiders' lands
+                if (wrong == null && S.Get.FactCheckEvents)
+                {
+                    try { wrong = OwnershipContradiction(e, x, names ?? (names = BuildNames()), model ?? (model = Facts.BuildModel())) ?? OutOfReach(e, x); }
+                    catch (Exception ex) { Log.Error("[world] checking owners and reach", ex); }
                 }
                 if (wrong != null) { Log.Warn($"[world] event discarded for contradicting the world: «{e.Title}» {wrong}"); continue; }
                 // A next chapter of an open story keeps its id (so its effects and its news stay tied to it) and its past
@@ -1083,6 +1103,221 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 if (!string.IsNullOrWhiteSpace(rebel)) Diplomacy.Rebellion(rebel);
             }
             return published;
+        }
+
+        // ---- names, owners and reach: what an event is checked against before it is published
+
+        /// <summary>Every real name in the world (with its Soft form), every word of them, and who holds each place. Built once per batch.</summary>
+        private sealed class WorldNames
+        {
+            public readonly List<KeyValuePair<string, string>> All = new List<KeyValuePair<string, string>>();
+            public readonly HashSet<string> Words = new HashSet<string>();
+            public readonly Dictionary<string, string> Owners = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            /// <summary>Places under siege or being raided right now (a realm may set out to liberate its own).</summary>
+            public readonly HashSet<string> Threatened = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static WorldNames BuildNames()
+        {
+            var n = new WorldNames();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            void Add(string s)
+            {
+                s = s?.Trim();
+                if (string.IsNullOrEmpty(s) || s.IndexOf('{') >= 0 || !seen.Add(s)) return;
+                string soft = FactCheck.Soft(s);
+                if (soft.Trim().Length < 3) return;
+                n.All.Add(new KeyValuePair<string, string>(s, soft));
+                foreach (var w in FactCheck.NameWords(s)) n.Words.Add(w.ToLowerInvariant());
+            }
+            foreach (var st in Settlement.All)
+            {
+                if (st == null || !(st.IsTown || st.IsCastle || st.IsVillage)) continue;
+                string name = st.Name?.ToString();
+                Add(name);
+                if (!string.IsNullOrWhiteSpace(name) && st.MapFaction is Kingdom k && !n.Owners.ContainsKey(name)) n.Owners[name] = k.StringId;
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(name) && (st.IsUnderSiege || (st.IsVillage && st.Village != null && st.Village.VillageState != Village.VillageStates.Normal)))
+                        n.Threatened.Add(name);
+                }
+                catch { }
+            }
+            foreach (var k in Kingdoms) { Add(k.Name?.ToString()); Add(k.InformalName?.ToString()); Add(k.Culture?.Name?.ToString()); }
+            foreach (var c in Clan.All) if (c != null && !c.IsEliminated && !c.IsBanditFaction) Add(c.Name?.ToString());
+            foreach (var h in Hero.AllAliveHeroes) if (h != null && h.IsLord) { Add(h.Name?.ToString()); Add(h.FirstName?.ToString()); }
+            return n;
+        }
+
+        /// <summary>
+        /// Sets right a place, realm or person the title, the text or the summary writes slightly wrong: "Opor" in the
+        /// title of an event whose text and places say Omor. The title is read against the names the text, the summary
+        /// and the event's own places and kingdoms use; the text and the summary against each other and those.
+        /// </summary>
+        private static void FixEventNames(WorldEvent e, JObject x, WorldNames names)
+        {
+            var facts = new List<string>();
+            void Place(JToken t) { var st = t != null && t.Type == JTokenType.String ? OrderSystem.FindSettlement((string)t) : null; if (st != null) facts.Add(st.Name.ToString()); }
+            if (x["settlements_involved"] is JArray ss) foreach (var s in ss) Place(s);
+            Place(x["target"]);
+            foreach (var t in new[] { x["actor"] }.Concat(x["kingdoms_involved"] is JArray ks ? ks.ToArray() : new JToken[0]))
+            {
+                var kg = t != null && t.Type == JTokenType.String ? FindKingdom((string)t) : null;
+                if (kg != null) { facts.Add(kg.Name?.ToString()); facts.Add(kg.InformalName?.ToString()); }
+            }
+            List<string> Used(string text)
+            {
+                string soft = FactCheck.Soft(text);
+                return names.All.Where(n => soft.Contains(n.Value)).Select(n => n.Key).ToList();
+            }
+            var inText = Used(e.Text);
+            var inSummary = Used(e.SummaryEn);
+            var changes = new List<string>();
+            string before = e.Title;
+            e.Title = FactCheck.FixNames(e.Title, facts.Concat(inText).Concat(inSummary), names.Words, e.Text + " " + e.SummaryEn, changes);
+            e.Text = FactCheck.FixNames(e.Text, facts.Concat(inSummary), names.Words, e.SummaryEn, changes);
+            e.SummaryEn = FactCheck.FixNames(e.SummaryEn, facts.Concat(inText), names.Words, e.Text, changes);
+            if (changes.Count > 0) Log.Info($"[world] «{before}»: names set right against the event's own: {string.Join(", ", changes)}");
+        }
+
+        private static string Str(JToken t) => t != null && t.Type == JTokenType.String ? (string)t : "";
+
+        /// <summary>A realm the summary, the text or a reason sets out to recover a place it already holds, or a place said to be held by the wrong realm.</summary>
+        private static string OwnershipContradiction(WorldEvent e, JObject x, WorldNames names, FactModel model)
+        {
+            var texts = new List<string> { e.SummaryEn, e.Text, Str(x["update_reason"]) };
+            if (x["economic_effects"] is JArray fx) foreach (var f in fx.OfType<JObject>()) texts.Add(Str(f["reason"]));
+            if (x["clan_effects"] is JArray cfx) foreach (var f in cfx.OfType<JObject>()) texts.Add(Str(f["reason"]));
+            foreach (var t in texts)
+            {
+                string bad = FactCheck.CheckOwnership(t, names.Owners, model, names.Threatened);
+                if (bad != null) return bad;
+            }
+            return null;
+        }
+
+        private static readonly string[] MilitaryStems =
+            { "raid", "burn", "torch", "besieg", "siege", "pillag", "ravag", "plunder", "sack", "incursion", "invad", "invasion", "provocat", "skirmish", "assault", "march", "army", "armies", "warband", "attack" };
+
+        /// <summary>
+        /// A military event (a raid, fields burnt, a siege, an army on the march, a border provocation) whose acting
+        /// kingdom cannot reach the place it strikes: not on its border nor near its lands, with no army of its own
+        /// there and no siege of its own. The acting kingdom is "actor" when the AI gives it; otherwise any kingdom of the
+        /// event that neither holds the place nor is allied with whoever does, and then the event stands if any of them
+        /// reaches any of its places. The place struck is "target" when given, otherwise the event's places.
+        /// </summary>
+        private static string OutOfReach(WorldEvent e, JObject x)
+        {
+            var words = FactCheck.Soft(e.SummaryEn).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            bool military = e.Type == "military" || words.Any(w => MilitaryStems.Any(m => w.StartsWith(m, StringComparison.Ordinal)));
+            if (!military) return null;
+            var actor = FindKingdom(Str(x["actor"]));
+            var involved = x["kingdoms_involved"] is JArray ks ? ks.Select(k => FindKingdom(k?.ToString())).Where(k => k != null).Distinct().ToList() : new List<Kingdom>();
+            var targets = new List<Settlement>();
+            void AddTarget(string s)
+            {
+                var st = string.IsNullOrWhiteSpace(s) ? null : OrderSystem.FindSettlement(s);
+                if (st != null && (st.IsTown || st.IsCastle || st.IsVillage) && !targets.Contains(st)) targets.Add(st);
+            }
+            AddTarget(Str(x["target"]));
+            if (targets.Count == 0 && x["settlements_involved"] is JArray ss) foreach (var s in ss) AddTarget(s?.ToString());
+            var far = new List<string>();
+            bool anyReach = false;
+            foreach (var st in targets)
+            {
+                if (!(st.MapFaction is Kingdom owner)) continue;
+                var actors = actor != null ? new List<Kingdom> { actor } : involved.Where(k => k != owner && !Diplomacy.Allied(k, owner)).ToList();
+                actors.Remove(owner);
+                foreach (var k in actors)
+                {
+                    if (InReach(st, k)) anyReach = true;
+                    else
+                    {
+                        int r = Facts.Reach(st, k, out _);
+                        far.Add($"{k.StringId} at {st.Name} ({owner.StringId}, {(r >= 3 ? "out of its reach altogether" : "far from its lands")})");
+                    }
+                }
+            }
+            if (far.Count == 0 || anyReach) return null;
+            return $"has a kingdom strike a place its armies cannot reach, with no army of its own near it: {string.Join("; ", far)}";
+        }
+
+        /// <summary>The place lies on the kingdom's border or near its lands, or an army or lord of that kingdom stands by it, or besieges it.</summary>
+        private static bool InReach(Settlement st, Kingdom k)
+        {
+            if (st == null || k == null || st.MapFaction == k) return true;
+            int r = Facts.Reach(st, k, out _);
+            if (r < 0 || r <= 1) return true;
+            try
+            {
+                if (st.IsUnderSiege && st.SiegeEvent?.BesiegerCamp?.LeaderParty?.MapFaction == k) return true;
+                float near = NearDistance();
+                if (near <= 0f) return false;
+                var p = st.GetPosition2D;
+                foreach (var mp in MobileParty.All)
+                    if (mp != null && mp.IsActive && mp.IsLordParty && mp.MapFaction == k && mp.GetPosition2D.Distance(p) <= near) return true;
+            }
+            catch (Exception ex) { Log.Error("[world] armies near a place", ex); }
+            return false;
+        }
+
+        private static float _span = -1f;
+        private static int _spanDay = -1;
+        private static Campaign _spanFor;
+
+        /// <summary>A tenth of the map across, from the towns and castles: the "on its border" distance of Facts.Reach.</summary>
+        private static float NearDistance()
+        {
+            int day = (int)CampaignTime.Now.ToDays;
+            if (day != _spanDay || _spanFor != Campaign.Current || _span < 0f)
+            {
+                float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+                foreach (var st in Settlement.All)
+                {
+                    if (st == null || !(st.IsTown || st.IsCastle)) continue;
+                    var p = st.GetPosition2D;
+                    minX = Math.Min(minX, p.x); maxX = Math.Max(maxX, p.x); minY = Math.Min(minY, p.y); maxY = Math.Max(maxY, p.y);
+                }
+                _span = maxX > minX ? (float)Math.Sqrt((maxX - minX) * (maxX - minX) + (maxY - minY) * (maxY - minY)) : 0f;
+                _spanDay = day; _spanFor = Campaign.Current;
+            }
+            return _span * 0.10f;
+        }
+
+        private static readonly Tpl TReach = new Tpl("dynamic_events_generator/reach.txt",
+@"## Within reach of each kingdom (right now)
+For each kingdom, the towns and castles of OTHER realms on its border or near its lands, nearest first, with the id of the realm that holds them; their villages lie by them. A military development (a raid, fields burnt, a siege, an army on the march, a border provocation) may only strike a place within reach of the kingdom whose forces act, its own lands, or a place where an army of it stands right now: anything farther lies beyond the reach of its armies and the event is thrown away. For such an event also give ""actor"": the id of the kingdom whose forces act, and ""target"": the name of the place they strike.
+Look up who holds a place before writing that a realm must recover, retake, reclaim or liberate it, or that it lost it: a realm never recovers what it already holds, and an event that says so, in its text or in a reason, is thrown away.
+{list}");
+
+        // Most the list may add to the prompt. The kingdoms in keep always stay
+        private const int ReachBudget = 2500;
+
+        private static string ReachBlock(ICollection<string> keep)
+        {
+            var lines = new List<KeyValuePair<string, string>>();
+            foreach (var k in Kingdoms.OrderByDescending(x => x.CurrentTotalStrength))
+            {
+                var near = new List<Tuple<float, string>>();
+                foreach (var st in Settlement.All)
+                {
+                    if (st == null || !(st.IsTown || st.IsCastle) || !(st.MapFaction is Kingdom o) || o == k) continue;
+                    int r = Facts.Reach(st, k, out float gap);
+                    if (r < 0 || r > 1) continue;
+                    near.Add(Tuple.Create(gap, $"{st.Name} ({o.StringId})"));
+                }
+                string list = near.Count > 0 ? string.Join(", ", near.OrderBy(t => t.Item1).Take(8).Select(t => t.Item2))
+                            : k.Fiefs.Count > 0 ? "no town or castle of another realm" : "it holds no land: only where its armies stand";
+                lines.Add(new KeyValuePair<string, string>(k.StringId, $"- {k.Name} [{k.StringId}]: {list}"));
+            }
+            int total = lines.Sum(l => l.Value.Length + 1);
+            for (int i = lines.Count - 1; i >= 0 && total > ReachBudget; i--)
+            {
+                if (keep != null && keep.Contains(lines[i].Key)) continue;
+                total -= lines[i].Value.Length + 1;
+                lines.RemoveAt(i);
+            }
+            return TReach.Format("list", string.Join("\n", lines.Select(l => l.Value)));
         }
 
         // ---- the succession of a dead sovereign, read from the game when the death is told

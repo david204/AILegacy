@@ -2639,5 +2639,11 @@
     <string id="AIL_e7b1d831" text="{0} raconte partout : «{1}»" />
     <string id="AIL_e7b1d832" text="Le renom de votre clan augmente de {0}" />
     <string id="AIL_e7b1d833" text=", +{0} de renom" />
+    <string id="AIL_e7b1d900" text="Plus de lettres de {0}" />
+    <string id="AIL_e7b1d901" text="Vous pouvez demander à {0} de ne plus vous écrire : vous ne recevrez plus de lettres de sa part tant que vous ne lui aurez pas reparlé ou écrit." />
+    <string id="AIL_e7b1d902" text="Garder la lettre" />
+    <string id="AIL_e7b1d903" text="{0} ne vous écrira plus tant que vous ne lui aurez pas reparlé ou écrit." />
+    <string id="AIL_e7b1d904" text="Interdit à la couronne d’expulser des clans du royaume" />
+    <string id="AIL_e7b1d905" text="Interdit à la couronne de confisquer des fiefs" />
   </strings>
 </base>
