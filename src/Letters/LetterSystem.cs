@@ -289,7 +289,7 @@ namespace AILegacy.Letters
                     if (isReply)
                     {
                         var replying = World.WorldSim.State.LettersReplying ?? (World.WorldSim.State.LettersReplying = new List<string>());
-                        if (!replying.Contains(hero.StringId)) replying.Add(hero.StringId);
+                        replying.Add(hero.StringId);     // one entry per answer on the road: List.Remove takes one away as each arrives
                     }
 
                     var (_, hours) = Quote(hero);

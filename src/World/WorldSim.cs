@@ -1220,25 +1220,25 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 if (st != null && (st.IsTown || st.IsCastle || st.IsVillage) && !targets.Contains(st)) targets.Add(st);
             }
             AddTarget(Str(x["target"]));
-            if (targets.Count == 0 && x["settlements_involved"] is JArray ss) foreach (var s in ss) AddTarget(s?.ToString());
+            // With a known actor every place of the event counts, so a near "target" cannot cover a far strike; without
+            // one, the event's places are only looked at when no target is named (they may be the actor's own towns)
+            if ((actor != null || targets.Count == 0) && x["settlements_involved"] is JArray ss) foreach (var s in ss) AddTarget(s?.ToString());
             var far = new List<string>();
-            bool anyReach = false;
             foreach (var st in targets)
             {
                 if (!(st.MapFaction is Kingdom owner)) continue;
                 var actors = actor != null ? new List<Kingdom> { actor } : involved.Where(k => k != owner && !Diplomacy.Allied(k, owner)).ToList();
                 actors.Remove(owner);
+                if (actors.Count == 0 || actors.Any(k => Diplomacy.Allied(k, owner))) continue;
+                // a place is fine when some acting kingdom reaches it; the event stands only if every struck place is
+                if (actors.Any(k => InReach(st, k))) { if (actor == null) return null; continue; }      // without an actor, one place within reach is enough
                 foreach (var k in actors)
                 {
-                    if (InReach(st, k)) anyReach = true;
-                    else
-                    {
-                        int r = Facts.Reach(st, k, out _);
-                        far.Add($"{k.StringId} at {st.Name} ({owner.StringId}, {(r >= 3 ? "out of its reach altogether" : "far from its lands")})");
-                    }
+                    int r = Facts.Reach(st, k, out _);
+                    far.Add($"{k.StringId} at {st.Name} ({owner.StringId}, {(r >= 3 ? "out of its reach altogether" : "far from its lands")})");
                 }
             }
-            if (far.Count == 0 || anyReach) return null;
+            if (far.Count == 0) return null;
             return $"has a kingdom strike a place its armies cannot reach, with no army of its own near it: {string.Join("; ", far)}";
         }
 
