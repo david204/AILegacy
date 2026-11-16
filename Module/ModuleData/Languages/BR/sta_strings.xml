@@ -140,7 +140,7 @@
     <string id="AIL_1cb10851" text="Abrir o editor do AI Legacy" />
     <string id="AIL_1d0a19e2" text="aliança impossível agora" />
     <string id="AIL_1d2a25e7" text="Restaurado: " />
-    <string id="AIL_1d38423b" text="9. Editor" />
+    <string id="AIL_1d38423b" text="A. Editor" />
     <string id="AIL_1d3c2297" text="Cai o reino de {0}" />
     <string id="AIL_1d84efed" text="a corte" />
     <string id="AIL_1df7d173" text="Voltar" />
@@ -259,7 +259,7 @@
     <string id="AIL_35e216d6" text="Distância no mapa a que um NPC enxerga inimigos que pode atacar se você pedir." />
     <string id="AIL_3677d2a1" text="O clã {0} abandona {1}." />
     <string id="AIL_36b9fe81" text="Gravidade máxima" />
-    <string id="AIL_370ba9dd" text="4. Memória" />
+    <string id="AIL_370ba9dd" text="6. Memória" />
     <string id="AIL_3732e7fc" text="Numa conversa em grupo numa cidade ou castelo, um guarda ou quem manda ali pode prender outro personagem presente se houver motivo de peso (p. ex., você o acusa de um crime com provas à vista). Ele fica preso de verdade, e guarda rancor de você." />
     <string id="AIL_376f0803" text="Desfazer a importação" />
     <string id="AIL_378f2647" text="você ainda não foi a {0}" />
@@ -276,7 +276,7 @@
     <string id="AIL_39a88b5b" text="O que você diz ou faz diante de um NPC pode chegar ao senhor dele, à família ou aos amigos, com atraso conforme a distância. O que chega é a versão dele, não um fato." />
     <string id="AIL_3a0a45fd" text="Combate a partir da conversa" />
     <string id="AIL_3a0aca3f" text="Se fracassar ou o prazo estourar, você perde metade." />
-    <string id="AIL_3a41f7a5" text="D. Cenas" />
+    <string id="AIL_3a41f7a5" text="E. Cenas" />
     <string id="AIL_3a52fd31" text="&#10;Estado: {0}" />
     <string id="AIL_3a88a804" text="Se o que você diz numa conversa em grupo der motivo a ele, o personagem pode agir: ir falar com outro e voltar para contar a você, acompanhar você, ficar, guiar você até alguém, chamar alguém para vir, ou ir embora." />
     <string id="AIL_3ae61921" text="{=!}Enviar uma carta" />
@@ -340,7 +340,7 @@
     <string id="AIL_46407e9d" text="Dias que uma proposta dura sem resposta" />
     <string id="AIL_466f3751" text="Apagar toda a memória dele" />
     <string id="AIL_4695e872" text="Probabilidade diária de carta (%)" />
-    <string id="AIL_46d0d1f8" text="E. Batalhas" />
+    <string id="AIL_46d0d1f8" text="F. Batalhas" />
     <string id="AIL_46df902b" text="Buscar arquivo…" />
     <string id="AIL_46e19d91" text="feudo ou clã inválidos" />
     <string id="AIL_479941aa" text="Você cede a coroa: o clã {0} passa a reinar em {1}." />
@@ -366,7 +366,7 @@
     <string id="AIL_4b487b93" text="aqui termina sua história" />
     <string id="AIL_4b77b3ae" text="{0} está esperando você falar.  (Digite /help para ver os comandos)" />
     <string id="AIL_4b7ed15a" text="Provedor para gente da cidade" />
-    <string id="AIL_4bb74331" text="6. Cartas" />
+    <string id="AIL_4bb74331" text="8. Cartas" />
     <string id="AIL_4bf3e0c5" text="{0} dá {1} denares a você." />
     <string id="AIL_4c08be8b" text="o lugar" />
     <string id="AIL_4c5ed9ad" text="Tarefa cumprida" />
@@ -393,7 +393,7 @@
     <string id="AIL_506e56c2" text="Nome do provedor de config.json preferido para as ordens de batalha (vazio = o normal). Convém um rápido." />
     <string id="AIL_508eddc4" text="Tamanho máximo de cada frase (caracteres)" />
     <string id="AIL_50ac9cd1" text="{0}, do clã {1}, é agora quem governa {2}." />
-    <string id="AIL_513640bb" text="C. Doenças" />
+    <string id="AIL_513640bb" text="D. Doenças" />
     <string id="AIL_513c1858" text="Apagar histórico" />
     <string id="AIL_5179ad99" text="todo o reino" />
     <string id="AIL_518def5c" text="{0} chegou a {1}." />
@@ -539,7 +539,7 @@
     <string id="AIL_6c33ff94" text="Sentença de {0}" />
     <string id="AIL_6c53dc0f" text="Seus capitães: {0}" />
     <string id="AIL_6c7f2b62" text="0. Chaves de IA" />
-    <string id="AIL_6cf8197b" text="8. Importar" />
+    <string id="AIL_6cf8197b" text="9. Importar" />
     <string id="AIL_6d2b9329" text="Após uma briga ou um duelo num assentamento que não é seu, se houver um guarda por perto, ele se aproxima para pedir explicações e decide: deixar você ir, multar ou prender." />
     <string id="AIL_6d3c2db8" text="Você fala ao grupo" />
     <string id="AIL_6d44c3f5" text="&#10;Você tem {0} soldado(s) feridos ou doentes." />
@@ -679,7 +679,7 @@
     <string id="AIL_8740b99c" text="caiu em combate contra {0}" />
     <string id="AIL_875d42da" text="Os NPCs contam coisas entre si" />
     <string id="AIL_88476cb6" text="quiero quieres quiere muy mas más menos todo toda todos todas nada algo alguien nadie bien mal aqui aquí alli allí ahora luego antes despues después siempre nunca tambien también " />
-    <string id="AIL_884d0de2" text="B. Iniciativa e recados" />
+    <string id="AIL_884d0de2" text="C. Iniciativa e recados" />
     <string id="AIL_8871d6a5" text="Não há pasta de modelos para esta partida." />
     <string id="AIL_897d3e43" text="O que busca" />
     <string id="AIL_89a46e62" text="O jogo não tem um molde para esse sexo." />
@@ -733,7 +733,7 @@
     <string id="AIL_94ae59ca" text="O jogo só permite casamento entre nobres. Com esta opção, um companheiro, um andarilho ou um notável que você tenha conquistado pode aceitar: ele entra antes na sua casa como nobre e deixa de ocupar vaga de companheiro." />
     <string id="AIL_94c1e5dd" text="Personagens únicos criados pela IA" />
     <string id="AIL_94c21a0a" text="Os que você editou nunca são alterados.&#13;&#10;" />
-    <string id="AIL_953a8770" text="5. Notícias e boatos" />
+    <string id="AIL_953a8770" text="7. Notícias e boatos" />
     <string id="AIL_95594522" text="{0} chama a guarda: entregue-se, convença-o ou resista." />
     <string id="AIL_95b516ae" text="{=!}Você não tem companheiros feridos." />
     <string id="AIL_95c582ef" text="Segredos (secrets.json)" />
@@ -834,7 +834,7 @@
     <string id="AIL_a92c1422" text="{0} fica caído e gravemente ferido: você venceu o duelo." />
     <string id="AIL_a9628091" text="Já há dentro todos os homens que cabem." />
     <string id="AIL_a9672a5d" text="AI Legacy — Editor" />
-    <string id="AIL_a96fe2c6" text="7. IA" />
+    <string id="AIL_a96fe2c6" text="1. IA" />
     <string id="AIL_a9a55bc8" text="O que se diz dele ou dela" />
     <string id="AIL_a9aa8409" text="Nome de um provedor: o serviço que você escreveu em «0. Chaves de IA» (gemini, openai; o da vaga 2, 3 ou 4 leva o número: openai2) ou um de config.json. Vazio = a cadeia normal. Se falhar, usa-se o resto." />
     <string id="AIL_a9b74d1b" text="Remover «Falar» da lista de personagens" />
@@ -1054,7 +1054,7 @@
     <string id="AIL_d69db9ac" text="Personagens envolvidos" />
     <string id="AIL_d6f2ec0b" text="Treino na arena" />
     <string id="AIL_d6fd303c" text="O clã {0} se levanta em rebelião contra {1}." />
-    <string id="AIL_d770d7bc" text="2. Relação, confiança e romance" />
+    <string id="AIL_d770d7bc" text="4. Relação, confiança e romance" />
     <string id="AIL_d77a8668" text="Arena: probabilidade de lesão por soldado (%)" />
     <string id="AIL_d79898d4" text="{0} dia(s) de masmorra." />
     <string id="AIL_d79a206d" text="Grupo: câmera lenta enquanto você escreve" />
@@ -1095,7 +1095,7 @@
     <string id="AIL_dd6592dc" text="Não há mais espaço para companheiros." />
     <string id="AIL_dd736c20" text="Dias que um evento continua «no ar»" />
     <string id="AIL_dd76aabc" text="Comandos:  /note &lt;texto&gt; (instrução permanente)  ·  /clearnotes  ·  /memory (o que lembra)  ·  /forget  ·  /help" />
-    <string id="AIL_dda0e8ca" text="1. Geral" />
+    <string id="AIL_dda0e8ca" text="3. Geral" />
     <string id="AIL_de098566" text=", {0} denares" />
     <string id="AIL_de5d5b50" text="Você já tem mãe." />
     <string id="AIL_de705baa" text="Escreve toda a ficha acima a partir de quem é na partida (família, clã, traços, molde de personalidade), sem precisar conversar com o personagem no jogo. Sobrescreve o que houver. É uma requisição à IA." />
@@ -1134,7 +1134,7 @@
     <string id="AIL_e45c3132" text="uma peste" />
     <string id="AIL_e47fec25" text="Criatividade. 80 = 0.8. Alguns modelos (GPT-5) a ignoram." />
     <string id="AIL_e4a9f3a0" text="prosperidade" />
-    <string id="AIL_e4f26c59" text="3. Ações" />
+    <string id="AIL_e4f26c59" text="5. Ações" />
     <string id="AIL_e50ca8f9" text="{0} entrega {1} a {2}." />
     <string id="AIL_e514530a" text="resposta vazia" />
     <string id="AIL_e5df30fb" text="&#10;&#10;PASSADO&#10;" />
@@ -1194,7 +1194,7 @@
     <string id="AIL_f257824f" text="Como trata superiores, iguais, inferiores e estranhos" />
     <string id="AIL_f25e35cc" text="Humor" />
     <string id="AIL_f264e0b3" text="Comércio de verdade com o povo do lugar" />
-    <string id="AIL_f2caa92d" text="A. Mundo e diplomacia" />
+    <string id="AIL_f2caa92d" text="B. Mundo e diplomacia" />
     <string id="AIL_f30c7e23" text="Passado" />
     <string id="AIL_f3138943" text="Relação: {0:+0;-0;0}" />
     <string id="AIL_f313a714" text="Cônjuge" />
@@ -1280,7 +1280,7 @@
     <string id="AIL_a1c0e5d6" text="As mulheres de 13 a 47 anos têm ciclo: ele muda o humor conforme o dia (muito em algumas, quase nada em outras) e a chance de gravidez, inclusive a do jogo. Não há ciclo durante a gravidez nem depois do parto. Ela sabe em que dia está." />
     <string id="AIL_a1c0e5d7" text="Duração do ciclo em dias" />
     <string id="AIL_a1c0e5d8" text="Dias de campanha. Um ano do jogo tem 84 dias, então 21 dão quatro ciclos por ano." />
-    <string id="AIL_c3a7f1e1" text="O limite de gasto diário foi atingido (MCM › 7. IA) e não há nenhum provedor gratuito." />
+    <string id="AIL_c3a7f1e1" text="O limite de gasto diário foi atingido (MCM › 1. IA) e não há nenhum provedor gratuito." />
     <string id="AIL_c3a7f1e2" text="Preço de entrada ($ por milhão de tokens)" />
     <string id="AIL_c3a7f1e3" text="Quanto este provedor cobra por milhão de tokens. 0 = grátis. Serve para calcular o gasto (aparece no editor, aba Serviço) e para o limite diário; não muda mais nada." />
     <string id="AIL_c3a7f1e4" text="Preço de saída ($ por milhão de tokens)" />
@@ -1305,7 +1305,7 @@
     <string id="AIL_c3a7f1f7" text="Saída" />
     <string id="AIL_c3a7f1f8" text="Custo ($)" />
     <string id="AIL_d4b8a2f1" text="Lembrança por significado (RAG)" />
-    <string id="AIL_d4b8a2f2" text="Além de buscar por palavras, procura-se na história de vocês os momentos ligados ao que você diz, mesmo com outras palavras («aquela promessa» encontra «vou te ajudar a tomar a fortaleza»). Usa os vetores de um provedor que você já tem (o Gemini dá de graça; a OpenAI cobra centavos). Se nenhum os fornecer, continua a busca por palavras." />
+    <string id="AIL_d4b8a2f2" text="Recomendado, não obrigatório. Sem ele os personagens também lembram: aumente Turnos de histórico no prompt (50 ou mais), mas todas essas linhas vão em cada pedido, então gasta mais tokens. Com ele bastam umas 15 linhas recentes e o resto da história de vocês é buscado e incluído só quando tem a ver com o que você diz, mesmo com outras palavras, então gasta menos tokens. Usa os vetores de um provedor que você já tem (o Gemini dá de graça; a OpenAI cobra centavos)." />
     <string id="AIL_d4b8a2f3" text="Trechos de história recuperados" />
     <string id="AIL_d4b8a2f4" text="Falas por trecho" />
     <string id="AIL_d4b8a2f5" text="Quantas falas seguidas formam um trecho de história ao indexá-la. Se você mudar, o índice de cada personagem se refaz sozinho." />
@@ -1315,7 +1315,7 @@
     <string id="AIL_d4b8a2f9" text="Modelo de vetores (vazio = automático)" />
     <string id="AIL_d4b8a2fa" text="Para os provedores sem modelo de vetores próprio e cujo serviço o mod não conhece. Vazio: gemini-embedding-001 com Gemini, text-embedding-3-small com OpenAI, embedding-3 com GLM, nomic-embed-text com Ollama; DeepSeek e Groq não fornecem vetores. Escreva outro só se o seu provedor usar um nome diferente." />
     <string id="AIL_e7b1c4d1" text="Modelo de vetores (vazio = automático, - = nenhum)" />
-    <string id="AIL_e7b1c4d2" text="Modelo que este provedor usa para a lembrança por significado (vetores). Vazio: o habitual do serviço, se tiver (embedding-3 com GLM), ou o de 4. Memória. Escreva - para que nunca se peçam vetores a este provedor." />
+    <string id="AIL_e7b1c4d2" text="Modelo que este provedor usa para a lembrança por significado (vetores). Vazio: o habitual do serviço, se tiver (embedding-3 com GLM), ou o de 1. IA. Escreva - para que nunca se peçam vetores a este provedor." />
     <string id="AIL_e7b1c4d5" text="Provedor 5" />
     <string id="AIL_e7b1c4d6" text="Provedor 6" />
     <string id="AIL_e7b1c4d7" text="{=!}E então? Vocês se rendem ou não?" />
@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="Capítulos" />
     <string id="AIL_e7b1c4f0" text="De onde vêm as imagens" />
     <string id="AIL_e7b1c4f1" text="Cada capítulo do livro de memórias pode ter uma imagem. Grátis usa um serviço público sem chave: só uma descrição da cena é enviada. OpenAI usa o provedor OpenAI definido em 0. Chaves de IA e custa dinheiro por imagem. Local precisa do Stable Diffusion no seu PC com a API ligada. Off = sem imagens." />
-    <string id="AIL_e7b1c4f2" text="F. Imagens" />
+    <string id="AIL_e7b1c4f2" text="G. Imagens" />
     <string id="AIL_e7b1c4f3" text="Desenhar cada capítulo novo sozinho" />
     <string id="AIL_e7b1c4f4" text="Quando um capítulo novo é escrito, a imagem é feita em segundo plano. Desligado: só quando você apertar o botão no livro. Cada imagem gasta um pedido curto à IA para a descrição." />
     <string id="AIL_e7b1c4f5" text="Estilo das imagens" />
@@ -1379,7 +1379,7 @@
     <string id="AIL_e7b1c513" text="Impede que as votações do jogo, os acordos de chamado à guerra e outros mods declarem guerra, façam a paz ou selem uma aliança ou um acordo comercial entre dois reinos da IA: só as declarações dos seus soberanos fazem isso. Uma aliança que expira não é mais renovada por votação; ela acaba, e os soberanos podem propô-la de novo. Guerras que nascem do que acontece no mundo (um ataque, uma rebelião, um reino novo) e tudo o que envolve o seu reino não são afetados." />
     <string id="AIL_e7b1c514" text="{0} sente o golpe de uma vez: {1}" />
     <string id="AIL_e7b1c515" text="Dias em que lembram o que lhes contaram (0 = sempre)" />
-    <string id="AIL_e7b1c516" text="O que chegou a um personagem pela boca de outro some depois destes dias. O que ele só ouviu de passagem tem seu próprio ajuste, mais curto, em D. Cenas." />
+    <string id="AIL_e7b1c516" text="O que chegou a um personagem pela boca de outro some depois destes dias. O que ele só ouviu de passagem tem seu próprio ajuste, mais curto, em E. Cenas." />
     <string id="AIL_e7b1c517" text="Mãos pelas quais um recado pode passar" />
     <string id="AIL_e7b1c518" text="Quem recebe um recado pode passá-lo aos seus: um público a um par deles, um privado às vezes, um segredo só se for do tipo que quebra uma confidência. Cada um sabe quem lhe contou e onde começou. 0 = para na primeira pessoa." />
     <string id="AIL_e7b1c519" text="Os recados podem ser respondidos" />
@@ -1934,7 +1934,7 @@
     <string id="AIL_e7b1c74c" text="O arquivo {0} é grande demais para ser aberto no editor." />
     <string id="AIL_e7b1c74d" text="Termina o cerco de {0}" />
     <string id="AIL_e7b1c74e" text="O cerco de {0} terminou e {1} continua nas mãos de {2}." />
-    <string id="AIL_e7b1c74f" text="Regras da campanha" />
+    <string id="AIL_e7b1c74f" text="2. Regras da campanha" />
     <string id="AIL_e7b1c750" text="Paz forçada após estes dias de guerra empatada (0 = desativado)" />
     <string id="AIL_e7b1c751" text="Quando dois reinos da IA estão em guerra há todo este tempo sem que uma única cidade ou castelo tenha mudado de mãos entre eles, a guerra acaba sozinha, com a sua notícia: ninguém consegue sustentá-la. No máximo uma paz assim por dia. Um ano de Calradia tem 84 dias. Nunca se aplica a um reino que você governa. Os reis ficam sabendo quanto falta para cada uma das suas guerras chegar a isso. Depois, nenhum dos dois pode declarar guerra ao outro durante 84 dias, ou durante a trégua definida acima se for mais longa. Recomendado: de 126 a 252 (de um ano e meio a três anos); 0 desativa." />
     <string id="AIL_e7b1c752" text="Uma aliança nova substitui a antiga" />
@@ -2174,7 +2174,7 @@
     <string id="AIL_e7b1c842" text="concubino" />
     <string id="AIL_e7b1c843" text="Voz dos personagens" />
     <string id="AIL_e7b1c844" text="Os personagens falam suas falas em voz alta: só o que eles dizem, nunca sua fala nem um nome na frente. Windows usa as vozes instaladas no seu PC: grátis, offline, sem chave. OpenAI usa o provedor OpenAI de 0. Chaves de IA e custa um pouco por fala (cerca de meio centavo). Servidor compatível é qualquer programa com a mesma API /audio/speech, como um Kokoro local. Piper usa um modelo de voz local. Desativado = em silêncio." />
-    <string id="AIL_e7b1c845" text="G. Voz" />
+    <string id="AIL_e7b1c845" text="H. Voz" />
     <string id="AIL_e7b1c846" text="Voz: volume" />
     <string id="AIL_e7b1c847" text="Voz: velocidade (-10 lenta, 10 rápida)" />
     <string id="AIL_e7b1c848" text="Voz: também em grupos e conversas de cena" />
@@ -2428,5 +2428,45 @@
     <string id="AIL_e7b1cf1c" text="{0}, depois: {1}." />
     <string id="AIL_e7b1cf1d" text="{0} segue com o combinado: {1}." />
     <string id="AIL_e7b1cf1e" text="{0} voltou para o seu lado, como combinado." />
+    <string id="AIL_e7b1d200" text="Mistura de eventos: militares (%)" />
+    <string id="AIL_e7b1d201" text="Parcela dos eventos de fundo sobre a guerra: batalhas, saques, cercos, exércitos que se reúnem, marcham ou se dispersam, provocações na fronteira, gado tomado. As cinco parcelas são comparadas entre si e não precisam somar 100 (todas em 0 = sem preferência)." />
+    <string id="AIL_e7b1d202" text="Mistura de eventos: diplomáticos (%)" />
+    <string id="AIL_e7b1d203" text="Parcela dos eventos de fundo sobre as relações entre coroas: embaixadas, ofensas, casamentos de Estado, pactos buscados ou abalados, disputas por fronteiras e prisioneiros." />
+    <string id="AIL_e7b1d204" text="Mistura de eventos: econômicos (%)" />
+    <string id="AIL_e7b1d205" text="Parcela dos eventos de fundo sobre dinheiro e mercadorias: colheitas, escassez, preços, caravanas, feiras, dívidas e disputas de guildas." />
+    <string id="AIL_e7b1d206" text="Mistura de eventos: romance e corte (%)" />
+    <string id="AIL_e7b1d207" text="Parcela dos eventos de fundo sobre a vida na corte: cortejos, noivados, escândalos, banquetes, rivalidades pelo favor do soberano, herdeiros e brigas de família." />
+    <string id="AIL_e7b1d208" text="Mistura de eventos: malandragem e intriga (%)" />
+    <string id="AIL_e7b1d209" text="Parcela dos eventos de fundo sobre o submundo: contrabandistas, chefes de bandidos, espiões, subornos, conspirações, roubos e presságios sussurrados nas tavernas." />
+    <string id="AIL_e7b1d20a" text="todos" />
+    <string id="AIL_e7b1d20b" text="{0}, começando por {1}" />
+    <string id="AIL_e7b1d20c" text=" ({0} denários em troca da libertação dos nobres cativos de quem paga: {1})" />
+    <string id="AIL_e7b1d20d" text=" (cada lado liberta os nobres do outro que mantém presos: {0} de cada lado)" />
+    <string id="AIL_e7b1d20e" text="um resgate por nobres cativos" />
+    <string id="AIL_e7b1d20f" text="uma troca de nobres cativos" />
+    <string id="AIL_e7b1d210" text="{0} oferece a {1} libertar alguns de seus nobres em troca de um resgate{2}." />
+    <string id="AIL_e7b1d211" text="{0} não pode pagar o resgate de {1} denários: seu tesouro só tem {2}." />
+    <string id="AIL_e7b1d212" text="{0} paga a {1} {2} denários de resgate e {3} liberta {4}." />
+    <string id="AIL_e7b1d213" text="{0} aceita o resgate que você pedia. {1}" />
+    <string id="AIL_e7b1d214" text="{0} se recusa a pagar o resgate que {1} pedia." />
+    <string id="AIL_e7b1d215" text="{0} propõe a {1} uma troca de nobres cativos{2}." />
+    <string id="AIL_e7b1d216" text="{0} e {1} trocam nobres cativos." />
+    <string id="AIL_e7b1d217" text="{0} liberta {1}." />
+    <string id="AIL_e7b1d218" text="{0} aceita a troca que você havia proposto. {1}" />
+    <string id="AIL_e7b1d219" text="{0} rejeita a troca de cativos que {1} propunha." />
+    <string id="AIL_e7b1d21a" text="Se você mantém nobres deles presos, pode pedir um resgate por eles ou propor uma troca de cativos." />
+    <string id="AIL_e7b1d100" text="Memória e lembrança (RAG)" />
+    <string id="AIL_e7b1d101" text="Provedor por tarefa" />
+    <string id="AIL_e7b1d102" text="Esforço de raciocínio" />
+    <string id="AIL_e7b1d103" text="Quanto o modelo pensa antes de responder, nos modelos que podem (GPT-5, série o, Gemini 2.5 e posteriores, gpt-oss, Claude, Qwen3...). Off: nada é pedido (Gemini e OpenAI são instruídos a não pensar, o mais rápido). Mais alto: respostas mais pensadas, porém mais lentas e com mais tokens; Max pede o máximo que o serviço aceita. Se o serviço recusar, o log avisa e o mod segue sem isso." />
+    <string id="AIL_e7b1d104" text="Linhas recentes da sua conversa com um personagem enviadas palavra por palavra em cada pedido. O histórico cresce até este número mais a metade antes de ser cortado de volta a este número, assim o início fica igual por muitos turnos e os provedores podem guardá-lo em cache (mais barato e mais rápido). Com a lembrança por significado ligada, umas 15 bastam." />
+    <string id="AIL_e7b1d105" text="Mensagem de boas-vindas ao iniciar ou carregar uma campanha" />
+    <string id="AIL_e7b1d106" text="Uma vez por carregamento, no registro de mensagens: sem provedor de IA, onde configurar um; com provedores, as regras da campanha que você mudou e um teste de conexão de cada provedor ativo, igual ao botão Testar." />
+    <string id="AIL_e7b1d107" text="{0} não aceita o esforço de raciocínio; segue sem ele (detalhes no log)." />
+    <string id="AIL_e7b1d108" text="Bem-vindo ao AI Legacy! Para os personagens falarem, adicione um provedor de IA em Mod Options › AI Legacy › 0. Chaves de IA. As regras ficam em 2. Regras da campanha: como já são ajustes, seu texto do mundo pode ser só ambientação." />
+    <string id="AIL_e7b1d109" text="Bem-vindo ao AI Legacy!" />
+    <string id="AIL_e7b1d10a" text="Bem-vindo ao AI Legacy! Regras da campanha alteradas: {0}." />
+    <string id="AIL_e7b1d10b" text="sim" />
+    <string id="AIL_e7b1d10c" text="não" />
   </strings>
 </base>

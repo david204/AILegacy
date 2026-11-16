@@ -450,7 +450,7 @@ namespace AILegacy.World
 
         // ============================================================ a refused proposal has to wait
 
-        private static readonly string[] CooledTypes = { "peace", "alliance", "trade" };
+        private static readonly string[] CooledTypes = { "peace", "alliance", "trade", "ransom", "exchange" };
         private static string RefusalKey(string type, string a, string b) => type + "|" + FactCheck.Pair(a, b);
 
         private static void MarkRefused(string type, string from, string to, double now)
@@ -1247,8 +1247,27 @@ siege: far away, but under your siege right now");
             es ? TermListEs(p.OfferDailyTribute, p.OfferTributeDays, p.OfferReparations, p.OfferSettlementId, p.OfferSettlementLast)
                : TermList(p.OfferDailyTribute, p.OfferTributeDays, p.OfferReparations, p.OfferSettlementId, p.OfferSettlementLast);
 
+        /// <summary>The captives a ransom or an exchange is about, in English: "all of them" or "3", with the named ones.</summary>
+        private static string CaptiveTerm(Proposal p)
+        {
+            string count = p.Prisoners <= 0 ? "all of them" : p.Prisoners.ToString();
+            var named = (p.PrisonerIds ?? new List<string>()).Select(id => Hero.Find(id)?.Name?.ToString()).Where(n => !string.IsNullOrEmpty(n)).ToList();
+            return named.Count > 0 ? $"{count}, starting with {string.Join(", ", named)}" : count;
+        }
+
+        private static string CaptiveTermEs(Proposal p)
+        {
+            string count = p.Prisoners <= 0 ? L.T("AIL_e7b1d20a", "todos") : p.Prisoners.ToString();
+            var named = (p.PrisonerIds ?? new List<string>()).Select(id => Hero.Find(id)?.Name?.ToString()).Where(n => !string.IsNullOrEmpty(n)).ToList();
+            return named.Count > 0 ? L.F("AIL_e7b1d20b", $"{count}, empezando por {string.Join(", ", named)}") : count;
+        }
+
         private static string Terms(Proposal p)
         {
+            if (p.Type == "ransom")
+                return $" ({p.Reparations} denars paid by the receiver; in return the proposer frees the receiver's nobles it holds: {CaptiveTerm(p)})";
+            if (p.Type == "exchange")
+                return $" (each side frees the other's nobles it holds: {CaptiveTerm(p)} on each side)";
             var parts = Demands(p, false);
             if (p.Type == "peace")
             {
@@ -1265,6 +1284,10 @@ siege: far away, but under your siege right now");
 
         private static string TermsEs(Proposal p)
         {
+            if (p.Type == "ransom")
+                return L.F("AIL_e7b1d20c", $" ({p.Reparations} denarios a cambio de liberar a los nobles cautivos de quien paga: {CaptiveTermEs(p)})");
+            if (p.Type == "exchange")
+                return L.F("AIL_e7b1d20d", $" (cada bando libera a los nobles del otro que tiene presos: {CaptiveTermEs(p)} por cada lado)");
             var parts = Demands(p, true);
             if (p.Type == "peace")
             {
@@ -1288,9 +1311,17 @@ siege: far away, but under your siege right now");
             return both.Count == 0 ? "" : " (" + string.Join("; ", both) + ")";
         }
 
-        private static string TypeEn(string t) => t == "peace" ? "peace" : t == "alliance" ? "an alliance" : t == "trade" ? "a trade agreement" : t == "tribute" ? "a tribute" : t == "reparations" ? "reparations" : "territory";
-        private static string TypeEs(string t) => t == "peace" ? L.T("AIL_695a2835", "la paz") : t == "alliance" ? L.T("AIL_27bd042f", "una alianza") : t == "trade" ? L.T("AIL_08285b4c", "un acuerdo comercial") : t == "tribute" ? L.T("AIL_2d5ee223", "un tributo") : t == "reparations" ? "reparaciones" : L.T("AIL_81b3cd7d", "un territorio");
-        private static bool IsDemand(string t) => t == "tribute" || t == "reparations" || t == "territory";
+        private static string TypeEn(string t) => t == "peace" ? "peace" : t == "alliance" ? "an alliance" : t == "trade" ? "a trade agreement" : t == "tribute" ? "a tribute" : t == "reparations" ? "reparations"
+            : t == "ransom" ? "a ransom for captive nobles" : t == "exchange" ? "an exchange of captive nobles" : "territory";
+        private static string TypeEs(string t) => t == "peace" ? L.T("AIL_695a2835", "la paz") : t == "alliance" ? L.T("AIL_27bd042f", "una alianza") : t == "trade" ? L.T("AIL_08285b4c", "un acuerdo comercial") : t == "tribute" ? L.T("AIL_2d5ee223", "un tributo") : t == "reparations" ? "reparaciones"
+            : t == "ransom" ? L.T("AIL_e7b1d20e", "un rescate por nobles cautivos") : t == "exchange" ? L.T("AIL_e7b1d20f", "un canje de nobles cautivos") : L.T("AIL_81b3cd7d", "un territorio");
+        private static bool IsDemand(string t) => t == "tribute" || t == "reparations" || t == "territory" || t == "ransom";
+
+        /// <summary>The actions that answer a proposal of this type: accept, then reject.</summary>
+        private static string AcceptAction(string t) => t == "peace" ? "accept_peace" : t == "alliance" ? "accept_alliance" : t == "trade" ? "accept_trade" : t == "tribute" ? "accept_tribute"
+            : t == "reparations" ? "accept_reparations" : t == "ransom" ? "accept_ransom" : t == "exchange" ? "accept_exchange" : "transfer_territory";
+        private static string RejectAction(string t) => t == "peace" ? "reject_peace" : t == "alliance" ? "reject_alliance" : t == "trade" ? "reject_trade" : t == "tribute" ? "reject_tribute"
+            : t == "reparations" ? "reject_reparations" : t == "ransom" ? "reject_ransom" : t == "exchange" ? "reject_exchange" : "reject_territory";
 
         public static string DescribeAllProposals()
         {
@@ -1578,6 +1609,7 @@ How a sovereign acts:
 - Every decision must serve your realm: its safety, its treasury, its honour, or your grip on the throne. Weigh strength, war weariness, who is already fighting whom, and your stance towards each crown. A weary or losing realm seeks peace; a strong and rested one presses its advantage.
 - Your wars are listed one by one, with how long each has lasted and how tired your realm is. Tiredness is not a mood to be talked away: a weary realm that keeps every war going loses its lords, its towns and in the end its throne. When you are weary or worse, or fighting several kingdoms at once, seek peace in the wars you gain least from. When a weary enemy offers a fair peace and you have little left to gain, take it.
 - If a proposal or demand is addressed to you, answer it now: accept it or reject it (and say why). Accepting a peace means accepting its terms.
+- Do not overreact to the ordinary business of war. Lords taken prisoner, villages raided, sieges, battles won and lost, feuds between nobles happen every season. Answer them by working towards something you can get: a ransom, an exchange of captives, terms of peace, revenge sought in the field. Never demand, in the modern manner, that the side that beat you give everything back at once. If you have just lost your army or your lords, you are on the defensive: rally, bargain, seek allies or time; do not threaten as if you were winning.
 - You speak as yourself: your character and culture show in the words. No modern language, no game terms, no numbers of troops or percentages.
 - Your people are exactly the clans listed as yours in the hard facts about your realm. A lord of another realm, of a minor clan or of a mercenary company you did not hire is not yours, whatever his culture: do not call him yours, mourn him as yours, answer for him or fear him as a rival inside your realm. The mercenaries you did hire are paid swords, not vassals and not kin.
 - Speak only of wars, truces and alliances that the data shows. Never say you are at peace, or that a truce holds, with a crown the data lists you as at war with: a statement that does is not published. An action aimed at a crown you cannot aim it at is thrown away: war on someone you are already fighting, peace with someone you are not at war with, anything the house rules forbid.
@@ -1586,6 +1618,7 @@ Actions you may take (each is an object in ""actions""; target_kingdom is always
 - declare_war (target_kingdom): war, at once, no consent needed. It breaks any alliance or trade agreement with them.
 - propose_peace (target_kingdom). Only against a realm you are at war with. A peace can carry a price, paid in either direction. Terms you DEMAND from them: daily_tribute + tribute_days (or tribute_years, in years of this world), reparations, settlement (a town or castle of theirs that lies within your reach: each war lists them, and a demand for any other is thrown away). Terms you OFFER to give them, to buy the peace: offer_daily_tribute + offer_tribute_days (or offer_tribute_years), offer_reparations (never more than your treasury holds), offer_settlement (a town or castle of your own realm, not under siege). Demands are for the side that is winning; the side that is losing or worn out and needs the peace offers a price when it can pay one, or asks with no terms at all; the fair price of each war is written next to it. Never demand and offer the same kind of term at once: such a proposal is thrown away, and so is one that offers what you do not have. If they have already proposed a peace to you and you propose one that asks no more than theirs gives, theirs is signed; if you propose different terms, yours replace theirs and they must answer yours.
 - accept_peace / reject_peace (target_kingdom): answer THEIR pending peace proposal.
+- Captive nobles (each side's are listed below, when there are any) are bargaining weight. A peace sets every one of them free on both sides, so the nobles you hold are a fair reason to ask reparations in it (their ransom), and the nobles they hold of yours a reason to want the peace sooner. While the war goes on: offer_ransom (target_kingdom, reparations = the gold you ask, prisoners = how many of their nobles you hold you will free, 0 = all, prisoner_names = optional list of the ones you mean) frees some of theirs for gold; propose_exchange (target_kingdom, prisoners = how many go free on each side, 0 = all) trades captives for captives; accept_ransom / reject_ransom and accept_exchange / reject_exchange answer theirs. Only with nobles the lists show as held.
 - propose_alliance / accept_alliance / reject_alliance / break_alliance (target_kingdom): allies stand together in war. Propose only to a crown you are on good terms with and share an enemy or an interest with.
 - propose_trade / accept_trade / reject_trade / end_trade (target_kingdom, trade_years 1-5): only between realms at peace.
 - demand_tribute (target_kingdom, daily_tribute, tribute_days or tribute_years) / accept_tribute / reject_tribute / end_tribute: outside a peace treaty, a tribute is paid only by a realm that fears you.
@@ -1608,7 +1641,7 @@ Answer ONLY with JSON:
   ""statement"": ""the public statement, {min_len}-{max_len} characters, in {language}"",
   ""summary"": ""what you said and did, in ONE English sentence"",
   ""importance"": 1-4,
-  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""tribute_years"": 0, ""reparations"": 0, ""offer_daily_tribute"": 0, ""offer_tribute_days"": 0, ""offer_tribute_years"": 0, ""offer_reparations"": 0, ""offer_settlement"": ""name"", ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ],
+  ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""tribute_years"": 0, ""reparations"": 0, ""offer_daily_tribute"": 0, ""offer_tribute_days"": 0, ""offer_tribute_years"": 0, ""offer_reparations"": 0, ""offer_settlement"": ""name"", ""prisoners"": 0, ""prisoner_names"": [""name""], ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ],
   ""relation_changes"": [ { ""kingdom"": ""id"", ""change"": -{max_stance} to {max_stance} } ],
   ""own_people"": [ ""every lord or clan you speak of as your own"" ],
   ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
@@ -1768,8 +1801,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             var list = St.Proposals.Where(p => p.To == k.StringId && (!peaceOnly || p.Type == "peace")).ToList();
             return list.Count == 0 ? "(none)" : string.Join("\n", list.Select(p =>
                 $"- {WorldSim.FindKingdom(p.From)?.Name} [id: {p.From}] {(IsDemand(p.Type) ? "DEMANDS" : "PROPOSES")} {TypeEn(p.Type)}{Terms(p)}, {(int)(now - p.Day)} day(s) ago → answer with " +
-                (p.Type == "peace" ? "accept_peace or reject_peace" : p.Type == "alliance" ? "accept_alliance or reject_alliance" : p.Type == "trade" ? "accept_trade or reject_trade"
-                 : p.Type == "tribute" ? "accept_tribute or reject_tribute" : p.Type == "reparations" ? "accept_reparations or reject_reparations" : "transfer_territory or reject_territory")
+                AcceptAction(p.Type) + " or " + RejectAction(p.Type)
                 + (p.Type == "peace" && p.WantedPlain && !IsPlain(p) ? "." + TWantedPlain.Text : p.Type == "peace" && p.Counter ? "." + TCounterPeace.Text : "")));
         }
 
@@ -1790,6 +1822,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             sys.AppendLine(); sys.AppendLine(DescribeFacts(k));
             var warsText = DescribeWarsFor(k);
             if (warsText.Length > 0) { sys.AppendLine(); sys.AppendLine(warsText); }
+            // which of his lords the others hold, and which of theirs he holds: his leverage and theirs
+            var captivesText = WarTolls.DescribeCaptivesFor(k);
+            if (captivesText.Length > 0) { sys.AppendLine(); sys.AppendLine(captivesText); }
             sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth, right now)"); sys.AppendLine(WorldSim.DescribeKingdoms(k));
             sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap(new[] { k.StringId }));
             var lawsText = Laws.ForRuler(k);
@@ -1959,7 +1994,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "declare_war": case "declare_war_on_clan": return "war";
                 case "propose_peace": case "accept_peace": case "make_peace_with_clan": return "peace";
                 case "propose_alliance": case "accept_alliance": case "break_alliance": return "alliance";
-                case "reject_peace": case "reject_alliance": case "reject_trade": case "reject_tribute": case "reject_reparations": case "reject_territory": return "reject";
+                case "reject_peace": case "reject_alliance": case "reject_trade": case "reject_tribute": case "reject_reparations": case "reject_territory":
+                case "reject_ransom": case "reject_exchange": return "reject";
+                case "offer_ransom": case "accept_ransom": return "tribute";
                 case "propose_trade": case "accept_trade": case "end_trade": return "trade";
                 case "demand_territory": case "transfer_territory": case "grant_fief": case "confiscate_fief": return "territory";
                 case "demand_tribute": case "accept_tribute": case "end_tribute": case "demand_reparations": case "accept_reparations": return "tribute";
@@ -2352,6 +2389,29 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             return null;
         }
 
+        /// <summary>The captives an action names (prisoner_names: a list or one name), among those really held. Unknown names are left out.</summary>
+        private static List<Hero> NamedCaptives(JObject a, List<Hero> held)
+        {
+            var found = new List<Hero>();
+            try
+            {
+                var t = a?["prisoner_names"] ?? a?["prisoner_name"] ?? a?["captives_named"];
+                var names = t is JArray arr ? arr.Where(x => x != null && x.Type == JTokenType.String).Select(x => (string)x).ToList()
+                          : t != null && t.Type == JTokenType.String ? new List<string> { (string)t } : new List<string>();
+                foreach (var name in names.Take(20))
+                {
+                    string n = WorldSim.Norm(name);
+                    if (n.Length < 3) continue;
+                    var h = held.FirstOrDefault(x => x.StringId == name || WorldSim.Norm(x.Name?.ToString()) == n)
+                            ?? held.FirstOrDefault(x => WorldSim.Norm(x.Name?.ToString()).StartsWith(n, StringComparison.Ordinal))
+                            ?? held.FirstOrDefault(x => { string fn = WorldSim.Norm(x.FirstName?.ToString()); return fn.Length >= 3 && n.StartsWith(fn, StringComparison.Ordinal); });
+                    if (h != null && !found.Contains(h)) found.Add(h);
+                }
+            }
+            catch { }
+            return found;
+        }
+
         /// <summary>A tribute's length in days of this world: "a year" is one Calradian year, however the AI wrote it.</summary>
         private static int TributeLength(JObject a) =>
             FactCheck.TributeDays(I(a, "tribute_days", 0, 100000), I(a, "tribute_years", 0, 20), Math.Max(1, CampaignTime.DaysInYear), 10, 200);
@@ -2589,6 +2649,81 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 case "reject_reparations":
                     return Reject("reparations", k, o, L.F("AIL_0b583a3b", $"{kn} se niega a pagar reparaciones a {o?.Name}."));
 
+                // ---------------------------------------------------- captive nobles: ransom and exchange
+                case "offer_ransom":
+                {
+                    if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
+                    { string no = ProposalBlocked("ransom", k, o); if (no != null) return Bad(no); }
+                    var held = WarTolls.Held(k, o);
+                    if (held.Count == 0) return Bad($"holds no noble of {o.Name}");
+                    var named = NamedCaptives(a, held);
+                    int count = I(a, "prisoners", 0, 100, "count", "captives");
+                    if (count <= 0 && named.Count > 0) count = named.Count;
+                    var p = AddProposal("ransom", k, o);
+                    p.Reparations = I(a, "reparations", 100, cfg.MaxReparations, "amount", "ransom", "gold");
+                    p.Prisoners = count >= held.Count ? 0 : Math.Max(count, named.Count);
+                    p.PrisonerIds = named.Count > 0 ? named.Select(h => h.StringId).ToList() : null;
+                    return L.F("AIL_e7b1d210", $"{kn} ofrece a {o.Name} liberar a nobles suyos a cambio de un rescate{TermsEs(p)}.");
+                }
+                case "accept_ransom":
+                {
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
+                    var p = Pending("ransom", o, k);
+                    if (p == null) return Bad("no ransom offered by that kingdom");
+                    St.Proposals.Remove(p);
+                    if (WarTolls.Held(o, k).Count == 0) return Bad("they no longer hold any of our nobles");
+                    if (p.Reparations > Treasury(k))
+                    {
+                        string poor = L.F("AIL_e7b1d211", $"{kn} no puede pagar el rescate de {p.Reparations} denarios: su tesoro solo tiene {Treasury(k)}.");
+                        Bad(poor);
+                        return PlayerRules(k) ? poor : null;
+                    }
+                    // the captives first: nothing is paid for nobody
+                    var freed = WarTolls.Release(o, k, p.Prisoners, p.PrisonerIds);
+                    if (freed.Count == 0) return Bad("nobody could be freed");
+                    int paid = Pay(k, o, p.Reparations);
+                    WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
+                    string text = L.F("AIL_e7b1d212", $"{kn} paga a {o.Name} {paid} denarios de rescate y {o.Name} libera a {string.Join(", ", freed.Select(h => h.Name.ToString()))}.");
+                    if (PlayerRules(o)) WorldSim.Say(L.F("AIL_e7b1d213", $"{kn} acepta el rescate que pedías. {text}"), Colors.Green);
+                    return text;
+                }
+                case "reject_ransom":
+                    return Reject("ransom", k, o, L.F("AIL_e7b1d214", $"{kn} se niega a pagar el rescate que pedía {o?.Name}."));
+                case "propose_exchange":
+                {
+                    if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
+                    { string no = ProposalBlocked("exchange", k, o); if (no != null) return Bad(no); }
+                    int mine = WarTolls.Held(k, o).Count, theirs = WarTolls.Held(o, k).Count;
+                    if (mine == 0 || theirs == 0) return Bad("an exchange needs captives held on both sides");
+                    // they already offered one: an AI ruler asking for the same takes theirs; the player's offer replaces it
+                    var pending = Pending("exchange", o, k);
+                    if (pending != null && !PlayerRules(k)) return Resolve(k, new JObject { ["type"] = "accept_exchange", ["target_kingdom"] = o.StringId });
+                    if (pending != null) St.Proposals.Remove(pending);
+                    int count = I(a, "prisoners", 0, 100, "count", "captives");
+                    var p = AddProposal("exchange", k, o);
+                    p.Prisoners = count >= Math.Max(mine, theirs) ? 0 : count;
+                    return L.F("AIL_e7b1d215", $"{kn} propone a {o.Name} un canje de nobles cautivos{TermsEs(p)}.");
+                }
+                case "accept_exchange":
+                {
+                    if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
+                    var p = Pending("exchange", o, k);
+                    if (p == null) return Bad("no exchange proposed by that kingdom");
+                    St.Proposals.Remove(p);
+                    if (WarTolls.Held(k, o).Count == 0 || WarTolls.Held(o, k).Count == 0) return Bad("one side no longer holds any captive of the other");
+                    var byK = WarTolls.Release(k, o, p.Prisoners);
+                    var byO = WarTolls.Release(o, k, p.Prisoners);
+                    if (byK.Count + byO.Count == 0) return Bad("nobody could be freed");
+                    WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
+                    string text = L.F("AIL_e7b1d216", $"{kn} y {o.Name} canjean nobles cautivos.");
+                    if (byK.Count > 0) text += " " + L.F("AIL_e7b1d217", $"{kn} libera a {string.Join(", ", byK.Select(h => h.Name.ToString()))}.");
+                    if (byO.Count > 0) text += " " + L.F("AIL_e7b1d217", $"{o.Name} libera a {string.Join(", ", byO.Select(h => h.Name.ToString()))}.");
+                    if (PlayerRules(o)) WorldSim.Say(L.F("AIL_e7b1d218", $"{kn} acepta el canje que tú habías propuesto. {text}"), Colors.Green);
+                    return text;
+                }
+                case "reject_exchange":
+                    return Reject("exchange", k, o, L.F("AIL_e7b1d219", $"{kn} rechaza el canje de cautivos que proponía {o?.Name}."));
+
                 // ---------------------------------------------------- territory
                 case "demand_territory":
                 {
@@ -2796,10 +2931,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             var from = WorldSim.FindKingdom(p.From); var mine = PlayerRealm;
             if (from == null || mine == null) return;
             string verb = IsDemand(p.Type) ? L.T("AIL_3958d81a", "te exige") : L.T("AIL_be07e5b5", "te propone");
-            string accept = p.Type == "peace" ? "accept_peace" : p.Type == "alliance" ? "accept_alliance" : p.Type == "trade" ? "accept_trade" : p.Type == "tribute" ? "accept_tribute"
-                          : p.Type == "reparations" ? "accept_reparations" : "transfer_territory";
-            string reject = p.Type == "peace" ? "reject_peace" : p.Type == "alliance" ? "reject_alliance" : p.Type == "trade" ? "reject_trade" : p.Type == "tribute" ? "reject_tribute"
-                          : p.Type == "reparations" ? "reject_reparations" : "reject_territory";
+            string accept = AcceptAction(p.Type), reject = RejectAction(p.Type);
             void Answer(string type)
             {
                 MainThread.Post(() =>
@@ -2910,9 +3042,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
 @"{ruler}, ruler of {kingdom} [id: {kingdom_id}], has issued the public statement below. You are the chancellor: turn the words into the actions they really contain, nothing more.
 - Use only what the statement clearly says. If it only speaks and decides nothing, return no actions.
 - A peace can carry a price in either direction, and the two must never be mixed up. What the ruler DEMANDS that the other realm pay or hand over goes in daily_tribute, tribute_days or tribute_years, reparations, settlement (a town or castle of theirs). What the ruler OFFERS to pay or hand over himself goes in offer_daily_tribute, offer_tribute_days or offer_tribute_years, offer_reparations, offer_settlement (a town or castle of his own realm). ""I will pay you 5000 denars for peace"" is offer_reparations 5000; ""pay me 5000 and there will be peace"" is reparations 5000. Use an offer_ field only when the statement plainly says the ruler himself pays or gives. Accepting a proposal that is pending is accept_peace, not a new propose_peace.
-- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days or tribute_years, reparations, settlement, offer_daily_tribute, offer_tribute_days or offer_tribute_years, offer_reparations, offer_settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days or tribute_years), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects = a list of effects from the catalogue of law effects below), repeal_law (law_name), enact_policy (policy = id of an established policy from the lists below), repeal_policy (policy), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
+- The same action list and fields as any sovereign: declare_war, propose_peace (with optional daily_tribute, tribute_days or tribute_years, reparations, settlement, offer_daily_tribute, offer_tribute_days or offer_tribute_years, offer_reparations, offer_settlement), accept_peace, reject_peace, propose_alliance, accept_alliance, reject_alliance, break_alliance, propose_trade (trade_years), accept_trade, reject_trade, end_trade, demand_tribute (daily_tribute, tribute_days or tribute_years), accept_tribute, reject_tribute, end_tribute, demand_reparations (reparations), accept_reparations, reject_reparations, demand_territory (settlement), transfer_territory, reject_territory, offer_ransom (reparations = the gold asked, prisoners = how many of their captive nobles go free, 0 = all, prisoner_names = optional list), accept_ransom, reject_ransom, propose_exchange (prisoners = how many go free on each side, 0 = all), accept_exchange, reject_exchange, expel_clan (clan), grant_fief (settlement, clan), confiscate_fief (settlement), set_tax (tax_percent), enact_law (law_name, law_text, law_effects = a list of effects from the catalogue of law effects below), repeal_law (law_name), enact_policy (policy = id of an established policy from the lists below), repeal_policy (policy), declare_war_on_clan (clan), make_peace_with_clan (clan), quarantine_settlement (settlement, quarantine_days), lift_quarantine (settlement).
 - target_kingdom must be a kingdom id from the data.
-Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""offer_daily_tribute"": 0, ""offer_tribute_days"": 0, ""offer_reparations"": 0, ""offer_settlement"": ""name"", ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
+Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""offer_daily_tribute"": 0, ""offer_tribute_days"": 0, ""offer_reparations"": 0, ""offer_settlement"": ""name"", ""prisoners"": 0, ""prisoner_names"": [""name""], ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""policy"": ""id"", ""quarantine_days"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
 For a law, law_name and law_text are the ruler's own words; choose law_effects that do what those words say, within the ranges.");
 
         public static void Touch() { var _ = TStatement.Key + TPlayerStatement.Key + TRealmFacts.Key; }
@@ -2926,7 +3058,8 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
             if (!PlayerCanDeclare) { WorldSim.Say(L.T("AIL_76f7a56d", "Solo quien reina puede hacer una declaración."), Colors.Red); return; }
             InformationManager.ShowTextInquiry(new TextInquiryData(L.T("AIL_fec92cb7", "Declaración de la corona"),
                 L.T("AIL_f00983f3", "Escribe lo que proclamas ante Calradia. Lo que decidas con claridad (guerra, paz, alianza, tributo, impuestos, feudos…) se llevará a cabo; lo demás quedará como palabras.")
-                + "\n\n" + L.T("AIL_e7b1c773", "Para la paz puedes exigir o también ofrecer: un pago de una vez, un tributo diario o una ciudad o castillo de tu reino. Di con claridad quién paga a quién."),
+                + "\n\n" + L.T("AIL_e7b1c773", "Para la paz puedes exigir o también ofrecer: un pago de una vez, un tributo diario o una ciudad o castillo de tu reino. Di con claridad quién paga a quién.")
+                + " " + L.T("AIL_e7b1d21a", "Si tienes nobles suyos presos, puedes pedir un rescate por ellos o proponer un canje de cautivos."),
                 true, true, L.T("AIL_e5c9b3ad", "Proclamar"), L.T("AIL_e5c9b3a4", "Cancelar"), text =>
                 {
                     text = (text ?? "").Trim();
@@ -2935,6 +3068,8 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
                     sys.AppendLine(TPlayerStatement.Format("ruler", Hero.MainHero.Name, "kingdom", k.Name, "kingdom_id", k.StringId));
                     sys.AppendLine(); sys.AppendLine($"## The realm of {k.Name}: clans and fiefs"); sys.AppendLine(DescribeRealm(k));
                     sys.AppendLine(); sys.AppendLine(Facts.Today());
+                    var captivesText = WarTolls.DescribeCaptivesFor(k);
+                    if (captivesText.Length > 0) { sys.AppendLine(); sys.AppendLine(captivesText); }
                     sys.AppendLine(); sys.AppendLine("## All kingdoms (technical truth)"); sys.AppendLine(WorldSim.DescribeKingdoms());
                     sys.AppendLine(); sys.AppendLine(Facts.CalendarAndMap(new[] { k.StringId }));
                     var lawsText = Laws.ForRuler(k);

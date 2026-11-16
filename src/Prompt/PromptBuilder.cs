@@ -326,10 +326,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
 
             // ---------- 2. history
             var msgs = new List<ChatMessage> { new ChatMessage("system", sys.ToString().TrimEnd()) };
-            // The window moves in jumps. If it slid every turn, the start of the history would always change
-            // and the provider couldn't cache any of it
-            int size = System.Math.Max(4, cfg.HistoryTurnsInPrompt), step = System.Math.Max(4, size / 2);
-            int first = mem.Turns.Count < size + step ? 0 : (mem.Turns.Count - size) / step * step;
+            int first = HistoryWindowStart(mem.Turns.Count, cfg.HistoryTurnsInPrompt);
             var window = mem.Turns.Skip(first).ToList();
             double prevDay = -1;
             foreach (var t in window)
@@ -683,6 +680,22 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             return core.Length >= 12 && chunk.IndexOf(core, System.StringComparison.Ordinal) >= 0;
         }
 
+        /// <summary>
+        /// First turn of the history sent word for word, out of <paramref name="count"/> turns, for a setting of
+        /// <paramref name="n"/> recent turns. The history is trimmed in blocks, not slid: it grows to n + max(5, n/2)
+        /// turns and is then cut back to n. A window that slid every turn would change the start of the history on
+        /// every request and break the provider's prompt cache; this way the prefix stays the same for many turns.
+        /// </summary>
+        public static int HistoryWindowStart(int count, int n)
+        {
+            n = System.Math.Max(4, n);
+            int grow = System.Math.Max(5, n / 2);
+            if (count <= n + grow) return 0;
+            // Cuts happen every grow + 1 turns; right after one the window holds exactly n turns
+            int period = grow + 1;
+            return (count - n) / period * period;
+        }
+
         /// <summary>Relevant memories: old exchanges related to what's being said now.</summary>
         private static void AppendRecall(StringBuilder sys, Speaker s)
         {
@@ -695,8 +708,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
                 // Search with the player's last line plus the NPC's last reply ("yes, that" alone finds nothing)
                 var lastOwn = mem.Turns.LastOrDefault(t => t.Role != "player");
                 string query = lastSaid.Text + (lastOwn != null ? " " + SaidBy(lastOwn) : "");
-                int size = System.Math.Max(4, S.Get.HistoryTurnsInPrompt), step = System.Math.Max(4, size / 2);
-                int first = mem.Turns.Count < size + step ? 0 : (mem.Turns.Count - size) / step * step;
+                int first = HistoryWindowStart(mem.Turns.Count, S.Get.HistoryTurnsInPrompt);
                 var older = mem.Turns.Take(first).ToList();
                 var back = AILegacy.Memory.Recall.Find(mem, query, s.Name, ContextBuilder.PlayerNameFor(s) ?? "the stranger",
                     CampaignTime.Now.ToDays, S.Get.RecallCount, older);

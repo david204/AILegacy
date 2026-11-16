@@ -314,8 +314,11 @@ namespace AILegacy.Llm
 
         // ============================================================ connection test
 
-        /// <summary>MCM button: tests each provider on its own and reports the result in the game log.</summary>
-        public static void TestAllProviders()
+        /// <summary>
+        /// MCM button: tests each provider on its own and reports the result in the game log.
+        /// <paramref name="onlyActive"/>: leave out the ones that are off or have no key (the welcome message on load).
+        /// </summary>
+        public static void TestAllProviders(bool onlyActive = false)
         {
             var opts = CaptureOptions(60, "test", null);
             var providers = LegacyConfig.Current.Providers.ToList();
@@ -326,6 +329,7 @@ namespace AILegacy.Llm
             {
                 if (!p.IsUsable)
                 {
+                    if (onlyActive) continue;
                     Core.MainThread.Post(() => Show(L.F("AIL_0cd6f2e1", $"{p.Name}: desactivado o sin api_key"), TaleWorlds.Library.Colors.Gray));
                     continue;
                 }
@@ -358,7 +362,7 @@ namespace AILegacy.Llm
             if (opts.DailyCapUsd > 0 && UsageMeter.SpentToday >= opts.DailyCapUsd)
             {
                 var free = providers.Where(p => !p.IsPaid).ToList();
-                if (free.Count == 0) return new LlmResult { Ok = false, Error = L.T("AIL_c3a7f1e1", "Se ha alcanzado el tope de gasto diario (MCM › 7. IA) y no hay ningún proveedor gratis.") };
+                if (free.Count == 0) return new LlmResult { Ok = false, Error = L.T("AIL_c3a7f1e1", "Se ha alcanzado el tope de gasto diario (MCM › 1. IA) y no hay ningún proveedor gratis.") };
                 providers = free;
             }
             if (!string.IsNullOrEmpty(opts.Preferred))
@@ -413,10 +417,12 @@ namespace AILegacy.Llm
             bool stream = opts.Stream && !IsFlagged(NoStream, key);
             bool usageOpt = stream && !IsFlagged(NoStreamUsage, key);
             bool droppedUsage = false, suspectStream = false, streamNamed = false;
+            bool reasoning = ReasoningLevel(p) != null && !IsFlagged(NoReasoning, key);
             for (int level = start; level < 4; level++)
             {
                 ClearPartial(opts);
-                var body = BuildBody(p, opts, messages, wantJson, level, maxTokens, stream, usageOpt);
+                bool withReasoning = reasoning && level < 3;
+                var body = BuildBody(p, opts, messages, wantJson, level, maxTokens, stream, usageOpt, reasoning);
                 NoteSent(p);
                 int status; string text, err; double secs; double? retryAfter;
                 LlmResult streamed = null;
@@ -433,6 +439,16 @@ namespace AILegacy.Llm
                         Log.Warn($"{p.Name}: streaming response was cut off ({err}); retrying without streaming and won't ask for it again this session");
                         lastError = "streaming cortado: " + err;
                         stream = false; usageOpt = false;
+                        level--;
+                        continue;
+                    }
+                    if (withReasoning && RejectsReasoning(status, err ?? text))
+                    {
+                        // The reasoning field is the first suspect when the error names it: same level again, without it
+                        UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
+                        lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
+                        DropReasoning(p, key, status, err ?? text);
+                        reasoning = false;
                         level--;
                         continue;
                     }
@@ -459,6 +475,15 @@ namespace AILegacy.Llm
                 else
                 {
                     (status, text, err, secs, retryAfter) = await Send(p, body, opts).ConfigureAwait(false);
+                    if (withReasoning && RejectsReasoning(status, err ?? text))
+                    {
+                        UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
+                        lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
+                        DropReasoning(p, key, status, err ?? text);
+                        reasoning = false;
+                        level--;
+                        continue;
+                    }
                     if (suspectStream)
                     {
                         suspectStream = false;
@@ -542,22 +567,43 @@ namespace AILegacy.Llm
             if (opts.OnPartial != null && opts.PartialSent) SendPartial(opts, "");
         }
 
-        private static string BuildBody(ProviderConfig p, CallOptions opts, List<ChatMessage> messages, bool wantJson, int level, int maxTokens, bool stream = false, bool usageOpt = false)
+        private static string BuildBody(ProviderConfig p, CallOptions opts, List<ChatMessage> messages, bool wantJson, int level, int maxTokens, bool stream = false, bool usageOpt = false, bool reasoning = false)
         {
             var body = new JObject
             {
                 ["model"] = p.Model,
                 ["messages"] = new JArray(messages.Select(m => new JObject { ["role"] = m.Role, ["content"] = m.Content })),
             };
+            // Reasoning effort (off unless chosen). The minimal level of the ladder never carries it
+            string effort = reasoning && level < 3 ? ReasoningLevel(p) : null;
+            var style = effort == null ? ReasoningStyle.None : StyleOf(p);
+            // Thinking tokens come out of the same budget as the reply, so they get room of their own on top
+            int room = style == ReasoningStyle.Anthropic ? ThinkingBudget(effort) : style != ReasoningStyle.None ? ReasoningRoom(effort) : 0;
             // Ladder: 0 = everything, 1 = no "extra" (JSON mode kept), 2 = no JSON mode, 3 = minimal
             if (level < 3)
             {
-                body[string.IsNullOrWhiteSpace(p.MaxTokensField) ? "max_tokens" : p.MaxTokensField] = maxTokens;
-                if (p.SendTemperature) body["temperature"] = opts.Temperature;
+                body[string.IsNullOrWhiteSpace(p.MaxTokensField) ? "max_tokens" : p.MaxTokensField] = Math.Min(maxTokens + room, 64000);
+                // Anthropic takes no temperature while thinking
+                if (p.SendTemperature && style != ReasoningStyle.Anthropic) body["temperature"] = opts.Temperature;
             }
             if (level < 2 && wantJson && p.JsonMode) body["response_format"] = new JObject { ["type"] = "json_object" };
             if (level == 0 && p.Extra != null)
                 foreach (var kv in p.Extra) body[kv.Key] = kv.Value?.DeepClone();
+            switch (style)
+            {
+                case ReasoningStyle.OpenAI:
+                    // OpenAI, Gemini (OpenAI-compatible), Groq, Ollama, DeepSeek...: low / medium / high; there is nothing above high
+                    body["reasoning_effort"] = effort == "max" ? "high" : effort;
+                    break;
+                case ReasoningStyle.OpenRouter:
+                    body.Remove("reasoning_effort");
+                    body["reasoning"] = new JObject { ["effort"] = effort == "max" ? "high" : effort };
+                    break;
+                case ReasoningStyle.Anthropic:
+                    body.Remove("reasoning_effort");
+                    body["thinking"] = new JObject { ["type"] = "enabled", ["budget_tokens"] = room };
+                    break;
+            }
             if (stream)
             {
                 body["stream"] = true;
@@ -567,6 +613,59 @@ namespace AILegacy.Llm
         }
 
         private static readonly Dictionary<string, int> WorkingLevel = new Dictionary<string, int>();
+
+        // ============================================================ reasoning effort
+
+        private enum ReasoningStyle { None, OpenAI, OpenRouter, Anthropic }
+
+        /// <summary>low, medium, high or max; null when the provider has it off.</summary>
+        private static string ReasoningLevel(ProviderConfig p)
+        {
+            string e = (p.ReasoningEffort ?? "").Trim().ToLowerInvariant();
+            switch (e)
+            {
+                case "low": case "medium": case "high": case "max": return e;
+                case "minimal": return "low";
+                case "xhigh": case "maximum": return "max";
+                default: return null;       // "", off, none
+            }
+        }
+
+        private static ReasoningStyle StyleOf(ProviderConfig p)
+        {
+            string u = (p.BaseUrl ?? "").ToLowerInvariant();
+            if (u.Contains("openrouter.ai")) return ReasoningStyle.OpenRouter;
+            if (u.Contains("anthropic.com")) return ReasoningStyle.Anthropic;
+            return ReasoningStyle.OpenAI;
+        }
+
+        /// <summary>Extra output tokens left for the model's thinking, so it doesn't eat the reply.</summary>
+        private static int ReasoningRoom(string effort) => effort == "low" ? 1024 : effort == "medium" ? 2048 : effort == "high" ? 4096 : 8192;
+
+        /// <summary>Anthropic's thinking budget (at least 1024 tokens).</summary>
+        private static int ThinkingBudget(string effort) => effort == "low" ? 1024 : effort == "medium" ? 4096 : effort == "high" ? 8192 : 16000;
+
+        // Providers that rejected the reasoning field in this session (key = name|model): asked without it from then on
+        private static readonly HashSet<string> NoReasoning = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>A 400/422 whose text is about the reasoning field we sent.</summary>
+        private static bool RejectsReasoning(int status, string text)
+        {
+            if (status != 400 && status != 422) return false;
+            string t = text ?? "";
+            return t.IndexOf("reasoning", StringComparison.OrdinalIgnoreCase) >= 0 || t.IndexOf("thinking", StringComparison.OrdinalIgnoreCase) >= 0
+                || t.IndexOf("effort", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>Notes once per session that this provider takes no reasoning effort, in the log and on screen.</summary>
+        private static void DropReasoning(ProviderConfig p, string key, int status, string text)
+        {
+            if (IsFlagged(NoReasoning, key)) return;
+            Flag(NoReasoning, key);
+            Log.Warn($"{p.Name}/{p.Model}: rejected the reasoning effort \"{p.ReasoningEffort}\" (HTTP {status}: {Trim(text, 300)}). Retrying without it; it won't be sent to this provider again this session.");
+            string who = p.Name + "/" + p.Model;
+            Core.MainThread.Post(() => Show(L.F("AIL_e7b1d107", $"{who} no acepta el esfuerzo de razonamiento; sigue sin él (detalles en el log)."), TaleWorlds.Library.Colors.Yellow));
+        }
 
         // ============================================================ sending
 

@@ -216,7 +216,7 @@ namespace AILegacy.Core
         {
             try
             {
-                if (!On) return "AI Legacy: el medidor de rendimiento está apagado. Enciéndelo en Mod Options > AI Legacy > 7. AI > Performance meter y espera unos segundos.";
+                if (!On) return "AI Legacy: el medidor de rendimiento está apagado. Enciéndelo en Mod Options > AI Legacy > 1. AI > Performance meter y espera unos segundos.";
                 string text = Summary();
                 Log.Info(text);
                 return text;

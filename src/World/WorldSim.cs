@@ -129,6 +129,13 @@ namespace AILegacy.World
         [JsonProperty("seen", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Seen;
         /// <summary>A peace with terms whose recipient asked for a plain one: they are told the terms stand.</summary>
         [JsonProperty("wanted_plain", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool WantedPlain;
+        /// <summary>
+        /// Ransom and exchange of captive lords. Ransom: "from" frees this many lords of "to" (0 = all it holds) and "to"
+        /// pays Reparations. Exchange: each side frees this many of the other's (0 = all).
+        /// </summary>
+        [JsonProperty("prisoners", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Prisoners;
+        /// <summary>The captives a ransom names, by hero id: they go free first.</summary>
+        [JsonProperty("prisoner_ids", NullValueHandling = NullValueHandling.Ignore)] public List<string> PrisonerIds;
     }
 
     public class Tribute
@@ -249,6 +256,8 @@ namespace AILegacy.World
         [JsonProperty("strength_log")] public Dictionary<string, List<DayValue>> StrengthLog = new Dictionary<string, List<DayValue>>();
         /// <summary>Lords held by a kingdom at war with their own (hero id), and the weariness given back when they go free.</summary>
         [JsonProperty("captive_tolls")] public Dictionary<string, CaptiveToll> CaptiveTolls = new Dictionary<string, CaptiveToll>();
+        /// <summary>Nobles taken together, watched until they have been held two weeks: only then does the world react (World/NewsTracker.cs).</summary>
+        [JsonProperty("captive_watch")] public List<CaptiveWatch> CaptiveWatch = new List<CaptiveWatch>();
     }
 
     // ===================================================================== engine
@@ -526,6 +535,7 @@ namespace AILegacy.World
 Rules:
 - Ground every event in the data below: a real kingdom, real towns, a real war, a real recent event. Structure: cause (from the data) → what is happening → what it threatens or promises. Continue existing stories when it makes sense.
 - NEVER state as done anything only the world itself can do: a war declared, a peace signed, a town changing hands, a ruler or lord dead, a clan expelled, a law or tax enacted. You may write pressure, rumours, accusations, demands, unrest, shortages, omens, plots: the real outcome, if any, will come later from the rulers.
+- Do not overreact to the ordinary business of war. Lords taken prisoner, villages raided, sieges, battles won and lost, feuds between nobles: in this world they happen every season and are not outrages. People answer them by working towards something real: a ransom, an exchange of captives, envoys and bargaining, revenge sought in the field, a raid in return. Never the modern kind of demand that the winning side give everything back at once. A side that has just lost its army or its lords is shaken and on the defensive: it mourns, rallies, bargains or begs for time; it does not threaten as if it were winning.
 - Do not involve the person named as ""the realm of ..."" personally unless the data does.
 - Mind the dates in the data. A kingdom marked NEWLY FOUNDED is young and growing: holding little land is its beginning, so never write it as collapsing, dying or fallen. Each war says how long it has lasted and each recent peace when it was made: a war of a few days is new, one of years is old and wearing, and where a peace was made lately the war before it is over.
 - Use readable names in title and text, never ids. Never put a double-quote character inside a text value; use «» if you must quote.
@@ -552,7 +562,59 @@ Answer ONLY with JSON:
   ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30, ""spread_rate"": 0.3, ""death_chance"": 0, ""combat_modifier"": 0.9, ""map_speed_modifier"": 0.9, ""morale_penalty"": -5, ""skill_penalty"": -6 } } ] }
 Leave out economic_effects, clan_effects, secret, clan_rebellion and disease when they do not apply.");
 
-        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key; Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); WarTolls.Touch(); }
+        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key + TEventMix.Key + TCaptivesNow.Key; Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); WarTolls.Touch(); }
+
+        // ---- the mix of kinds the scheduled batch is asked for (settings "Event mix")
+
+        private static readonly Tpl TEventMix = new Tpl("dynamic_events_generator/event_mix.txt",
+@"## The kinds of events wanted
+Over time the background events should be spread about like this: {mix}.
+For THIS batch, write: {batch}. Ground each one in the data like any other event; if the data truly offers nothing for a kind, take the nearest kind that it does.
+- military: battles and skirmishes, raids on villages, sieges laid or broken, armies gathering, marching or breaking up, border provocations, cattle and herds seized, deserters, garrisons stretched thin (type military).
+- diplomatic: envoys, insults between crowns, pacts courted or strained, marriages of state, quarrels over borders, captives held for ransom or exchange (type political).
+- economic: harvests, shortages, prices, caravans, fairs, debts, guilds and tolls (type economic).
+- court: courtships and betrothals, scandals, feasts, rivalries for a ruler's favour, heirs, quarrels inside noble families (type social).
+- intrigue: smugglers, bandit chiefs, spies, bribes, plots, thefts, cults and omens whispered in taverns (type social or mysterious).");
+
+        private static readonly string[] MixKinds = { "military", "diplomatic", "economic", "court", "intrigue" };
+
+        /// <summary>The shares of the settings, normalised to 100. null when all are 0 (no preference).</summary>
+        private static int[] MixShares()
+        {
+            var cfg = S.Get;
+            int[] raw = { cfg.EventMixMilitary, cfg.EventMixDiplomatic, cfg.EventMixEconomic, cfg.EventMixCourt, cfg.EventMixIntrigue };
+            for (int i = 0; i < raw.Length; i++) raw[i] = Math.Max(0, Math.Min(100, raw[i]));
+            int sum = raw.Sum();
+            if (sum <= 0) return null;
+            return raw.Select(v => (int)Math.Round(v * 100.0 / sum)).ToArray();
+        }
+
+        /// <summary>The block that tells the chronicler the wanted mix and the kind of each event of this batch, drawn by the shares. Empty with no preference.</summary>
+        private static string EventMixBlock(int count)
+        {
+            try
+            {
+                var shares = MixShares();
+                if (shares == null) return "";
+                int total = shares.Sum();
+                string mix = string.Join(", ", MixKinds.Select((k, i) => $"{k} {shares[i]}%").Where((s, i) => shares[i] > 0));
+                var picks = new List<string>();
+                for (int n = 0; n < count; n++)
+                {
+                    int roll = Rng.Next(Math.Max(1, total)), i = 0;
+                    while (i < shares.Length - 1 && (roll -= shares[i]) >= 0) i++;
+                    while (shares[i] == 0 && i > 0) i--;      // rounding left a zero share at the end
+                    picks.Add(MixKinds[i]);
+                }
+                string batch = count == 1 ? $"one {picks[0]} event" : string.Join(", ", picks.Select((p, n) => $"event {n + 1} {p}"));
+                Log.Info($"[world] event mix for this batch: {string.Join(", ", picks)}");
+                return TEventMix.Format("mix", mix, "batch", batch);
+            }
+            catch (Exception ex) { Log.Error("[world] event mix", ex); return ""; }
+        }
+
+        private static readonly Tpl TCaptivesNow = new Tpl("dynamic_events_generator/captives_now.txt",
+            "## Nobles held captive right now (who holds whom; a capture is the ordinary business of war, and a peace sets them all free)");
 
         // REAL game events that just happened and deserve a world reaction (not saved, they only matter right now).
         // Each one carries its fact sheet: the news line alone does not say whose man anyone is.
@@ -572,7 +634,7 @@ How to read them:
 - Do not state any allegiance, war, alliance or kinship that is not in these facts or in the kingdom data above. If a fact is missing, leave it out; do not guess it from a name or a culture.
 - If the facts do not make this matter to anyone powerful, write it as local talk: importance 1, kingdoms_involved and kingdom_engagement empty.
 
-Write ONE development that follows directly from it: how the people, the nobles, the merchants or the other crowns take it, what it stirs up, what it threatens next. It is a consequence or a reaction, not a retelling of the fact itself (everyone already knows the fact).
+Write ONE development that follows directly from it: how the people, the nobles, the merchants or the other crowns take it, what it stirs up, what it threatens next. It is a consequence or a reaction, not a retelling of the fact itself (everyone already knows the fact). If it is the ordinary business of war (a capture, a raid, a siege, a battle), the reaction works towards a goal (ransom, exchange, bargaining, revenge in the field), and the side that lost does not talk as if it had won.
 kingdoms_involved and kingdom_engagement may only name kingdoms from this list, the ones the facts tie to what happened: {allowed}. Any other kingdom is discarded. Give kingdom_engagement only to the crowns that would truly want to answer.");
 
         // For a reaction template edited before the facts existed: the facts still go in
@@ -693,6 +755,10 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             sys.AppendLine(DescribeActiveEvents(8));
             var pend = Diplomacy.DescribeAllProposals();
             if (pend.Length > 0) { sys.AppendLine("## Pending proposals between crowns (do not narrate their outcome)"); sys.AppendLine(pend); }
+            // who is in chains: the captures themselves are not events of their own, but the chronicler must know them
+            var captives = WarTolls.DescribeAllCaptives(10);
+            if (captives.Length > 0) { sys.AppendLine(TCaptivesNow.Text.Trim()); sys.AppendLine(captives); }
+            if (!reactive) { var mixText = EventMixBlock(count); if (mixText.Length > 0) sys.AppendLine(mixText.Trim()); }
             // Wars that wear out both sides are a story of their own: the scheduled batch is told about them
             if (!reactive)
             {

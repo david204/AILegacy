@@ -105,6 +105,8 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                 {
                     var plotter = Hero.Find(p.PlotterId); var target = Hero.Find(p.TargetId);
                     if (plotter == null || target == null || !plotter.IsAlive || !target.IsAlive) { End(p, "dead"); continue; }
+                    // another noble's plot whose target has since become someone the player knows, a ruler or family is dropped
+                    if (!p.ByPlayer && target != P && !NpcTargetAllowed(target)) { End(p, $"{target.Name} is no longer a target for another noble's plot"); continue; }
                     if (plotter.IsPrisoner) { p.NextDay = Math.Max(p.NextDay, now + 1); continue; }
                     if (now >= p.NextDay) Advance(p, plotter, target, now);
                 }
@@ -134,6 +136,9 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
             var options = new List<(Hero plotter, Hero target, string why, double w)>();
             // One list of nobles for both loops: scanning every living hero twice made this quadratic
             var lords = Hero.AllAliveHeroes.Where(o => o != null && o != P && o.IsLord && !o.IsChild).ToList();
+            // Who another noble may plot against: only nobles the player has no story with (never talked to), never a
+            // ruler, never the player's clan or family. Worked out once, not for every plotter.
+            var npcTargets = cfg.IntrigueAgainstNpcs ? lords.Where(NpcTargetAllowed).ToList() : new List<Hero>();
             foreach (var h in lords)
             {
                 if (!CanPlot(h) || !Schemer(h)) continue;
@@ -149,10 +154,9 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                 try
                 {
                     Hero foe = null; int worst = -60;
-                    foreach (var o in lords)
+                    foreach (var o in npcTargets)
                     {
-                        // the player's own people are never a target of someone else's plot without the player knowing
-                        if (o == h || o.Clan == h.Clan || o.Clan == Clan.PlayerClan) continue;
+                        if (o == h || o.Clan == h.Clan) continue;
                         int r = h.GetRelation(o);
                         if (r <= worst) { worst = r; foe = o; }
                     }
@@ -168,6 +172,40 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                 Begin(o.plotter, o.target, Pick(o.plotter, o.target), o.why, false, now);
                 return;
             }
+        }
+
+        /// <summary>
+        /// Whether a noble may be the target of another noble's plot (the player's own plots are not held to this):
+        /// never a ruler, never the player's clan or family, and never someone the player has talked with, so the
+        /// characters the player knows are not killed or ruined behind his back.
+        /// </summary>
+        public static bool NpcTargetAllowed(Hero o)
+        {
+            try
+            {
+                if (o == null || P == null || o == P || !o.IsAlive || o.IsChild) return false;
+                if (o.Clan == Clan.PlayerClan || o.IsKingdomLeader || (o.MapFaction is Kingdom k && k.Leader == o)) return false;
+                if (o.Clan != null && o.Clan.Kingdom != null && o.Clan.Kingdom.RulingClan == o.Clan && o.Clan.Leader == o) return false;
+                if (PlayerFamily(o)) return false;
+                var mem = MemoryStore.Find(o.StringId);
+                if (mem != null && (mem.ConversationCount > 0 || mem.LastConversationDay >= 0 || (mem.Turns != null && mem.Turns.Count > 0)
+                                    || !string.IsNullOrWhiteSpace(mem.Summary))) return false;
+                return true;
+            }
+            catch { return false; }
+        }
+
+        private static bool PlayerFamily(Hero o)
+        {
+            var p = P;
+            if (o == p.Spouse || o == p.Father || o == p.Mother || o.Father == p || o.Mother == p) return true;
+            if (p.ExSpouses != null && p.ExSpouses.Contains(o)) return true;
+            if (p.Siblings != null && p.Siblings.Contains(o)) return true;
+            // grandchildren and the families of the player's children
+            if (o.Father != null && (o.Father.Father == p || o.Father.Mother == p)) return true;
+            if (o.Mother != null && (o.Mother.Father == p || o.Mother.Mother == p)) return true;
+            if (o.Spouse != null && (o.Spouse.Father == p || o.Spouse.Mother == p)) return true;
+            return false;
         }
 
         private static string Pick(Hero plotter, Hero target)

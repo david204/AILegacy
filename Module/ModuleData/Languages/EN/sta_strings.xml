@@ -140,7 +140,7 @@
     <string id="AIL_1cb10851" text="Open the AI Legacy editor" />
     <string id="AIL_1d0a19e2" text="alliance impossible right now" />
     <string id="AIL_1d2a25e7" text="Restored: " />
-    <string id="AIL_1d38423b" text="9. Editor" />
+    <string id="AIL_1d38423b" text="A. Editor" />
     <string id="AIL_1d3c2297" text="The kingdom of {0} falls" />
     <string id="AIL_1d84efed" text="the court" />
     <string id="AIL_1df7d173" text="Back" />
@@ -259,7 +259,7 @@
     <string id="AIL_35e216d6" text="Distance on the map at which an NPC sees enemies they can go and attack if you ask them to." />
     <string id="AIL_3677d2a1" text="Clan {0} leaves {1}." />
     <string id="AIL_36b9fe81" text="Maximum severity" />
-    <string id="AIL_370ba9dd" text="4. Memory" />
+    <string id="AIL_370ba9dd" text="6. Memory" />
     <string id="AIL_3732e7fc" text="In a group conversation in a town or castle, a guard or whoever is in charge there can take another character present into custody if there is a serious reason (e.g. you accuse them of a crime with evidence in plain sight). They are really imprisoned, and they hold it against you." />
     <string id="AIL_376f0803" text="Undo the import" />
     <string id="AIL_378f2647" text="you have not yet gone to {0}" />
@@ -276,7 +276,7 @@
     <string id="AIL_39a88b5b" text="What you say or do in front of an NPC can reach their lord, their family or their friends, delayed according to distance. What arrives is their version, not a fact." />
     <string id="AIL_3a0a45fd" text="Combat from the chat" />
     <string id="AIL_3a0aca3f" text="If you fail or the deadline passes, you lose half." />
-    <string id="AIL_3a41f7a5" text="D. Scenes" />
+    <string id="AIL_3a41f7a5" text="E. Scenes" />
     <string id="AIL_3a52fd31" text="&#10;Status: {0}" />
     <string id="AIL_3a88a804" text="If what you say in a group conversation gives them reason to, the character can act: go talk to someone else and come back to tell you, accompany you, stay, guide you to someone, call someone over, or leave." />
     <string id="AIL_3ae61921" text="{=!}Send a letter" />
@@ -340,7 +340,7 @@
     <string id="AIL_46407e9d" text="Days an unanswered proposal lasts" />
     <string id="AIL_466f3751" text="Erase all their memory" />
     <string id="AIL_4695e872" text="Daily chance of a letter (%)" />
-    <string id="AIL_46d0d1f8" text="E. Battles" />
+    <string id="AIL_46d0d1f8" text="F. Battles" />
     <string id="AIL_46df902b" text="Search file…" />
     <string id="AIL_46e19d91" text="invalid fief or clan" />
     <string id="AIL_479941aa" text="You hand over the crown: clan {0} now rules {1}." />
@@ -366,7 +366,7 @@
     <string id="AIL_4b487b93" text="their story ends here" />
     <string id="AIL_4b77b3ae" text="{0} is waiting for you to speak.  (Type /help to see the commands)" />
     <string id="AIL_4b7ed15a" text="Provider for townsfolk" />
-    <string id="AIL_4bb74331" text="6. Letters" />
+    <string id="AIL_4bb74331" text="8. Letters" />
     <string id="AIL_4bf3e0c5" text="{0} gives you {1} denars." />
     <string id="AIL_4c08be8b" text="the place" />
     <string id="AIL_4c5ed9ad" text="Task fulfilled" />
@@ -393,7 +393,7 @@
     <string id="AIL_506e56c2" text="Name of the config.json provider preferred for battle orders (empty = the normal one). A fast one is best." />
     <string id="AIL_508eddc4" text="Maximum length of each sentence (characters)" />
     <string id="AIL_50ac9cd1" text="{0}, of clan {1}, is now the ruler of {2}." />
-    <string id="AIL_513640bb" text="C. Diseases" />
+    <string id="AIL_513640bb" text="D. Diseases" />
     <string id="AIL_513c1858" text="Clear history" />
     <string id="AIL_5179ad99" text="the whole kingdom" />
     <string id="AIL_518def5c" text="{0} has arrived in {1}." />
@@ -539,7 +539,7 @@
     <string id="AIL_6c33ff94" text="Sentence of {0}" />
     <string id="AIL_6c53dc0f" text="Your captains: {0}" />
     <string id="AIL_6c7f2b62" text="0. AI Keys" />
-    <string id="AIL_6cf8197b" text="8. Import" />
+    <string id="AIL_6cf8197b" text="9. Import" />
     <string id="AIL_6d2b9329" text="After a fight or duel in a settlement that is not yours, if a guard is nearby they come over to call you to account and decide: let you go, fine you or lock you up." />
     <string id="AIL_6d3c2db8" text="You speak to the group" />
     <string id="AIL_6d44c3f5" text="&#10;You have {0} wounded or sick soldier(s)." />
@@ -679,7 +679,7 @@
     <string id="AIL_8740b99c" text="has fallen in combat against {0}" />
     <string id="AIL_875d42da" text="NPCs tell each other things" />
     <string id="AIL_88476cb6" text="want wants very more less all every none nothing something someone anyone nobody well badly here there now later before after always never also too " />
-    <string id="AIL_884d0de2" text="B. Initiative and errands" />
+    <string id="AIL_884d0de2" text="C. Initiative and errands" />
     <string id="AIL_8871d6a5" text="There is no templates folder for this saved game." />
     <string id="AIL_897d3e43" text="What they seek" />
     <string id="AIL_89a46e62" text="The game has no template for that sex." />
@@ -733,7 +733,7 @@
     <string id="AIL_94ae59ca" text="The game only allows marriage between nobles. With this on, a companion, wanderer or notable you have won over can accept: they first join your household as a noble and stop taking up a companion slot." />
     <string id="AIL_94c1e5dd" text="Unique characters created by the AI" />
     <string id="AIL_94c21a0a" text="Those you have edited are never touched.&#13;&#10;" />
-    <string id="AIL_953a8770" text="5. News and rumors" />
+    <string id="AIL_953a8770" text="7. News and rumors" />
     <string id="AIL_95594522" text="{0} calls the guard: surrender, convince them, or resist." />
     <string id="AIL_95b516ae" text="{=!}You have no wounded companions." />
     <string id="AIL_95c582ef" text="Secrets (secrets.json)" />
@@ -834,7 +834,7 @@
     <string id="AIL_a92c1422" text="{0} lies on the ground badly wounded: you have won the duel." />
     <string id="AIL_a9628091" text="You already have as many men inside as will fit." />
     <string id="AIL_a9672a5d" text="AI Legacy — Editor" />
-    <string id="AIL_a96fe2c6" text="7. AI" />
+    <string id="AIL_a96fe2c6" text="1. AI" />
     <string id="AIL_a9a55bc8" text="What is said about them" />
     <string id="AIL_a9aa8409" text="Name of a provider: the service you typed in &quot;0. AI Keys&quot; (gemini, openai; the one in slot 2, 3 or 4 carries its number: openai2) or one from config.json. Empty = the normal chain. If it fails, the rest are used." />
     <string id="AIL_a9b74d1b" text="Remove &quot;Talk&quot; from the character list" />
@@ -1054,7 +1054,7 @@
     <string id="AIL_d69db9ac" text="Characters involved" />
     <string id="AIL_d6f2ec0b" text="Training in the arena" />
     <string id="AIL_d6fd303c" text="Clan {0} rises in rebellion against {1}." />
-    <string id="AIL_d770d7bc" text="2. Relation, trust and romance" />
+    <string id="AIL_d770d7bc" text="4. Relation, trust and romance" />
     <string id="AIL_d77a8668" text="Arena: injury chance per soldier (%)" />
     <string id="AIL_d79898d4" text="{0} day(s) in the dungeon." />
     <string id="AIL_d79a206d" text="Group: slow motion while you type" />
@@ -1095,7 +1095,7 @@
     <string id="AIL_dd6592dc" text="You have no room left for more companions." />
     <string id="AIL_dd736c20" text="Days an event stays &quot;up in the air&quot;" />
     <string id="AIL_dd76aabc" text="Commands:  /note &lt;text&gt; (permanent instruction)  ·  /clearnotes  ·  /memory (what they remember)  ·  /forget  ·  /help" />
-    <string id="AIL_dda0e8ca" text="1. General" />
+    <string id="AIL_dda0e8ca" text="3. General" />
     <string id="AIL_de098566" text=", {0} denars" />
     <string id="AIL_de5d5b50" text="You already have a mother." />
     <string id="AIL_de705baa" text="Writes the whole sheet above from who they are in the saved game (family, clan, traits, personality mold), without you having to talk to the character in the game. Overwrites what is there. It is one request to the AI." />
@@ -1134,7 +1134,7 @@
     <string id="AIL_e45c3132" text="a plague" />
     <string id="AIL_e47fec25" text="Creativity. 80 = 0.8. Some models (GPT-5) ignore it." />
     <string id="AIL_e4a9f3a0" text="prosperity" />
-    <string id="AIL_e4f26c59" text="3. Actions" />
+    <string id="AIL_e4f26c59" text="5. Actions" />
     <string id="AIL_e50ca8f9" text="{0} hands over {1} to {2}." />
     <string id="AIL_e514530a" text="empty response" />
     <string id="AIL_e5df30fb" text="&#10;&#10;PAST&#10;" />
@@ -1194,7 +1194,7 @@
     <string id="AIL_f257824f" text="How they treat superiors, equals, inferiors and strangers" />
     <string id="AIL_f25e35cc" text="Mood" />
     <string id="AIL_f264e0b3" text="Real trade with the people of the place" />
-    <string id="AIL_f2caa92d" text="A. World and diplomacy" />
+    <string id="AIL_f2caa92d" text="B. World and diplomacy" />
     <string id="AIL_f30c7e23" text="Past" />
     <string id="AIL_f3138943" text="Relation: {0:+0;-0;0}" />
     <string id="AIL_f313a714" text="Spouse" />
@@ -1280,7 +1280,7 @@
     <string id="AIL_a1c0e5d6" text="Women aged 13 to 47 have a cycle: it changes their mood depending on the day (a lot for some, hardly at all for others) and the chance of pregnancy, the game's own included. No cycle during pregnancy or after giving birth. She knows what day she is on." />
     <string id="AIL_a1c0e5d7" text="Cycle length in days" />
     <string id="AIL_a1c0e5d8" text="Campaign days. A game year has 84 days, so 21 means four cycles a year." />
-    <string id="AIL_c3a7f1e1" text="The daily spending cap has been reached (MCM › 7. AI) and there is no free provider." />
+    <string id="AIL_c3a7f1e1" text="The daily spending cap has been reached (MCM › 1. AI) and there is no free provider." />
     <string id="AIL_c3a7f1e2" text="Input price ($ per million tokens)" />
     <string id="AIL_c3a7f1e3" text="What this provider charges per million tokens. 0 = free. Used to work out spending (shown in the editor, Service tab) and for the daily cap; it changes nothing else." />
     <string id="AIL_c3a7f1e4" text="Output price ($ per million tokens)" />
@@ -1315,7 +1315,7 @@
     <string id="AIL_d4b8a2f9" text="Vector model (empty = automatic)" />
     <string id="AIL_d4b8a2fa" text="For providers whose own vector model field is empty and whose service the mod does not know. Empty: gemini-embedding-001 with Gemini, text-embedding-3-small with OpenAI, mistral-embed with Mistral, embedding-3 with GLM (Chinese endpoint only), nomic-embed-text with Ollama; DeepSeek, Groq and international GLM do not give vectors. Type another only if your provider uses a different name." />
     <string id="AIL_e7b1c4d1" text="Vector model (empty = automatic, - = none)" />
-    <string id="AIL_e7b1c4d2" text="Model this provider uses for recall by meaning (embeddings). Empty: the usual one of the service if it has one (embedding-3 with GLM), or the one in 4. Memory. Type - so that this provider is never asked for vectors." />
+    <string id="AIL_e7b1c4d2" text="Model this provider uses for recall by meaning (embeddings). Empty: the usual one of the service if it has one (embedding-3 with GLM), or the one in 1. AI. Type - so that this provider is never asked for vectors." />
     <string id="AIL_e7b1c4d5" text="Provider 5" />
     <string id="AIL_e7b1c4d6" text="Provider 6" />
     <string id="AIL_e7b1c4d7" text="{=!}Well? Do you yield or not?" />
@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="Chapters" />
     <string id="AIL_e7b1c4f0" text="Where pictures come from" />
     <string id="AIL_e7b1c4f1" text="Each chapter of the memory book can have a picture. Free uses a public service that needs no key: only a description of the scene is sent to it. OpenAI uses the OpenAI provider you set up in 0. AI Keys and costs money per picture. Local needs Stable Diffusion running on your PC with its API on. Off = no pictures." />
-    <string id="AIL_e7b1c4f2" text="F. Pictures" />
+    <string id="AIL_e7b1c4f2" text="G. Pictures" />
     <string id="AIL_e7b1c4f3" text="Draw each new chapter by itself" />
     <string id="AIL_e7b1c4f4" text="When a new chapter is written, its picture is made in the background. Off: only when you press the button in the book. Each picture takes one short AI request for the description." />
     <string id="AIL_e7b1c4f5" text="Style of the pictures" />
@@ -1379,7 +1379,7 @@
     <string id="AIL_e7b1c513" text="Stops the game's own votes, call-to-war agreements and other mods from declaring war, making peace, sealing an alliance or a trade agreement between two AI kingdoms: only their rulers' declarations do. An alliance that runs out is no longer renewed by a vote; it ends, and the rulers may propose it again. Wars that come from what happens in the world (an attack, a rebellion, a new kingdom) and anything involving your own kingdom are not touched." />
     <string id="AIL_e7b1c514" text="{0} takes the blow at once: {1}" />
     <string id="AIL_e7b1c515" text="Days they remember what they were told (0 = always)" />
-    <string id="AIL_e7b1c516" text="What reached a character through someone else fades after this many days. What they only overheard has its own, shorter setting in D. Scenes." />
+    <string id="AIL_e7b1c516" text="What reached a character through someone else fades after this many days. What they only overheard has its own, shorter setting in E. Scenes." />
     <string id="AIL_e7b1c517" text="Hands a message can pass through" />
     <string id="AIL_e7b1c518" text="Whoever receives word may pass it on to their own people: a public message to a couple of them, a private one sometimes, a secret only if they are the kind to break a confidence. Each one knows who told them and where it began. 0 = it stops with the first person." />
     <string id="AIL_e7b1c519" text="Messages can be answered" />
@@ -1934,7 +1934,7 @@
     <string id="AIL_e7b1c74c" text="The file {0} is too large to open in the editor." />
     <string id="AIL_e7b1c74d" text="The siege of {0} ends" />
     <string id="AIL_e7b1c74e" text="The siege of {0} has ended and {1} remains in the hands of {2}." />
-    <string id="AIL_e7b1c74f" text="Campaign rules" />
+    <string id="AIL_e7b1c74f" text="2. Campaign rules" />
     <string id="AIL_e7b1c750" text="Forced peace after this many days of a stalemate war (0 = off)" />
     <string id="AIL_e7b1c751" text="When two AI kingdoms have been at war this long and no town or castle has changed hands between them in all that time, the war ends by itself, with a news item: nobody can keep it up. One such peace a day at most. A year of Calradia is 84 days. Never applied to a kingdom you rule. Kings are told how close each of their wars is to this. Afterwards neither of the two may declare war on the other for 84 days, or for the truce set above if that is longer. Recommended: 126 to 252 (a year and a half to three years); 0 turns it off." />
     <string id="AIL_e7b1c752" text="A new alliance replaces the old one" />
@@ -2174,7 +2174,7 @@
     <string id="AIL_e7b1c842" text="concubine" />
     <string id="AIL_e7b1c843" text="Voice of the characters" />
     <string id="AIL_e7b1c844" text="Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Off = silent." />
-    <string id="AIL_e7b1c845" text="G. Voice" />
+    <string id="AIL_e7b1c845" text="H. Voice" />
     <string id="AIL_e7b1c846" text="Voice: volume" />
     <string id="AIL_e7b1c847" text="Voice: speed (-10 slow, 10 fast)" />
     <string id="AIL_e7b1c848" text="Voice: also in groups and scene talk" />
@@ -2428,5 +2428,46 @@
     <string id="AIL_e7b1cf1c" text="{0}, afterwards: {1}." />
     <string id="AIL_e7b1cf1d" text="{0} goes on as agreed: {1}." />
     <string id="AIL_e7b1cf1e" text="{0} is back at your side, as agreed." />
+    <string id="AIL_e7b1d200" text="Event mix: military (%)" />
+    <string id="AIL_e7b1d201" text="Share of the background events about war: battles, raids, sieges, armies gathering, marching or breaking up, border provocations, cattle seized. The five shares are weighed against each other, they need not add up to 100 (all at 0 = no preference)." />
+    <string id="AIL_e7b1d202" text="Event mix: diplomatic (%)" />
+    <string id="AIL_e7b1d203" text="Share of the background events about relations between crowns: envoys, insults, marriages of state, pacts courted or strained, quarrels over borders and prisoners." />
+    <string id="AIL_e7b1d204" text="Event mix: economic (%)" />
+    <string id="AIL_e7b1d205" text="Share of the background events about money and goods: harvests, shortages, prices, caravans, fairs, debts and guild quarrels." />
+    <string id="AIL_e7b1d206" text="Event mix: romance and court (%)" />
+    <string id="AIL_e7b1d207" text="Share of the background events about life at court: courtships, betrothals, scandals, feasts, rivalries for favour, heirs and family quarrels." />
+    <string id="AIL_e7b1d208" text="Event mix: roguery and intrigue (%)" />
+    <string id="AIL_e7b1d209" text="Share of the background events about the underside of the world: smugglers, bandit chiefs, spies, bribes, plots, thefts and omens whispered in taverns." />
+    <string id="AIL_e7b1d20a" text="all" />
+    <string id="AIL_e7b1d20b" text="{0}, starting with {1}" />
+    <string id="AIL_e7b1d20c" text=" ({0} denars in return for freeing the captive nobles of whoever pays: {1})" />
+    <string id="AIL_e7b1d20d" text=" (each side frees the other's nobles it holds: {0} on each side)" />
+    <string id="AIL_e7b1d20e" text="a ransom for captive nobles" />
+    <string id="AIL_e7b1d20f" text="an exchange of captive nobles" />
+    <string id="AIL_e7b1d210" text="{0} offers {1} to free some of its nobles in return for a ransom{2}." />
+    <string id="AIL_e7b1d211" text="{0} cannot pay the ransom of {1} denars: its treasury holds only {2}." />
+    <string id="AIL_e7b1d212" text="{0} pays {1} {2} denars in ransom and {3} frees {4}." />
+    <string id="AIL_e7b1d213" text="{0} accepts the ransom you asked for. {1}" />
+    <string id="AIL_e7b1d214" text="{0} refuses to pay the ransom {1} asked for." />
+    <string id="AIL_e7b1d215" text="{0} proposes to {1} an exchange of captive nobles{2}." />
+    <string id="AIL_e7b1d216" text="{0} and {1} exchange captive nobles." />
+    <string id="AIL_e7b1d217" text="{0} frees {1}." />
+    <string id="AIL_e7b1d218" text="{0} accepts the exchange you had proposed. {1}" />
+    <string id="AIL_e7b1d219" text="{0} rejects the exchange of captives {1} proposed." />
+    <string id="AIL_e7b1d21a" text="If you hold some of their nobles, you can ask a ransom for them or propose an exchange of captives." />
+    <string id="AIL_d4b8a2f2" text="Recommended, not required. Without it characters still remember: raise History turns in the prompt (50 or more), but every one of those lines goes into every request, so more tokens. With it, about 15 recent lines are enough and the rest of your history is searched and brought in only when it relates to what you say, even in other words, so fewer tokens. It uses the vectors of a provider you already have (Gemini gives them free; OpenAI charges cents)." />
+    <string id="AIL_e7b1d100" text="Memory and recall (RAG)" />
+    <string id="AIL_e7b1d101" text="Provider per task" />
+    <string id="AIL_e7b1d102" text="Reasoning effort" />
+    <string id="AIL_e7b1d103" text="How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it." />
+    <string id="AIL_e7b1d104" text="Recent lines of your talk with a character sent word for word in every request. The history grows to this number plus half again before it is cut back to this number, so its start stays the same for many turns and providers can cache it (cheaper and faster). With recall by meaning on, about 15 is enough." />
+    <string id="AIL_e7b1d105" text="Welcome message when a campaign starts or loads" />
+    <string id="AIL_e7b1d106" text="Once per load, in the message log: with no AI provider set up, where to set one up; with providers, the campaign rules you changed and a connection test of each active provider, the same as the Test button." />
+    <string id="AIL_e7b1d107" text="{0} does not accept the reasoning effort; it goes on without it (details in the log)." />
+    <string id="AIL_e7b1d108" text="Welcome to AI Legacy! To make characters talk, add an AI provider in Mod Options › AI Legacy › 0. AI Keys. Campaign rules are in 2. Campaign rules: since they are settings, your world text can be pure flavour." />
+    <string id="AIL_e7b1d109" text="Welcome to AI Legacy!" />
+    <string id="AIL_e7b1d10a" text="Welcome to AI Legacy! Campaign rules you changed: {0}." />
+    <string id="AIL_e7b1d10b" text="yes" />
+    <string id="AIL_e7b1d10c" text="no" />
   </strings>
 </base>

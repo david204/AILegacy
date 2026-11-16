@@ -71,7 +71,7 @@ namespace AILegacy.World
         private const int MaxRecentBattles = 24, MaxHeroesPerSide = 60;
         private const double BattleDeathHours = 2;
 
-        public static void ResetSession() { RecentBattles.Clear(); }
+        public static void ResetSession() { RecentBattles.Clear(); RecentlyTaken.Clear(); }
 
         private static void AddHeroes(MapEventSide side, HashSet<string> into)
         {
@@ -262,6 +262,177 @@ namespace AILegacy.World
             if (amount <= 0f || St.CaptiveTolls.Count >= MaxCaptives) return;
             WorldSim.AddFatigue(own, amount);
             St.CaptiveTolls[prisoner.StringId] = new CaptiveToll { KingdomId = own.StringId, Amount = amount };
+            BulkCapture(own, holder, amount);
+        }
+
+        // Lords of one realm taken by one enemy within a few hours: a rout. Not saved: a rout is over within hours.
+        private class TakenLord { public double Hour; public string Own, Holder; }
+        private static readonly List<TakenLord> RecentlyTaken = new List<TakenLord>();
+        private const double BulkHours = 6;
+        private const int BulkFrom = 3, MaxRecentlyTaken = 200;
+        private const float BulkExtra = 0.5f;
+
+        /// <summary>
+        /// Many lords of one realm taken together by the same enemy shake it more than the same captures spread over a
+        /// season: from the third one on, each costs half as much again, and that part is not given back when they go free.
+        /// </summary>
+        private static void BulkCapture(Kingdom own, Kingdom holder, float amount)
+        {
+            double hour = CampaignTime.Now.ToHours;
+            RecentlyTaken.RemoveAll(x => x.Hour > hour || hour - x.Hour > BulkHours);
+            RecentlyTaken.Add(new TakenLord { Hour = hour, Own = own.StringId, Holder = holder.StringId });
+            while (RecentlyTaken.Count > MaxRecentlyTaken) RecentlyTaken.RemoveAt(0);
+            int together = RecentlyTaken.Count(x => x.Own == own.StringId && x.Holder == holder.StringId);
+            if (together < BulkFrom) return;
+            WorldSim.AddFatigue(own, amount * BulkExtra);
+            if (together == BulkFrom) Log.Info($"[world] {own.Name} lost {together} lords to {holder.Name} in a few hours: a rout, it weighs more on the realm");
+        }
+
+        // ============================================================ nobles held captive, for prompts and treaties
+
+        /// <summary>4 = a ruler, 3 = the head of a clan sworn to a kingdom, 1 = any other noble (heads of mercenary and minor clans too).</summary>
+        public static int CaptiveRank(Hero h)
+        {
+            if (h == null) return 0;
+            if (h.IsKingdomLeader) return 4;
+            var c = h.Clan;
+            return c != null && c.Leader == h && Facts.Subject(c) != null ? 3 : 1;
+        }
+
+        /// <summary>The kingdom whose party or dungeon holds this hero right now, or null.</summary>
+        public static Kingdom HolderOf(Hero h)
+        {
+            try { var k = h?.PartyBelongedToAsPrisoner?.MapFaction as Kingdom; return Usable(k) ? k : null; }
+            catch { return null; }
+        }
+
+        /// <summary>Held in the player's own party, or by his clan (one of its parties or dungeons).</summary>
+        public static bool HeldByPlayerClan(Hero h)
+        {
+            try
+            {
+                var p = h?.PartyBelongedToAsPrisoner;
+                if (p == null) return false;
+                return p == PartyBase.MainParty || p.Owner?.Clan == Clan.PlayerClan || p.Settlement?.OwnerClan == Clan.PlayerClan || p.LeaderHero?.Clan == Clan.PlayerClan;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>A lord in chains right now: not free, not a fugitive, not dead.</summary>
+        public static bool StillHeld(Hero h) => h != null && h.IsAlive && h.IsPrisoner && h.PartyBelongedToAsPrisoner != null;
+
+        /// <summary>Lords sworn to a kingdom (not hired swords) held by another kingdom right now, with both.</summary>
+        public class HeldLord { public Hero Hero; public Kingdom Own, Holder; public int Rank; }
+
+        public static List<HeldLord> AllHeld()
+        {
+            var list = new List<HeldLord>();
+            try
+            {
+                foreach (var h in Hero.AllAliveHeroes)
+                {
+                    if (h == null || !h.IsLord || !h.IsPrisoner) continue;
+                    var own = Facts.Subject(h.Clan);
+                    var holder = HolderOf(h);
+                    if (!Usable(own) || holder == null || holder == own) continue;
+                    list.Add(new HeldLord { Hero = h, Own = own, Holder = holder, Rank = CaptiveRank(h) });
+                }
+            }
+            catch (Exception ex) { Log.Error("[world] nobles held captive", ex); }
+            return list.OrderByDescending(x => x.Rank).ThenBy(x => x.Hero.Name?.ToString()).ToList();
+        }
+
+        /// <summary>Lords of <paramref name="of"/> that <paramref name="holder"/> holds right now, most notable first. The player is never in it.</summary>
+        public static List<Hero> Held(Kingdom holder, Kingdom of) =>
+            AllHeld().Where(x => x.Holder == holder && x.Own == of && x.Hero != Hero.MainHero).Select(x => x.Hero).ToList();
+
+        /// <summary>"Lord X (head of clan Y)" in English, for prompts.</summary>
+        public static string CaptiveName(Hero h)
+        {
+            if (h == null) return "";
+            if (h.IsKingdomLeader) return $"{h.Name} (THE RULER himself)";
+            var c = h.Clan;
+            if (c == null) return h.Name.ToString();
+            return c.Leader == h ? $"{h.Name} (head of clan {c.Name})" : $"{h.Name} (of clan {c.Name})";
+        }
+
+        private static string Names(IEnumerable<Hero> hs, int max)
+        {
+            var l = hs.ToList();
+            string s = string.Join(", ", l.Take(max).Select(CaptiveName));
+            return l.Count > max ? s + $" and {l.Count - max} more" : s;
+        }
+
+        private static readonly Tpl TCaptivesHeader = new Tpl("kingdom_statement/captives_header.txt",
+            "## Nobles held captive between you and other crowns (exact, right now; when a peace is signed every one of them goes free on both sides)");
+        private static readonly Tpl TCaptivesTheyHold = new Tpl("kingdom_statement/captives_they_hold.txt",
+            "- {enemy} [id: {id}] holds {count} of your nobles: {names}.");
+        private static readonly Tpl TCaptivesYouHold = new Tpl("kingdom_statement/captives_you_hold.txt",
+            "- You hold {count} noble(s) of {enemy} [id: {id}]: {names}.");
+
+        /// <summary>For a ruler: which of his lords each other crown holds, and which of theirs he holds. Empty when nobody is held either way.</summary>
+        public static string DescribeCaptivesFor(Kingdom k)
+        {
+            try
+            {
+                if (!Usable(k)) return "";
+                var all = AllHeld();
+                var lines = new List<string>();
+                foreach (var o in WorldSim.Kingdoms.Where(o => o != k))
+                {
+                    var theirs = all.Where(x => x.Holder == o && x.Own == k).Select(x => x.Hero).ToList();
+                    var mine = all.Where(x => x.Holder == k && x.Own == o).Select(x => x.Hero).ToList();
+                    if (theirs.Count > 0) lines.Add(TCaptivesTheyHold.Format("enemy", o.Name, "id", o.StringId, "count", theirs.Count, "names", Names(theirs, 8)));
+                    if (mine.Count > 0) lines.Add(TCaptivesYouHold.Format("enemy", o.Name, "id", o.StringId, "count", mine.Count, "names", Names(mine, 8)));
+                }
+                return lines.Count == 0 ? "" : TCaptivesHeader.Text + "\n" + string.Join("\n", lines);
+            }
+            catch (Exception ex) { Log.Error("[diplomacy] captives for a ruler", ex); return ""; }
+        }
+
+        /// <summary>For the chronicler: who holds whom right now, one line per pair of realms. Empty when nobody is held.</summary>
+        public static string DescribeAllCaptives(int maxLines)
+        {
+            try
+            {
+                var lines = AllHeld().GroupBy(x => x.Holder.StringId + "|" + x.Own.StringId)
+                    .OrderByDescending(g => g.Max(x => x.Rank)).ThenByDescending(g => g.Count())
+                    .Take(maxLines)
+                    .Select(g => $"- {g.First().Holder.Name} holds {g.Count()} noble(s) of {g.First().Own.Name}: {Names(g.Select(x => x.Hero), 6)}")
+                    .ToList();
+                return string.Join("\n", lines);
+            }
+            catch (Exception ex) { Log.Error("[world] captives for the chronicler", ex); return ""; }
+        }
+
+        /// <summary>
+        /// Sets free up to <paramref name="count"/> (0 = all) lords of <paramref name="of"/> held by <paramref name="holder"/>,
+        /// the named ones first and then the most notable, through the game's own action. Returns who went free.
+        /// </summary>
+        public static List<Hero> Release(Kingdom holder, Kingdom of, int count, IEnumerable<string> namedIds = null)
+        {
+            var freed = new List<Hero>();
+            var held = Held(holder, of);
+            if (held.Count == 0) return freed;
+            var named = namedIds == null ? new List<Hero>() : held.Where(h => namedIds.Contains(h.StringId)).ToList();
+            var order = named.Concat(held.Where(h => !named.Contains(h))).ToList();
+            int n = count <= 0 ? order.Count : Math.Min(count, order.Count);
+            // what the player's own party, dungeons or clan hold is his to give: only a crown he rules may hand it over
+            bool playerCrown = holder.Leader == Hero.MainHero;
+            if (!playerCrown) order = order.Where(h => !HeldByPlayerClan(h)).ToList();
+            n = Math.Min(n, order.Count);
+            foreach (var h in order.Take(n))
+            {
+                try
+                {
+                    if (!StillHeld(h)) continue;
+                    EndCaptivityAction.ApplyByPeace(h, holder.Leader);
+                    if (!h.IsPrisoner) freed.Add(h);
+                }
+                catch (Exception ex) { Log.Error($"[diplomacy] freeing {h?.Name}", ex); }
+            }
+            if (freed.Count > 0) Log.Info($"[diplomacy] {holder.Name} frees {freed.Count} noble(s) of {of.Name}: {string.Join(", ", freed.Select(h => h.Name.ToString()))}");
+            return freed;
         }
 
         /// <summary>Free again, however it came about: what his captivity cost his realm is given back.</summary>

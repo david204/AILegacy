@@ -28,6 +28,9 @@ namespace AILegacy.Config
         [JsonProperty("paid")] public bool? Paid;
         /// <summary>Embedding model for this provider. Empty = the service's usual one, "-" = don't use it for embeddings.</summary>
         [JsonProperty("embedding_model")] public string EmbeddingModel = "";
+        /// <summary>How hard the model reasons: "" (off, nothing sent), low, medium, high or max. LlmClient sends it in the
+        /// form the endpoint understands (reasoning_effort, OpenRouter's reasoning object, Anthropic's thinking budget).</summary>
+        [JsonProperty("reasoning_effort")] public string ReasoningEffort = "";
 
         [JsonIgnore]
         public bool IsPaid

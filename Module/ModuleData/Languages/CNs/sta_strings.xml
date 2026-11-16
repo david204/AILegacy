@@ -140,7 +140,7 @@
     <string id="AIL_1cb10851" text="打开 AI Legacy 编辑器" />
     <string id="AIL_1d0a19e2" text="目前无法结盟" />
     <string id="AIL_1d2a25e7" text="已恢复： " />
-    <string id="AIL_1d38423b" text="9. 编辑器" />
+    <string id="AIL_1d38423b" text="A. 编辑器" />
     <string id="AIL_1d3c2297" text="{0} 王国覆灭" />
     <string id="AIL_1d84efed" text="朝廷" />
     <string id="AIL_1df7d173" text="返回" />
@@ -259,7 +259,7 @@
     <string id="AIL_35e216d6" text="在地图上，NPC能看到、并可在你请求时前去攻击的敌人的距离。" />
     <string id="AIL_3677d2a1" text="{0} 家族离开了 {1}。" />
     <string id="AIL_36b9fe81" text="最大严重程度" />
-    <string id="AIL_370ba9dd" text="4. 记忆" />
+    <string id="AIL_370ba9dd" text="6. 记忆" />
     <string id="AIL_3732e7fc" text="在城镇或城堡的群聊中，如果有重大理由（例如你当面出示证据指控某人犯罪），守卫或当地掌权者可以逮捕在场的另一名角色。他会真的被关押，并对你怀恨在心。" />
     <string id="AIL_376f0803" text="撤销导入" />
     <string id="AIL_378f2647" text="你还没有去过 {0}" />
@@ -276,7 +276,7 @@
     <string id="AIL_39a88b5b" text="你在某个NPC面前所说或所做的事，可能传到他的领主、家人或朋友那里，根据距离会有延迟。传到的是他们的版本，而非事实。" />
     <string id="AIL_3a0a45fd" text="从交谈转入战斗" />
     <string id="AIL_3a0aca3f" text="如果失败或超过期限，你会损失一半。" />
-    <string id="AIL_3a41f7a5" text="D. 场景" />
+    <string id="AIL_3a41f7a5" text="E. 场景" />
     <string id="AIL_3a52fd31" text="&#10;状态：{0}" />
     <string id="AIL_3a88a804" text="如果你在群聊中所说的话给了他理由，角色可以采取行动：去和另一个人谈然后回来告诉你、陪你走、留下、带你去找某人、叫某人过来，或者离开。" />
     <string id="AIL_3ae61921" text="{=!}寄一封信" />
@@ -340,7 +340,7 @@
     <string id="AIL_46407e9d" text="提议在无人回应时持续的天数" />
     <string id="AIL_466f3751" text="清除其全部记忆" />
     <string id="AIL_4695e872" text="每日来信概率（%）" />
-    <string id="AIL_46d0d1f8" text="E. 战斗" />
+    <string id="AIL_46d0d1f8" text="F. 战斗" />
     <string id="AIL_46df902b" text="搜索文件……" />
     <string id="AIL_46e19d91" text="封地或家族无效" />
     <string id="AIL_479941aa" text="你交出王冠：{0} 家族开始统治 {1}。" />
@@ -366,7 +366,7 @@
     <string id="AIL_4b487b93" text="他的故事到此结束" />
     <string id="AIL_4b77b3ae" text="{0} 在等你开口。 （输入 /help 查看命令）" />
     <string id="AIL_4b7ed15a" text="镇上居民使用的服务商" />
-    <string id="AIL_4bb74331" text="6. 信件" />
+    <string id="AIL_4bb74331" text="8. 信件" />
     <string id="AIL_4bf3e0c5" text="{0} 给了你 {1} 第纳尔。" />
     <string id="AIL_4c08be8b" text="此地" />
     <string id="AIL_4c5ed9ad" text="任务完成" />
@@ -393,7 +393,7 @@
     <string id="AIL_506e56c2" text="战斗命令优先使用的 config.json 服务商名称（留空 = 常规）。建议选用速度快的。" />
     <string id="AIL_508eddc4" text="每句话的最大长度（字符数）" />
     <string id="AIL_50ac9cd1" text="{1} 家族的 {0} 现在统治 {2}。" />
-    <string id="AIL_513640bb" text="C. 疾病" />
+    <string id="AIL_513640bb" text="D. 疾病" />
     <string id="AIL_513c1858" text="清除历史" />
     <string id="AIL_5179ad99" text="整个王国" />
     <string id="AIL_518def5c" text="{0} 已抵达 {1}。" />
@@ -539,7 +539,7 @@
     <string id="AIL_6c33ff94" text="{0} 的判决" />
     <string id="AIL_6c53dc0f" text="你的队长们：{0}" />
     <string id="AIL_6c7f2b62" text="0. AI密钥" />
-    <string id="AIL_6cf8197b" text="8. 导入" />
+    <string id="AIL_6cf8197b" text="9. 导入" />
     <string id="AIL_6d2b9329" text="在不属于你的定居点发生斗殴或决斗后，如果附近有守卫，他会走过来向你问责，并决定：放你走、罚款或把你关起来。" />
     <string id="AIL_6d3c2db8" text="你对大家说话" />
     <string id="AIL_6d44c3f5" text="&#10;你有 {0} 名士兵受伤或生病。" />
@@ -679,7 +679,7 @@
     <string id="AIL_8740b99c" text="在与 {0} 的战斗中阵亡" />
     <string id="AIL_875d42da" text="NPC之间会互相传话" />
     <string id="AIL_88476cb6" text="quiero quieres quiere muy mas más menos todo toda todos todas nada algo alguien nadie bien mal aqui aquí alli allí ahora luego antes despues después siempre nunca tambien también " />
-    <string id="AIL_884d0de2" text="B. 主动性与口信" />
+    <string id="AIL_884d0de2" text="C. 主动性与口信" />
     <string id="AIL_8871d6a5" text="此存档没有模板文件夹。" />
     <string id="AIL_897d3e43" text="他所追求的" />
     <string id="AIL_89a46e62" text="游戏中没有该性别的模板。" />
@@ -733,7 +733,7 @@
     <string id="AIL_94ae59ca" text="游戏只允许贵族之间结婚。开启后，被你打动的同伴、流浪者或显要人物也可以答应：他会先以贵族身份进入你的家族，不再占用同伴名额。" />
     <string id="AIL_94c1e5dd" text="由AI创建的独特角色" />
     <string id="AIL_94c21a0a" text="你编辑过的文件永远不会被改动。&#13;&#10;" />
-    <string id="AIL_953a8770" text="5. 新闻与传闻" />
+    <string id="AIL_953a8770" text="7. 新闻与传闻" />
     <string id="AIL_95594522" text="{0} 呼叫守卫：投降、说服他或者反抗吧。" />
     <string id="AIL_95b516ae" text="{=!}你没有受伤的同伴。" />
     <string id="AIL_95c582ef" text="秘密（secrets.json）" />
@@ -834,7 +834,7 @@
     <string id="AIL_a92c1422" text="{0} 身受重伤倒地不起：你赢得了决斗。" />
     <string id="AIL_a9628091" text="能容纳的人手已经全在场内了。" />
     <string id="AIL_a9672a5d" text="AI Legacy — 编辑器" />
-    <string id="AIL_a96fe2c6" text="7. AI" />
+    <string id="AIL_a96fe2c6" text="1. AI" />
     <string id="AIL_a9a55bc8" text="关于他或她的传言" />
     <string id="AIL_a9aa8409" text="服务商名称：你在“0. AI密钥”中填写的服务（gemini、openai；第 2、3 或 4 位的带有编号：openai2）或 config.json 中的某一个。留空 = 常规链路。如果失败，则使用其余的。" />
     <string id="AIL_a9b74d1b" text="从角色列表中移除“交谈”" />
@@ -1054,7 +1054,7 @@
     <string id="AIL_d69db9ac" text="涉及的角色" />
     <string id="AIL_d6f2ec0b" text="竞技场训练" />
     <string id="AIL_d6fd303c" text="{0} 家族起兵反叛 {1}。" />
-    <string id="AIL_d770d7bc" text="2. 关系、信任与浪漫" />
+    <string id="AIL_d770d7bc" text="4. 关系、信任与浪漫" />
     <string id="AIL_d77a8668" text="竞技场：每名士兵受伤概率（%）" />
     <string id="AIL_d79898d4" text="地牢刑期 {0} 天。" />
     <string id="AIL_d79a206d" text="群聊：你输入时慢动作" />
@@ -1095,7 +1095,7 @@
     <string id="AIL_dd6592dc" text="你已经没有空位容纳更多同伴了。" />
     <string id="AIL_dd736c20" text="事件保持“悬而未决”的天数" />
     <string id="AIL_dd76aabc" text="命令：  /note &lt;文本&gt;（长期指令）  ·  /clearnotes  ·  /memory（记得什么）  ·  /forget  ·  /help" />
-    <string id="AIL_dda0e8ca" text="1. 常规" />
+    <string id="AIL_dda0e8ca" text="3. 常规" />
     <string id="AIL_de098566" text="，{0} 第纳尔" />
     <string id="AIL_de5d5b50" text="你已经有母亲了。" />
     <string id="AIL_de705baa" text="根据其在存档中的身份（家族、家族关系、特质、性格模板）写出上面的整张资料，无需在游戏中与该角色交谈。会覆盖现有内容。这是一次向AI的请求。" />
@@ -1134,7 +1134,7 @@
     <string id="AIL_e45c3132" text="一场瘟疫" />
     <string id="AIL_e47fec25" text="创造力。80 = 0.8。有些模型（GPT-5）会忽略它。" />
     <string id="AIL_e4a9f3a0" text="繁荣度" />
-    <string id="AIL_e4f26c59" text="3. 行动" />
+    <string id="AIL_e4f26c59" text="5. 行动" />
     <string id="AIL_e50ca8f9" text="{0} 将 {1} 交给 {2}。" />
     <string id="AIL_e514530a" text="响应为空" />
     <string id="AIL_e5df30fb" text="&#10;&#10;过往&#10;" />
@@ -1194,7 +1194,7 @@
     <string id="AIL_f257824f" text="他如何对待上级、平级、下级和陌生人" />
     <string id="AIL_f25e35cc" text="情绪" />
     <string id="AIL_f264e0b3" text="与当地人真实交易" />
-    <string id="AIL_f2caa92d" text="A. 世界与外交" />
+    <string id="AIL_f2caa92d" text="B. 世界与外交" />
     <string id="AIL_f30c7e23" text="过往" />
     <string id="AIL_f3138943" text="关系：{0:+0;-0;0}" />
     <string id="AIL_f313a714" text="配偶" />
@@ -1280,7 +1280,7 @@
     <string id="AIL_a1c0e5d6" text="13 到 47 岁的女性有周期：情绪随周期的日子变化（有人明显，有人几乎没有），怀孕几率也随之变化，游戏本身的几率也一样。怀孕期间和分娩之后没有周期。她知道自己处在第几天。" />
     <string id="AIL_a1c0e5d7" text="周期天数" />
     <string id="AIL_a1c0e5d8" text="战役天数。游戏中一年有 84 天，所以 21 天就是一年四个周期。" />
-    <string id="AIL_c3a7f1e1" text="已达到每日花费上限（MCM › 7. AI），且没有免费的服务商。" />
+    <string id="AIL_c3a7f1e1" text="已达到每日花费上限（MCM › 1. AI），且没有免费的服务商。" />
     <string id="AIL_c3a7f1e2" text="输入价格（每百万 token 的美元数）" />
     <string id="AIL_c3a7f1e3" text="该服务商每百万 token 的收费。0 = 免费。用于计算花费（在编辑器的“服务”页查看）和每日上限；不影响其他任何功能。" />
     <string id="AIL_c3a7f1e4" text="输出价格（每百万 token 的美元数）" />
@@ -1305,7 +1305,7 @@
     <string id="AIL_c3a7f1f7" text="输出" />
     <string id="AIL_c3a7f1f8" text="费用（$）" />
     <string id="AIL_d4b8a2f1" text="按含义回忆（RAG）" />
-    <string id="AIL_d4b8a2f2" text="除了按词语搜索，还会在你们的共同经历中查找与你所说内容相关的片段，即使用词不同（“那个承诺”能找到“我会帮你拿下那座要塞”）。使用你已有服务商的向量（Gemini 免费提供；OpenAI 只收几美分）。如果都不提供，仍使用按词语搜索。" />
+    <string id="AIL_d4b8a2f2" text="推荐开启，但非必需。不开启时角色也会记得：把“提示词中的历史轮数”调高（50 或更多），但这些内容每次请求都会全部发送，消耗更多 token。开启后，约 15 条最近对话就够了，其余经历只在与你所说内容相关时（即使用词不同）才被检索并加入，消耗更少 token。使用你已有服务商的向量（Gemini 免费提供；OpenAI 只收几美分）。" />
     <string id="AIL_d4b8a2f3" text="取回的经历片段数" />
     <string id="AIL_d4b8a2f4" text="每个片段的句数" />
     <string id="AIL_d4b8a2f5" text="建立索引时多少句连续的话组成一个经历片段。修改后，每个角色的索引会自动重建。" />
@@ -1315,7 +1315,7 @@
     <string id="AIL_d4b8a2f9" text="向量模型（留空 = 自动）" />
     <string id="AIL_d4b8a2fa" text="用于没有单独填写向量模型、且模组不认识其服务的服务商。留空：Gemini 用 gemini-embedding-001，OpenAI 用 text-embedding-3-small，GLM 用 embedding-3，Ollama 用 nomic-embed-text；DeepSeek 和 Groq 不提供向量。只有当你的服务商使用其他名称时才填写。" />
     <string id="AIL_e7b1c4d1" text="向量模型（留空 = 自动，- = 不用）" />
-    <string id="AIL_e7b1c4d2" text="该服务商用于按含义回忆（向量）的模型。留空：使用该服务的常用模型（GLM 为 embedding-3），否则使用“4. 记忆”中的设置。填 - 表示永远不向该服务商请求向量。" />
+    <string id="AIL_e7b1c4d2" text="该服务商用于按含义回忆（向量）的模型。留空：使用该服务的常用模型（GLM 为 embedding-3），否则使用“1. AI”中的设置。填 - 表示永远不向该服务商请求向量。" />
     <string id="AIL_e7b1c4d5" text="服务商 5" />
     <string id="AIL_e7b1c4d6" text="服务商 6" />
     <string id="AIL_e7b1c4d7" text="{=!}怎么样？你们投不投降？" />
@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="章节" />
     <string id="AIL_e7b1c4f0" text="图片来源" />
     <string id="AIL_e7b1c4f1" text="回忆录的每一章都可以配一张图。免费：使用无需密钥的公共服务，只会发送场景描述。OpenAI：使用你在“0. AI 密钥”中设置的 OpenAI 服务商，每张图都要花钱。本地：需要在你的电脑上运行并开启 API 的 Stable Diffusion。Off = 不生成图片。" />
-    <string id="AIL_e7b1c4f2" text="F. 图片" />
+    <string id="AIL_e7b1c4f2" text="G. 图片" />
     <string id="AIL_e7b1c4f3" text="自动为每个新章节绘图" />
     <string id="AIL_e7b1c4f4" text="新章节写成后，图片会在后台生成。关闭：只有在书中按下按钮时才生成。每张图需要一次简短的 AI 请求来生成描述。" />
     <string id="AIL_e7b1c4f5" text="图片风格" />
@@ -1379,7 +1379,7 @@
     <string id="AIL_e7b1c513" text="阻止游戏自身的投票、参战协议和其他模组在两个AI王国之间宣战、议和、缔结同盟或贸易协定：只有它们统治者的声明才能这样做。到期的同盟不再通过投票续约；它会结束，统治者可以再次提议。由世界中发生的事情引发的战争（袭击、叛乱、新王国）以及任何涉及你自己王国的事务不受影响。" />
     <string id="AIL_e7b1c514" text="{0}立刻受到冲击：{1}" />
     <string id="AIL_e7b1c515" text="记住别人转告之事的天数（0 = 永久）" />
-    <string id="AIL_e7b1c516" text="角色经他人之口得知的事会在这些天后淡忘。偶然听到的话另有较短的设置，在“D. 场景”中。" />
+    <string id="AIL_e7b1c516" text="角色经他人之口得知的事会在这些天后淡忘。偶然听到的话另有较短的设置，在“E. 场景”中。" />
     <string id="AIL_e7b1c517" text="口信最多经过几手" />
     <string id="AIL_e7b1c518" text="收到口信的人可能转告自己的人：公开的口信会告诉两三个人，私下的偶尔会，秘密只有会背弃信任的人才会外传。每个人都知道是谁告诉他的、最初出自何人。0 = 到第一个人为止。" />
     <string id="AIL_e7b1c519" text="口信可以得到回复" />
@@ -1934,7 +1934,7 @@
     <string id="AIL_e7b1c74c" text="文件 {0} 过大，无法在编辑器中打开。" />
     <string id="AIL_e7b1c74d" text="{0}之围结束" />
     <string id="AIL_e7b1c74e" text="{0}之围已经结束，{1}仍在{2}手中。" />
-    <string id="AIL_e7b1c74f" text="战役规则" />
+    <string id="AIL_e7b1c74f" text="2. 战役规则" />
     <string id="AIL_e7b1c750" text="僵持战争持续这么多天后强制议和（0 = 关闭）" />
     <string id="AIL_e7b1c751" text="两个AI王国交战达到这么多天，且期间双方没有任何城镇或城堡易手时，战争会自行结束并发布一条新闻：谁也撑不下去了。每天最多促成一次这样的议和。卡拉迪亚的一年是84天。绝不适用于你统治的王国。国王们会被告知各自的每场战争离这一步还有多远。此后84天内双方都不得向对方宣战；若上面设定的休战期更长，则以休战期为准。 建议：126到252（一年半到三年）；0为关闭。" />
     <string id="AIL_e7b1c752" text="新同盟取代旧同盟" />
@@ -2174,7 +2174,7 @@
     <string id="AIL_e7b1c842" text="男宠" />
     <string id="AIL_e7b1c843" text="角色语音" />
     <string id="AIL_e7b1c844" text="角色会把台词念出来：只念他们说的话，绝不念你的台词或名字前缀。Windows 使用你电脑上已安装的语音：免费、离线、无需密钥。OpenAI 使用“0. AI密钥”中的OpenAI服务商，每句会花一点钱（约半美分）。兼容服务器是任何具有相同 /audio/speech 接口的程序，例如本地 Kokoro。Piper 使用本地语音模型。关闭 = 无声。" />
-    <string id="AIL_e7b1c845" text="G. 语音" />
+    <string id="AIL_e7b1c845" text="H. 语音" />
     <string id="AIL_e7b1c846" text="语音：音量" />
     <string id="AIL_e7b1c847" text="语音：语速（-10 慢，10 快）" />
     <string id="AIL_e7b1c848" text="语音：群聊和场景对话也念" />
@@ -2428,5 +2428,45 @@
     <string id="AIL_e7b1cf1c" text="{0}随后将会：{1}。" />
     <string id="AIL_e7b1cf1d" text="{0}按约定继续：{1}。" />
     <string id="AIL_e7b1cf1e" text="{0}按约定回到了你身边。" />
+    <string id="AIL_e7b1d200" text="事件比例：军事（%）" />
+    <string id="AIL_e7b1d201" text="关于战争的背景事件所占比例：战斗、劫掠、围城、军队集结、行军或解散、边境挑衅、抢夺牲畜。五项比例相互权衡，总和不必为100（全为0 = 无偏好）。" />
+    <string id="AIL_e7b1d202" text="事件比例：外交（%）" />
+    <string id="AIL_e7b1d203" text="关于各王室之间关系的背景事件所占比例：使节、侮辱、政治联姻、寻求或紧张的盟约、边界与俘虏之争。" />
+    <string id="AIL_e7b1d204" text="事件比例：经济（%）" />
+    <string id="AIL_e7b1d205" text="关于金钱与货物的背景事件所占比例：收成、短缺、物价、商队、集市、债务与行会纠纷。" />
+    <string id="AIL_e7b1d206" text="事件比例：爱情与宫廷（%）" />
+    <string id="AIL_e7b1d207" text="关于宫廷生活的背景事件所占比例：求爱、订婚、丑闻、宴会、争宠、继承人与家族争吵。" />
+    <string id="AIL_e7b1d208" text="事件比例：江湖与阴谋（%）" />
+    <string id="AIL_e7b1d209" text="关于世界阴暗面的背景事件所占比例：走私者、匪首、密探、贿赂、阴谋、盗窃以及酒馆里低声流传的预兆。" />
+    <string id="AIL_e7b1d20a" text="全部" />
+    <string id="AIL_e7b1d20b" text="{0}，首先是{1}" />
+    <string id="AIL_e7b1d20c" text="（{0}第纳尔，换取释放付款方被俘的贵族：{1}）" />
+    <string id="AIL_e7b1d20d" text="（双方各自释放所关押的对方贵族：每方{0}）" />
+    <string id="AIL_e7b1d20e" text="被俘贵族的赎金" />
+    <string id="AIL_e7b1d20f" text="交换被俘贵族" />
+    <string id="AIL_e7b1d210" text="{0}向{1}提出，以赎金换取释放其部分贵族{2}。" />
+    <string id="AIL_e7b1d211" text="{0}无法支付{1}第纳尔的赎金：其国库只有{2}。" />
+    <string id="AIL_e7b1d212" text="{0}向{1}支付{2}第纳尔赎金，{3}释放了{4}。" />
+    <string id="AIL_e7b1d213" text="{0}接受了你提出的赎金。{1}" />
+    <string id="AIL_e7b1d214" text="{0}拒绝支付{1}索要的赎金。" />
+    <string id="AIL_e7b1d215" text="{0}向{1}提议交换被俘贵族{2}。" />
+    <string id="AIL_e7b1d216" text="{0}与{1}交换了被俘贵族。" />
+    <string id="AIL_e7b1d217" text="{0}释放了{1}。" />
+    <string id="AIL_e7b1d218" text="{0}接受了你提出的交换。{1}" />
+    <string id="AIL_e7b1d219" text="{0}拒绝了{1}提出的交换俘虏。" />
+    <string id="AIL_e7b1d21a" text="如果你关押着对方的贵族，可以为他们索要赎金，或提议交换俘虏。" />
+    <string id="AIL_e7b1d100" text="记忆与回忆（RAG）" />
+    <string id="AIL_e7b1d101" text="按任务指定服务商" />
+    <string id="AIL_e7b1d102" text="推理强度" />
+    <string id="AIL_e7b1d103" text="模型回答前思考的程度，适用于支持的模型（GPT-5、o 系列、Gemini 2.5 及以后、gpt-oss、Claude、Qwen3……）。Off：不额外请求（会让 Gemini 和 OpenAI 不思考，速度最快）。越高：回答越周到，但更慢、消耗更多 token；Max 请求服务所允许的最高程度。如果服务拒绝，日志会说明，模组会不带此项继续。" />
+    <string id="AIL_e7b1d104" text="与角色对话中最近的若干条，每次请求都逐字发送。历史会增长到此数值再加一半，然后裁回此数值，因此开头在很多轮内保持不变，服务商可以缓存（更便宜、更快）。开启按含义回忆时，约 15 条就够了。" />
+    <string id="AIL_e7b1d105" text="开始或读取战役时显示欢迎消息" />
+    <string id="AIL_e7b1d106" text="每次读取时在消息日志中显示一次：没有设置 AI 服务商时，提示在哪里设置；已设置时，列出你改动过的战役规则，并像“测试”按钮一样测试每个启用的服务商的连接。" />
+    <string id="AIL_e7b1d107" text="{0} 不接受推理强度设置；将不带此项继续（详见日志）。" />
+    <string id="AIL_e7b1d108" text="欢迎使用 AI Legacy！要让角色开口说话，请在 Mod Options › AI Legacy › 0. AI密钥 中添加 AI 服务商。战役规则在“2. 战役规则”中：规则已是设置项，你的世界文本可以只写氛围。" />
+    <string id="AIL_e7b1d109" text="欢迎使用 AI Legacy！" />
+    <string id="AIL_e7b1d10a" text="欢迎使用 AI Legacy！你改动过的战役规则：{0}。" />
+    <string id="AIL_e7b1d10b" text="是" />
+    <string id="AIL_e7b1d10c" text="否" />
   </strings>
 </base>

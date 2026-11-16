@@ -337,6 +337,8 @@ namespace AILegacy.Behaviors
             }
 
             Log.Info($"AI Legacy ready: dialogues added, {MemoryStore.Count} characters in memory, {System.Linq.Enumerable.Count(NewsStore.All)} news items");
+            // Once per load: a short welcome in the log once the map is on screen (Core/Welcome.cs)
+            try { Welcome.Arm(); } catch (Exception ex) { Log.Error("Welcome message", ex); }
         }
 
         /// <summary>

@@ -58,6 +58,17 @@ namespace AILegacy.World
         [JsonProperty("text")] public string Text;
     }
 
+    /// <summary>Nobles of one realm taken together by another, waiting to see whether they are still held two weeks later.</summary>
+    public class CaptiveWatch
+    {
+        [JsonProperty("day")] public double Day;
+        [JsonProperty("captor")] public string CaptorId;
+        [JsonProperty("own")] public string OwnId;
+        [JsonProperty("heroes")] public List<string> Heroes = new List<string>();
+        [JsonProperty("by", NullValueHandling = NullValueHandling.Ignore)] public string ById;
+        [JsonProperty("settlement", NullValueHandling = NullValueHandling.Ignore)] public string SettlementId;
+    }
+
     /// <summary>A one-time change an event made to a settlement.</summary>
     public class NewsHit
     {

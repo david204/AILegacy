@@ -36,6 +36,7 @@ namespace AILegacy.World
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(owner, OnHourlyTick);
             Captures.Clear();
             SiegeEnds.Clear();
+            _watchDay = -1;
         }
 
         /// <summary>
@@ -268,7 +269,9 @@ namespace AILegacy.World
             });
         });
 
-        // ---- prisoners: the captives of one battle make one news item, and only notable ones are news at all
+        // ---- prisoners: the lords of one realm taken by one enemy in one rout make one news item, and only notable
+        // ones are news at all. Nobody reacts at once: most are ransomed or escape within days. Those still held two
+        // weeks later are what the world reacts to (CheckWatches).
 
         private class Capture
         {
@@ -276,19 +279,28 @@ namespace AILegacy.World
             public IFaction Captor;
             public Settlement Near;
             public int Rank;
+            public double Hour;
+            /// <summary>The prisoner's realm (sworn or paying), or his own clan when he serves none.</summary>
+            public string Own;
         }
-        // Filled by the game's events and emptied every hour, both on the game thread
+        // Filled by the game's events and emptied by the hourly tick, both on the game thread
         private static readonly List<Capture> Captures = new List<Capture>();
         // A rout can take dozens of lords in one hour. Past this the least notable captives are let go of first
         private const int MaxCaptures = 200;
+        // A rout is told once no lord of that realm has been taken by that enemy for this long, or once it has gone on this long
+        private const double CaptureQuietHours = 3, CaptureMaxHours = 24;
+        /// <summary>Days a notable lord must stay in chains before the world reacts to his capture.</summary>
+        public const int HeldDaysBeforeReaction = 14;
+        private const int MaxWatches = 60, WatchForgetDays = 40;
 
         /// <summary>4 = a ruler (world news), 3 = the head of a kingdom's own noble clan (kingdom news), 1 = anyone else (local).</summary>
-        private static int CaptiveRank(Hero h)
+        private static int CaptiveRank(Hero h) => WarTolls.CaptiveRank(h);
+
+        private static string OwnKey(Hero h)
         {
-            if (h.IsKingdomLeader) return 4;
-            var c = h.Clan;
-            // the head of a mercenary or minor clan is nobody's vassal: local talk, like any ordinary noble
-            return c != null && c.Leader == h && Facts.Subject(c) != null ? 3 : 1;
+            var c = h?.Clan;
+            IFaction f = (IFaction)Facts.Subject(c) ?? Facts.Employer(c);
+            return f?.StringId ?? c?.StringId ?? "";
         }
 
         private static void OnPrisonerTaken(PartyBase captor, Hero prisoner) => Safe("prisionero", () =>
@@ -299,7 +311,7 @@ namespace AILegacy.World
             var by = captor?.MapFaction;
             // the game can raise the same capture twice (taken in battle, then handed to a party or a dungeon)
             if (Captures.Any(c => c.Prisoner == prisoner && c.Captor == by)) return;
-            Captures.Add(new Capture { Prisoner = prisoner, By = captor?.LeaderHero, Captor = by, Near = near, Rank = CaptiveRank(prisoner) });
+            Captures.Add(new Capture { Prisoner = prisoner, By = captor?.LeaderHero, Captor = by, Near = near, Rank = CaptiveRank(prisoner), Hour = CampaignTime.Now.ToHours, Own = OwnKey(prisoner) });
             if (Captures.Count > MaxCaptures)
             {
                 // the oldest of the least notable goes
@@ -308,6 +320,8 @@ namespace AILegacy.World
             }
         });
 
+        private static int _watchDay = -1;
+
         // Both flushes take each entry out of its list before working on it and guard it on its own, so one that
         // fails costs that one piece of news and nothing else
         private static void OnHourlyTick()
@@ -315,6 +329,7 @@ namespace AILegacy.World
             if (!On) { Captures.Clear(); SiegeEnds.Clear(); return; }
             try { FlushCaptures(); } catch (Exception ex) { Log.Error("News prisoners", ex); }
             try { FlushSieges(); } catch (Exception ex) { Log.Error("News siege end", ex); }
+            try { CheckWatches(); } catch (Exception ex) { Log.Error("News prisoners held two weeks", ex); }
         }
 
         private static string Short(Hero h)
@@ -336,27 +351,34 @@ namespace AILegacy.World
             return Facts.Employer(c) != null ? L.F("AIL_e7b1c732", $" (jefe del clan mercenario {c.Name})") : L.F("AIL_e7b1c731", $" (jefe del clan {c.Name})");
         }
 
+        /// <summary>
+        /// The lords of one realm taken by one enemy are one piece of news: the group is told once it has been quiet
+        /// for a few hours (the rest of the rout has been rounded up by then), not one item per lord or per hour.
+        /// </summary>
         private static void FlushCaptures()
         {
             if (Captures.Count == 0) return;
-            var all = Captures.ToList();
-            Captures.Clear();
+            double hour = CampaignTime.Now.ToHours;
             int mode = S.Get.PrisonerNewsMode();      // 0 all, 1 notable only, 2 rulers only
-            // the captives of one battle are one piece of news; the key is read entry by entry so a bad one falls out alone
+            // the key is read entry by entry so a bad one falls out alone
             var groups = new Dictionary<string, List<Capture>>();
-            foreach (var c in all)
+            foreach (var c in Captures.ToList())
             {
                 try
                 {
-                    if (c?.Prisoner == null) continue;
-                    string key = (c.Captor?.StringId ?? "") + "|" + (c.Near?.StringId ?? "");
+                    if (c?.Prisoner == null) { Captures.Remove(c); continue; }
+                    string key = (c.Captor?.StringId ?? "") + "|" + (c.Own ?? "");
                     if (!groups.TryGetValue(key, out var same)) groups[key] = same = new List<Capture>();
                     same.Add(c);
                 }
-                catch (Exception ex) { Log.Error("News prisoners: one capture discarded", ex); }
+                catch (Exception ex) { Captures.Remove(c); Log.Error("News prisoners: one capture discarded", ex); }
             }
             foreach (var g in groups.Values)
             {
+                double first = g.Min(c => c.Hour), last = g.Max(c => c.Hour);
+                // hour < first: an older save was loaded
+                if (!(hour < first || hour - last >= CaptureQuietHours || hour - first >= CaptureMaxHours)) continue;
+                foreach (var c in g) Captures.Remove(c);
                 try { FlushCaptureGroup(g, mode); }
                 catch (Exception ex) { Log.Error("News prisoners: one party discarded", ex); }
             }
@@ -368,7 +390,9 @@ namespace AILegacy.World
                 var list = g.GroupBy(c => c.Prisoner).Select(x => x.First()).OrderByDescending(c => c.Rank).ToList();
                 int top = list[0].Rank;
                 var by = list.Select(c => c.By).FirstOrDefault(h => h != null);
-                var captor = list[0].Captor; var near = list[0].Near;
+                var captor = list[0].Captor; var near = list.Select(c => c.Near).FirstOrDefault(s => s != null);
+                // watched whatever the news setting keeps: the reaction, if any, comes two weeks later
+                Watch(list, by, near);
                 // what the player did or suffered is always told
                 bool player = list.Any(c => c.Prisoner == Hero.MainHero || c.By == Hero.MainHero);
                 if (!player && ((mode >= 2 && top < 4) || (mode == 1 && top < 3))) return;
@@ -381,9 +405,11 @@ namespace AILegacy.World
                 foreach (var c in named) factions.Add((IFaction)Facts.Subject(c.Prisoner.Clan) ?? Facts.Employer(c.Prisoner.Clan));
                 var heroes = named.Select(c => c.Prisoner).ToList();
                 heroes.Add(by);
+                // Never a reaction now: lords are ransomed, exchanged or escape all the time. One still held two
+                // weeks later is what the world answers (CheckWatches).
                 var n = new NewsItem
                 {
-                    Type = "prisoner", Importance = top >= 3 ? top : 1, NoReaction = top < 3,
+                    Type = "prisoner", Importance = top >= 3 ? top : 1, NoReaction = true,
                     Kingdoms = Ids(factions.ToArray()), Heroes = HeroIds(heroes.ToArray()), SettlementId = near?.StringId,
                 };
                 if (list.Count == 1)
@@ -405,6 +431,89 @@ namespace AILegacy.World
                 }
                 NewsStore.Add(n);
             }
+        }
+
+        /// <summary>A rout with a ruler or the head of a sworn clan among the captives is watched for two weeks.</summary>
+        private static void Watch(List<Capture> list, Hero by, Settlement near)
+        {
+            try
+            {
+                // only the capture of a ruler or of the head of a sworn clan can ever set off a reaction
+                if (list.Count == 0 || list.Max(c => c.Rank) < 3) return;
+                var st = WorldSim.State;
+                if (st == null) return;
+                if (st.CaptiveWatch == null) st.CaptiveWatch = new List<CaptiveWatch>();
+                st.CaptiveWatch.Add(new CaptiveWatch
+                {
+                    Day = CampaignTime.Now.ToDays, CaptorId = list[0].Captor?.StringId, OwnId = list[0].Own, ById = by?.StringId, SettlementId = near?.StringId,
+                    Heroes = list.Select(c => c.Prisoner.StringId).Distinct().Take(12).ToList(),
+                });
+                while (st.CaptiveWatch.Count > MaxWatches) st.CaptiveWatch.RemoveAt(0);
+            }
+            catch (Exception ex) { Log.Error("News prisoners: watching a capture", ex); }
+        }
+
+        /// <summary>Once a day: the routs taken two weeks ago whose notable captives are still in chains set off one reaction each.</summary>
+        private static void CheckWatches()
+        {
+            var st = WorldSim.State;
+            if (st?.CaptiveWatch == null || st.CaptiveWatch.Count == 0) return;
+            double now = CampaignTime.Now.ToDays;
+            int day = (int)now;
+            if (day == _watchDay) return;
+            _watchDay = day;
+            foreach (var w in st.CaptiveWatch.ToList())
+            {
+                // w.Day > now: an older save was loaded
+                if (w == null || w.Heroes == null || w.Day > now + 1 || now - w.Day > WatchForgetDays) { st.CaptiveWatch.Remove(w); continue; }
+                if (now - w.Day < HeldDaysBeforeReaction) continue;
+                st.CaptiveWatch.Remove(w);
+                try { ReactToHeld(w, now); }
+                catch (Exception ex) { Log.Error("News prisoners: two weeks in chains", ex); }
+            }
+        }
+
+        /// <summary>
+        /// The captives of one rout, two weeks on. Only those still held count (not freed, ransomed, escaped or dead),
+        /// and only the ranks the reaction threshold lets through: at 4 rulers alone, at 3 rulers and the heads of
+        /// sworn clans, below that everyone, as before. One reaction for all of them, never one per lord.
+        /// </summary>
+        private static void ReactToHeld(CaptiveWatch w, double now)
+        {
+            int min = Math.Max(1, Math.Min(4, S.Get.ReactiveMinImportance));
+            int floor = min >= 4 ? 4 : min >= 3 ? 3 : 1;
+            var held = new List<Hero>();
+            foreach (var id in w.Heroes)
+            {
+                if (string.IsNullOrEmpty(id)) continue;
+                var h = Hero.Find(id);
+                if (WarTolls.StillHeld(h) && CaptiveRank(h) >= floor) held.Add(h);
+            }
+            int top = held.Count == 0 ? 0 : held.Max(CaptiveRank);
+            if (top < 3 || top < min)
+            {
+                Log.Info($"[world] captives taken {(int)(now - w.Day)} days ago: none of note is still held, no reaction");
+                return;
+            }
+            held = held.OrderByDescending(CaptiveRank).ToList();
+            IFaction holder = WarTolls.HolderOf(held[0]) ?? held[0].PartyBelongedToAsPrisoner?.MapFaction;
+            var by = string.IsNullOrEmpty(w.ById) ? null : Hero.Find(w.ById);
+            int days = (int)(now - w.Day);
+            string names = string.Join(", ", held.Take(6).Select(h => h.Name + Short(h))) + (held.Count > 6 ? $" and {held.Count - 6} more" : "");
+            var factions = new List<IFaction> { holder };
+            foreach (var h in held) factions.Add((IFaction)Facts.Subject(h.Clan) ?? Facts.Employer(h.Clan));
+            var heroes = held.ToList();
+            if (by != null && by.IsAlive) heroes.Add(by);
+            // Not stored as news (the capture already is): it only calls for the world's answer
+            var n = new NewsItem
+            {
+                Type = "prisoner", Importance = top, Day = now,
+                Text = $"{names} {(held.Count == 1 ? "has" : "have")} now been held prisoner" + (holder != null ? $" by {holder.Name}" : "") +
+                       $" for {days} days: no ransom, exchange or escape has freed {(held.Count == 1 ? "this captive" : "them")} yet. This is the ordinary business of war: what follows is talk of ransom, an exchange, envoys or revenge sought in the field.",
+                Kingdoms = Ids(factions.ToArray()), Heroes = HeroIds(heroes.ToArray()), SettlementId = w.SettlementId,
+            };
+            Log.Info($"[world] still in chains after {days} days: {names}");
+            WorldSim.OnRealNews(n);
         }
 
         // ---- sieges: how each one ended. The fall of the place is told by the change of owner
