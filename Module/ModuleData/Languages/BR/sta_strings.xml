@@ -2235,5 +2235,7 @@
     <string id="AIL_e7b1c87f" text="Chance, em relação a um senhor, de uma nobre casada na mesma situação tomar um homem como concubino. 0 = nunca. Recomendado: 0 a 30." />
     <string id="AIL_e7b1c880" text="{0} toma uma concubina" />
     <string id="AIL_e7b1c881" text="{0}, da casa {1}, agora vive com {2} como concubina." />
+    <string id="AIL_e7b1c882" text="Fora do casamento: menor valor num casamento (denários)" />
+    <string id="AIL_e7b1c883" text="Quando se negocia um casamento entre um bastardo e um filho legítimo, a casa que pede a mão do bastardo oferece isso a menos, uma casa que entrega um filho legítimo a um bastardo pede isso a mais, e a própria casa do bastardo o deixa ir pela metade. Para comparar, um ponto de relação entre os dois vale 1000. 0 = sem diferença. Recomendado: 10000 a 30000." />
   </strings>
 </base>

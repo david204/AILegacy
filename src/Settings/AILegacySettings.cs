@@ -1014,6 +1014,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public bool BastardLegitimizeOnMarriage { get; set; } = true;
 
+        [SettingPropertyInteger("{=AIL_e7b1c882}Out of wedlock: lower worth in a marriage (denars)", 0, 100000, Order = 59, RequireRestart = false,
+            HintText = "{=AIL_e7b1c883}When a marriage is negotiated between a baseborn and a legitimate child, the house asking for a baseborn's hand offers this much less, a house giving a legitimate child to a baseborn asks for this much more, and the baseborn's own house lets them go for half of it. For scale, a point of relation between the two is worth 1000. 0 = no difference. Recommended: 10000 to 30000.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int BastardMarriagePenalty { get; set; } = 20000;
+
         // Concubines
         [SettingPropertyBool("{=AIL_e7b1c838}Concubines", Order = 60, RequireRestart = false,
             HintText = "{=AIL_e7b1c839}Someone unmarried who loves you deeply can agree, in a conversation, to leave their house and live with you as your concubine: they join your clan and your company, their old head of house takes it badly, and children may come (born out of wedlock, with you known as the parent). It ends when either of you decides, when one of you dies, or when you marry them. Meanwhile nobody else can marry them.")]

@@ -2235,5 +2235,7 @@
     <string id="AIL_e7b1c87f" text="Probabilità, rispetto a un signore, che una nobildonna sposata nella stessa situazione prenda un uomo come concubino. 0 = mai. Consigliato: da 0 a 30." />
     <string id="AIL_e7b1c880" text="{0} prende una concubina" />
     <string id="AIL_e7b1c881" text="{0}, della casata {1}, ora vive con {2} come concubina." />
+    <string id="AIL_e7b1c882" text="Fuori dal matrimonio: minor valore nelle nozze (denari)" />
+    <string id="AIL_e7b1c883" text="Quando si negozia un matrimonio tra un bastardo e un figlio legittimo, la casata che chiede la mano del bastardo offre questo in meno, una casata che dà un figlio legittimo a un bastardo chiede questo in più, e la casata del bastardo lo lascia andare per la metà. Come riferimento, un punto di relazione tra i due vale 1000. 0 = nessuna differenza. Consigliato: da 10000 a 30000." />
   </strings>
 </base>

@@ -2235,5 +2235,7 @@
     <string id="AIL_e7b1c87f" text="Chance im Vergleich zu einem Fürsten, dass eine verheiratete Adlige in derselben Lage einen Mann als Geliebten nimmt. 0 = nie. Empfohlen: 0 bis 30." />
     <string id="AIL_e7b1c880" text="{0} nimmt eine Konkubine" />
     <string id="AIL_e7b1c881" text="{0} aus dem Haus {1} lebt jetzt als Konkubine bei {2}." />
+    <string id="AIL_e7b1c882" text="Außerehelich: geringerer Wert bei einer Heirat (Denare)" />
+    <string id="AIL_e7b1c883" text="Wird eine Heirat zwischen einem Bastard und einem ehelichen Kind verhandelt, bietet das Haus, das um die Hand des Bastards bittet, so viel weniger, ein Haus, das ein eheliches Kind einem Bastard gibt, verlangt so viel mehr, und das eigene Haus des Bastards lässt ihn für die Hälfte gehen. Zum Vergleich: ein Punkt Beziehung zwischen beiden ist 1000 wert. 0 = kein Unterschied. Empfohlen: 10000 bis 30000." />
   </strings>
 </base>

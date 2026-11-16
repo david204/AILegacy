@@ -2235,5 +2235,7 @@
     <string id="AIL_e7b1c87f" text="Probabilité, par rapport à un seigneur, qu'une noble mariée dans la même situation prenne un homme comme concubin. 0 = jamais. Recommandé : 0 à 30." />
     <string id="AIL_e7b1c880" text="{0} prend une concubine" />
     <string id="AIL_e7b1c881" text="{0}, de la maison {1}, vit désormais avec {2} comme concubine." />
+    <string id="AIL_e7b1c882" text="Hors mariage : moindre valeur dans un mariage (deniers)" />
+    <string id="AIL_e7b1c883" text="Quand un mariage se négocie entre un bâtard et un enfant légitime, la maison qui demande la main du bâtard offre cela en moins, une maison qui donne un enfant légitime à un bâtard demande cela en plus, et la maison du bâtard le laisse partir pour la moitié. Pour comparer, un point de relation entre les deux vaut 1000. 0 = aucune différence. Recommandé : 10000 à 30000." />
   </strings>
 </base>

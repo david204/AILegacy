@@ -2235,5 +2235,7 @@
     <string id="AIL_e7b1c87f" text="Probabilidad, comparada con la de un señor, de que una noble casada en la misma situación tome a un hombre como concubino. 0 = nunca. Recomendado: de 0 a 30." />
     <string id="AIL_e7b1c880" text="{0} toma una concubina" />
     <string id="AIL_e7b1c881" text="{0}, de la casa {1}, vive ahora con {2} como concubina." />
+    <string id="AIL_e7b1c882" text="Fuera del matrimonio: menos valor al casarse (denarios)" />
+    <string id="AIL_e7b1c883" text="Cuando se negocia una boda entre un bastardo y un hijo legítimo, la casa que pide la mano del bastardo ofrece esto de menos, la casa que entrega a un hijo legítimo a un bastardo pide esto de más, y la propia casa del bastardo lo deja ir por la mitad. Como referencia, un punto de relación entre los dos vale 1000. 0 = sin diferencia. Recomendado: de 10000 a 30000." />
   </strings>
 </base>

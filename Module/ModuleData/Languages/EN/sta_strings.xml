@@ -2235,5 +2235,7 @@
     <string id="AIL_e7b1c87f" text="Chance, compared with a lord, that a married noblewoman in the same situation takes a man as her concubine. 0 = never. Recommended: 0 to 30." />
     <string id="AIL_e7b1c880" text="{0} takes a concubine" />
     <string id="AIL_e7b1c881" text="{0}, of house {1}, now lives with {2} as a concubine." />
+    <string id="AIL_e7b1c882" text="Out of wedlock: lower worth in a marriage (denars)" />
+    <string id="AIL_e7b1c883" text="When a marriage is negotiated between a baseborn and a legitimate child, the house asking for a baseborn's hand offers this much less, a house giving a legitimate child to a baseborn asks for this much more, and the baseborn's own house lets them go for half of it. For scale, a point of relation between the two is worth 1000. 0 = no difference. Recommended: 10000 to 30000." />
   </strings>
 </base>
