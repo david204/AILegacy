@@ -203,6 +203,7 @@ namespace AILegacy.Core
     /// language picked in AI Legacy, whatever the game's language is.
     /// </summary>
     [HarmonyPatch(typeof(LocalizedTextManager), nameof(LocalizedTextManager.GetTranslatedText))]
+    [HarmonyPatchCategory(SubModule.EarlyPatches)]
     internal static class LocalizedTextPatch
     {
         private static void Postfix(string id, ref string __result)

@@ -15,13 +15,29 @@ namespace AILegacy
     {
         private float _letterCheck;
 
+        public const string EarlyPatches = "ailegacy.early";
+        private static readonly HarmonyLib.Harmony Harmony = new HarmonyLib.Harmony("com.ailegacy");
+        private static bool _campaignPatched;
+
+        /// <summary>The rest of the patches, once a campaign is running and the game texts are loaded. Once per run.</summary>
+        public static void PatchForCampaign()
+        {
+            if (_campaignPatched) return;
+            _campaignPatched = true;
+            try { Harmony.PatchAllUncategorized(typeof(SubModule).Assembly); Log.Info("Harmony patches applied"); }
+            catch (Exception ex) { Log.Error("Harmony", ex); }
+        }
+
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
             Log.Info("AI Legacy loaded from " + Paths.ModuleDir);
             var cfg = LegacyConfig.Current; // first read, so it shows up in the log
             CrashTrace.Install();
-            try { new HarmonyLib.Harmony("com.ailegacy").PatchAll(typeof(SubModule).Assembly); Log.Info("Harmony patches applied"); }
+            // Only what the main menu needs is patched now. Patching makes the runtime compile the game's method, and
+            // that can set up the game classes it uses; in the menu some of those (CampaignUIHelper) fail because the
+            // game texts are not loaded yet, and stay broken for the whole session. The rest waits for the campaign.
+            try { Harmony.PatchCategory(typeof(SubModule).Assembly, EarlyPatches); Log.Info("Harmony: menu patches applied"); }
             catch (Exception ex) { Log.Error("Harmony", ex); }
             // Additions to vanilla screens (bars next to the name, history in conversations)
             try

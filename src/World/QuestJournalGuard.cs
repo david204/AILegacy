@@ -8,11 +8,38 @@ using TaleWorlds.CampaignSystem;
 namespace AILegacy.World
 {
     /// <summary>
+    /// The two guards below are applied once a campaign is running, not when the mod loads. Patching a method of
+    /// CampaignUIHelper can make the runtime set up that class there and then, and in the main menu its setup fails
+    /// (it reads game texts that are not loaded yet). The failure sticks for the whole session, and the first screen
+    /// that needs the class (the story screen of character creation) closes the game.
+    /// </summary>
+    internal static class QuestJournalGuards
+    {
+        private static bool _done;
+
+        public static void Apply()
+        {
+            if (_done) return;
+            _done = true;
+            var harmony = new Harmony("com.ailegacy.questguard");
+            foreach (var type in new[] { typeof(QuestsRelatedToSettlementGuard), typeof(IsQuestRelatedToSettlementGuard) })
+            {
+                try
+                {
+                    var target = (MethodBase)AccessTools.Method(type, "TargetMethod").Invoke(null, null);
+                    if (target == null) { Log.Warn("Quest journal guard: target not found for " + type.Name); continue; }
+                    harmony.Patch(target, finalizer: new HarmonyMethod(AccessTools.Method(type, "Finalizer")));
+                }
+                catch (Exception ex) { Log.Error("Quest journal guard: " + type.Name, ex); }
+            }
+        }
+    }
+
+    /// <summary>
     /// CampaignUIHelper.GetQuestsRelatedToSettlement (used by the settlement nameplates on the map) can throw a
     /// NullReferenceException when a broken quest still tracks something, like a dead giver or a destroyed party.
     /// If it throws, return an empty list instead of breaking the UI.
     /// </summary>
-    [HarmonyPatch]
     internal static class QuestsRelatedToSettlementGuard
     {
         private static bool _warned;
@@ -36,7 +63,6 @@ namespace AILegacy.World
     }
 
     /// <summary>Same for CampaignUIHelper.IsQuestRelatedToSettlement. If it throws, return false.</summary>
-    [HarmonyPatch]
     internal static class IsQuestRelatedToSettlementGuard
     {
         private static bool _warned;

@@ -276,6 +276,8 @@ namespace AILegacy.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
+            SubModule.PatchForCampaign();
+            World.QuestJournalGuards.Apply();
             LoadCampaignData();
             World.NewsTracker.Live = true;       // from here on, what happens counts as news
             World.History.Snapshot();

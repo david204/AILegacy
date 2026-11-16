@@ -14,6 +14,11 @@ namespace AILegacy.Core
     {
         private const int MaxEntries = 40;
         private static int _written;
+        private const int MaxCctor = 10;
+        private static int _cctorWritten;
+        // Building a stack for every exception the game throws and catches costs; these are only looked at so many times
+        private const int MaxCctorChecks = 300;
+        private static int _cctorChecks;
         [ThreadStatic] private static bool _inside;
 
         public static void Install()
@@ -29,11 +34,25 @@ namespace AILegacy.Core
 
         private static void OnFirstChance(object sender, FirstChanceExceptionEventArgs e)
         {
-            if (_inside || _written >= MaxEntries) return;
+            if (_inside) return;
             _inside = true;
             try
             {
-                if (!SubModule.InCharacterCreation) return;
+                if (!SubModule.InCharacterCreation)
+                {
+                    // Anywhere else, only an error inside a class's setup: it breaks that class for the whole session,
+                    // and the screen that fails later does not say why
+                    if (_cctorWritten >= MaxCctor || Interlocked.Increment(ref _cctorChecks) > MaxCctorChecks) return;
+                    string st = new StackTrace(1, false).ToString();
+                    if (st.IndexOf(".cctor", StringComparison.Ordinal) < 0) return;
+                    int k = Interlocked.Increment(ref _cctorWritten);
+                    if (k > MaxCctor) return;
+                    Log.Warn($"[class setup] exception {k}/{MaxCctor}: {e.Exception.GetType().FullName}: {e.Exception.Message}"
+                             + Environment.NewLine + "  thrown at: " + (e.Exception.StackTrace ?? "?").Trim()
+                             + Environment.NewLine + "  call stack:" + Environment.NewLine + st);
+                    return;
+                }
+                if (_written >= MaxEntries) return;
                 int n = Interlocked.Increment(ref _written);
                 if (n > MaxEntries) return;
                 var ex = e.Exception;
