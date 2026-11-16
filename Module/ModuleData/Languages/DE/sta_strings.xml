@@ -2723,5 +2723,17 @@
     <string id="AIL_e7b1dd01" text="{0} hat eine leere Antwort geliefert: Der Platz ist ausgegangen, vermutlich beim Nachdenken. Versuche einen anderen Denkaufwand dafür unter 0. KI-Schlüssel (zum Beispiel Low) oder ein anderes Modell." />
     <string id="AIL_e7b1dd02" text="{0} hat eine leere Antwort geliefert. Wenn das Modell vor der Antwort nachdenkt, versuche einen anderen Denkaufwand dafür unter 0. KI-Schlüssel (zum Beispiel Low) oder ein anderes Modell." />
     <string id="AIL_e7b1dd03" text="Keine Antwort der KI: {0}" />
+    <string id="AIL_e7b1dd10" text="Außerehelich: Ein Kind ohne Haus wächst als Wanderer auf" />
+    <string id="AIL_e7b1dd11" text="Bleibt ein außerehelich geborenes Kind bei einem Elternteil ohne Haus (einem Honoratioren: Händler, Dorfvorsteher, Bandenanführer...), wächst es als Wanderer auf, den man in Tavernen findet. Aus: Das Kind verschwindet aus der Welt. Standard: an." />
+    <string id="AIL_e7b1dd20" text="kein eigener Ort für die Steuer" />
+    <string id="AIL_e7b1dd21" text="{0} hebt die Sondersteuer auf {1} auf." />
+    <string id="AIL_e7b1dd22" text="{0} erhebt eine Sondersteuer von {1} % auf {2}." />
+    <string id="AIL_e7b1dd23" text="{0} senkt die Steuern von {1} um {2} %." />
+    <string id="AIL_e7b1dd24" text="seine Städte" />
+    <string id="AIL_e7b1dd25" text="seine Burgen" />
+    <string id="AIL_e7b1dd26" text="seine Dörfer" />
+    <string id="AIL_e7b1dd27" text="all seine Ländereien" />
+    <string id="AIL_e7b1dd30" text="Bilder: eines für jedes neue Weltereignis" />
+    <string id="AIL_e7b1dd31" text="Jedes neue Weltereignis bekommt ein breites Bild auf seiner Karte im Nachrichtenfenster, erstellt mit der Quelle oben (ein späteres Kapitel derselben Geschichte behält das des ersten). Das kostet eine KI-Anfrage für die Beschreibung und mit OpenAI jedes Mal den Preis eines Bildes. Schlägt es fehl, bleibt die Karte ohne Bild. Standard: aus." />
   </strings>
 </base>

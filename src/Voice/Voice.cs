@@ -31,7 +31,10 @@ namespace AILegacy.Voice
         public static int Engine { get { try { return Math.Max(0, Math.Min(4, S.Get.VoiceEngine.SelectedIndex)); } catch { return Off; } } }
         public static bool Enabled => Engine != Off;
 
-        private static readonly BlockingCollection<(int gen, string key, bool female, string text)> Lines = new BlockingCollection<(int, string, bool, string)>(new ConcurrentQueue<(int, string, bool, string)>(), 8);
+        private static readonly BlockingCollection<(int gen, string key, bool female, string text, byte[] wav)> Lines = new BlockingCollection<(int, string, bool, string, byte[])>(new ConcurrentQueue<(int, string, bool, string, byte[])>(), 8);
+        // Lines made ahead of time (Prepare), on a thread of their own so they never wait behind a line still playing
+        private static readonly BlockingCollection<(int gen, string key, bool female, string text, Action<byte[]> done)> Preps = new BlockingCollection<(int, string, bool, string, Action<byte[]>)>(new ConcurrentQueue<(int, string, bool, string, Action<byte[]>)>(), 8);
+        private static Thread _prepWorker;
         private static int _gen;
         private static Thread _worker;
         private static System.Media.SoundPlayer _player;
@@ -77,9 +80,73 @@ namespace AILegacy.Voice
                 if (t.Length < 2) return;
                 EnsureWorker();
                 Interlocked.Increment(ref _pending);
-                if (!Lines.TryAdd((_gen, key ?? "", female, t))) Interlocked.Decrement(ref _pending);
+                if (!Lines.TryAdd((_gen, key ?? "", female, t, null))) Interlocked.Decrement(ref _pending);
             }
             catch (Exception ex) { Log.Error("Voice: enqueue", ex); }
+        }
+
+        /// <summary>
+        /// Makes the audio of a line without playing it, so the reply and its voice can start together. <paramref name="done"/>
+        /// always runs once, on the voice thread: with the audio, or null if there is no voice, it failed or the talk changed.
+        /// False when nothing was asked (voice off, nothing to say): then <paramref name="done"/> never runs.
+        /// </summary>
+        public static bool Prepare(string key, bool female, string text, Action<byte[]> done)
+        {
+            try
+            {
+                if (!Enabled || done == null) return false;
+                string t = Clean(text);
+                if (t.Length < 2) return false;
+                EnsurePrepWorker();
+                Interlocked.Increment(ref _pending);
+                if (Preps.TryAdd((_gen, key ?? "", female, t, done))) return true;
+                Interlocked.Decrement(ref _pending);
+            }
+            catch (Exception ex) { Log.Error("Voice: prepare", ex); }
+            return false;
+        }
+
+        /// <summary>Plays audio made by <see cref="Prepare"/>, in turn with the other lines.</summary>
+        public static void PlayPrepared(byte[] wav)
+        {
+            try
+            {
+                if (!Enabled || wav == null || wav.Length < 100) return;
+                EnsureWorker();
+                Interlocked.Increment(ref _pending);
+                if (!Lines.TryAdd((_gen, "", false, "", wav))) Interlocked.Decrement(ref _pending);
+            }
+            catch (Exception ex) { Log.Error("Voice: play prepared", ex); }
+        }
+
+        private static void EnsurePrepWorker()
+        {
+            if (_prepWorker != null && _prepWorker.IsAlive) return;
+            _prepWorker = new Thread(RunPreps) { IsBackground = true, Name = "AILegacy voice prepare" };
+            _prepWorker.SetApartmentState(ApartmentState.STA);
+            _prepWorker.Start();
+        }
+
+        private static void RunPreps()
+        {
+            foreach (var job in Preps.GetConsumingEnumerable())
+            {
+                byte[] wav = null;
+                try
+                {
+                    if (job.gen == _gen)
+                    {
+                        var watch = Stopwatch.StartNew();
+                        wav = Synthesize(Engine, job.key, job.female, job.text, S.Get);
+                        if (wav != null && wav.Length < 100) wav = null;
+                        Log.Info($"Voice: line prepared in {watch.Elapsed.TotalSeconds:0.0}s{(wav == null ? " (no audio)" : "")}");
+                    }
+                    if (job.gen != _gen) wav = null;
+                }
+                catch (Exception ex) { wav = null; Log.Warn("Voice: could not prepare the sentence: " + ex.GetBaseException().Message); }
+                finally { Interlocked.Decrement(ref _pending); }
+                try { job.done(wav); } catch (Exception ex) { Log.Error("Voice: after preparing", ex); }
+            }
         }
 
         /// <summary>Whatever is playing or waiting is dropped (a new conversation, the game closing it).</summary>
@@ -87,6 +154,8 @@ namespace AILegacy.Voice
         {
             Interlocked.Increment(ref _gen);
             while (Lines.TryTake(out _)) Interlocked.Decrement(ref _pending);
+            // lines being made ahead are told there is no audio, so whoever waits on them goes on
+            while (Preps.TryTake(out var prep)) { Interlocked.Decrement(ref _pending); try { prep.done(null); } catch { } }
             lock (PlayerGate) { try { _player?.Stop(); } catch { } }
             Interlocked.Exchange(ref _endsAt, 0);
         }
@@ -108,7 +177,7 @@ namespace AILegacy.Voice
                 {
                     if (job.gen != _gen) continue;
                     var cfg = S.Get;
-                    byte[] wav = Synthesize(Engine, job.key, job.female, job.text, cfg);
+                    byte[] wav = job.wav ?? Synthesize(Engine, job.key, job.female, job.text, cfg);
                     if (wav == null || wav.Length < 100 || job.gen != _gen) continue;
                     wav = Scale(wav, Math.Max(0, Math.Min(100, cfg.VoiceVolume)) / 100f);
                     using (var ms = new MemoryStream(wav))

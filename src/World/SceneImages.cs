@@ -54,7 +54,59 @@ What was just said:
 {text}
 Answer with the prompt only, nothing else.");
 
-        private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done, Tpl tpl)> Pending = new Queue<(HeroMemory, MemoryPage, Action, Tpl)>();
+        private static readonly Tpl TEvent = new Tpl("images/world_event.txt",
+@"Turn this world event into ONE prompt in English for a wide picture of it, 2:1 landscape, like a photograph. 60 to 100 words.
+Show one scene that tells the event: its subject, what happens, the place and the scale, as the description says. Describe only what would be seen.
+The world is Calradia, a land of the 11th to 13th century: no magic, no firearms, no modern objects. Its peoples look like this: Vlandia, Norman knights in green farmland with stone castles; Sturgia, Rus and Norse folk of snowy northern forests in furs; Aserai, Arab desert and oasis towns; Battania, Celtic clans of forested hills and wooden hillforts; Khuzait, Mongol steppe riders and felt yurts; the Empire, Byzantine Roman legions and marble towns. Medieval violence may be shown when the event calls for it.
+Use the banner colours given for each realm on the surcoats, cloaks, shields and banners of its people. A realm that does not fit the scene can be left out.
+The people in it, only if the scene needs them (no names in the picture):
+{people}
+Headline: {title}
+{text}
+No writing or letters in the picture. Answer with the prompt only, nothing else.");
+
+        // For world events: wide, like a photograph
+        private const string EventStyle = "Photorealistic wide shot, like a photograph, natural light, worn metal, leather, wool, wood and stone, historically grounded medieval setting. No text, no watermark, no modern objects.";
+
+        private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done, Tpl tpl, string people, bool wide)> Pending = new Queue<(HeroMemory, MemoryPage, Action, Tpl, string, bool)>();
+
+        /// <summary>
+        /// A wide picture of a new world event, for its news card. Queued behind any other picture. <paramref name="done"/>
+        /// gets the file name on the main thread, or null if it could not be made.
+        /// </summary>
+        public static bool RequestEvent(string title, string text, string people, Action<string> done)
+        {
+            if (!Enabled || Dir == null || string.IsNullOrWhiteSpace(text)) return false;
+            var page = new MemoryPage { Title = title ?? "", Text = text, Day = CampaignTime.Now.ToDays };
+            Pending.Enqueue((null, page, () => done?.Invoke(page.Image), TEvent, people, true));
+            Next();
+            return true;
+        }
+
+        /// <summary>
+        /// Who an event picture may show: the rulers and heads of house of its realms that the text names, and the player
+        /// if named, up to four, each as an image model needs them.
+        /// </summary>
+        internal static string EventPeople(string text, List<Kingdom> realms)
+        {
+            var found = new List<Hero>();
+            try
+            {
+                string t = text ?? "";
+                var pool = realms.Select(k => k.Leader).Concat(realms.SelectMany(k => k.Clans.Where(c => !c.IsEliminated).Select(c => c.Leader)))
+                                 .Where(h => h != null && h.IsAlive).Distinct().ToList();
+                if (Hero.MainHero != null) pool.Add(Hero.MainHero);
+                foreach (var h in pool)
+                {
+                    if (found.Count >= 4) break;
+                    string name = h.FirstName?.ToString() ?? h.Name?.ToString() ?? "";
+                    if (name.Length >= 3 && !found.Contains(h) && System.Text.RegularExpressions.Regex.IsMatch(t, @"\b" + System.Text.RegularExpressions.Regex.Escape(name) + @"\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                        found.Add(h);
+                }
+            }
+            catch { }
+            return found.Count == 0 ? "(nobody in particular: figures of this land, as the scene needs)" : string.Join("\n", found.Select(h => "- " + Look(h, false)));
+        }
 
         /// <summary>
         /// A picture of the moment just spoken in a conversation. Skipped while another picture is being made, so a quick
@@ -65,7 +117,7 @@ Answer with the prompt only, nothing else.");
             if (!Enabled || mem == null || Dir == null || string.IsNullOrWhiteSpace(exchange)) return false;
             if (IsBusy) { Log.Info("Conversation image: another is already in progress, this reply gets no image"); return false; }
             var page = new MemoryPage { Title = where ?? "", Text = exchange, Day = CampaignTime.Now.ToDays };
-            Pending.Enqueue((mem, page, () => { string path = PathOf(page); if (path != null) shown?.Invoke(path); }, TMoment));
+            Pending.Enqueue((mem, page, () => { string path = PathOf(page); if (path != null) shown?.Invoke(path); }, TMoment, null, false));
             Next();
             return true;
         }
@@ -109,7 +161,7 @@ Answer with the prompt only, nothing else.");
         {
             if (!Enabled || mem == null || page == null || Dir == null) { done?.Invoke(); return; }
             if (_active == page || Pending.Any(x => x.page == page)) return;
-            Pending.Enqueue((mem, page, done, null));
+            Pending.Enqueue((mem, page, done, null, null, false));
             Next();
         }
 
@@ -143,7 +195,7 @@ Answer with the prompt only, nothing else.");
                         _failures = 0;
                         job.page.Image = file; job.page.ImagePrompt = prompt;
                         if (job.tpl == null) SaveFiles.Dirty();
-                        Log.Info($"Image {(job.tpl == null ? "of the page" : "of the conversation in")} «{job.page.Title}»: {file}");
+                        Log.Info($"Image {(job.wide ? "of the event" : job.tpl == null ? "of the page" : "of the conversation in")} «{job.page.Title}»: {file}");
                     }
                     else
                     {
@@ -162,7 +214,7 @@ Answer with the prompt only, nothing else.");
             if (!string.IsNullOrWhiteSpace(known)) describe = Task.FromResult(known);
             else
             {
-                string people = People(job.mem);
+                string people = job.people ?? People(job.mem);
                 string text = job.page.Text ?? "";
                 if (text.Length > 1800) text = text.Substring(0, 1800);
                 string ask = (job.tpl ?? TPrompt).Format("people", people, "title", job.page.Title ?? "", "text", text);
@@ -187,15 +239,16 @@ Answer with the prompt only, nothing else.");
                     string full;
                     // A conversation picture: the facts of the place go again after the description, so the model
                     // cannot drop them, and it is drawn as a film still whatever the style for memory pages is
-                    if (job.tpl != null) full = prompt.TrimEnd('.', ' ') + ". Setting: " + (job.page.Title ?? "") + ". " + MomentStyle;
+                    if (job.wide) full = prompt.TrimEnd('.', ' ') + ". " + EventStyle;
+                    else if (job.tpl != null) full = prompt.TrimEnd('.', ' ') + ". Setting: " + (job.page.Title ?? "") + ". " + MomentStyle;
                     else full = style.Length > 0 ? prompt.TrimEnd('.', ' ') + ". " + style : prompt;
-                    byte[] raw = source == Free ? await FromPollinations(full, SeedFor(job.mem)).ConfigureAwait(false)
+                    byte[] raw = source == Free ? await FromPollinations(full, SeedFor(job.mem), job.wide).ConfigureAwait(false)
                                : source == OpenAi ? await FromOpenAi(full, openAi, openAiModel).ConfigureAwait(false)
-                               : await FromLocal(full, localUrl).ConfigureAwait(false);
+                               : await FromLocal(full, localUrl, job.wide).ConfigureAwait(false);
                     if (raw == null || raw.Length < 2000) { Finish(false, null, prompt, "el servicio no devolvió una imagen"); return; }
                     Directory.CreateDirectory(dir);
-                    string file = (job.tpl == null ? "p_" : "t_") + Guid.NewGuid().ToString("N").Substring(0, 12) + ".png";
-                    SavePng(raw, Path.Combine(dir, file));
+                    string file = (job.wide ? "e_" : job.tpl == null ? "p_" : "t_") + Guid.NewGuid().ToString("N").Substring(0, 12) + ".png";
+                    SavePng(raw, Path.Combine(dir, file), job.wide ? 2f : 0f);
                     Finish(true, file, prompt, null);
                 }
                 catch (Exception ex) { Finish(false, null, prompt, ex.GetBaseException().Message); }
@@ -338,11 +391,11 @@ Answer with the prompt only, nothing else.");
         }
 
         // Free and keyless. Only the scene description is sent, never names of the player or anything from the PC.
-        private static Task<byte[]> FromPollinations(string prompt, int seed)
+        private static Task<byte[]> FromPollinations(string prompt, int seed, bool wide = false)
         {
             if (prompt.Length > 1400) prompt = prompt.Substring(0, 1400);
             string url = "https://image.pollinations.ai/prompt/" + Uri.EscapeDataString(prompt)
-                         + "?width=1280&height=720&model=flux&enhance=false&nologo=true&private=true&seed=" + seed;
+                         + (wide ? "?width=1280&height=640" : "?width=1280&height=720") + "&model=flux&enhance=false&nologo=true&private=true&seed=" + seed;
             var req = new HttpRequestMessage(HttpMethod.Get, url);
             // With the player's own free Pollinations token the watermark goes and the queue is shorter
             string token = (S.Get.ImagePollinationsToken ?? "").Trim();
@@ -367,13 +420,13 @@ Answer with the prompt only, nothing else.");
         }
 
         // AUTOMATIC1111 and compatible servers started with their API on
-        private static async Task<byte[]> FromLocal(string prompt, string baseUrl)
+        private static async Task<byte[]> FromLocal(string prompt, string baseUrl, bool wide = false)
         {
             if (baseUrl.Length == 0) baseUrl = "http://127.0.0.1:7860";
             var body = new JObject
             {
                 ["prompt"] = prompt, ["negative_prompt"] = "text, letters, watermark, signature, modern objects, blurry, deformed hands",
-                ["width"] = 1024, ["height"] = 576, ["steps"] = 24,
+                ["width"] = 1024, ["height"] = wide ? 512 : 576, ["steps"] = 24,
             };
             var req = new HttpRequestMessage(HttpMethod.Post, baseUrl + "/sdapi/v1/txt2img") { Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json") };
             var j = JObject.Parse(Encoding.UTF8.GetString(await Get(req, 300).ConfigureAwait(false)));
@@ -383,13 +436,29 @@ Answer with the prompt only, nothing else.");
             return Convert.FromBase64String(comma > 0 && comma < 64 ? b64.Substring(comma + 1) : b64);
         }
 
-        /// <summary>Whatever came back (JPEG, WebP is not supported, PNG) is stored as PNG, which the game can load.</summary>
-        private static void SavePng(byte[] raw, string path)
+        /// <summary>
+        /// Whatever came back (JPEG, WebP is not supported, PNG) is stored as PNG, which the game can load. With an
+        /// <paramref name="aspect"/> (width / height) it is cut from the middle to that shape first, so a 3:2 picture fills a 2:1 frame.
+        /// </summary>
+        private static void SavePng(byte[] raw, string path, float aspect = 0f)
         {
             using (var ms = new MemoryStream(raw))
             using (var img = System.Drawing.Image.FromStream(ms))
-            using (var bmp = new System.Drawing.Bitmap(img))
-                bmp.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+            {
+                int w = img.Width, h = img.Height;
+                var cut = new System.Drawing.Rectangle(0, 0, w, h);
+                if (aspect > 0f && w > 0 && h > 0)
+                {
+                    if (w / (float)h > aspect) { int cw = (int)Math.Round(h * aspect); cut = new System.Drawing.Rectangle((w - cw) / 2, 0, cw, h); }
+                    else { int ch = (int)Math.Round(w / aspect); cut = new System.Drawing.Rectangle(0, (h - ch) / 2, w, ch); }
+                }
+                using (var bmp = new System.Drawing.Bitmap(cut.Width, cut.Height))
+                {
+                    using (var g = System.Drawing.Graphics.FromImage(bmp))
+                        g.DrawImage(img, new System.Drawing.Rectangle(0, 0, cut.Width, cut.Height), cut, System.Drawing.GraphicsUnit.Pixel);
+                    bmp.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+                }
+            }
         }
     }
 }

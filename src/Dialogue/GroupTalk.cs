@@ -1097,6 +1097,8 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
         private static void End(bool announce)
         {
             if (Circle.Count == 0 && !announce && !_waiting && _ready == null && BookLines.Count == 0) return;
+            var matterPeople = Circle.Where(x => x.Agent != null && x.Who != null).Select(x => (x.Agent, x.Who, x.Desc)).ToList();
+            var matterLines = Transcript.ToList();
             foreach (var x in Circle) { try { if (x.Agent != null && x.Agent.IsActive()) x.Agent.SetLookAgent(null); } catch { } }
             // Transcript is kept while you stay in the same scene, so a regrouped circle remembers it
             Circle.Clear();
@@ -1107,6 +1109,8 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
             _lastKey = null; _lastName = null;
             BookIfPending();
             if (announce) Say(L.T("AIL_a25b9c8e", "El grupo se deshace."), Colors.Gray);
+            if (matterPeople.Count > 0)
+                SceneMatters.After("the group talk", TaleWorlds.CampaignSystem.Settlements.Settlement.CurrentSettlement?.Name?.ToString(), matterPeople, matterLines, true);
         }
     }
 }

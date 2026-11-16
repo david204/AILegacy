@@ -314,6 +314,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             if (guardian.Clan == null)
             {
                 foreach (var c in kids) { Name(b, c); c.Clan = null; if (c.Occupation != Occupation.Wanderer) c.SetNewOccupation(Occupation.Wanderer); }
+                if (!cfg.BastardNoHouseWanderer) { foreach (var c in kids) Erase(b, c); return; }
                 Log.Info($"[bastards] {guardian.Name} has no house: the child grows up a wanderer");
                 return;
             }
@@ -335,6 +336,34 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             if (!knows) { LocalTalk(b, kids, mother, mother.Spouse != null && mother.Spouse.IsAlive && mother.Spouse != father); Log.Info($"[bastards] {mother.Name} does not know who the father is"); return; }
             Scandal(b, guardian, culprit);
             PublicTalk(b, kids, mother, father);
+        }
+
+        /// <summary>
+        /// A child left with a parent who has no house, with "grows up a wanderer" off: taken out of the world quietly, as the
+        /// game removes a notable (death by "Lost", no notice), after unlinking it from both parents so no family list keeps it.
+        /// On the next frame, so the other listeners of this birth still get a live child.
+        /// </summary>
+        private static void Erase(Bastard b, Hero child)
+        {
+            int session = WorldSim.Session;
+            MainThread.Post(() =>
+            {
+                if (session != WorldSim.Session || Campaign.Current == null || child == null || !child.IsAlive) return;
+                try
+                {
+                    var kids = HarmonyLib.AccessTools.Field(typeof(Hero), "_children");
+                    foreach (var parent in new[] { child.Father, child.Mother })
+                        if (parent != null && kids?.GetValue(parent) is List<Hero> list) list.Remove(child);
+                    HarmonyLib.AccessTools.Field(typeof(Hero), "_father")?.SetValue(child, null);
+                    HarmonyLib.AccessTools.Field(typeof(Hero), "_mother")?.SetValue(child, null);
+                    b.Children.Remove(child.StringId);
+                    NewsTracker.ToldElsewhere = child.StringId;
+                    KillCharacterAction.ApplyByRemove(child, false, true);
+                    Log.Info($"[bastards] {child.Name} has no house to grow up in and is taken out of the world");
+                    SaveFiles.Dirty();
+                }
+                catch (Exception ex) { Log.Error("[bastards] taking a child with no house out of the world", ex); }
+            });
         }
 
         /// <summary>Kept secret: the world takes the child for the husband's. False if the game would not have it.</summary>

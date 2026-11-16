@@ -153,6 +153,9 @@ namespace AILegacy.UI
         /// <summary>The tag row (type and date) only shows on real news, not on the "nothing here" card.</summary>
         [DataSourceProperty] public bool HasTags => !string.IsNullOrEmpty(Tag) || !string.IsNullOrEmpty(When);
         [DataSourceProperty] public bool HasEffects => EffectLines.Count > 0;
+        /// <summary>Full path of the event's picture, or empty.</summary>
+        [DataSourceProperty] public string ImagePath { get; set; } = "";
+        [DataSourceProperty] public bool HasImage => !string.IsNullOrEmpty(ImagePath);
         /// <summary>Everything a search can find in this card, lower case.</summary>
         public string SearchText = "";
     }

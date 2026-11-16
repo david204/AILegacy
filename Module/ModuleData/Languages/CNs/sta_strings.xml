@@ -2723,5 +2723,17 @@
     <string id="AIL_e7b1dd01" text="{0} 返回了空回复：空间用完了，多半是花在思考上。请在 0. AI密钥 中为它换一个推理强度（例如 Low），或换一个模型。" />
     <string id="AIL_e7b1dd02" text="{0} 返回了空回复。如果该模型会先思考再回答，请在 0. AI密钥 中为它换一个推理强度（例如 Low），或换一个模型。" />
     <string id="AIL_e7b1dd03" text="AI 没有回复：{0}" />
+    <string id="AIL_e7b1dd10" text="婚外：没有家族的孩子长大后成为流浪者" />
+    <string id="AIL_e7b1dd11" text="婚外出生的孩子若留给没有家族的一方（显贵：商人、村长、帮派头目……），长大后会成为流浪者，可在酒馆中找到。关闭：孩子会从世界中消失。默认：开启。" />
+    <string id="AIL_e7b1dd20" text="没有属于自己的地点可征此税" />
+    <string id="AIL_e7b1dd21" text="{0}取消了对{1}的特别税。" />
+    <string id="AIL_e7b1dd22" text="{0}对{2}征收{1}%的特别税。" />
+    <string id="AIL_e7b1dd23" text="{0}将{1}的税收降低{2}%。" />
+    <string id="AIL_e7b1dd24" text="其城镇" />
+    <string id="AIL_e7b1dd25" text="其城堡" />
+    <string id="AIL_e7b1dd26" text="其村庄" />
+    <string id="AIL_e7b1dd27" text="其全部领地" />
+    <string id="AIL_e7b1dd30" text="图片：每个新的世界事件一张" />
+    <string id="AIL_e7b1dd31" text="每个新的世界事件都会在新闻窗口的卡片上配一张宽幅图片，由上方选择的来源生成（同一故事的后续章节沿用第一章的图片）。每次需要一次 AI 请求来生成描述，使用 OpenAI 时还需支付一张图片的费用。失败时卡片只是没有图片。默认：关闭。" />
   </strings>
 </base>

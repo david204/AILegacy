@@ -80,6 +80,12 @@
                                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="4" Brush="Popup.Title.Text" Brush.FontSize="17" Brush.FontColor="#E8963CFF" Brush.TextHorizontalAlignment="Center" Text="@Chapter" IsVisible="@HasChapter" />
                                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="8" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Text="@Participants" IsVisible="@HasParticipants" />
                                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="4" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#C9B48AFF" Brush.TextHorizontalAlignment="Center" Text="@Place" IsVisible="@HasPlace" />
+                                        <!-- the event's picture, in a gold frame -->
+                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="648" SuggestedHeight="328" HorizontalAlignment="Center" MarginTop="12" Sprite="BlankWhiteSquare_9" Color="#A37434FF" IsVisible="@HasImage">
+                                          <Children>
+                                            <AILegacyImageWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="640" SuggestedHeight="320" HorizontalAlignment="Center" VerticalAlignment="Center" ImagePath="@ImagePath" />
+                                          </Children>
+                                        </Widget>
                                         <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" MarginRight="24" MarginTop="10" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" />
 
                                         <!-- a statement's decisions, each with its colored kind -->

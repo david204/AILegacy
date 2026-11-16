@@ -2723,5 +2723,17 @@
     <string id="AIL_e7b1dd01" text="{0} ha restituito una risposta vuota: ha finito lo spazio, probabilmente ragionando. Prova un altro sforzo di ragionamento per lui in 0. Chiavi IA (per esempio Low) o un altro modello." />
     <string id="AIL_e7b1dd02" text="{0} ha restituito una risposta vuota. Se il modello ragiona prima di rispondere, prova un altro sforzo di ragionamento per lui in 0. Chiavi IA (per esempio Low) o un altro modello." />
     <string id="AIL_e7b1dd03" text="Nessuna risposta dall'IA: {0}" />
+    <string id="AIL_e7b1dd10" text="Fuori dal matrimonio: un figlio senza casata cresce come vagabondo" />
+    <string id="AIL_e7b1dd11" text="Quando un figlio nato fuori dal matrimonio resta con un genitore senza casata (un notabile: un mercante, un capovillaggio, un capobanda...), cresce come vagabondo e lo puoi trovare nelle taverne. Spento: il bambino scompare dal mondo. Predefinito: acceso." />
+    <string id="AIL_e7b1dd20" text="nessun luogo tuo per la tassa" />
+    <string id="AIL_e7b1dd21" text="{0} revoca la tassa straordinaria su {1}." />
+    <string id="AIL_e7b1dd22" text="{0} impone una tassa straordinaria del {1} % su {2}." />
+    <string id="AIL_e7b1dd23" text="{0} riduce le tasse di {1} del {2} %." />
+    <string id="AIL_e7b1dd24" text="le sue città" />
+    <string id="AIL_e7b1dd25" text="i suoi castelli" />
+    <string id="AIL_e7b1dd26" text="i suoi villaggi" />
+    <string id="AIL_e7b1dd27" text="tutte le sue terre" />
+    <string id="AIL_e7b1dd30" text="Immagini: una per ogni nuovo evento del mondo" />
+    <string id="AIL_e7b1dd31" text="Ogni nuovo evento del mondo ha un'immagine larga sulla sua scheda nella finestra delle notizie, fatta con la fonte qui sopra (un capitolo successivo della stessa storia tiene quella del primo). Costa una richiesta all'IA per la descrizione e, con OpenAI, il prezzo di un'immagine ogni volta. Se fallisce, la scheda resta senza immagine. Predefinito: spento." />
   </strings>
 </base>

@@ -32,6 +32,8 @@ namespace AILegacy.World
         /// <summary>A chapter of a world event's story: the event id and its number (1 = how it began). Null/0 on older saves.</summary>
         [JsonProperty("story", NullValueHandling = NullValueHandling.Ignore)] public string StoryId;
         [JsonProperty("chapter", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Chapter;
+        /// <summary>File name of the event's picture in save_data\[campaign]\images, if it has one (only a story's first card).</summary>
+        [JsonProperty("image", NullValueHandling = NullValueHandling.Ignore)] public string Image;
         /// <summary>Sudden blows the event dealt once, when it was told (they are not kept as effects).</summary>
         [JsonProperty("hits", NullValueHandling = NullValueHandling.Ignore)] public List<NewsHit> Hits;
         /// <summary>The outbreak the event started, as it was then.</summary>

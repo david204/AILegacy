@@ -2723,5 +2723,17 @@
     <string id="AIL_e7b1dd01" text="{0} a renvoyé une réponse vide : il a manqué de place, sans doute en réfléchissant. Essayez un autre effort de raisonnement pour lui dans 0. Clés d'IA (Low, par exemple) ou un autre modèle." />
     <string id="AIL_e7b1dd02" text="{0} a renvoyé une réponse vide. Si le modèle réfléchit avant de répondre, essayez un autre effort de raisonnement pour lui dans 0. Clés d'IA (Low, par exemple) ou un autre modèle." />
     <string id="AIL_e7b1dd03" text="Pas de réponse de l'IA : {0}" />
+    <string id="AIL_e7b1dd10" text="Hors mariage : un enfant sans maison grandit en vagabond" />
+    <string id="AIL_e7b1dd11" text="Quand un enfant né hors mariage reste avec un parent sans maison (un notable : un marchand, un chef de village, un chef de bande...), il grandit en vagabond que l'on peut trouver dans les tavernes. Désactivé : l'enfant disparaît du monde. Par défaut : activé." />
+    <string id="AIL_e7b1dd20" text="aucun lieu à vous pour l'impôt" />
+    <string id="AIL_e7b1dd21" text="{0} lève l'impôt extraordinaire sur {1}." />
+    <string id="AIL_e7b1dd22" text="{0} impose un impôt extraordinaire de {1} % sur {2}." />
+    <string id="AIL_e7b1dd23" text="{0} baisse les impôts de {1} de {2} %." />
+    <string id="AIL_e7b1dd24" text="ses villes" />
+    <string id="AIL_e7b1dd25" text="ses châteaux" />
+    <string id="AIL_e7b1dd26" text="ses villages" />
+    <string id="AIL_e7b1dd27" text="toutes ses terres" />
+    <string id="AIL_e7b1dd30" text="Images : une pour chaque nouvel événement du monde" />
+    <string id="AIL_e7b1dd31" text="Chaque nouvel événement du monde reçoit une image large sur sa carte dans la fenêtre des nouvelles, faite avec la source ci-dessus (un chapitre suivant de la même histoire garde celle du premier). Cela coûte une requête à l'IA pour la description et, avec OpenAI, le prix d'une image à chaque fois. En cas d'échec, la carte reste sans image. Par défaut : désactivé." />
   </strings>
 </base>

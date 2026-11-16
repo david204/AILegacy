@@ -268,11 +268,24 @@ namespace AILegacy.Patches
         {
             try
             {
-                if (town == null || (WorldSim.State.KingdomTaxPercent.Count == 0 && WorldSim.State.Effects.Count == 0)) return;
+                if (town == null || (!WorldSim.AnyTax && WorldSim.State.Effects.Count == 0)) return;
                 foreach (var (factor, label) in WorldSim.TaxModifiers(town))
                     if (Math.Abs(factor) >= 0.005f) __result.AddFactor(factor, new TaleWorlds.Localization.TextObject("{=!}" + label));
             }
             catch (Exception ex) { if (_errors++ < 5) Log.Error("Crown tax", ex); }
+        }
+    }
+
+    /// <summary>The crown tax also reaches a village's income to its owner (no line of its own, as in the game's own village income).</summary>
+    [HarmonyPatch(typeof(DefaultClanFinanceModel), nameof(DefaultClanFinanceModel.CalculateVillageIncome))]
+    internal static class VillageTaxPatch
+    {
+        private static int _errors;
+
+        private static void Postfix(Village village, ref int __result)
+        {
+            try { if (village != null && WorldSim.AnyTax) __result = WorldSim.VillageIncomeWithTax(village, __result); }
+            catch (Exception ex) { if (_errors++ < 5) Log.Error("Crown tax on a village", ex); }
         }
     }
 }

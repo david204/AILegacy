@@ -2724,5 +2724,17 @@
     <string id="AIL_e7b1dd01" text="{0} returned an empty reply: it ran out of room, most likely thinking. Try another reasoning effort for it in 0. AI Keys (Low, for example) or another model." />
     <string id="AIL_e7b1dd02" text="{0} returned an empty reply. If the model thinks before answering, try another reasoning effort for it in 0. AI Keys (Low, for example) or another model." />
     <string id="AIL_e7b1dd03" text="No reply from the AI: {0}" />
+    <string id="AIL_e7b1dd10" text="Out of wedlock: a child with no house grows up a wanderer" />
+    <string id="AIL_e7b1dd11" text="When a child born out of wedlock is left with a parent who has no house (a notable: a merchant, a headman, a gang leader...), it grows up a wanderer you can find in taverns. Off: the child is taken out of the world. Default: on." />
+    <string id="AIL_e7b1dd20" text="no place of your own for the tax" />
+    <string id="AIL_e7b1dd21" text="{0} lifts the extraordinary tax on {1}." />
+    <string id="AIL_e7b1dd22" text="{0} imposes an extraordinary tax of {1} % on {2}." />
+    <string id="AIL_e7b1dd23" text="{0} cuts the taxes of {1} by {2} %." />
+    <string id="AIL_e7b1dd24" text="its towns" />
+    <string id="AIL_e7b1dd25" text="its castles" />
+    <string id="AIL_e7b1dd26" text="its villages" />
+    <string id="AIL_e7b1dd27" text="all its lands" />
+    <string id="AIL_e7b1dd30" text="Pictures: one for each new world event" />
+    <string id="AIL_e7b1dd31" text="Each new event of the world gets a wide picture on its card in the news window, drawn by the source above (a later chapter of the same story keeps the first one's). It costs one AI request for the description and, with OpenAI, the price of a picture each time. If it fails, the card just has no picture. Default: off." />
   </strings>
 </base>

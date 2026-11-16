@@ -378,6 +378,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public MCM.Common.Dropdown<string> ImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Free);
 
+        [SettingPropertyBool("{=AIL_e7b1dd30}Pictures: one for each new world event", Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd31}Each new event of the world gets a wide picture on its card in the news window, drawn by the source above (a later chapter of the same story keeps the first one's). It costs one AI request for the description and, with OpenAI, the price of a picture each time. If it fails, the card just has no picture. Default: off.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public bool EventImages { get; set; } = false;
+
         [SettingPropertyBool("{=AIL_e7b1c4f3}Draw each new chapter by itself", Order = 1, RequireRestart = false,
             HintText = "{=AIL_e7b1c4f4}When a new chapter is written, its picture is made in the background. Off: only when you press the button in the book. Each picture takes one short AI request for the description.")]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
@@ -1119,6 +1124,11 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_e7b1c832}Out of wedlock: relation lost with the head of house", 0, 100, Order = 57, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public int BastardClanLeaderRelationLoss { get; set; } = 40;
+
+        [SettingPropertyBool("{=AIL_e7b1dd10}Out of wedlock: a child with no house grows up a wanderer", Order = 57, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd11}When a child born out of wedlock is left with a parent who has no house (a notable: a merchant, a headman, a gang leader...), it grows up a wanderer you can find in taverns. Off: the child is taken out of the world. Default: on.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool BastardNoHouseWanderer { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_e7b1c833}Out of wedlock: marrying makes one legitimate", Order = 58, RequireRestart = false,
             HintText = "{=AIL_e7b1c834}On: a baseborn child who marries becomes legitimate. The parents marrying each other always does.")]

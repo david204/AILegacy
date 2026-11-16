@@ -270,6 +270,14 @@ namespace AILegacy.UI
             var card = new NewsCardVM(Clean(title), who.Count > 0 ? (n.Type == "statement" ? "" : L.T("AIL_08cd64bc", "Participantes: ")) + Clean(string.Join(", ", who)) : "",
                 Clean(n.DisplayText), "", tag, when) { TagColorValue = CategoryColor(category), Place = n.Type == "statement" ? "" : Clean(place) };
             if (n.Chapter > 0 && (n.Chapter > 1 || !string.IsNullOrEmpty(n.StoryId))) card.Chapter = L.F("AIL_e7b1cb22", $"Capítulo {n.Chapter}");
+            if (!string.IsNullOrEmpty(n.Image))
+                try
+                {
+                    string dir = AILegacy.World.SceneImages.Dir;
+                    string path = dir == null ? null : System.IO.Path.Combine(dir, n.Image);
+                    if (path != null && System.IO.File.Exists(path)) card.ImagePath = path;
+                }
+                catch { }
             if (n.Decisions != null)
                 foreach (var dec in n.Decisions.Where(x => x != null && !string.IsNullOrWhiteSpace(x.Text)))
                 {

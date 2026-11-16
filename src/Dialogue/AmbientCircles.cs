@@ -864,6 +864,9 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the speaker, or a by
                 }
             }
             catch (Exception ex) { Log.Error("End of a scene circle", ex); }
+            // A circle that ends on its own may leave something undone that one of them acts on now
+            if (c.Heard.Count > 0 && (why == "said everything" || why == "conversation ran dry" || why == "nobody left to talk to" || why == "the player walked away"))
+                SceneMatters.After($"encounter #{c.Id}", c.Place, c.Members.Where(x => x.Agent != null && x.Who != null).Select(x => (x.Agent, x.Who, x.Desc)).ToList(), c.Said.ToList(), false);
             if (c.Heard.Count > 0)
             {
                 // Quiet stretch before the next one

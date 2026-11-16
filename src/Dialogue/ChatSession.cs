@@ -496,7 +496,7 @@ namespace AILegacy.Dialogue
             catch { return ""; }
         }
 
-        public string WaitText => _waiting || _lastNpc.Length == 0 ? L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)") : Sanitize(_lastNpc);
+        public string WaitText => _waiting || _preparing || _lastNpc.Length == 0 ? L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)") : Sanitize(_lastNpc);
 
         // Braces are text variables to the game. Square brackets are animation tags: the dialogue box drops everything
         // from a "[" to the next "]", and to the end of the line when it is never closed, so both become parentheses.
@@ -540,10 +540,51 @@ namespace AILegacy.Dialogue
             else _transcript.Add(L.F("AIL_016ea49e", $"Tú: {text}"));
         }
 
+        // Bumped when a reply is shown: a voice made ready after that (or after the wait ran out) is not for it
+        private int _prepGen;
+        // The reply is in; its voice is being made before it is shown
+        private bool _preparing;
+
         private void UiNpc(string text)
         {
+            // In the dialogue box the voice is made first and the reply is told ready when both can start together.
+            // A voice that fails, or is not ready in 30 s, leaves the reply silent.
+            if (_dialogMode)
+            {
+                int gen = ++_prepGen;
+                bool asked = false;
+                try
+                {
+                    asked = AILegacy.Voice.Speech.Prepare(_s.Key, _s.IsFemale, text, wav => MainThread.Post(() =>
+                    {
+                        if (gen != _prepGen) return;
+                        _prepGen++; _preparing = false;
+                        if (_closed || Active != this) return;
+                        try { AILegacy.Voice.Speech.PlayPrepared(wav); } catch { }
+                        ShowNpc(text, voiced: true);
+                    }));
+                }
+                catch { }
+                if (asked)
+                {
+                    _preparing = true;
+                    System.Threading.Tasks.Task.Delay(30000).ContinueWith(_ => MainThread.Post(() =>
+                    {
+                        if (gen != _prepGen) return;
+                        _prepGen++; _preparing = false;
+                        Log.Warn($"Voice: the line of {_s.Name} was not ready in 30 s; the reply shows without it");
+                        if (!_closed && Active == this) ShowNpc(text, voiced: true);
+                    }));
+                    return;
+                }
+            }
+            ShowNpc(text, voiced: false);
+        }
+
+        private void ShowNpc(string text, bool voiced)
+        {
             // Said aloud, only their words (never the player's line or a name in front)
-            try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, text); } catch { }
+            if (!voiced) { try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, text); } catch { } }
             if (_dialogMode)
             {
                 _lastNpc = text;
@@ -1569,6 +1610,7 @@ namespace AILegacy.Dialogue
                 npcEnded = npcEnded || _npcEnded;
             }
             _closed = true;
+            _prepGen++; _preparing = false;     // a voice still being made for this talk is no longer for anyone
             if (_leaveAgent != null) { _walkOffAgent = _leaveAgent; _walkOffAt = DateTime.UtcNow.AddMilliseconds(400); _leaveAgent = null; }
             if (Active == this) Active = null;
             _win?.Close();

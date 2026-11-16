@@ -218,6 +218,10 @@ namespace AILegacy.World
         [JsonProperty("next_unique_day")] public double NextUniqueDay = -1;
         [JsonProperty("fatigue")] public Dictionary<string, float> WarFatigue = new Dictionary<string, float>();
         [JsonProperty("taxes")] public Dictionary<string, int> KingdomTaxPercent = new Dictionary<string, int>();
+        /// <summary>Which places the realm's rate covers (all, towns, castles, villages). Missing: towns and castles, as before scopes.</summary>
+        [JsonProperty("tax_scope")] public Dictionary<string, string> KingdomTaxScope = new Dictionary<string, string>();
+        /// <summary>Rates set for one place alone, key "kingdom|settlement". They win over the realm's rate while the realm holds the place.</summary>
+        [JsonProperty("tax_places")] public Dictionary<string, int> SettlementTaxPercent = new Dictionary<string, int>();
         /// <summary>A ruler's stance toward another kingdom: "a|b" -> -100..100.</summary>
         [JsonProperty("stance")] public Dictionary<string, int> Stance = new Dictionary<string, int>();
         [JsonProperty("outbreaks")] public List<Outbreak> Outbreaks = new List<Outbreak>();
@@ -355,6 +359,7 @@ namespace AILegacy.World
             lock (Queue) { Queue.Clear(); Reserved.Clear(); }
             try { Dialogue.Combat.ResetSession(); } catch { }
             try { Dialogue.SceneActions.ResetSession(); } catch { }
+            try { Dialogue.SceneMatters.ResetSession(); } catch { }
             try { Dialogue.NpcActions.ResetSession(); } catch { }
             try { Scenes.MapTalk.ResetSession(); } catch { }
             try { Letters.LetterSystem.ResetSession(); } catch { }
@@ -521,7 +526,7 @@ namespace AILegacy.World
                   .Append(allies.Count > 0 ? $"allied with: {string.Join(", ", allies)}; " : "")
                   .Append(trade.Count > 0 ? $"trade agreement with: {string.Join(", ", trade)}; " : "")
                   .Append($"war weariness: {FatigueWord(k)}");
-                if (State.KingdomTaxPercent.TryGetValue(k.StringId, out var tax) && tax != 0) sb.Append($"; extra crown tax {tax:+0;-0}%");
+                var tax = TaxFacts(k); if (tax.Length > 0) sb.Append("; " + tax);
                 var laws = Diseases.DescribeLaws(k); if (laws.Length > 0) sb.Append("; " + laws);
                 var sick = Diseases.DescribeFor(k); if (sick.Length > 0) sb.Append("; " + sick);
                 if (focus != null && focus != k) sb.Append($"; your stance towards them: {StanceWord(GetStance(focus.StringId, k.StringId))}");
@@ -1558,6 +1563,7 @@ Look up who holds a place before writing that a realm must recover, retake, recl
                 StoryId = e.Chapter > 1 ? e.Id : null, Chapter = e.Chapter > 1 ? e.Chapter : 0,
             });
             Log.Info($"[world] event [{e.Type}, imp {e.Importance}]: {e.Title}");
+            if (e.Chapter <= 1 && S.Get.EventImages) EventPicture(e);
             if (e.Importance < S.Get.WorldEventNotifyImportance) return;
             // A new chapter of a story already told comes in orange, a new story in cyan
             if (e.Chapter > 1) Say(L.F("AIL_e7b1cb00", $"La historia sigue: {e.Title}"), StoryColor);
@@ -1565,6 +1571,40 @@ Look up who holds a place before writing that a realm must recover, retake, recl
         }
 
         private static readonly Color StoryColor = Color.FromUint(0xFFE8963Cu);
+
+        /// <summary>
+        /// A picture for a new event's card (a later chapter keeps the first one's). The realms go with their banner
+        /// colours and the people the text names with their looks. Failing only leaves the card without a picture.
+        /// </summary>
+        private static void EventPicture(WorldEvent e)
+        {
+            try
+            {
+                if (!SceneImages.Enabled) return;
+                var realms = e.Kingdoms.Select(FindKingdom).Where(k => k != null).ToList();
+                string Hex(uint c) => $"#{(c >> 16) & 0xFF:X2}{(c >> 8) & 0xFF:X2}{c & 0xFF:X2}";
+                string colours = realms.Count == 0 ? "none named" : string.Join("; ", realms.Select(k => $"{k.Name} ({k.Culture?.Name}): {Hex(k.Color)} and {Hex(k.Color2)}"));
+                string place = string.Join(", ", e.Settlements.Select(Settlement.Find).Where(s => s != null)
+                    .Select(s => $"{s.Name} ({(s.IsTown ? "a walled town" : s.IsCastle ? "a castle" : s.IsVillage ? "a village" : "a place")} of the {s.Culture?.Name} people)"));
+                string desc = (e.Text ?? "").Trim();
+                if (desc.Length > 1200) desc = desc.Substring(0, 1200);
+                string body = $"Type: {e.Type}\nRealms and their banner colours: {colours}\n" + (place.Length > 0 ? $"Where: {place}\n" : "") + "Event:\n" + desc
+                              + (string.IsNullOrWhiteSpace(e.SummaryEn) ? "" : "\nIn short: " + e.SummaryEn);
+                string people = SceneImages.EventPeople(e.Title + " " + e.Text, realms);
+                int session = Session;
+                string id = e.Id;
+                SceneImages.RequestEvent(e.Title, body, people, file =>
+                {
+                    if (session != Session || string.IsNullOrEmpty(file)) return;
+                    // the story may have moved on meanwhile: its first card is then "id#1"
+                    var n = NewsStore.Find(id + "#1") ?? NewsStore.Find(id);
+                    if (n == null) return;
+                    n.Image = file;
+                    AILegacy.Memory.SaveFiles.Dirty();
+                });
+            }
+            catch (Exception ex) { Log.Error("[world] event picture", ex); }
+        }
 
         /// <summary>The outbreak an event just set off, kept on its news card.</summary>
         private static void NoteDisease(WorldEvent e, JObject dis)
@@ -1894,15 +1934,74 @@ Look up who holds a place before writing that a realm must recover, retake, recl
             return list;
         }
 
-        /// <summary>What the crown tax of the town's realm takes from its loyalty or prosperity each day.</summary>
+        /// <summary>What the crown tax of the town's realm takes from its loyalty or prosperity each day (a cut gives it back).</summary>
         private static float TaxPressure(Town town, int stat, out int pct)
         {
             pct = 0;
-            if (stat != StatLoyalty && stat != StatProsperity) return 0f;
-            var k = town?.Settlement?.OwnerClan?.Kingdom;
-            if (k == null || State.KingdomTaxPercent == null || !State.KingdomTaxPercent.TryGetValue(k.StringId, out pct) || pct == 0) return 0f;
-            float p = pct / 100f;
-            return stat == StatLoyalty ? -p * 2f : -p * 6f;
+            if ((stat != StatLoyalty && stat != StatProsperity) || town == null) return 0f;
+            pct = TaxPercentAt(town.Settlement);
+            if (pct == 0) return 0f;
+            return stat == StatLoyalty ? -TaxLoyaltyPerPoint * pct * (town.IsCastle ? 0.55f : 1f) : -TaxProsperityPerPoint * pct * (town.IsCastle ? 0.42f : 1f);
+        }
+
+        // Daily wear per point of crown tax: a town loses 0.4 prosperity and 2/15 loyalty a day per point, a castle 0.42 and
+        // 0.55 of that, a village 0.4 x 0.42 x 0.35 hearths. A cut gives the same back.
+        private const float TaxProsperityPerPoint = 0.4f, TaxLoyaltyPerPoint = 2f / 15f, TaxHearthPerPoint = 0.4f * 0.42f * 0.35f;
+
+        public const string TaxAll = "all", TaxTowns = "towns", TaxCastles = "castles", TaxVillages = "villages", TaxSingle = "single";
+
+        /// <summary>The scope words the AI may use, folded into ours. Anything unknown: the whole realm.</summary>
+        public static string TaxScopeOf(string raw)
+        {
+            switch ((raw ?? "").Trim().ToLowerInvariant().Replace("-", "_").Replace(" ", "_"))
+            {
+                case "towns": case "town": case "cities": case "city": case "all_towns": return TaxTowns;
+                case "castles": case "castle": case "all_castles": return TaxCastles;
+                case "villages": case "village": case "all_villages": return TaxVillages;
+                case "single": case "one": case "settlement": case "one_settlement": return TaxSingle;
+                default: return TaxAll;
+            }
+        }
+
+        public static bool AnyTax => State != null && (State.KingdomTaxPercent.Count > 0 || State.SettlementTaxPercent.Count > 0);
+
+        /// <summary>
+        /// The crown tax a place pays now, in percent: its own rate if its realm set one, otherwise the realm's rate if the
+        /// scope covers it. Looked up by the realm that holds it today, so a place that changes hands stops paying.
+        /// </summary>
+        public static int TaxPercentAt(Settlement st)
+        {
+            if (st == null || State == null || !(st.MapFaction is Kingdom k)) return 0;
+            if (State.SettlementTaxPercent.TryGetValue(k.StringId + "|" + st.StringId, out var own)) return own;
+            if (!State.KingdomTaxPercent.TryGetValue(k.StringId, out var pct) || pct == 0) return 0;
+            State.KingdomTaxScope.TryGetValue(k.StringId, out var scope);
+            switch (scope)
+            {
+                case TaxAll: return pct;
+                case TaxTowns: return st.IsTown ? pct : 0;
+                case TaxCastles: return st.IsCastle ? pct : 0;
+                case TaxVillages: return st.IsVillage ? pct : 0;
+                default: return st.IsTown || st.IsCastle ? pct : 0;        // set before scopes existed
+            }
+        }
+
+        /// <summary>For the prompts: the realm's crown tax as it stands, with its scope and the places that have their own rate.</summary>
+        public static string TaxFacts(Kingdom k)
+        {
+            if (k == null || State == null) return "";
+            var parts = new List<string>();
+            if (State.KingdomTaxPercent.TryGetValue(k.StringId, out var pct) && pct != 0)
+            {
+                State.KingdomTaxScope.TryGetValue(k.StringId, out var scope);
+                string where = scope == TaxAll ? "all its towns, castles and villages" : scope == TaxTowns ? "its towns only" : scope == TaxCastles ? "its castles only" : scope == TaxVillages ? "its villages only" : "its towns and castles";
+                parts.Add($"extra crown tax {pct:+0;-0}% on {where}");
+            }
+            string prefix = k.StringId + "|";
+            var own = State.SettlementTaxPercent.Where(kv => kv.Key.StartsWith(prefix, StringComparison.Ordinal))
+                .Select(kv => (st: Settlement.Find(kv.Key.Substring(prefix.Length)), pct: kv.Value))
+                .Where(x => x.st != null && x.st.MapFaction == k).Select(x => $"{x.st.Name} {x.pct:+0;-0}%").ToList();
+            if (own.Count > 0) parts.Add("own crown tax rate in " + string.Join(", ", own));
+            return string.Join("; ", parts);
         }
 
         /// <summary>What events add to or take from a village's hearths today, with the reason.</summary>
@@ -1912,7 +2011,10 @@ Look up who holds a place before writing that a realm must recover, retake, recl
             try
             {
                 var st = village?.Settlement;
-                if (st == null || State == null || State.Effects.Count == 0) return list;
+                if (st == null || State == null) return list;
+                int tax = TaxPercentAt(st);
+                if (tax != 0) list.Add((-TaxHearthPerPoint * tax, L.F("AIL_e7b1cb01", $"Impuesto extraordinario de la corona ({tax:+0;-0} %)")));
+                if (State.Effects.Count == 0) return list;
                 double now = CampaignTime.Now.ToDays;
                 foreach (var fx in State.Effects)
                 {
@@ -1936,8 +2038,8 @@ Look up who holds a place before writing that a realm must recover, retake, recl
             {
                 var st = town?.Settlement;
                 if (st == null || State == null) return list;
-                var k = st.OwnerClan?.Kingdom;
-                if (k != null && State.KingdomTaxPercent.TryGetValue(k.StringId, out var pct) && pct != 0)
+                int pct = TaxPercentAt(st);
+                if (pct != 0 && st.MapFaction is Kingdom k)
                     list.Add((Math.Max(-0.8f, pct / 100f), L.F("AIL_e7b1cb02", $"Impuesto extraordinario de {k.Name} ({pct:+0;-0} %)")));
                 if (State.Effects.Count == 0) return list;
                 double now = CampaignTime.Now.ToDays;
@@ -2184,31 +2286,28 @@ Look up who holds a place before writing that a realm must recover, retake, recl
         /// </summary>
         private static void ApplyTaxPressure()
         {
+            if (!AnyTax) return;
             double now = CampaignTime.Now.ToDays;
-            bool loyaltyByHand = !ViaModel(StatLoyalty, now), prosperityByHand = !ViaModel(StatProsperity, now);
-            if (!loyaltyByHand && !prosperityByHand) return;
-            foreach (var kv in State.KingdomTaxPercent.ToList())
-            {
-                var k = FindKingdom(kv.Key);
-                if (k == null || kv.Value == 0) continue;
-                float p = kv.Value / 100f;
-                foreach (var town in k.Fiefs)
+            bool loyaltyByHand = !ViaModel(StatLoyalty, now), prosperityByHand = !ViaModel(StatProsperity, now), hearthByHand = !ViaModel(StatHearth, now);
+            if (loyaltyByHand || prosperityByHand)
+                foreach (var town in Town.AllFiefs)
                 {
-                    if (loyaltyByHand) town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty - p * 2f));
-                    if (prosperityByHand) town.Prosperity = Math.Max(0f, town.Prosperity - p * 6f);
+                    if (loyaltyByHand) { float d = TaxPressure(town, StatLoyalty, out _); if (d != 0f) town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty + d)); }
+                    if (prosperityByHand) { float d = TaxPressure(town, StatProsperity, out _); if (d != 0f) town.Prosperity = Math.Max(0f, town.Prosperity + d); }
                 }
-            }
+            if (hearthByHand)
+                foreach (var v in Village.All)
+                {
+                    int pct = TaxPercentAt(v.Settlement);
+                    if (pct != 0) v.Hearth = Math.Max(10f, v.Hearth - TaxHearthPerPoint * pct);
+                }
         }
 
-        public static float TaxFactor(Town town)
+        /// <summary>A village's income to its owner, times (1 + the crown tax there), as the town tax is.</summary>
+        public static int VillageIncomeWithTax(Village village, int income)
         {
-            try
-            {
-                var k = town?.Settlement?.OwnerClan?.Kingdom;
-                if (k == null || !State.KingdomTaxPercent.TryGetValue(k.StringId, out var pct)) return 1f;
-                return Math.Max(0.2f, 1f + pct / 100f);
-            }
-            catch { return 1f; }
+            int pct = TaxPercentAt(village?.Settlement);
+            return pct == 0 ? income : (int)Math.Round(income * Math.Max(0.2f, 1f + pct / 100f));
         }
 
         // ============================================================ war fatigue
