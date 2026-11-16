@@ -2468,5 +2468,6 @@
     <string id="AIL_e7b1d10a" text="Benvenuto in AI Legacy! Regole della campagna modificate: {0}." />
     <string id="AIL_e7b1d10b" text="sì" />
     <string id="AIL_e7b1d10c" text="no" />
+    <string id="AIL_e7b1d300" text="{0} viene trascinato nella rissa." />
   </strings>
 </base>

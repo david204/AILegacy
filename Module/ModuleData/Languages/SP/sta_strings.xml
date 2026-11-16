@@ -2468,5 +2468,6 @@
     <string id="AIL_e7b1d10a" text="¡Bienvenido a AI Legacy! Reglas de la partida que has cambiado: {0}." />
     <string id="AIL_e7b1d10b" text="sí" />
     <string id="AIL_e7b1d10c" text="no" />
+    <string id="AIL_e7b1d300" text="{0} se ve metido en la pelea." />
   </strings>
 </base>

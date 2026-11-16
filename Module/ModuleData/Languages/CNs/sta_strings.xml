@@ -2468,5 +2468,6 @@
     <string id="AIL_e7b1d10a" text="欢迎使用 AI Legacy！你改动过的战役规则：{0}。" />
     <string id="AIL_e7b1d10b" text="是" />
     <string id="AIL_e7b1d10c" text="否" />
+    <string id="AIL_e7b1d300" text="{0}被卷入了打斗。" />
   </strings>
 </base>

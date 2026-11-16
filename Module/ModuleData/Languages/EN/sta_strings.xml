@@ -2469,5 +2469,6 @@
     <string id="AIL_e7b1d10a" text="Welcome to AI Legacy! Campaign rules you changed: {0}." />
     <string id="AIL_e7b1d10b" text="yes" />
     <string id="AIL_e7b1d10c" text="no" />
+    <string id="AIL_e7b1d300" text="{0} gets dragged into the fight." />
   </strings>
 </base>

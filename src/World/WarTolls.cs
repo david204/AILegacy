@@ -409,6 +409,13 @@ namespace AILegacy.World
         /// Sets free up to <paramref name="count"/> (0 = all) lords of <paramref name="of"/> held by <paramref name="holder"/>,
         /// the named ones first and then the most notable, through the game's own action. Returns who went free.
         /// </summary>
+        /// <summary>How many lords of <paramref name="of"/> the crown of <paramref name="holder"/> can actually hand over (the player's own captives only if he rules it).</summary>
+        public static int Releasable(Kingdom holder, Kingdom of)
+        {
+            var held = Held(holder, of);
+            return holder.Leader == Hero.MainHero ? held.Count : held.Count(h => !HeldByPlayerClan(h));
+        }
+
         public static List<Hero> Release(Kingdom holder, Kingdom of, int count, IEnumerable<string> namedIds = null)
         {
             var freed = new List<Hero>();

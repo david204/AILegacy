@@ -2468,5 +2468,6 @@
     <string id="AIL_e7b1d10a" text="Willkommen bei AI Legacy! Geänderte Kampagnenregeln: {0}." />
     <string id="AIL_e7b1d10b" text="ja" />
     <string id="AIL_e7b1d10c" text="nein" />
+    <string id="AIL_e7b1d300" text="{0} wird in den Kampf hineingezogen." />
   </strings>
 </base>

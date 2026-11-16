@@ -475,7 +475,7 @@ namespace AILegacy.Dialogue
         /// <summary>New or loaded campaign: drop anything pending from the previous one.</summary>
         public static void ResetSession()
         {
-            _fight = null; _active = null; _surrender = null; _surrenderParty = null; KeepEncounter = false; _autoAttack = 0f;
+            _fight = null; _active = null; _surrender = null; _surrenderParty = null; KeepEncounter = false; _autoAttack = 0f; _pulled.Clear();
             _struck = null; _watched = null; _foughtIn = null; _quietUntil = 0f; Fought.Clear();
             try { ReleasePatrons(); } catch { Calmed.Clear(); Watching.Clear(); }
             try { StopBells(); } catch { _bells = null; }
@@ -706,6 +706,19 @@ namespace AILegacy.Dialogue
         private static Agent _struck;
         private static bool _struckArmed;
         private static Mission _watched;
+        // Bystanders the player hits while a fight is already going: they are dragged into it on the next tick
+        private static readonly List<Agent> _pulled = new List<Agent>();
+
+        /// <summary>During a fight of ours, a blow at someone else in the scene lands too and brings them into it.</summary>
+        private static bool PullInAllowed(Mission m, Agent victim)
+        {
+            if (m == null || Campaign.Current == null || _active == null) return false;
+            var cfg = S.Get;
+            if (!cfg.AllowCombat || !cfg.AllowStreetViolence || Settlement.CurrentSettlement == null) return false;
+            if (Campaign.Current.ConversationManager?.IsConversationInProgress == true) return false;
+            var fh = m.GetMissionBehavior<MissionFightHandler>();
+            return fh != null && fh.IsThereActiveFight() && StreetTarget(victim);
+        }
 
         /// <summary>Settlement scene, nothing else going on, and the settings allow it: the player may pick a fight by hitting someone.</summary>
         private static bool StreetFightAllowed(Mission m)
@@ -745,7 +758,7 @@ namespace AILegacy.Dialogue
             try
             {
                 if (attacker == null || attacker != Agent.Main || !attacker.IsPlayerControlled || victim == null) return false;
-                if (_active != null) return false;
+                if (_active != null) return PullInAllowed(m, victim);
                 // Between the first blow and the next tick the fight is not set up yet: further blows at them land too
                 if (_struck != null) return victim == _struck;
                 if (_fight != null) return false;
@@ -759,7 +772,13 @@ namespace AILegacy.Dialogue
         {
             try
             {
-                if (_struck != null || _fight != null || _active != null || cd.IsMissile) return;
+                if (cd.IsMissile) return;
+                if (_active != null)
+                {
+                    if (PullInAllowed(Mission.Current, victim) && !_pulled.Contains(victim)) { _pulled.Add(victim); Log.Info($"[scene] {victim.Name} struck during the fight: pulled in"); }
+                    return;
+                }
+                if (_struck != null || _fight != null) return;
                 var m = Mission.Current;
                 if (!StreetFightAllowed(m) || !StreetTarget(victim)) return;
                 _struck = victim;
@@ -788,6 +807,21 @@ namespace AILegacy.Dialogue
         /// The blow landed on the last frame: a fist fight if it was bare hands, a real one if it came from a weapon.
         /// Their kin nearby step in, and if steel is drawn, so do nearby guards.
         /// </summary>
+        /// <summary>Those the player hit in the middle of a fight join it against the player.</summary>
+        private static void PullIn()
+        {
+            var list = _pulled.ToList(); _pulled.Clear();
+            try
+            {
+                var fh = Mission.Current?.GetMissionBehavior<MissionFightHandler>();
+                if (fh == null || !fh.IsThereActiveFight() || _active == null) return;
+                foreach (var a in list)
+                    if (a != null && a.IsActive() && !ActiveFoes.Contains(a) && JoinFight(fh, a, false))
+                        Say(L.F("AIL_e7b1d300", $"{a.Name} se ve metido en la pelea."), Colors.Red);
+            }
+            catch (Exception ex) { Log.Error("Pull into the fight", ex); }
+        }
+
         private static void TakeFirstBlow()
         {
             var victim = _struck; bool armed = _struckArmed;
@@ -1584,6 +1618,7 @@ namespace AILegacy.Dialogue
                 TickBells(dt);
                 if (Calmed.Count > 0 && _active == null) ReleasePatrons();      // the fight ended some other way
                 if (_struck != null) { if (talking || Mission.Current == null) _struck = null; else TakeFirstBlow(); }
+                if (_pulled.Count > 0) PullIn();
 
                 if (KeepEncounter && !talking && !ChatSession.IsBusy) KeepEncounter = false;
 

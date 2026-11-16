@@ -2468,5 +2468,6 @@
     <string id="AIL_e7b1d10a" text="Добро пожаловать в AI Legacy! Изменённые правила кампании: {0}." />
     <string id="AIL_e7b1d10b" text="да" />
     <string id="AIL_e7b1d10c" text="нет" />
+    <string id="AIL_e7b1d300" text="{0} оказывается втянут в драку." />
   </strings>
 </base>

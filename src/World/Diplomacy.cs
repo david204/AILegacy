@@ -2678,10 +2678,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                         Bad(poor);
                         return PlayerRules(k) ? poor : null;
                     }
-                    // the captives first: nothing is paid for nobody
+                    // the captives first: nothing is paid for nobody, and only for those who really go free
+                    int held = WarTolls.Held(o, k).Count;
+                    int expected = p.Prisoners <= 0 ? held : Math.Min(p.Prisoners, held);
                     var freed = WarTolls.Release(o, k, p.Prisoners, p.PrisonerIds);
                     if (freed.Count == 0) return Bad("nobody could be freed");
-                    int paid = Pay(k, o, p.Reparations);
+                    int due = expected > 0 && freed.Count < expected ? (int)Math.Round((double)p.Reparations * freed.Count / expected) : p.Reparations;
+                    if (due < p.Reparations) Log.Info($"[diplomacy] ransom of {kn}: {freed.Count} of {expected} freed, pays {due} of {p.Reparations}");
+                    int paid = Pay(k, o, due);
                     WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
                     string text = L.F("AIL_e7b1d212", $"{kn} paga a {o.Name} {paid} denarios de rescate y {o.Name} libera a {string.Join(", ", freed.Select(h => h.Name.ToString()))}.");
                     if (PlayerRules(o)) WorldSim.Say(L.F("AIL_e7b1d213", $"{kn} acepta el rescate que pedías. {text}"), Colors.Green);
@@ -2711,8 +2715,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     if (p == null) return Bad("no exchange proposed by that kingdom");
                     St.Proposals.Remove(p);
                     if (WarTolls.Held(k, o).Count == 0 || WarTolls.Held(o, k).Count == 0) return Bad("one side no longer holds any captive of the other");
-                    var byK = WarTolls.Release(k, o, p.Prisoners);
-                    var byO = WarTolls.Release(o, k, p.Prisoners);
+                    // as many each way as both sides can really hand over, so neither gives more than it gets
+                    int even = Math.Min(WarTolls.Releasable(k, o), WarTolls.Releasable(o, k));
+                    if (p.Prisoners > 0) even = Math.Min(even, p.Prisoners);
+                    if (even <= 0) return Bad("nobody could be freed on one side");
+                    var byK = WarTolls.Release(k, o, even);
+                    var byO = WarTolls.Release(o, k, even);
                     if (byK.Count + byO.Count == 0) return Bad("nobody could be freed");
                     WorldSim.ChangeStance(k.StringId, o.StringId, 5); WorldSim.ChangeStance(o.StringId, k.StringId, 5);
                     string text = L.F("AIL_e7b1d216", $"{kn} y {o.Name} canjean nobles cautivos.");

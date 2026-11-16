@@ -2468,5 +2468,6 @@
     <string id="AIL_e7b1d10a" text="Bienvenue dans AI Legacy ! Règles de la campagne modifiées : {0}." />
     <string id="AIL_e7b1d10b" text="oui" />
     <string id="AIL_e7b1d10c" text="non" />
+    <string id="AIL_e7b1d300" text="{0} se retrouve mêlé à la bagarre." />
   </strings>
 </base>

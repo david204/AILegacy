@@ -446,7 +446,7 @@ namespace AILegacy.World
                 st.CaptiveWatch.Add(new CaptiveWatch
                 {
                     Day = CampaignTime.Now.ToDays, CaptorId = list[0].Captor?.StringId, OwnId = list[0].Own, ById = by?.StringId, SettlementId = near?.StringId,
-                    Heroes = list.Select(c => c.Prisoner.StringId).Distinct().Take(12).ToList(),
+                    Heroes = list.Select(c => c.Prisoner.StringId).Distinct().Take(60).ToList(),
                 });
                 while (st.CaptiveWatch.Count > MaxWatches) st.CaptiveWatch.RemoveAt(0);
             }
