@@ -2459,7 +2459,7 @@
     <string id="AIL_e7b1d100" text="Memory and recall (RAG)" />
     <string id="AIL_e7b1d101" text="Provider per task" />
     <string id="AIL_e7b1d102" text="Reasoning effort" />
-    <string id="AIL_e7b1d103" text="How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it." />
+    <string id="AIL_e7b1d103" text="How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3, GLM...). Off: no thinking is asked for, and Gemini, OpenAI and GLM are told not to think (the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it. If a model answers empty, the message log names it." />
     <string id="AIL_e7b1d104" text="Recent lines of your talk with a character sent word for word in every request. The history grows to this number plus half again before it is cut back to this number, so its start stays the same for many turns and providers can cache it (cheaper and faster). With recall by meaning on, about 15 is enough." />
     <string id="AIL_e7b1d105" text="Welcome message when a campaign starts or loads" />
     <string id="AIL_e7b1d106" text="Once per load, in the message log: with no AI provider set up, where to set one up; with providers, the campaign rules you changed and a connection test of each active provider, the same as the Test button." />
@@ -2721,5 +2721,8 @@
     <string id="AIL_e7b1db32" text="+1% speed of curing diseases for every 10 men" />
     <string id="AIL_e7b1db33" text="Troops that get over a serious disease gain 5% immunity for good" />
     <string id="AIL_e7b1db34" text="+0.5% immunity and +0.3% healing for each Medicine point above 250" />
+    <string id="AIL_e7b1dd01" text="{0} returned an empty reply: it ran out of room, most likely thinking. Try another reasoning effort for it in 0. AI Keys (Low, for example) or another model." />
+    <string id="AIL_e7b1dd02" text="{0} returned an empty reply. If the model thinks before answering, try another reasoning effort for it in 0. AI Keys (Low, for example) or another model." />
+    <string id="AIL_e7b1dd03" text="No reply from the AI: {0}" />
   </strings>
 </base>

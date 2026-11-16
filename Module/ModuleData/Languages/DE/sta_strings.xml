@@ -2458,7 +2458,7 @@
     <string id="AIL_e7b1d100" text="Gedächtnis und Erinnerung (RAG)" />
     <string id="AIL_e7b1d101" text="Anbieter je Aufgabe" />
     <string id="AIL_e7b1d102" text="Denkaufwand" />
-    <string id="AIL_e7b1d103" text="Wie viel das Modell vor der Antwort nachdenkt, bei Modellen, die das können (GPT-5, o-Reihe, Gemini 2.5 und neuer, gpt-oss, Claude, Qwen3...). Off: Es wird nichts verlangt (Gemini und OpenAI wird gesagt, nicht nachzudenken, am schnellsten). Höher: durchdachtere Antworten, aber langsamer und mehr Tokens; Max verlangt das Höchste, was der Dienst annimmt. Lehnt der Dienst es ab, steht das im Log und die Mod macht ohne weiter." />
+    <string id="AIL_e7b1d103" text="Wie viel das Modell vor der Antwort nachdenkt, bei Modellen, die das können (GPT-5, o-Reihe, Gemini 2.5 und neuer, gpt-oss, Claude, Qwen3, GLM...). Off: Es wird kein Nachdenken verlangt, und Gemini, OpenAI und GLM wird gesagt, nicht nachzudenken (am schnellsten). Höher: durchdachtere Antworten, aber langsamer und mehr Tokens; Max verlangt das Höchste, was der Dienst annimmt. Lehnt der Dienst es ab, steht das im Log und die Mod macht ohne weiter. Antwortet ein Modell leer, nennt es das Nachrichtenprotokoll." />
     <string id="AIL_e7b1d104" text="Die letzten Zeilen deines Gesprächs mit einer Figur, die in jeder Anfrage wörtlich mitgehen. Der Verlauf wächst bis zu dieser Zahl plus die Hälfte und wird dann auf diese Zahl gekürzt, so bleibt sein Anfang viele Runden gleich und Anbieter können ihn cachen (billiger und schneller). Mit Erinnerung nach Bedeutung reichen etwa 15." />
     <string id="AIL_e7b1d105" text="Willkommensnachricht beim Start oder Laden einer Kampagne" />
     <string id="AIL_e7b1d106" text="Einmal pro Laden, im Nachrichtenprotokoll: ohne KI-Anbieter, wo du einen einrichtest; mit Anbietern die Kampagnenregeln, die du geändert hast, und ein Verbindungstest jedes aktiven Anbieters, wie beim Knopf Testen." />
@@ -2720,5 +2720,8 @@
     <string id="AIL_e7b1db32" text="+1 % schnellere Heilung von Krankheiten je 10 Männer" />
     <string id="AIL_e7b1db33" text="Truppen, die eine schwere Krankheit überstehen, erhalten dauerhaft 5 % Immunität" />
     <string id="AIL_e7b1db34" text="+0,5 % Immunität und +0,3 % Heilung je Medizinpunkt über 250" />
+    <string id="AIL_e7b1dd01" text="{0} hat eine leere Antwort geliefert: Der Platz ist ausgegangen, vermutlich beim Nachdenken. Versuche einen anderen Denkaufwand dafür unter 0. KI-Schlüssel (zum Beispiel Low) oder ein anderes Modell." />
+    <string id="AIL_e7b1dd02" text="{0} hat eine leere Antwort geliefert. Wenn das Modell vor der Antwort nachdenkt, versuche einen anderen Denkaufwand dafür unter 0. KI-Schlüssel (zum Beispiel Low) oder ein anderes Modell." />
+    <string id="AIL_e7b1dd03" text="Keine Antwort der KI: {0}" />
   </strings>
 </base>

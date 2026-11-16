@@ -60,7 +60,7 @@ namespace AILegacy.Settings
         public string P1Embed { get; set; } = "gemini-embedding-001";
 
         [SettingPropertyDropdown("{=AIL_e7b1d102}Reasoning effort", Order = 8, RequireRestart = false,
-            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it.")]
+            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3, GLM...). Off: no thinking is asked for, and Gemini, OpenAI and GLM are told not to think (the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it. If a model answers empty, the message log names it.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. AI Keys/{=AIL_208da3de}Provider 1")]
         public MCM.Common.Dropdown<string> P1Reasoning { get; set; } = new MCM.Common.Dropdown<string>(ReasoningNames, 0);
 
@@ -105,7 +105,7 @@ namespace AILegacy.Settings
         public string P2Embed { get; set; } = "text-embedding-3-small";
 
         [SettingPropertyDropdown("{=AIL_e7b1d102}Reasoning effort", Order = 8, RequireRestart = false,
-            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it.")]
+            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3, GLM...). Off: no thinking is asked for, and Gemini, OpenAI and GLM are told not to think (the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it. If a model answers empty, the message log names it.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. AI Keys/{=AIL_1f8da24b}Provider 2")]
         public MCM.Common.Dropdown<string> P2Reasoning { get; set; } = new MCM.Common.Dropdown<string>(ReasoningNames, 0);
 
@@ -150,7 +150,7 @@ namespace AILegacy.Settings
         public string P3Embed { get; set; } = "";
 
         [SettingPropertyDropdown("{=AIL_e7b1d102}Reasoning effort", Order = 8, RequireRestart = false,
-            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it.")]
+            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3, GLM...). Off: no thinking is asked for, and Gemini, OpenAI and GLM are told not to think (the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it. If a model answers empty, the message log names it.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. AI Keys/{=AIL_1e8da0b8}Provider 3")]
         public MCM.Common.Dropdown<string> P3Reasoning { get; set; } = new MCM.Common.Dropdown<string>(ReasoningNames, 0);
 
@@ -195,7 +195,7 @@ namespace AILegacy.Settings
         public string P4Embed { get; set; } = "nomic-embed-text";
 
         [SettingPropertyDropdown("{=AIL_e7b1d102}Reasoning effort", Order = 8, RequireRestart = false,
-            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it.")]
+            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3, GLM...). Off: no thinking is asked for, and Gemini, OpenAI and GLM are told not to think (the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it. If a model answers empty, the message log names it.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. AI Keys/{=AIL_258dabbd}Provider 4")]
         public MCM.Common.Dropdown<string> P4Reasoning { get; set; } = new MCM.Common.Dropdown<string>(ReasoningNames, 0);
 
@@ -240,7 +240,7 @@ namespace AILegacy.Settings
         public string P5Embed { get; set; } = "";
 
         [SettingPropertyDropdown("{=AIL_e7b1d102}Reasoning effort", Order = 8, RequireRestart = false,
-            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it.")]
+            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3, GLM...). Off: no thinking is asked for, and Gemini, OpenAI and GLM are told not to think (the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it. If a model answers empty, the message log names it.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. AI Keys/{=AIL_e7b1c4d5}Provider 5")]
         public MCM.Common.Dropdown<string> P5Reasoning { get; set; } = new MCM.Common.Dropdown<string>(ReasoningNames, 0);
 
@@ -285,7 +285,7 @@ namespace AILegacy.Settings
         public string P6Embed { get; set; } = "";
 
         [SettingPropertyDropdown("{=AIL_e7b1d102}Reasoning effort", Order = 8, RequireRestart = false,
-            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3...). Off: nothing is asked (Gemini and OpenAI are told not to think, the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it.")]
+            HintText = "{=AIL_e7b1d103}How much the model thinks before it answers, for models that can (GPT-5, o-series, Gemini 2.5 and later, gpt-oss, Claude, Qwen3, GLM...). Off: no thinking is asked for, and Gemini, OpenAI and GLM are told not to think (the fastest). Higher: better thought-out replies, but slower and more tokens; Max asks for the most the service takes. If the service rejects it, the log says so and the mod goes on without it. If a model answers empty, the message log names it.")]
         [SettingPropertyGroup("{=AIL_6c7f2b62}0. AI Keys/{=AIL_e7b1c4d6}Provider 6")]
         public MCM.Common.Dropdown<string> P6Reasoning { get; set; } = new MCM.Common.Dropdown<string>(ReasoningNames, 0);
 

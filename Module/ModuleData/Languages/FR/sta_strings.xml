@@ -2458,7 +2458,7 @@
     <string id="AIL_e7b1d100" text="Mémoire et souvenir (RAG)" />
     <string id="AIL_e7b1d101" text="Fournisseur par tâche" />
     <string id="AIL_e7b1d102" text="Effort de raisonnement" />
-    <string id="AIL_e7b1d103" text="Combien le modèle réfléchit avant de répondre, pour les modèles qui le peuvent (GPT-5, série o, Gemini 2.5 et suivants, gpt-oss, Claude, Qwen3...). Off : rien n'est demandé (on dit à Gemini et OpenAI de ne pas réfléchir, le plus rapide). Plus haut : réponses mieux pensées, mais plus lentes et plus de tokens ; Max demande le maximum accepté par le service. Si le service le refuse, le log l'indique et le mod continue sans." />
+    <string id="AIL_e7b1d103" text="Combien le modèle réfléchit avant de répondre, pour les modèles qui le peuvent (GPT-5, série o, Gemini 2.5 et suivants, gpt-oss, Claude, Qwen3, GLM...). Off : aucune réflexion n'est demandée, et on dit à Gemini, OpenAI et GLM de ne pas réfléchir (le plus rapide). Plus haut : réponses mieux pensées, mais plus lentes et plus de tokens ; Max demande le maximum accepté par le service. Si le service le refuse, le log l'indique et le mod continue sans. Si un modèle répond vide, le journal des messages le nomme." />
     <string id="AIL_e7b1d104" text="Lignes récentes de votre conversation avec un personnage envoyées mot pour mot dans chaque requête. L'historique grandit jusqu'à ce nombre plus la moitié avant d'être ramené à ce nombre : son début reste le même pendant de nombreux tours et les fournisseurs peuvent le mettre en cache (moins cher et plus rapide). Avec le souvenir par le sens activé, une quinzaine suffit." />
     <string id="AIL_e7b1d105" text="Message de bienvenue au début ou au chargement d'une campagne" />
     <string id="AIL_e7b1d106" text="Une fois par chargement, dans le journal des messages : sans fournisseur d'IA, où en configurer un ; avec des fournisseurs, les règles de la campagne que vous avez changées et un test de connexion de chaque fournisseur actif, comme le bouton Tester." />
@@ -2720,5 +2720,8 @@
     <string id="AIL_e7b1db32" text="+1 % de vitesse de guérison des maladies pour 10 hommes" />
     <string id="AIL_e7b1db33" text="Les troupes qui surmontent une maladie grave gagnent 5 % d’immunité pour toujours" />
     <string id="AIL_e7b1db34" text="+0,5 % d’immunité et +0,3 % de guérison par point de Médecine au-dessus de 250" />
+    <string id="AIL_e7b1dd01" text="{0} a renvoyé une réponse vide : il a manqué de place, sans doute en réfléchissant. Essayez un autre effort de raisonnement pour lui dans 0. Clés d'IA (Low, par exemple) ou un autre modèle." />
+    <string id="AIL_e7b1dd02" text="{0} a renvoyé une réponse vide. Si le modèle réfléchit avant de répondre, essayez un autre effort de raisonnement pour lui dans 0. Clés d'IA (Low, par exemple) ou un autre modèle." />
+    <string id="AIL_e7b1dd03" text="Pas de réponse de l'IA : {0}" />
   </strings>
 </base>

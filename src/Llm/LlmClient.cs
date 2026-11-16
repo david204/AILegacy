@@ -34,6 +34,8 @@ namespace AILegacy.Llm
         public double Seconds;
         /// <summary>The reply was cut off by the token limit.</summary>
         public bool Truncated;
+        /// <summary>The provider answered, but with no text.</summary>
+        public bool Empty;
     }
 
     /// <summary>
@@ -386,8 +388,8 @@ namespace AILegacy.Llm
                         if (wantJson && r.Text.IndexOf('{') < 0) { if (prose == null) prose = r; errors.Add($"{p.Name}: response without JSON"); Log.Warn($"Provider {p.Name}: JSON was requested but it answered in prose, trying the next one"); continue; }
                         return r;
                     }
-                    errors.Add($"{p.Name}: {r.Error}");
-                    Log.Warn($"Provider {p.Name} failed, moving to the next: {r.Error}");
+                    errors.Add($"{p.Name}/{p.Model}: {r.Error}");
+                    Log.Warn($"Provider {p.Name}/{p.Model} failed, moving to the next: {r.Error}");
                 }
                 if (anyTried || prose != null) break;
                 // All paused or over quota. If the player is waiting, hold on a bit for the first one to come back
@@ -417,7 +419,8 @@ namespace AILegacy.Llm
             bool stream = opts.Stream && !IsFlagged(NoStream, key);
             bool usageOpt = stream && !IsFlagged(NoStreamUsage, key);
             bool droppedUsage = false, suspectStream = false, streamNamed = false;
-            bool reasoning = ReasoningLevel(p) != null && !IsFlagged(NoReasoning, key);
+            // On Off, models that think unless told not to get their "don't" (dropped like any effort if refused)
+            bool reasoning = (ReasoningLevel(p) != null || ThinksByDefault(p)) && !IsFlagged(NoReasoning, key);
             for (int level = start; level < 4; level++)
             {
                 ClearPartial(opts);
@@ -524,7 +527,8 @@ namespace AILegacy.Llm
                         level--;            // the loop bumps it back up, so this same level runs again (once, see grown)
                         continue;
                     }
-                    return new LlmResult { Ok = false, Error = lastError };      // next provider, level unchanged
+                    if (r.Empty) NoteEmpty(p, key, r.Truncated);
+                    return new LlmResult { Ok = false, Error = lastError, Empty = r.Empty, Truncated = r.Truncated };      // next provider, level unchanged
                 }
 
                 lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
@@ -604,6 +608,9 @@ namespace AILegacy.Llm
                     body["thinking"] = new JObject { ["type"] = "enabled", ["budget_tokens"] = room };
                     break;
             }
+            // Off: GLM thinks by default and spends the reply's tokens on it, so it comes back empty. Tell it not to
+            if (reasoning && level < 3 && effort == null && ThinksByDefault(p))
+                body["thinking"] = new JObject { ["type"] = "disabled" };
             if (stream)
             {
                 body["stream"] = true;
@@ -629,6 +636,47 @@ namespace AILegacy.Llm
                 case "xhigh": case "maximum": return "max";
                 default: return null;       // "", off, none
             }
+        }
+
+        /// <summary>
+        /// Models that think unless told not to and take a field that turns it off: GLM ({"thinking":{"type":"disabled"}}),
+        /// on Zhipu's own endpoints or anywhere else under a glm name. Not through OpenRouter or Anthropic, which have their own
+        /// form, nor when config.json already sets "thinking" in "extra".
+        /// </summary>
+        private static bool ThinksByDefault(ProviderConfig p)
+        {
+            if (p.Extra != null && p.Extra.ContainsKey("thinking")) return false;
+            string u = (p.BaseUrl ?? "").ToLowerInvariant(), m = (p.Model ?? "").Trim().ToLowerInvariant();
+            if (u.Contains("openrouter.ai") || u.Contains("anthropic.com")) return false;
+            return u.Contains("bigmodel.cn") || u.Contains("z.ai") || m.StartsWith("glm");
+        }
+
+        // Providers already warned this session about an empty reply (key = name|model)
+        private static readonly HashSet<string> EmptyNoted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Once per session and provider: it answered with no text, most often a model that spent its room thinking.</summary>
+        private static void NoteEmpty(ProviderConfig p, string key, bool cut)
+        {
+            if (IsFlagged(EmptyNoted, key)) return;
+            Flag(EmptyNoted, key);
+            string who = p.Name + "/" + p.Model;
+            string effort = string.IsNullOrEmpty(p.ReasoningEffort) ? "off" : p.ReasoningEffort;
+            Log.Warn($"{who}: returned an empty reply{(cut ? " cut by the token limit" : "")} with reasoning effort \"{effort}\". If the model thinks before answering, try another effort (Low) or another model.");
+            Core.MainThread.Post(() => Show(cut
+                ? L.F("AIL_e7b1dd01", $"{who} devolvió una respuesta vacía: se quedó sin espacio, seguramente pensando. Prueba otro esfuerzo de razonamiento para él en 0. Claves de IA (por ejemplo Low) u otro modelo.")
+                : L.F("AIL_e7b1dd02", $"{who} devolvió una respuesta vacía. Si el modelo piensa antes de contestar, prueba otro esfuerzo de razonamiento para él en 0. Claves de IA (por ejemplo Low) u otro modelo."),
+                TaleWorlds.Library.Colors.Yellow));
+        }
+
+        /// <summary>A campaign starts or loads: the empty-reply notice may show again.</summary>
+        public static void ResetSession() { lock (EmptyNoted) EmptyNoted.Clear(); }
+
+        /// <summary>For the player waiting on a reply that never came: why, in one short line on screen (the full text is in the log).</summary>
+        public static void ShowFailure(LlmResult r)
+        {
+            string why = Trim((r?.Error ?? "").Replace("\r", " ").Replace("\n", " "), 220);
+            if (why.Length == 0) return;
+            Core.MainThread.Post(() => Show(L.F("AIL_e7b1dd03", $"Sin respuesta de la IA: {why}"), TaleWorlds.Library.Colors.Red));
         }
 
         private static ReasoningStyle StyleOf(ProviderConfig p)
@@ -662,7 +710,7 @@ namespace AILegacy.Llm
         {
             if (IsFlagged(NoReasoning, key)) return;
             Flag(NoReasoning, key);
-            Log.Warn($"{p.Name}/{p.Model}: rejected the reasoning effort \"{p.ReasoningEffort}\" (HTTP {status}: {Trim(text, 300)}). Retrying without it; it won't be sent to this provider again this session.");
+            Log.Warn($"{p.Name}/{p.Model}: rejected the reasoning effort \"{(string.IsNullOrEmpty(p.ReasoningEffort) ? "off (thinking disabled)" : p.ReasoningEffort)}\" (HTTP {status}: {Trim(text, 300)}). Retrying without it; it won't be sent to this provider again this session.");
             string who = p.Name + "/" + p.Model;
             Core.MainThread.Post(() => Show(L.F("AIL_e7b1d107", $"{who} no acepta el esfuerzo de razonamiento; sigue sin él (detalles en el log)."), TaleWorlds.Library.Colors.Yellow));
         }
@@ -879,7 +927,7 @@ namespace AILegacy.Llm
             int cached = asm.HasUsage ? asm.CachedTokens : 0;
             bool cut = string.Equals(finish, "length", StringComparison.OrdinalIgnoreCase) || string.Equals(finish, "MAX_TOKENS", StringComparison.OrdinalIgnoreCase);
             if (string.IsNullOrEmpty(s))
-                return new LlmResult { Ok = false, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout, Error = L.T("AIL_f533587d", "respuesta vacía (finish_reason=") + finish + ")" };
+                return new LlmResult { Ok = false, Empty = true, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout, Error = L.T("AIL_f533587d", "respuesta vacía (finish_reason=") + finish + ")" };
             return new LlmResult { Ok = true, Text = s, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout };
         }
 
@@ -899,7 +947,7 @@ namespace AILegacy.Llm
                 int cached = (int?)usage?["prompt_tokens_details"]?["cached_tokens"] ?? (int?)usage?["cached_tokens"] ?? (int?)usage?["prompt_cache_hit_tokens"] ?? 0;
                 bool cut = string.Equals(finish, "length", StringComparison.OrdinalIgnoreCase) || string.Equals(finish, "MAX_TOKENS", StringComparison.OrdinalIgnoreCase);
                 if (string.IsNullOrEmpty(s))
-                    return new LlmResult { Ok = false, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout, Error = L.T("AIL_f533587d", "respuesta vacía (finish_reason=") + finish + ")" };
+                    return new LlmResult { Ok = false, Empty = true, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout, Error = L.T("AIL_f533587d", "respuesta vacía (finish_reason=") + finish + ")" };
                 return new LlmResult { Ok = true, Text = s, Truncated = cut, PromptTokens = tin, CachedTokens = cached, CompletionTokens = tout };
             }
             catch (Exception ex)

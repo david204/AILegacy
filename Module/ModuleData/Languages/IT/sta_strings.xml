@@ -2458,7 +2458,7 @@
     <string id="AIL_e7b1d100" text="Memoria e ricordo (RAG)" />
     <string id="AIL_e7b1d101" text="Fornitore per attività" />
     <string id="AIL_e7b1d102" text="Sforzo di ragionamento" />
-    <string id="AIL_e7b1d103" text="Quanto il modello ragiona prima di rispondere, per i modelli che lo permettono (GPT-5, serie o, Gemini 2.5 e successivi, gpt-oss, Claude, Qwen3...). Off: non si chiede nulla (a Gemini e OpenAI si dice di non ragionare, il più veloce). Più alto: risposte più ponderate, ma più lente e con più token; Max chiede il massimo che il servizio accetta. Se il servizio lo rifiuta, il log lo dice e la mod continua senza." />
+    <string id="AIL_e7b1d103" text="Quanto il modello ragiona prima di rispondere, per i modelli che lo permettono (GPT-5, serie o, Gemini 2.5 e successivi, gpt-oss, Claude, Qwen3, GLM...). Off: non si chiede di ragionare, e a Gemini, OpenAI e GLM si dice di non farlo (il più veloce). Più alto: risposte più ponderate, ma più lente e con più token; Max chiede il massimo che il servizio accetta. Se il servizio lo rifiuta, il log lo dice e la mod continua senza. Se un modello risponde vuoto, il registro dei messaggi dice quale." />
     <string id="AIL_e7b1d104" text="Righe recenti della tua conversazione con un personaggio inviate parola per parola in ogni richiesta. La cronologia cresce fino a questo numero più la metà prima di essere riportata a questo numero, così il suo inizio resta uguale per molti turni e i fornitori possono metterla in cache (più economico e più veloce). Con il ricordo per significato attivo, ne bastano una quindicina." />
     <string id="AIL_e7b1d105" text="Messaggio di benvenuto all'avvio o al caricamento di una campagna" />
     <string id="AIL_e7b1d106" text="Una volta per caricamento, nel registro messaggi: senza fornitori di IA, dove configurarne uno; con fornitori, le regole della campagna che hai cambiato e una prova di connessione di ogni fornitore attivo, come il pulsante Prova." />
@@ -2720,5 +2720,8 @@
     <string id="AIL_e7b1db32" text="+1% di rapidità nel curare le malattie ogni 10 uomini" />
     <string id="AIL_e7b1db33" text="Le truppe che superano una malattia grave guadagnano il 5% di immunità per sempre" />
     <string id="AIL_e7b1db34" text="+0,5% di immunità e +0,3% di guarigione per ogni punto di Medicina oltre 250" />
+    <string id="AIL_e7b1dd01" text="{0} ha restituito una risposta vuota: ha finito lo spazio, probabilmente ragionando. Prova un altro sforzo di ragionamento per lui in 0. Chiavi IA (per esempio Low) o un altro modello." />
+    <string id="AIL_e7b1dd02" text="{0} ha restituito una risposta vuota. Se il modello ragiona prima di rispondere, prova un altro sforzo di ragionamento per lui in 0. Chiavi IA (per esempio Low) o un altro modello." />
+    <string id="AIL_e7b1dd03" text="Nessuna risposta dall'IA: {0}" />
   </strings>
 </base>

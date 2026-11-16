@@ -876,6 +876,7 @@ namespace AILegacy.Dialogue
                 // the provider's error goes to the log; the player sees the character lost for words
                 Log.Error("No reply: " + res.Error);
                 NoReply();
+                LlmClient.ShowFailure(res);
                 return;
             }
 

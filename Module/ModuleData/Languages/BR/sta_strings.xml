@@ -2458,7 +2458,7 @@
     <string id="AIL_e7b1d100" text="Memória e lembrança (RAG)" />
     <string id="AIL_e7b1d101" text="Provedor por tarefa" />
     <string id="AIL_e7b1d102" text="Esforço de raciocínio" />
-    <string id="AIL_e7b1d103" text="Quanto o modelo pensa antes de responder, nos modelos que podem (GPT-5, série o, Gemini 2.5 e posteriores, gpt-oss, Claude, Qwen3...). Off: nada é pedido (Gemini e OpenAI são instruídos a não pensar, o mais rápido). Mais alto: respostas mais pensadas, porém mais lentas e com mais tokens; Max pede o máximo que o serviço aceita. Se o serviço recusar, o log avisa e o mod segue sem isso." />
+    <string id="AIL_e7b1d103" text="Quanto o modelo pensa antes de responder, nos modelos que podem (GPT-5, série o, Gemini 2.5 e posteriores, gpt-oss, Claude, Qwen3, GLM...). Off: não se pede que pense, e Gemini, OpenAI e GLM são instruídos a não pensar (o mais rápido). Mais alto: respostas mais pensadas, porém mais lentas e com mais tokens; Max pede o máximo que o serviço aceita. Se o serviço recusar, o log avisa e o mod segue sem isso. Se um modelo responder vazio, o registro de mensagens diz qual." />
     <string id="AIL_e7b1d104" text="Linhas recentes da sua conversa com um personagem enviadas palavra por palavra em cada pedido. O histórico cresce até este número mais a metade antes de ser cortado de volta a este número, assim o início fica igual por muitos turnos e os provedores podem guardá-lo em cache (mais barato e mais rápido). Com a lembrança por significado ligada, umas 15 bastam." />
     <string id="AIL_e7b1d105" text="Mensagem de boas-vindas ao iniciar ou carregar uma campanha" />
     <string id="AIL_e7b1d106" text="Uma vez por carregamento, no registro de mensagens: sem provedor de IA, onde configurar um; com provedores, as regras da campanha que você mudou e um teste de conexão de cada provedor ativo, igual ao botão Testar." />
@@ -2720,5 +2720,8 @@
     <string id="AIL_e7b1db32" text="+1% de rapidez para curar doenças a cada 10 homens" />
     <string id="AIL_e7b1db33" text="Tropas que superam uma doença grave ganham 5% de imunidade para sempre" />
     <string id="AIL_e7b1db34" text="+0,5% de imunidade e +0,3% de cura para cada ponto de Medicina acima de 250" />
+    <string id="AIL_e7b1dd01" text="{0} devolveu uma resposta vazia: ficou sem espaço, provavelmente pensando. Tente outro esforço de raciocínio para ele em 0. Chaves de IA (por exemplo Low) ou outro modelo." />
+    <string id="AIL_e7b1dd02" text="{0} devolveu uma resposta vazia. Se o modelo pensa antes de responder, tente outro esforço de raciocínio para ele em 0. Chaves de IA (por exemplo Low) ou outro modelo." />
+    <string id="AIL_e7b1dd03" text="Sem resposta da IA: {0}" />
   </strings>
 </base>

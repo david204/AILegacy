@@ -765,7 +765,7 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
                         if (session != WorldSim.Session) { Log.Info("[group] reply from another game, discarded"); return; }
                         if (res == null || !res.Ok)
                         {
-                            if (player) Say(L.T("AIL_38907a94", "Nadie del grupo contesta (la IA no ha respondido)."), Colors.Red);
+                            if (player) { Say(L.T("AIL_38907a94", "Nadie del grupo contesta (la IA no ha respondido)."), Colors.Red); AILegacy.Llm.LlmClient.ShowFailure(res); }
                             Log.Warn($"Group: no reply ({kind}): " + res?.Error);
                             BookIfPending();
                             return;

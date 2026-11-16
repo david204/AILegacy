@@ -2458,7 +2458,7 @@
     <string id="AIL_e7b1d100" text="记忆与回忆（RAG）" />
     <string id="AIL_e7b1d101" text="按任务指定服务商" />
     <string id="AIL_e7b1d102" text="推理强度" />
-    <string id="AIL_e7b1d103" text="模型回答前思考的程度，适用于支持的模型（GPT-5、o 系列、Gemini 2.5 及以后、gpt-oss、Claude、Qwen3……）。Off：不额外请求（会让 Gemini 和 OpenAI 不思考，速度最快）。越高：回答越周到，但更慢、消耗更多 token；Max 请求服务所允许的最高程度。如果服务拒绝，日志会说明，模组会不带此项继续。" />
+    <string id="AIL_e7b1d103" text="模型回答前思考的程度，适用于支持的模型（GPT-5、o 系列、Gemini 2.5 及以后、gpt-oss、Claude、Qwen3、GLM……）。Off：不请求思考，并让 Gemini、OpenAI 和 GLM 不思考（速度最快）。越高：回答越周到，但更慢、消耗更多 token；Max 请求服务所允许的最高程度。如果服务拒绝，日志会说明，模组会不带此项继续。如果某个模型返回空回复，消息记录会写明是哪一个。" />
     <string id="AIL_e7b1d104" text="与角色对话中最近的若干条，每次请求都逐字发送。历史会增长到此数值再加一半，然后裁回此数值，因此开头在很多轮内保持不变，服务商可以缓存（更便宜、更快）。开启按含义回忆时，约 15 条就够了。" />
     <string id="AIL_e7b1d105" text="开始或读取战役时显示欢迎消息" />
     <string id="AIL_e7b1d106" text="每次读取时在消息日志中显示一次：没有设置 AI 服务商时，提示在哪里设置；已设置时，列出你改动过的战役规则，并像“测试”按钮一样测试每个启用的服务商的连接。" />
@@ -2720,5 +2720,8 @@
     <string id="AIL_e7b1db32" text="每10人疾病治愈速度+1%" />
     <string id="AIL_e7b1db33" text="战胜重病的部队永久获得5%免疫" />
     <string id="AIL_e7b1db34" text="医术每超过250一点，免疫+0.5%，治愈+0.3%" />
+    <string id="AIL_e7b1dd01" text="{0} 返回了空回复：空间用完了，多半是花在思考上。请在 0. AI密钥 中为它换一个推理强度（例如 Low），或换一个模型。" />
+    <string id="AIL_e7b1dd02" text="{0} 返回了空回复。如果该模型会先思考再回答，请在 0. AI密钥 中为它换一个推理强度（例如 Low），或换一个模型。" />
+    <string id="AIL_e7b1dd03" text="AI 没有回复：{0}" />
   </strings>
 </base>
