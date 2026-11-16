@@ -1407,7 +1407,7 @@ namespace AILegacy.Settings
 
         [SettingPropertyInteger("{=AIL_637830f6}Distance at which you hear a chat (meters)", 4, 60, Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
-        public int AmbientRadius { get; set; } = 20;
+        public int AmbientRadius { get; set; } = 30;
 
         [SettingPropertyBool("{=AIL_4df26a61}What they say also appears in the log", Order = 1, RequireRestart = false,
             HintText = "{=AIL_af3d096e}Besides above their heads, the sentences characters exchange appear in the message log (bottom left).")]
@@ -1478,6 +1478,16 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_9f48ba90}Maximum sentences when ordinary people chat", 2, 8, Order = 4, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
         public int AmbientCommonerLines { get; set; } = 3;
+
+        [SettingPropertyInteger("{=AIL_e7b1ce01}Most people in one chat between characters", 2, 6, Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1ce02}How many can stand in one chat between characters: the two who started it and those who walked over to join. Someone on the way already takes a place. When one of them turns to you, the chat becomes your group conversation and its limit applies.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public int AmbientMaxMembers { get; set; } = 4;
+
+        [SettingPropertyInteger("{=AIL_e7b1ce03}Chats between characters at the same time", 1, 3, Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1ce04}How many chats between characters can go on at once around you, besides your own group conversation. Each one sends its own requests to the AI, so more means more load.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
+        public int AmbientMaxCircles { get; set; } = 2;
 
         [SettingPropertyInteger("{=AIL_e7b1c950}Group: seconds of your silence before they nudge you (0 = they never go on without you)", 0, 180, Order = 5, RequireRestart = false,
             HintText = "{=AIL_e7b1c951}After answering you, the group goes on talking among themselves for a few lines and then waits for you. If one of them asked you something and you stay silent this long, they carry on without you (once more later, at most). Someone left alone with you says a last word and the talk ends. 0: they only answer you.")]

@@ -226,6 +226,48 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
         /// <summary>Whether the agent is in your group talk. While it is, it won't start ambient chats of its own.</summary>
         internal static bool Has(Agent a) => Circle.Any(x => x.Agent == a);
 
+        /// <summary>You are talking with a group right now.</summary>
+        internal static bool Active => Circle.Count > 0;
+
+        /// <summary>
+        /// A conversation going on nearby becomes yours: someone in it spoke to you, or you stepped into it. Its people join
+        /// your group (a new one if you had none) with what they already said; if they turned to you (askedPlayer) they now
+        /// wait for your answer, and nudge you if you stay silent. False if group talk can't run here.
+        /// </summary>
+        internal static bool TakeOver(List<Agent> agents, List<string> said, Agent last, bool askedPlayer)
+        {
+            try
+            {
+                var cfg = S.Get;
+                if (!cfg.EnableGroupTalk || !SceneOk() || agents == null) return false;
+                var m = Mission.Current;
+                bool fresh = Circle.Count == 0;
+                // A new circle: nothing asked for by the last one may play in it
+                if (fresh) { _gen++; _ready = null; _waiting = false; _liveRaw = null; _liveCircle = null; _livePainted = null; ResetFlow(); _lastKey = null; _lastName = null; }
+                if (_mission != m) { Transcript.Clear(); _mission = m; }
+                var added = new List<Member>();
+                foreach (var a in agents)
+                {
+                    if (a == null || !a.IsActive() || a == Agent.Main || Circle.Any(x => x.Agent == a)) continue;
+                    if (Circle.Count >= Math.Max(1, cfg.GroupMaxParticipants)) break;
+                    var mb = NewMember(a);
+                    Circle.Add(mb);
+                    added.Add(mb);
+                }
+                if (Circle.Count == 0) return false;
+                if (!fresh && added.Count > 0) Transcript.Add($"({string.Join(", ", added.Select(x => x.Who.Name))} were talking nearby and have joined:)");
+                foreach (var l in said ?? new List<string>()) if (!string.IsNullOrWhiteSpace(l)) Transcript.Add(l);
+                while (Transcript.Count > 40) Transcript.RemoveAt(0);
+                var lm = last != null ? Circle.FirstOrDefault(x => x.Agent == last) : null;
+                if (lm != null) { _lastKey = lm.Who.Key; _lastName = lm.Who.Name; }
+                _idle = 0f; _silence = 0f; _nudges = 0;
+                if (askedPlayer && lm != null) { _awaitPlayer = true; _asker = lm.Who.Name; }
+                Log.Info($"[group] took over a conversation nearby: {string.Join(", ", added.Select(x => x.Who.Name))}{(askedPlayer && lm != null ? $" ({lm.Who.Name} spoke to you)" : "")}");
+                return true;
+            }
+            catch (Exception ex) { Log.Error("Take over a conversation nearby", ex); return false; }
+        }
+
         /// <summary>Someone who was called over arrives and joins the talk.</summary>
         internal static void Join(Agent a)
         {
@@ -435,6 +477,8 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
             if (!Config.LegacyConfig.Current.Providers.Any(p => p.IsUsable)) { Say("AI Legacy: no hay ninguna api_key configurada.", Colors.Red); return; }
             var m = Mission.Current;
             var me = Agent.Main.Position;
+            // Standing in a conversation going on nearby: it becomes yours, with what was said in it
+            Ambient.HandOverNear(cfg.GroupRadius, LookedAt(cfg.GroupRadius * 2f));
             bool fresh = Circle.Count == 0;
             // A new circle: nothing asked for by the last one may play in it
             if (fresh) { _gen++; _ready = null; _waiting = false; _liveRaw = null; _liveCircle = null; }

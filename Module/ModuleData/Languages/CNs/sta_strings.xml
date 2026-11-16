@@ -2382,5 +2382,10 @@
     <string id="AIL_e7b1ca0a" text="强制关闭卡住的对话" />
     <string id="AIL_e7b1ca0b" text="关闭" />
     <string id="AIL_e7b1ca0c" text="如果对话卡住（对话框没有反应、窗口无法关闭，或地图停在遭遇界面），这里会将其关闭：AI Legacy 的谈话、游戏本身的对话，以及地图上没有战斗的未结束遭遇。已说过的内容会保留。" />
+    <string id="AIL_e7b1ce00" text="{0}转向了你：你现在加入了他们的谈话（按 Alt+T 回答）。" />
+    <string id="AIL_e7b1ce01" text="角色间闲聊的最多人数" />
+    <string id="AIL_e7b1ce02" text="一场角色间闲聊最多容纳多少人：发起的两人，加上走过来加入的人。正在走过来的人也算一个位置。当其中有人转向你时，这场闲聊就变成你的群聊，按群聊的上限计算。" />
+    <string id="AIL_e7b1ce03" text="同时进行的角色间闲聊" />
+    <string id="AIL_e7b1ce04" text="除你自己的群聊外，你周围同时可以进行多少场角色间闲聊。每一场都会单独向 AI 发送请求，越多负载越大。" />
   </strings>
 </base>

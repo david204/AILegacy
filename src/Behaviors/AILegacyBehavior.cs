@@ -741,7 +741,8 @@ namespace AILegacy.Behaviors
             if (c == null) return null;
             var s = Speaker.FromResident(c, cm.OneToOneConversationAgent);
             s.Role = role;
-            s.KnownChild = child;
+            // a child branch can still put an adult in front of you: only a real child gets the child rules
+            s.KnownChild = child && c != null && c.Age < 18f;
             return s;
         }
 

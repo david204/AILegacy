@@ -2382,5 +2382,10 @@
     <string id="AIL_e7b1ca0a" text="Forza la chiusura di un dialogo bloccato" />
     <string id="AIL_e7b1ca0b" text="Chiudi" />
     <string id="AIL_e7b1ca0c" text="Se una conversazione si blocca (il riquadro non risponde, la finestra non si chiude o la mappa resta su un incontro), questo la chiude: il dialogo di AI Legacy, la conversazione del gioco e un incontro aperto sulla mappa senza battaglia. Quanto detto viene conservato." />
+    <string id="AIL_e7b1ce00" text="{0} si rivolge a te: ora fai parte della loro conversazione (Alt+T per rispondere)." />
+    <string id="AIL_e7b1ce01" text="Numero massimo di persone in una chiacchierata tra personaggi" />
+    <string id="AIL_e7b1ce02" text="Quanti possono stare in una chiacchierata tra personaggi: i due che l'hanno iniziata e chi si è avvicinato per unirsi. Chi è in arrivo occupa già un posto. Quando uno di loro si rivolge a te, la chiacchierata diventa la tua conversazione di gruppo e vale il suo limite." />
+    <string id="AIL_e7b1ce03" text="Chiacchierate tra personaggi contemporaneamente" />
+    <string id="AIL_e7b1ce04" text="Quante chiacchierate tra personaggi possono svolgersi insieme intorno a te, oltre alla tua conversazione di gruppo. Ognuna fa le sue richieste all'IA, quindi più chiacchierate significano più carico." />
   </strings>
 </base>

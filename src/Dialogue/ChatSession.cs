@@ -263,6 +263,7 @@ namespace AILegacy.Dialogue
         {
             _lastPlayer = "";
             _lastNpc = npcText ?? "";
+            _npcInTalk = false;
             _emotion = emotion ?? ""; _gesture = gesture ?? ""; _lookShown = false;
             HasUnreadReply = true;
             Seeded = true;
@@ -273,6 +274,74 @@ namespace AILegacy.Dialogue
         public bool IsWaiting => _waiting;
         public bool Ended => _npcEnded;
         public Speaker Who => _s;
+
+        // ====================================================== the talk for the scrollable panel in the dialogue box
+        // Every line of this talk that has reached the screen, oldest first. The panel (UI.ConversationTalkPanel) shows
+        // them all in place of the game's text, which still gets the last exchange as before (voice mods read it).
+
+        public enum TalkKind { Player, Npc, Note }
+
+        /// <summary>One line of the talk as the panel shows it.</summary>
+        public sealed class TalkLine
+        {
+            public TalkKind Kind;
+            public string Speaker = "";
+            public string Text = "";
+        }
+
+        private const int MaxTalkLines = 200;
+        private readonly List<TalkLine> _talk = new List<TalkLine>();
+        private int _talkRevision;
+        /// <summary>The current reply (or failure) is already in the talk, so showing the box again doesn't repeat it.</summary>
+        private bool _npcInTalk;
+        /// <summary>"Finishing speaking" is on screen while Continue waits for the voice.</summary>
+        private bool _voiceWaitShown;
+        private string _talkStats = "";
+
+        public bool IsDialogMode => _dialogMode;
+        public IReadOnlyList<TalkLine> TalkLines => _talk;
+        /// <summary>Changes whenever a line is added to the talk.</summary>
+        public int TalkRevision => _talkRevision;
+        /// <summary>The status line under the last reply (empty when the bars show it or it is turned off).</summary>
+        public string TalkStats => _talkStats;
+        /// <summary>There is something to show in the panel: a line already said, or a reply being written.</summary>
+        public bool HasTalkToShow => _dialogMode && !_closed && (_talk.Count > 0 || (_waiting && _liveShown > 0));
+
+        private void AddTalk(TalkKind kind, string speaker, string text)
+        {
+            if (!_dialogMode || string.IsNullOrWhiteSpace(text)) return;
+            _talk.Add(new TalkLine { Kind = kind, Speaker = speaker ?? "", Text = text.Replace("\r", "").Trim() });
+            while (_talk.Count > MaxTalkLines) _talk.RemoveAt(0);
+            _talkRevision++;
+        }
+
+        private void AddTalkReply(string npcText)
+        {
+            if (_npcInTalk || string.IsNullOrEmpty(npcText)) return;
+            _npcInTalk = true;
+            // a failure in brackets is a note, not something the character said
+            if (npcText.StartsWith("(")) AddTalk(TalkKind.Note, "", npcText);
+            else AddTalk(TalkKind.Npc, _s.Name, npcText);
+        }
+
+        /// <summary>
+        /// What the box shows past the lines already in the talk: the reply as it is being written, "thinking" while it
+        /// hasn't started, a finished reply already painted in the box but not yet read, or "finishing speaking". Null if nothing.
+        /// </summary>
+        public TalkLine TalkPending()
+        {
+            if (!_dialogMode || _closed) return null;
+            if (_waiting)
+            {
+                string part = _live?.Text ?? "";
+                if (_liveShown > 0 && _liveShown <= part.Length) return new TalkLine { Kind = TalkKind.Npc, Speaker = _s.Name, Text = part.Substring(0, _liveShown).Replace("\r", "").Trim() };
+                return new TalkLine { Kind = TalkKind.Note, Text = L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*") };
+            }
+            if (!_npcInTalk && _livePainted && _lastNpc.Length > 0)
+                return _lastNpc.StartsWith("(") ? new TalkLine { Kind = TalkKind.Note, Text = _lastNpc } : new TalkLine { Kind = TalkKind.Npc, Speaker = _s.Name, Text = _lastNpc.Replace("\r", "").Trim() };
+            if (_voiceWaitShown && Holding) return new TalkLine { Kind = TalkKind.Note, Text = L.F("AIL_e7b1ca05", $"*{_s.Name} termina de hablar…*") };
+            return null;
+        }
 
         /// <summary>Session tied to the current game conversation. Closes by itself when the conversation ends.</summary>
         public static ChatSession StartDialog(Speaker s)
@@ -337,8 +406,9 @@ namespace AILegacy.Dialogue
             {
                 _notesOnly = false;
                 HasUnreadReply = false;
+                _voiceWaitShown = false;
                 var nb = new StringBuilder();
-                foreach (var n in _dialogNotes) { if (nb.Length > 0) nb.Append("{newline}"); nb.Append("» ").Append(n); }
+                foreach (var n in _dialogNotes) { if (nb.Length > 0) nb.Append("{newline}"); nb.Append("» ").Append(n); AddTalk(TalkKind.Note, "", "» " + n); }
                 _dialogNotes.Clear();
                 return nb.Length > 0 ? Sanitize(nb.ToString()) : "...";
             }
@@ -357,10 +427,12 @@ namespace AILegacy.Dialogue
             bool bare = S.Get.DialogOnlyTheirWords;
             if (!bare && _lastPlayer.Length > 0) sb.Append(L.T("AIL_63ea9af4", "Tú: ")).Append(_lastPlayer).Append("{newline}{newline}");
             if (_lastNpc.Length > 0) sb.Append(bare || _lastNpc.StartsWith("(") ? "" : _s.Name + ": ").Append(_lastNpc);
-            foreach (var n in _dialogNotes) sb.Append("{newline}» ").Append(n);
+            AddTalkReply(_lastNpc);
+            foreach (var n in _dialogNotes) { sb.Append("{newline}» ").Append(n); AddTalk(TalkKind.Note, "", "» " + n); }
             _dialogNotes.Clear();
             string stats = _lastNpc.Length > 0 ? StatsLine() : "";
             if (stats.Length > 0) sb.Append("{newline}").Append(stats);
+            if (stats != _talkStats) { _talkStats = stats; _talkRevision++; }
             // the game's animation tags go after the text has been cleaned of brackets
             return Sanitize(sb.ToString()) + tags;
         }
@@ -446,7 +518,16 @@ namespace AILegacy.Dialogue
 
         private void UiPlayer(string text)
         {
-            if (_dialogMode) { _lastPlayer = text; _lastNpc = ""; _emotion = ""; _gesture = ""; return; }
+            if (_dialogMode)
+            {
+                _lastPlayer = text; _lastNpc = ""; _emotion = ""; _gesture = "";
+                _npcInTalk = false; _voiceWaitShown = false;
+                if (_talkStats.Length > 0) { _talkStats = ""; _talkRevision++; }
+                string me = "";
+                try { me = Hero.MainHero?.Name?.ToString() ?? ""; } catch { }
+                AddTalk(TalkKind.Player, me.Length > 0 ? me : L.T("AIL_4c6b494e", "Tú"), text);
+                return;
+            }
             if (UseWindow) _win.VM.AddLine(L.T("AIL_4c6b494e", "Tú"), text, ChatVM.PlayerColor);
             else _transcript.Add(L.F("AIL_016ea49e", $"Tú: {text}"));
         }
@@ -458,6 +539,7 @@ namespace AILegacy.Dialogue
             if (_dialogMode)
             {
                 _lastNpc = text;
+                _npcInTalk = false;
                 HasUnreadReply = true;
                 bool auto = S.Get.AutoShowReply;
                 // If the text was already growing on screen, the sound played when it started
@@ -510,7 +592,7 @@ namespace AILegacy.Dialogue
         {
             if (_dialogMode)
             {
-                if (error) { _lastNpc = "(" + text + ")"; HasUnreadReply = true; Notify(text.Split('\n')[0], Colors.Red); if (_livePainted) PaintBox(Compose(_lastNpc)); }
+                if (error) { _lastNpc = "(" + text + ")"; _npcInTalk = false; HasUnreadReply = true; Notify(text.Split('\n')[0], Colors.Red); if (_livePainted) PaintBox(Compose(_lastNpc)); }
                 else { _dialogNotes.Add(text); HasUnreadReply = true; Notify(L.T("AIL_78f99860", "AI Legacy: comando aplicado. Pulsa «Ver su respuesta»."), Colors.Gray); }
                 return;
             }
@@ -1168,7 +1250,11 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>Text while Continue waits for the voice to end.</summary>
-        public string WaitVoiceText() => Sanitize(L.F("AIL_e7b1ca05", $"*{_s.Name} termina de hablar…*"));
+        public string WaitVoiceText()
+        {
+            _voiceWaitShown = true;
+            return Sanitize(L.F("AIL_e7b1ca05", $"*{_s.Name} termina de hablar…*"));
+        }
 
         private void ContinueIfSilent()
         {
@@ -1188,6 +1274,7 @@ namespace AILegacy.Dialogue
             if (list == null) return;
             _held = null;
             _continueWhenSilent = false;
+            _voiceWaitShown = false;
             var shown = new List<string>();
             var ctx = new NpcActions.ActionContext();
             try
@@ -1282,6 +1369,7 @@ namespace AILegacy.Dialogue
             if (_dialogMode)
             {
                 _lastNpc = "(" + msg + ")";
+                _npcInTalk = false;
                 _emotion = "thoughtful"; _gesture = ""; _lookShown = false;
                 HasUnreadReply = true;
                 if (_livePainted) PaintBox(Compose(_lastNpc));
@@ -1389,7 +1477,8 @@ namespace AILegacy.Dialogue
                     }
                     MemoryStore.Remove(_s.Key);
                     Notify(L.F("AIL_1a8ef2ad", $"{_s.Name} lo ha olvidado todo."), Colors.Green);
-                    Close(false);
+                    // the player aborted the talk: whatever the last reply held back is dropped, not carried out
+                    Close(false, discardHeld: true);
                     return;
 
                 default:
@@ -1417,9 +1506,17 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Close the talk", ex); }
         }
 
-        private void Close(bool npcEnded)
+        /// <param name="discardHeld">The player aborted the talk (/forget): held actions are dropped instead of carried out.</param>
+        private void Close(bool npcEnded, bool discardHeld = false)
         {
             if (_closed) return;
+            if (_held != null && discardHeld)
+            {
+                Log.Info($"{_s.Name}: held actions discarded because the talk was aborted ({(_held.Count > 0 ? string.Join(", ", _held) : "end of the talk")})");
+                _held = null;
+                _continueWhenSilent = false;
+                _leaveAgent = null;
+            }
             // the talk closed some other way while something was still held: it is not lost
             if (_held != null)
             {

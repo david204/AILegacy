@@ -2382,5 +2382,10 @@
     <string id="AIL_e7b1ca0a" text="Forcer la fermeture d’un dialogue bloqué" />
     <string id="AIL_e7b1ca0b" text="Fermer" />
     <string id="AIL_e7b1ca0c" text="Si une conversation se bloque (la boîte ne répond plus, la fenêtre ne se ferme pas ou la carte reste sur une rencontre), ceci la ferme : la discussion d’AI Legacy, la conversation du jeu et une rencontre ouverte sur la carte sans bataille. Ce qui a été dit est conservé." />
+    <string id="AIL_e7b1ce00" text="{0} se tourne vers vous : vous faites désormais partie de leur conversation (Alt+T pour répondre)." />
+    <string id="AIL_e7b1ce01" text="Nombre maximal de personnes dans une conversation entre personnages" />
+    <string id="AIL_e7b1ce02" text="Combien de personnes peuvent se tenir dans une conversation entre personnages : les deux qui l'ont commencée et ceux qui se sont approchés pour s'y joindre. Celui qui est en chemin prend déjà une place. Quand l'un d'eux se tourne vers vous, la conversation devient votre conversation de groupe et sa limite s'applique." />
+    <string id="AIL_e7b1ce03" text="Conversations entre personnages en même temps" />
+    <string id="AIL_e7b1ce04" text="Combien de conversations entre personnages peuvent avoir lieu en même temps autour de vous, en plus de votre propre conversation de groupe. Chacune envoie ses propres requêtes à l'IA : plus il y en a, plus la charge augmente." />
   </strings>
 </base>

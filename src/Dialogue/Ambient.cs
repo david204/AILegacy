@@ -20,11 +20,12 @@ using TaleWorlds.MountAndBlade;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// Scene life: now and then two characters near you talk to each other about what's going on (news they know,
-    /// shortages, disease, their lords), with the text over their heads. Sometimes someone who knows you calls out
-    /// as you pass. They remember what was said if you talk to them later.
+    /// Scene life: now and then characters near you fall into conversation about what's going on (news they know,
+    /// shortages, disease, their lords), with the text over their heads. Those talks are circles (see AmbientCircles.cs)
+    /// that others may walk over to join and that can turn to you. Sometimes someone who knows you calls out as you
+    /// pass. They remember what was said if you talk to them later.
     /// </summary>
-    internal static class Ambient
+    internal static partial class Ambient
     {
         private class Line
         {
@@ -125,7 +126,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
         private static readonly Tpl TErrandReport = new Tpl("scene_conversations/errand_report.txt",
 @"Afterwards {a} walks back to {player}. Add one more field to the JSON: ""report"": the ONE line {a} says to {player} on returning (under {max_chars} characters, in {language}) — what came of it, in {a}'s own voice and mood (annoyed if it was a lie or a waste of time).");
 
-        public static void Touch() { var _ = TAmbient.Key + TCallOut.Key + TErrandAngle.Key + TErrandReport.Key; }
+        public static void Touch() { var _ = TAmbient.Key + TCallOut.Key + TErrandAngle.Key + TErrandReport.Key; TouchCircles(); }
 
         /// <summary>An errand inside the scene: someone goes to find another person, they talk, and if asked the first one comes back to tell you.</summary>
         private class Errand { public Agent Who, Target; public string Said, Report; public bool Back; public int Stage; public float Left; }
@@ -133,7 +134,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
         private static int _gen;       // bumped on cancel so a late AI reply gets thrown away
 
         internal static bool ErrandBusy => _errand != null;
-        internal static bool IsPlaying => Play.Count > 0 || _lineLeft > 0f || _voiceWait != null || _afterVoice;
+        internal static bool IsPlaying => Play.Count > 0 || _lineLeft > 0f || _voiceWait != null || _afterVoice || CircleSpeaking;
 
         /// <summary>Group talk lines are still queued or one of them is being spoken.</summary>
         internal static bool GroupPlaying => ((_lineLeft > 0f || _afterVoice) && _curGroup) || (_voiceWait != null && _voiceWait.Group) || Play.Any(l => l.Group);
@@ -439,7 +440,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             var m = Mission.Current;
             var me = Agent.Main.Position;
             var near = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a != Agent.Main && a.Character is CharacterObject
-                                           && a.Position.Distance(me) <= cfg.AmbientRadius && !GroupTalk.Has(a) && !SceneActions.Busy(a) && !(a.Team != null && Agent.Main.Team != null && a.IsEnemyOf(Agent.Main))).ToList();
+                                           && a.Position.Distance(me) <= cfg.AmbientRadius && !GroupTalk.Has(a) && !SceneActions.Busy(a) && !InCircle(a) && !Combat.FoughtHere(a)
+                                           && !(a.Team != null && Agent.Main.Team != null && a.IsEnemyOf(Agent.Main))).ToList();
             if (_calledMission != m) { _calledMission = m; CalledOut.Clear(); }
             if (near.Count == 0) { Log.Info($"[scene] nobody within {cfg.AmbientRadius} m"); _timer = 20f; return; }
 
@@ -469,8 +471,12 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             // when enabled, and briefly.
             near = near.Where(a => Named(a) || (OnDuty(a) ? cfg.AmbientGuards : cfg.AmbientCommoners)).ToList();
 
-            // Pick two who stand close enough to each other, preferring the ones nearest you and named ones.
-            Agent first = null, second = null; float best = float.MaxValue;
+            // At most so many background circles at once besides yours, and none while people are still shaken by a fight
+            if (Circles.Count >= Math.Max(1, cfg.AmbientMaxCircles)) { Log.Info($"[scene] no new circles nearby: {Circles.Count} already going"); _timer = 20f; return; }
+            if (Combat.QuietAfterFight) { Log.Info("[scene] no new circles nearby: a fight has just ended here"); _timer = 20f; return; }
+
+            // Pick two who stand close enough to each other and can walk to each other, preferring the ones nearest you and named ones.
+            var pairs = new List<(Agent x, Agent y, float score)>();
             foreach (var x in near)
                 foreach (var y in near)
                 {
@@ -479,91 +485,30 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                     if (d > cfg.AmbientPairDistance) continue;
                     float score = d + x.Position.Distance(me) * 0.5f + y.Position.Distance(me) * 0.5f + (float)Rng.NextDouble() * 6f
                                   + (Named(x) && Named(y) ? 0f : Named(x) || Named(y) ? 10f : 20f);
-                    if (score < best) { best = score; first = x; second = y; }
+                    pairs.Add((x, y, score));
                 }
+            Agent first = null, second = null;
+            foreach (var p in pairs.OrderBy(p => p.score).Take(6))
+            {
+                if (Reachable(p.x, p.y)) { first = p.x; second = p.y; break; }
+                Log.Info($"[scene] pair {p.x.Name} / {p.y.Name} looks close but has no way between them");
+            }
             if (first == null)
             {
-                Log.Info($"[scene] no pair to chat: {near.Count} character(s) within {cfg.AmbientRadius} m, none within {cfg.AmbientPairDistance} m of another");
+                if (pairs.Count == 0) Log.Info($"[scene] no pair to chat: {near.Count} character(s) within {cfg.AmbientRadius} m, none within {cfg.AmbientPairDistance} m of another");
                 _timer = 20f;      // retry soon, people move around
                 return;
             }
             if (Rng.Next(2) == 0) { var tmp = first; first = second; second = tmp; }
-            string da = Describe(first, out var sa), db = Describe(second, out var sb2);
+            Describe(first, out var sa); Describe(second, out var sb2);
             string pairKey = string.CompareOrdinal(sa.Key, sb2.Key) < 0 ? sa.Key + "|" + sb2.Key : sb2.Key + "|" + sa.Key;
             // Don't let the same two start again right away
             if (pairKey == _lastPair && (DateTime.UtcNow - _lastPairAt).TotalSeconds < cfg.AmbientCooldownSeconds * 2) { _timer = 30f; return; }
-            float apart = first.Position.Distance(second.Position);
-            if (cfg.AmbientWalk && apart > 3f) StartWalk(first, second);
-            // Both stay where they are for the whole talk, turned to each other (the walker once it arrives)
-            HoldPair(first, second);
-
-            var others = SharedPeople(st, sa, sb2);
-            string playerKnown = null, onlooker = "nobody in particular";
-            if (Agent.Main.Position.Distance(first.Position) <= 8f || Agent.Main.Position.Distance(second.Position) <= 8f)
-            {
-                string na = ContextBuilder.PlayerNameFor(sa), nb = ContextBuilder.PlayerNameFor(sb2);
-                playerKnown = na ?? nb;
-                if (playerKnown == null) onlooker = "an armed traveller neither of them knows, standing a few steps away";
-                else
-                {
-                    var bits = new List<string>();
-                    foreach (var s in new[] { sa, sb2 })
-                        if (s.IsHero && ContextBuilder.PlayerNameFor(s) != null)
-                            bits.Add($"{s.Name}: {Feeling((int)s.Hero.GetRelationWithPlayer()).Replace("they ", "").Replace("each other", "them")}" + (string.IsNullOrWhiteSpace(s.Memory.Summary) ? "" : $" ({s.Memory.Summary})"));
-                    onlooker = $"{playerKnown}, standing a few steps away" + (bits.Count > 0 ? ". What they make of that person — " + string.Join("; ", bits) : "");
-                }
-            }
-            string before = PairTopics.TryGetValue(pairKey, out var past) && past.Count > 0 ? string.Join(" | ", past.Skip(Math.Max(0, past.Count - 3))) : "(none yet today)";
-            string angle = PickAngle(st, sa, sb2, pairKey, others, playerKnown);
-            // Only named people talk at length. With a commoner or a soldier involved, two or three short lines
-            bool full = sa.IsHero && sb2.IsHero;
-            int maxLines = full ? Math.Max(2, cfg.AmbientMaxLines) : Math.Max(2, cfg.AmbientCommonerLines);
-            int minLines = full ? Math.Min(maxLines, Math.Max(2, maxLines / 2)) : 2;
-            int maxChars = full ? cfg.AmbientMaxChars : Math.Min(cfg.AmbientMaxChars, 90);
-            Log.Info($"[scene] {sa.Name} and {sb2.Name} are going to chat ({apart:0.0} m apart{(_walker != null ? "; " + sa.Name + " walks over" : "")}; topic: {angle})");
             _lastPair = pairKey; _lastPairAt = DateTime.UtcNow;
-            // Turn by turn: ask for a couple of lines at a time, each batch sees what was said before. Costs more
-            // requests, but the talk stops by itself if you step in. Named people only.
-            if (cfg.AmbientTurnByTurn && full)
-            {
-                int step = Math.Max(1, cfg.AmbientTurnSize);
-                string basePrompt = TAmbient.Format("place", st.Name, "a", da, "b", db, "a_mind", Mind(sa, first), "b_mind", Mind(sb2, second), "tie", Tie(sa, sb2), "onlooker", onlooker,
-                    "context", Context(st, sa), "others", others.Count > 0 ? string.Join(", ", others) : "(nobody in particular)", "before", before, "angle", angle,
-                    "min_lines", 1, "max_lines", step, "max_chars", maxChars, "language", cfg.Language);
-                _chain = new Chain { Base = basePrompt, A = first, B = second, SA = sa, SB = sb2, Key = pairKey, Left = maxLines, Step = step };
-                Ask(m, basePrompt + "\n" + TChainFirst.Format("n", step), first, second, sa, sb2, step, 200 + step * 110, pairKey, null, _chain);
-                return;
-            }
-            Ask(m, TAmbient.Format("place", st.Name, "a", da, "b", db, "a_mind", Mind(sa, first), "b_mind", Mind(sb2, second), "tie", Tie(sa, sb2), "onlooker", onlooker,
-                    "context", Context(st, sa), "others", others.Count > 0 ? string.Join(", ", others) : "(nobody in particular)", "before", before, "angle", angle,
-                    "min_lines", minLines, "max_lines", maxLines, "max_chars", maxChars, "language", cfg.Language),
-                first, second, sa, sb2, maxLines, 300 + maxLines * 90, pairKey);
+            StartCircle(st, first, second);
         }
 
-        // ---- turn-by-turn talk
-        private class Chain { public string Base, Key; public Agent A, B; public Speaker SA, SB; public int Left, Step; public readonly List<string> Said = new List<string>(); public Talk Talk; }
-        private static Chain _chain;
-
-        private static readonly Tpl TChainFirst = new Tpl("scene_conversations/turns_opening.txt",
-@"This is only the OPENING of the conversation: write just its first {n} line(s). It will go on afterwards, so do not wrap it up. Add ""done"": false to the JSON.");
-
-        private static readonly Tpl TChainNext = new Tpl("scene_conversations/turns_next.txt",
-@"The conversation so far:
-{said}
-Write ONLY the next {n} line(s), continuing from the last one (whoever was just spoken to answers; one may cut the other off, ending a line with —). {closing}
-Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""done"": false.");
-
-        private static void ContinueChain()
-        {
-            var c = _chain;
-            if (c == null) return;
-            if (Mission.Current != _mission || c.A == null || !c.A.IsActive() || c.B == null || !c.B.IsActive() || c.Left <= 0 || c.A.Position.Distance(c.B.Position) > 8f) { _chain = null; return; }
-            int n = Math.Min(c.Step, c.Left);
-            string closing = c.Left <= c.Step ? "These are the LAST lines: bring it to its natural end (a decision, a shrug, a laugh, one of them cutting it short)." : "Do not end it yet unless it would really end here.";
-            Ask(_mission, c.Base + "\n" + TChainNext.Format("said", string.Join("\n", c.Said), "n", n, "closing", closing), c.A, c.B, c.SA, c.SB, n, 200 + n * 110, c.Key, null, c);
-        }
-
-        private static void Ask(Mission m, string prompt, Agent a, Agent b, Speaker sa, Speaker sb, int maxLines = 4, int tokens = 350, string pairKey = null, Errand errand = null, Chain chain = null)
+        private static void Ask(Mission m, string prompt, Agent a, Agent b, Speaker sa, Speaker sb, int maxLines = 4, int tokens = 350, string pairKey = null, Errand errand = null)
         {
             _busy = true;
             int gen = _gen;
@@ -578,38 +523,17 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     try
                     {
                         // asked in another campaign: nothing of it is said, heard or remembered in this one
-                        if (session != WorldSim.Session) { if (chain != null && _chain == chain) _chain = null; return; }
-                        if (res == null || !res.Ok) { Log.Warn("[scene] the AI gave no chat: " + res?.Error); if (chain != null && _chain == chain) _chain = null; return; }
-                        if (Mission.Current != m || a == null || !a.IsActive() || gen != _gen) { if (chain != null && _chain == chain) _chain = null; return; }
+                        if (session != WorldSim.Session) { return; }
+                        if (res == null || !res.Ok) { Log.Warn("[scene] the AI gave no chat: " + res?.Error); return; }
+                        if (Mission.Current != m || a == null || !a.IsActive() || gen != _gen) { return; }
                         int i0 = res.Text.IndexOf('{'), i1 = res.Text.LastIndexOf('}');
-                        if (i0 < 0 || i1 <= i0) { if (chain != null && _chain == chain) _chain = null; return; }
+                        if (i0 < 0 || i1 <= i0) { return; }
                         var j = JObject.Parse(res.Text.Substring(i0, i1 - i0 + 1));
-                        if (chain != null)
-                        {
-                            int got = 0;
-                            if (j["lines"] is JArray cl)
-                                foreach (var l in cl.OfType<JObject>().Take(maxLines))
-                                {
-                                    string tx = ((string)l["text"] ?? "").Trim();
-                                    if (tx.Length < 2) continue;
-                                    bool cb = ((string)l["who"] ?? "A").Trim().ToUpperInvariant() == "B";
-                                    chain.Said.Add((cb ? "B" : "A") + " (" + (cb ? sb?.Name : sa?.Name) + "): " + tx);
-                                    got++;
-                                }
-                            chain.Left -= Math.Max(1, got);
-                            bool done = got == 0 || chain.Left <= 0 || (j["done"] != null && j["done"].Type == JTokenType.Boolean && (bool)j["done"]);
-                            if (done && _chain == chain) _chain = null;
-                        }
                         if (errand != null) errand.Report = ((string)j["report"] ?? "").Trim();
                         if (!(j["lines"] is JArray lines)) return;
                         int max = S.Get.AmbientMaxChars + 60;
-                        // the talk these lines belong to (one for a whole turn-by-turn chain)
-                        Talk talk = chain?.Talk;
-                        if (talk == null && sa != null)
-                        {
-                            talk = new Talk { A = sa, B = b != null ? sb : null, Place = Settlement.CurrentSettlement?.Name?.ToString() };
-                            if (chain != null) chain.Talk = talk;
-                        }
+                        // the talk these lines belong to
+                        Talk talk = sa != null ? new Talk { A = sa, B = b != null ? sb : null, Place = Settlement.CurrentSettlement?.Name?.ToString() } : null;
                         foreach (var l in lines.OfType<JObject>().Take(maxLines))
                         {
                             string text = ((string)l["text"] ?? "").Trim();
@@ -673,7 +597,6 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 _voiceWait = null; _afterVoice = false; _voiceHold = 0f;
                 _paused = false;
             }
-            _chain = null;      // if you step in, their private talk ends
             _mission = m;
             foreach (var l in lines) Play.Enqueue(new Line { Who = l.who, To = l.to, Text = l.text, Mood = l.mood, Quiet = true, Pre = l.pre, Deferred = l.deferred, Group = true });
         }
@@ -836,6 +759,8 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             try
             {
                 var cfg = S.Get;
+                // The background circles run on their own: they keep going while other lines play and wait out fights
+                TickCircles(dt, cfg);
                 if (!cfg.EnableAmbient || !SceneOk(out var st))
                 {
                     // Group talk also works where scene chats don't (on the road, or with them turned off): its lines still play
@@ -877,7 +802,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     else return;
                 }
 
-                if (Play.Count > 0 || _lineLeft > 0f || _voiceWait != null || _afterVoice || _paused || (_chain != null && !_busy))
+                if (Play.Count > 0 || _lineLeft > 0f || _voiceWait != null || _afterVoice || _paused)
                 {
                     PlayStep(dt, cfg, talking, window);
                     return;
@@ -892,7 +817,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     return;
                 }
                 // the AI gave no talk (or it is over): don't leave them standing there
-                if ((_walker != null || Held.Count > 0) && !_busy && _chain == null) ReleaseWalker();
+                if ((_walker != null || Held.Count > 0) && !_busy) ReleaseWalker();
                 if (_busy || talking || Initiative.Busy) return;
                 if (!Bubbles.Available)
                 {
@@ -935,7 +860,7 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             if (talking)
             {
                 // the scene talk waits until the window closes
-                bool scene = Play.Any(l => !l.Group) || (_voiceWait != null && !_voiceWait.Group) || (!_curGroup && (_lineLeft > 0f || _afterVoice)) || _chain != null;
+                bool scene = Play.Any(l => !l.Group) || (_voiceWait != null && !_voiceWait.Group) || (!_curGroup && (_lineLeft > 0f || _afterVoice));
                 if (scene) { Pause(); return; }
                 if (window || Play.Count == 0) { if (_lineLeft > 0f) _lineLeft -= dt; return; }
             }
@@ -964,15 +889,9 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             }
             StopLooking();
             _curGroup = false;
-            if (Play.Count == 0 && _chain != null && !_busy)
-            {
-                // Turn by turn and not finished yet: ask for the next batch
-                ContinueChain();
-                if (_chain != null) return;
-            }
             if (Play.Count == 0)
             {
-                if (_busy || _chain != null) return;
+                if (_busy) return;
                 ReleaseWalker();
                 if (_ambientPlaying)
                 {
@@ -1124,14 +1043,13 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
         {
             _paused = false;
             var next = Play.FirstOrDefault(x => !x.Group);
-            Agent a = next?.Who ?? _chain?.A, b = next != null ? (next.To != Agent.Main ? next.To : null) : _chain?.B;
+            Agent a = next?.Who, b = next != null && next.To != Agent.Main ? next.To : null;
             if (a == null || !a.IsActive() || (b != null && (!b.IsActive() || a.Position.Distance(b.Position) > 8f)))
             {
-                if (next != null || _chain != null) Log.Info("[scene] after the dialogue window the two are no longer together: their talk ends");
+                if (next != null) Log.Info("[scene] after the dialogue window the two are no longer together: their talk ends");
                 var keep = Play.Where(x => x.Group).ToList();
                 Play.Clear();
                 foreach (var x in keep) Play.Enqueue(x);
-                _chain = null;
                 _lineLeft = 0f; _afterVoice = false;
                 return;
             }

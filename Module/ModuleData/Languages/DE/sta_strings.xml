@@ -2382,5 +2382,10 @@
     <string id="AIL_e7b1ca0a" text="Hängenden Dialog zwangsweise schließen" />
     <string id="AIL_e7b1ca0b" text="Schließen" />
     <string id="AIL_e7b1ca0c" text="Wenn ein Gespräch hängt (das Feld reagiert nicht, das Fenster schließt sich nicht oder die Karte bleibt bei einer Begegnung stehen), schließt dies es: das AI-Legacy-Gespräch, das Gespräch des Spiels und eine offene Begegnung auf der Karte ohne Schlacht. Das Gesagte bleibt erhalten." />
+    <string id="AIL_e7b1ce00" text="{0} wendet sich an dich: Du bist jetzt Teil ihres Gesprächs (Alt+T zum Antworten)." />
+    <string id="AIL_e7b1ce01" text="Höchstzahl an Personen in einem Gespräch zwischen Figuren" />
+    <string id="AIL_e7b1ce02" text="Wie viele in einem Gespräch zwischen Figuren stehen können: die zwei, die es begonnen haben, und die, die dazugekommen sind. Wer unterwegs ist, belegt schon einen Platz. Wendet sich einer von ihnen an dich, wird das Gespräch zu deinem Gruppengespräch und dessen Grenze gilt." />
+    <string id="AIL_e7b1ce03" text="Gleichzeitige Gespräche zwischen Figuren" />
+    <string id="AIL_e7b1ce04" text="Wie viele Gespräche zwischen Figuren gleichzeitig um dich herum laufen können, zusätzlich zu deinem eigenen Gruppengespräch. Jedes schickt eigene Anfragen an die KI, mehr bedeutet also mehr Last." />
   </strings>
 </base>

@@ -2382,5 +2382,10 @@
     <string id="AIL_e7b1ca0a" text="Forçar o fechamento de um diálogo travado" />
     <string id="AIL_e7b1ca0b" text="Fechar" />
     <string id="AIL_e7b1ca0c" text="Se uma conversa travar (a caixa não responde, a janela não fecha ou o mapa fica preso num encontro), isto a fecha: a conversa do AI Legacy, a conversa do jogo e um encontro aberto no mapa sem batalha. O que foi dito é mantido." />
+    <string id="AIL_e7b1ce00" text="{0} se dirige a você: agora você faz parte da conversa (Alt+T para responder)." />
+    <string id="AIL_e7b1ce01" text="Máximo de pessoas numa conversa entre personagens" />
+    <string id="AIL_e7b1ce02" text="Quantos cabem numa conversa entre personagens: os dois que a começaram e os que se aproximaram para participar. Quem está a caminho já ocupa um lugar. Quando um deles se dirige a você, a conversa vira sua conversa em grupo e vale o limite dela." />
+    <string id="AIL_e7b1ce03" text="Conversas entre personagens ao mesmo tempo" />
+    <string id="AIL_e7b1ce04" text="Quantas conversas entre personagens podem acontecer ao mesmo tempo ao seu redor, além da sua própria conversa em grupo. Cada uma faz seus próprios pedidos à IA, então mais conversas significam mais carga." />
   </strings>
 </base>

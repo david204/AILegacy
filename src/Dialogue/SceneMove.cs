@@ -34,11 +34,14 @@ namespace AILegacy.Dialogue
             {
                 if (a == null || target == null || a == target || !a.IsActive() || !target.IsActive() || !a.IsAIControlled || a.MountAgent != null) return false;
                 SceneActions.StandFromGround(a);
-                Seated.Remove(a);
+                // A seated one we were only turning the head of: let go of that before they walk
+                if (Seated.Remove(a)) { try { a.SetLookAgent(null); } catch { } }
                 var g = Group(a);
                 if (g != null)
                 {
                     if (g.ScriptedBehavior is FollowAgentBehavior && !Ours.Contains(a)) return false;      // already following someone (with you)
+                    // Held on the spot by us: end that hold first, so the walk takes over from their normal state
+                    if (g.ScriptedBehavior is HoldBehavior && Ours.Contains(a)) { try { g.DisableScriptedBehavior(); a.DisableScriptedMovement(); } catch { } }
                     try { if (a.IsUsingGameObject) a.StopUsingGameObject(); } catch { }
                     var f = g.GetBehavior<FollowAgentBehavior>() ?? g.AddBehavior<FollowAgentBehavior>();
                     g.SetScriptedBehavior<FollowAgentBehavior>();
@@ -126,7 +129,16 @@ namespace AILegacy.Dialogue
         /// <summary>Takes charge of someone the game itself set following (brought into the scene behind the player), so they can be released.</summary>
         public static void Adopt(Agent a) { if (a != null) Ours.Add(a); }
 
-        public static void Forget() { Ours.Clear(); Seated.Clear(); }
+        /// <summary>
+        /// Lets go of everyone we were walking or holding (their own routine comes back), then forgets them. Agents of a
+        /// mission that is already over are skipped by Release.
+        /// </summary>
+        public static void Forget()
+        {
+            foreach (var a in new List<Agent>(Seated.Keys)) Release(a);
+            foreach (var a in new List<Agent>(Ours)) Release(a);
+            Ours.Clear(); Seated.Clear();
+        }
     }
 
     /// <summary>

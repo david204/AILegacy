@@ -2382,5 +2382,10 @@
     <string id="AIL_e7b1ca0a" text="Force close a stuck dialogue" />
     <string id="AIL_e7b1ca0b" text="Close" />
     <string id="AIL_e7b1ca0c" text="If a conversation hangs (the box does not answer, the window does not close, or the map is left on an encounter), this closes it: the AI Legacy talk, the game's conversation and an open encounter on the map with no battle. What was said is kept." />
+    <string id="AIL_e7b1ce00" text="{0} turns to you: you are now part of their conversation (Alt+T to answer)." />
+    <string id="AIL_e7b1ce01" text="Most people in one chat between characters" />
+    <string id="AIL_e7b1ce02" text="How many can stand in one chat between characters: the two who started it and those who walked over to join. Someone on the way already takes a place. When one of them turns to you, the chat becomes your group conversation and its limit applies." />
+    <string id="AIL_e7b1ce03" text="Chats between characters at the same time" />
+    <string id="AIL_e7b1ce04" text="How many chats between characters can go on at once around you, besides your own group conversation. Each one sends its own requests to the AI, so more means more load." />
   </strings>
 </base>

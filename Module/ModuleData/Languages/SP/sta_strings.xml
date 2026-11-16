@@ -2382,5 +2382,10 @@
     <string id="AIL_e7b1ca0a" text="Forzar el cierre de un diálogo atascado" />
     <string id="AIL_e7b1ca0b" text="Cerrar" />
     <string id="AIL_e7b1ca0c" text="Si una conversación se queda colgada (la caja no responde, la ventana no se cierra o el mapa se queda en un encuentro), esto la cierra: la charla de AI Legacy, la conversación del juego y un encuentro abierto en el mapa sin batalla. Lo hablado se conserva." />
+    <string id="AIL_e7b1ce00" text="{0} se dirige a ti: ya formas parte de su conversación (Alt+T para contestar)." />
+    <string id="AIL_e7b1ce01" text="Máximo de personas en una charla entre personajes" />
+    <string id="AIL_e7b1ce02" text="Cuántos caben en una charla entre personajes: los dos que la empezaron y los que se acercaron a unirse. Quien va de camino ya ocupa un sitio. Cuando uno de ellos se dirige a ti, la charla pasa a ser tu conversación de grupo y se aplica su límite." />
+    <string id="AIL_e7b1ce03" text="Charlas entre personajes a la vez" />
+    <string id="AIL_e7b1ce04" text="Cuántas charlas entre personajes pueden darse a la vez a tu alrededor, aparte de tu propia conversación de grupo. Cada una hace sus propias peticiones a la IA, así que más charlas son más carga." />
   </strings>
 </base>

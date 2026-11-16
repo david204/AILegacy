@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AILegacy.Core;
 using AILegacy.Dialogue;
@@ -26,6 +27,8 @@ namespace AILegacy.UI
     /// <summary>
     /// Adds to the game's conversation screen: relation, trust and romance bars next to the name (plus a warning when they
     /// suspect lies or there's tension), and a button that opens a scrollable history of past talks above the dialogue box.
+    /// During an AI Legacy talk it also feeds the scrollable panel that replaces the game's text inside the box
+    /// (ConversationTalkPanel) with every line of the current talk.
     /// </summary>
     [ViewModelMixin("Refresh")]
     internal sealed class ConversationMixin : BaseViewModelMixin<MissionConversationVM>
@@ -43,10 +46,21 @@ namespace AILegacy.UI
         private string _historyOf;
         private int _historyCount = -1;
 
+        // ---- the current talk in the dialogue box (ConversationTalkPanel)
+        private static float _talkSince;
+        private bool _talkActive, _nativeTextVisible = true;
+        private int _talkScrollVersion, _talkAnchor = -1;
+        private MBBindingList<AilTalkLineVM> _talkLines = new MBBindingList<AilTalkLineVM>();
+        private ChatSession _talkOf;
+        private int _talkRevision = -1;
+        private ChatSession.TalkKind? _pendingKind;
+        private AilTalkLineVM _pendingVm;
+
         public ConversationMixin(MissionConversationVM vm) : base(vm)
         {
             _current = new WeakReference<ConversationMixin>(this);
             try { Recompute(); } catch (Exception ex) { Log.Error("Conversation: bars", ex); }
+            try { UpdateTalk(); } catch (Exception ex) { Log.Error("Conversation: talk panel", ex); }
         }
 
         /// <summary>True while the bars are on screen, so the stats line under the reply can be skipped.</summary>
@@ -75,6 +89,14 @@ namespace AILegacy.UI
         /// <summary>Runs twice a second. The numbers change after each reply and the game doesn't refresh its screen on its own.</summary>
         public static void Tick(float dt)
         {
+            // the talk panel follows the reply as it is written, at the pace ChatSession paints it
+            _talkSince += dt;
+            if (_talkSince >= 0.1f)
+            {
+                _talkSince = 0f;
+                try { if (_current != null && _current.TryGetTarget(out var t)) t.UpdateTalk(); }
+                catch (Exception ex) { Log.Error("Conversation: talk panel", ex); }
+            }
             _since += dt;
             if (_since < 0.5f) return;
             _since = 0f;
@@ -85,6 +107,79 @@ namespace AILegacy.UI
         public override void OnRefresh()
         {
             try { Recompute(); } catch (Exception ex) { Log.Error("Conversation: bars", ex); }
+            // the conversation moved to another line: our panel or the game's text, at once, so neither flashes
+            try { UpdateTalk(); } catch (Exception ex) { Log.Error("Conversation: talk panel", ex); }
+        }
+
+        // Our player options in the AI Legacy dialogue states (AILegacyBehavior.AddDialogStyleLines). While one of them is
+        // on screen the box belongs to our talk; anywhere else (the game's own branches, "Anything else?") it is the game's.
+        private static readonly HashSet<string> TalkOptions = new HashSet<string>
+        {
+            "ailegacy_d_view", "ailegacy_d_backw", "ailegacy_d_say", "ailegacy_d_log", "ailegacy_d_video_make", "ailegacy_d_video_show",
+            "ailegacy_d_picture", "ailegacy_d_flag", "ailegacy_d_leave", "ailegacy_d_back", "ailegacy_d_cont",
+        };
+
+        private static bool InOurTalk(ChatSession c)
+        {
+            if (c == null || !ChatSession.IsBusy || ChatSession.Active != c || !c.IsDialogMode || !c.HasTalkToShow) return false;
+            var cm = Campaign.Current?.ConversationManager;
+            if (cm == null || !cm.IsConversationInProgress || cm.CurOptions == null) return false;
+            foreach (var o in cm.CurOptions) if (o.Id != null && TalkOptions.Contains(o.Id)) return true;
+            return false;
+        }
+
+        /// <summary>Fills the talk panel from the session and decides whether it or the game's text shows.</summary>
+        private void UpdateTalk()
+        {
+            var c = ChatSession.Active;
+            bool active = InOurTalk(c);
+            if (!active)
+            {
+                if (AilTalkActive) { AilTalkActive = false; AilNativeTextVisible = true; }
+                if (c == null && _talkOf != null) { _talkOf = null; _talkRevision = -1; _pendingVm = null; _pendingKind = null; _talkLines.Clear(); }
+                return;
+            }
+
+            var pending = c.TalkPending();
+            bool rebuild = c != _talkOf || c.TalkRevision != _talkRevision || (pending?.Kind) != _pendingKind;
+            bool changed = rebuild;
+            if (rebuild)
+            {
+                _talkOf = c; _talkRevision = c.TalkRevision; _pendingKind = pending?.Kind;
+                _talkLines.Clear();
+                _pendingVm = null;
+                int anchor = -1;
+                foreach (var l in c.TalkLines) AddTalkVm(l, ref anchor);
+                if (pending != null) _pendingVm = AddTalkVm(pending, ref anchor);
+                string stats = c.TalkStats;
+                if (!string.IsNullOrEmpty(stats)) AddTalkVm(new ChatSession.TalkLine { Kind = ChatSession.TalkKind.Note, Text = stats }, ref anchor);
+                AilTalkAnchor = anchor;
+            }
+            else if (pending != null && _pendingVm != null && _pendingVm.Text != pending.Text)
+            {
+                _pendingVm.Text = pending.Text;      // the reply grows as it is written
+                changed = true;
+            }
+
+            if (!AilTalkActive) { AilNativeTextVisible = false; AilTalkActive = true; changed = true; }
+            if (changed) AilTalkScrollVersion = _talkScrollVersion + 1;
+        }
+
+        private AilTalkLineVM AddTalkVm(ChatSession.TalkLine l, ref int anchor)
+        {
+            bool note = l.Kind == ChatSession.TalkKind.Note;
+            var vm = new AilTalkLineVM
+            {
+                Speaker = l.Speaker ?? "",
+                Text = l.Text ?? "",
+                IsPlayer = l.Kind == ChatSession.TalkKind.Player,
+                IsNpc = l.Kind == ChatSession.TalkKind.Npc,
+                IsNote = note,
+                HasSeparator = !note && _talkLines.Count > 0,
+            };
+            if (!note) anchor = _talkLines.Count;
+            _talkLines.Add(vm);
+            return vm;
         }
 
         public override void OnFinalize()
@@ -225,6 +320,13 @@ namespace AILegacy.UI
         [DataSourceProperty] public int AilRomanceFill { get => _romanceFill; set { if (value != _romanceFill) { _romanceFill = value; OnPropertyChangedWithValue(value, nameof(AilRomanceFill)); } } }
         [DataSourceProperty] public int AilScrollVersion { get => _scrollVersion; set { if (value != _scrollVersion) { _scrollVersion = value; OnPropertyChangedWithValue(value, nameof(AilScrollVersion)); } } }
         [DataSourceProperty] public MBBindingList<AilHistoryLineVM> AilHistory { get => _history; set { if (value != _history) { _history = value; OnPropertyChangedWithValue(value, nameof(AilHistory)); } } }
+
+        // ---- talk panel in the dialogue box
+        [DataSourceProperty] public bool AilTalkActive { get => _talkActive; set { if (value != _talkActive) { _talkActive = value; OnPropertyChangedWithValue(value, nameof(AilTalkActive)); } } }
+        [DataSourceProperty] public bool AilNativeTextVisible { get => _nativeTextVisible; set { if (value != _nativeTextVisible) { _nativeTextVisible = value; OnPropertyChangedWithValue(value, nameof(AilNativeTextVisible)); } } }
+        [DataSourceProperty] public int AilTalkScrollVersion { get => _talkScrollVersion; set { if (value != _talkScrollVersion) { _talkScrollVersion = value; OnPropertyChangedWithValue(value, nameof(AilTalkScrollVersion)); } } }
+        [DataSourceProperty] public int AilTalkAnchor { get => _talkAnchor; set { if (value != _talkAnchor) { _talkAnchor = value; OnPropertyChangedWithValue(value, nameof(AilTalkAnchor)); } } }
+        [DataSourceProperty] public MBBindingList<AilTalkLineVM> AilTalk { get => _talkLines; set { if (value != _talkLines) { _talkLines = value; OnPropertyChangedWithValue(value, nameof(AilTalk)); } } }
     }
 
     /// <summary>
