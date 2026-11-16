@@ -750,6 +750,7 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
             Func<string, bool> onPartial = raw => { if (session != WorldSim.Session || gen != _gen) return false; _liveRaw = raw; return true; };
             int tokens = Math.Max(300, 120 + maxLines * 110);
             Log.Info($"[group] asking for a round ({kind}, {maxLines} line(s) at most, {circle.Count} present)");
+            prompt += AILegacy.Voice.Speech.ToneAsk(cfg.Language);
             LlmClient.CompleteStreamedAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, onPartial: onPartial, task: "group", maxTokensOverride: tokens, preferredProvider: cfg.ProviderHeroes, raw: true).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
@@ -837,6 +838,7 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
                     foreach (var l in arr.OfType<JObject>().Take(Math.Max(1, r.MaxLines)))
                     {
                         string said = ((string)l["text"] ?? "").Trim();
+                        AILegacy.Voice.Speech.NoteTone(said, (string)l["tts_instructions"]);
                         int idx = 0;
                         string whoRaw = (l["who"]?.ToString() ?? "").Trim();
                         int.TryParse(new string(whoRaw.Where(char.IsDigit).ToArray()), out idx);

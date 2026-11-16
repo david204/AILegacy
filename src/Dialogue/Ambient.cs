@@ -514,6 +514,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             int gen = _gen;
             int session = WorldSim.Session;
             string provider = (sa != null && sa.IsHero) || (sb != null && sb.IsHero) ? S.Get.ProviderHeroes : S.Get.ProviderResidents;
+            prompt += AILegacy.Voice.Speech.ToneAsk(S.Get.Language);
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "ambient", maxTokensOverride: tokens, preferredProvider: provider).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
@@ -539,6 +540,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                             string text = ((string)l["text"] ?? "").Trim();
                             if (text.Length < 2) continue;
                             if (text.Length > max) text = text.Substring(0, max);
+                            AILegacy.Voice.Speech.NoteTone(text, (string)l["tts_instructions"]);
                             bool isB = ((string)l["who"] ?? "A").Trim().ToUpperInvariant() == "B" && b != null;
                             Play.Enqueue(new Line { Who = isB ? b : a, To = isB ? a : (b ?? Agent.Main), Text = text, Mood = (string)l["mood"],
                                                     WhoS = isB ? sb : sa, ToS = isB ? sa : (b != null ? sb : null), Talk = talk });
@@ -917,7 +919,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             _curGroup = l.Group;
             if (voiced)
             {
-                AILegacy.Voice.Speech.Say((l.Who.Character?.StringId ?? "") + "|" + l.Who.Name, l.Who.IsFemale, l.Text);
+                AILegacy.Voice.Speech.Say((l.Who.Character?.StringId ?? "") + "|" + l.Who.Name, l.Who.IsFemale, l.Text, agent: l.Who);
                 if (AILegacy.Voice.Speech.IsSpeaking) { _voiceWait = l; _voiceWaitLeft = 10f; return; }
             }
             Present(l, cfg, 0f, false);

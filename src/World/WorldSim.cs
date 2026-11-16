@@ -218,6 +218,8 @@ namespace AILegacy.World
         [JsonProperty("next_unique_day")] public double NextUniqueDay = -1;
         [JsonProperty("fatigue")] public Dictionary<string, float> WarFatigue = new Dictionary<string, float>();
         [JsonProperty("taxes")] public Dictionary<string, int> KingdomTaxPercent = new Dictionary<string, int>();
+        /// <summary>The voice each character speaks with, "F:name" or "M:name", by their voice key. Given once and kept.</summary>
+        [JsonProperty("tts_voices")] public Dictionary<string, string> Voices = new Dictionary<string, string>();
         /// <summary>Which places the realm's rate covers (all, towns, castles, villages). Missing: towns and castles, as before scopes.</summary>
         [JsonProperty("tax_scope")] public Dictionary<string, string> KingdomTaxScope = new Dictionary<string, string>();
         /// <summary>Rates set for one place alone, key "kingdom|settlement". They win over the realm's rate while the realm holds the place.</summary>
@@ -360,6 +362,7 @@ namespace AILegacy.World
             try { Dialogue.Combat.ResetSession(); } catch { }
             try { Dialogue.SceneActions.ResetSession(); } catch { }
             try { Dialogue.SceneMatters.ResetSession(); } catch { }
+            try { AILegacy.Voice.Speech.ResetSession(); } catch { }
             try { Dialogue.NpcActions.ResetSession(); } catch { }
             try { Scenes.MapTalk.ResetSession(); } catch { }
             try { Letters.LetterSystem.ResetSession(); } catch { }

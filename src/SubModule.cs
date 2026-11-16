@@ -106,6 +106,7 @@ namespace AILegacy
             t = Perf.Begin(); Dialogue.Justice.Tick(dt); Perf.End("tick:Justice", t);
             t = Perf.Begin(); Dialogue.GroupTalk.Tick(dt); Perf.End("tick:GroupTalk", t);
             t = Perf.Begin(); Dialogue.SceneActions.Tick(dt); Perf.End("tick:SceneActions", t);
+            t = Perf.Begin(); AILegacy.Voice.Speech.Tick(); Perf.End("tick:Voice", t);
             t = Perf.Begin(); Battle.BattleAI.Tick(dt); Perf.End("tick:BattleAI", t);
             t = Perf.Begin(); Scenes.MapTalk.Tick(dt); Perf.End("tick:MapTalk", t);
             t = Perf.Begin(); Dialogue.Ambient.Tick(dt); Perf.End("tick:Ambient", t);

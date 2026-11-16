@@ -2173,18 +2173,18 @@
     <string id="AIL_e7b1c841" text="concubine" />
     <string id="AIL_e7b1c842" text="concubine" />
     <string id="AIL_e7b1c843" text="Voice of the characters" />
-    <string id="AIL_e7b1c844" text="Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Off = silent." />
+    <string id="AIL_e7b1c844" text="Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Fish Audio uses your own Fish Audio key; its s2.1-pro-free model costs nothing. Off = silent." />
     <string id="AIL_e7b1c845" text="H. Voice" />
     <string id="AIL_e7b1c846" text="Voice: volume" />
     <string id="AIL_e7b1c847" text="Voice: speed (-10 slow, 10 fast)" />
     <string id="AIL_e7b1c848" text="Voice: also in groups and scene talk" />
     <string id="AIL_e7b1c849" text="On: lines spoken in group talk and between people in the scene are read out too, one after another. Off: only the person you are talking to." />
     <string id="AIL_e7b1c84a" text="Voice: male voices (comma-separated)" />
-    <string id="AIL_e7b1c84b" text="Each man always gets the same one of these. Windows: part of a voice's name (empty = any male voice installed). OpenAI: onyx, echo, ash… Compatible server: its own voice names. Piper: full paths to .onnx voice models." />
+    <string id="AIL_e7b1c84b" text="Each man always gets the same one of these. Windows: part of a voice's name (empty = any male voice installed). OpenAI: onyx, echo, ash… Compatible server: its own voice names. Piper: full paths to .onnx voice models. Fish Audio: ids of its voice models." />
     <string id="AIL_e7b1c84c" text="Voice: female voices (comma-separated)" />
-    <string id="AIL_e7b1c84d" text="Each woman always gets the same one of these. Windows: part of a voice's name (empty = any female voice installed). OpenAI: nova, shimmer, coral… Compatible server: its own voice names. Piper: full paths to .onnx voice models." />
-    <string id="AIL_e7b1c84e" text="Voice: model (OpenAI or compatible server)" />
-    <string id="AIL_e7b1c84f" text="Empty = gpt-4o-mini-tts for OpenAI, kokoro for a compatible server." />
+    <string id="AIL_e7b1c84d" text="Each woman always gets the same one of these. Windows: part of a voice's name (empty = any female voice installed). OpenAI: nova, shimmer, coral… Compatible server: its own voice names. Piper: full paths to .onnx voice models. Fish Audio: ids of its voice models." />
+    <string id="AIL_e7b1c84e" text="Voice: model (OpenAI, compatible server or Fish Audio)" />
+    <string id="AIL_e7b1c84f" text="Empty = gpt-4o-mini-tts for OpenAI, kokoro for a compatible server, s2.1-pro-free (free) for Fish Audio." />
     <string id="AIL_e7b1c850" text="Voice: compatible server address" />
     <string id="AIL_e7b1c851" text="The part of the address before /audio/speech, for example http://127.0.0.1:8880/v1 for a local Kokoro." />
     <string id="AIL_e7b1c852" text="Voice: compatible server key (if it asks for one)" />
@@ -2736,5 +2736,17 @@
     <string id="AIL_e7b1dd27" text="all its lands" />
     <string id="AIL_e7b1dd30" text="Pictures: one for each new world event" />
     <string id="AIL_e7b1dd31" text="Each new event of the world gets a wide picture on its card in the news window, drawn by the source above (a later chapter of the same story keeps the first one's). It costs one AI request for the description and, with OpenAI, the price of a picture each time. If it fails, the card just has no picture. Default: off." />
+    <string id="AIL_e7b1dd40" text="The voice could not speak: the service answered {0} ({1}). Check the key, the model and the voices in H. Voice." />
+    <string id="AIL_e7b1dd41" text="Fish Audio: your key is missing in H. Voice (you create it on fish.audio, under API Keys)." />
+    <string id="AIL_e7b1dd42" text="Fish Audio does not accept your key. Copy it again from fish.audio (API Keys) into H. Voice." />
+    <string id="AIL_e7b1dd43" text="Fish Audio: you have no credit for the model {0}. Leave the model empty to use the free one ({1})." />
+    <string id="AIL_e7b1dd44" text="Fish Audio cannot find the voice {0} or the model {1}. The voice lists take the ids of fish.audio voice models, separated by commas." />
+    <string id="AIL_e7b1dd45" text="Fish Audio: too many requests at once. Some lines will have no voice." />
+    <string id="AIL_e7b1dd46" text="Voice: Fish Audio key" />
+    <string id="AIL_e7b1dd47" text="Your own key from fish.audio (API Keys). The voices are the ids of Fish Audio voice models (the long code of a voice, like 536d3a5e000945adb7038665781a4aca), in the male and female lists above. Model empty = s2.1-pro-free, which costs nothing under fair use; s2.1-pro is paid." />
+    <string id="AIL_e7b1dd50" text="Voice: lip movement (lip sync)" />
+    <string id="AIL_e7b1dd51" text="The mouth of whoever speaks moves with their voice, in dialogues on the map and in scenes, as with the game's own voiced lines. Needs rhubarb.exe next to AILegacy.dll (it comes with the mod). Off: only the sound, the mouth stays still; faces and gestures have their own setting. Default: on." />
+    <string id="AIL_e7b1dd52" text="Voice: 3D in scenes" />
+    <string id="AIL_e7b1dd53" text="In towns, castles and villages a voice comes from whoever speaks and follows them: louder up close, from their side, and not heard past the hearing distance (the same as for overhearing). Off: every voice sounds the same wherever they are. Default: on." />
   </strings>
 </base>

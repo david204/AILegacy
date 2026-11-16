@@ -80,6 +80,9 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
         private static readonly Tpl TJsonEmotion = new Tpl("json_output/emotion_gesture.txt",
             "\"emotion\": \"how you look while you say it, exactly one of: {emotions}\", " +
             "\"gesture\": \"what you do with your body as you say it, exactly one of: {gestures} (none most of the time; a gesture fits what you say and feel)\"");
+        // How the reply is said aloud: only asked for with a voice on
+        private static readonly Tpl TJsonTts = new Tpl("json_output/tts_instructions.txt",
+            "\"tts_instructions\": \"how you say it aloud, for your voice: mood, emotion, pace and delivery, 20 to 200 characters, written in {language} like the reply\"");
         private static readonly Tpl TMinor = new Tpl("rules/minor_speaker.txt",
 @"## You are a child
 You are a child of about {age}. Think and talk like one: simple words, short sentences, curiosity, shyness or cheek, your games, your family and your street. You know nothing of trade, war or politics beyond what children hear.
@@ -302,6 +305,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             fields.Add(TJsonReply.Text);
             fields.Add(TJsonMood.Format("language", cfg.Language));
             if (cfg.EnableGestures) fields.Add(TJsonEmotion.Format("emotions", Gestures.Emotions, "gestures", Gestures.GestureNames));
+            if (AILegacy.Voice.Speech.Enabled) fields.Add(TJsonTts.Format("language", cfg.Language));
             if (s.IsHero) fields.Add(TJsonRelation.Format("max", cfg.MaxRelationChangePerReply));
             if (cfg.EnableTrust) fields.Add(TJsonTrust.Format("max", cfg.MaxTrustChangePerReply));
             if (cfg.EnableTension) fields.Add(TJsonTension.Format("max", cfg.MaxTensionChangePerReply));

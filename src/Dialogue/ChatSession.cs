@@ -275,7 +275,19 @@ namespace AILegacy.Dialogue
             _emotion = emotion ?? ""; _gesture = gesture ?? ""; _lookShown = false;
             HasUnreadReply = true;
             Seeded = true;
-            try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, _lastNpc); } catch { }
+            // made first; it plays when the opening line shows, or at once if it is already on screen
+            string said = _lastNpc;
+            bool asked = false;
+            try
+            {
+                asked = AILegacy.Voice.Speech.Prepare(_s.Key, _s.IsFemale, said, null, p => MainThread.Post(() =>
+                {
+                    if (_closed || p == null) return;
+                    try { AILegacy.Voice.Speech.PlayPrepared(p, waitForLine: HasUnreadReply && _lastNpc == said); } catch { }
+                }));
+            }
+            catch { }
+            if (!asked) { try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, said); } catch { } }
             _lines++;
             _answered++;
         }
@@ -425,6 +437,8 @@ namespace AILegacy.Dialogue
             if (HasUnreadReply && _lastNpc.Length > 0 && !_lastNpc.StartsWith("(") && !_lookShown)
             {
                 _lookShown = true;
+                // the line about to show is their reply: its voice, if ready, plays with it (Patches\VoiceLinePatch.cs)
+                AILegacy.Voice.Speech.ChatLineShowing = true;
                 tags = Gestures.Tags(_emotion, _gesture);
                 if (tags.Length > 0) QueueClip(_gesture);
             }
@@ -542,6 +556,8 @@ namespace AILegacy.Dialogue
 
         // Bumped when a reply is shown: a voice made ready after that (or after the wait ran out) is not for it
         private int _prepGen;
+        // How the reply is to be said aloud (the AI's tts_instructions)
+        private string _tone;
         // The reply is in; its voice is being made before it is shown
         private bool _preparing;
 
@@ -555,12 +571,13 @@ namespace AILegacy.Dialogue
                 bool asked = false;
                 try
                 {
-                    asked = AILegacy.Voice.Speech.Prepare(_s.Key, _s.IsFemale, text, wav => MainThread.Post(() =>
+                    string tone = _tone;
+                    asked = AILegacy.Voice.Speech.Prepare(_s.Key, _s.IsFemale, text, tone, p => MainThread.Post(() =>
                     {
                         if (gen != _prepGen) return;
                         _prepGen++; _preparing = false;
                         if (_closed || Active != this) return;
-                        try { AILegacy.Voice.Speech.PlayPrepared(wav); } catch { }
+                        try { AILegacy.Voice.Speech.PlayPrepared(p); } catch { }
                         ShowNpc(text, voiced: true);
                     }));
                 }
@@ -584,7 +601,7 @@ namespace AILegacy.Dialogue
         private void ShowNpc(string text, bool voiced)
         {
             // Said aloud, only their words (never the player's line or a name in front)
-            if (!voiced) { try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, text); } catch { } }
+            if (!voiced) { try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, text, _tone); } catch { } }
             if (_dialogMode)
             {
                 _lastNpc = text;
@@ -955,6 +972,7 @@ namespace AILegacy.Dialogue
             AskPicture(playerText, reply.Reply);
             if (_s.IsHero) AILegacy.Api.AILegacyApi.RaiseNpcReplied(_s.Hero, reply.Reply);
             _emotion = reply.Emotion ?? ""; _gesture = reply.Gesture ?? ""; _lookShown = false;
+            _tone = reply.TtsInstructions;
             UiNpc(reply.Reply);
             _lines++;
             _answered++;

@@ -325,6 +325,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the speaker, or a by
             int session = WorldSim.Session;
             string provider = members.Any(m => m.Who.IsHero) ? cfg.ProviderHeroes : cfg.ProviderResidents;
             Log.Info($"[scene] encounter #{c.Id}: asking for {n} line(s) ({members.Count} in the circle{(open ? ", the player lingers by it" : "")})");
+            prompt += AILegacy.Voice.Speech.ToneAsk(S.Get.Language);
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "ambient", maxTokensOverride: 260 + n * 110, preferredProvider: provider).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
@@ -372,6 +373,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the speaker, or a by
                     string text = ((string)l["text"] ?? "").Trim();
                     if (text.Length < 2) continue;
                     if (text.Length > max) text = text.Substring(0, max);
+                    AILegacy.Voice.Speech.NoteTone(text, (string)l["tts_instructions"]);
                     string whoRaw = (l["who"]?.ToString() ?? "").Trim();
                     int.TryParse(new string(whoRaw.Where(char.IsDigit).ToArray()), out int idx);
                     if (idx < 1) continue;
@@ -545,7 +547,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": <number of the speaker, or a by
             c.Cur = next;
             if (voiced)
             {
-                AILegacy.Voice.Speech.Say((next.Who.Agent.Character?.StringId ?? "") + "|" + next.Who.Agent.Name, next.Who.Agent.IsFemale, next.Text);
+                AILegacy.Voice.Speech.Say((next.Who.Agent.Character?.StringId ?? "") + "|" + next.Who.Agent.Name, next.Who.Agent.IsFemale, next.Text, agent: next.Who.Agent);
                 if (AILegacy.Voice.Speech.IsSpeaking) { _voiceOwner = c; c.VoiceWait = true; c.VoiceWaitLeft = 10f; return; }
             }
             Present(c, next, cfg, 0f, false);

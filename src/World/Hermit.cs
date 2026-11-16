@@ -129,7 +129,7 @@ namespace AILegacy.World
             if (!_replySpoken)
             {
                 _replySpoken = true;
-                try { Voice.Speech.Say(CharacterId, false, _reply); } catch (Exception ex) { Log.Error("Hermit voice", ex); }
+                try { Voice.Speech.Say(CharacterId, false, _reply, "Deep, slow, ancient male voice, with unusual pauses and a calm or dryly amused delivery."); } catch (Exception ex) { Log.Error("Hermit voice", ex); }
             }
             return _reply;
         }

@@ -34,6 +34,8 @@ namespace AILegacy.Dialogue
         /// <summary>How they look while saying this line (one of Gestures.Emotions), and what they do with their body (Gestures.GestureNames).</summary>
         public string Emotion = "";
         public string Gesture = "";
+        /// <summary>How the line is said aloud (tts_instructions), for the voice.</summary>
+        public string TtsInstructions = "";
 
         // An action written inside the spoken line instead of in the "actions" array: [swear_fealty], <make_peace:they_pay=500>,
         // [action: set_free]. Group 1 is the explicit "action:" prefix, 2 the identifier, 3 the argument.
@@ -122,6 +124,7 @@ namespace AILegacy.Dialogue
                     r.MoodShown = (Str(j["mood_shown"]) ?? "").Trim();
                     r.Emotion = (Str(j["emotion"]) ?? Str(j["expression"]) ?? "").Trim();
                     r.Gesture = (Str(j["gesture"]) ?? "").Trim();
+                    r.TtsInstructions = (Str(j["tts_instructions"]) ?? "").Trim();
 
                     if (j["actions"] is JArray arr)
                         r.Actions = arr.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();

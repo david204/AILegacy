@@ -2173,18 +2173,18 @@
     <string id="AIL_e7b1c841" text="concubina" />
     <string id="AIL_e7b1c842" text="concubino" />
     <string id="AIL_e7b1c843" text="Voz dos personagens" />
-    <string id="AIL_e7b1c844" text="Os personagens falam suas falas em voz alta: só o que eles dizem, nunca sua fala nem um nome na frente. Windows usa as vozes instaladas no seu PC: grátis, offline, sem chave. OpenAI usa o provedor OpenAI de 0. Chaves de IA e custa um pouco por fala (cerca de meio centavo). Servidor compatível é qualquer programa com a mesma API /audio/speech, como um Kokoro local. Piper usa um modelo de voz local. Desativado = em silêncio." />
+    <string id="AIL_e7b1c844" text="Os personagens falam suas falas em voz alta: só o que eles dizem, nunca sua fala nem um nome na frente. Windows usa as vozes instaladas no seu PC: grátis, offline, sem chave. OpenAI usa o provedor OpenAI de 0. Chaves de IA e custa um pouco por fala (cerca de meio centavo). Servidor compatível é qualquer programa com a mesma API /audio/speech, como um Kokoro local. Piper usa um modelo de voz local. Fish Audio usa sua própria chave da Fish Audio; o modelo s2.1-pro-free não custa nada. Desativado = em silêncio." />
     <string id="AIL_e7b1c845" text="H. Voz" />
     <string id="AIL_e7b1c846" text="Voz: volume" />
     <string id="AIL_e7b1c847" text="Voz: velocidade (-10 lenta, 10 rápida)" />
     <string id="AIL_e7b1c848" text="Voz: também em grupos e conversas de cena" />
     <string id="AIL_e7b1c849" text="Ativado: as falas das conversas em grupo e entre as pessoas da cena também são lidas, uma após a outra. Desativado: só a pessoa com quem você fala." />
     <string id="AIL_e7b1c84a" text="Voz: vozes masculinas (separadas por vírgulas)" />
-    <string id="AIL_e7b1c84b" text="Cada homem recebe sempre a mesma destas. Windows: parte do nome de uma voz (vazio = qualquer voz masculina instalada). OpenAI: onyx, echo, ash… Servidor compatível: seus próprios nomes de voz. Piper: caminhos completos para modelos .onnx." />
+    <string id="AIL_e7b1c84b" text="Cada homem recebe sempre a mesma destas. Windows: parte do nome de uma voz (vazio = qualquer voz masculina instalada). OpenAI: onyx, echo, ash… Servidor compatível: seus próprios nomes de voz. Piper: caminhos completos para modelos .onnx. Fish Audio: ids dos seus modelos de voz." />
     <string id="AIL_e7b1c84c" text="Voz: vozes femininas (separadas por vírgulas)" />
-    <string id="AIL_e7b1c84d" text="Cada mulher recebe sempre a mesma destas. Windows: parte do nome de uma voz (vazio = qualquer voz feminina instalada). OpenAI: nova, shimmer, coral… Servidor compatível: seus próprios nomes de voz. Piper: caminhos completos para modelos .onnx." />
-    <string id="AIL_e7b1c84e" text="Voz: modelo (OpenAI ou servidor compatível)" />
-    <string id="AIL_e7b1c84f" text="Vazio = gpt-4o-mini-tts para OpenAI, kokoro para um servidor compatível." />
+    <string id="AIL_e7b1c84d" text="Cada mulher recebe sempre a mesma destas. Windows: parte do nome de uma voz (vazio = qualquer voz feminina instalada). OpenAI: nova, shimmer, coral… Servidor compatível: seus próprios nomes de voz. Piper: caminhos completos para modelos .onnx. Fish Audio: ids dos seus modelos de voz." />
+    <string id="AIL_e7b1c84e" text="Voz: modelo (OpenAI, servidor compatível ou Fish Audio)" />
+    <string id="AIL_e7b1c84f" text="Vazio = gpt-4o-mini-tts para OpenAI, kokoro para um servidor compatível, s2.1-pro-free (grátis) para Fish Audio." />
     <string id="AIL_e7b1c850" text="Voz: endereço do servidor compatível" />
     <string id="AIL_e7b1c851" text="A parte do endereço antes de /audio/speech, por exemplo http://127.0.0.1:8880/v1 para um Kokoro local." />
     <string id="AIL_e7b1c852" text="Voz: chave do servidor compatível (se pedir)" />
@@ -2735,5 +2735,17 @@
     <string id="AIL_e7b1dd27" text="todas as suas terras" />
     <string id="AIL_e7b1dd30" text="Imagens: uma para cada novo evento do mundo" />
     <string id="AIL_e7b1dd31" text="Cada novo evento do mundo ganha uma imagem larga no seu cartão da janela de notícias, feita com a fonte acima (um capítulo posterior da mesma história mantém a do primeiro). Custa um pedido à IA para a descrição e, com a OpenAI, o preço de uma imagem a cada vez. Se falhar, o cartão fica sem imagem. Padrão: desligado." />
+    <string id="AIL_e7b1dd40" text="A voz não conseguiu falar: o serviço respondeu {0} ({1}). Verifique a chave, o modelo e as vozes em H. Voz." />
+    <string id="AIL_e7b1dd41" text="Fish Audio: falta sua chave em H. Voz (ela é criada em fish.audio, em API Keys)." />
+    <string id="AIL_e7b1dd42" text="A Fish Audio não aceita sua chave. Copie-a de novo de fish.audio (API Keys) em H. Voz." />
+    <string id="AIL_e7b1dd43" text="Fish Audio: você não tem crédito para o modelo {0}. Deixe o modelo vazio para usar o gratuito ({1})." />
+    <string id="AIL_e7b1dd44" text="A Fish Audio não encontra a voz {0} ou o modelo {1}. Nas listas de vozes vão os ids dos modelos de voz da fish.audio, separados por vírgulas." />
+    <string id="AIL_e7b1dd45" text="Fish Audio: pedidos demais ao mesmo tempo. Algumas falas ficarão sem voz." />
+    <string id="AIL_e7b1dd46" text="Voz: chave da Fish Audio" />
+    <string id="AIL_e7b1dd47" text="Sua própria chave da fish.audio (API Keys). As vozes são os ids dos modelos de voz da Fish Audio (o código longo de uma voz, como 536d3a5e000945adb7038665781a4aca), nas listas de vozes masculinas e femininas acima. Modelo vazio = s2.1-pro-free, que não custa nada com uso razoável; s2.1-pro é pago." />
+    <string id="AIL_e7b1dd50" text="Voz: movimento dos lábios (sincronia labial)" />
+    <string id="AIL_e7b1dd51" text="A boca de quem fala se move com a voz, nos diálogos do mapa e nas cenas, como nas falas dubladas do próprio jogo. Precisa do rhubarb.exe ao lado do AILegacy.dll (vem com o mod). Desligado: só o som, a boca fica parada; rostos e gestos têm ajuste próprio. Padrão: ligado." />
+    <string id="AIL_e7b1dd52" text="Voz: 3D nas cenas" />
+    <string id="AIL_e7b1dd53" text="Em cidades, castelos e aldeias a voz sai de quem fala e o acompanha: mais alta de perto, do lado dele, e não se ouve além da distância de audição (a mesma de ouvir conversas). Desligado: todas as vozes soam iguais onde quer que estejam. Padrão: ligado." />
   </strings>
 </base>

@@ -2173,18 +2173,18 @@
     <string id="AIL_e7b1c841" text="Konkubine" />
     <string id="AIL_e7b1c842" text="Geliebter" />
     <string id="AIL_e7b1c843" text="Stimme der Figuren" />
-    <string id="AIL_e7b1c844" text="Figuren sprechen ihre Zeilen laut: nur was sie sagen, nie deine Zeile oder einen Namen davor. Windows nutzt die auf deinem PC installierten Stimmen: kostenlos, offline, ohne Schlüssel. OpenAI nutzt den OpenAI-Anbieter aus 0. KI-Schlüssel und kostet ein wenig pro Zeile (etwa einen halben Cent). Kompatibler Server ist jedes Programm mit derselben /audio/speech-API, etwa ein lokales Kokoro. Piper nutzt ein lokales Stimmmodell. Aus = still." />
+    <string id="AIL_e7b1c844" text="Figuren sprechen ihre Zeilen laut: nur was sie sagen, nie deine Zeile oder einen Namen davor. Windows nutzt die auf deinem PC installierten Stimmen: kostenlos, offline, ohne Schlüssel. OpenAI nutzt den OpenAI-Anbieter aus 0. KI-Schlüssel und kostet ein wenig pro Zeile (etwa einen halben Cent). Kompatibler Server ist jedes Programm mit derselben /audio/speech-API, etwa ein lokales Kokoro. Piper nutzt ein lokales Stimmmodell. Fish Audio nutzt deinen eigenen Fish-Audio-Schlüssel; sein Modell s2.1-pro-free ist kostenlos. Aus = still." />
     <string id="AIL_e7b1c845" text="H. Stimme" />
     <string id="AIL_e7b1c846" text="Stimme: Lautstärke" />
     <string id="AIL_e7b1c847" text="Stimme: Tempo (-10 langsam, 10 schnell)" />
     <string id="AIL_e7b1c848" text="Stimme: auch in Gruppen und Szenengesprächen" />
     <string id="AIL_e7b1c849" text="An: Zeilen aus Gruppengesprächen und zwischen Leuten in der Szene werden ebenfalls vorgelesen, nacheinander. Aus: nur die Person, mit der du sprichst." />
     <string id="AIL_e7b1c84a" text="Stimme: männliche Stimmen (durch Kommas getrennt)" />
-    <string id="AIL_e7b1c84b" text="Jeder Mann bekommt immer dieselbe davon. Windows: Teil eines Stimmnamens (leer = irgendeine installierte männliche Stimme). OpenAI: onyx, echo, ash… Kompatibler Server: seine eigenen Stimmnamen. Piper: vollständige Pfade zu .onnx-Stimmmodellen." />
+    <string id="AIL_e7b1c84b" text="Jeder Mann bekommt immer dieselbe davon. Windows: Teil eines Stimmnamens (leer = irgendeine installierte männliche Stimme). OpenAI: onyx, echo, ash… Kompatibler Server: seine eigenen Stimmnamen. Piper: vollständige Pfade zu .onnx-Stimmmodellen. Fish Audio: IDs seiner Stimmmodelle." />
     <string id="AIL_e7b1c84c" text="Stimme: weibliche Stimmen (durch Kommas getrennt)" />
-    <string id="AIL_e7b1c84d" text="Jede Frau bekommt immer dieselbe davon. Windows: Teil eines Stimmnamens (leer = irgendeine installierte weibliche Stimme). OpenAI: nova, shimmer, coral… Kompatibler Server: seine eigenen Stimmnamen. Piper: vollständige Pfade zu .onnx-Stimmmodellen." />
-    <string id="AIL_e7b1c84e" text="Stimme: Modell (OpenAI oder kompatibler Server)" />
-    <string id="AIL_e7b1c84f" text="Leer = gpt-4o-mini-tts für OpenAI, kokoro für einen kompatiblen Server." />
+    <string id="AIL_e7b1c84d" text="Jede Frau bekommt immer dieselbe davon. Windows: Teil eines Stimmnamens (leer = irgendeine installierte weibliche Stimme). OpenAI: nova, shimmer, coral… Kompatibler Server: seine eigenen Stimmnamen. Piper: vollständige Pfade zu .onnx-Stimmmodellen. Fish Audio: IDs seiner Stimmmodelle." />
+    <string id="AIL_e7b1c84e" text="Stimme: Modell (OpenAI, kompatibler Server oder Fish Audio)" />
+    <string id="AIL_e7b1c84f" text="Leer = gpt-4o-mini-tts für OpenAI, kokoro für einen kompatiblen Server, s2.1-pro-free (kostenlos) für Fish Audio." />
     <string id="AIL_e7b1c850" text="Stimme: Adresse des kompatiblen Servers" />
     <string id="AIL_e7b1c851" text="Der Teil der Adresse vor /audio/speech, zum Beispiel http://127.0.0.1:8880/v1 für ein lokales Kokoro." />
     <string id="AIL_e7b1c852" text="Stimme: Schlüssel des kompatiblen Servers (falls verlangt)" />
@@ -2735,5 +2735,17 @@
     <string id="AIL_e7b1dd27" text="all seine Ländereien" />
     <string id="AIL_e7b1dd30" text="Bilder: eines für jedes neue Weltereignis" />
     <string id="AIL_e7b1dd31" text="Jedes neue Weltereignis bekommt ein breites Bild auf seiner Karte im Nachrichtenfenster, erstellt mit der Quelle oben (ein späteres Kapitel derselben Geschichte behält das des ersten). Das kostet eine KI-Anfrage für die Beschreibung und mit OpenAI jedes Mal den Preis eines Bildes. Schlägt es fehl, bleibt die Karte ohne Bild. Standard: aus." />
+    <string id="AIL_e7b1dd40" text="Die Stimme konnte nicht sprechen: Der Dienst antwortete {0} ({1}). Prüfe Schlüssel, Modell und Stimmen unter H. Stimme." />
+    <string id="AIL_e7b1dd41" text="Fish Audio: Dein Schlüssel fehlt unter H. Stimme (er wird auf fish.audio unter API Keys erstellt)." />
+    <string id="AIL_e7b1dd42" text="Fish Audio akzeptiert deinen Schlüssel nicht. Kopiere ihn erneut von fish.audio (API Keys) nach H. Stimme." />
+    <string id="AIL_e7b1dd43" text="Fish Audio: Du hast kein Guthaben für das Modell {0}. Lass das Modell leer, um das kostenlose zu nutzen ({1})." />
+    <string id="AIL_e7b1dd44" text="Fish Audio findet die Stimme {0} oder das Modell {1} nicht. In die Stimmlisten gehören die IDs der Stimmmodelle von fish.audio, durch Kommas getrennt." />
+    <string id="AIL_e7b1dd45" text="Fish Audio: zu viele Anfragen auf einmal. Manche Zeilen bleiben ohne Stimme." />
+    <string id="AIL_e7b1dd46" text="Stimme: Fish-Audio-Schlüssel" />
+    <string id="AIL_e7b1dd47" text="Dein eigener Schlüssel von fish.audio (API Keys). Die Stimmen sind die IDs der Fish-Audio-Stimmmodelle (der lange Code einer Stimme, etwa 536d3a5e000945adb7038665781a4aca), in den Listen männlicher und weiblicher Stimmen oben. Modell leer = s2.1-pro-free, bei fairer Nutzung kostenlos; s2.1-pro ist kostenpflichtig." />
+    <string id="AIL_e7b1dd50" text="Stimme: Lippenbewegung (Lippensynchronität)" />
+    <string id="AIL_e7b1dd51" text="Der Mund des Sprechenden bewegt sich mit seiner Stimme, in Dialogen auf der Karte und in Szenen, wie bei den vertonten Zeilen des Spiels. Braucht rhubarb.exe neben AILegacy.dll (liegt der Mod bei). Aus: nur der Ton, der Mund bleibt still; Gesichter und Gesten haben eine eigene Einstellung. Standard: an." />
+    <string id="AIL_e7b1dd52" text="Stimme: 3D in Szenen" />
+    <string id="AIL_e7b1dd53" text="In Städten, Burgen und Dörfern kommt die Stimme vom Sprechenden und folgt ihm: lauter aus der Nähe, von seiner Seite, und jenseits der Hörweite (dieselbe wie beim Mithören) nicht zu hören. Aus: Alle Stimmen klingen gleich, wo sie auch sind. Standard: an." />
   </strings>
 </base>

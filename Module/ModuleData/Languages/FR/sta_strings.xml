@@ -2173,18 +2173,18 @@
     <string id="AIL_e7b1c841" text="concubine" />
     <string id="AIL_e7b1c842" text="concubin" />
     <string id="AIL_e7b1c843" text="Voix des personnages" />
-    <string id="AIL_e7b1c844" text="Les personnages disent leurs répliques à voix haute : seulement ce qu’ils disent, jamais votre réplique ni un nom devant. Windows utilise les voix installées sur votre PC : gratuit, hors ligne, sans clé. OpenAI utilise le fournisseur OpenAI de 0. Clés d’IA et coûte un peu par réplique (environ un demi-centime). Serveur compatible : tout programme avec la même API /audio/speech, comme un Kokoro local. Piper utilise un modèle de voix local. Désactivé = silence." />
+    <string id="AIL_e7b1c844" text="Les personnages disent leurs répliques à voix haute : seulement ce qu’ils disent, jamais votre réplique ni un nom devant. Windows utilise les voix installées sur votre PC : gratuit, hors ligne, sans clé. OpenAI utilise le fournisseur OpenAI de 0. Clés d’IA et coûte un peu par réplique (environ un demi-centime). Serveur compatible : tout programme avec la même API /audio/speech, comme un Kokoro local. Piper utilise un modèle de voix local. Fish Audio utilise votre propre clé Fish Audio ; son modèle s2.1-pro-free est gratuit. Désactivé = silence." />
     <string id="AIL_e7b1c845" text="H. Voix" />
     <string id="AIL_e7b1c846" text="Voix : volume" />
     <string id="AIL_e7b1c847" text="Voix : vitesse (-10 lente, 10 rapide)" />
     <string id="AIL_e7b1c848" text="Voix : aussi en groupe et dans les conversations de scène" />
     <string id="AIL_e7b1c849" text="Activé : les répliques des conversations de groupe et entre les gens de la scène sont lues aussi, l’une après l’autre. Désactivé : seulement la personne à qui vous parlez." />
     <string id="AIL_e7b1c84a" text="Voix : voix masculines (séparées par des virgules)" />
-    <string id="AIL_e7b1c84b" text="Chaque homme reçoit toujours la même de ces voix. Windows : une partie du nom d’une voix (vide = n’importe quelle voix masculine installée). OpenAI : onyx, echo, ash… Serveur compatible : ses propres noms de voix. Piper : chemins complets vers des modèles .onnx." />
+    <string id="AIL_e7b1c84b" text="Chaque homme reçoit toujours la même de ces voix. Windows : une partie du nom d’une voix (vide = n’importe quelle voix masculine installée). OpenAI : onyx, echo, ash… Serveur compatible : ses propres noms de voix. Piper : chemins complets vers des modèles .onnx. Fish Audio : id de ses modèles de voix." />
     <string id="AIL_e7b1c84c" text="Voix : voix féminines (séparées par des virgules)" />
-    <string id="AIL_e7b1c84d" text="Chaque femme reçoit toujours la même de ces voix. Windows : une partie du nom d’une voix (vide = n’importe quelle voix féminine installée). OpenAI : nova, shimmer, coral… Serveur compatible : ses propres noms de voix. Piper : chemins complets vers des modèles .onnx." />
-    <string id="AIL_e7b1c84e" text="Voix : modèle (OpenAI ou serveur compatible)" />
-    <string id="AIL_e7b1c84f" text="Vide = gpt-4o-mini-tts pour OpenAI, kokoro pour un serveur compatible." />
+    <string id="AIL_e7b1c84d" text="Chaque femme reçoit toujours la même de ces voix. Windows : une partie du nom d’une voix (vide = n’importe quelle voix féminine installée). OpenAI : nova, shimmer, coral… Serveur compatible : ses propres noms de voix. Piper : chemins complets vers des modèles .onnx. Fish Audio : id de ses modèles de voix." />
+    <string id="AIL_e7b1c84e" text="Voix : modèle (OpenAI, serveur compatible ou Fish Audio)" />
+    <string id="AIL_e7b1c84f" text="Vide = gpt-4o-mini-tts pour OpenAI, kokoro pour un serveur compatible, s2.1-pro-free (gratuit) pour Fish Audio." />
     <string id="AIL_e7b1c850" text="Voix : adresse du serveur compatible" />
     <string id="AIL_e7b1c851" text="La partie de l’adresse avant /audio/speech, par exemple http://127.0.0.1:8880/v1 pour un Kokoro local." />
     <string id="AIL_e7b1c852" text="Voix : clé du serveur compatible (s’il en demande une)" />
@@ -2735,5 +2735,17 @@
     <string id="AIL_e7b1dd27" text="toutes ses terres" />
     <string id="AIL_e7b1dd30" text="Images : une pour chaque nouvel événement du monde" />
     <string id="AIL_e7b1dd31" text="Chaque nouvel événement du monde reçoit une image large sur sa carte dans la fenêtre des nouvelles, faite avec la source ci-dessus (un chapitre suivant de la même histoire garde celle du premier). Cela coûte une requête à l'IA pour la description et, avec OpenAI, le prix d'une image à chaque fois. En cas d'échec, la carte reste sans image. Par défaut : désactivé." />
+    <string id="AIL_e7b1dd40" text="La voix n'a pas pu parler : le service a répondu {0} ({1}). Vérifiez la clé, le modèle et les voix dans H. Voix." />
+    <string id="AIL_e7b1dd41" text="Fish Audio : votre clé manque dans H. Voix (elle se crée sur fish.audio, dans API Keys)." />
+    <string id="AIL_e7b1dd42" text="Fish Audio n'accepte pas votre clé. Recopiez-la depuis fish.audio (API Keys) dans H. Voix." />
+    <string id="AIL_e7b1dd43" text="Fish Audio : vous n'avez pas de crédit pour le modèle {0}. Laissez le modèle vide pour utiliser le gratuit ({1})." />
+    <string id="AIL_e7b1dd44" text="Fish Audio ne trouve pas la voix {0} ou le modèle {1}. Les listes de voix prennent les id des modèles de voix de fish.audio, séparés par des virgules." />
+    <string id="AIL_e7b1dd45" text="Fish Audio : trop de requêtes à la fois. Certaines répliques resteront sans voix." />
+    <string id="AIL_e7b1dd46" text="Voix : clé Fish Audio" />
+    <string id="AIL_e7b1dd47" text="Votre propre clé de fish.audio (API Keys). Les voix sont les id des modèles de voix Fish Audio (le long code d'une voix, comme 536d3a5e000945adb7038665781a4aca), dans les listes de voix masculines et féminines ci-dessus. Modèle vide = s2.1-pro-free, gratuit avec un usage raisonnable ; s2.1-pro est payant." />
+    <string id="AIL_e7b1dd50" text="Voix : mouvement des lèvres (synchro labiale)" />
+    <string id="AIL_e7b1dd51" text="La bouche de celui qui parle bouge avec sa voix, dans les dialogues sur la carte et dans les scènes, comme avec les répliques doublées du jeu. Nécessite rhubarb.exe à côté d'AILegacy.dll (fourni avec le mod). Désactivé : seulement le son, la bouche reste immobile ; visages et gestes ont leur propre réglage. Par défaut : activé." />
+    <string id="AIL_e7b1dd52" text="Voix : 3D dans les scènes" />
+    <string id="AIL_e7b1dd53" text="Dans les villes, châteaux et villages, la voix vient de celui qui parle et le suit : plus forte de près, de son côté, et inaudible au-delà de la distance d'écoute (la même que pour surprendre une conversation). Désactivé : toutes les voix sonnent pareil où qu'elles soient. Par défaut : activé." />
   </strings>
 </base>

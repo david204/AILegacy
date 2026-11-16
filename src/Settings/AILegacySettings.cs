@@ -444,7 +444,7 @@ namespace AILegacy.Settings
 
         // ------------------------------------------------------------ Voice
         [SettingPropertyDropdown("{=AIL_e7b1c843}Voice of the characters", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1c844}Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Off = silent.")]
+            HintText = "{=AIL_e7b1c844}Characters speak their lines aloud: only what they say, never your line or a name in front. Windows uses the voices installed on your PC: free, offline, no key. OpenAI uses the OpenAI provider in 0. AI Keys and costs a little per line (about half a cent). OpenAI-compatible server is any program with the same /audio/speech API, such as a local Kokoro. Piper runs a local voice model. Fish Audio uses your own Fish Audio key; its s2.1-pro-free model costs nothing. Off = silent.")]
         [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
         public MCM.Common.Dropdown<string> VoiceEngine { get; set; } = new MCM.Common.Dropdown<string>(AILegacy.Voice.Speech.EngineNames, AILegacy.Voice.Speech.Off);
 
@@ -462,17 +462,17 @@ namespace AILegacy.Settings
         public bool VoiceInGroups { get; set; } = true;
 
         [SettingPropertyText("{=AIL_e7b1c84a}Voice: male voices (comma-separated)", Order = 4, RequireRestart = false,
-            HintText = "{=AIL_e7b1c84b}Each man always gets the same one of these. Windows: part of a voice's name (empty = any male voice installed). OpenAI: onyx, echo, ash… Compatible server: its own voice names. Piper: full paths to .onnx voice models.")]
+            HintText = "{=AIL_e7b1c84b}Each man always gets the same one of these. Windows: part of a voice's name (empty = any male voice installed). OpenAI: onyx, echo, ash… Compatible server: its own voice names. Piper: full paths to .onnx voice models. Fish Audio: ids of its voice models.")]
         [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
         public string VoiceMaleVoices { get; set; } = "";
 
         [SettingPropertyText("{=AIL_e7b1c84c}Voice: female voices (comma-separated)", Order = 5, RequireRestart = false,
-            HintText = "{=AIL_e7b1c84d}Each woman always gets the same one of these. Windows: part of a voice's name (empty = any female voice installed). OpenAI: nova, shimmer, coral… Compatible server: its own voice names. Piper: full paths to .onnx voice models.")]
+            HintText = "{=AIL_e7b1c84d}Each woman always gets the same one of these. Windows: part of a voice's name (empty = any female voice installed). OpenAI: nova, shimmer, coral… Compatible server: its own voice names. Piper: full paths to .onnx voice models. Fish Audio: ids of its voice models.")]
         [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
         public string VoiceFemaleVoices { get; set; } = "";
 
-        [SettingPropertyText("{=AIL_e7b1c84e}Voice: model (OpenAI or compatible server)", Order = 6, RequireRestart = false,
-            HintText = "{=AIL_e7b1c84f}Empty = gpt-4o-mini-tts for OpenAI, kokoro for a compatible server.")]
+        [SettingPropertyText("{=AIL_e7b1c84e}Voice: model (OpenAI, compatible server or Fish Audio)", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1c84f}Empty = gpt-4o-mini-tts for OpenAI, kokoro for a compatible server, s2.1-pro-free (free) for Fish Audio.")]
         [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
         public string VoiceModel { get; set; } = "";
 
@@ -489,6 +489,21 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1c854}Full path to piper.exe. The voice models go in the male and female lists above.")]
         [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
         public string VoicePiperPath { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1dd46}Voice: Fish Audio key", Order = 10, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd47}Your own key from fish.audio (API Keys). The voices are the ids of Fish Audio voice models (the long code of a voice, like 536d3a5e000945adb7038665781a4aca), in the male and female lists above. Model empty = s2.1-pro-free, which costs nothing under fair use; s2.1-pro is paid.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public string VoiceFishKey { get; set; } = "";
+
+        [SettingPropertyBool("{=AIL_e7b1dd50}Voice: lip movement (lip sync)", Order = 11, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd51}The mouth of whoever speaks moves with their voice, in dialogues on the map and in scenes, as with the game's own voiced lines. Needs rhubarb.exe next to AILegacy.dll (it comes with the mod). Off: only the sound, the mouth stays still; faces and gestures have their own setting. Default: on.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public bool VoiceLipSync { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1dd52}Voice: 3D in scenes", Order = 12, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd53}In towns, castles and villages a voice comes from whoever speaks and follows them: louder up close, from their side, and not heard past the hearing distance (the same as for overhearing). Off: every voice sounds the same wherever they are. Default: on.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public bool VoiceSpatial { get; set; } = true;
 
         // ------------------------------------------------------------ General
         [SettingPropertyDropdown("{=AIL_e250598b}Interface language", Order = -2, RequireRestart = false,

@@ -2173,18 +2173,18 @@
     <string id="AIL_e7b1c841" text="侍妾" />
     <string id="AIL_e7b1c842" text="男宠" />
     <string id="AIL_e7b1c843" text="角色语音" />
-    <string id="AIL_e7b1c844" text="角色会把台词念出来：只念他们说的话，绝不念你的台词或名字前缀。Windows 使用你电脑上已安装的语音：免费、离线、无需密钥。OpenAI 使用“0. AI密钥”中的OpenAI服务商，每句会花一点钱（约半美分）。兼容服务器是任何具有相同 /audio/speech 接口的程序，例如本地 Kokoro。Piper 使用本地语音模型。关闭 = 无声。" />
+    <string id="AIL_e7b1c844" text="角色会把台词念出来：只念他们说的话，绝不念你的台词或名字前缀。Windows 使用你电脑上已安装的语音：免费、离线、无需密钥。OpenAI 使用“0. AI密钥”中的OpenAI服务商，每句会花一点钱（约半美分）。兼容服务器是任何具有相同 /audio/speech 接口的程序，例如本地 Kokoro。Piper 使用本地语音模型。Fish Audio 使用你自己的 Fish Audio 密钥，其 s2.1-pro-free 模型免费。关闭 = 无声。" />
     <string id="AIL_e7b1c845" text="H. 语音" />
     <string id="AIL_e7b1c846" text="语音：音量" />
     <string id="AIL_e7b1c847" text="语音：语速（-10 慢，10 快）" />
     <string id="AIL_e7b1c848" text="语音：群聊和场景对话也念" />
     <string id="AIL_e7b1c849" text="开启：群聊和场景中人们之间的台词也会依次念出。关闭：只念与你交谈的人。" />
     <string id="AIL_e7b1c84a" text="语音：男声（逗号分隔）" />
-    <string id="AIL_e7b1c84b" text="每个男性角色总会得到其中同一个声音。Windows：语音名称的一部分（留空 = 任意已安装男声）。OpenAI：onyx、echo、ash…… 兼容服务器：其自己的语音名。Piper：.onnx 语音模型的完整路径。" />
+    <string id="AIL_e7b1c84b" text="每个男性角色总会得到其中同一个声音。Windows：语音名称的一部分（留空 = 任意已安装男声）。OpenAI：onyx、echo、ash…… 兼容服务器：其自己的语音名。Piper：.onnx 语音模型的完整路径。Fish Audio：其声音模型的 id。" />
     <string id="AIL_e7b1c84c" text="语音：女声（逗号分隔）" />
-    <string id="AIL_e7b1c84d" text="每个女性角色总会得到其中同一个声音。Windows：语音名称的一部分（留空 = 任意已安装女声）。OpenAI：nova、shimmer、coral…… 兼容服务器：其自己的语音名。Piper：.onnx 语音模型的完整路径。" />
-    <string id="AIL_e7b1c84e" text="语音：模型（OpenAI或兼容服务器）" />
-    <string id="AIL_e7b1c84f" text="留空 = OpenAI 用 gpt-4o-mini-tts，兼容服务器用 kokoro。" />
+    <string id="AIL_e7b1c84d" text="每个女性角色总会得到其中同一个声音。Windows：语音名称的一部分（留空 = 任意已安装女声）。OpenAI：nova、shimmer、coral…… 兼容服务器：其自己的语音名。Piper：.onnx 语音模型的完整路径。Fish Audio：其声音模型的 id。" />
+    <string id="AIL_e7b1c84e" text="语音：模型（OpenAI、兼容服务器或 Fish Audio）" />
+    <string id="AIL_e7b1c84f" text="留空 = OpenAI 用 gpt-4o-mini-tts，兼容服务器用 kokoro，Fish Audio 用 s2.1-pro-free（免费）。" />
     <string id="AIL_e7b1c850" text="语音：兼容服务器地址" />
     <string id="AIL_e7b1c851" text="/audio/speech 之前的地址部分，例如本地 Kokoro 为 http://127.0.0.1:8880/v1。" />
     <string id="AIL_e7b1c852" text="语音：兼容服务器密钥（如需要）" />
@@ -2735,5 +2735,17 @@
     <string id="AIL_e7b1dd27" text="其全部领地" />
     <string id="AIL_e7b1dd30" text="图片：每个新的世界事件一张" />
     <string id="AIL_e7b1dd31" text="每个新的世界事件都会在新闻窗口的卡片上配一张宽幅图片，由上方选择的来源生成（同一故事的后续章节沿用第一章的图片）。每次需要一次 AI 请求来生成描述，使用 OpenAI 时还需支付一张图片的费用。失败时卡片只是没有图片。默认：关闭。" />
+    <string id="AIL_e7b1dd40" text="语音无法播放：服务返回 {0}（{1}）。请在 H. 语音 中检查密钥、模型和声音。" />
+    <string id="AIL_e7b1dd41" text="Fish Audio：H. 语音 中缺少你的密钥（在 fish.audio 的 API Keys 中创建）。" />
+    <string id="AIL_e7b1dd42" text="Fish Audio 不接受你的密钥。请从 fish.audio（API Keys）重新复制到 H. 语音。" />
+    <string id="AIL_e7b1dd43" text="Fish Audio：你没有模型 {0} 的额度。将模型留空即可使用免费模型（{1}）。" />
+    <string id="AIL_e7b1dd44" text="Fish Audio 找不到声音 {0} 或模型 {1}。声音列表中应填写 fish.audio 声音模型的 id，用逗号分隔。" />
+    <string id="AIL_e7b1dd45" text="Fish Audio：同时请求过多。有些台词将没有语音。" />
+    <string id="AIL_e7b1dd46" text="语音：Fish Audio 密钥" />
+    <string id="AIL_e7b1dd47" text="你自己在 fish.audio（API Keys）的密钥。声音是 Fish Audio 声音模型的 id（声音的长代码，例如 536d3a5e000945adb7038665781a4aca），填在上方的男声和女声列表中。模型留空 = s2.1-pro-free，合理使用免费；s2.1-pro 需付费。" />
+    <string id="AIL_e7b1dd50" text="语音：口型同步" />
+    <string id="AIL_e7b1dd51" text="说话者的嘴会随声音而动，适用于地图对话和场景中，与游戏自带的配音台词一样。需要 AILegacy.dll 旁边有 rhubarb.exe（随模组附带）。关闭：只有声音，嘴不动；表情和手势有单独的设置。默认：开启。" />
+    <string id="AIL_e7b1dd52" text="语音：场景中的 3D 声音" />
+    <string id="AIL_e7b1dd53" text="在城镇、城堡和村庄中，声音来自说话者并跟随其移动：近处更响，来自其方向，超出听觉距离（与偷听相同）则听不到。关闭：所有声音无论在哪里都一样。默认：开启。" />
   </strings>
 </base>
