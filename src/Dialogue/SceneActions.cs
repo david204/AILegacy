@@ -925,7 +925,7 @@ namespace AILegacy.Dialogue
                     Ring.RemoveAt(i);
                 }
                 TickPosts(dt);
-                if (Followers.Count == 0 && Guides.Count == 0 && Calls.Count == 0 && With.Count == 0 && Seats.Count == 0) return;
+                if (Followers.Count == 0 && Guides.Count == 0 && Calls.Count == 0 && With.Count == 0 && Seats.Count == 0 && Posts.Count == 0) return;
                 Sync();
                 if (Mission.Current == null || Agent.Main == null || !Agent.Main.IsActive()) { Followers.Clear(); Guides.Clear(); Calls.Clear(); With.Clear(); Seats.Clear(); return; }
                 var me = Agent.Main.Position;

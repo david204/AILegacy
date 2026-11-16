@@ -426,7 +426,7 @@ namespace AILegacy.World
                     case "talk_to":
                     case "deliver_document":
                     case "deliver_item":
-                        var h = Hero.Find(q.ObjTargetId); if (h != null && h.IsAlive && !q.Reported.Contains(h.StringId)) list.Add(h); break;
+                        var h = Hero.Find(q.ObjTargetId); if (h != null && h.IsAlive) list.Add(h); break;     // the objective keeps its marker until it is met, report or not
                     case "visit":
                         var st = Settlement.Find(q.ObjTargetId); if (st != null) list.Add(st); break;
                     case "defeat_bandits":

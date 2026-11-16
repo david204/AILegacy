@@ -481,7 +481,7 @@ namespace AILegacy.World
 
                 case "goto":
                 case "meet":
-                    if (st == null) { Release(o, h, null); return; }
+                    if (st == null) { Done(o, h, null); return; }      // that place is gone: go on with the rest of the chain, if any
                     // Arrived if inside or standing at the gate (in some places the party never actually "enters")
                     bool there = p.CurrentSettlement == st || p.GetPosition2D.Distance(st.GatePosition.ToVec2()) <= 2f;
                     if (there)
