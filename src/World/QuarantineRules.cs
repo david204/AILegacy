@@ -81,10 +81,19 @@ namespace AILegacy.World
             try
             {
                 var st = Settlement.CurrentSettlement;
-                return st != null && st.OwnerClan != Clan.PlayerClan && Closed(st) && PlayerIll();
+                bool held = st != null && st.OwnerClan != Clan.PlayerClan && Closed(st) && PlayerIll();
+                if (!held) { _heldSince = -1; _heldIn = null; return false; }
+                // never for ever: a quarantine "until lifted" that nobody lifts, or an illness that will not pass, lets
+                // the player go after a fortnight at most
+                double now = CampaignTime.Now.ToDays;
+                if (_heldIn != st.StringId || _heldSince < 0) { _heldIn = st.StringId; _heldSince = now; }
+                return now - _heldSince < MaxHeldDays;
             }
             catch { return false; }
         }
+        private const double MaxHeldDays = 15;
+        private static double _heldSince = -1;
+        private static string _heldIn;
 
         /// <summary>Inside a quarantined town or castle, whoever owns it: the closed options stay closed.</summary>
         public static bool InsideClosed()
@@ -225,7 +234,13 @@ namespace AILegacy.World
                         PlayerEncounter.Finish();
                         try { Campaign.Current.SaveHandler.SignalAutoSave(); } catch { }
                     }
-                    catch (Exception ex) { Log.Error("[quarantine] leaving the gate", ex); }
+                    catch (Exception ex)
+                    {
+                        Log.Error("[quarantine] leaving the gate", ex);
+                        // whatever failed, the player must not stay on a menu with no way out
+                        try { if (PlayerEncounter.Current != null) PlayerEncounter.Finish(); } catch { }
+                        try { GameMenu.ExitToLast(); } catch { }
+                    }
                 }, true, -1);
 
             starter.AddGameMenu(CastleMenu, "{=!}{AIL_QCASTLE}", CastleInit);

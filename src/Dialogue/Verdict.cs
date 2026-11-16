@@ -353,9 +353,15 @@ Answer ONLY with JSON: {json_shape}");
             var judge = Judge_;
             ClearTerm();
             Log.Info($"[trial] the player is executed on the order of {judge?.Name}");
-            // as after a death in battle: the game goes on with the heir, or ends
+            // Out of the cell and the menu first; the death itself on the next tick, back on the map, where the game
+            // handles the player's death as after a battle: the heir takes over, or the campaign ends
             if (PlayerCaptivity.IsCaptive) PlayerCaptivity.EndCaptivity();
-            KillCharacterAction.ApplyByExecution(P, judge, true, true);
+            else { try { GameMenu.ExitToLast(); } catch { } }
+            MainThread.Post(() =>
+            {
+                try { if (P != null && P.IsAlive) KillCharacterAction.ApplyByExecution(P, judge, true, true); }
+                catch (Exception ex) { Log.Error("[trial] execution of the player", ex); }
+            });
         }
 
         private static void Escaped()
