@@ -18,3 +18,6 @@ config.json
 .vscode/
 .idea/
 *.user
+
+# Rhubarb Lip Sync 1.14.0 (MIT, github.com/DanielSWolf/rhubarb-lip-sync): too big for git, copied to the module by the build
+libs/rhubarb/

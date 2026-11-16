@@ -66,7 +66,7 @@
   </ItemGroup>
 
   <!-- Copy module files. config.json, world_data and world.txt are only copied if they don't exist yet -->
-  <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /><MusicNotes Include="Module\music\**\LEEME.txt" /></ItemGroup>
+  <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /><MusicNotes Include="Module\music\**\LEEME.txt" /><RhubarbFiles Include="libs\rhubarb\**\*" /></ItemGroup>
   <Target Name="CopyModuleFiles" AfterTargets="Build">
     <Copy SourceFiles="Module\SubModule.xml" DestinationFolder="$(ModuleDir)" />
     <Copy SourceFiles="Module\ModuleData\ailegacy_items.xml" DestinationFolder="$(ModuleDir)\ModuleData" />
@@ -78,6 +78,8 @@
     <!-- Old builds put these in ModuleData\Languages, where the game loads them by itself. Remove that folder -->
     <RemoveDir Directories="$(ModuleDir)\ModuleData\Languages" />
     <Copy SourceFiles="libs\webview2\WebView2Loader.dll" DestinationFolder="$(OutputPath)" />
+    <!-- Rhubarb Lip Sync (MIT): moves the mouths with the voice. Not in git; copied when present -->
+    <Copy SourceFiles="@(RhubarbFiles)" DestinationFiles="@(RhubarbFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" Condition="Exists('libs\rhubarb\rhubarb.exe')" />
     <Copy SourceFiles="libs\webview2\runtimes\win-x64\native\WebView2Loader.dll" DestinationFolder="$(OutputPath)runtimes\win-x64\native" />
     <Copy SourceFiles="Module\config.example.json" DestinationFolder="$(ModuleDir)" />
     <Copy SourceFiles="Module\config.example.json" DestinationFiles="$(ModuleDir)\config.json" Condition="!Exists('$(ModuleDir)\config.json')" />
