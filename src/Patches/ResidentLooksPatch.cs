@@ -31,6 +31,8 @@ namespace AILegacy.Patches
         {
             try
             {
+                // only for people standing in a scene (towns, villages, battles): encyclopedia and screen previews keep the template's face
+                if (TaleWorlds.MountAndBlade.Mission.Current == null) return;
                 if (seed != -2 && ResidentFaces.WantsFace(__instance, out bool fighter))
                     __result = ResidentFaces.UniqueFace(__instance, equipment, seed, __result, fighter);
             }

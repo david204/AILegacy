@@ -366,9 +366,9 @@ You cannot weave another now: do not include ""prophecy"" in this answer.");
         /// <summary>Once a day: a prophecy whose day has come happens in the world.</summary>
         public static void OnDailyTick()
         {
+            var p = _ctx?.Prophecy;
             try
             {
-                var p = _ctx.Prophecy;
                 if (p == null || CampaignTime.Now.ToDays < p.DueDay) return;
                 _ctx.Prophecy = null;
                 if (!WorldSim.Enabled) { Log.Info($"[hermit] prophecy «{p.Title}» lapses: world events are off"); WriteMirror(); return; }
@@ -385,7 +385,12 @@ You cannot weave another now: do not include ""prophecy"" in this answer.");
                 Log.Info($"[hermit] prophecy came true: «{p.Title}»");
                 WriteMirror();
             }
-            catch (Exception ex) { Log.Error("Hermit: a prophecy coming true", ex); }
+            catch (Exception ex)
+            {
+                Log.Error("Hermit: a prophecy coming true", ex);
+                // not lost: it waits and tries again tomorrow
+                try { if (p != null && _ctx != null && _ctx.Prophecy == null && !_ctx.Fulfilled.Contains(p.Title)) { p.DueDay = CampaignTime.Now.ToDays + 1; _ctx.Prophecy = p; } } catch { }
+            }
         }
 
 
