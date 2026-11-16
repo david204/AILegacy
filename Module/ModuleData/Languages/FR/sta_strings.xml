@@ -2747,5 +2747,43 @@
     <string id="AIL_e7b1dd51" text="La bouche de celui qui parle bouge avec sa voix, dans les dialogues sur la carte et dans les scènes, comme avec les répliques doublées du jeu. Nécessite rhubarb.exe à côté d'AILegacy.dll (fourni avec le mod). Désactivé : seulement le son, la bouche reste immobile ; visages et gestes ont leur propre réglage. Par défaut : activé." />
     <string id="AIL_e7b1dd52" text="Voix : 3D dans les scènes" />
     <string id="AIL_e7b1dd53" text="Dans les villes, châteaux et villages, la voix vient de celui qui parle et le suit : plus forte de près, de son côté, et inaudible au-delà de la distance d'écoute (la même que pour surprendre une conversation). Désactivé : toutes les voix sonnent pareil où qu'elles soient. Par défaut : activé." />
+    <string id="AIL_e7b1dd60" text="Maintenez {0} et parlez pour remplir ce message." />
+    <string id="AIL_e7b1dd61" text="Groupe : maintenez {0} et parlez près des gens." />
+    <string id="AIL_e7b1dd62" text="Bataille : maintenez {0} et parlez pour donner un ordre." />
+    <string id="AIL_e7b1dd63" text="Saisie vocale : impossible de démarrer. Vérifiez que le micro est branché et autorisé dans Windows." />
+    <string id="AIL_e7b1dd64" text="Saisie vocale : écoute…" />
+    <string id="AIL_e7b1dd65" text="Saisie vocale : la reconnaissance n'a pas pu se terminer." />
+    <string id="AIL_e7b1dd66" text="Saisie vocale : rien n'a été reconnu." />
+    <string id="AIL_e7b1dd67" text="Il n'y a personne à proximité pour vous entendre." />
+    <string id="AIL_e7b1dd68" text="Saisie vocale : vos paroles ont été reconnues, mais aucune fenêtre de texte n'est ouverte." />
+    <string id="AIL_e7b1dd69" text="l'adresse du serveur manque dans H. Voix" />
+    <string id="AIL_e7b1dd6a" text="aucun fournisseur Groq avec clé dans 0. Clés d'IA" />
+    <string id="AIL_e7b1dd6b" text="aucun fournisseur OpenAI avec clé dans 0. Clés d'IA" />
+    <string id="AIL_e7b1dd70" text="Saisie vocale : parler au lieu d'écrire" />
+    <string id="AIL_e7b1dd71" text="Maintenez la touche ci-dessous pendant que vous parlez puis relâchez-la : vos paroles vont dans la fenêtre de texte ouverte, pour que vous les relisiez et les envoyiez. Sans fenêtre ouverte, dans une conversation de groupe elles sont dites au groupe et en bataille elles vont à vos capitaines comme un ordre. 30 secondes au plus. Il faut un micro, et Groq ou OpenAI dans 0. Clés d'IA ou un serveur à vous. Par défaut : désactivé." />
+    <string id="AIL_e7b1dd72" text="Saisie vocale : touche à maintenir" />
+    <string id="AIL_e7b1dd73" text="Maintenez cette touche pendant que vous parlez. Relâchez-la pour arrêter l'enregistrement et insérer ce qui a été reconnu." />
+    <string id="AIL_e7b1dd74" text="Saisie vocale : qui le transcrit" />
+    <string id="AIL_e7b1dd75" text="Groq : Whisper avec le fournisseur Groq de 0. Clés d'IA (offre gratuite). OpenAI : avec le fournisseur OpenAI (coûte un peu par minute). Serveur local ou autre : tout programme avec la même API /audio/transcriptions, comme un serveur local whisper.cpp ou faster-whisper." />
+    <string id="AIL_e7b1dd76" text="Saisie vocale : modèle" />
+    <string id="AIL_e7b1dd77" text="Vide = whisper-large-v3-turbo avec Groq, gpt-4o-mini-transcribe avec OpenAI, whisper-1 avec un serveur." />
+    <string id="AIL_e7b1dd78" text="Saisie vocale : adresse du serveur" />
+    <string id="AIL_e7b1dd79" text="La partie de l'adresse avant /audio/transcriptions, par exemple http://127.0.0.1:8080/v1." />
+    <string id="AIL_e7b1dd7a" text="Saisie vocale : clé du serveur (s'il en demande une)" />
+    <string id="AIL_e7b1dd80" text="Habitudes de parole" />
+    <string id="AIL_e7b1dd81" text="Chaque personnage reçoit une de ces habitudes la première fois qu'il parle, selon son âge, et l'IA construit sa façon de parler autour. Changer la liste ne change pas ceux qui en ont déjà une, sauf si vous supprimez la leur : ils en reçoivent alors une autre au hasard." />
+    <string id="AIL_e7b1dd82" text="Ajouter une habitude" />
+    <string id="AIL_e7b1dd83" text="Identifiant (minuscules, chiffres et _)" />
+    <string id="AIL_e7b1dd84" text="Nom (pour vous seul ; l'IA ne le voit pas)" />
+    <string id="AIL_e7b1dd85" text="Cette personne…" />
+    <string id="AIL_e7b1dd86" text="Tous" />
+    <string id="AIL_e7b1dd87" text="Adultes" />
+    <string id="AIL_e7b1dd88" text="Enfants" />
+    <string id="AIL_e7b1dd89" text="Poids (0,1 à 20)" />
+    <string id="AIL_e7b1dd8a" text="Utilisez seulement des minuscules, des chiffres et _ (de 2 à 48)." />
+    <string id="AIL_e7b1dd8b" text="Cet identifiant est répété." />
+    <string id="AIL_e7b1dd8c" text="Écrivez ce qu'il fait en parlant." />
+    <string id="AIL_e7b1dd8d" text="Habitude de parole" />
+    <string id="AIL_e7b1dd8e" text="(au hasard)" />
   </strings>
 </base>

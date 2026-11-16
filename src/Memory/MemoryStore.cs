@@ -177,6 +177,8 @@ namespace AILegacy.Memory
         [JsonProperty("morality")] public string Morality;
         [JsonProperty("profanity")] public string Profanity;
         [JsonProperty("piety")] public string Piety;
+        /// <summary>The way of speaking they are known for (id in world_data\voices.json), given once.</summary>
+        [JsonProperty("speech_habit", NullValueHandling = NullValueHandling.Ignore)] public string SpeechHabit;
         // Character development
         [JsonProperty("profile_revision")] public int ProfileRevision;
         [JsonProperty("development_day")] public double LastDevelopmentDay = -1;

@@ -2748,5 +2748,43 @@
     <string id="AIL_e7b1dd51" text="The mouth of whoever speaks moves with their voice, in dialogues on the map and in scenes, as with the game's own voiced lines. Needs rhubarb.exe next to AILegacy.dll (it comes with the mod). Off: only the sound, the mouth stays still; faces and gestures have their own setting. Default: on." />
     <string id="AIL_e7b1dd52" text="Voice: 3D in scenes" />
     <string id="AIL_e7b1dd53" text="In towns, castles and villages a voice comes from whoever speaks and follows them: louder up close, from their side, and not heard past the hearing distance (the same as for overhearing). Off: every voice sounds the same wherever they are. Default: on." />
+    <string id="AIL_e7b1dd60" text="Hold {0} and speak to fill this message." />
+    <string id="AIL_e7b1dd61" text="Group: hold {0} and speak near people." />
+    <string id="AIL_e7b1dd62" text="Battle: hold {0} and speak to give an order." />
+    <string id="AIL_e7b1dd63" text="Voice input: could not start. Check that the microphone is plugged in and allowed in Windows." />
+    <string id="AIL_e7b1dd64" text="Voice input: listening…" />
+    <string id="AIL_e7b1dd65" text="Voice input: could not finish the recognition." />
+    <string id="AIL_e7b1dd66" text="Voice input: nothing was recognized." />
+    <string id="AIL_e7b1dd67" text="There is nobody nearby to hear you." />
+    <string id="AIL_e7b1dd68" text="Voice input: what you said was recognized, but no text window is open." />
+    <string id="AIL_e7b1dd69" text="the server address is missing in H. Voice" />
+    <string id="AIL_e7b1dd6a" text="there is no Groq provider with a key in 0. AI Keys" />
+    <string id="AIL_e7b1dd6b" text="there is no OpenAI provider with a key in 0. AI Keys" />
+    <string id="AIL_e7b1dd70" text="Voice input: speak instead of typing" />
+    <string id="AIL_e7b1dd71" text="Hold the key below while you speak and let go: what you said goes into the text window that is open, for you to read and send. With no window open, in a group talk it is said to the group and in a battle it goes to your captains as an order. At most 30 seconds. Needs a microphone, and Groq or OpenAI in 0. AI Keys or a server of your own. Default: off." />
+    <string id="AIL_e7b1dd72" text="Voice input: key to hold" />
+    <string id="AIL_e7b1dd73" text="Hold this key while speaking. Let go to stop recording and put in what was recognized." />
+    <string id="AIL_e7b1dd74" text="Voice input: who writes it down" />
+    <string id="AIL_e7b1dd75" text="Groq: Whisper with the Groq provider in 0. AI Keys (free tier). OpenAI: with the OpenAI provider (costs a little per minute). Local or other server: any program with the same /audio/transcriptions API, such as a local whisper.cpp or faster-whisper server." />
+    <string id="AIL_e7b1dd76" text="Voice input: model" />
+    <string id="AIL_e7b1dd77" text="Empty = whisper-large-v3-turbo with Groq, gpt-4o-mini-transcribe with OpenAI, whisper-1 with a server." />
+    <string id="AIL_e7b1dd78" text="Voice input: server address" />
+    <string id="AIL_e7b1dd79" text="The part of the address before /audio/transcriptions, for example http://127.0.0.1:8080/v1." />
+    <string id="AIL_e7b1dd7a" text="Voice input: server key (if it asks for one)" />
+    <string id="AIL_e7b1dd80" text="Speech habits" />
+    <string id="AIL_e7b1dd81" text="Each character gets one of these habits the first time they speak, by their age, and the AI builds their way of speaking around it. Changing the list does not change anyone who already has one, unless you delete theirs: then they get another at random." />
+    <string id="AIL_e7b1dd82" text="Add habit" />
+    <string id="AIL_e7b1dd83" text="Id (lowercase, numbers and _)" />
+    <string id="AIL_e7b1dd84" text="Name (only for you; the AI never sees it)" />
+    <string id="AIL_e7b1dd85" text="This person…" />
+    <string id="AIL_e7b1dd86" text="Anyone" />
+    <string id="AIL_e7b1dd87" text="Adults" />
+    <string id="AIL_e7b1dd88" text="Children" />
+    <string id="AIL_e7b1dd89" text="Weight (0.1 to 20)" />
+    <string id="AIL_e7b1dd8a" text="Use only lowercase letters, numbers and _ (2 to 48)." />
+    <string id="AIL_e7b1dd8b" text="This id is repeated." />
+    <string id="AIL_e7b1dd8c" text="Write what they do when they talk." />
+    <string id="AIL_e7b1dd8d" text="Speech habit" />
+    <string id="AIL_e7b1dd8e" text="(at random)" />
   </strings>
 </base>

@@ -14,7 +14,7 @@ namespace AILegacy.World
     internal static class WorldFiles
     {
         public const string World = "world.txt";
-        public static readonly string[] Names = { World, "info.json", "secrets.json", "archetypes.json", "religion.json", "cultural_traditions.json" };
+        public static readonly string[] Names = { World, "info.json", "secrets.json", "archetypes.json", "religion.json", "cultural_traditions.json", "voices.json" };
 
         public static bool IsKnown(string name) => Array.IndexOf(Names, name) >= 0;
 

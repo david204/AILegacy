@@ -404,14 +404,17 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
                 var p = s.Memory.Profile;
                 return $"{h.Name}, {(h.IsFemale ? "woman" : "man")}, {(int)h.Age}, {h.Culture?.Name}; " +
                        (h.IsLord ? $"noble of clan {h.Clan?.Name}" : h.IsNotable ? "a notable of this place" : h.IsWanderer ? "a wanderer" : "a known face here") +
-                       (p != null && !p.IsEmpty ? $". {p.Personality}" + (string.IsNullOrWhiteSpace(p.SpeechStyle) ? "" : $" Speaks: {p.SpeechStyle}") : "");
+                       (p != null && !p.IsEmpty ? $". {p.Personality}" + (string.IsNullOrWhiteSpace(p.SpeechStyle) ? "" : $" Speaks: {p.SpeechStyle}") : "") +
+                       SpaceBefore(Lore.HabitForTalk(s));
             }
             s = Speaker.FromResident(c, a);
             Lore.EnsureArchetype(s);
             int age = (int)c.Age;
             return $"{(c.IsFemale ? "a woman" : "a man")} of about {age / 5 * 5}, {c.Culture?.Name}, {c.Occupation.ToString().ToLowerInvariant()}" +
-                   (string.IsNullOrEmpty(s.Memory.Archetype) ? "" : $" — {s.Memory.Archetype}: {s.Memory.ArchetypeText}");
+                   (string.IsNullOrEmpty(s.Memory.Archetype) ? "" : $" — {s.Memory.Archetype}: {s.Memory.ArchetypeText}") + SpaceBefore(Lore.HabitForTalk(s));
         }
+
+        private static string SpaceBefore(string t) => string.IsNullOrEmpty(t) ? "" : " " + t;
 
         internal static string Context(Settlement st, Speaker a)
         {

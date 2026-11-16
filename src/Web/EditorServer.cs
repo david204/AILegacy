@@ -463,6 +463,7 @@ namespace AILegacy.Web
                         trust = m.Trust, romance = m.Romance, tension = m.Tension,
                         archetype = m.Archetype ?? "", archetype_text = m.ArchetypeText ?? "", morality = m.Morality ?? "", profanity = m.Profanity ?? "", piety = m.Piety ?? "",
                         archetypes = World.Lore.ArchetypeList().Select(a => new { name = a.Key, desc = a.Value }),
+                        habit = m.SpeechHabit ?? "", habits = World.Lore.HabitList().Select(h => new { id = h.Key, name = h.Value }),
                         archived = m.Archive.Count, pages = m.Pages.Count, in_game = hero != null,
                         turns = m.Turns.Select(t => new { who = t.Role == "player" ? L.T("AIL_4c6b494e", "Tú") : m.HeroName, t.Text }),
                     };
@@ -488,6 +489,7 @@ namespace AILegacy.Web
                     if (int.TryParse(((string)d["romance"] ?? "").Trim(), out var romance)) m.Romance = Math.Max(0, Math.Min(100, romance));
                     if (int.TryParse(((string)d["tension"] ?? "").Trim(), out var tension)) { m.Tension = Math.Max(0, Math.Min(100, tension)); m.TensionDay = CampaignTime.Now.ToDays; }
                     if (d["archetype"] != null && ((string)d["archetype"] ?? "") != (m.Archetype ?? "")) World.Lore.SetArchetype(m, (string)d["archetype"]);
+                    if (d["habit"] != null && ((string)d["habit"] ?? "") != (m.SpeechHabit ?? "")) World.Lore.SetHabit(m, (string)d["habit"]);
                     foreach (var kv in new[] { "morality", "profanity", "piety" })
                     {
                         var v = ((string)d[kv] ?? "").Trim();
@@ -597,6 +599,7 @@ namespace AILegacy.Web
                     World.Lore.EnsureArchetype(sp);
                     var m = sp.Memory;
                     var facts = new StringBuilder();
+                    string habitLine = World.Lore.HabitForCreation(sp);
                     facts.AppendLine($"{hero.Name}, {(hero.IsFemale ? "woman" : "man")}, {(int)hero.Age} years old, of {hero.Culture?.Name} culture.");
                     facts.AppendLine(hero.IsLord ? $"A noble of clan {hero.Clan?.Name}{(hero.Clan?.Leader == hero ? " (its head)" : "")}; the clan is a {World.Facts.ClanKind(hero.Clan)}{(hero.MapFaction is Kingdom kk && kk.Leader == hero ? " — and this is its ruler" : "")}."
                                    : hero.IsNotable ? $"A notable ({hero.Occupation}) of {hero.CurrentSettlement?.Name ?? hero.HomeSettlement?.Name}." : hero.IsWanderer ? "A wanderer who sells their sword or wits." : "A person of some name.");
@@ -608,6 +611,7 @@ namespace AILegacy.Web
                     if (!string.IsNullOrEmpty(m.Archetype)) facts.AppendLine($"Mould of character: {m.Archetype} — {m.ArchetypeText}");
                     try { var enc = hero.EncyclopediaText?.ToString(); if (!string.IsNullOrWhiteSpace(enc)) facts.AppendLine("What is commonly said of them: " + enc); } catch { }
                     string hint = ((string)d["hint"] ?? "").Trim();
+                    if (habitLine.Length > 0) facts.AppendLine(habitLine);
                     string prompt = TGenerate.Format("facts", facts.ToString().TrimEnd(), "hint", hint.Length > 0 ? "The author of this world asks for this in particular: " + hint : "", "language", Settings.S.Get.Language);
                     Generating.Add(id);
                     int session = WorldSim.Session;
@@ -832,6 +836,29 @@ Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_st
                     if (Array.IndexOf(Pieties, a.Piety) < 0) throw Bad(i, "piety");
                     a.Roles = (a.Roles ?? new List<string>()).Select(x => (x ?? "").Trim()).Where(x => x.Length > 0).Distinct().ToList();
                     if (a.Roles.Count == 0) throw Missing(i, "roles");
+                }
+                count = list.Count;
+                return JsonConvert.SerializeObject(list, Formatting.Indented);
+            }
+            if (name == "voices.json")
+            {
+                var list = JsonConvert.DeserializeObject<List<SpeechHabit>>(text, BoundedJson) ?? new List<SpeechHabit>();
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var h = list[i] ?? throw Missing(i, "id");
+                    h.Id = (h.Id ?? "").Trim().ToLowerInvariant(); h.Name = (h.Name ?? "").Trim(); h.Prompt = World.Lore.NormalizeHabit(h.Prompt);
+                    if (h.Id.Length == 0) throw Missing(i, "id");
+                    if (!World.Lore.ValidHabitId(h.Id)) throw Bad(i, "id");
+                    if (!seen.Add(h.Id)) throw Repeated(i, "id");
+                    if (h.Prompt.Length == 0) throw Missing(i, "prompt");
+                    if (h.Name.Length == 0) h.Name = h.Id;
+                    if (h.Name.Length > 80) h.Name = h.Name.Substring(0, 80);
+                    if (h.Prompt.Length > 400) h.Prompt = h.Prompt.Substring(0, 400);
+                    string age = (h.Age ?? "").Trim().ToLowerInvariant();
+                    h.Age = age == "adult" || age == "child" ? age : "any";
+                    if (float.IsNaN(h.Weight) || float.IsInfinity(h.Weight)) h.Weight = 1f;
+                    h.Weight = Math.Max(0.1f, Math.Min(20f, h.Weight));
                 }
                 count = list.Count;
                 return JsonConvert.SerializeObject(list, Formatting.Indented);

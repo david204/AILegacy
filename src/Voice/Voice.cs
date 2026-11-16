@@ -646,6 +646,9 @@ namespace AILegacy.Voice
             return voices[Math.Abs(Hash(key)) % voices.Count];
         }
 
+        /// <summary>The two-letter code of the game's language, for voice input.</summary>
+        internal static string LanguageCodeOf(string english) => LanguageCode(english);
+
         private static string LanguageCode(string english)
         {
             string l = (english ?? "").ToLowerInvariant();

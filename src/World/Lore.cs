@@ -31,6 +31,18 @@ namespace AILegacy.World
         [JsonProperty("piety")] public string Piety = "observant";
     }
 
+    /// <summary>A way of speaking someone is known for (world_data\voices.json). The AI never sees the name, only the prompt.</summary>
+    public class SpeechHabit
+    {
+        [JsonProperty("id")] public string Id;
+        [JsonProperty("name")] public string Name;
+        /// <summary>What they do, written after "this person": "speaks in proverbs and folk sayings".</summary>
+        [JsonProperty("prompt")] public string Prompt;
+        /// <summary>any | adult | child</summary>
+        [JsonProperty("age")] public string Age = "any";
+        [JsonProperty("weight")] public float Weight = 1f;
+    }
+
     /// <summary>
     /// Editable character background: Modules\AILegacy\world_data\archetypes.json (character archetypes),
     /// religion.json (faith per culture) and cultural_traditions.json (customs per culture).
@@ -167,11 +179,11 @@ namespace AILegacy.World
         /// <summary>Writes the module's default files if they are not there yet, so the editor has something to show.</summary>
         public static void EnsureFiles()
         {
-            var a = ArchetypesFile.Value; var r = ReligionFile.Value; var t = TraditionsFile.Value;
+            var a = ArchetypesFile.Value; var r = ReligionFile.Value; var t = TraditionsFile.Value; var v = HabitsFile.Value;
         }
 
         /// <summary>Drops what is cached so an edit made from the editor counts from the next sentence on.</summary>
-        public static void Reload() { ArchetypesFile.Forget(); ReligionFile.Forget(); TraditionsFile.Forget(); }
+        public static void Reload() { ArchetypesFile.Forget(); ReligionFile.Forget(); TraditionsFile.Forget(); HabitsFile.Forget(); }
 
         public static List<KeyValuePair<string, string>> ArchetypeList() =>
             ArchetypesFile.Value.Select(a => new KeyValuePair<string, string>(a.Name, a.Description)).ToList();
@@ -238,6 +250,8 @@ namespace AILegacy.World
                         sys.AppendLine("Moral compass: " + (mem.Morality == "principled" ? "principled — you have lines you will not cross, even at a cost."
                                        : mem.Morality == "ruthless" ? "ruthless — ends justify means; scruples are for people who can afford them." : "pragmatic — you do what works and keep your conscience quiet.") +
                                        " Speech: " + (mem.Profanity == "heavy" ? "you curse freely and coarsely." : mem.Profanity == "none" ? "you never swear; coarse talk offends you." : "you swear now and then, when provoked."));
+                        string habit = HabitForTalk(s);
+                        if (habit.Length > 0) sys.AppendLine(habit);
                     }
                 }
                 if (cfg.EnableReligion)
@@ -254,6 +268,203 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Backstory in prompt", ex); }
         }
 
+        // ============================================================ speech habits (world_data\voices.json)
+
+        private static readonly Cache<List<SpeechHabit>> HabitsFile = new Cache<List<SpeechHabit>>("voices.json", DefaultHabits);
+
+        private static SpeechHabit H(string id, string name, string prompt, string age = "any") => new SpeechHabit { Id = id, Name = name, Prompt = prompt, Age = age, Weight = 1f };
+
+        private static List<SpeechHabit> DefaultHabits() => new List<SpeechHabit>
+        {
+            H("proverbs", "Speaks in proverbs", "answers with old sayings and proverbs, some of them garbled or made up on the spot"),
+            H("answers_question", "Answers with a question", "tends to answer a question with another question"),
+            H("trails_off", "Leaves sentences unfinished", "often lets a sentence trail off and leaves the end hanging"),
+            H("third_person", "Speaks of self in the third person", "now and then talks about themself in the third person, by name"),
+            H("swears_by_dead", "Swears by the dead", "swears by dead parents, grandparents or fallen comrades to make a point"),
+            H("filler_phrase", "A pet filler phrase", "has a pet filler phrase of their own that keeps slipping into their talk"),
+            H("laughs_own_jokes", "Laughs at own jokes", "chuckles at their own jokes before anyone else can react"),
+            H("trade_jargon", "Trade words for everything", "describes everything in the words of their own trade or craft"),
+            H("diminutives", "Little words", "puts small, fond diminutives on things and people"),
+            H("stiff_formal", "Stiff and formal", "speaks stiffly and formally, even about trivial things"),
+            H("counts_things", "Counts everything", "numbers their points and gives exact counts, sums and dates"),
+            H("whispers", "Lowers the voice", "drops to a whisper for anything that matters, even when nobody else is around"),
+            H("too_loud", "Too loud", "talks loudly, as if everyone around were a little deaf"),
+            H("echoes", "Echoes your words", "repeats the other person's last words before answering"),
+            H("old_epic", "Old heroic style", "slips into a grand, old-fashioned heroic way of speaking"),
+            H("self_corrects", "Corrects themself", "corrects themself mid-sentence, hunting for the exact word"),
+            H("animal_likeness", "Animal comparisons", "compares people and situations to animals"),
+            H("food_talk", "Food comparisons", "explains things through food, cooking and meals"),
+            H("weather_first", "Starts with the weather", "opens nearly every talk with the weather or the season"),
+            H("wrong_names", "Gets names wrong", "keeps getting people's names slightly wrong"),
+            H("nicknames", "Nicknames for everyone", "gives everyone a nickname instead of using their name"),
+            H("sighs", "Sighs before speaking", "sighs heavily before saying anything of weight"),
+            H("elder_says", "Quotes an elder", "keeps quoting what an old relative or teacher used to say"),
+            H("exaggerates", "Exaggerates", "exaggerates everything wildly: numbers, dangers, distances"),
+            H("understatement", "Dry understatement", "describes disasters and wonders with flat, dry understatement"),
+            H("rhymes", "Accidental rhymes", "falls into little rhymes without meaning to"),
+            H("tangents", "Wanders off", "wanders into long side stories before getting to the point"),
+            H("calls_gods", "Calls on the gods", "calls on the gods or the holy ones of their people every few sentences"),
+            H("superstitious", "Superstitious", "fills their talk with small charms and warnings against bad luck"),
+            H("nervous_laugh", "Nervous laugh", "gives a short nervous laugh when uneasy"),
+            H("stammers", "Stammers when stirred", "stammers and trips over words when excited or upset"),
+            H("talks_to_tool", "Talks to their animal or tool", "speaks aside to their horse, dog, tool or weapon as if it could answer"),
+            H("anecdotes", "An anecdote for everything", "answers almost everything with a story of something that once happened to them"),
+            H("yes_but", "Agrees, then argues", "agrees first and then argues the opposite"),
+            H("flatters", "Flatters", "slips compliments into everything they say"),
+            H("archaic", "Old words", "uses old-fashioned words that most people stopped using long ago"),
+            H("street_talk", "Street talk", "talks in rough street slang"),
+            H("prices", "Puts a price on things", "puts a price on everything, people and favours included"),
+            H("asides", "Asides to nobody", "mutters little comments to nobody in particular"),
+            H("literal", "Takes things literally", "takes figures of speech literally and answers them that way"),
+            H("singsong", "Sing-song voice", "speaks in a lilting, sing-song way, stretching some words"),
+            H("boasts_kin", "Boasts of relatives", "keeps bringing up the deeds of a relative, famous or not"),
+            H("colourful_curses", "Colourful curses", "makes up elaborate, colourful curses and blessings instead of plain words"),
+            H("gloomy", "Gloomy remarks", "drops short gloomy remarks about how it will all end badly"),
+            H("big_words", "Misused big words", "uses learned words, often in the wrong place"),
+            H("finishes_sentences", "Finishes your sentences", "interrupts and finishes other people's sentences, not always correctly"),
+            H("odd_order", "Odd word order", "puts words in an odd order, like someone who thinks in another tongue"),
+            H("hurried", "Always in a hurry", "talks fast and keeps saying they have little time"),
+            H("orders", "Speaks in orders", "phrases everything as an order, even a request", "adult"),
+            H("rough_affection", "Insults as affection", "uses rough insults as terms of affection", "adult"),
+            H("quiet_menace", "Quiet menace", "says threatening things softly and politely", "adult"),
+            H("contract_talk", "Talks like a contract", "speaks like a written agreement, with terms, conditions and exceptions", "adult"),
+            H("soldier_words", "Soldier's words", "uses soldiers' words for everyday life: flanks, sieges, retreats", "adult"),
+            H("sailor_words", "Sailor's words", "talks like a sailor, with words of the sea for things on land", "adult"),
+            H("aches", "Complains of aches", "keeps mentioning their aches, old wounds and bad knees", "adult"),
+            H("calls_child", "Calls everyone 'child'", "calls anyone younger 'child', 'lad' or 'lass'", "adult"),
+            H("why", "Asks 'but why?'", "keeps asking why, and why again", "child"),
+            H("parent_says", "Quotes their parents", "repeats what their mother or father says, word for word", "child"),
+            H("made_up_words", "Makes up words", "makes up words for things they don't know the name of", "child"),
+            H("dares", "Dares everyone", "turns everything into a dare or a bet", "child"),
+            H("imaginary_friend", "Imaginary friend", "keeps talking to and quoting an imaginary friend", "child"),
+            H("grown_up_words", "Grown-up phrases", "uses grown-up phrases they have overheard, not quite right", "child"),
+            H("solemn_polite", "Solemnly polite", "is very solemn and polite, like a little courtier", "child"),
+            H("counts_fingers", "Counts on fingers", "counts things on their fingers out loud", "child"),
+        };
+
+        private static readonly System.Text.RegularExpressions.Regex HabitId = new System.Text.RegularExpressions.Regex("^[a-z0-9_]{2,48}$");
+
+        /// <summary>The habits as they can be used: ids trimmed and lowercased, no empty or repeated ids, no empty prompts.</summary>
+        public static List<SpeechHabit> Habits()
+        {
+            var list = new List<SpeechHabit>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var h in HabitsFile.Value ?? new List<SpeechHabit>())
+            {
+                if (h == null) continue;
+                string id = (h.Id ?? "").Trim().ToLowerInvariant();
+                string prompt = NormalizeHabit(h.Prompt);
+                if (id.Length == 0 || prompt.Length == 0 || !seen.Add(id)) continue;
+                float w = float.IsNaN(h.Weight) || float.IsInfinity(h.Weight) ? 1f : h.Weight;
+                if (w <= 0f) continue;
+                string age = (h.Age ?? "").Trim().ToLowerInvariant();
+                list.Add(new SpeechHabit { Id = id, Name = string.IsNullOrWhiteSpace(h.Name) ? id : h.Name.Trim(), Prompt = prompt, Age = age == "adult" || age == "child" ? age : "any", Weight = w });
+            }
+            return list;
+        }
+
+        /// <summary>One line, without a leading "this person", without the full stop, first letter small (unless it starts a name).</summary>
+        public static string NormalizeHabit(string prompt)
+        {
+            string p = System.Text.RegularExpressions.Regex.Replace((prompt ?? "").Trim(), @"\s+", " ");
+            if (p.StartsWith("this person ", StringComparison.OrdinalIgnoreCase)) p = p.Substring(12).TrimStart();
+            p = p.TrimEnd('.', '!', ';', ',', ' ');
+            if (p.Length > 1 && char.IsUpper(p[0]) && !char.IsUpper(p[1])) p = char.ToLowerInvariant(p[0]) + p.Substring(1);
+            return p;
+        }
+
+        private static readonly Random HabitRng = new Random();
+
+        /// <summary>
+        /// The way of speaking this character is known for. Given once, the first time a prompt is built for them with archetypes on,
+        /// at random by weight among the habits for their age (children have their own); one a neighbour already has (same clan, same
+        /// place) weighs 0.08 as much. Given again only if theirs is no longer in voices.json.
+        /// </summary>
+        public static void EnsureHabit(Speaker s)
+        {
+            var mem = s?.Memory;
+            if (mem == null || !S.Get.EnableArchetypes) return;
+            try
+            {
+                var all = Habits();
+                if (all.Count == 0) return;
+                if (!string.IsNullOrEmpty(mem.SpeechHabit) && all.Any(h => h.Id == mem.SpeechHabit)) return;
+                bool child = s.Age < 18f || s.KnownChild;
+                var pool = all.Where(h => h.Age == "any" || h.Age == (child ? "child" : "adult")).ToList();
+                if (pool.Count == 0) return;
+                var near = NeighbourHabits(s);
+                double total = pool.Sum(h => h.Weight * (near.Contains(h.Id) ? 0.08 : 1.0));
+                double roll = HabitRng.NextDouble() * total;
+                var pick = pool[pool.Count - 1];
+                foreach (var h in pool) { roll -= h.Weight * (near.Contains(h.Id) ? 0.08 : 1.0); if (roll <= 0) { pick = h; break; } }
+                mem.SpeechHabit = pick.Id;
+                Log.Info($"[ARCHETYPES] {s.Name}: nature {mem.Archetype ?? "-"}, swearing {mem.Profanity ?? "-"}, speech habit {pick.Id}");
+            }
+            catch (Exception ex) { Log.Error("Speech habit", ex); }
+        }
+
+        /// <summary>The habits already taken by people around them: their clan, and the people of the place they are in (or come from).</summary>
+        private static HashSet<string> NeighbourHabits(Speaker s)
+        {
+            var set = new HashSet<string>();
+            try
+            {
+                var people = new List<Hero>();
+                if (s.IsHero && s.Hero.Clan != null) people.AddRange(s.Hero.Clan.Heroes);
+                var st = s.Settlement ?? s.HomeSettlement;
+                if (st != null)
+                {
+                    people.AddRange(st.Notables);
+                    people.AddRange(st.HeroesWithoutParty);
+                    foreach (var p in st.Parties) if (p?.LeaderHero != null) people.Add(p.LeaderHero);
+                }
+                foreach (var h in people)
+                {
+                    if (h == null || (s.IsHero && h == s.Hero)) continue;
+                    var m = Memory.MemoryStore.Find(h.StringId);
+                    if (!string.IsNullOrEmpty(m?.SpeechHabit)) set.Add(m.SpeechHabit);
+                }
+            }
+            catch { }
+            return set;
+        }
+
+        private static string HabitPrompt(Speaker s)
+        {
+            if (s == null || !S.Get.EnableArchetypes) return null;
+            EnsureHabit(s);
+            string id = s.Memory?.SpeechHabit;
+            return string.IsNullOrEmpty(id) ? null : Habits().FirstOrDefault(h => h.Id == id)?.Prompt;
+        }
+
+        private static readonly Tpl THabitCreate = new Tpl("character_creation/speech_habit.txt",
+            "VOICE HABIT — this person {habit}. Build speech_style and sample_lines around this habit, in this person's own way; it is the first thing people notice about how they talk.");
+        private static readonly Tpl THabitTalk = new Tpl("archetypes/speech_habit_talk.txt", "Voice habit: {habit} (often, but not in every line).");
+        private static readonly Tpl THabitOfficial = new Tpl("archetypes/speech_habit_official.txt",
+            "Voice habit in life: {habit}. In an official text it may show once at most, and only if it suits a proclamation; otherwise leave it out.");
+
+        /// <summary>For the prompt that writes their character: build the way they speak around their habit. Empty with no habit.</summary>
+        public static string HabitForCreation(Speaker s) { var h = HabitPrompt(s); return h == null ? "" : THabitCreate.Format("habit", h); }
+
+        /// <summary>For talk (alone, in groups, in a fight). Empty with no habit.</summary>
+        public static string HabitForTalk(Speaker s) { var h = HabitPrompt(s); return h == null ? "" : THabitTalk.Format("habit", h); }
+
+        /// <summary>For decrees and a ruler's statements: a trace at most. Empty with no habit.</summary>
+        public static string HabitForOfficial(Speaker s) { var h = HabitPrompt(s); return h == null ? "" : THabitOfficial.Format("habit", h); }
+
+        public static List<KeyValuePair<string, string>> HabitList() =>
+            Habits().Select(h => new KeyValuePair<string, string>(h.Id, h.Name + (h.Age == "child" ? " (children)" : ""))).ToList();
+
+        /// <summary>From the editor: a habit by id, or empty for a new one at random the next time.</summary>
+        public static void SetHabit(Memory.HeroMemory mem, string id)
+        {
+            if (mem == null) return;
+            id = (id ?? "").Trim().ToLowerInvariant();
+            mem.SpeechHabit = id.Length == 0 ? null : Habits().Any(h => h.Id == id) ? id : mem.SpeechHabit;
+        }
+
+        public static bool ValidHabitId(string id) => HabitId.IsMatch(id ?? "");
+
         // ============================================================ character development
 
         private static readonly Tpl TDevelopment = new Tpl("character_development/development.txt",
@@ -268,7 +479,7 @@ Decide how this event changes them, as a novelist would: people change slowly an
 - Never change their name, family, rank or the facts of the world.
 Answer ONLY with JSON containing backstory_addition and just the fields you changed.");
 
-        public static void Touch() { var _ = TDevelopment.Key; }
+        public static void Touch() { var _ = TDevelopment.Key + THabitCreate.Key + THabitTalk.Key + THabitOfficial.Key; }
 
         /// <summary>After a defining event, the AI reworks the character's profile in the background.</summary>
         public static void Develop(Speaker s, string whatHappened)

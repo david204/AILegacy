@@ -505,6 +505,35 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
         public bool VoiceSpatial { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1dd70}Voice input: speak instead of typing", Order = 13, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd71}Hold the key below while you speak and let go: what you said goes into the text window that is open, for you to read and send. With no window open, in a group talk it is said to the group and in a battle it goes to your captains as an order. At most 30 seconds. Needs a microphone, and Groq or OpenAI in 0. AI Keys or a server of your own. Default: off.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public bool EnableStt { get; set; } = false;
+
+        [SettingPropertyDropdown("{=AIL_e7b1dd72}Voice input: key to hold", Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd73}Hold this key while speaking. Let go to stop recording and put in what was recognized.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public MCM.Common.Dropdown<string> SttHoldKey { get; set; } = new MCM.Common.Dropdown<string>(AILegacy.Voice.Listen.KeyNames, 0);
+
+        [SettingPropertyDropdown("{=AIL_e7b1dd74}Voice input: who writes it down", Order = 15, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd75}Groq: Whisper with the Groq provider in 0. AI Keys (free tier). OpenAI: with the OpenAI provider (costs a little per minute). Local or other server: any program with the same /audio/transcriptions API, such as a local whisper.cpp or faster-whisper server.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public MCM.Common.Dropdown<string> SttEngine { get; set; } = new MCM.Common.Dropdown<string>(AILegacy.Voice.Listen.EngineNames, 0);
+
+        [SettingPropertyText("{=AIL_e7b1dd76}Voice input: model", Order = 16, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd77}Empty = whisper-large-v3-turbo with Groq, gpt-4o-mini-transcribe with OpenAI, whisper-1 with a server.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public string SttModel { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1dd78}Voice input: server address", Order = 17, RequireRestart = false,
+            HintText = "{=AIL_e7b1dd79}The part of the address before /audio/transcriptions, for example http://127.0.0.1:8080/v1.")]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public string SttServerUrl { get; set; } = "http://127.0.0.1:8080/v1";
+
+        [SettingPropertyText("{=AIL_e7b1dd7a}Voice input: server key (if it asks for one)", Order = 18, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c845}H. Voice", GroupOrder = 17)]
+        public string SttServerKey { get; set; } = "";
+
         // ------------------------------------------------------------ General
         [SettingPropertyDropdown("{=AIL_e250598b}Interface language", Order = -2, RequireRestart = false,
             HintText = "{=AIL_5fd4967b}Language of AI Legacy's menus, notices and windows. \"Auto\" uses the game's language. To see this menu in the new language, leave the options and come back in.")]

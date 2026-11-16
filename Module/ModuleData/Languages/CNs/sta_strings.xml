@@ -2747,5 +2747,43 @@
     <string id="AIL_e7b1dd51" text="说话者的嘴会随声音而动，适用于地图对话和场景中，与游戏自带的配音台词一样。需要 AILegacy.dll 旁边有 rhubarb.exe（随模组附带）。关闭：只有声音，嘴不动；表情和手势有单独的设置。默认：开启。" />
     <string id="AIL_e7b1dd52" text="语音：场景中的 3D 声音" />
     <string id="AIL_e7b1dd53" text="在城镇、城堡和村庄中，声音来自说话者并跟随其移动：近处更响，来自其方向，超出听觉距离（与偷听相同）则听不到。关闭：所有声音无论在哪里都一样。默认：开启。" />
+    <string id="AIL_e7b1dd60" text="按住 {0} 说话即可填写此消息。" />
+    <string id="AIL_e7b1dd61" text="群聊：按住 {0}，在人群附近说话。" />
+    <string id="AIL_e7b1dd62" text="战斗：按住 {0} 说话即可下达命令。" />
+    <string id="AIL_e7b1dd63" text="语音输入：无法开始。请检查麦克风已连接并在 Windows 中允许使用。" />
+    <string id="AIL_e7b1dd64" text="语音输入：正在聆听…" />
+    <string id="AIL_e7b1dd65" text="语音输入：无法完成识别。" />
+    <string id="AIL_e7b1dd66" text="语音输入：没有识别到内容。" />
+    <string id="AIL_e7b1dd67" text="附近没有人能听到你。" />
+    <string id="AIL_e7b1dd68" text="语音输入：已识别你说的话，但没有打开的文本窗口。" />
+    <string id="AIL_e7b1dd69" text="H. 语音 中缺少服务器地址" />
+    <string id="AIL_e7b1dd6a" text="0. AI密钥 中没有带密钥的 Groq 服务商" />
+    <string id="AIL_e7b1dd6b" text="0. AI密钥 中没有带密钥的 OpenAI 服务商" />
+    <string id="AIL_e7b1dd70" text="语音输入：用说话代替打字" />
+    <string id="AIL_e7b1dd71" text="说话时按住下方的按键，说完松开：你说的话会填入打开的文本窗口，供你阅读后发送。没有打开窗口时，在群聊中会直接对群组说出，在战斗中会作为命令传给你的指挥官。最长 30 秒。需要麦克风，以及 0. AI密钥 中的 Groq 或 OpenAI，或你自己的服务器。默认：关闭。" />
+    <string id="AIL_e7b1dd72" text="语音输入：按住的按键" />
+    <string id="AIL_e7b1dd73" text="说话时按住此键。松开即停止录音并插入识别出的文字。" />
+    <string id="AIL_e7b1dd74" text="语音输入：由谁转写" />
+    <string id="AIL_e7b1dd75" text="Groq：使用 0. AI密钥 中的 Groq 服务商运行 Whisper（免费额度）。OpenAI：使用 OpenAI 服务商（按分钟少量收费）。本地或其他服务器：任何具有相同 /audio/transcriptions 接口的程序，例如本地 whisper.cpp 或 faster-whisper 服务器。" />
+    <string id="AIL_e7b1dd76" text="语音输入：模型" />
+    <string id="AIL_e7b1dd77" text="留空 = Groq 用 whisper-large-v3-turbo，OpenAI 用 gpt-4o-mini-transcribe，服务器用 whisper-1。" />
+    <string id="AIL_e7b1dd78" text="语音输入：服务器地址" />
+    <string id="AIL_e7b1dd79" text="/audio/transcriptions 之前的地址部分，例如 http://127.0.0.1:8080/v1。" />
+    <string id="AIL_e7b1dd7a" text="语音输入：服务器密钥（如需要）" />
+    <string id="AIL_e7b1dd80" text="说话习惯" />
+    <string id="AIL_e7b1dd81" text="每个角色第一次说话时会按年龄获得其中一种习惯，AI 会围绕它构建其说话方式。修改列表不会改变已有习惯的角色，除非你删除了他们的习惯：那时会随机获得另一个。" />
+    <string id="AIL_e7b1dd82" text="添加习惯" />
+    <string id="AIL_e7b1dd83" text="标识（小写字母、数字和 _）" />
+    <string id="AIL_e7b1dd84" text="名称（仅供你看；AI 看不到）" />
+    <string id="AIL_e7b1dd85" text="此人……" />
+    <string id="AIL_e7b1dd86" text="任何人" />
+    <string id="AIL_e7b1dd87" text="成年人" />
+    <string id="AIL_e7b1dd88" text="儿童" />
+    <string id="AIL_e7b1dd89" text="权重（0.1 到 20）" />
+    <string id="AIL_e7b1dd8a" text="只能使用小写字母、数字和 _（2 到 48 个）。" />
+    <string id="AIL_e7b1dd8b" text="此标识重复了。" />
+    <string id="AIL_e7b1dd8c" text="写下此人说话时的习惯。" />
+    <string id="AIL_e7b1dd8d" text="说话习惯" />
+    <string id="AIL_e7b1dd8e" text="（随机）" />
   </strings>
 </base>

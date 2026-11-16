@@ -511,13 +511,18 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
             string names = string.Join(", ", Circle.Select(x => x.Who.Name));
             string last = Transcript.Count == 0 ? "" : L.T("AIL_cbe9f6a8", "\n\nLo último:\n") + string.Join("\n", Transcript.Skip(Math.Max(0, Transcript.Count - 4)).Select(x => ForPlayer(x)));
             string title = L.T("AIL_6d3c2db8", "Hablas al grupo");
-            string how = Hotkeys.Fix(L.T("AIL_dd02342f", "\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)"));
+            string how = Hotkeys.Fix(L.T("AIL_dd02342f", "\n\n(Empieza con * para susurrárselo solo a quien miras, o con ! para gritarlo. Alt+G termina la conversación.)")) + AILegacy.Voice.Listen.HintForGroup();
             // The world doesn't pause while you type, it goes into slow motion
             bool slow = cfg.GroupSlowMotion;
             if (slow) { try { m.AddTimeSpeedRequest(new Mission.TimeSpeedRequest(0.2f, SlowId)); _slowed = m; } catch { slow = false; } }
             InformationManager.ShowTextInquiry(new TextInquiryData(title, L.F("AIL_26906366", $"Te oyen: {names}.{last}{how}"), true, true, L.T("AIL_aa23f794", "Decir"), L.T("AIL_b8f9f7be", "Callar"),
                 t => { Unslow(); OnSaid(t); }, Unslow, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), !slow);
         }
+
+        /// <summary>A group talk is going on here: voice input with no window open is said to them.</summary>
+        internal static bool HearsVoice => Circle.Count > 0 && _mission != null && Mission.Current == _mission;
+
+        internal static void SayByVoice(string text) => OnSaid(text);
 
         private static void OnSaid(string text)
         {

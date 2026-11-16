@@ -292,6 +292,19 @@ namespace AILegacy.Dialogue
             _answered++;
         }
         public bool IsWaiting => _waiting;
+
+        /// <summary>The text box of the open chat window (for voice input), or null when there is none.</summary>
+        internal sealed class InputBox { public Func<string> Get; public Action<string> Set; }
+        internal static InputBox ActiveWindowInput
+        {
+            get
+            {
+                var a = Active;
+                if (a == null || a._closed || a._win?.VM == null || !a._win.VM.CanType) return null;
+                var vm = a._win.VM;
+                return new InputBox { Get = () => vm.InputText ?? "", Set = t => vm.InputText = t ?? "" };
+            }
+        }
         public bool Ended => _npcEnded;
         public Speaker Who => _s;
 
@@ -400,7 +413,7 @@ namespace AILegacy.Dialogue
             _retryText = null;
             // Nothing written, or cancelled: the player keeps silent, and the character answers to that silence
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                L.F("AIL_4f47d62d", $"Tu mensaje para {_s.Name}"), body + L.T("AIL_904fdecc", "\n\n(/ayuda para ver los comandos)"),
+                L.F("AIL_4f47d62d", $"Tu mensaje para {_s.Name}"), body + L.T("AIL_904fdecc", "\n\n(/ayuda para ver los comandos)") + AILegacy.Voice.Listen.HintForMessage(),
                 true, true, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e7b1ca01", "Callar"),
                 t => OnPlayerSaid(t), () => MainThread.Post(() => OnPlayerSaid("")), false,
                 t => new Tuple<bool, string>(true, ""), "", retry), true);

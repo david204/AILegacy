@@ -117,6 +117,12 @@
       <div id="a_list"></div>
       <div class="row"><button class="btn" data-click="addArch">Añadir molde</button><button class="btn main" data-click="saveArch">Guardar</button><button class="btn" data-reset="archetypes.json" data-click="resetWD" data-args="archetypes.json">Volver a los del módulo</button></div>
     </div>
+    <div class="card">
+      <h2>Hábitos de habla <span class="tag" data-own="voices.json"></span></h2>
+      <p class="hint">Cada personaje recibe uno de estos hábitos la primera vez que habla, según su edad, y la IA construye su forma de hablar alrededor. Cambiar la lista no cambia a quien ya tiene uno, salvo si borras el suyo: entonces recibe otro al azar.</p>
+      <div id="v_list"></div>
+      <div class="row"><button class="btn" data-click="addVoice">Añadir hábito</button><button class="btn main" data-click="saveVoices">Guardar</button><button class="btn" data-reset="voices.json" data-click="resetWD" data-args="voices.json">Volver a los del módulo</button></div>
+    </div>
     <div class="grid2">
       <div class="card">
         <h2>Fe de cada pueblo <span class="tag" data-own="religion.json"></span></h2>
@@ -215,6 +221,7 @@
         </div>
         <div class="grid2">
           <div><label>Molde de carácter</label><select id="f_archetype"></select><p class="hint" id="f_archetype_text"></p></div>
+          <div><label>Hábito de habla</label><select id="f_habit"></select></div>
           <div><label>Tensión del momento (0 a 100)</label><input id="f_tension" type="number" min="0" max="100"></div>
           <div><label>Moral (principled / pragmatic / ruthless…)</label><input id="f_morality"></div>
           <div><label>Palabrotas (never / sometimes / often…)</label><input id="f_profanity"></div>
@@ -465,8 +472,9 @@ function loadWorld() {
   $('p_desc').value = state.player_description || ''; $('p_family').value = state.player_family || '';
   for (const k in KFILE) K[k] = readJson(KFILE[k], true).map(e => ({ id:e.id || '', text:e.text || '', chance:e.chance ?? 50, access:e.access || 'medium', who:[...(e.who || [])], about:[...(e.about || [])] }));
   ARCH = readJson('archetypes.json', true).map(a => ({ id:a.id || '', name:a.name || '', description:a.description || '', roles:[...(a.roles || [])], morality:a.morality || 'pragmatic', profanity:a.profanity || 'mild', piety:a.piety || 'observant' }));
+  VOICES = readJson('voices.json', true).map(v => ({ id:v.id || '', name:v.name || '', prompt:v.prompt || '', age:v.age || 'any', weight:v.weight ?? 1 }));
   for (const k in MFILE) MAPS[k] = Object.entries(readJson(MFILE[k], false)).map(([key, text]) => ({ key, text:text || '' }));
-  renderOwn(); renderK('info'); renderK('secrets'); renderArch(); renderMap('religion'); renderMap('traditions');
+  renderOwn(); renderK('info'); renderK('secrets'); renderArch(); renderVoices(); renderMap('religion'); renderMap('traditions');
 }
 function renderOwn() {
   document.querySelectorAll('[data-own]').forEach(el => { const own = !!(WD[el.dataset.own] || {}).own; el.textContent = own ? T('copia de esta partida') : T('valores del módulo'); el.classList.toggle('own', own); });
@@ -593,6 +601,52 @@ async function saveArch() {
   if (bad) { toast(T('Revisa los campos marcados en rojo.'), true); return; }
   const out = ARCH.map(a => ({ id:a.id || slug(a.name), name:a.name, description:a.description, roles:a.roles, morality:a.morality, profanity:a.profanity, piety:a.piety }));
   const r = await saveWD('archetypes.json', JSON.stringify(out, null, 2)); toast(T('Guardado') + ' (' + r.count + ')');
+}
+
+// ---- speech habits (voices.json)
+let VOICES = [];
+const AGE_L = { any:'Cualquiera', adult:'Adultos', child:'Niños' };
+function renderVoices() {
+  const box = $('v_list');
+  if (BROKEN['voices.json']) { box.innerHTML = brokenMsg(); return; }
+  box.innerHTML = VOICES.map((v, i) => {
+    const er = v._err || {};
+    return `<details class="entry"${v._open ? ' open' : ''} data-toggle="vSet" data-args="${i},_open" data-pass="open">
+      <summary>${esc(v.name || v.id) || TH('(nuevo)')}<small>${esc(cut(v.prompt))}</small></summary>
+      <div class="grid2">
+        <div><label>Identificador (minúsculas, números y _)</label><input class="${er.id ? 'bad' : ''}" value="${esc(v.id)}" data-input="vSet" data-args="${i},id" data-pass="value">${errP(er.id)}</div>
+        <div><label>Nombre (solo para ti; la IA no lo ve)</label><input value="${esc(v.name)}" data-input="vSet" data-args="${i},name" data-pass="value"></div>
+      </div>
+      <label>Esta persona…</label><textarea class="${er.prompt ? 'bad' : ''}" data-input="vSet" data-args="${i},prompt" data-pass="value">${esc(v.prompt)}</textarea>${errP(er.prompt)}
+      <div class="grid2">
+        <div><label>Edad</label><select data-change="vSet" data-args="${i},age" data-pass="value">${['any','adult','child'].map(o => `<option value="${o}"${o === v.age ? ' selected' : ''}>${TH(AGE_L[o])}</option>`).join('')}</select></div>
+        <div><label>Peso (0,1 a 20)</label><input type="number" min="0.1" max="20" step="0.1" value="${esc(String(v.weight))}" data-input="vSet" data-args="${i},weight" data-pass="value"></div>
+      </div>
+      <p class="hint">Voice habit: ${esc(v.prompt || '…')} (often, but not in every line).</p>
+      <div class="row"><button class="btn danger" data-click="vRemove" data-args="${i}">Quitar</button></div>
+    </details>`;
+  }).join('') || `<p class="hint">${TH('No hay ninguno.')}</p>`;
+}
+function vSet(i, field, value) { VOICES[i][field] = value; }
+function vRemove(i) { VOICES.splice(i, 1); renderVoices(); }
+function addVoice() { if (BROKEN['voices.json']) return; VOICES.push({ id:'', name:'', prompt:'', age:'any', weight:1, _open:true }); renderVoices(); }
+async function saveVoices() {
+  if (BROKEN['voices.json']) return;
+  const seen = new Set(); let bad = false;
+  for (const v of VOICES) {
+    v._err = {}; v.id = (v.id || '').trim().toLowerCase(); v.name = (v.name || '').trim(); v.prompt = (v.prompt || '').trim();
+    if (!/^[a-z0-9_]{2,48}$/.test(v.id)) v._err.id = T('Usa solo minúsculas, números y _ (de 2 a 48).');
+    else if (seen.has(v.id)) v._err.id = T('Este identificador está repetido.');
+    seen.add(v.id);
+    if (!v.prompt) v._err.prompt = T('Escribe lo que hace al hablar.');
+    let w = parseFloat(String(v.weight).replace(',', '.')); if (!isFinite(w)) w = 1; v.weight = Math.max(0.1, Math.min(20, w));
+    if (!['any','adult','child'].includes(v.age)) v.age = 'any';
+    if (Object.keys(v._err).length) { bad = true; v._open = true; }
+  }
+  renderVoices();
+  if (bad) { toast(T('Revisa los campos marcados en rojo.'), true); return; }
+  const out = VOICES.map(v => ({ id:v.id, name:v.name || v.id, prompt:v.prompt, age:v.age, weight:v.weight }));
+  const r = await saveWD('voices.json', JSON.stringify(out, null, 2)); toast(T('Guardado') + ' (' + r.count + ')');
 }
 
 function renderMap(kind) {
@@ -748,6 +802,7 @@ async function openNpc(id) {
   for (const k of PKEYS) $('f_' + k).value = n.profile[k] || '';
   $('f_archetype').innerHTML = '<option value="">' + TH('(sin molde: se le asignará solo)') + '</option>' + (n.archetypes || []).map(a => `<option value="${esc(a.name)}" title="${esc(a.desc)}"${a.name === n.archetype ? ' selected' : ''}>${esc(a.name)}</option>`).join('');
   $('f_archetype_text').textContent = n.archetype_text || '';
+  $('f_habit').innerHTML = '<option value="">' + TH('(al azar)') + '</option>' + (n.habits || []).map(h => `<option value="${esc(h.id)}"${h.id === n.habit ? ' selected' : ''}>${esc(h.name)}</option>`).join('');
   $('f_tension').value = n.tension || 0; $('f_morality').value = n.morality || ''; $('f_profanity').value = n.profanity || ''; $('f_piety').value = n.piety || '';
   $('f_counts').textContent = `${(n.turns || []).length} ${T('frases recientes')} · ${n.archived} ${T('archivadas')} · ${n.pages} ${T('página(s) en su libro')}` + (n.in_game ? '' : T(' · ya no está en la partida'));
   $('genBtn').style.display = n.in_game ? '' : 'none';
@@ -759,7 +814,7 @@ async function openNpc(id) {
 async function saveNpc() {
   const profile = {}; for (const k of PKEYS) profile[k] = $('f_' + k).value;
   await api('/api/npc/save', { id:npcId, profile, summary:$('f_summary').value, notes:$('f_notes').value, custom:$('f_custom').value, player_name:$('f_player_name').value, mood:$('f_mood').value, trust:String($('f_trust').value), romance:String($('f_romance').value),
-    tension:String($('f_tension').value), archetype:$('f_archetype').value, morality:$('f_morality').value, profanity:$('f_profanity').value, piety:$('f_piety').value });
+    tension:String($('f_tension').value), archetype:$('f_archetype').value, habit:$('f_habit').value, morality:$('f_morality').value, profanity:$('f_profanity').value, piety:$('f_piety').value });
   toast(T('Guardado. Recuerda guardar la partida en el juego.')); await refreshState();
 }
 async function clearHistory() { if (!confirm(T('¿Borrar sus frases y resumen?'))) return; await api('/api/npc/clearhistory', { id:npcId }); openNpc(npcId); toast(T('Historial borrado')); }
@@ -801,7 +856,7 @@ async function importData() {
 // Buttons and fields say what they do in data-click, data-input, data-change or data-toggle: a name from ACTIONS,
 // with its fixed arguments in data-args and, in data-pass, what of the element goes last (its value, whether it is
 // open, or the element). No handler is written into the markup.
-const ACTIONS = { aRemove, aRole, aSet, addArch, addItem, addK, addMap, clearHistory, copyDefaults, createCompanion, createFamily, deleteNpc, exportData, generateNpc, importData, kAbout, kDel, kRemove, kSearch, kSet, kWho, loadBackups, loadUsage, mRemove, mSet, openDir, publishEvent, renderFiles, renderNpcs, resetFile, resetWD, restoreBackup, saveArch, saveFile, saveK, saveMap, saveNpc, savePlayer, saveWorld, searchEventHeroes, searchHeroes };
+const ACTIONS = { aRemove, aRole, aSet, addArch, addVoice, saveVoices, vRemove, vSet, addItem, addK, addMap, clearHistory, copyDefaults, createCompanion, createFamily, deleteNpc, exportData, generateNpc, importData, kAbout, kDel, kRemove, kSearch, kSet, kWho, loadBackups, loadUsage, mRemove, mSet, openDir, publishEvent, renderFiles, renderNpcs, resetFile, resetWD, restoreBackup, saveArch, saveFile, saveK, saveMap, saveNpc, savePlayer, saveWorld, searchEventHeroes, searchHeroes };
 for (const type of ['click', 'input', 'change', 'toggle']) {
   // toggle does not bubble, so everything is caught on the way down
   document.addEventListener(type, e => {

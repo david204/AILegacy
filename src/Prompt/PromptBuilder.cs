@@ -325,7 +325,12 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             sys.AppendLine("{");
             sys.AppendLine("  " + string.Join(",\n  ", fields.Select(f => f.Trim().TrimEnd(','))));
             sys.AppendLine("}");
-            if (needsProfile) sys.AppendLine(TProfileNote.Format("language", cfg.Language));
+            if (needsProfile)
+            {
+                sys.AppendLine(TProfileNote.Format("language", cfg.Language));
+                string habit = Lore.HabitForCreation(s);
+                if (habit.Length > 0) sys.AppendLine(habit);
+            }
             if (completing) sys.AppendLine(TProfileComplete.Text);
 
             // ---------- 2. history
