@@ -183,7 +183,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             m != null && !m.IsFemale && m != P && m.IsAlive && m.Age >= 18 && !m.IsNotable && m.Clan != null && m != w.Spouse && m.Clan != w.Clan
             && !Kin(w, m) && w.GetRelation(m) >= 0;
 
-        private static bool Kin(Hero a, Hero b)
+        internal static bool Kin(Hero a, Hero b)
         {
             if (a == null || b == null) return false;
             if (a.Father == b || a.Mother == b || b.Father == a || b.Mother == a) return true;

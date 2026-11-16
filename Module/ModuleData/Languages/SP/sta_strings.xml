@@ -2220,5 +2220,20 @@
     <string id="AIL_e7b1c870" text="{=!}*desmonta y te hace un gesto para que hagas lo mismo*" />
     <string id="AIL_e7b1c871" text="Hablar en la escena: siempre, al encontrarte con un señor" />
     <string id="AIL_e7b1c872" text="Activado: encontrarte en el mapa con un señor con el que no estás en guerra te lleva directamente a la escena a pie, sin la charla del mapa antes. Desactivado: eliges «Desmontemos y hablemos cara a cara» cuando quieras." />
+    <string id="AIL_e7b1c873" text="Concubinas: también entre otros personajes" />
+    <string id="AIL_e7b1c874" text="Los señores casados de la IA que no son felices en casa pueden tomar una concubina de otra casa cuando pasan tiempo juntos (misma ciudad, ejército o partida): ella entra en su clan, el jefe de su casa se lo toma mal, su cónyuge también, y pueden venir hijos. Se acaba cuando muere cualquiera de los dos. Necesita «Concubinas» activado." />
+    <string id="AIL_e7b1c875" text="Concubinas entre otros: probabilidad (% al año)" />
+    <string id="AIL_e7b1c876" text="Probabilidad al año de que un señor casado que cumpla las condiciones tome una concubina, si hay alguien adecuado cerca. Recomendado: de 5 a 20." />
+    <string id="AIL_e7b1c877" text="Concubinas entre otros: atracción necesaria" />
+    <string id="AIL_e7b1c878" text="Los dos tienen que llegar: lo atractivo que encuentra cada uno al otro (de 0 a 100) más una cuarta parte de su relación. Un señor honorable necesita 30 más y uno compasivo 20 más. Recomendado: de 40 a 70." />
+    <string id="AIL_e7b1c879" text="Concubinas entre otros: solo si la relación con el cónyuge es menor que" />
+    <string id="AIL_e7b1c87a" text="Un señor que se lleva con su cónyuge al menos así de bien nunca toma una. Recomendado: de 20 a 50." />
+    <string id="AIL_e7b1c87b" text="Concubinas entre otros: máximo por señor" />
+    <string id="AIL_e7b1c87c" text="Concubinas entre otros: alguien de otra cultura (%)" />
+    <string id="AIL_e7b1c87d" text="Probabilidad de que alguien de otra cultura sirva. 100 = la cultura da igual; 0 = solo de la suya. Recomendado: de 20 a 50." />
+    <string id="AIL_e7b1c87e" text="Concubinas entre otros: también nobles casadas (%)" />
+    <string id="AIL_e7b1c87f" text="Probabilidad, comparada con la de un señor, de que una noble casada en la misma situación tome a un hombre como concubino. 0 = nunca. Recomendado: de 0 a 30." />
+    <string id="AIL_e7b1c880" text="{0} toma una concubina" />
+    <string id="AIL_e7b1c881" text="{0}, de la casa {1}, vive ahora con {2} como concubina." />
   </strings>
 </base>

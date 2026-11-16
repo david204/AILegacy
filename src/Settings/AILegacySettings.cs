@@ -1030,6 +1030,40 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
         public int ConcubinePregnancyPercent { get; set; } = 100;
 
+        [SettingPropertyBool("{=AIL_e7b1c873}Concubines: also between other characters", Order = 63, RequireRestart = false,
+            HintText = "{=AIL_e7b1c874}Married lords of the AI who are not happy at home can take a concubine of another house when they spend time together (same town, army or party): she joins his clan, her head of house takes it badly, his spouse too, and children may come. It ends when either dies. Needs «Concubines» on.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public bool ConcubinesForNpcs { get; set; } = false;
+
+        [SettingPropertyInteger("{=AIL_e7b1c875}Concubines between others: chance (% a year)", 0, 100, Order = 64, RequireRestart = false,
+            HintText = "{=AIL_e7b1c876}Chance a year that a married lord who meets the conditions takes a concubine, if someone suitable is near. Recommended: 5 to 20.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubineNpcYearlyPercent { get; set; } = 10;
+
+        [SettingPropertyInteger("{=AIL_e7b1c877}Concubines between others: liking needed", 0, 125, Order = 65, RequireRestart = false,
+            HintText = "{=AIL_e7b1c878}Both must reach it: how attractive each finds the other (0 to 100) plus a quarter of their relation. An honourable lord needs 30 more and a merciful one 20 more. Recommended: 40 to 70.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubineNpcLiking { get; set; } = 50;
+
+        [SettingPropertyInteger("{=AIL_e7b1c879}Concubines between others: only if relation with the spouse is below", -100, 100, Order = 66, RequireRestart = false,
+            HintText = "{=AIL_e7b1c87a}A lord who gets on with his spouse at least this well never takes one. Recommended: 20 to 50.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubineNpcSpouseRelation { get; set; } = 30;
+
+        [SettingPropertyInteger("{=AIL_e7b1c87b}Concubines between others: most per lord", 1, 5, Order = 67, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubineNpcMaxPerLord { get; set; } = 1;
+
+        [SettingPropertyInteger("{=AIL_e7b1c87c}Concubines between others: someone of another culture (%)", 0, 100, Order = 68, RequireRestart = false,
+            HintText = "{=AIL_e7b1c87d}Chance that someone of another culture is acceptable. 100 = culture does not matter; 0 = only their own. Recommended: 20 to 50.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubineNpcOtherCulturePercent { get; set; } = 30;
+
+        [SettingPropertyInteger("{=AIL_e7b1c87e}Concubines between others: married noblewomen too (%)", 0, 100, Order = 69, RequireRestart = false,
+            HintText = "{=AIL_e7b1c87f}Chance, compared with a lord, that a married noblewoman in the same situation takes a man as her concubine. 0 = never. Recommended: 0 to 30.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}2. Relation, trust and romance", GroupOrder = 2)]
+        public int ConcubineNpcWomenPercent { get; set; } = 10;
+
         [SettingPropertyBool("{=AIL_cae619f6}Tasks (quests created by the AI)", Order = 15, RequireRestart = false,
             HintText = "{=AIL_745a654d}NPCs can give you tasks, note your progress, and mark them fulfilled (with reward) or failed. They appear in the game's quest log. Careful: a saved game with tasks needs AI Legacy to load.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}3. Actions", GroupOrder = 3)]

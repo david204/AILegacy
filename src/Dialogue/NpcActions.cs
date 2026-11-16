@@ -804,7 +804,7 @@ namespace AILegacy.Dialogue
                 Description = "You leave your house to live with the other person as their concubine: not their spouse, but sharing their roof and their bed, in their household. " +
                               "Only if they clearly asked you, you love them deeply, and you would rather this than lose them. Your old head of house will take it badly.",
                 IsAvailable = s => s.IsHero && World.Concubines.Enabled && World.Concubines.WhyNot(s.Hero) == null,
-                WhyNot = s => s.IsHero && World.Concubines.Enabled && !World.Concubines.Is(s.Hero) ? World.Concubines.WhyNot(s.Hero) : null,
+                WhyNot = s => s.IsHero && World.Concubines.Enabled && !World.Concubines.IsWithPlayer(s.Hero) ? World.Concubines.WhyNot(s.Hero) : null,
                 Execute = (s, arg, ctx) =>
                 {
                     var h = s.Hero;
@@ -817,7 +817,7 @@ namespace AILegacy.Dialogue
             {
                 Name = "end_concubine", Usage = "end_concubine",
                 Description = "You stop being the other person's concubine and go back to your own house. Only if one of you has truly decided it is over.",
-                IsAvailable = s => s.IsHero && World.Concubines.Is(s.Hero),
+                IsAvailable = s => s.IsHero && World.Concubines.IsWithPlayer(s.Hero),
                 Execute = (s, arg, ctx) => World.Concubines.End(s.Hero)
             },
 

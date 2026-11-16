@@ -2220,5 +2220,20 @@
     <string id="AIL_e7b1c870" text="{=!}*met pied à terre et vous fait signe d’en faire autant*" />
     <string id="AIL_e7b1c871" text="Parler dans la scène : toujours, quand vous rencontrez un seigneur" />
     <string id="AIL_e7b1c872" text="Activé : rencontrer sur la carte un seigneur avec qui vous n’êtes pas en guerre mène directement à la scène à pied, sans la conversation de carte d’abord. Désactivé : vous choisissez « Mettons pied à terre et parlons face à face » quand vous le voulez." />
+    <string id="AIL_e7b1c873" text="Concubines : aussi entre d'autres personnages" />
+    <string id="AIL_e7b1c874" text="Les seigneurs mariés de l'IA malheureux en ménage peuvent prendre une concubine d'une autre maison quand ils passent du temps ensemble (même ville, armée ou groupe) : elle rejoint son clan, le chef de sa maison le prend mal, son épouse aussi, et des enfants peuvent naître. Cela prend fin à la mort de l'un des deux. Nécessite « Concubines » activé." />
+    <string id="AIL_e7b1c875" text="Concubines entre autres : probabilité (% par an)" />
+    <string id="AIL_e7b1c876" text="Probabilité par an qu'un seigneur marié remplissant les conditions prenne une concubine, si quelqu'un de convenable est proche. Recommandé : 5 à 20." />
+    <string id="AIL_e7b1c877" text="Concubines entre autres : attirance requise" />
+    <string id="AIL_e7b1c878" text="Les deux doivent l'atteindre : l'attirance de chacun pour l'autre (0 à 100) plus un quart de leur relation. Un seigneur honorable a besoin de 30 de plus, un miséricordieux de 20 de plus. Recommandé : 40 à 70." />
+    <string id="AIL_e7b1c879" text="Concubines entre autres : seulement si la relation avec l'époux est inférieure à" />
+    <string id="AIL_e7b1c87a" text="Un seigneur qui s'entend au moins aussi bien avec son épouse n'en prend jamais. Recommandé : 20 à 50." />
+    <string id="AIL_e7b1c87b" text="Concubines entre autres : maximum par seigneur" />
+    <string id="AIL_e7b1c87c" text="Concubines entre autres : quelqu'un d'une autre culture (%)" />
+    <string id="AIL_e7b1c87d" text="Probabilité qu'une personne d'une autre culture convienne. 100 = la culture n'importe pas ; 0 = seulement la leur. Recommandé : 20 à 50." />
+    <string id="AIL_e7b1c87e" text="Concubines entre autres : nobles mariées aussi (%)" />
+    <string id="AIL_e7b1c87f" text="Probabilité, par rapport à un seigneur, qu'une noble mariée dans la même situation prenne un homme comme concubin. 0 = jamais. Recommandé : 0 à 30." />
+    <string id="AIL_e7b1c880" text="{0} prend une concubine" />
+    <string id="AIL_e7b1c881" text="{0}, de la maison {1}, vit désormais avec {2} comme concubine." />
   </strings>
 </base>

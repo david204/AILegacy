@@ -2220,5 +2220,20 @@
     <string id="AIL_e7b1c870" text="{=!}*smonta e ti fa cenno di fare lo stesso*" />
     <string id="AIL_e7b1c871" text="Parla nella scena: sempre, quando incontri un signore" />
     <string id="AIL_e7b1c872" text="Attivato: incontrare sulla mappa un signore con cui non sei in guerra porta subito alla scena a piedi, senza la conversazione sulla mappa prima. Disattivato: scegli «Smontiamo e parliamo faccia a faccia» quando vuoi." />
+    <string id="AIL_e7b1c873" text="Concubine: anche tra altri personaggi" />
+    <string id="AIL_e7b1c874" text="I signori sposati dell'IA infelici in casa possono prendere una concubina di un'altra casata quando passano del tempo insieme (stessa città, esercito o gruppo): lei entra nel suo clan, il capo della sua casata la prende male, il coniuge anche, e possono nascere figli. Finisce quando uno dei due muore. Richiede «Concubine» attivo." />
+    <string id="AIL_e7b1c875" text="Concubine tra altri: probabilità (% all'anno)" />
+    <string id="AIL_e7b1c876" text="Probabilità all'anno che un signore sposato che soddisfa le condizioni prenda una concubina, se qualcuno di adatto è vicino. Consigliato: da 5 a 20." />
+    <string id="AIL_e7b1c877" text="Concubine tra altri: attrazione necessaria" />
+    <string id="AIL_e7b1c878" text="Entrambi devono raggiungerla: quanto ciascuno trova attraente l'altro (da 0 a 100) più un quarto della loro relazione. Un signore onorevole ha bisogno di 30 in più, uno misericordioso di 20 in più. Consigliato: da 40 a 70." />
+    <string id="AIL_e7b1c879" text="Concubine tra altri: solo se la relazione con il coniuge è inferiore a" />
+    <string id="AIL_e7b1c87a" text="Un signore che va d'accordo con il coniuge almeno così non ne prende mai una. Consigliato: da 20 a 50." />
+    <string id="AIL_e7b1c87b" text="Concubine tra altri: massimo per signore" />
+    <string id="AIL_e7b1c87c" text="Concubine tra altri: qualcuno di un'altra cultura (%)" />
+    <string id="AIL_e7b1c87d" text="Probabilità che qualcuno di un'altra cultura vada bene. 100 = la cultura non conta; 0 = solo la propria. Consigliato: da 20 a 50." />
+    <string id="AIL_e7b1c87e" text="Concubine tra altri: anche nobildonne sposate (%)" />
+    <string id="AIL_e7b1c87f" text="Probabilità, rispetto a un signore, che una nobildonna sposata nella stessa situazione prenda un uomo come concubino. 0 = mai. Consigliato: da 0 a 30." />
+    <string id="AIL_e7b1c880" text="{0} prende una concubina" />
+    <string id="AIL_e7b1c881" text="{0}, della casata {1}, ora vive con {2} come concubina." />
   </strings>
 </base>

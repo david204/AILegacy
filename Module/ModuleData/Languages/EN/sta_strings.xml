@@ -2220,5 +2220,20 @@
     <string id="AIL_e7b1c870" text="{=!}*dismounts and gestures for you to do the same*" />
     <string id="AIL_e7b1c871" text="Talk in the scene: always, when you meet a lord" />
     <string id="AIL_e7b1c872" text="On: meeting a lord on the map you are not at war with goes straight to the scene on foot, without the map conversation first. Off: you choose «Let's dismount and talk face to face» when you want it." />
+    <string id="AIL_e7b1c873" text="Concubines: also between other characters" />
+    <string id="AIL_e7b1c874" text="Married lords of the AI who are not happy at home can take a concubine of another house when they spend time together (same town, army or party): she joins his clan, her head of house takes it badly, his spouse too, and children may come. It ends when either dies. Needs «Concubines» on." />
+    <string id="AIL_e7b1c875" text="Concubines between others: chance (% a year)" />
+    <string id="AIL_e7b1c876" text="Chance a year that a married lord who meets the conditions takes a concubine, if someone suitable is near. Recommended: 5 to 20." />
+    <string id="AIL_e7b1c877" text="Concubines between others: liking needed" />
+    <string id="AIL_e7b1c878" text="Both must reach it: how attractive each finds the other (0 to 100) plus a quarter of their relation. An honourable lord needs 30 more and a merciful one 20 more. Recommended: 40 to 70." />
+    <string id="AIL_e7b1c879" text="Concubines between others: only if relation with the spouse is below" />
+    <string id="AIL_e7b1c87a" text="A lord who gets on with his spouse at least this well never takes one. Recommended: 20 to 50." />
+    <string id="AIL_e7b1c87b" text="Concubines between others: most per lord" />
+    <string id="AIL_e7b1c87c" text="Concubines between others: someone of another culture (%)" />
+    <string id="AIL_e7b1c87d" text="Chance that someone of another culture is acceptable. 100 = culture does not matter; 0 = only their own. Recommended: 20 to 50." />
+    <string id="AIL_e7b1c87e" text="Concubines between others: married noblewomen too (%)" />
+    <string id="AIL_e7b1c87f" text="Chance, compared with a lord, that a married noblewoman in the same situation takes a man as her concubine. 0 = never. Recommended: 0 to 30." />
+    <string id="AIL_e7b1c880" text="{0} takes a concubine" />
+    <string id="AIL_e7b1c881" text="{0}, of house {1}, now lives with {2} as a concubine." />
   </strings>
 </base>

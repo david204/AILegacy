@@ -15,10 +15,10 @@ namespace AILegacy.Patches
             try
             {
                 if (queriedHero == null || baseHero == null) return;
-                // the player's concubine, seen from the player (and the other way round)
-                if (Concubines.Enabled && ((baseHero == Hero.MainHero && Concubines.Is(queriedHero)) || (queriedHero == Hero.MainHero && Concubines.Is(baseHero))))
+                // a concubine seen from the one they live with (and the other way round)
+                if (Concubines.Enabled && (Concubines.PartnerOf(queriedHero) == baseHero || Concubines.PartnerOf(baseHero) == queriedHero))
                 {
-                    string c = queriedHero == Hero.MainHero ? L.T("AIL_e7b1c840", "amante") : queriedHero.IsFemale ? L.T("AIL_e7b1c841", "concubina") : L.T("AIL_e7b1c842", "concubino");
+                    string c = Concubines.PartnerOf(baseHero) == queriedHero ?L.T("AIL_e7b1c840", "amante") : queriedHero.IsFemale ? L.T("AIL_e7b1c841", "concubina") : L.T("AIL_e7b1c842", "concubino");
                     __result = uppercaseFirst && c.Length > 0 ? char.ToUpper(c[0]) + c.Substring(1) : c;
                     return;
                 }

@@ -2220,5 +2220,20 @@
     <string id="AIL_e7b1c870" text="{=!}*steigt ab und bedeutet dir, es ihm gleichzutun*" />
     <string id="AIL_e7b1c871" text="In der Szene sprechen: immer, wenn du einen Herrn triffst" />
     <string id="AIL_e7b1c872" text="An: Triffst du auf der Karte einen Herrn, mit dem du nicht im Krieg bist, geht es direkt in die Szene zu Fuß, ohne Kartengespräch davor. Aus: Du wählst «Lass uns absteigen und von Angesicht zu Angesicht reden», wann du willst." />
+    <string id="AIL_e7b1c873" text="Konkubinen: auch zwischen anderen Figuren" />
+    <string id="AIL_e7b1c874" text="Verheiratete KI-Fürsten, die zu Hause unglücklich sind, können eine Konkubine aus einem anderen Haus nehmen, wenn sie Zeit miteinander verbringen (gleiche Stadt, Armee oder Gruppe): Sie tritt seinem Clan bei, ihr Hausoberhaupt nimmt es übel, sein Ehepartner auch, und es können Kinder kommen. Es endet, wenn einer von beiden stirbt. Benötigt «Konkubinen» aktiv." />
+    <string id="AIL_e7b1c875" text="Konkubinen zwischen anderen: Chance (% pro Jahr)" />
+    <string id="AIL_e7b1c876" text="Chance pro Jahr, dass ein verheirateter Fürst, der die Bedingungen erfüllt, eine Konkubine nimmt, wenn jemand Passendes in der Nähe ist. Empfohlen: 5 bis 20." />
+    <string id="AIL_e7b1c877" text="Konkubinen zwischen anderen: nötige Zuneigung" />
+    <string id="AIL_e7b1c878" text="Beide müssen ihn erreichen: wie anziehend jeder den anderen findet (0 bis 100) plus ein Viertel ihrer Beziehung. Ein ehrenhafter Fürst braucht 30 mehr, ein barmherziger 20 mehr. Empfohlen: 40 bis 70." />
+    <string id="AIL_e7b1c879" text="Konkubinen zwischen anderen: nur wenn die Beziehung zum Ehepartner unter" />
+    <string id="AIL_e7b1c87a" text="Ein Fürst, der mindestens so gut mit seinem Ehepartner auskommt, nimmt nie eine. Empfohlen: 20 bis 50." />
+    <string id="AIL_e7b1c87b" text="Konkubinen zwischen anderen: höchstens pro Fürst" />
+    <string id="AIL_e7b1c87c" text="Konkubinen zwischen anderen: jemand aus einer anderen Kultur (%)" />
+    <string id="AIL_e7b1c87d" text="Chance, dass jemand aus einer anderen Kultur infrage kommt. 100 = Kultur egal; 0 = nur die eigene. Empfohlen: 20 bis 50." />
+    <string id="AIL_e7b1c87e" text="Konkubinen zwischen anderen: auch verheiratete Adlige (%)" />
+    <string id="AIL_e7b1c87f" text="Chance im Vergleich zu einem Fürsten, dass eine verheiratete Adlige in derselben Lage einen Mann als Geliebten nimmt. 0 = nie. Empfohlen: 0 bis 30." />
+    <string id="AIL_e7b1c880" text="{0} nimmt eine Konkubine" />
+    <string id="AIL_e7b1c881" text="{0} aus dem Haus {1} lebt jetzt als Konkubine bei {2}." />
   </strings>
 </base>

@@ -211,7 +211,7 @@ namespace AILegacy.Patches
             {
                 if (!__result || firstHero == null || secondHero == null) return;
                 // a concubine of the player is married to nobody else meanwhile (to the player, yes)
-                if ((AILegacy.World.Concubines.Is(firstHero) && secondHero != Hero.MainHero) || (AILegacy.World.Concubines.Is(secondHero) && firstHero != Hero.MainHero)) { __result = false; return; }
+                if ((AILegacy.World.Concubines.Is(firstHero) && secondHero != AILegacy.World.Concubines.PartnerOf(firstHero)) || (AILegacy.World.Concubines.Is(secondHero) && firstHero != AILegacy.World.Concubines.PartnerOf(secondHero))) { __result = false; return; }
                 if (firstHero == Hero.MainHero || secondHero == Hero.MainHero) return;
                 int min = AILegacy.Settings.S.Get.RomanceProtectsFromMarriage;
                 if (min <= 0) return;
