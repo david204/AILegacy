@@ -60,40 +60,102 @@ namespace AILegacy.UI
         [DataSourceProperty] public bool HasAction { get => _hasAction; set { if (value != _hasAction) { _hasAction = value; OnPropertyChangedWithValue(value, nameof(HasAction)); } } }
     }
 
+    /// <summary>One row of a news card's lists: a decision with its colored tag, or a line of the consequences block.</summary>
+    public class NewsLineVM : ViewModel
+    {
+        public NewsLineVM(string text, int tone, string label = "", string color = "#3B3A4AFF")
+        { Text = text ?? ""; Tone = tone; Label = label ?? ""; Color = color; }
+        /// <summary>0 = where it falls (gold), 1 = good (green), 2 = bad (red), 3 = plain (white).</summary>
+        public int Tone { get; }
+        [DataSourceProperty] public string Text { get; }
+        [DataSourceProperty] public string Label { get; }
+        [DataSourceProperty] public string Color { get; }
+        [DataSourceProperty] public bool IsPlace => Tone == 0;
+        [DataSourceProperty] public bool IsGood => Tone == 1;
+        [DataSourceProperty] public bool IsBad => Tone == 2;
+        [DataSourceProperty] public bool IsPlain => Tone == 3;
+    }
+
+    /// <summary>A card of the news window, or (IsHeader) the line that opens a day.</summary>
     public class NewsCardVM : ViewModel
     {
         public NewsCardVM(string title, string participants, string text, string effects, string tag, string when, int tagKind = 2)
-        { Title = title; Participants = participants ?? ""; Text = text; Effects = effects ?? ""; Tag = tag; When = when; TagKind = tagKind; }
-        /// <summary>Tag color: 0 = local (brown), 1 = political (blue), 2 = anything else (green).</summary>
+        { Title = title; Participants = participants ?? ""; Text = text; Tag = tag; When = when; TagKind = tagKind; if (!string.IsNullOrEmpty(effects)) EffectLines.Add(new NewsLineVM(effects, 3)); }
+
+        /// <summary>The header that opens the news of one day.</summary>
+        public static NewsCardVM Header(string text) => new NewsCardVM("", "", "", "", "", "") { IsHeader = true, HeaderText = text };
+
+        /// <summary>Tag color: 0 = local (brown), 1 = political (blue), 2 = anything else (green). TagColor wins when set.</summary>
         public int TagKind { get; }
+        public string TagColorValue;
+        [DataSourceProperty] public string TagColor => TagColorValue ?? (TagKind == 0 ? "#4A3524FF" : TagKind == 1 ? "#2B3760FF" : "#1F4A44FF");
         [DataSourceProperty] public bool IsLocal => TagKind == 0;
         [DataSourceProperty] public bool IsPolitical => TagKind == 1;
         [DataSourceProperty] public bool IsOther => TagKind == 2;
+        [DataSourceProperty] public bool IsHeader { get; private set; }
+        [DataSourceProperty] public bool IsCard => !IsHeader;
+        [DataSourceProperty] public string HeaderText { get; private set; } = "";
         [DataSourceProperty] public string Title { get; }
         [DataSourceProperty] public string Participants { get; }
         [DataSourceProperty] public string Text { get; }
-        [DataSourceProperty] public string Effects { get; }
         [DataSourceProperty] public string Tag { get; }
         [DataSourceProperty] public string When { get; }
-        [DataSourceProperty] public bool HasParticipants => Participants.Length > 0;
+        /// <summary>Where it happened ("Place: Pravend (Vlandia)").</summary>
+        [DataSourceProperty] public string Place { get; set; } = "";
+        /// <summary>"Chapter 2" on a development of a story already told.</summary>
+        [DataSourceProperty] public string Chapter { get; set; } = "";
+        [DataSourceProperty] public string DecisionsTitle => L.T("AIL_e7b1cb0f", "Decisiones");
+        [DataSourceProperty] public string EffectsTitle => L.T("AIL_e7b1cb10", "Consecuencias");
+        [DataSourceProperty] public string DiseaseTitle => L.T("AIL_ee39700e", "Enfermedad");
+        [DataSourceProperty] public string Disease { get; set; } = "";
+        [DataSourceProperty] public MBBindingList<NewsLineVM> Decisions { get; } = new MBBindingList<NewsLineVM>();
+        [DataSourceProperty] public MBBindingList<NewsLineVM> EffectLines { get; } = new MBBindingList<NewsLineVM>();
+        [DataSourceProperty] public bool HasParticipants => !string.IsNullOrEmpty(Participants);
+        [DataSourceProperty] public bool HasPlace => !string.IsNullOrEmpty(Place);
+        [DataSourceProperty] public bool HasChapter => !string.IsNullOrEmpty(Chapter);
+        [DataSourceProperty] public bool HasDecisions => Decisions.Count > 0;
+        [DataSourceProperty] public bool HasDisease => !string.IsNullOrEmpty(Disease);
         /// <summary>The tag row (type and date) only shows on real news, not on the "nothing here" card.</summary>
         [DataSourceProperty] public bool HasTags => !string.IsNullOrEmpty(Tag) || !string.IsNullOrEmpty(When);
-        [DataSourceProperty] public bool HasEffects => Effects.Length > 0;
+        [DataSourceProperty] public bool HasEffects => EffectLines.Count > 0;
+        /// <summary>Everything a search can find in this card, lower case.</summary>
+        public string SearchText = "";
+    }
+
+    /// <summary>A filter button of the news window: a kind of record or a category, with how many there are.</summary>
+    public class NewsFilterVM : ViewModel
+    {
+        private readonly Action<NewsFilterVM> _onSelect;
+        private bool _isSelected;
+        private string _text;
+        public NewsFilterVM(string key, string text, string color, Action<NewsFilterVM> onSelect) { Key = key; _text = text ?? ""; Color = color; _onSelect = onSelect; }
+        public string Key { get; }
+        public void ExecuteSelect() => _onSelect?.Invoke(this);
+        [DataSourceProperty] public string Text { get => _text; set { if (value != _text) { _text = value; OnPropertyChangedWithValue(value, nameof(Text)); } } }
+        [DataSourceProperty] public string Color { get; }
+        [DataSourceProperty] public bool IsSelected { get => _isSelected; set { if (value != _isSelected) { _isSelected = value; OnPropertyChangedWithValue(value, nameof(IsSelected)); } } }
     }
 
     public class NewsFeedVM : ViewModel
     {
-        public Action OnClose, OnAction, OnToggle;
+        public Action OnClose, OnAction, OnToggle, OnSearch;
         public void ExecuteClose() => OnClose?.Invoke();
         public void ExecuteAction() => OnAction?.Invoke();
         public void ExecuteToggle() => OnToggle?.Invoke();
-        private string _toggleText = "";
+        private string _toggleText = "", _searchText = "";
         [DataSourceProperty] public string ToggleText { get => _toggleText; set { if (value != _toggleText) { _toggleText = value; OnPropertyChangedWithValue(value, nameof(ToggleText)); } } }
+        /// <summary>What the player typed in the search box. Every change filters the cards again.</summary>
+        [DataSourceProperty] public string SearchText { get => _searchText; set { if (value != _searchText) { _searchText = value ?? ""; OnPropertyChangedWithValue(value, nameof(SearchText)); OnSearch?.Invoke(); } } }
+        [DataSourceProperty] public string SearchPlaceholder => L.T("AIL_e7b1cb11", "Buscar en la crónica…");
         [DataSourceProperty] public string Title { get; set; } = "";
         [DataSourceProperty] public string CloseText => L.T("AIL_e8438e2a", "Cerrar");
         [DataSourceProperty] public string ActionText { get; set; } = "";
         [DataSourceProperty] public bool HasAction { get; set; }
         [DataSourceProperty] public MBBindingList<NewsCardVM> Cards { get; } = new MBBindingList<NewsCardVM>();
+        /// <summary>All / Events / Statements, each with its count.</summary>
+        [DataSourceProperty] public MBBindingList<NewsFilterVM> Records { get; } = new MBBindingList<NewsFilterVM>();
+        /// <summary>The categories the news shown has, each with its count. None picked = all of them.</summary>
+        [DataSourceProperty] public MBBindingList<NewsFilterVM> Categories { get; } = new MBBindingList<NewsFilterVM>();
     }
 
     public class MapButtonsVM : ViewModel

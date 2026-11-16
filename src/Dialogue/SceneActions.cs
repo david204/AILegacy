@@ -28,7 +28,7 @@ namespace AILegacy.Dialogue
         /// <summary>New or loaded save: drop anything pending from the previous one, above all queued arrests.</summary>
         public static void ResetSession()
         {
-            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Away.Clear(); Grounded.Clear(); DownUntil.Clear();
+            Jail.Clear(); Leaving.Clear(); Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Away.Clear(); Grounded.Clear(); DownUntil.Clear(); Lying.Clear();
             _mission = null;
             SceneTravel.Reset();
         }
@@ -80,7 +80,7 @@ namespace AILegacy.Dialogue
         {
             if (_mission == Mission.Current) return;
             _mission = Mission.Current;
-            Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Grounded.Clear(); DownUntil.Clear();
+            Followers.Clear(); Guides.Clear(); Calls.Clear(); Ring.Clear(); Grounded.Clear(); DownUntil.Clear(); Lying.Clear();
             SceneMove.Forget(); Gestures.Forget();
         }
 
@@ -278,9 +278,26 @@ namespace AILegacy.Dialogue
         private static readonly Dictionary<Agent, float> DownUntil = new Dictionary<Agent, float>();
         private static readonly Random Rng = new Random();
         private static readonly string[] Falls = { "act_fall_face_hold", "act_fall_body_back", "act_fall_abdomen_hold_front" };
+        // Lying flat on the floor. Only some action sets have it (the dungeon prisoner's), so it is checked per agent
+        private const string LieIdleOnFloor = "act_dungeon_prisoner_sleep_cycle", GetUpFromLying = "act_dungeon_prisoner_sleep_wakeup";
+        // Those we laid flat instead of sitting
+        private static readonly HashSet<Agent> Lying = new HashSet<Agent>();
+
+        /// <summary>The agent's own action set really has an animation for this action (an id alone is not enough).</summary>
+        private static bool HasAnim(Agent a, string action)
+        {
+            try
+            {
+                var c = ActionIndexCache.Create(action);
+                return c.Index >= 0 && MBActionSet.CheckActionAnimationClipExists(a.ActionSet, in c);
+            }
+            catch { return false; }
+        }
 
         /// <summary>
-        /// The loser of a fist fight goes down: a fall, then sitting on the floor nursing it for a while before getting up.
+        /// The loser of a fist fight who is still conscious (they yielded) goes down: a fall, then lying on the floor (or,
+        /// when their animations have no lying pose, sitting there nursing it) for a while before getting up. Someone
+        /// knocked out cold is not handled here: the engine already laid them out and took them out of the scene.
         /// Nobody else is touched; the player's own character is never moved.
         /// </summary>
         internal static void Knockdown(Agent who, float seconds)
@@ -289,10 +306,12 @@ namespace AILegacy.Dialogue
             {
                 var m = Mission.Current;
                 if (who == null || m == null || who == Agent.Main || !who.IsActive() || !who.IsHuman || who.MountAgent != null || Grounded.Any(g => g.who == who)) return;
+                bool lie = HasAnim(who, LieIdleOnFloor);
                 var sitIdle = ActionIndexCache.Create(SitIdleOnFloor);
-                if (sitIdle.Index < 0) return;
+                if (!lie && sitIdle.Index < 0) return;
                 var fall = ActionIndexCache.act_none;
-                foreach (var name in Falls.OrderBy(_ => Rng.Next()))
+                // A fall their action set can play, or failing that any fall the game knows (what this did before)
+                foreach (var name in Falls.OrderBy(_ => Rng.Next()).OrderByDescending(n => HasAnim(who, n)))
                 {
                     var c = ActionIndexCache.Create(name);
                     if (c.Index >= 0) { fall = c; break; }
@@ -306,8 +325,9 @@ namespace AILegacy.Dialogue
                 else who.SetIsAIPaused(true);
                 if (!who.SetActionChannel(0, in fall, ignorePriority: true)) { Unpause(who); return; }
                 Grounded.Add((who, 0f, false));
+                if (lie) Lying.Add(who);
                 DownUntil[who] = m.CurrentTime + Math.Max(5f, seconds);
-                Log.Info($"[fight] {who.Name} is on the ground");
+                Log.Info($"[fight] {who.Name} is on the ground ({(lie ? "lying" : "sitting")})");
             }
             catch (Exception ex) { Log.Error("Fall after the fight", ex); }
         }
@@ -359,10 +379,11 @@ namespace AILegacy.Dialogue
                 int i = Grounded.FindIndex(g => g.who == a);
                 if (i < 0) return;
                 Grounded.RemoveAt(i);
+                bool lay = Lying.Remove(a);
                 if (a == null || !a.IsActive()) return;
-                if (a.IsSitting())
+                if (lay || a.IsSitting())
                 {
-                    var up = ActionIndexCache.Create(StandUpFromFloor);
+                    var up = ActionIndexCache.Create(lay && HasAnim(a, GetUpFromLying) ? GetUpFromLying : StandUpFromFloor);
                     if (up.Index < 0) up = ActionIndexCache.act_none;
                     a.SetActionChannel(0, in up, ignorePriority: true);
                 }
@@ -379,7 +400,8 @@ namespace AILegacy.Dialogue
                 try
                 {
                     var a = g.who;
-                    if (a == null || Mission.Current == null || a.Mission != Mission.Current || !a.IsActive()) { Grounded.RemoveAt(i); DownUntil.Remove(a); continue; }
+                    // Gone, or knocked out cold (the engine lays them out and removes them): nothing to hold
+                    if (a == null || Mission.Current == null || a.Mission != Mission.Current || !a.IsActive()) { Grounded.RemoveAt(i); DownUntil.Remove(a); Lying.Remove(a); continue; }
                     bool knocked = DownUntil.TryGetValue(a, out float until);
                     // Knocked down: they stay down for their time, whatever the alarm around them; then up they get
                     if (knocked && Mission.Current.CurrentTime >= until) { DownUntil.Remove(a); StandFromGround(a); continue; }
@@ -388,9 +410,10 @@ namespace AILegacy.Dialogue
                     float since = g.since + dt;
                     if (since < (knocked ? 2.5f : 1f) || (!knocked && a.IsSitting())) { Grounded[i] = (a, since, g.settled); continue; }
                     if (knocked && g.settled) { Grounded[i] = (a, since, true); continue; }
-                    // The sitting-down animation is over: hold the seated pose. If that was already done, something else moved them
-                    if (g.settled) { Grounded.RemoveAt(i); Unpause(a); continue; }
-                    var idle = ActionIndexCache.Create(SitIdleOnFloor);
+                    // The sitting-down (or falling) animation is over: hold the pose, lying flat when we laid them down.
+                    // If that was already done, something else moved them
+                    if (g.settled) { Grounded.RemoveAt(i); Lying.Remove(a); Unpause(a); continue; }
+                    var idle = ActionIndexCache.Create(Lying.Contains(a) ? LieIdleOnFloor : SitIdleOnFloor);
                     a.SetActionChannel(0, in idle, ignorePriority: true);
                     Grounded[i] = (a, 0f, true);
                 }

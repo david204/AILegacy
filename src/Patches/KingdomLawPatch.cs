@@ -47,6 +47,9 @@ namespace AILegacy.Patches
     {
         private static void Postfix(Village village, ref ExplainedNumber __result)
         {
+            // world events on the village's hearths first (WorldSim adds them by hand only if this stops being called)
+            try { TownEffects.AddVillage(village, ref __result); }
+            catch (Exception ex) { LawPatchLog.Error("village events", ex); }
             try { if (village != null && !Laws.Idle) Laws.AddForSettlement(village.Settlement, Laws.Hearth, ref __result); }
             catch (Exception ex) { LawPatchLog.Error("households", ex); }
         }

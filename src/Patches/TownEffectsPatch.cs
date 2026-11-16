@@ -27,6 +27,19 @@ namespace AILegacy.Patches
             }
             catch (Exception ex) { Log.Error("Effects on the game accounts", ex); }
         }
+
+        /// <summary>A village's hearths: same idea, called from the hearth postfix in KingdomLawPatch.cs.</summary>
+        public static void AddVillage(Village village, ref ExplainedNumber result)
+        {
+            try
+            {
+                WorldSim.ModelSeen(WorldSim.StatHearth);
+                if (village == null) return;
+                foreach (var (value, label) in WorldSim.VillageModifiers(village))
+                    if (Math.Abs(value) >= 0.005f) result.Add(value, new TextObject("{=!}" + label));
+            }
+            catch (Exception ex) { Log.Error("Effects on a village's hearths", ex); }
+        }
     }
 
     [HarmonyPatch(typeof(DefaultSettlementProsperityModel), nameof(DefaultSettlementProsperityModel.CalculateProsperityChange))]

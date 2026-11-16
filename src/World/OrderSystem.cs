@@ -421,15 +421,26 @@ namespace AILegacy.World
                     break;
 
                 case "approach":
-                    // Coming over on their own to talk. Once next to your party, they ask to speak
-                    if (p.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D) <= 3.5f)
-                    {
-                        Release(o, h, null);
-                        MapInitiative.Arrived(h);
-                        return;
-                    }
+                    // Coming over on their own to talk. They keep riding at your side, also once they are close, while
+                    // their opening line is prepared and they wait to be received: releasing them here let the game AI
+                    // take them away again before the "wants to talk" window came up. Dialogue.Initiative ends the order.
                     if (p.DefaultBehavior != AiBehavior.EscortParty || p.TargetParty != MobileParty.MainParty)
                         p.SetMoveEscortParty(MobileParty.MainParty, nav, false);
+                    if (o.Arrived)
+                    {
+                        // Close already, but nobody is handling the talk any more (a reload, or it could not start): let them go
+                        if (!Dialogue.Initiative.IsApproaching(h)) { Log.Info($"Map initiative: {h.Name} no longer has a talk waiting, released"); Release(o, h, null); }
+                        return;
+                    }
+                    if (p.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D) <= 3.5f)
+                    {
+                        o.Arrived = true;
+                        // Safety net only: the initiative gives up much sooner if they never get close enough to ask
+                        o.UntilDay = Math.Max(o.UntilDay, CampaignTime.Now.ToDays + 1.0);
+                        MapInitiative.Arrived(h);
+                        if (!Dialogue.Initiative.IsApproaching(h)) Release(o, h, null);
+                        return;
+                    }
                     break;
 
                 default:

@@ -24,6 +24,18 @@ namespace AILegacy.Dialogue
         public string Situation;
         public string SituationKind;
 
+        /// <summary>
+        /// What a resident or party leader does, from the game branch the player met them in (keeper of this tavern,
+        /// master of the arena...). English, for the prompt. Null: worked out from their occupation. Not saved.
+        /// </summary>
+        public string Role;
+
+        /// <summary>Met in one of the game's branches for children, whatever age their character template says.</summary>
+        public bool KnownChild;
+
+        /// <summary>A child: no romance, no actions, and a prompt that keeps them a child.</summary>
+        public bool IsMinor => KnownChild || (IsHero ? (Hero.IsChild || Hero.Age < 16f) : Character != null && Character.Age < 16f);
+
         public string Name
         {
             get

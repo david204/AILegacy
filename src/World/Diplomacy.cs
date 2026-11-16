@@ -1889,19 +1889,25 @@ Use only the fields an action needs. relation_changes: how your stance towards o
 
             // an AI ruler held prisoner can answer a peace and nothing more
             bool held = playerText == null && RulerCaptive(k);
+            var types = new List<string>();
+            var targets = new List<string>();     // kingdoms the decisions were aimed at
+            s.ResultKinds = new List<string>();
             if (j["actions"] is JArray acts)
                 foreach (var a in acts.OfType<JObject>().Take(4))
                 {
                     try
                     {
-                        if (held)
-                        {
-                            string type = (Str(a["type"]) ?? "").Trim().ToLowerInvariant();
-                            if (type != "accept_peace" && type != "reject_peace" && type != "propose_peace")
-                            { Log.Warn($"[diplomacy] {s.RulerName} is imprisoned: action {type} ignored"); continue; }
-                        }
+                        string type = (Str(a["type"]) ?? "").Trim().ToLowerInvariant();
+                        if (held && type != "accept_peace" && type != "reject_peace" && type != "propose_peace")
+                        { Log.Warn($"[diplomacy] {s.RulerName} is imprisoned: action {type} ignored"); continue; }
                         var r = Resolve(k, a);
-                        if (r != null) { s.Results.Add(r); if (s.Importance < 3) s.Importance = 3; }
+                        if (r != null)
+                        {
+                            s.Results.Add(r); s.ResultKinds.Add(DecisionKind(type)); types.Add(type);
+                            if (s.Importance < 3) s.Importance = 3;
+                            var to = WorldSim.FindKingdom(Target(a));
+                            if (to != null && to != k && !targets.Contains(to.StringId)) targets.Add(to.StringId);
+                        }
                     }
                     catch (Exception ex) { Log.Error($"[diplomacy] action by {s.RulerName}", ex); }
                 }
@@ -1927,18 +1933,85 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     ev.Engagement[o.StringId] = Math.Max(0, Math.Min(100, (int?)p.Value ?? 0));
                     if (!involved.Contains(o.StringId)) involved.Add(o.StringId);
                 }
+            // the realms its decisions were aimed at are part of it too
+            foreach (var id in targets) if (!involved.Contains(id)) involved.Add(id);
             ev.Kingdoms = involved;
             St.Events.Add(ev);
 
-            string body = s.Text + (s.Results.Count > 0 ? "\n\n" + string.Join("\n", s.Results.Select(x => "» " + x)) : "");
+            // The decisions go on the card as a list of their own (kind + what was done), not glued to the text
+            var decisions = s.Results.Select((r, i) => new NewsDecision { Kind = s.ResultKinds[i], Text = r }).ToList();
             NewsStore.Add(new NewsItem
             {
                 Type = "statement", Importance = s.Importance, Text = $"{s.RulerName}, ruler of {k.Name}, declared: {s.SummaryEn}",
-                TitleEs = L.F("AIL_96136d3a", $"Declaración de {s.RulerName} ({k.Name})"), TextEs = body, Kingdoms = involved, Heroes = new List<string> { k.Leader.StringId },
+                TitleEs = L.F("AIL_96136d3a", $"Declaración de {s.RulerName} ({k.Name})"), TextEs = s.Text, Kingdoms = involved, Heroes = new List<string> { k.Leader.StringId },
+                Decisions = decisions.Count > 0 ? decisions : null,
             });
             Log.Info($"[diplomacy] {s.RulerName}: {s.SummaryEn} | {string.Join(" | ", s.Results)}");
-            WorldSim.Say(L.F("AIL_bd7dfc75", $"{s.RulerName}, de {k.Name}, ha hecho una declaración") + (s.Results.Count > 0 ? ": " + s.Results[0] : "."), s.Results.Count > 0 ? Colors.Yellow : Colors.Cyan);
+            ShowStatement(k, s, types, involved);
             return true;
+        }
+
+        /// <summary>Kind of decision an action is, for the colored tag on the news card.</summary>
+        internal static string DecisionKind(string type)
+        {
+            switch (type ?? "")
+            {
+                case "declare_war": case "declare_war_on_clan": return "war";
+                case "propose_peace": case "accept_peace": case "make_peace_with_clan": return "peace";
+                case "propose_alliance": case "accept_alliance": case "break_alliance": return "alliance";
+                case "reject_peace": case "reject_alliance": case "reject_trade": case "reject_tribute": case "reject_reparations": case "reject_territory": return "reject";
+                case "propose_trade": case "accept_trade": case "end_trade": return "trade";
+                case "demand_territory": case "transfer_territory": case "grant_fief": case "confiscate_fief": return "territory";
+                case "demand_tribute": case "accept_tribute": case "end_tribute": case "demand_reparations": case "accept_reparations": return "tribute";
+                case "set_tax": return "tax";
+                case "quarantine_settlement": case "lift_quarantine": return "quarantine";
+                case "expel_clan": case "pardon_clan": return "clan";
+                case "enact_law": case "repeal_law": case "enact_policy": case "repeal_policy": return "law";
+                default: return "other";
+            }
+        }
+
+        private static readonly Color DecisionColor = Color.FromUint(0xFFBBAA44u);
+
+        /// <summary>
+        /// A statement in the message log: the ruler's words in the game's own diplomacy color, then one golden line per
+        /// decision. A war declared or an alliance sealed is left out, the game announces those itself.
+        /// </summary>
+        private static void ShowStatement(Kingdom k, RulerStatement s, List<string> types, List<string> involved)
+        {
+            try
+            {
+                string text = (s.Text ?? "").Replace("\n", " ").Trim();
+                if (text.Length > 420)
+                {
+                    int cut = text.LastIndexOf(' ', 420);
+                    text = text.Substring(0, cut > 300 ? cut : 420).TrimEnd(',', ';', ':', ' ') + "…";
+                }
+                WorldSim.Say(L.F("AIL_e7b1cb0e", $"{s.RulerName} ({k.Name}): «{text}»"), StatementColor(k, involved));
+                for (int i = 0; i < s.Results.Count; i++)
+                {
+                    string type = i < types.Count ? types[i] : "";
+                    if (type == "declare_war" || type == "accept_alliance") continue;
+                    WorldSim.Say(s.Results[i], DecisionColor);
+                }
+            }
+            catch (Exception ex) { Log.Error("[diplomacy] showing a statement", ex); }
+        }
+
+        /// <summary>The color the game gives its own diplomatic news, from where the player's realm stands in this one.</summary>
+        private static Color StatementColor(Kingdom k, List<string> involved)
+        {
+            try
+            {
+                var mine = Clan.PlayerClan?.MapFaction;
+                var type = TaleWorlds.CampaignSystem.LogEntries.ChatNotificationType.Political;
+                if (mine != null && mine == k) type = TaleWorlds.CampaignSystem.LogEntries.ChatNotificationType.PlayerFactionPolitical;
+                else if (mine != null && involved != null && involved.Contains(mine.StringId))
+                    type = mine.IsAtWarWith(k) ? TaleWorlds.CampaignSystem.LogEntries.ChatNotificationType.PlayerFactionIndirectNegative
+                                               : TaleWorlds.CampaignSystem.LogEntries.ChatNotificationType.PlayerFactionIndirectPositive;
+                return Color.FromUint(Campaign.Current.Models.DiplomacyModel.GetNotificationColor(type));
+            }
+            catch { return Colors.Cyan; }
         }
 
         private static bool HasDemands(Proposal p) => p.DailyTribute > 0 || p.Reparations > 0 || !string.IsNullOrEmpty(p.SettlementId);

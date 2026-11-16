@@ -9,7 +9,9 @@ using AILegacy.Prompt;
 using AILegacy.Settings;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.GameMenus;
+using TaleWorlds.CampaignSystem.GameState;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
@@ -25,14 +27,14 @@ namespace AILegacy.Letters
     internal static class LetterSystem
     {
         private static readonly Random Rng = new Random();
+        // Letters that arrived and wait to pop up, oldest first. One window at a time.
         private static readonly Queue<(Hero from, string text)> ToShow = new Queue<(Hero, string)>();
         private static bool _generating;
         private static bool _showing;
-        // Letters opened from their map notice while another letter's window was still up
-        private static readonly Queue<(Hero from, string text)> ToRead = new Queue<(Hero, string)>();
+        private static int _lostChecks;
 
         /// <summary>New, loaded or imported save: drop queued letters and half-finished generations from the previous one.</summary>
-        public static void ResetSession() { ToShow.Clear(); ToRead.Clear(); _generating = false; _showing = false; }
+        public static void ResetSession() { ToShow.Clear(); _generating = false; _showing = false; _lostChecks = 0; }
 
         // ============================================================ backstreet menu
 
@@ -143,14 +145,14 @@ namespace AILegacy.Letters
             try
             {
                 double now = CampaignTime.Now.ToDays;
-                var arrived = MemoryStore.Letters.Where(l => l.ArriveDay <= now).ToList();
+                var arrived = MemoryStore.Letters.Where(l => l.ArriveDay <= now).OrderBy(l => l.ArriveDay).ToList();
                 foreach (var l in arrived)
                 {
                     MemoryStore.Letters.Remove(l);
                     var hero = Hero.Find(l.HeroId);
                     if (hero == null || hero.IsDead) continue;
                     if (l.FromPlayer) Deliver(hero, l.Text);
-                    else { ToShow.Enqueue((hero, l.Text)); TryShowPending(); }
+                    else Receive(hero, l.Text);
                 }
             }
             catch (Exception ex) { Log.Error("Letters: hourly tick", ex); }
@@ -280,47 +282,85 @@ namespace AILegacy.Letters
 
         // ============================================================ showing received letters
 
-        /// <summary>Call often. Shows the next letter once the player is free on the map.</summary>
+        /// <summary>A letter for the player has arrived: it pops up at once if the player is free on the map, otherwise as soon as they are.</summary>
+        internal static void Receive(Hero from, string text)
+        {
+            if (from == null) return;
+            ToShow.Enqueue((from, text));
+            Log.Info($"Letters: a letter from {from.Name} arrived ({ToShow.Count} waiting to be shown)");
+            TryShowPending();
+        }
+
+        /// <summary>
+        /// The player is on the open map with nothing else on screen, so a popup can open right now: no scene, no
+        /// conversation, no settlement or encounter menu, no battle, no other window, no pause menu.
+        /// </summary>
+        internal static bool PlayerFreeOnMap()
+        {
+            try
+            {
+                if (Campaign.Current == null || Hero.MainHero == null || MobileParty.MainParty == null) return false;
+                if (Mission.Current != null) return false;
+                if (Campaign.Current.ConversationManager?.IsConversationInProgress == true) return false;
+                if (ChatSession.IsBusy) return false;
+                if (!(GameStateManager.Current?.ActiveState is MapState ms) || ms.AtMenu) return false;
+                if (PlayerEncounter.Current != null || MobileParty.MainParty.MapEvent != null) return false;
+                if (SandBox.View.Map.MapScreen.Instance?.IsEscapeMenuOpened == true) return false;
+                if (InformationManager.IsAnyInquiryActive()) return false;      // a new one would only queue behind it
+                if (MBInformationManager.GetIsAnySceneNotificationActive() == true) return false;
+                return true;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>Called every second. Pops up the next waiting letter once the player is free on the map.</summary>
         public static void TryShowPending()
         {
-            if (_showing || (ToShow.Count == 0 && ToRead.Count == 0)) return;
-            if (Mission.Current != null) return;
-            if (Campaign.Current?.ConversationManager?.IsConversationInProgress == true) return;
-            if (ChatSession.IsBusy) return;
-
-            // A letter clicked on the map while another window was up: wait until no window is (the reply box is one)
-            if (ToRead.Count > 0)
+            // The window went away without either button (closed by the game): don't let it block the queue for good
+            if (_showing)
             {
-                bool busy = false;
-                try { busy = InformationManager.IsAnyInquiryActive(); } catch { }
-                if (!busy) { var (h, t) = ToRead.Dequeue(); Open(h, t); }
-                return;
+                bool up = true;
+                try { up = InformationManager.IsAnyInquiryActive(); } catch { }
+                _lostChecks = up ? 0 : _lostChecks + 1;
+                if (_lostChecks < 2) return;
+                Log.Warn("Letters: the letter window closed on its own, moving on");
+                _showing = false; _lostChecks = 0;
             }
+            if (ToShow.Count == 0) return;
+            if (!PlayerFreeOnMap()) return;
 
             var (hero, text) = ToShow.Dequeue();
+            if (hero == null) return;
             text = (text ?? "").Replace("\\r\\n", "\n").Replace("\\n", "\n");      // some letters were saved with literal "\n"
             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_97e2efc7", $"Un mensajero te trae una carta de {hero.Name}."), Colors.Yellow));
-            // As a notice on the map, opened when the player clicks it. The window comes at once only if asked for,
-            // or when the notice could not be placed
-            var cfg = S.Get;
-            bool noticed = cfg.LetterMapNotification && LetterNotice.Add(hero, text);
-            if (noticed && !cfg.LetterPopup) return;
             Open(hero, text);
         }
 
-        /// <summary>Shows a received letter in a window, with the reply button if a messenger can be sent back.</summary>
+        /// <summary>
+        /// Shows a received letter in a window that pauses the game, with the reply button if a messenger can be sent back.
+        /// Only one at a time: the next waits in the queue until this one (and the reply box, if any) is closed.
+        /// </summary>
         internal static void Open(Hero hero, string text)
         {
             if (hero == null) return;
-            if (_showing) { ToRead.Enqueue((hero, text)); return; }     // one window at a time, the rest wait their turn
-            _showing = true;
-            // Reply on the spot (the messenger waits) or just acknowledge
-            bool canReply = CanWrite(hero);
-            InformationManager.ShowInquiry(new InquiryData(
-                L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, canReply,
-                canReply ? L.T("AIL_f6d0c4b3", "Responder") : L.T("AIL_f6d0c4b4", "Enterado"), L.T("AIL_f6d0c4b4", "Enterado"),
-                () => { _showing = false; if (canReply) MainThread.Post(() => Compose(hero, reply: true)); },
-                () => { _showing = false; }), true);
+            if (_showing) { ToShow.Enqueue((hero, text)); return; }
+            _showing = true; _lostChecks = 0;
+            try
+            {
+                // Reply on the spot (the messenger waits) or just acknowledge
+                bool canReply = CanWrite(hero);
+                InformationManager.ShowInquiry(new InquiryData(
+                    L.F("AIL_da85936f", $"Carta de {hero.Name}"), text, true, canReply,
+                    canReply ? L.T("AIL_f6d0c4b3", "Responder") : L.T("AIL_f6d0c4b4", "Enterado"), L.T("AIL_f6d0c4b4", "Enterado"),
+                    () => { _showing = false; if (canReply) MainThread.Post(() => Compose(hero, reply: true)); },
+                    () => { _showing = false; }), true);
+                Log.Info($"Letters: showing the letter from {hero.Name}");
+            }
+            catch (Exception ex)
+            {
+                _showing = false;
+                Log.Error("Letters: open the letter window", ex);
+            }
         }
     }
 }

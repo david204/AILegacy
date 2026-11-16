@@ -106,15 +106,24 @@ namespace AILegacy.UI
             catch (Exception ex) { Core.Log.Error("Reviewing past conversation", ex); }
         }
 
+        /// <summary>What the news window is showing: everything or only events, which kind of record, which category.</summary>
+        private class NewsView
+        {
+            public bool All;
+            public string Record = "all";       // all | events | statements
+            public string Category;             // null = every category
+        }
+
         /// <summary>World news in a single column, read like a town crier's notice: title, who it concerns, what happened, effects, type and date.</summary>
         public static void OpenNews()
         {
             try
             {
                 var vm = new NewsFeedVM { Title = L.T("AIL_52b8aa60", "Sucesos del mundo") };
-                bool all = false;
-                FillNews(vm, all);
-                vm.OnToggle = () => { all = !all; FillNews(vm, all); };
+                var view = new NewsView();
+                FillNews(vm, view);
+                vm.OnToggle = () => { view.All = !view.All; FillNews(vm, view); };
+                vm.OnSearch = () => FillNews(vm, view);
                 // Rulers can make declarations from here
                 if (Diplomacy.PlayerCanDeclare) { vm.ActionText = L.T("AIL_7611f3a8", "Hacer una declaración"); vm.HasAction = true; }
                 GauntletWindow w = null;
@@ -135,57 +144,234 @@ namespace AILegacy.UI
             return n.Importance >= 3 && (t == "war" || t == "peace" || t == "ruler" || t == "kingdom" || t == "death");
         }
 
-        /// <summary>One-word tag for the bottom left corner. kind: 0 = local, 1 = politics, 2 = everything else.</summary>
-        private static string TagOf(NewsItem n, out int kind)
+        /// <summary>One-word tag for the bottom left corner and its category key (which also picks its color).</summary>
+        private static string TagOf(NewsItem n, out string key)
         {
             string t = n.Type ?? "";
-            if (t == "statement") { kind = 1; return L.T("AIL_e14ea467", "Declaración"); }
-            if (t == "decree") { kind = 1; return "Sentencia"; }
-            if (t == "event_political" || t == "war" || t == "peace" || t == "ruler" || t == "kingdom") { kind = 1; return L.T("AIL_41ac9547", "Política"); }
-            if (n.Importance <= 1) { kind = 0; return L.T("AIL_28b223a8", "Local"); }
-            kind = 2;
+            if (t == "statement") { key = "statement"; return L.T("AIL_e14ea467", "Declaración"); }
+            if (t == "decree") { key = "verdict"; return L.T("AIL_e7b1cb12", "Sentencia"); }
+            if (t == "event_political" || t == "war" || t == "peace" || t == "ruler" || t == "kingdom") { key = "political"; return L.T("AIL_41ac9547", "Política"); }
+            if (n.Importance <= 1) { key = "local"; return L.T("AIL_28b223a8", "Local"); }
             switch (t)
             {
-                case "event_military": case "battle": case "siege": case "raid": case "capture": return L.T("AIL_78abe94b", "Militar");
-                case "event_economic": return L.T("AIL_0d2bb14b", "Economía");
-                case "event_disease": return L.T("AIL_ee39700e", "Enfermedad");
-                case "event_mysterious": return L.T("AIL_c3a1387b", "Misterio");
-                case "rumor": return L.T("AIL_be7cce2e", "Rumor");
-                case "death": return L.T("AIL_7e5382b7", "Muerte");
-                case "prisoner": return L.T("AIL_11783c51", "Prisionero");
-                default: return "Social";
+                case "event_military": case "battle": case "siege": case "raid": case "capture": key = "military"; return L.T("AIL_78abe94b", "Militar");
+                case "event_economic": key = "economic"; return L.T("AIL_0d2bb14b", "Economía");
+                case "event_disease": key = "disease"; return L.T("AIL_ee39700e", "Enfermedad");
+                case "event_mysterious": key = "mysterious"; return L.T("AIL_c3a1387b", "Misterio");
+                case "rumor": key = "rumor"; return L.T("AIL_be7cce2e", "Rumor");
+                case "death": key = "death"; return L.T("AIL_7e5382b7", "Muerte");
+                case "prisoner": key = "prisoner"; return L.T("AIL_11783c51", "Prisionero");
+                case "event_news": case "custom": key = "news"; return L.T("AIL_5418db17", "Suceso");
+                default: key = "social"; return L.T("AIL_44de911b", "Sociedad");
             }
         }
 
-        private static void FillNews(NewsFeedVM vm, bool all)
+        /// <summary>Color of each category's tag and filter button.</summary>
+        private static string CategoryColor(string key)
         {
-            var cfg = S.Get;
-            double now = CampaignTime.Now.ToDays;
-            string clean(string s) => (s ?? "").Replace("{", "(").Replace("}", ")");
-            vm.Cards.Clear();
-            AddLawCards(vm, all);
-            foreach (var n in NewsStore.All.Where(n => now - n.Day <= cfg.NewsLifetimeDays && (all || IsEvent(n))).OrderByDescending(n => n.Day).Take(80))
+            switch (key)
             {
-                int d = (int)(now - n.Day);
-                string when = d <= 0 ? L.T("AIL_564e2e23", "Hoy") : d == 1 ? L.T("AIL_0529fe40", "Hace 1 día") : L.F("AIL_b2b050b8", $"Hace {d} días");
-                var who = n.Kingdoms.Select(id => Campaign.Current.Kingdoms.FirstOrDefault(k => k.StringId == id)?.Name?.ToString()).Where(x => x != null).Distinct().ToList();
-                if (who.Count == 0 && !string.IsNullOrEmpty(n.SettlementId)) { var st = TaleWorlds.CampaignSystem.Settlements.Settlement.Find(n.SettlementId); if (st != null) who.Add(st.Name.ToString()); }
-                string tag = TagOf(n, out int kind);
-                string title = n.Type == "statement" && string.IsNullOrWhiteSpace(n.TitleEs) ? L.T("AIL_99bcbc8e", "Declaración de un soberano") : n.DisplayTitle;
-                vm.Cards.Add(new NewsCardVM(clean(title), who.Count > 0 ? (n.Type == "statement" ? "" : L.T("AIL_08cd64bc", "Participantes: ")) + clean(string.Join(", ", who)) : "",
-                    clean(n.DisplayText), clean(WorldSim.EffectsLineEs(EventIdOf(n), n.SettlementId, n.Type)), tag, when, kind));
+                case "statement": return "#6B5A1EFF";
+                case "verdict": return "#5A2E2EFF";
+                case "political": return "#2B3760FF";
+                case "military": return "#7A2626FF";
+                case "economic": return "#7A6420FF";
+                case "disease": return "#5E6B1FFF";
+                case "mysterious": return "#4B2E6BFF";
+                case "rumor": return "#5A4A3AFF";
+                case "death": return "#3A3A3AFF";
+                case "prisoner": return "#4A4A6BFF";
+                case "local": return "#4A3524FF";
+                case "news": return "#3B4A5AFF";
+                case "law": return "#2B4F6BFF";
+                default: return "#1F4A44FF";
             }
-            if (vm.Cards.Count == 0)
-                vm.Cards.Add(new NewsCardVM(L.T("AIL_dd4380be", "Sin sucesos"), "", all ? L.T("AIL_6549b43d", "Todavía no ha pasado nada digno de contarse.") : L.T("AIL_cf032cac", "Todavía no hay ningún suceso de los que dan que hablar. Con «Ver todo» salen también las capturas, batallas y saqueos del día a día."), "", "", "", 2));
-            vm.ToggleText = all ? L.T("AIL_f96ef1d1", "Solo sucesos") : L.T("AIL_ebad7b06", "Ver todo");
         }
 
-        /// <summary>Laws created by rulers, one card per kingdom: the player's own always, the rest with "see everything".</summary>
-        private static void AddLawCards(NewsFeedVM vm, bool all)
+        /// <summary>Tag text and color of a decision of a statement.</summary>
+        private static (string label, string color) DecisionTag(string kind)
+        {
+            switch (kind)
+            {
+                case "war": return (L.T("AIL_13afe103", "Guerra"), "#8B2E2EFF");
+                case "peace": return (L.T("AIL_c05b0270", "Paz"), "#2E6B3AFF");
+                case "alliance": return (L.T("AIL_e7b1c762", "Alianza"), "#2B4F80FF");
+                case "reject": return (L.T("AIL_e7b1cb13", "Rechazo"), "#5A5A5AFF");
+                case "trade": return (L.T("AIL_e7b1cb14", "Comercio"), "#8A6D1EFF");
+                case "territory": return (L.T("AIL_e7b1cb15", "Tierras"), "#6B4A2BFF");
+                case "tribute": return (L.T("AIL_e7b1cb16", "Pagos"), "#7A5C10FF");
+                case "tax": return (L.T("AIL_e7b1cb17", "Impuesto"), "#5C3D6BFF");
+                case "quarantine": return (L.T("AIL_e7b1cb18", "Cuarentena"), "#2E6B6BFF");
+                case "clan": return (L.T("AIL_e7b1cb19", "Clan"), "#4A3524FF");
+                case "law": return (L.T("AIL_e7b1c5ec", "Ley"), "#2B3760FF");
+                default: return (L.T("AIL_e7b1cb1a", "Decisión"), "#3B3A4AFF");
+            }
+        }
+
+        private static string Clean(string s) => (s ?? "").Replace("{", "(").Replace("}", ")");
+
+        /// <summary>"Place: Pravend (Vlandia)", or the first three places and how many more.</summary>
+        private static string PlaceLine(NewsItem n)
         {
             try
             {
-                if (!Laws.Enabled) return;
+                var ids = new System.Collections.Generic.List<string>();
+                string evId = EventIdOf(n);
+                var ev = WorldSim.State.Events.FirstOrDefault(e => e.Id == evId);
+                if (ev != null) ids.AddRange(ev.Settlements);
+                if (!string.IsNullOrEmpty(n.SettlementId) && !ids.Contains(n.SettlementId)) ids.Insert(0, n.SettlementId);
+                var names = ids.Select(id => TaleWorlds.CampaignSystem.Settlements.Settlement.Find(id)).Where(st => st != null)
+                               .Select(st => st.MapFaction != null && st.MapFaction.Name != null ? $"{st.Name} ({st.MapFaction.Name})" : st.Name.ToString()).Distinct().ToList();
+                if (names.Count == 0) return "";
+                if (names.Count == 1) return L.F("AIL_e7b1cb1b", $"Lugar: {names[0]}");
+                if (names.Count <= 3) return L.F("AIL_e7b1cb1c", $"Lugares: {string.Join(", ", names)}");
+                return L.F("AIL_e7b1cb1d", $"Lugares: {string.Join(", ", names.Take(3))} y {names.Count - 3} más");
+            }
+            catch { return ""; }
+        }
+
+        /// <summary>The outbreak an event started: what, where, how bad, and whether it is still going.</summary>
+        private static string DiseaseLine(NewsDisease d)
+        {
+            if (d == null) return "";
+            try
+            {
+                string where = TaleWorlds.CampaignSystem.Settlements.Settlement.Find(d.SettlementId)?.Name?.ToString() ?? "?";
+                int s = d.Severity;
+                string how = s <= 1 ? L.T("AIL_e7b1c94e", "leve") : s == 2 ? L.T("AIL_e7b1c94f", "preocupante") : s == 3 ? L.T("AIL_e7b1c943", "grave") : s == 4 ? L.T("AIL_44011913", "mortífera") : L.T("AIL_e45c3132", "una peste");
+                string line = L.F("AIL_e7b1cb1e", $"{Clean(d.Name)} en {where}: {how}");
+                var o = WorldSim.State.Outbreaks.FirstOrDefault(x => x.Id == d.Id);
+                if (o == null) return line + L.T("AIL_e7b1cb1f", " (ya ha pasado)");
+                int left = Math.Max(1, (int)Math.Ceiling(o.UntilDay - CampaignTime.Now.ToDays));
+                return line + (o.Quarantined ? L.F("AIL_e7b1cb20", $" (en cuarentena, quedan {left} días)") : L.F("AIL_e7b1cb21", $" (quedan {left} días)"));
+            }
+            catch { return ""; }
+        }
+
+        /// <summary>A card for one news item, with its category key.</summary>
+        private static NewsCardVM CardOf(NewsItem n, double now, out string category)
+        {
+            int d = (int)(now - n.Day);
+            string when = d <= 0 ? L.T("AIL_564e2e23", "Hoy") : d == 1 ? L.T("AIL_0529fe40", "Hace 1 día") : L.F("AIL_b2b050b8", $"Hace {d} días");
+            var who = n.Kingdoms.Select(id => Campaign.Current.Kingdoms.FirstOrDefault(k => k.StringId == id)?.Name?.ToString()).Where(x => x != null).Distinct().ToList();
+            string place = PlaceLine(n);
+            // with no kingdom the place is who it concerns, and the place line would only say it again
+            if (who.Count == 0 && !string.IsNullOrEmpty(n.SettlementId)) { var st = TaleWorlds.CampaignSystem.Settlements.Settlement.Find(n.SettlementId); if (st != null) { who.Add(st.Name.ToString()); if (!place.Contains(",")) place = ""; } }
+            string tag = TagOf(n, out category);
+            string title = n.Type == "statement" && string.IsNullOrWhiteSpace(n.TitleEs) ? L.T("AIL_99bcbc8e", "Declaración de un soberano") : n.DisplayTitle;
+            var card = new NewsCardVM(Clean(title), who.Count > 0 ? (n.Type == "statement" ? "" : L.T("AIL_08cd64bc", "Participantes: ")) + Clean(string.Join(", ", who)) : "",
+                Clean(n.DisplayText), "", tag, when) { TagColorValue = CategoryColor(category), Place = n.Type == "statement" ? "" : Clean(place) };
+            if (n.Chapter > 0 && (n.Chapter > 1 || !string.IsNullOrEmpty(n.StoryId))) card.Chapter = L.F("AIL_e7b1cb22", $"Capítulo {n.Chapter}");
+            if (n.Decisions != null)
+                foreach (var dec in n.Decisions.Where(x => x != null && !string.IsNullOrWhiteSpace(x.Text)))
+                {
+                    var (label, color) = DecisionTag(dec.Kind);
+                    card.Decisions.Add(new NewsLineVM(Clean(dec.Text), 3, label, color));
+                }
+            // lasting effects belong to the story's newest chapter; an older chapter keeps only the blows it dealt
+            bool older = n.Id != null && n.Id.Contains("#");
+            foreach (var (text, tone) in WorldSim.EffectLines(older ? null : EventIdOf(n), n.Hits))
+                card.EffectLines.Add(new NewsLineVM(Clean(text), tone));
+            card.Disease = Clean(DiseaseLine(n.Disease));
+            card.SearchText = string.Join("\n", card.Title, card.Participants, card.Text, card.Place, card.Tag, card.Disease,
+                string.Join("\n", card.Decisions.Select(x => x.Label + " " + x.Text)), string.Join("\n", card.EffectLines.Select(x => x.Text))).ToLowerInvariant();
+            return card;
+        }
+
+        private static void FillNews(NewsFeedVM vm, NewsView view)
+        {
+            var cfg = S.Get;
+            double now = CampaignTime.Now.ToDays;
+            string search = (vm.SearchText ?? "").Trim().ToLowerInvariant();
+
+            // everything the "see everything" switch lets through, newest first; law cards first of all
+            var all = new System.Collections.Generic.List<(NewsCardVM card, string category, bool statement, int day)>();
+            foreach (var c in LawCards(view.All))
+            {
+                c.SearchText = (c.Title + "\n" + c.Text).ToLowerInvariant();
+                all.Add((c, "law", true, int.MaxValue));
+            }
+            foreach (var n in NewsStore.All.Where(n => now - n.Day <= cfg.NewsLifetimeDays && (view.All || IsEvent(n))).OrderByDescending(n => n.Day).Take(120))
+            {
+                try { var card = CardOf(n, now, out string cat); all.Add((card, cat, n.Type == "statement", (int)Math.Floor(n.Day))); }
+                catch (Exception ex) { Core.Log.Error("A news card", ex); }
+            }
+
+            // record buttons, with their counts
+            int nStatements = all.Count(x => x.statement), nEvents = all.Count - nStatements;
+            if (vm.Records.Count == 0)
+                foreach (var key in new[] { "all", "events", "statements" })
+                    vm.Records.Add(new NewsFilterVM(key, "", key == "all" ? "#3B3A4AFF" : key == "events" ? "#1F4A44FF" : "#6B5A1EFF",
+                        f => { view.Record = f.Key; view.Category = null; FillNews(vm, view); }));
+            foreach (var f in vm.Records)
+            {
+                f.Text = f.Key == "all" ? L.F("AIL_e7b1cb23", $"Todo ({all.Count})") : f.Key == "events" ? L.F("AIL_e7b1cb24", $"Sucesos ({nEvents})") : L.F("AIL_e7b1cb25", $"Declaraciones ({nStatements})");
+                f.IsSelected = f.Key == view.Record;
+            }
+            var inRecord = all.Where(x => view.Record == "all" || (view.Record == "statements") == x.statement).ToList();
+
+            // category buttons, for the categories in that record kind
+            var cats = inRecord.GroupBy(x => x.category).Select(g => (key: g.Key, label: g.First().card.Tag, count: g.Count())).OrderByDescending(x => x.count).ToList();
+            if (view.Category != null && !cats.Any(c => c.key == view.Category)) view.Category = null;
+            bool sameKeys = vm.Categories.Count == cats.Count && vm.Categories.Select(c => c.Key).SequenceEqual(cats.Select(c => c.key));
+            if (!sameKeys)
+            {
+                vm.Categories.Clear();
+                foreach (var c in cats)
+                    vm.Categories.Add(new NewsFilterVM(c.key, "", CategoryColor(c.key), f => { view.Category = view.Category == f.Key ? null : f.Key; FillNews(vm, view); }));
+            }
+            foreach (var f in vm.Categories)
+            {
+                var c = cats.First(x => x.key == f.Key);
+                f.Text = $"{c.label} ({c.count})";
+                f.IsSelected = f.Key == view.Category;
+            }
+
+            var shown = inRecord.Where(x => (view.Category == null || x.category == view.Category) && (search.Length == 0 || x.card.SearchText.Contains(search))).ToList();
+
+            // the cards, a header opening each day
+            vm.Cards.Clear();
+            int lastDay = int.MinValue;
+            int today = (int)Math.Floor(now);
+            foreach (var x in shown)
+            {
+                if (x.day != int.MaxValue && x.day != lastDay)
+                {
+                    lastDay = x.day;
+                    vm.Cards.Add(NewsCardVM.Header(DayHeader(x.day, today)));
+                }
+                vm.Cards.Add(x.card);
+            }
+            if (vm.Cards.Count == 0)
+            {
+                string why = all.Count > 0 ? L.T("AIL_e7b1cb26", "Ningún registro coincide con el filtro o la búsqueda.")
+                           : view.All ? L.T("AIL_6549b43d", "Todavía no ha pasado nada digno de contarse.")
+                           : L.T("AIL_cf032cac", "Todavía no hay ningún suceso de los que dan que hablar. Con «Ver todo» salen también las capturas, batallas y saqueos del día a día.");
+                vm.Cards.Add(new NewsCardVM(L.T("AIL_dd4380be", "Sin sucesos"), "", why, "", "", "", 2));
+            }
+            vm.ToggleText = view.All ? L.T("AIL_f96ef1d1", "Solo sucesos") : L.T("AIL_ebad7b06", "Ver todo");
+        }
+
+        /// <summary>"Today · 12 Summer 1084", "Yesterday · …", "5 days ago · …".</summary>
+        private static string DayHeader(int day, int today)
+        {
+            int ago = today - day;
+            string when = ago <= 0 ? L.T("AIL_564e2e23", "Hoy") : ago == 1 ? L.T("AIL_58a5a0a4", "Ayer") : L.F("AIL_b2b050b8", $"Hace {ago} días");
+            try
+            {
+                string date = CampaignTime.Days(day).ToString();
+                return string.IsNullOrWhiteSpace(date) ? when : when + " · " + date;
+            }
+            catch { return when; }
+        }
+
+        /// <summary>Laws created by rulers, one card per kingdom: the player's own always, the rest with "see everything".</summary>
+        private static System.Collections.Generic.List<NewsCardVM> LawCards(bool all)
+        {
+            var cards = new System.Collections.Generic.List<NewsCardVM>();
+            try
+            {
+                if (!Laws.Enabled) return cards;
                 var mine = Hero.MainHero?.MapFaction as Kingdom;
                 foreach (var k in WorldSim.Kingdoms.OrderByDescending(x => x == mine))
                 {
@@ -202,16 +388,25 @@ namespace AILegacy.UI
                         if (fx.Count > 0) sb.Append(string.Join("; ", fx)).Append("\n");
                         sb.Append("\n");
                     }
-                    vm.Cards.Add(new NewsCardVM(string.Format(L.T("AIL_e7b1c5eb", "Leyes en vigor en {0}"), k.Name), "", sb.ToString().TrimEnd(), "", L.T("AIL_e7b1c5ec", "Ley"), "", 1));
+                    cards.Add(new NewsCardVM(string.Format(L.T("AIL_e7b1c5eb", "Leyes en vigor en {0}"), k.Name), "", sb.ToString().TrimEnd(), "", L.T("AIL_e7b1c5ec", "Ley"), "", 1) { TagColorValue = CategoryColor("law") });
                 }
             }
             catch (Exception ex) { Core.Log.Error("Laws in the news window", ex); }
+            return cards;
         }
 
-        /// <summary>Event id for a news item. New items carry it, older saves are matched by title.</summary>
+        /// <summary>
+        /// Event id for a news item. New items carry it; an earlier chapter of a story carries it before its "#n";
+        /// older saves are matched by title.
+        /// </summary>
         private static string EventIdOf(NewsItem n)
         {
-            if (n == null || n.Type == null || !n.Type.StartsWith("event_")) return n?.Id;
+            if (n == null) return null;
+            if (!string.IsNullOrEmpty(n.StoryId)) return n.StoryId;
+            string id = n.Id ?? "";
+            int hash = id.IndexOf('#');
+            if (hash > 0) return id.Substring(0, hash);
+            if (n.Type == null || !n.Type.StartsWith("event_")) return n.Id;
             if (WorldSim.State.Events.Any(e => e.Id == n.Id)) return n.Id;
             return WorldSim.State.Events.LastOrDefault(e => !string.IsNullOrEmpty(n.TitleEs) && e.Title == n.TitleEs)?.Id ?? n.Id;
         }

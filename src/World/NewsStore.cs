@@ -27,6 +27,15 @@ namespace AILegacy.World
 
         /// <summary>Language the player-facing title and text were written in. AI-written news has none, it uses the reply language.</summary>
         [JsonProperty("lang")] public string Lang;
+        /// <summary>What a ruler's statement carried out, each with its kind. Null on older saves: there the results are inside TextEs.</summary>
+        [JsonProperty("decisions", NullValueHandling = NullValueHandling.Ignore)] public List<NewsDecision> Decisions;
+        /// <summary>A chapter of a world event's story: the event id and its number (1 = how it began). Null/0 on older saves.</summary>
+        [JsonProperty("story", NullValueHandling = NullValueHandling.Ignore)] public string StoryId;
+        [JsonProperty("chapter", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Chapter;
+        /// <summary>Sudden blows the event dealt once, when it was told (they are not kept as effects).</summary>
+        [JsonProperty("hits", NullValueHandling = NullValueHandling.Ignore)] public List<NewsHit> Hits;
+        /// <summary>The outbreak the event started, as it was then.</summary>
+        [JsonProperty("disease", NullValueHandling = NullValueHandling.Ignore)] public NewsDisease Disease;
         /// <summary>Local talk that must never set off a world reaction, whatever the importance threshold is.</summary>
         [JsonIgnore] public bool NoReaction;
         /// <summary>Local title and text are only valid if they're still in the current language.</summary>
@@ -40,6 +49,33 @@ namespace AILegacy.World
             if (dot > 10 && dot <= 70) return t.Substring(0, dot);
             return t.Length > 60 ? t.Substring(0, 60) + "…" : t;
         }
+    }
+
+    /// <summary>One decision of a statement: its kind (war, peace, alliance, reject, trade, territory, tribute, tax, quarantine, clan, law, other) and what was done.</summary>
+    public class NewsDecision
+    {
+        [JsonProperty("kind")] public string Kind;
+        [JsonProperty("text")] public string Text;
+    }
+
+    /// <summary>A one-time change an event made to a settlement.</summary>
+    public class NewsHit
+    {
+        [JsonProperty("settlement")] public string SettlementId;
+        [JsonProperty("prosperity", DefaultValueHandling = DefaultValueHandling.Ignore)] public float Prosperity;
+        [JsonProperty("food", DefaultValueHandling = DefaultValueHandling.Ignore)] public float Food;
+        [JsonProperty("security", DefaultValueHandling = DefaultValueHandling.Ignore)] public float Security;
+        [JsonProperty("loyalty", DefaultValueHandling = DefaultValueHandling.Ignore)] public float Loyalty;
+    }
+
+    /// <summary>An outbreak an event set off, copied when it began so the card can still tell it after it ends.</summary>
+    public class NewsDisease
+    {
+        [JsonProperty("id")] public string Id;
+        [JsonProperty("name")] public string Name;
+        [JsonProperty("settlement")] public string SettlementId;
+        [JsonProperty("severity")] public int Severity;
+        [JsonProperty("days")] public int Days;
     }
 
     /// <summary>
@@ -58,6 +94,9 @@ namespace AILegacy.World
         public static bool Contains(NewsItem n) => n != null && _items.Contains(n);
 
         public static void Delete(string id) => _items.RemoveAll(n => n.Id == id);
+
+        /// <summary>The newest item with that id, or null.</summary>
+        public static NewsItem Find(string id) => string.IsNullOrEmpty(id) ? null : _items.LastOrDefault(n => n.Id == id);
 
         public static void Load(List<NewsItem> items) => _items = items ?? new List<NewsItem>();
 

@@ -31,6 +31,9 @@ namespace AILegacy.Dialogue
         public string Mood = "";
         public string MoodReason = "";
         public string MoodShown = "";
+        /// <summary>How they look while saying this line (one of Gestures.Emotions), and what they do with their body (Gestures.GestureNames).</summary>
+        public string Emotion = "";
+        public string Gesture = "";
 
         // An action written inside the spoken line instead of in the "actions" array: [swear_fealty], <make_peace:they_pay=500>,
         // [action: set_free]. Group 1 is the explicit "action:" prefix, 2 the identifier, 3 the argument.
@@ -117,6 +120,8 @@ namespace AILegacy.Dialogue
                     r.Mood = Str(j["mood"]) ?? "";
                     r.MoodReason = Str(j["mood_reason"]) ?? "";
                     r.MoodShown = (Str(j["mood_shown"]) ?? "").Trim();
+                    r.Emotion = (Str(j["emotion"]) ?? Str(j["expression"]) ?? "").Trim();
+                    r.Gesture = (Str(j["gesture"]) ?? "").Trim();
 
                     if (j["actions"] is JArray arr)
                         r.Actions = arr.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
@@ -178,6 +183,10 @@ namespace AILegacy.Dialogue
                     if (acts.Success)
                         r.Actions = Regex.Matches(acts.Groups[1].Value, "\"((?:\\\\.|[^\"\\\\])*)\"").Cast<Match>().Select(x => x.Groups[1].Value).Where(x => x.Length > 0).ToList();
                     r.EndConversation = Regex.IsMatch(raw, "\"end_conversation\"\\s*:\\s*true");
+                    var em = Regex.Match(raw, "\"emotion\"\\s*:\\s*\"([A-Za-z_ ]{1,30})\"");
+                    if (em.Success) r.Emotion = em.Groups[1].Value.Trim();
+                    var ge = Regex.Match(raw, "\"gesture\"\\s*:\\s*\"([A-Za-z_ ]{1,30})\"");
+                    if (ge.Success) r.Gesture = ge.Groups[1].Value.Trim();
                     if (r.Reply.Length > 0) return r;
                 }
                 r.Reply = "";

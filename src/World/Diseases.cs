@@ -61,7 +61,7 @@ namespace AILegacy.World
 
         public static Outbreak At(Settlement st) => st == null ? null : All.FirstOrDefault(o => o.SettlementId == st.StringId);
         private static string SeverityWord(int s) => s <= 1 ? "mild" : s == 2 ? "troubling" : s == 3 ? "serious" : s == 4 ? "deadly" : "a plague";
-        private static string SeverityEs(int s) => s <= 1 ? "leve" : s == 2 ? "preocupante" : s == 3 ? "grave" : s == 4 ? L.T("AIL_44011913", "mortífera") : L.T("AIL_e45c3132", "una peste");
+        private static string SeverityEs(int s) => s <= 1 ? L.T("AIL_e7b1c94e", "leve") : s == 2 ? L.T("AIL_e7b1c94f", "preocupante") : s == 3 ? L.T("AIL_e7b1c943", "grave") : s == 4 ? L.T("AIL_44011913", "mortífera") : L.T("AIL_e45c3132", "una peste");
 
         /// <summary>For the prompt of anyone who lives in or is at that settlement.</summary>
         public static string DescribeAt(Settlement st)
@@ -88,7 +88,7 @@ namespace AILegacy.World
             var o = new Outbreak
             {
                 Id = WorldSim.NewId("d"), SettlementId = st.StringId, Severity = severity, StartDay = CampaignTime.Now.ToDays, UntilDay = CampaignTime.Now.ToDays + days,
-                Name = string.IsNullOrWhiteSpace(name) ? "unas fiebres" : WorldSim.Clean(name, 50), NameEn = string.IsNullOrWhiteSpace(nameEn) ? "a fever" : WorldSim.Clean(nameEn, 50), Fx = fx,
+                Name = string.IsNullOrWhiteSpace(name) ? L.T("AIL_e7b1c94c", "unas fiebres") : WorldSim.Clean(name, 50), NameEn = string.IsNullOrWhiteSpace(nameEn) ? "a fever" : WorldSim.Clean(nameEn, 50), Fx = fx,
             };
             All.Add(o);
             WorldSim.State.LastOutbreakDay = o.StartDay;
@@ -197,7 +197,6 @@ namespace AILegacy.World
 
                 TickSick(now);
                 try { ForceDaily(now); } catch (Exception ex) { Log.Error("[disease] garrisons and militias", ex); }
-                try { HerbDaily(now); } catch (Exception ex) { Log.Error("[disease] herbs", ex); }
 
                 if (cfg.DiseaseSeasonalChancePerMille > 0 && All.Count < cfg.DiseaseMaxSimultaneous
                     && (WorldSim.State.LastOutbreakDay < 0 || now - WorldSim.State.LastOutbreakDay >= cfg.DiseaseMinDaysBetweenOutbreaks)
@@ -285,8 +284,9 @@ namespace AILegacy.World
 
         // ============================================================ hospital
 
-        private static float HospitalPrice(Settlement st) => st?.Town == null ? 1.3f : st.Town.Prosperity > 5500f ? 0.8f : st.Town.Prosperity >= 2500f ? 1f : 1.3f;
-        private static string HospitalLevel(Settlement st) => st?.Town == null ? L.T("AIL_0b2f92c7", "Básico") : st.Town.Prosperity > 5500f ? "Avanzado" : st.Town.Prosperity >= 2500f ? "Bueno" : L.T("AIL_0b2f92c7", "Básico");
+        // Price multiplier of the physicians by medical level (index 1..4; 0 unused): the poorest charge the most for the least.
+        private static readonly float[] TierPrice = { 1.3f, 1.3f, 1f, 0.9f, 0.8f };
+        private static float HospitalPrice(Settlement st) => st == null ? 1.3f : st.IsVillage ? 0.9f : TierPrice[Math.Max(1, Math.Min(4, MedicalTier(st)))];
 
         private static int CostSelf(Settlement st) => (int)Math.Ceiling(Math.Max(0, Hero.MainHero.MaxHitPoints - Hero.MainHero.HitPoints) * 4 * HospitalPrice(st));
         private static List<Hero> WoundedCompanions() =>
@@ -315,130 +315,66 @@ namespace AILegacy.World
             return true;
         }
 
+        /// <summary>Text of the fallback hospital menu, shown only if the hospital window cannot open.</summary>
         private static string HospitalText()
         {
             var st = Settlement.CurrentSettlement;
-            var sb = new System.Text.StringBuilder();
-            sb.Append(L.F("AIL_3f44d794", $"Hospital de {st?.Name}\n\nNivel de sus médicos: {HospitalLevel(st)}."));
-            var season = CampaignTime.Now.GetSeasonOfYear;
-            sb.Append(L.F("AIL_f054b3ad", $"\nÉpoca del año: {(season == CampaignTime.Seasons.Winter ? L.T("AIL_e37fa365", "invierno (riesgo alto de enfermedad)") : season == CampaignTime.Seasons.Autumn ? L.T("AIL_8fdf1238", "otoño (riesgo medio)") : season == CampaignTime.Seasons.Spring ? L.T("AIL_62c99c8c", "primavera (riesgo medio)") : L.T("AIL_7319097c", "verano (riesgo bajo)"))}."));
-            try
-            {
-                float risk = PlayerRoadRiskPerDay();
-                if (risk > 0f) sb.Append(L.F("AIL_e7b1c7d2", $"\nRiesgo de coger un mal de temporada por el camino, aquí y ahora: {risk * 100f:0.#} % al día (ya cuenta tu prevención y tus hierbas)."));
-                var surgeon = MobileParty.MainParty?.EffectiveSurgeon;
-                if (surgeon != null)
-                {
-                    int med = surgeon.GetSkillValue(DefaultSkills.Medicine);
-                    sb.Append(L.F("AIL_e7b1c7d3", $"\nTu cirujano: {surgeon.Name} (Medicina {med}). {(med >= 150 ? L.T("AIL_e7b1c7d4", "Tus enfermos se curan mucho antes y pocos empeoran.") : med >= 60 ? L.T("AIL_e7b1c7d5", "Ayuda a que tus enfermos se curen antes.") : L.T("AIL_e7b1c7d6", "Sabe poco: tus enfermos dependen sobre todo de un buen hospital."))}"));
-                }
-                else sb.Append(L.T("AIL_e7b1c7d7", "\nNo tienes cirujano: nadie de tu partida cuida de los enfermos por el camino."));
-            }
-            catch { }
-            var o = At(st);
-            sb.Append(o != null ? L.F("AIL_c327ea4f", $"\n\nEn la ciudad hay {o.Name} ({SeverityEs(o.Severity)}){(o.Quarantined ? L.T("AIL_413e791f", ", y está en cuarentena") : "")}.") : L.T("AIL_2691821b", "\n\nNo hay ninguna enfermedad en la ciudad."));
-            var me = Hero.MainHero;
-            sb.Append(me.HitPoints >= me.MaxHitPoints * 0.95f ? L.T("AIL_226c9a7f", "\n\nEstás sano.") : L.F("AIL_8f3749ae", $"\n\nEstás herido ({me.HitPoints} de {me.MaxHitPoints})."));
-            int w = WoundedCount(MobileParty.MainParty.MemberRoster);
-            if (w > 0) sb.Append(L.F("AIL_6d44c3f5", $"\nTienes {w} soldado(s) heridos o enfermos."));
-            try { sb.Append(SickText()); } catch { }
-            try { sb.Append(HerbText(st)); } catch { }
-            if (WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays) sb.Append(L.F("AIL_e9459925", $"\nTus hombres están prevenidos {(int)Math.Ceiling(WorldSim.State.PreventionUntilDay - CampaignTime.Now.ToDays)} día(s) más."));
-            return sb.ToString();
+            var lines = new List<string> { HospitalTitle(st), "" };
+            try { lines.AddRange(HospitalFactsLeft(st)); } catch (Exception ex) { Log.Error("[disease] hospital text (place)", ex); }
+            try { lines.AddRange(HospitalFactsRight(st)); } catch (Exception ex) { Log.Error("[disease] hospital text (party)", ex); }
+            return string.Join("\n", lines).Replace("{", "(").Replace("}", ")");
         }
 
-        private static void Refresh() { MBTextManager.SetTextVariable("AIL_HOSPITAL", HospitalText()); GameMenu.SwitchToMenu("ailegacy_hospital"); }
+        private static string ParentMenu(Settlement st) => st == null || st.IsTown ? "town" : st.IsCastle ? "castle" : st.IsVillage ? "village" : "town";
+
+        /// <summary>The hospital window; if it cannot open, the plain menu with the same facts.</summary>
+        private static void OpenHospital()
+        {
+            bool open = false;
+            try { open = UI.HospitalWindow.Open(); } catch (Exception ex) { Log.Error("[disease] hospital window", ex); }
+            if (open) return;
+            MBTextManager.SetTextVariable("AIL_HOSPITAL", HospitalText());
+            GameMenu.SwitchToMenu("ailegacy_hospital");
+        }
 
         private static void AddHospital(CampaignGameStarter starter)
         {
-            starter.AddGameMenuOption("town", "ailegacy_hospital_enter", L.T("AIL_5d5538b0", "{=!}Visitar el hospital"),
-                args => { args.optionLeaveType = GameMenuOption.LeaveType.Submenu; return S.Get.EnableHospital && Settlement.CurrentSettlement != null && Settlement.CurrentSettlement.IsTown; },
-                args => { MBTextManager.SetTextVariable("AIL_HOSPITAL", HospitalText()); GameMenu.SwitchToMenu("ailegacy_hospital"); }, false, 1);
+            // One way in per kind of place: the town hospital, the castle's physician, the village healer
+            var doors = new[]
+            {
+                ("town", "ailegacy_hospital_enter", L.T("AIL_5d5538b0", "{=!}Visitar el hospital")),
+                ("castle", "ailegacy_hospital_enter_castle", L.T("AIL_e7b1c946", "{=!}Visitar al médico del castillo")),
+                ("village", "ailegacy_hospital_enter_village", L.T("AIL_e7b1c947", "{=!}Visitar al curandero")),
+            };
+            foreach (var (menu, id, text) in doors)
+            {
+                string kind = menu;
+                starter.AddGameMenuOption(menu, id, text,
+                    args =>
+                    {
+                        args.optionLeaveType = GameMenuOption.LeaveType.Submenu;
+                        var st = Settlement.CurrentSettlement;
+                        if (!HospitalHere(st)) return false;
+                        return kind == "town" ? st.IsTown : kind == "castle" ? st.IsCastle : st.IsVillage;
+                    },
+                    args => MainThread.Post(OpenHospital), false, 1);
+            }
 
+            // The old hospital menu stays: it is the fallback when the window cannot open, and a save made inside it still finds it
             starter.AddGameMenu("ailegacy_hospital", "{=!}{AIL_HOSPITAL}", args => MBTextManager.SetTextVariable("AIL_HOSPITAL", HospitalText()));
 
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_info", L.T("AIL_6ffaa6ff", "{=!}Preguntar por las enfermedades que corren"),
-                args => { args.optionLeaveType = GameMenuOption.LeaveType.Conversation; return true; },
-                args =>
+            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_window", L.T("AIL_e7b1c948", "{=!}Abrir el hospital"),
+                args => { args.optionLeaveType = GameMenuOption.LeaveType.Manage; return HospitalHere(Settlement.CurrentSettlement); },
+                args => MainThread.Post(() =>
                 {
-                    var here = Settlement.CurrentSettlement;
-                    var list = All.Select(o => (o, st: Settlement.Find(o.SettlementId))).Where(x => x.st != null)
-                                  .OrderBy(x => here != null ? x.st.GetPosition2D.Distance(here.GetPosition2D) : 0f).Take(12).ToList();
-                    string text = list.Count == 0 ? L.T("AIL_0b9bdfcf", "Los médicos no tienen noticia de ninguna enfermedad en Calradia ahora mismo.")
-                        : string.Join("\n", list.Select(x => L.F("AIL_a63c51e2", $"• {x.st.Name}: {x.o.Name}, {SeverityEs(x.o.Severity)}; le quedan unos {(int)Math.Max(1, x.o.UntilDay - CampaignTime.Now.ToDays)} días") + (x.o.Quarantined ? L.T("AIL_c1183e43", " (en cuarentena)") : "")))
-                          + L.T("AIL_63b5c8dc", "\n\nEntrar en un sitio con enfermos puede hacer caer a parte de tus hombres. La cuarentena corta el contagio a los vecinos, pero hunde el comercio.");
-                    InformationManager.ShowInquiry(new InquiryData(L.T("AIL_965719f1", "Lo que saben los médicos"), text, true, false, L.T("AIL_265409ff", "Entendido"), "", null, null), true);
-                }, false, -1);
-
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_self", L.T("AIL_85ee2964", "{=!}Curarte ({AIL_H_SELF}{GOLD_ICON})"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    int c = CostSelf(Settlement.CurrentSettlement);
-                    MBTextManager.SetTextVariable("AIL_H_SELF", c);
-                    if (c <= 0) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_0bc1afa9", "{=!}Estás sano.")); }
-                    return true;
-                },
-                args => { if (Pay(CostSelf(Settlement.CurrentSettlement))) { Hero.MainHero.HitPoints = Hero.MainHero.MaxHitPoints; WorldSim.Say(L.T("AIL_24d3d112", "Los médicos te dejan como nuevo."), Colors.Green); } Refresh(); }, false, -1);
-
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_comp", L.T("AIL_0a44192c", "{=!}Curar a tus compañeros ({AIL_H_COMP}{GOLD_ICON})"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    int c = CostCompanions(Settlement.CurrentSettlement);
-                    MBTextManager.SetTextVariable("AIL_H_COMP", c);
-                    if (c <= 0) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_95b516ae", "{=!}No llevas compañeros heridos.")); }
-                    return true;
-                },
-                args => { if (Pay(CostCompanions(Settlement.CurrentSettlement))) { foreach (var h in WoundedCompanions()) h.HitPoints = h.MaxHitPoints; WorldSim.Say(L.T("AIL_52fe29a9", "Tus compañeros quedan curados."), Colors.Green); } Refresh(); }, false, -1);
-
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_troops", L.T("AIL_e94ae63e", "{=!}Curar a tus tropas ({AIL_H_TROOPS}{GOLD_ICON})"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    int c = CostRoster(MobileParty.MainParty.MemberRoster, Settlement.CurrentSettlement);
-                    MBTextManager.SetTextVariable("AIL_H_TROOPS", c);
-                    if (c <= 0) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_586fb7ef", "{=!}No tienes soldados heridos ni enfermos.")); }
-                    return true;
-                },
-                args => { if (Pay(CostRoster(MobileParty.MainParty.MemberRoster, Settlement.CurrentSettlement))) { HealRoster(MobileParty.MainParty.MemberRoster); WorldSim.Say(L.T("AIL_be8758dd", "Tus soldados heridos y enfermos vuelven a filas."), Colors.Green); } Refresh(); }, false, -1);
-
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_prisoners", L.T("AIL_9ef83fd5", "{=!}Curar a tus prisioneros ({AIL_H_PRIS}{GOLD_ICON})"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    int c = CostRoster(MobileParty.MainParty.PrisonRoster, Settlement.CurrentSettlement);
-                    MBTextManager.SetTextVariable("AIL_H_PRIS", c);
-                    if (c <= 0) { args.IsEnabled = false; args.Tooltip = new TextObject("{=!}No llevas prisioneros heridos."); }
-                    return true;
-                },
-                args => { if (Pay(CostRoster(MobileParty.MainParty.PrisonRoster, Settlement.CurrentSettlement))) { HealRoster(MobileParty.MainParty.PrisonRoster); WorldSim.Say(L.T("AIL_e3e82b77", "Tus prisioneros quedan curados."), Colors.Green); } Refresh(); }, false, -1);
-
-            AddSickCare(starter);
-            try { AddHerbMenu(starter); } catch (Exception ex) { Log.Error("Herb menu", ex); }
-
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_prevent", L.T("AIL_3c407add", "{=!}Prevención para tu partida, ") + PreventionDays + L.T("AIL_48d043af", " días ({AIL_H_PREV}{GOLD_ICON})"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    MBTextManager.SetTextVariable("AIL_H_PREV", CostPrevention(Settlement.CurrentSettlement));
-                    args.Tooltip = new TextObject(L.T("AIL_35404728", "{=!}Remedios, agua hervida y ropa limpia: durante esos días tus hombres enferman cuatro veces menos al entrar en sitios con enfermedad."));
-                    if (WorldSim.State.PreventionUntilDay > CampaignTime.Now.ToDays + PreventionDays - 1) args.IsEnabled = false;
-                    return Enabled;
-                },
-                args =>
-                {
-                    if (Pay(CostPrevention(Settlement.CurrentSettlement)))
-                    {
-                        WorldSim.State.PreventionUntilDay = CampaignTime.Now.ToDays + PreventionDays;
-                        WorldSim.Say(L.F("AIL_e7c1ccde", $"Tu partida queda prevenida durante {PreventionDays} días."), Colors.Green);
-                    }
-                    Refresh();
-                }, false, -1);
+                    bool open = false;
+                    try { open = UI.HospitalWindow.Open(); } catch (Exception ex) { Log.Error("[disease] hospital window", ex); }
+                    if (!open) WorldSim.Say(L.T("AIL_e7b1c949", "No se pudo abrir la ventana del hospital. El motivo está en el registro del mod."), Colors.Red);
+                }), false, -1);
 
             starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_back", L.T("AIL_0042ce81", "{=!}Volver"),
                 args => { args.optionLeaveType = GameMenuOption.LeaveType.Leave; return true; },
-                args => GameMenu.SwitchToMenu("town"), true, -1);
+                args => GameMenu.SwitchToMenu(ParentMenu(Settlement.CurrentSettlement)), true, -1);
         }
 
         /// <summary>In the player's own fiefs, the player decides from the settlement menu.</summary>

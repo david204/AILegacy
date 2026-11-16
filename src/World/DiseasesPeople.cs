@@ -568,7 +568,7 @@ namespace AILegacy.World
                 float c = Math.Min(cfg.SeasonalDiseaseMaxChance, chance * Math.Max(0.5f, 1f - h.GetSkillValue(DefaultSkills.Medicine) / 600f)) * (1f - Hardiness(h)) * PlayerGuard;
                 return 1f - (float)Math.Pow(1f - Math.Max(0f, Math.Min(1f, c)), 4);
             }
-            catch { return 0f; }
+            catch (Exception ex) { Log.Error("[disease] road risk of the player's party", ex); return 0f; }
         }
 
         /// <summary>A strong constitution shrugs off part of what goes around (0..0.4).</summary>
@@ -649,7 +649,7 @@ namespace AILegacy.World
         {
             try
             {
-                if (Campaign.Current != null && Mission.Current == null) HerbKey();
+                if (Campaign.Current != null && Mission.Current == null) RefundCarriedHerbs();
                 if (Campaign.Current == null || Mission.Current == null || Agent.Main == null) { _walkClock = 0f; _hallSeen = null; return; }
                 var st = Settlement.CurrentSettlement;
                 if (st == null || !Enabled) return;
@@ -702,11 +702,11 @@ namespace AILegacy.World
             if (n != null) Log.Info($"[disease] {party.Name} carries {carried.NameEn} to {st.Name}");
         }
 
+        /// <summary>Strength of a course of treatment from the physicians of a place: by its medical level, lowest with a village healer.</summary>
         private static float CareQuality(Settlement st)
         {
-            if (st?.Town == null) return 1f;
-            if (st.IsCastle) return st.Town.Prosperity >= 1500f ? 1.3f : 1f;
-            return st.Town.Prosperity > 5500f ? 2f : st.Town.Prosperity >= 2500f ? 1.5f : 1.2f;
+            if (st == null || st.IsVillage || st.Town == null) return 1f;
+            return TierCare[Math.Max(1, Math.Min(4, MedicalTier(st)))];
         }
 
         private static int HeroCareCost(Sickness s, Settlement st) => (int)Math.Ceiling(S.Get.DiseaseTreatmentBaseCost * s.Severity * HospitalPrice(st));
@@ -1019,67 +1019,5 @@ namespace AILegacy.World
 
         private static List<Hero> MyHeroes() =>
             MobileParty.MainParty.MemberRoster.GetTroopRoster().Where(e => e.Character.IsHero).Select(e => e.Character.HeroObject).ToList();
-        private static List<Sickness> MyHeroCases() => MyHeroes().SelectMany(h => OfHero(h) ?? new List<Sickness>()).Where(NeedsCare).ToList();
-        private static List<Sickness> MyBandCases() =>
-            (OfTroops(MobileParty.MainParty) ?? new List<Sickness>()).Concat(OfPrisoners(MobileParty.MainParty) ?? new List<Sickness>()).Where(NeedsCare).ToList();
-
-        private static string SickText()
-        {
-            var sb = new System.Text.StringBuilder();
-            foreach (var s in OfHero(Hero.MainHero) ?? new List<Sickness>())
-                sb.Append(L.F("AIL_e7b1c5fc", $"\nPadeces {s.Name} ({SeverityEs(s.Severity)}), avance {(int)s.Progress}%{(s.Treated || s.AfterDays > 0 ? L.T("AIL_e7b1c5fd", " (en tratamiento)") : "")}."));
-            int companions = MyHeroes().Count(h => h != Hero.MainHero && OfHero(h) != null);
-            if (companions > 0) sb.Append(L.F("AIL_e7b1c5fe", $"\n{companions} de tus compañeros están enfermos."));
-            int troops = (OfTroops(MobileParty.MainParty) ?? new List<Sickness>()).Sum(x => x.Count), held = (OfPrisoners(MobileParty.MainParty) ?? new List<Sickness>()).Sum(x => x.Count);
-            if (troops + held > 0) sb.Append(L.F("AIL_e7b1c5ff", $"\n{troops} de tus soldados y {held} de tus prisioneros están enfermos."));
-            return sb.ToString();
-        }
-
-        private static void AddSickCare(CampaignGameStarter starter)
-        {
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_sick", L.T("AIL_e7b1c600", "{=!}Tratar tu enfermedad y la de tus compañeros ({AIL_H_SICK}{GOLD_ICON})"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    var st = Settlement.CurrentSettlement;
-                    int c = MyHeroCases().Sum(s => HeroCareCost(s, st));
-                    MBTextManager.SetTextVariable("AIL_H_SICK", c);
-                    if (c <= 0) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_e7b1c601", "{=!}Ni tú ni tus compañeros tenéis una enfermedad sin tratar.")); }
-                    return Enabled;
-                },
-                args =>
-                {
-                    var st = Settlement.CurrentSettlement;
-                    var cases = MyHeroCases();
-                    if (cases.Count > 0 && PayOrOwe(cases.Sum(s => HeroCareCost(s, st))))
-                    {
-                        foreach (var s in cases) StartTreatment(s, CareQuality(st));
-                        WorldSim.Say(L.T("AIL_e7b1c602", "Los médicos empiezan el tratamiento. Cuanto mejor el hospital, antes hará efecto."), Colors.Green);
-                    }
-                    Refresh();
-                }, false, -1);
-
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_sick_troops", L.T("AIL_e7b1c603", "{=!}Tratar a tus soldados y prisioneros enfermos ({AIL_H_SICKT}{GOLD_ICON})"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    var st = Settlement.CurrentSettlement;
-                    int c = MyBandCases().Sum(s => BandCareCost(s, st));
-                    MBTextManager.SetTextVariable("AIL_H_SICKT", c);
-                    if (c <= 0) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_e7b1c604", "{=!}No llevas soldados ni prisioneros con una enfermedad sin tratar.")); }
-                    return Enabled;
-                },
-                args =>
-                {
-                    var st = Settlement.CurrentSettlement;
-                    var cases = MyBandCases();
-                    if (cases.Count > 0 && PayOrOwe(cases.Sum(s => BandCareCost(s, st))))
-                    {
-                        foreach (var s in cases) StartTreatment(s, CareQuality(st));
-                        WorldSim.Say(L.T("AIL_e7b1c605", "Los médicos se ocupan de tus enfermos."), Colors.Green);
-                    }
-                    Refresh();
-                }, false, -1);
-        }
     }
 }

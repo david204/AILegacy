@@ -2237,5 +2237,150 @@
     <string id="AIL_e7b1c881" text="{0} aus dem Haus {1} lebt jetzt als Konkubine bei {2}." />
     <string id="AIL_e7b1c882" text="Außerehelich: geringerer Wert bei einer Heirat (Denare)" />
     <string id="AIL_e7b1c883" text="Wird eine Heirat zwischen einem Bastard und einem ehelichen Kind verhandelt, bietet das Haus, das um die Hand des Bastards bittet, so viel weniger, ein Haus, das ein eheliches Kind einem Bastard gibt, verlangt so viel mehr, und das eigene Haus des Bastards lässt ihn für die Hälfte gehen. Zum Vergleich: ein Punkt Beziehung zwischen beiden ist 1000 wert. 0 = kein Unterschied. Empfohlen: 10000 bis 30000." />
+    <string id="AIL_e7b1c8a0" text="Pollinations-Token (optional, kostenlos)" />
+    <string id="AIL_e7b1c8a1" text="Mit «Kostenlos (Pollinations)» tragen die Bilder dessen Wasserzeichen und die Warteschlange ist langsamer. Mit einem kostenlosen Konto auf auth.pollinations.ai bekommst du ein Token: hier einfügen und das Wasserzeichen verschwindet. Nur für Pollinations." />
+    <string id="AIL_e7b1c950" text="Gruppe: Sekunden deines Schweigens, bevor sie dich anstoßen (0 = sie reden nie ohne dich weiter)" />
+    <string id="AIL_e7b1c951" text="Nachdem sie dir geantwortet haben, redet die Gruppe noch ein paar Sätze untereinander weiter und wartet dann auf dich. Hat dich jemand etwas gefragt und du schweigst so lange, machen sie ohne dich weiter (höchstens noch einmal später). Bleibt nur eine Person bei dir, sagt sie ein letztes Wort und das Gespräch endet. 0: Sie antworten dir nur." />
+    <string id="AIL_e7b1c952" text="Gruppe: Sätze, die sie untereinander sagen, nachdem sie dir geantwortet haben" />
+    <string id="AIL_e7b1c953" text="Wie viele Sätze sie sich nach ihrer Antwort an dich noch gegenseitig sagen, bevor sie zum Ende kommen (höchstens zwei weitere Sätze) und auf dich warten. Wenn du sprichst, beginnt die Zählung von vorn. Je 2 bis 4 Sätze sind eine Anfrage, die gestellt wird, während die vorherigen noch gesprochen werden. 0: Sie antworten dir nur." />
+    <string id="AIL_e7b1c900" text="Heiler von {0}" />
+    <string id="AIL_e7b1c901" text="Hospital von {0}" />
+    <string id="AIL_e7b1c902" text="Dorfheiler" />
+    <string id="AIL_e7b1c903" text="hervorragend" />
+    <string id="AIL_e7b1c904" text="fortgeschritten" />
+    <string id="AIL_e7b1c905" text="gut" />
+    <string id="AIL_e7b1c906" text="einfach" />
+    <string id="AIL_e7b1c907" text="Medizinische Stufe: {0} von 4 ({1}). Pflege vor Ort: Stärke ×{2}." />
+    <string id="AIL_e7b1c908" text="Jahreszeit: {0}." />
+    <string id="AIL_e7b1c909" text="Hier geht {0} um ({1}). Quarantäne: {2}." />
+    <string id="AIL_e7b1c90a" text="Hier geht keine Krankheit um. Quarantäne: nein." />
+    <string id="AIL_e7b1c90b" text="ja" />
+    <string id="AIL_e7b1c90c" text="nein" />
+    <string id="AIL_e7b1c90d" text="Risiko, sich unterwegs eine saisonale Krankheit einzufangen: entfällt (saisonale Krankheiten sind aus)." />
+    <string id="AIL_e7b1c90e" text="Risiko, sich hier und jetzt unterwegs eine saisonale Krankheit einzufangen: {0} % pro Tag (deine Vorsorge zählt schon)." />
+    <string id="AIL_e7b1c90f" text="Dein Geldbeutel: {0} Denare." />
+    <string id="AIL_e7b1c910" text="Du hast keinen Wundarzt: Niemand in deinem Trupp kümmert sich unterwegs um die Kranken." />
+    <string id="AIL_e7b1c911" text="Dein Wundarzt: {0} (Medizin {1}). {2}" />
+    <string id="AIL_e7b1c912" text="Du hast keinen Wundarzt ernannt: Du pflegst die Kranken selbst (Medizin {0}). {1}" />
+    <string id="AIL_e7b1c913" text="Vorsorge: {0}." />
+    <string id="AIL_e7b1c914" text="keine" />
+    <string id="AIL_e7b1c915" text="Arzneien des Hospitals, noch {0} Tag(e)" />
+    <string id="AIL_e7b1c916" text="Kräuter, {0} % weniger Ansteckung, noch {1} Tag(e)" />
+    <string id="AIL_e7b1c917" text="Dein Clan schuldet den Ärzten {0} Denare; sie werden mit den Tagesausgaben eingezogen." />
+    <string id="AIL_e7b1c918" text="Du" />
+    <string id="AIL_e7b1c919" text="Keine Wunden." />
+    <string id="AIL_e7b1c91a" text="Verwundet: {0} von {1} Lebenspunkten." />
+    <string id="AIL_e7b1c91b" text="Gefährten ({0} von {1} krank)" />
+    <string id="AIL_e7b1c91c" text="{0} verwundete(r) Gefährte(n)." />
+    <string id="AIL_e7b1c91d" text="Truppen ({0} von {1} krank)" />
+    <string id="AIL_e7b1c91e" text="{0} Soldat(en) verwundet oder krank." />
+    <string id="AIL_e7b1c91f" text="Gefangene ({0} von {1} krank)" />
+    <string id="AIL_e7b1c920" text="{0} verwundete(r) Gefangene(r)." />
+    <string id="AIL_e7b1c921" text="{0} Soldat(en)" />
+    <string id="AIL_e7b1c922" text="{0} Gefangene(r)" />
+    <string id="AIL_e7b1c923" text="{0}: {1} ({2}), Verlauf {3} %" />
+    <string id="AIL_e7b1c924" text="In Behandlung, noch {0} Tag(e)" />
+    <string id="AIL_e7b1c925" text="Die Behandlung wirkt noch {0} Tag(e) nach" />
+    <string id="AIL_e7b1c926" text="Dein Wundarzt drängt es zurück; es vergeht in {0} Tag(en)" />
+    <string id="AIL_e7b1c927" text="Schreitet fort, vergeht aber von selbst in {0} Tag(en)" />
+    <string id="AIL_e7b1c928" text="Schreitet fort und kann töten; noch {0} Tag(e) Verlauf" />
+    <string id="AIL_e7b1c929" text="heilt es" />
+    <string id="AIL_e7b1c92a" text="hält es nur auf" />
+    <string id="AIL_e7b1c92b" text="reicht nicht: es schreitet weiter fort" />
+    <string id="AIL_e7b1c92c" text="{0}. Mit dieser Behandlung: {1} % Besserung pro Tag, {2}; {3} Denare." />
+    <string id="AIL_e7b1c92d" text="Pflege des Heilers" />
+    <string id="AIL_e7b1c92e" text="Pflege des Hospitals" />
+    <string id="AIL_e7b1c92f" text="Stärke ×{0}. Der Preis hängt von der Schwere ab und bei Truppen von ihrer Zahl." />
+    <string id="AIL_e7b1c930" text="{0} und Pflege vor Ort" />
+    <string id="AIL_e7b1c931" text="Stärke ×{0}. {1} Denare je Dosis, zusätzlich zur Pflege." />
+    <string id="AIL_e7b1c932" text="Arzneien des Hospitals: abgekochtes Wasser, saubere Kleidung und Dampfbäder. Dein Trupp erkrankt {0} Tage lang 75 % seltener." />
+    <string id="AIL_e7b1c933" text="{0}: Dein ganzer Trupp nimmt sie jetzt ({1} Dosen) und erkrankt {3} Tage lang {2} % seltener. Sie ersetzen die zuvor genommenen Kräuter." />
+    <string id="AIL_e7b1c934" text="Kaufen ({0})" />
+    <string id="AIL_e7b1c935" text="Kaufen, trinken ({0})" />
+    <string id="AIL_e7b1c936" text="Wunden heilen ({0})" />
+    <string id="AIL_e7b1c937" text="Niemand ist krank." />
+    <string id="AIL_e7b1c938" text="Art der Behandlung" />
+    <string id="AIL_e7b1c939" text="Alle wählen" />
+    <string id="AIL_e7b1c93a" text="Nur schwere" />
+    <string id="AIL_e7b1c93b" text="Abwählen" />
+    <string id="AIL_e7b1c93c" text="Gewählte behandeln" />
+    <string id="AIL_e7b1c93d" text="Wähle die Kranken, die behandelt werden sollen. Wer schon in Behandlung ist, lässt sich nicht wählen." />
+    <string id="AIL_e7b1c93e" text="Gewählt: {0}. Besserung pro Tag: {1}. Gesamtpreis: {2} Denare (du hast {3})." />
+    <string id="AIL_e7b1c93f" text="Dir fehlen {0} Denare." />
+    <string id="AIL_e7b1c940" text="Dir fehlen {0} Denare: Die Ärzte schreiben den Rest deinem Clan an." />
+    <string id="AIL_e7b1c941" text="Vorsorge für unterwegs" />
+    <string id="AIL_e7b1c942" text="Die besten Kräuter gibt es nur in reichen Städten und Hauptstädten." />
+    <string id="AIL_e7b1c943" text="schwer" />
+    <string id="AIL_e7b1c944" text="Die Ärzte beginnen, {0} Kranke(n) für {1} Denare zu behandeln." />
+    <string id="AIL_e7b1c945" text="Heilkräuter trägt man nicht mehr bei sich: Man kauft und nutzt sie im Hospital. Für deine {1} Dosen bekommst du {0} Denare zurück." />
+    <string id="AIL_e7b1c946" text="{=!}Den Burgarzt aufsuchen" />
+    <string id="AIL_e7b1c947" text="{=!}Den Heiler aufsuchen" />
+    <string id="AIL_e7b1c948" text="{=!}Hospital öffnen" />
+    <string id="AIL_e7b1c949" text="Das Hospitalfenster ließ sich nicht öffnen. Der Grund steht im Protokoll der Mod." />
+    <string id="AIL_e7b1c94a" text="Fünf Kräuterqualitäten, die die Hospitäler an Ort und Stelle verwenden, bessere in reicheren Städten und die besten nur in einer Hauptstadt: als stärkere Behandlung deiner Kranken oder vom ganzen Trupp gegen Ansteckung getrunken, für einige Tage. Nichts landet im Inventar." />
+    <string id="AIL_e7b1c94b" text="Krankheiten sind nicht aktiviert: Hier werden nur Wunden behandelt." />
+    <string id="AIL_e7b1c94c" text="ein Fieber" />
+    <string id="AIL_e7b1c94d" text="Du hast sie bereits noch {0} Tag(e)." />
+    <string id="AIL_e7b1c94e" text="leicht" />
+    <string id="AIL_e7b1c94f" text="besorgniserregend" />
+    <string id="AIL_e7b1c9a0" text="Man hat dich gesehen ({0} Zeuge/n), aber niemand weiß, wer du bist: Gesucht wird ein Fremder, der eine Schlägerei angefangen hat." />
+    <string id="AIL_e7b1c9a1" text="Nur eine weitere Wirtshausschlägerei: Niemand ruft die Wache." />
+    <string id="AIL_e7b1c9a2" text="{0} geht beim ersten Schlag zu Boden." />
+    <string id="AIL_e7b1c9a3" text="{0} sackt zusammen und bleibt bewusstlos am Boden liegen. Du hast die Schlägerei gewonnen." />
+    <string id="AIL_e7b1c9a4" text="Ein Fremder ist mit bloßen Fäusten auf {0}{1} losgegangen. Manche haben es gesehen, aber niemand weiß, wer es war." />
+    <string id="AIL_e7b1c9a5" text="Genug... Du hast gewonnen." />
+    <string id="AIL_e7b1c9a6" text="Lass dir das eine Lehre sein!" />
+    <string id="AIL_e7b1cb00" text="Die Geschichte geht weiter: {0}" />
+    <string id="AIL_e7b1cb01" text="Sondersteuer der Krone ({0:+0;-0} %)" />
+    <string id="AIL_e7b1cb02" text="Sondersteuer von {0} ({1:+0;-0} %)" />
+    <string id="AIL_e7b1cb03" text="Tributzahlung an {0}" />
+    <string id="AIL_e7b1cb04" text="Tribut erhalten von {0}" />
+    <string id="AIL_e7b1cb05" text="Clan {0} · noch {1} Tage" />
+    <string id="AIL_e7b1cb06" text="Einkommen {0}{1:0} %" />
+    <string id="AIL_e7b1cb07" text="Herdstellen" />
+    <string id="AIL_e7b1cb08" text="{0} · noch {1} Tage" />
+    <string id="AIL_e7b1cb09" text="{0} {1}{2:0}" />
+    <string id="AIL_e7b1cb0a" text="{0} · auf einen Schlag, einmalig" />
+    <string id="AIL_e7b1cb0b" text="In den Städten von {0}" />
+    <string id="AIL_e7b1cb0c" text="In {0}" />
+    <string id="AIL_e7b1cb0d" text="In {0} und {1} weiteren" />
+    <string id="AIL_e7b1cb0e" text="{0} ({1}): „{2}“" />
+    <string id="AIL_e7b1cb0f" text="Entscheidungen" />
+    <string id="AIL_e7b1cb10" text="Folgen" />
+    <string id="AIL_e7b1cb11" text="Chronik durchsuchen…" />
+    <string id="AIL_e7b1cb12" text="Urteil" />
+    <string id="AIL_e7b1cb13" text="Ablehnung" />
+    <string id="AIL_e7b1cb14" text="Handel" />
+    <string id="AIL_e7b1cb15" text="Ländereien" />
+    <string id="AIL_e7b1cb16" text="Zahlungen" />
+    <string id="AIL_e7b1cb17" text="Steuer" />
+    <string id="AIL_e7b1cb18" text="Quarantäne" />
+    <string id="AIL_e7b1cb19" text="Clan" />
+    <string id="AIL_e7b1cb1a" text="Entscheidung" />
+    <string id="AIL_e7b1cb1b" text="Ort: {0}" />
+    <string id="AIL_e7b1cb1c" text="Orte: {0}" />
+    <string id="AIL_e7b1cb1d" text="Orte: {0} und {1} weitere" />
+    <string id="AIL_e7b1cb1e" text="{0} in {1}: {2}" />
+    <string id="AIL_e7b1cb1f" text=" (vorbei)" />
+    <string id="AIL_e7b1cb20" text=" (unter Quarantäne, noch {0} Tage)" />
+    <string id="AIL_e7b1cb21" text=" (noch {0} Tage)" />
+    <string id="AIL_e7b1cb22" text="Kapitel {0}" />
+    <string id="AIL_e7b1cb23" text="Alles ({0})" />
+    <string id="AIL_e7b1cb24" text="Ereignisse ({0})" />
+    <string id="AIL_e7b1cb25" text="Erklärungen ({0})" />
+    <string id="AIL_e7b1cb26" text="Kein Eintrag passt zum Filter oder zur Suche." />
+    <string id="AIL_e7b1ca00" text="{0} verbirgt die Enttäuschung nicht, nickt aber." />
+    <string id="AIL_e7b1ca01" text="Schweigen" />
+    <string id="AIL_e7b1ca02" text="Du schweigst." />
+    <string id="AIL_e7b1ca03" text="(Lies oder hör zu Ende und drücke „Weiter“)" />
+    <string id="AIL_e7b1ca04" text="*{0} wendet sich zum Gehen…*" />
+    <string id="AIL_e7b1ca05" text="*{0} spricht zu Ende…*" />
+    <string id="AIL_e7b1ca06" text="{0} verstummt, mit den Gedanken woanders. Versuch es später noch einmal." />
+    <string id="AIL_e7b1ca07" text="AI Legacy: Dialog zwangsweise geschlossen." />
+    <string id="AIL_e7b1ca08" text="{=!}Weiter" />
+    <string id="AIL_e7b1ca09" text="{=!}Genug geredet." />
+    <string id="AIL_e7b1ca0a" text="Hängenden Dialog zwangsweise schließen" />
+    <string id="AIL_e7b1ca0b" text="Schließen" />
+    <string id="AIL_e7b1ca0c" text="Wenn ein Gespräch hängt (das Feld reagiert nicht, das Fenster schließt sich nicht oder die Karte bleibt bei einer Begegnung stehen), schließt dies es: das AI-Legacy-Gespräch, das Gespräch des Spiels und eine offene Begegnung auf der Karte ohne Schlacht. Das Gesagte bleibt erhalten." />
   </strings>
 </base>

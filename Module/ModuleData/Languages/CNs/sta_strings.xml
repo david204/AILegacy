@@ -2237,5 +2237,150 @@
     <string id="AIL_e7b1c881" text="{1}家族的{0}现在作为情妇与{2}同住。" />
     <string id="AIL_e7b1c882" text="私生子：联姻时价值降低（第纳尔）" />
     <string id="AIL_e7b1c883" text="当私生子与婚生子女商议婚事时，求娶私生子的家族少出这么多，把婚生子女嫁给私生子的家族多要这么多，而私生子自己的家族只按一半放人。作为参考，两人之间一点关系值等于1000。0 = 没有区别。推荐：10000到30000。" />
+    <string id="AIL_e7b1c8a0" text="Pollinations 令牌（可选，免费）" />
+    <string id="AIL_e7b1c8a1" text="使用“免费（Pollinations）”时，图片带有其水印且排队较慢。在 auth.pollinations.ai 注册免费账号可获得令牌：粘贴到这里即可去掉水印。仅用于 Pollinations。" />
+    <string id="AIL_e7b1c950" text="群聊：你沉默多少秒后他们会催你（0 = 没有你就不继续）" />
+    <string id="AIL_e7b1c951" text="回答你之后，众人会彼此再聊几句，然后等你开口。如果有人问了你问题而你沉默了这么久，他们就不等你继续聊（之后最多再一次）。如果只剩一个人和你在一起，他会说最后一句话，谈话随即结束。0：他们只回答你。" />
+    <string id="AIL_e7b1c952" text="群聊：回答你之后他们彼此说的句数" />
+    <string id="AIL_e7b1c953" text="回答你之后，他们彼此还会再说多少句，然后收尾（最多再说两句）并等你开口。你一开口，计数就重新开始。每 2 到 4 句是一次请求，在前面的话还在说时就会提前发出。0：他们只回答你。" />
+    <string id="AIL_e7b1c900" text="{0}的郎中" />
+    <string id="AIL_e7b1c901" text="{0}医院" />
+    <string id="AIL_e7b1c902" text="乡村郎中" />
+    <string id="AIL_e7b1c903" text="卓越" />
+    <string id="AIL_e7b1c904" text="高级" />
+    <string id="AIL_e7b1c905" text="良好" />
+    <string id="AIL_e7b1c906" text="基础" />
+    <string id="AIL_e7b1c907" text="医疗等级：{0}/4（{1}）。本地诊治：效力 ×{2}。" />
+    <string id="AIL_e7b1c908" text="季节：{0}。" />
+    <string id="AIL_e7b1c909" text="此地正流行{0}（{1}）。隔离：{2}。" />
+    <string id="AIL_e7b1c90a" text="此地没有疫病流行。隔离：否。" />
+    <string id="AIL_e7b1c90b" text="是" />
+    <string id="AIL_e7b1c90c" text="否" />
+    <string id="AIL_e7b1c90d" text="路上染上时令病的风险：不适用（时令病已关闭）。" />
+    <string id="AIL_e7b1c90e" text="此时此地在路上染上时令病的风险：每天 {0} %（已计入你的预防）。" />
+    <string id="AIL_e7b1c90f" text="你的钱袋：{0} 第纳尔。" />
+    <string id="AIL_e7b1c910" text="你没有军医：队伍里没人在路上照料病人。" />
+    <string id="AIL_e7b1c911" text="你的军医：{0}（医术 {1}）。{2}" />
+    <string id="AIL_e7b1c912" text="你没有任命军医：由你亲自照料病人（医术 {0}）。{1}" />
+    <string id="AIL_e7b1c913" text="预防：{0}。" />
+    <string id="AIL_e7b1c914" text="无" />
+    <string id="AIL_e7b1c915" text="医院药方，还剩 {0} 天" />
+    <string id="AIL_e7b1c916" text="草药，传染减少 {0}%，还剩 {1} 天" />
+    <string id="AIL_e7b1c917" text="你的家族欠医师 {0} 第纳尔，将随每日开支扣除。" />
+    <string id="AIL_e7b1c918" text="你" />
+    <string id="AIL_e7b1c919" text="没有伤势。" />
+    <string id="AIL_e7b1c91a" text="受伤：生命 {0}/{1}。" />
+    <string id="AIL_e7b1c91b" text="同伴（{1} 人中 {0} 人患病）" />
+    <string id="AIL_e7b1c91c" text="{0} 名同伴受伤。" />
+    <string id="AIL_e7b1c91d" text="部队（{1} 人中 {0} 人患病）" />
+    <string id="AIL_e7b1c91e" text="{0} 名士兵受伤或患病。" />
+    <string id="AIL_e7b1c91f" text="俘虏（{1} 人中 {0} 人患病）" />
+    <string id="AIL_e7b1c920" text="{0} 名俘虏受伤。" />
+    <string id="AIL_e7b1c921" text="{0} 名士兵" />
+    <string id="AIL_e7b1c922" text="{0} 名俘虏" />
+    <string id="AIL_e7b1c923" text="{0}：{1}（{2}），进展 {3}%" />
+    <string id="AIL_e7b1c924" text="治疗中，还剩 {0} 天" />
+    <string id="AIL_e7b1c925" text="疗效还将持续 {0} 天" />
+    <string id="AIL_e7b1c926" text="你的军医正在压制病情；{0} 天后痊愈" />
+    <string id="AIL_e7b1c927" text="病情加重，但 {0} 天后会自行痊愈" />
+    <string id="AIL_e7b1c928" text="病情加重，可能致命；病程还剩 {0} 天" />
+    <string id="AIL_e7b1c929" text="能治好" />
+    <string id="AIL_e7b1c92a" text="只能遏制" />
+    <string id="AIL_e7b1c92b" text="不够：病情仍会加重" />
+    <string id="AIL_e7b1c92c" text="{0}。此疗法：每天好转几率 {1}%，{2}；{3} 第纳尔。" />
+    <string id="AIL_e7b1c92d" text="郎中诊治" />
+    <string id="AIL_e7b1c92e" text="医院诊治" />
+    <string id="AIL_e7b1c92f" text="效力 ×{0}。价格取决于病情轻重，部队还取决于人数。" />
+    <string id="AIL_e7b1c930" text="{0}加本地诊治" />
+    <string id="AIL_e7b1c931" text="效力 ×{0}。每剂 {1} 第纳尔，另加诊治费。" />
+    <string id="AIL_e7b1c932" text="医院药方：开水、干净衣物和熏蒸。{0} 天内你的队伍患病减少 75%。" />
+    <string id="AIL_e7b1c933" text="{0}：全队现在服用（{1} 剂），{3} 天内患病减少 {2}%。会取代之前服用的草药。" />
+    <string id="AIL_e7b1c934" text="购买（{0}）" />
+    <string id="AIL_e7b1c935" text="购买并服用（{0}）" />
+    <string id="AIL_e7b1c936" text="治疗伤势（{0}）" />
+    <string id="AIL_e7b1c937" text="没有人生病。" />
+    <string id="AIL_e7b1c938" text="治疗方式" />
+    <string id="AIL_e7b1c939" text="全部标记" />
+    <string id="AIL_e7b1c93a" text="仅重症" />
+    <string id="AIL_e7b1c93b" text="取消标记" />
+    <string id="AIL_e7b1c93c" text="治疗已标记者" />
+    <string id="AIL_e7b1c93d" text="标记你想治疗的病人。已在治疗中的无法标记。" />
+    <string id="AIL_e7b1c93e" text="已标记：{0}。每日好转：{1}。总价：{2} 第纳尔（你有 {3}）。" />
+    <string id="AIL_e7b1c93f" text="你还差 {0} 第纳尔。" />
+    <string id="AIL_e7b1c940" text="你还差 {0} 第纳尔：医师会把余款记在你家族账上。" />
+    <string id="AIL_e7b1c941" text="路途预防" />
+    <string id="AIL_e7b1c942" text="最好的草药只在富裕城镇和都城才有。" />
+    <string id="AIL_e7b1c943" text="严重" />
+    <string id="AIL_e7b1c944" text="医师开始为 {0} 名病人治疗，花费 {1} 第纳尔。" />
+    <string id="AIL_e7b1c945" text="疗伤草药不再随身携带，而是在医院购买和使用。你携带的 {1} 剂已退还 {0} 第纳尔。" />
+    <string id="AIL_e7b1c946" text="{=!}拜访城堡医师" />
+    <string id="AIL_e7b1c947" text="{=!}拜访郎中" />
+    <string id="AIL_e7b1c948" text="{=!}打开医院" />
+    <string id="AIL_e7b1c949" text="无法打开医院窗口。原因见模组日志。" />
+    <string id="AIL_e7b1c94a" text="医院当场使用的五种品质草药，富裕城镇品质更好，最好的只在都城才有：可作为更强的疗法医治病人，或让全队服用以在数天内防止传染。不会放入物品栏。" />
+    <string id="AIL_e7b1c94b" text="疾病系统未启用：这里只治疗伤势。" />
+    <string id="AIL_e7b1c94c" text="热病" />
+    <string id="AIL_e7b1c94d" text="你已拥有，还剩 {0} 天。" />
+    <string id="AIL_e7b1c94e" text="轻微" />
+    <string id="AIL_e7b1c94f" text="令人担忧" />
+    <string id="AIL_e7b1c9a0" text="有人看见了你（{0} 名目击者），但没人知道你是谁：他们在找一个挑起斗殴的外乡人。" />
+    <string id="AIL_e7b1c9a1" text="不过又是一场酒馆斗殴：没人去叫卫兵。" />
+    <string id="AIL_e7b1c9a2" text="{0} 一击即倒。" />
+    <string id="AIL_e7b1c9a3" text="{0} 应声倒地，昏死在地上。你赢了这场斗殴。" />
+    <string id="AIL_e7b1c9a4" text="一名外乡人对 {0}{1} 拳脚相加。有人看见了，但没人知道他是谁。" />
+    <string id="AIL_e7b1c9a5" text="够了……你赢了。" />
+    <string id="AIL_e7b1c9a6" text="给你长点记性！" />
+    <string id="AIL_e7b1cb00" text="事态仍在发展：{0}" />
+    <string id="AIL_e7b1cb01" text="王室特别税（{0:+0;-0} %）" />
+    <string id="AIL_e7b1cb02" text="{0}特别税（{1:+0;-0} %）" />
+    <string id="AIL_e7b1cb03" text="向{0}缴纳贡金" />
+    <string id="AIL_e7b1cb04" text="从{0}收取的贡金" />
+    <string id="AIL_e7b1cb05" text="{0}家族 · 剩余{1}天" />
+    <string id="AIL_e7b1cb06" text="收入 {0}{1:0} %" />
+    <string id="AIL_e7b1cb07" text="户数" />
+    <string id="AIL_e7b1cb08" text="{0} · 剩余{1}天" />
+    <string id="AIL_e7b1cb09" text="{0} {1}{2:0}" />
+    <string id="AIL_e7b1cb0a" text="{0} · 一次性冲击" />
+    <string id="AIL_e7b1cb0b" text="{0}的各城镇" />
+    <string id="AIL_e7b1cb0c" text="{0}" />
+    <string id="AIL_e7b1cb0d" text="{0}等另外{1}处" />
+    <string id="AIL_e7b1cb0e" text="{0}（{1}）：「{2}」" />
+    <string id="AIL_e7b1cb0f" text="决定" />
+    <string id="AIL_e7b1cb10" text="后果" />
+    <string id="AIL_e7b1cb11" text="搜索编年史…" />
+    <string id="AIL_e7b1cb12" text="判决" />
+    <string id="AIL_e7b1cb13" text="拒绝" />
+    <string id="AIL_e7b1cb14" text="贸易" />
+    <string id="AIL_e7b1cb15" text="领地" />
+    <string id="AIL_e7b1cb16" text="支付" />
+    <string id="AIL_e7b1cb17" text="税收" />
+    <string id="AIL_e7b1cb18" text="隔离" />
+    <string id="AIL_e7b1cb19" text="家族" />
+    <string id="AIL_e7b1cb1a" text="决定" />
+    <string id="AIL_e7b1cb1b" text="地点：{0}" />
+    <string id="AIL_e7b1cb1c" text="地点：{0}" />
+    <string id="AIL_e7b1cb1d" text="地点：{0}等另外{1}处" />
+    <string id="AIL_e7b1cb1e" text="{1}的{0}：{2}" />
+    <string id="AIL_e7b1cb1f" text="（已经过去）" />
+    <string id="AIL_e7b1cb20" text="（隔离中，剩余{0}天）" />
+    <string id="AIL_e7b1cb21" text="（剩余{0}天）" />
+    <string id="AIL_e7b1cb22" text="第{0}章" />
+    <string id="AIL_e7b1cb23" text="全部（{0}）" />
+    <string id="AIL_e7b1cb24" text="事件（{0}）" />
+    <string id="AIL_e7b1cb25" text="声明（{0}）" />
+    <string id="AIL_e7b1cb26" text="没有符合筛选或搜索的记录。" />
+    <string id="AIL_e7b1ca00" text="{0}难掩失望，但还是点了点头。" />
+    <string id="AIL_e7b1ca01" text="沉默" />
+    <string id="AIL_e7b1ca02" text="你沉默不语。" />
+    <string id="AIL_e7b1ca03" text="（读完或听完后点击“继续”）" />
+    <string id="AIL_e7b1ca04" text="*{0}转身准备离开……*" />
+    <string id="AIL_e7b1ca05" text="*{0}把话说完……*" />
+    <string id="AIL_e7b1ca06" text="{0}沉默不语，心思似乎飘到了别处。请稍后再试。" />
+    <string id="AIL_e7b1ca07" text="AI Legacy：已强制关闭对话。" />
+    <string id="AIL_e7b1ca08" text="{=!}继续" />
+    <string id="AIL_e7b1ca09" text="{=!}废话少说。" />
+    <string id="AIL_e7b1ca0a" text="强制关闭卡住的对话" />
+    <string id="AIL_e7b1ca0b" text="关闭" />
+    <string id="AIL_e7b1ca0c" text="如果对话卡住（对话框没有反应、窗口无法关闭，或地图停在遭遇界面），这里会将其关闭：AI Legacy 的谈话、游戏本身的对话，以及地图上没有战斗的未结束遭遇。已说过的内容会保留。" />
   </strings>
 </base>

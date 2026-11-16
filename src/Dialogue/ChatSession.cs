@@ -82,7 +82,7 @@ namespace AILegacy.Dialogue
             Log.Info($"Conversation started with {s.Name} ({s.Key})");
             HandOverCarried(s);
 
-            var vm = new ChatVM(s.Name, session.OnPlayerSaid, () => session.Close(session._npcEnded));
+            var vm = new ChatVM(s.Name, session.OnPlayerSaid, session.OnCloseClicked);
             session._win = ChatWindow.Open(vm);
             if (session._win != null)
             {
@@ -103,6 +103,57 @@ namespace AILegacy.Dialogue
             ChatWindow.Current?.Tick();
             try { Active?.PaintLive(); }
             catch (Exception ex) { Log.Error("Reply text while it arrives", ex); }
+            try { Active?.ContinueIfSilent(); }
+            catch (Exception ex) { Log.Error("Continue once the voice ends", ex); }
+            try { TickScene(); }
+            catch (Exception ex) { Log.Error("Gesture or walk away after the talk", ex); }
+        }
+
+        // ====================================================== body and face in the scene
+
+        // The gesture's own clip, a moment after the game has played the line's tags (so it is not overwritten)
+        private static TaleWorlds.MountAndBlade.Agent _clipAgent;
+        private static string _clipGesture;
+        private static DateTime _clipAt;
+        // Someone who ended the talk walks off once the game has closed the conversation
+        private static TaleWorlds.MountAndBlade.Agent _walkOffAgent;
+        private static DateTime _walkOffAt;
+
+        private static void TickScene()
+        {
+            if (_clipAgent != null && DateTime.UtcNow >= _clipAt)
+            {
+                var a = _clipAgent; string g = _clipGesture;
+                _clipAgent = null; _clipGesture = null;
+                if (TaleWorlds.MountAndBlade.Mission.Current != null) Gestures.PlayClip(a, g);
+            }
+            if (_walkOffAgent != null && DateTime.UtcNow >= _walkOffAt)
+            {
+                var cm = Campaign.Current?.ConversationManager;
+                if (cm != null && cm.IsConversationInProgress) { _walkOffAt = DateTime.UtcNow.AddMilliseconds(300); return; }
+                var a = _walkOffAgent;
+                _walkOffAgent = null;
+                if (TaleWorlds.MountAndBlade.Mission.Current != null && a.IsActive()) SceneActions.WalkAway(a);
+            }
+        }
+
+        /// <summary>The character in front of the player in a scene (not on the map, where the game draws a portrait).</summary>
+        private static TaleWorlds.MountAndBlade.Agent SceneAgent()
+        {
+            try
+            {
+                if (TaleWorlds.MountAndBlade.Mission.Current == null) return null;
+                return Campaign.Current?.ConversationManager?.OneToOneConversationAgent as TaleWorlds.MountAndBlade.Agent;
+            }
+            catch { return null; }
+        }
+
+        private void QueueClip(string gesture)
+        {
+            if (string.IsNullOrWhiteSpace(gesture) || gesture.Trim().Equals("none", StringComparison.OrdinalIgnoreCase)) return;
+            var a = SceneAgent();
+            if (a == null) return;
+            _clipAgent = a; _clipGesture = gesture; _clipAt = DateTime.UtcNow.AddMilliseconds(150);
         }
 
         // ====================================================== reply shown while it is being written
@@ -208,10 +259,11 @@ namespace AILegacy.Dialogue
         public bool Seeded { get; private set; }
 
         /// <summary>The NPC speaks first (initiative): their line is already written and is the first thing the box shows.</summary>
-        public void Seed(string npcText)
+        public void Seed(string npcText, string emotion = null, string gesture = null)
         {
             _lastPlayer = "";
             _lastNpc = npcText ?? "";
+            _emotion = emotion ?? ""; _gesture = gesture ?? ""; _lookShown = false;
             HasUnreadReply = true;
             Seeded = true;
             try { AILegacy.Voice.Speech.Say(_s.Key, _s.IsFemale, _lastNpc); } catch { }
@@ -254,12 +306,19 @@ namespace AILegacy.Dialogue
             string body = string.IsNullOrWhiteSpace(lastNpc)
                 ? L.F("AIL_1e733cef", $"Última vez que hablasteis: {last}.")
                 : L.F("AIL_e102e90e", $"Último mensaje de {_s.Name}:\n{(lastNpc.Length > 700 ? lastNpc.Substring(0, 700) + "…" : lastNpc)}");
+            // What was written for a reply that never came is offered again
+            string retry = _retryText ?? "";
+            _retryText = null;
+            // Nothing written, or cancelled: the player keeps silent, and the character answers to that silence
             InformationManager.ShowTextInquiry(new TextInquiryData(
                 L.F("AIL_4f47d62d", $"Tu mensaje para {_s.Name}"), body + L.T("AIL_904fdecc", "\n\n(/ayuda para ver los comandos)"),
-                true, true, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e5c9b3a4", "Cancelar"),
-                t => OnPlayerSaid(t), null, false,
-                t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
+                true, true, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e7b1ca01", "Callar"),
+                t => OnPlayerSaid(t), () => MainThread.Post(() => OnPlayerSaid("")), false,
+                t => new Tuple<bool, string>(true, ""), "", retry), true);
         }
+
+        /// <summary>What the character is told when the player says nothing at all.</summary>
+        private const string SilenceTurn = "*says nothing and stays silent*";
 
         /// <summary>Text for the NPC's dialogue box right now. Marks the reply as read.</summary>
         public string ConsumeDialogText()
@@ -269,10 +328,28 @@ namespace AILegacy.Dialogue
                 // Clicked "See their reply" while it is still being written: keep showing what there is
                 var live = _live;
                 string part = live?.Text ?? "";
-                if (_liveShown > 0 && _liveShown <= part.Length) return Compose(part.Substring(0, _liveShown));
-                return L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*");
+                if (_liveShown > 0 && _liveShown <= part.Length) return Compose(part.Substring(0, _liveShown)) + Gestures.ThinkingTags;
+                return Sanitize(L.F("AIL_30214b10", $"*{_s.Name} todavía está pensando…*")) + Gestures.ThinkingTags;
             }
             if (!HasUnreadReply && _lastNpc.Length == 0 && _dialogNotes.Count == 0) return L.T("AIL_07e9f3c5", "(Envía tu mensaje y espera su respuesta)");
+            // After Continue: only what came of the held actions, the reply itself was already read
+            if (_notesOnly)
+            {
+                _notesOnly = false;
+                HasUnreadReply = false;
+                var nb = new StringBuilder();
+                foreach (var n in _dialogNotes) { if (nb.Length > 0) nb.Append("{newline}"); nb.Append("» ").Append(n); }
+                _dialogNotes.Clear();
+                return nb.Length > 0 ? Sanitize(nb.ToString()) : "...";
+            }
+            // The face and the gesture of a reply play once, when it is first shown
+            string tags = "";
+            if (HasUnreadReply && _lastNpc.Length > 0 && !_lastNpc.StartsWith("(") && !_lookShown)
+            {
+                _lookShown = true;
+                tags = Gestures.Tags(_emotion, _gesture);
+                if (tags.Length > 0) QueueClip(_gesture);
+            }
             HasUnreadReply = false;
             var sb = new StringBuilder();
             // With "only their words" the box holds nothing but what the character says, so a voice mod that reads
@@ -284,8 +361,15 @@ namespace AILegacy.Dialogue
             _dialogNotes.Clear();
             string stats = _lastNpc.Length > 0 ? StatsLine() : "";
             if (stats.Length > 0) sb.Append("{newline}").Append(stats);
-            return Sanitize(sb.ToString());
+            // the game's animation tags go after the text has been cleaned of brackets
+            return Sanitize(sb.ToString()) + tags;
         }
+
+        // How the character looks and moves with their last line, and whether that was already played
+        private string _emotion = "", _gesture = "";
+        private bool _lookShown;
+        // A message that got no reply, offered again in the next text box
+        private string _retryText;
 
         /// <summary>The last exchange as the dialogue box shows it: the player's line and the character's, with the game's line breaks.</summary>
         private string Compose(string npcText)
@@ -362,7 +446,7 @@ namespace AILegacy.Dialogue
 
         private void UiPlayer(string text)
         {
-            if (_dialogMode) { _lastPlayer = text; _lastNpc = ""; return; }
+            if (_dialogMode) { _lastPlayer = text; _lastNpc = ""; _emotion = ""; _gesture = ""; return; }
             if (UseWindow) _win.VM.AddLine(L.T("AIL_4c6b494e", "Tú"), text, ChatVM.PlayerColor);
             else _transcript.Add(L.F("AIL_016ea49e", $"Tú: {text}"));
         }
@@ -406,6 +490,8 @@ namespace AILegacy.Dialogue
                 else _win.VM.AddLine(_s.Name, text, ChatVM.NpcColor);
             }
             else _transcript.Add($"{_s.Name}: {text}");
+            // Our window covers no dialogue line of the game's, so the face and gesture are played on the agent directly
+            try { var a = SceneAgent(); if (a != null) { _lookShown = true; Gestures.Play(a, _emotion, _gesture); } } catch { }
         }
 
         /// <summary>Writes straight into the game's dialogue box, if it is sitting on our waiting line.</summary>
@@ -458,10 +544,13 @@ namespace AILegacy.Dialogue
                 foreach (var line in _transcript.Skip(Math.Max(0, _transcript.Count - 2)))
                     body.AppendLine(line.Length > 600 ? line.Substring(0, 600) + "…" : line).AppendLine();
 
+            string retry = _retryText ?? "";
+            _retryText = null;
+            // "Say" with nothing written: the player keeps silent
             InformationManager.ShowTextInquiry(new TextInquiryData(
                 _s.Name, body.ToString().TrimEnd(), true, true, L.T("AIL_aa23f794", "Decir"), L.T("AIL_e5c9b3a5", "Terminar"),
-                OnPlayerSaid, () => Close(_npcEnded), false,
-                t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), true);
+                OnPlayerSaid, OnCloseClicked, false,
+                t => new Tuple<bool, string>(true, ""), "", retry), true);
         }
 
         // ============================================================ logic
@@ -470,14 +559,17 @@ namespace AILegacy.Dialogue
         {
             if (_closed || _waiting) return;
             text = (text ?? "").Trim();
-            if (text.Length == 0) { if (!UseWindow && !_dialogMode) MainThread.Post(ShowLegacyInput); return; }
-            if (_npcEnded) return;
+            // Nothing said: in our window the send button needs text, elsewhere it is keeping silent
+            if (text.Length == 0 && UseWindow) return;
+            if (_npcEnded || Holding) return;
             if (text.StartsWith("/")) { HandleCommand(text); return; }
 
+            bool silent = text.Length == 0;
+            if (silent) text = SilenceTurn;
             Mem.Turns.Add(new ChatTurn { Role = "player", Text = text, Day = CampaignTime.Now.ToDays });
-            if (_s.IsHero) AILegacy.Api.AILegacyApi.RaisePlayerSaid(_s.Hero, text);
-            UiPlayer(text);
-            Ambient.Overhear(_s, text);
+            if (_s.IsHero && !silent) AILegacy.Api.AILegacyApi.RaisePlayerSaid(_s.Hero, text);
+            UiPlayer(silent ? "*" + L.T("AIL_e7b1ca02", "Te quedas en silencio.") + "*" : text);
+            if (!silent) Ambient.Overhear(_s, text);
             _lines++;
 
             _retriedRepeat = false;
@@ -578,9 +670,7 @@ namespace AILegacy.Dialogue
             {
                 if (!WithPictures || !World.SceneImages.Enabled) return;
                 string player = Hero.MainHero?.Name?.ToString() ?? "";
-                var st = TaleWorlds.CampaignSystem.Settlements.Settlement.CurrentSettlement;
-                string where = (st != null ? st.Name.ToString() : "the open country") + ", " + (CampaignTime.Now.IsNightTime ? "at night" : "by day")
-                               + ", " + CampaignTime.Now.GetSeasonOfYear.ToString().ToLowerInvariant();
+                string where = World.SceneImages.Setting();
                 string exchange = $"{player}: {playerText}\n{_s.Name}: {npcText}";
                 string shown = $"{L.T("AIL_63ea9af4", "Tú: ")}{playerText}\n\n{_s.Name}: {npcText}";
                 var self = this;
@@ -640,6 +730,8 @@ namespace AILegacy.Dialogue
             _pendingAsked = messages;
             _waiting = true;
             UiWaiting(true);
+            // they think it over while the reply is on its way
+            try { Gestures.Think(SceneAgent()); } catch { }
 
             // The first reply also carries the character profile (12 fields) and needs more room to avoid being cut off
             bool firstTime = Mem.Profile == null || Mem.Profile.IsEmpty;
@@ -685,10 +777,15 @@ namespace AILegacy.Dialogue
 
             if (!res.Ok)
             {
-                // an opening line has no player turn of its own to take back
-                if (!string.IsNullOrEmpty(playerText)) RemoveLastPlayerTurn(playerText);
+                // an opening line has no player turn of its own to take back; what was written comes back in the next box
+                if (!string.IsNullOrEmpty(playerText))
+                {
+                    RemoveLastPlayerTurn(playerText);
+                    if (playerText != SilenceTurn) _retryText = playerText;
+                }
+                // the provider's error goes to the log; the player sees the character lost for words
                 Log.Error("No reply: " + res.Error);
-                UiSystem(L.T("AIL_4073a6cc", "No ha llegado respuesta de ninguna IA. Pulsa Decir para reintentar.\n") + res.Error, true);
+                NoReply();
                 return;
             }
 
@@ -725,6 +822,7 @@ namespace AILegacy.Dialogue
             _lastAsked = _pendingAsked; _lastRaw = res.Text;
             AskPicture(playerText, reply.Reply);
             if (_s.IsHero) AILegacy.Api.AILegacyApi.RaiseNpcReplied(_s.Hero, reply.Reply);
+            _emotion = reply.Emotion ?? ""; _gesture = reply.Gesture ?? ""; _lookShown = false;
             UiNpc(reply.Reply);
             _lines++;
             _answered++;
@@ -743,6 +841,29 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Mid-talk summary", ex); }
 
             SaveFiles.Flush();   // write it now, whether or not the game gets saved
+
+            // A reply that ends the talk or turns it into something else (a fight, a departure, a new companion) waits
+            // for the player: they read it, hear it out, press Continue, and only then does it happen
+            if (Holding)
+            {
+                Log.Info($"{_s.Name}: {(_held.Count > 0 ? string.Join(", ", _held) : "end of the talk")} held until the player continues");
+                string how = L.T("AIL_e7b1ca03", "(Termina de leer o de escuchar y pulsa «Continuar»)");
+                string leaving = _heldLeave ? L.F("AIL_e7b1ca04", $"*{_s.Name} se da la vuelta para marcharse…*") : "";
+                if (UseWindow)
+                {
+                    if (leaving.Length > 0) _win.VM.AddSystem(leaving);
+                    _win.VM.AddSystem(how);
+                    _win.VM.CanType = false;
+                    _win.VM.CloseText = L.T("AIL_b9c116de", "Continuar");
+                    RefreshSubtitle();
+                }
+                else
+                {
+                    if (leaving.Length > 0) _dialogNotes.Add(leaving);
+                    _dialogNotes.Add(how);
+                }
+                return;
+            }
 
             if (reply.EndConversation)
             {
@@ -850,27 +971,35 @@ namespace AILegacy.Dialogue
             // Named people standing close hear the answer too
             try { if (TaleWorlds.MountAndBlade.Mission.Current != null) Ambient.Overhear(new Speaker[0], reply.Reply, _s); } catch { }
 
+            var asked = (reply.Actions ?? new List<string>()).Where(a => !string.IsNullOrWhiteSpace(a)).ToList();
+            // A child can make nothing happen in the world: at most they run off
+            if (_s.IsMinor) asked = asked.Where(a => HeldName(a) == "leave").ToList();
+            // What ends or turns the talk waits until the player has read and heard the reply (dialogue box and our window)
+            var later = _dialogMode || UseWindow ? asked.Where(a => HeldNames.Contains(HeldName(a))).ToList() : new List<string>();
+            var now = asked.Where(a => !later.Contains(a)).ToList();
+
             var actx = new NpcActions.ActionContext();
-            foreach (var msg in NpcActions.Execute(_s, reply.Actions, actx))
+            foreach (var msg in NpcActions.Execute(_s, now, actx))
             {
                 if (!_dialogMode) Notify(msg, Colors.Yellow);
                 shown.Add(msg);
             }
             if (actx.EndConversation) reply.EndConversation = true;
+            bool hold = (_dialogMode || UseWindow) && (later.Count > 0 || reply.EndConversation);
+            if (hold)
+            {
+                _held = later;
+                _heldEnds = reply.EndConversation;
+                _heldLeave = later.Count == 0 || later.Any(a => HeldName(a) == "leave");
+                // asked for and on its way: not a deed spoken without its action
+                foreach (var a in later) actx.Tried.Add(HeldName(a));
+            }
             // Words that state a deed as done, with no action behind them, are marked as words
             _deedNudge = NpcActions.CheckSpokenDeeds(_s, reply.Reply, actx, _deedsNudged, reply.Quest != null) ?? _deedNudge;
 
             // A bandit leader who ambushed you ends the talk without letting you pass: you don't just walk away, it's a fight
-            try
-            {
-                if (reply.EndConversation && _s.Band != null && !actx.LetPass && !Combat.KeepEncounter && Combat.EnemyOnMap(_s)
-                    && PlayerEncounter.Current != null && PlayerEncounter.PlayerIsDefender)
-                {
-                    Combat.QueueMapAttack(_s);
-                    shown.Add(L.F("AIL_53ea433d", $"{_s.Name} da la charla por terminada y se lanza al ataque."));
-                }
-            }
-            catch (Exception ex) { Log.Error("End of the parley with a band", ex); }
+            // (when the end is held, this is decided once the player continues)
+            if (!hold) BandEnd(reply.EndConversation, actx.LetPass, shown);
 
             if (_s.IsHero && reply.SignificantEvent.Length > 12) Lore.Develop(_s, reply.SignificantEvent);
 
@@ -977,6 +1106,221 @@ namespace AILegacy.Dialogue
             return shown;
         }
 
+        /// <summary>A bandit leader who ambushed the player ends the parley without letting them pass: it is a fight.</summary>
+        private void BandEnd(bool ends, bool letPass, List<string> shown)
+        {
+            try
+            {
+                if (ends && _s.Band != null && !letPass && !Combat.KeepEncounter && Combat.EnemyOnMap(_s)
+                    && PlayerEncounter.Current != null && PlayerEncounter.PlayerIsDefender)
+                {
+                    Combat.QueueMapAttack(_s);
+                    shown.Add(L.F("AIL_53ea433d", $"{_s.Name} da la charla por terminada y se lanza al ataque."));
+                }
+            }
+            catch (Exception ex) { Log.Error("End of the parley with a band", ex); }
+        }
+
+        // ====================================================== actions that wait for the player
+        // Leaving, fighting, surrendering, going somewhere together or joining: the reply is read (and heard) first,
+        // the player presses Continue, and only then does it happen. Someone who leaves really walks off.
+
+        private static readonly HashSet<string> HeldNames = new HashSet<string>
+        {
+            "leave", "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "let_pass", "call_guards", "arrest", "die",
+            "join_party", "join_with_band", "join_their_company", "come_along", "go_into",
+        };
+
+        // the names models also use for those
+        private static readonly Dictionary<string, string> HeldAliases = new Dictionary<string, string>
+        {
+            { "end_conversation", "leave" }, { "goodbye", "leave" }, { "fight", "brawl" }, { "fist_fight", "brawl" },
+            { "let_them_pass", "let_pass" }, { "let_them_go", "let_pass" }, { "recruit", "join_party" }, { "join", "join_party" },
+        };
+
+        private static string HeldName(string command)
+        {
+            string n = NpcReply.ActionName(command);
+            return HeldAliases.TryGetValue(n, out var real) ? real : n;
+        }
+
+        private List<string> _held;           // null = nothing waiting
+        private bool _heldEnds, _heldLeave;
+        private bool _continueWhenSilent;
+        private bool _notesOnly;
+        private TaleWorlds.MountAndBlade.Agent _leaveAgent;
+
+        /// <summary>The last reply waits for the player's Continue before its actions happen.</summary>
+        public bool Holding => _held != null && !_closed;
+
+        /// <summary>The voice is still reading the line out.</summary>
+        private static bool Speaking { get { try { return AILegacy.Voice.Speech.IsSpeaking; } catch { return false; } } }
+
+        /// <summary>
+        /// "Continue" in the dialogue box: carries out what was held, unless the voice is still speaking, in which case
+        /// it is done by itself as soon as the voice ends (ContinueIfSilent).
+        /// </summary>
+        public void Continue()
+        {
+            if (!Holding) return;
+            if (Speaking) { _continueWhenSilent = true; return; }
+            Release();
+        }
+
+        /// <summary>Text while Continue waits for the voice to end.</summary>
+        public string WaitVoiceText() => Sanitize(L.F("AIL_e7b1ca05", $"*{_s.Name} termina de hablar…*"));
+
+        private void ContinueIfSilent()
+        {
+            if (!_continueWhenSilent || _closed || Speaking) return;
+            if (UseWindow) { OnCloseClicked(); return; }
+            if (!_dialogMode) return;
+            var cm = Campaign.Current?.ConversationManager;
+            if (cm == null || !cm.IsConversationInProgress || cm.CurOptions == null) return;
+            // only while the box sits on its Continue: elsewhere it waits for the player
+            if (cm.CurOptions.Any(o => o.Id == "ailegacy_d_cont")) { _continueWhenSilent = false; cm.DoOption("ailegacy_d_cont"); }
+        }
+
+        /// <summary>Carries out the held actions now and says what came of them.</summary>
+        private void Release()
+        {
+            var list = _held;
+            if (list == null) return;
+            _held = null;
+            _continueWhenSilent = false;
+            var shown = new List<string>();
+            var ctx = new NpcActions.ActionContext();
+            try
+            {
+                foreach (var msg in NpcActions.Execute(_s, list, ctx))
+                {
+                    if (!_dialogMode) Notify(msg, Colors.Yellow);
+                    shown.Add(msg);
+                }
+                ApplyDeltas(ctx, shown);
+            }
+            catch (Exception ex) { Log.Error("Actions held until the player continued", ex); }
+            bool ends = _heldEnds || ctx.EndConversation;
+            BandEnd(ends, ctx.LetPass, shown);
+            if (ends)
+            {
+                _npcEnded = true;
+                Log.Info($"{_s.Name} ends the conversation");
+                // only someone simply leaving walks off: a fight, a surrender or an arrest is handled by those
+                if (_heldLeave && !ctx.Executed.Any(n => n != "leave")) _leaveAgent = SceneAgent();
+            }
+            if (UseWindow)
+            {
+                foreach (var e in shown) _win.VM.AddSystem("» " + e);
+                if (!ends) { _win.VM.CanType = true; _win.VM.CloseText = L.T("AIL_e5c9b3a5", "Terminar"); }
+                RefreshSubtitle();
+            }
+            else if (_dialogMode)
+            {
+                _dialogNotes.AddRange(shown);
+                if (ends) _dialogNotes.Add(L.F("AIL_42b37383", $"({_s.Name} da la conversación por terminada)"));
+                HasUnreadReply = true;
+                _notesOnly = true;
+                _lookShown = true;      // the reply's face was already played; these are only the notes
+            }
+            SaveFiles.Flush();
+        }
+
+        /// <summary>Trust, tension and relation moved by held actions (calling the guards, say).</summary>
+        private void ApplyDeltas(NpcActions.ActionContext ctx, List<string> shown)
+        {
+            var cfg = S.Get;
+            if (cfg.EnableTrust && ctx.TrustDelta != 0)
+            {
+                int td = Bonds.ChangeTrust(_s, ctx.TrustDelta);
+                if (td < 0) _trustLostThisTalk -= td;
+                if (td != 0) shown.Add(L.F("AIL_c78d48c5", $"Confianza {(td > 0 ? "+" : "")}{td}"));
+            }
+            if (cfg.EnableTension && ctx.TensionDelta != 0)
+            {
+                int xd = Bonds.ChangeTension(_s, ctx.TensionDelta);
+                if (xd != 0) shown.Add(L.F("AIL_23b67cad", $"Tensión {(xd > 0 ? "+" : "")}{xd}"));
+            }
+            if (_s.IsHero && ctx.RelationDelta != 0)
+            {
+                int delta = Math.Max(-cfg.MaxRelationChangePerReply, Math.Min(cfg.MaxRelationChangePerReply, ctx.RelationDelta));
+                int budget = cfg.MaxRelationChangePerConversation - _relationMovedThisTalk;
+                if (Math.Abs(delta) > budget) delta = Math.Sign(delta) * Math.Max(0, budget);
+                if (delta != 0)
+                {
+                    ChangeRelationAction.ApplyPlayerRelation(_s.Hero, delta, affectRelatives: false, showQuickNotification: true);
+                    _relationChangedThisTalk += delta;
+                    _relationMovedThisTalk += Math.Abs(delta);
+                    Mem.RelationChangedTotal += delta;
+                    shown.Add(L.F("AIL_a190aec6", $"Relación {(delta > 0 ? "+" : "")}{delta}"));
+                }
+            }
+        }
+
+        /// <summary>Our window's close button (Continue while something is held), and the fallback popup's End.</summary>
+        private void OnCloseClicked()
+        {
+            if (_closed) return;
+            if (Holding)
+            {
+                if (Speaking)
+                {
+                    if (!_continueWhenSilent && UseWindow) _win.VM.AddSystem(L.F("AIL_e7b1ca05", $"*{_s.Name} termina de hablar…*"));
+                    _continueWhenSilent = true;
+                    return;
+                }
+                Release();
+                if (!_npcEnded) return;      // something happened but the talk goes on
+            }
+            Close(_npcEnded);
+        }
+
+        /// <summary>No reply came: the character is lost for words, and the player can try again.</summary>
+        private void NoReply()
+        {
+            string msg = L.F("AIL_e7b1ca06", $"{_s.Name} se queda en silencio, con la mente en otra parte. Inténtalo luego.");
+            if (_dialogMode)
+            {
+                _lastNpc = "(" + msg + ")";
+                _emotion = "thoughtful"; _gesture = ""; _lookShown = false;
+                HasUnreadReply = true;
+                if (_livePainted) PaintBox(Compose(_lastNpc));
+                if (S.Get.AutoShowReply) MainThread.Post(AutoShow);
+                return;
+            }
+            if (UseWindow) { _win.VM.AddSystem(msg); return; }
+            InformationManager.ShowInquiry(new InquiryData(_s.Name, msg, true, false, L.T("AIL_1df7d173", "Volver"), "", () => MainThread.Post(ShowLegacyInput), null), true);
+        }
+
+        /// <summary>
+        /// Options button: gets the player out of a talk that hangs (our window or session, the game's conversation,
+        /// a map encounter left open, a character still on their way to talk).
+        /// </summary>
+        public static void ForceClose()
+        {
+            try { AILegacy.Voice.Speech.Stop(); } catch { }
+            try { var a = Active; if (a != null) { a._held = null; a._continueWhenSilent = false; a.Close(false); } } catch (Exception ex) { Log.Error("Force close: session", ex); }
+            try { ChatWindow.Current?.Close(); } catch (Exception ex) { Log.Error("Force close: window", ex); }
+            try { Initiative.Cancel(); } catch { }
+            _clipAgent = null; _walkOffAgent = null;
+            try
+            {
+                var cm = Campaign.Current?.ConversationManager;
+                if (cm != null && cm.IsConversationInProgress) cm.EndConversation();
+            }
+            catch (Exception ex) { Log.Error("Force close: game conversation", ex); }
+            try
+            {
+                // An encounter on the open map with no battle going on is what keeps the attack/leave menu stuck
+                if (TaleWorlds.MountAndBlade.Mission.Current == null && PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement
+                    && PlayerEncounter.Battle == null && TaleWorlds.CampaignSystem.Party.MobileParty.MainParty?.MapEvent == null)
+                    PlayerEncounter.Finish(true);
+            }
+            catch (Exception ex) { Log.Error("Force close: encounter", ex); }
+            Log.Info("Dialogue force-closed from the options");
+            Notify(L.T("AIL_e7b1ca07", "AI Legacy: diálogo cerrado a la fuerza."), Colors.Gray);
+        }
+
         // ========================================================== commands
 
         private void HandleCommand(string text)
@@ -1076,7 +1420,14 @@ namespace AILegacy.Dialogue
         private void Close(bool npcEnded)
         {
             if (_closed) return;
+            // the talk closed some other way while something was still held: it is not lost
+            if (_held != null)
+            {
+                try { Release(); } catch (Exception ex) { Log.Error("Held actions on close", ex); }
+                npcEnded = npcEnded || _npcEnded;
+            }
             _closed = true;
+            if (_leaveAgent != null) { _walkOffAgent = _leaveAgent; _walkOffAt = DateTime.UtcNow.AddMilliseconds(400); _leaveAgent = null; }
             if (Active == this) Active = null;
             _win?.Close();
             _win = null;

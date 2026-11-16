@@ -147,12 +147,14 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
                 try { if (InformationManager.IsAnyInquiryActive()) return; } catch { }
                 var fh = m.GetMissionBehavior<SandBox.Missions.MissionLogics.MissionFightHandler>();
                 if (fh != null && fh.IsThereActiveFight()) return;
+                // Right after a fight nobody makes idle remarks, and those who fought never get a canned one
+                if (Combat.QuietAfterFight) return;
 
                 var me = Agent.Main.Position;
                 Agent pick = null; string kind = null; float best = cfg.PassByDistance;
                 foreach (var a in m.Agents)
                 {
-                    if (a == null || a == Agent.Main || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || Spoke.Contains(a) || GroupTalk.Has(a) || SceneActions.Busy(a)) continue;
+                    if (a == null || a == Agent.Main || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || Spoke.Contains(a) || GroupTalk.Has(a) || SceneActions.Busy(a) || Combat.FoughtHere(a)) continue;
                     float d = a.Position.Distance(me);
                     if (d > best || Math.Abs(a.Position.z - me.z) > 2f) continue;
                     string k = Kind(a);

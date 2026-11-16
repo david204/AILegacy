@@ -45,6 +45,8 @@ namespace AILegacy.World
         [JsonProperty("price_list", NullValueHandling = NullValueHandling.Ignore)] public Dictionary<string, float> PriceByCategory;
         /// <summary>The place's tax income goes up or down by this percent while it lasts (trade dried up, a fair, a tax revolt).</summary>
         [JsonProperty("tax", DefaultValueHandling = DefaultValueHandling.Ignore)] public float TaxPercent;
+        /// <summary>Set when the effect fell on every town of a realm at once (its id), so the news can say "in the towns of X".</summary>
+        [JsonProperty("realm", NullValueHandling = NullValueHandling.Ignore)] public string ScopeKingdom;
     }
 
     public class WorldEvent
@@ -65,6 +67,8 @@ namespace AILegacy.World
         [JsonProperty("history", NullValueHandling = NullValueHandling.Ignore)] public List<string> History;
         /// <summary>For a next chapter: what in the world moved the story on, in English.</summary>
         [JsonProperty("why_now", NullValueHandling = NullValueHandling.Ignore)] public string UpdateReason;
+        /// <summary>Which chapter of its story this is (1 or 0 = the first).</summary>
+        [JsonProperty("chapter", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Chapter;
     }
 
     /// <summary>A ruler whose turn it is to speak, about an event or because a proposal is waiting for them.</summary>
@@ -86,6 +90,8 @@ namespace AILegacy.World
         [JsonProperty("text")] public string Text = "";
         [JsonProperty("summary")] public string SummaryEn = "";
         [JsonProperty("results")] public List<string> Results = new List<string>();
+        /// <summary>Kind of each result, same order (war, peace, alliance...). Missing on older saves.</summary>
+        [JsonProperty("kinds", NullValueHandling = NullValueHandling.Ignore)] public List<string> ResultKinds;
         [JsonProperty("imp")] public int Importance = 2;
     }
 
@@ -817,8 +823,19 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         // rulers already due to speak about it still have their say on the new chapter
                         foreach (var kv in old.Engagement) if (!e.Engagement.ContainsKey(kv.Key)) e.Engagement[kv.Key] = kv.Value;
                         State.Events.Remove(old);
-                        NewsStore.Delete(old.Id);
-                        Log.Info($"[world] continues story «{old.Title}» ({e.History.Count} previous chapter(s))");
+                        // The earlier chapter stays in the news under an id of its own ("ev123#1"), so the story can be
+                        // read from its first card on. The newest chapter always carries the plain event id.
+                        int oldChapter = old.Chapter > 0 ? old.Chapter : (old.History?.Count ?? 0) + 1;
+                        var prev = NewsStore.Find(old.Id);
+                        if (prev != null)
+                        {
+                            if (prev.Chapter > 0) oldChapter = prev.Chapter;
+                            prev.StoryId = old.Id;
+                            prev.Chapter = oldChapter;
+                            prev.Id = old.Id + "#" + oldChapter;
+                        }
+                        e.Chapter = oldChapter + 1;
+                        Log.Info($"[world] continues story «{old.Title}» (chapter {e.Chapter}, {e.History.Count} previous chapter(s) remembered)");
                     }
                 }
                 var strangers = new List<string>();
@@ -856,7 +873,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 // What's behind the event, known only to a few
                 if (S.Get.StorySecrets && x["secret"] is JObject sec)
                     StorySecrets.Add(sec, e.Kingdoms.Select(FindKingdom).FirstOrDefault(k => k != null), "event");
-                if (x["disease"] is JObject dis) Diseases.FromEvent(dis);
+                if (x["disease"] is JObject dis) { Diseases.FromEvent(dis); NoteDisease(e, dis); }
                 var rebel = (string)(x["clan_rebellion"]?.Type == JTokenType.String ? x["clan_rebellion"] : null);
                 if (!string.IsNullOrWhiteSpace(rebel)) Diplomacy.Rebellion(rebel);
             }
@@ -902,9 +919,29 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 Id = e.Id,      // effects store EventId = e.Id, and Books looks them up by the news id
                 Type = "event_" + e.Type, Importance = e.Importance, Text = string.IsNullOrWhiteSpace(e.SummaryEn) ? e.Title : e.SummaryEn,
                 TitleEs = e.Title, TextEs = e.Text, Kingdoms = e.Kingdoms.ToList(), SettlementId = e.Settlements.FirstOrDefault(),
+                StoryId = e.Chapter > 1 ? e.Id : null, Chapter = e.Chapter > 1 ? e.Chapter : 0,
             });
             Log.Info($"[world] event [{e.Type}, imp {e.Importance}]: {e.Title}");
-            if (e.Importance >= S.Get.WorldEventNotifyImportance) Say(L.F("AIL_ee278059", $"Se cuenta por Calradia: {e.Title}"), Colors.Cyan);
+            if (e.Importance < S.Get.WorldEventNotifyImportance) return;
+            // A new chapter of a story already told comes in orange, a new story in cyan
+            if (e.Chapter > 1) Say(L.F("AIL_e7b1cb00", $"La historia sigue: {e.Title}"), StoryColor);
+            else Say(L.F("AIL_ee278059", $"Se cuenta por Calradia: {e.Title}"), Colors.Cyan);
+        }
+
+        private static readonly Color StoryColor = Color.FromUint(0xFFE8963Cu);
+
+        /// <summary>The outbreak an event just set off, kept on its news card.</summary>
+        private static void NoteDisease(WorldEvent e, JObject dis)
+        {
+            try
+            {
+                var st = OrderSystem.FindSettlement((string)dis["settlement"]);
+                var o = Diseases.At(st);
+                var news = NewsStore.Find(e.Id);
+                if (o == null || news == null || CampaignTime.Now.ToDays - o.StartDay > 0.05) return;
+                news.Disease = new NewsDisease { Id = o.Id, Name = o.Name, SettlementId = st.StringId, Severity = o.Severity, Days = Math.Max(1, (int)Math.Round(o.UntilDay - o.StartDay)) };
+            }
+            catch (Exception ex) { Log.Error("[world] disease of an event", ex); }
         }
 
         private static void AddClanEffect(WorldEvent e, JObject f)
@@ -1056,7 +1093,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     var one = (JObject)f.DeepClone();
                     one["settlement"] = town.StringId; one["kingdom"] = "";
                     foreach (var k in new[] { "prosperity_now", "food_now", "security_now", "loyalty_now" }) one.Remove(k);
-                    AddEffectAt(e, one, town);
+                    AddEffectAt(e, one, town, kg.StringId);
                 }
                 return;
             }
@@ -1065,7 +1102,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             AddEffectAt(e, f, st);
         }
 
-        private static void AddEffectAt(WorldEvent e, JObject f, Settlement st)
+        private static void AddEffectAt(WorldEvent e, JObject f, Settlement st, string realm = null)
         {
             var cfg = S.Get;
             float C(string k, int max) { float v = (float?)f[k] ?? 0f; return Math.Max(-max, Math.Min(max, v)); }
@@ -1076,6 +1113,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 SecurityPerDay = C("security_per_day", cfg.EffectMaxSecurityPerDay), LoyaltyPerDay = C("loyalty_per_day", cfg.EffectMaxLoyaltyPerDay),
                 UntilDay = CampaignTime.Now.ToDays + Math.Max(1, Math.Min(cfg.EffectMaxDays, (int?)f["duration_days"] ?? 7)),
                 PricePercent = st.IsTown || st.IsVillage ? C("price_percent", cfg.EffectMaxPricePercent) : 0f,
+                ScopeKingdom = realm,
             };
             string cat = ((string)(f["price_of"]?.Type == JTokenType.String ? f["price_of"] : null) ?? "").Trim().ToLowerInvariant();
             if (fx.PricePercent != 0 && PriceCategories.Contains(cat)) fx.PriceCategory = cat;
@@ -1111,6 +1149,13 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         if (lNow != 0) st.Town.Loyalty = Math.Max(0f, Math.Min(100f, st.Town.Loyalty + lNow));
                     }
                     else if (st.Village != null && pNow != 0) st.Village.Hearth = Math.Max(10f, st.Village.Hearth + pNow);
+                    // kept on the event's card: these leave no lasting effect behind to show
+                    var news = NewsStore.Find(e.Id);
+                    if (news != null)
+                    {
+                        if (news.Hits == null) news.Hits = new List<NewsHit>();
+                        if (news.Hits.Count < 20) news.Hits.Add(new NewsHit { SettlementId = st.StringId, Prosperity = pNow, Food = fNow, Security = sNow, Loyalty = lNow });
+                    }
                     Log.Info($"[world] hit on {st.Name}: prosperity {pNow:+0.#;-0.#;0}, food {fNow:+0.#;-0.#;0}, security {sNow:+0.#;-0.#;0}, loyalty {lNow:+0.#;-0.#;0} ({fx.Reason})");
                     if (st.OwnerClan == Clan.PlayerClan)
                         Say(L.F("AIL_e7b1c514", $"{st.Name} lo sufre de golpe: {fx.Reason}"), pNow + fNow + sNow + lNow < 0 ? Colors.Red : Colors.Green);
@@ -1159,14 +1204,14 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         }
 
         // ---- daily effects inside the game's own calculation (see Patches\TownEffectsPatch.cs)
-        public const int StatProsperity = 0, StatFood = 1, StatSecurity = 2, StatLoyalty = 3;
+        public const int StatProsperity = 0, StatFood = 1, StatSecurity = 2, StatLoyalty = 3, StatHearth = 4;
         // Last day the game ran each calculation through our hook. If it stops (another mod replaced the model),
         // the effects are added by hand again so they aren't lost.
-        private static readonly double[] ModelDay = { -1, -1, -1, -1 };
+        private static readonly double[] ModelDay = { -1, -1, -1, -1, -1 };
 
         public static void ModelSeen(int stat)
         {
-            try { if (stat >= 0 && stat < 4 && Campaign.Current != null) ModelDay[stat] = CampaignTime.Now.ToDays; } catch { }
+            try { if (stat >= 0 && stat < ModelDay.Length && Campaign.Current != null) ModelDay[stat] = CampaignTime.Now.ToDays; } catch { }
         }
 
         /// <summary>Whether the game's calculation for that stat goes through our hook (so it already includes our effects).</summary>
@@ -1204,7 +1249,98 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     string why = string.IsNullOrWhiteSpace(fx.Reason) ? L.T("AIL_a9c3e7f1", "Sucesos del mundo") : (fx.Reason.Length > 60 ? fx.Reason.Substring(0, 60) + "…" : fx.Reason);
                     list.Add((v, why));
                 }
+                // the crown's extraordinary tax wears loyalty and prosperity down (a cut gives them back)
+                float press = TaxPressure(town, stat, out int pct);
+                if (Math.Abs(press) >= 0.005f) list.Add((press, L.F("AIL_e7b1cb01", $"Impuesto extraordinario de la corona ({pct:+0;-0} %)")));
                 Laws.SettlementLines(st, stat == StatProsperity ? Laws.Prosperity : stat == StatFood ? Laws.Food : stat == StatSecurity ? Laws.Security : Laws.Loyalty, list);
+            }
+            catch { }
+            return list;
+        }
+
+        /// <summary>What the crown tax of the town's realm takes from its loyalty or prosperity each day.</summary>
+        private static float TaxPressure(Town town, int stat, out int pct)
+        {
+            pct = 0;
+            if (stat != StatLoyalty && stat != StatProsperity) return 0f;
+            var k = town?.Settlement?.OwnerClan?.Kingdom;
+            if (k == null || State.KingdomTaxPercent == null || !State.KingdomTaxPercent.TryGetValue(k.StringId, out pct) || pct == 0) return 0f;
+            float p = pct / 100f;
+            return stat == StatLoyalty ? -p * 2f : -p * 6f;
+        }
+
+        /// <summary>What events add to or take from a village's hearths today, with the reason.</summary>
+        public static List<(float value, string label)> VillageModifiers(Village village)
+        {
+            var list = new List<(float, string)>();
+            try
+            {
+                var st = village?.Settlement;
+                if (st == null || State == null || State.Effects.Count == 0) return list;
+                double now = CampaignTime.Now.ToDays;
+                foreach (var fx in State.Effects)
+                {
+                    if (fx.SettlementId != st.StringId || !string.IsNullOrEmpty(fx.ClanId) || now >= fx.UntilDay || Math.Abs(fx.ProsperityPerDay) < 0.005f) continue;
+                    string why = string.IsNullOrWhiteSpace(fx.Reason) ? L.T("AIL_a9c3e7f1", "Sucesos del mundo") : (fx.Reason.Length > 60 ? fx.Reason.Substring(0, 60) + "…" : fx.Reason);
+                    list.Add((fx.ProsperityPerDay, why));
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        /// <summary>
+        /// Factors on a town's tax income (0.2 = +20%), with the reason: the crown's extraordinary tax and the world
+        /// events that hurt or help its trade. Event lines are scaled down together when they pass the cap.
+        /// </summary>
+        public static List<(float factor, string label)> TaxModifiers(Town town)
+        {
+            var list = new List<(float, string)>();
+            try
+            {
+                var st = town?.Settlement;
+                if (st == null || State == null) return list;
+                var k = st.OwnerClan?.Kingdom;
+                if (k != null && State.KingdomTaxPercent.TryGetValue(k.StringId, out var pct) && pct != 0)
+                    list.Add((Math.Max(-0.8f, pct / 100f), L.F("AIL_e7b1cb02", $"Impuesto extraordinario de {k.Name} ({pct:+0;-0} %)")));
+                if (State.Effects.Count == 0) return list;
+                double now = CampaignTime.Now.ToDays;
+                var events = new List<(float, string)>();
+                float sum = 0f;
+                foreach (var fx in State.Effects)
+                {
+                    if (fx.TaxPercent == 0f || fx.SettlementId != st.StringId || fx.UntilDay <= now) continue;
+                    string why = string.IsNullOrWhiteSpace(fx.Reason) ? L.T("AIL_a9c3e7f1", "Sucesos del mundo") : (fx.Reason.Length > 60 ? fx.Reason.Substring(0, 60) + "…" : fx.Reason);
+                    events.Add((fx.TaxPercent / 100f, why));
+                    sum += fx.TaxPercent;
+                }
+                float max = S.Get.ClanEffectMaxPercent;
+                float scale = Math.Abs(sum) > max && sum != 0f ? max / Math.Abs(sum) : 1f;
+                foreach (var (f, why) in events) list.Add((f * scale, why));
+            }
+            catch { }
+            return list;
+        }
+
+        /// <summary>
+        /// Tributes paid or received today by a kingdom's ruler, as lines of their clan's gold breakdown
+        /// (negative = paid). The gold itself moves in PayTributes, these only explain it.
+        /// </summary>
+        public static List<(int amount, string label)> TributeLines(Clan clan)
+        {
+            var list = new List<(int, string)>();
+            try
+            {
+                if (clan?.Leader == null || State?.Tributes == null || State.Tributes.Count == 0) return list;
+                foreach (var t in State.Tributes)
+                {
+                    var payer = FindKingdom(t.Payer); var receiver = FindKingdom(t.Receiver);
+                    if (payer == null || receiver == null || t.Daily <= 0) continue;
+                    int amount = Math.Min(t.Daily, Math.Max(0, payer.Leader.Gold));
+                    if (amount <= 0) continue;
+                    if (payer.Leader == clan.Leader) list.Add((-amount, L.F("AIL_e7b1cb03", $"Pago de tributo a {receiver.Name}")));
+                    else if (receiver.Leader == clan.Leader) list.Add((amount, L.F("AIL_e7b1cb04", $"Tributo recibido de {payer.Name}")));
+                }
             }
             catch { }
             return list;
@@ -1229,49 +1365,114 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         if (!ViaModel(StatSecurity, now)) st.Town.Security = Math.Max(0f, Math.Min(100f, st.Town.Security + fx.SecurityPerDay));
                         if (!ViaModel(StatLoyalty, now)) st.Town.Loyalty = Math.Max(0f, Math.Min(100f, st.Town.Loyalty + fx.LoyaltyPerDay));
                     }
-                    else if (st.Village != null)
-                        st.Village.Hearth = Math.Max(10f, st.Village.Hearth + fx.ProsperityPerDay);   // for villages, prosperity means hearths
+                    // for villages, prosperity means hearths. Normally added in the game's hearth calculation (Patches\KingdomLawPatch.cs)
+                    else if (st.Village != null && !ViaModel(StatHearth, now))
+                        st.Village.Hearth = Math.Max(10f, st.Village.Hearth + fx.ProsperityPerDay);
                 }
                 catch (Exception ex) { Log.Error("[world] economic effect", ex); State.Effects.Remove(fx); }
             }
         }
 
-        /// <summary>For the news window: that event's current effects in plain words ("Prosperity -2 per day, 14 days left").</summary>
+        /// <summary>For the news window: that event's current effects in plain words, one line per group.</summary>
         public static string EffectsLineEs(string newsId, string settlementId, string type)
+            => string.Join("\n", EffectLines(newsId, null).Select(x => x.text));
+
+        /// <summary>
+        /// The consequences block of an event's card. Effects with the same numbers are told once for all the places
+        /// they fall on ("In the towns of Vlandia", "In Pravend, Sargot and 3 more"), then what they do, good things
+        /// and bad things on lines of their own. The sudden blows the event dealt when it was told come last.
+        /// tone: 0 = where it falls, 1 = good, 2 = bad.
+        /// </summary>
+        public static List<(string text, int tone)> EffectLines(string eventId, List<NewsHit> hits)
         {
+            var rows = new List<(string, int)>();
             try
             {
                 double now = CampaignTime.Now.ToDays;
-                var list = State.Effects.Where(f => f.UntilDay > now && !string.IsNullOrEmpty(f.EventId) && f.EventId == newsId).ToList();
-                if (list.Count == 0) return "";
-                var parts = new List<string>();
-                foreach (var f in list.Take(4))
+                var list = string.IsNullOrEmpty(eventId) ? new List<EconomicEffect>()
+                         : State.Effects.Where(f => f.UntilDay > now && !string.IsNullOrEmpty(f.EventId) && f.EventId == eventId).ToList();
+                string Sign(float v) => v > 0 ? "+" : "−";
+                int Left(EconomicEffect f) => Math.Max(1, (int)Math.Ceiling(f.UntilDay - now));
+
+                // clans: one group each
+                foreach (var f in list.Where(f => !string.IsNullOrEmpty(f.ClanId)).Take(4))
                 {
-                    if (!string.IsNullOrEmpty(f.ClanId))
+                    var cl = Clan.All.FirstOrDefault(c => c.StringId == f.ClanId);
+                    rows.Add((L.F("AIL_e7b1cb05", $"Clan {cl?.Name?.ToString() ?? "?"} · quedan {Left(f)} días"), 0));
+                    string line = L.F("AIL_e7b1cb06", $"Ingresos {Sign(f.IncomePercent)}{Math.Abs(f.IncomePercent):0} %") + (string.IsNullOrWhiteSpace(f.Reason) ? "" : " (" + f.Reason + ")");
+                    rows.Add((line, f.IncomePercent > 0 ? 1 : 2));
+                }
+
+                // settlements: grouped by what they do and how long they still last
+                string Key(EconomicEffect f) => string.Join("|", Math.Round(f.ProsperityPerDay, 2), Math.Round(f.FoodPerDay, 2), Math.Round(f.SecurityPerDay, 2),
+                    Math.Round(f.LoyaltyPerDay, 2), Math.Round(f.PricePercent), f.PriceCategory ?? "", Math.Round(f.TaxPercent), Left(f), f.ScopeKingdom ?? "",
+                    f.PriceByCategory == null ? "" : string.Join(",", f.PriceByCategory.OrderBy(kv => kv.Key).Select(kv => kv.Key + Math.Round(kv.Value))));
+                foreach (var g in list.Where(f => string.IsNullOrEmpty(f.ClanId)).GroupBy(Key).Take(6))
+                {
+                    var f = g.First();
+                    var good = new List<string>(); var bad = new List<string>();
+                    void Stat(string name, float v) { if (Math.Abs(v) >= 0.01f) (v > 0 ? good : bad).Add(L.F("AIL_4d99daae", $"{name} {(v > 0 ? "+" : "−")}{Math.Abs(v):0.##} al día")); }
+                    var st0 = Settlement.Find(f.SettlementId);
+                    // a village's "prosperity" is its hearths
+                    Stat(st0 != null && st0.IsVillage ? L.T("AIL_e7b1cb07", "hogares") : L.T("AIL_e4a9f3a0", "prosperidad"), f.ProsperityPerDay);
+                    Stat(L.T("AIL_d93015a6", "comida"), f.FoodPerDay); Stat(L.T("AIL_5fd22751", "seguridad"), f.SecurityPerDay); Stat(L.T("AIL_e3f5b714", "lealtad"), f.LoyaltyPerDay);
+                    // dearer goods hurt those who buy them, cheaper ones help
+                    if (Math.Abs(f.PricePercent) >= 1f)
                     {
-                        var cl = Clan.All.FirstOrDefault(c => c.StringId == f.ClanId);
-                        parts.Add(L.F("AIL_3be1eaff", $"Clan {cl?.Name?.ToString() ?? "?"}: ingresos {(f.IncomePercent > 0 ? "+" : "−")}{Math.Abs(f.IncomePercent):0} % (quedan {Math.Max(1, (int)Math.Ceiling(f.UntilDay - now))} días). {f.Reason}").TrimEnd());
-                        continue;
+                        string what = string.IsNullOrEmpty(f.PriceCategory) ? null : CategoryName(f.PriceCategory);
+                        string txt = what == null ? L.F("AIL_9d381c5c", $"precios del mercado {(f.PricePercent > 0 ? "+" : "−")}{Math.Abs(f.PricePercent):0} %")
+                                                  : L.F("AIL_e7b1c7a8", $"precio de {what} {(f.PricePercent > 0 ? "+" : "−")}{Math.Abs(f.PricePercent):0} %");
+                        (f.PricePercent > 0 ? bad : good).Add(txt);
                     }
-                    var st = Settlement.Find(f.SettlementId);
-                    var bits = new List<string>();
-                    void Add(string name, float v) { if (Math.Abs(v) >= 0.01f) bits.Add(L.F("AIL_4d99daae", $"{name} {(v > 0 ? "+" : "−")}{Math.Abs(v):0.##} al día")); }
-                    Add(L.T("AIL_e4a9f3a0", "prosperidad"), f.ProsperityPerDay); Add(L.T("AIL_d93015a6", "comida"), f.FoodPerDay); Add(L.T("AIL_5fd22751", "seguridad"), f.SecurityPerDay); Add(L.T("AIL_e3f5b714", "lealtad"), f.LoyaltyPerDay);
-                    if (Math.Abs(f.PricePercent) >= 1f) bits.Add(L.F("AIL_9d381c5c", $"precios del mercado {(f.PricePercent > 0 ? "+" : "−")}{Math.Abs(f.PricePercent):0} %"));
                     if (f.PriceByCategory != null)
                         foreach (var kv in f.PriceByCategory.Where(kv => Math.Abs(kv.Value) >= 1f))
                         {
                             string what = CategoryName(kv.Key);
-                            bits.Add(L.F("AIL_e7b1c7a8", $"precio de {what} {(kv.Value > 0 ? "+" : "−")}{Math.Abs(kv.Value):0} %"));
+                            (kv.Value > 0 ? bad : good).Add(L.F("AIL_e7b1c7a8", $"precio de {what} {(kv.Value > 0 ? "+" : "−")}{Math.Abs(kv.Value):0} %"));
                         }
-                    if (Math.Abs(f.TaxPercent) >= 1f) bits.Add(L.F("AIL_e7b1c7a9", $"impuestos {(f.TaxPercent > 0 ? "+" : "−")}{Math.Abs(f.TaxPercent):0} %"));
-                    if (bits.Count == 0) continue;
-                    parts.Add(L.F("AIL_01e11e81", $"{st?.Name?.ToString() ?? L.T("AIL_c8ad772b", "El lugar")}: {string.Join(", ", bits)} (quedan {Math.Max(1, (int)Math.Ceiling(f.UntilDay - now))} días)"));
+                    if (Math.Abs(f.TaxPercent) >= 1f) (f.TaxPercent > 0 ? good : bad).Add(L.F("AIL_e7b1c7a9", $"impuestos {(f.TaxPercent > 0 ? "+" : "−")}{Math.Abs(f.TaxPercent):0} %"));
+                    if (good.Count == 0 && bad.Count == 0) continue;
+                    rows.Add((L.F("AIL_e7b1cb08", $"{PlacesText(g.Select(x => x.SettlementId).ToList(), f.ScopeKingdom)} · quedan {Left(f)} días"), 0));
+                    if (bad.Count > 0) rows.Add((Cap(string.Join(", ", bad)), 2));
+                    if (good.Count > 0) rows.Add((Cap(string.Join(", ", good)), 1));
                 }
-                return string.Join("\n", parts);
+
+                // the blows dealt once, when the event was told
+                if (hits != null)
+                    foreach (var g in hits.Where(h => h != null).GroupBy(h => string.Join("|", Math.Round(h.Prosperity), Math.Round(h.Food), Math.Round(h.Security), Math.Round(h.Loyalty))).Take(4))
+                    {
+                        var h = g.First();
+                        var st0 = Settlement.Find(h.SettlementId);
+                        var good = new List<string>(); var bad = new List<string>();
+                        void Hit(string name, float v) { if (Math.Abs(v) >= 0.5f) (v > 0 ? good : bad).Add(L.F("AIL_e7b1cb09", $"{name} {(v > 0 ? "+" : "−")}{Math.Abs(v):0}")); }
+                        Hit(st0 != null && st0.IsVillage ? L.T("AIL_e7b1cb07", "hogares") : L.T("AIL_e4a9f3a0", "prosperidad"), h.Prosperity);
+                        Hit(L.T("AIL_d93015a6", "comida"), h.Food); Hit(L.T("AIL_5fd22751", "seguridad"), h.Security); Hit(L.T("AIL_e3f5b714", "lealtad"), h.Loyalty);
+                        if (good.Count == 0 && bad.Count == 0) continue;
+                        rows.Add((L.F("AIL_e7b1cb0a", $"{PlacesText(g.Select(x => x.SettlementId).ToList(), null)} · de golpe, una sola vez"), 0));
+                        if (bad.Count > 0) rows.Add((Cap(string.Join(", ", bad)), 2));
+                        if (good.Count > 0) rows.Add((Cap(string.Join(", ", good)), 1));
+                    }
             }
-            catch { return ""; }
+            catch (Exception ex) { Log.Error("[world] effects for the news", ex); }
+            return rows;
         }
+
+        /// <summary>"In the towns of Vlandia" when an effect fell on a whole realm, else up to three names and how many more.</summary>
+        private static string PlacesText(List<string> settlementIds, string realm)
+        {
+            var ids = settlementIds.Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+            if (!string.IsNullOrEmpty(realm) && ids.Count > 1)
+            {
+                var k = Campaign.Current?.Kingdoms.FirstOrDefault(x => x.StringId == realm);
+                if (k != null) return L.F("AIL_e7b1cb0b", $"En las ciudades de {k.Name}");
+            }
+            var names = ids.Select(id => Settlement.Find(id)?.Name?.ToString()).Where(n => !string.IsNullOrEmpty(n)).ToList();
+            if (names.Count == 0) return L.T("AIL_c8ad772b", "El lugar");
+            if (names.Count <= 3) return L.F("AIL_e7b1cb0c", $"En {string.Join(", ", names)}");
+            return L.F("AIL_e7b1cb0d", $"En {string.Join(", ", names.Take(3))} y {names.Count - 3} más");
+        }
+
+        private static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
 
         /// <summary>For an NPC's prompt: what's happening in their settlement because of an event.</summary>
         public static string DescribeEffectsAt(Settlement st)
@@ -1340,9 +1541,16 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             }
         }
 
-        /// <summary>An extra crown tax gives more gold (Harmony patch) and wears down loyalty and prosperity in return.</summary>
+        /// <summary>
+        /// An extra crown tax gives more gold (Harmony patch) and wears down loyalty and prosperity in return. That wear
+        /// is a line of the game's own daily calculation (TownModifiers); it is only added by hand here when that
+        /// calculation stopped going through our hook.
+        /// </summary>
         private static void ApplyTaxPressure()
         {
+            double now = CampaignTime.Now.ToDays;
+            bool loyaltyByHand = !ViaModel(StatLoyalty, now), prosperityByHand = !ViaModel(StatProsperity, now);
+            if (!loyaltyByHand && !prosperityByHand) return;
             foreach (var kv in State.KingdomTaxPercent.ToList())
             {
                 var k = FindKingdom(kv.Key);
@@ -1350,8 +1558,8 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 float p = kv.Value / 100f;
                 foreach (var town in k.Fiefs)
                 {
-                    town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty - p * 2f));
-                    town.Prosperity = Math.Max(0f, town.Prosperity - p * 6f);
+                    if (loyaltyByHand) town.Loyalty = Math.Max(0f, Math.Min(100f, town.Loyalty - p * 2f));
+                    if (prosperityByHand) town.Prosperity = Math.Max(0f, town.Prosperity - p * 6f);
                 }
             }
         }

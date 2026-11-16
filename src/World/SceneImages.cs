@@ -14,6 +14,10 @@ using AILegacy.Prompt;
 using AILegacy.Settings;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
 
 namespace AILegacy.World
 {
@@ -39,8 +43,9 @@ Page:
 Answer with the prompt only, nothing else.");
 
         private static readonly Tpl TMoment = new Tpl("images/talk_moment.txt",
-@"Turn this moment of a conversation into ONE prompt in English for an illustration of it, as if it were a still from the scene. 40 to 70 words.
-Describe only what would be seen: the two people face to face (man or woman, rough age, build, hair, clothing that fits their culture and station; no names), their posture and expressions as the words suggest, the place, the time of day and the light.
+@"Turn this moment of a conversation into ONE prompt in English for a still from the scene. 50 to 90 words.
+Describe only what would be seen: the two people face to face, their posture, gestures and expressions as the words suggest, and the place around them.
+Use the facts below EXACTLY: each person's sex, age, build, the look of their people and what they are wearing, and the place, weather and light. Do not change or leave out any of them, and add no weather, season or landscape they do not state (no snow unless it says snow). No names.
 The world is Calradia, a medieval land with 12th-century technology: no magic, no modern objects. No writing or letters in the picture.
 The people in it:
 {people}
@@ -179,8 +184,12 @@ Answer with the prompt only, nothing else.");
                 if (string.IsNullOrWhiteSpace(prompt)) { Finish(false, null, null, "sin descripción de la escena"); return; }
                 try
                 {
-                    string full = style.Length > 0 ? prompt.TrimEnd('.', ' ') + ". " + style : prompt;
-                    byte[] raw = source == Free ? await FromPollinations(full).ConfigureAwait(false)
+                    string full;
+                    // A conversation picture: the facts of the place go again after the description, so the model
+                    // cannot drop them, and it is drawn as a film still whatever the style for memory pages is
+                    if (job.tpl != null) full = prompt.TrimEnd('.', ' ') + ". Setting: " + (job.page.Title ?? "") + ". " + MomentStyle;
+                    else full = style.Length > 0 ? prompt.TrimEnd('.', ' ') + ". " + style : prompt;
+                    byte[] raw = source == Free ? await FromPollinations(full, SeedFor(job.mem)).ConfigureAwait(false)
                                : source == OpenAi ? await FromOpenAi(full, openAi, openAiModel).ConfigureAwait(false)
                                : await FromLocal(full, localUrl).ConfigureAwait(false);
                     if (raw == null || raw.Length < 2000) { Finish(false, null, prompt, "el servicio no devolvió una imagen"); return; }
@@ -199,16 +208,119 @@ Answer with the prompt only, nothing else.");
             var sb = new StringBuilder();
             try
             {
+                bool civilian = Settlement.CurrentSettlement != null;
                 var h = Hero.Find(mem.HeroId);
-                if (h != null)
-                    sb.AppendLine($"- {h.Name}: {(h.IsFemale ? "woman" : "man")}, about {(int)h.Age}, {h.Culture?.Name} culture, {(h.IsLord ? "noble" : h.IsNotable ? "local notable" : h.IsWanderer ? "wanderer" : "commoner")}");
+                if (h != null) sb.AppendLine("- " + Look(h, civilian));
                 var p = Hero.MainHero;
-                if (p != null)
-                    sb.AppendLine($"- {p.Name} (the other person in these memories): {(p.IsFemale ? "woman" : "man")}, about {(int)p.Age}, {p.Culture?.Name} culture, a travelling warrior");
+                if (p != null) sb.AppendLine("- " + Look(p, civilian) + " (the other person)");
             }
             catch { }
             return sb.Length == 0 ? "(two people of this land)" : sb.ToString().TrimEnd();
         }
+
+        /// <summary>
+        /// The cultures of Calradia by the real peoples they are drawn from: an image model knows what a Bedouin or a
+        /// Byzantine looks like, not what "Aserai" means. Keyed by the culture's id, never its translated name.
+        /// </summary>
+        private static string CultureLook(string id)
+        {
+            switch ((id ?? "").ToLowerInvariant())
+            {
+                case "aserai": return "medieval Arab Bedouin look, sun-darkened olive-brown skin, dark hair, headwrap or turban, layered desert robes";
+                case "empire": return "Byzantine Roman look, Mediterranean features, olive skin, Eastern Roman tunics and cloaks";
+                case "vlandia": return "Norman and Frankish look, fair to ruddy European skin, Western European medieval dress";
+                case "sturgia": return "Kievan Rus and Norse look, pale skin, light or brown hair, fur-trimmed Northern European dress";
+                case "battania": return "Gaelic Celtic look, pale freckled skin, red or brown hair, plaid wool and leather";
+                case "khuzait": return "Mongol and Cuman steppe nomad look, East Asian features, steppe deels and fur hats";
+                case "nord": case "nords": return "Viking Norse look, pale skin, fair hair, wool tunics and furs";
+                default: return "medieval European look";
+            }
+        }
+
+        /// <summary>One person as an image model needs them: sex, age band, build, the real look of their people and what they wear right now.</summary>
+        private static string Look(Hero h, bool civilian)
+        {
+            string age = h.Age < 18 ? "a youth" : h.Age < 30 ? "young" : h.Age < 45 ? "in their prime" : h.Age < 60 ? "middle-aged" : "old";
+            string build = "";
+            try { build = h.Weight > 0.66f ? ", heavy-set" : h.Weight < 0.33f ? ", lean" : ""; if (h.Build > 0.66f) build += ", strongly built"; } catch { }
+            string station = h.IsLord ? (h.Clan?.Leader == h ? "a noble head of a house" : "a noble") : h.IsNotable ? "a local notable" : h.IsWanderer ? "a wandering adventurer" : "a commoner";
+            if (h == Hero.MainHero) station = "a travelling warrior";
+            return $"{(h.IsFemale ? "woman" : "man")}, {age} (about {(int)h.Age}){build}, {station}; {CultureLook(h.Culture?.StringId)}; wearing {Clothes(h, civilian)}";
+        }
+
+        /// <summary>What they actually have on, from their equipment: item ids read like English ("desert_robe", "lamellar_armor").</summary>
+        private static string Clothes(Hero h, bool civilian)
+        {
+            try
+            {
+                var eq = civilian ? h.CivilianEquipment : h.BattleEquipment;
+                if (eq == null) return "clothes of their people";
+                var parts = new List<string>();
+                foreach (var slot in new[] { EquipmentIndex.Head, EquipmentIndex.Body, EquipmentIndex.Cape, EquipmentIndex.Gloves, EquipmentIndex.Leg })
+                {
+                    var item = eq[slot].Item;
+                    if (item == null) continue;
+                    string words = System.Text.RegularExpressions.Regex.Replace(item.StringId ?? "", @"[_\d]+", " ").Trim();
+                    if (words.Length > 2) parts.Add(words);
+                }
+                return parts.Count == 0 ? "plain clothes of their people" : string.Join(", ", parts);
+            }
+            catch { return "clothes of their people"; }
+        }
+
+        /// <summary>
+        /// Where and when, from the game itself: the settlement or the real terrain under the party, the map weather and
+        /// the hour. Snow is only named when the ground or the sky really has it, so a southern summer steppe stays green.
+        /// </summary>
+        public static string Setting()
+        {
+            var sb = new StringBuilder();
+            try
+            {
+                var st = Settlement.CurrentSettlement;
+                var party = MobileParty.MainParty;
+                if (st != null)
+                {
+                    string kind = st.IsTown ? "town" : st.IsCastle ? "castle" : st.IsVillage ? "village" : "settlement";
+                    sb.Append($"in the {kind} of {st.Name}, built in the style of the {CultureLook(st.Culture?.StringId).Split(',')[0].Replace(" look", "")} world");
+                }
+                else
+                {
+                    string terrain = "open country";
+                    try { if (party != null) terrain = Campaign.Current.MapSceneWrapper.GetFaceTerrainType(party.CurrentNavigationFace).ToString().ToLowerInvariant(); } catch { }
+                    if (party != null && party.IsCurrentlyAtSea) terrain = "the deck of a ship at sea";
+                    sb.Append($"outdoors on {terrain} ground");
+                }
+                bool snow = false;
+                string sky = "clear or lightly clouded sky";
+                try
+                {
+                    if (party != null)
+                        switch (Campaign.Current.Models.MapWeatherModel.GetWeatherEventInPosition(party.GetPosition2D))
+                        {
+                            case MapWeatherModel.WeatherEvent.LightRain: sky = "light rain"; break;
+                            case MapWeatherModel.WeatherEvent.HeavyRain: sky = "heavy rain"; break;
+                            case MapWeatherModel.WeatherEvent.Storm: sky = "a storm"; break;
+                            case MapWeatherModel.WeatherEvent.Snowy: sky = "falling snow"; snow = true; break;
+                            case MapWeatherModel.WeatherEvent.Blizzard: sky = "a blizzard"; snow = true; break;
+                        }
+                    if (sb.ToString().Contains("snow")) snow = true;
+                }
+                catch { }
+                int hour = CampaignTime.Now.GetHourOfDay;
+                string light = hour < 5 ? "night, moonlight or torchlight" : hour < 8 ? "dawn" : hour < 11 ? "morning light" : hour < 15 ? "midday sun" : hour < 18 ? "afternoon light" : hour < 21 ? "dusk, evening light" : "night, torchlight";
+                sb.Append($", {sky}, {light}");
+                if (!snow) sb.Append(", no snow anywhere");
+            }
+            catch { }
+            return sb.Length == 0 ? "a place in Calradia" : sb.ToString();
+        }
+
+        // For conversation pictures: a still from a film, not a painting
+        private const string MomentStyle = "Cinematic photorealistic film still, natural light, 35mm lens, detailed faces, historically grounded medieval setting. No text, no watermark, no modern objects.";
+
+        /// <summary>The same seed for the same person, so their pictures stay alike from one to the next.</summary>
+        private static int SeedFor(HeroMemory mem) => Math.Abs((mem?.HeroId ?? "x").GetHashCode() % 999983) + 1;
 
         private static async Task<byte[]> Get(HttpRequestMessage req, int seconds)
         {
@@ -226,11 +338,16 @@ Answer with the prompt only, nothing else.");
         }
 
         // Free and keyless. Only the scene description is sent, never names of the player or anything from the PC.
-        private static Task<byte[]> FromPollinations(string prompt)
+        private static Task<byte[]> FromPollinations(string prompt, int seed)
         {
-            if (prompt.Length > 900) prompt = prompt.Substring(0, 900);
-            string url = "https://image.pollinations.ai/prompt/" + Uri.EscapeDataString(prompt) + "?width=1024&height=576&nologo=true&seed=" + new Random().Next(1, 999999);
-            return Get(new HttpRequestMessage(HttpMethod.Get, url), 120);
+            if (prompt.Length > 1400) prompt = prompt.Substring(0, 1400);
+            string url = "https://image.pollinations.ai/prompt/" + Uri.EscapeDataString(prompt)
+                         + "?width=1280&height=720&model=flux&enhance=false&nologo=true&private=true&seed=" + seed;
+            var req = new HttpRequestMessage(HttpMethod.Get, url);
+            // With the player's own free Pollinations token the watermark goes and the queue is shorter
+            string token = (S.Get.ImagePollinationsToken ?? "").Trim();
+            if (token.Length > 0) req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + token);
+            return Get(req, 150);
         }
 
         private static async Task<byte[]> FromOpenAi(string prompt, ProviderConfig p, string model)

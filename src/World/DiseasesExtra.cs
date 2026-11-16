@@ -52,7 +52,7 @@ namespace AILegacy.World
     }
 
     /// <summary>
-    /// The rest of the disease system: healing herbs as goods, sick garrisons and militias, lords who ride off to be
+    /// The rest of the disease system: healing herbs sold by the hospitals, sick garrisons and militias, lords who ride off to be
     /// treated, treatment owed by the clan, what a hero died of, and the lines for the map tooltips.
     /// </summary>
     internal static partial class Diseases
@@ -63,10 +63,13 @@ namespace AILegacy.World
         private static readonly float[] TierImmunity = { 0.05f, 0.05f, 0.1f, 0.2f, 0.3f };
         private static readonly int[] TierBestHerb = { 2, 2, 3, 4, 5 };
 
-        /// <summary>1 to 4: a village or poor castle, up to a rich town. The seat of a ruler counts one more.</summary>
+        /// <summary>
+        /// 1 to 4: a village or poor castle, up to a rich town. The seat of a ruler counts one more. The hospital window
+        /// shows this same number, and the strength and prices of the local care follow it (CareQuality, HospitalPrice).
+        /// </summary>
         private static int MedicalTier(Settlement st)
         {
-            if (st?.Town == null) return 1;
+            if (st == null || st.IsVillage || st.Town == null) return 1;
             float p = st.Town.Prosperity;
             if (st.IsCastle) return p >= 1500f ? 2 : 1;
             int tier = p >= 7000f ? 4 : p >= 4000f ? 3 : p >= 2000f ? 2 : 1;
@@ -85,7 +88,7 @@ namespace AILegacy.World
             catch { return false; }
         }
 
-        /// <summary>What the player's party is spared: the hospital's prevention and the herbs taken, one on top of the other.</summary>
+        /// <summary>What the player's party is spared: the hospital's prevention and the herbs drunk there, one on top of the other.</summary>
         private static float PlayerGuard
         {
             get
@@ -107,14 +110,17 @@ namespace AILegacy.World
             public float Guard, Quality;
         }
 
-        // The items are defined in Module\ModuleData\ailegacy_items.xml: the ids must match.
+        // Herbs are not goods any more: the hospital sells them and uses them on the spot. As a way of treatment,
+        // Quality multiplies the strength of the local care; drunk against contagion, the whole party catches Guard
+        // less for Days. The item ids stay because Module\ModuleData\ailegacy_items.xml still defines those items,
+        // so saves that carried them load; RefundCarriedHerbs takes them out of the party and pays them back.
         private static readonly Herb[] Herbs =
         {
-            new Herb { ItemId = "ailegacy_herbs_common", NameId = "AIL_e7b1c6f6", NameEs = "Hierbas comunes", Strength = 1, Cost = 100, Days = 7, Guard = 0.05f, Quality = 1f },
-            new Herb { ItemId = "ailegacy_herbs_rare", NameId = "AIL_e7b1c6f7", NameEs = "Hierbas raras", Strength = 2, Cost = 300, Days = 10, Guard = 0.1f, Quality = 1.3f },
-            new Herb { ItemId = "ailegacy_herbs_valuable", NameId = "AIL_e7b1c6f8", NameEs = "Hierbas valiosas", Strength = 3, Cost = 700, Days = 12, Guard = 0.15f, Quality = 1.6f },
-            new Herb { ItemId = "ailegacy_herbs_exceptional", NameId = "AIL_e7b1c6f9", NameEs = "Hierbas excepcionales", Strength = 4, Cost = 1500, Days = 14, Guard = 0.2f, Quality = 2f },
-            new Herb { ItemId = "ailegacy_herbs_legendary", NameId = "AIL_e7b1c6fa", NameEs = "Hierbas legendarias", Strength = 5, Cost = 3000, Days = 14, Guard = 0.25f, Quality = 2.5f },
+            new Herb { ItemId = "ailegacy_herbs_common", NameId = "AIL_e7b1c6f6", NameEs = "Hierbas comunes", Strength = 1, Cost = 100, Days = 7, Guard = 0.1f, Quality = 1.15f },
+            new Herb { ItemId = "ailegacy_herbs_rare", NameId = "AIL_e7b1c6f7", NameEs = "Hierbas raras", Strength = 2, Cost = 300, Days = 10, Guard = 0.15f, Quality = 1.3f },
+            new Herb { ItemId = "ailegacy_herbs_valuable", NameId = "AIL_e7b1c6f8", NameEs = "Hierbas valiosas", Strength = 3, Cost = 700, Days = 12, Guard = 0.2f, Quality = 1.5f },
+            new Herb { ItemId = "ailegacy_herbs_exceptional", NameId = "AIL_e7b1c6f9", NameEs = "Hierbas excepcionales", Strength = 4, Cost = 1500, Days = 14, Guard = 0.3f, Quality = 1.75f },
+            new Herb { ItemId = "ailegacy_herbs_legendary", NameId = "AIL_e7b1c6fa", NameEs = "Hierbas legendarias", Strength = 5, Cost = 3000, Days = 14, Guard = 0.4f, Quality = 2f },
         };
 
         private static bool HerbsOn => Enabled && S.Get.EnableHealingHerbs;
@@ -127,13 +133,7 @@ namespace AILegacy.World
         private static string HerbName(Herb h) => L.T(h.NameId, h.NameEs);
         private static int HerbPrice(Herb h) => Math.Max(1, (int)(h.Cost * S.Get.DiseasePreventionHerbCostMultiplier));
 
-        private static int HerbCount(Herb h)
-        {
-            var item = HerbItem(h);
-            return item == null ? 0 : MobileParty.MainParty.ItemRoster.GetItemNumber(item);
-        }
-
-        /// <summary>Portions one case takes: more for a worse disease, and for a band by the root of its size like the hospital's bill.</summary>
+        /// <summary>Doses one case takes: more for a worse disease, and for a band by the root of its size like the hospital's bill.</summary>
         private static int HerbUnits(Sickness s)
         {
             float u = 1f + (Sev(s.Severity) - 1) * 0.5f;
@@ -141,199 +141,50 @@ namespace AILegacy.World
             return Math.Max(1, (int)Math.Ceiling(u));
         }
 
+        /// <summary>Doses the whole party drinks against contagion.</summary>
         private static int GuardUnits() => Math.Max(1, (int)Math.Ceiling(MobileParty.MainParty.MemberRoster.TotalManCount / 25f));
 
-        private static List<Sickness> MyOpenCases() =>
-            MyHeroCases().Concat(MyBandCases()).OrderByDescending(s => s.Kind == Sickness.Hero).ThenByDescending(s => s.Severity).ToList();
-
-        /// <summary>How many of those cases the portions in hand cover, taking them in order.</summary>
-        private static int Covered(List<Sickness> cases, int have, out int used)
+        /// <summary>The party drinks a herb against contagion, paid for in the hospital. It replaces whatever herb was drunk before.</summary>
+        private static void DrinkHerb(Herb h)
         {
-            used = 0;
-            int n = 0;
-            foreach (var s in cases)
-            {
-                int need = HerbUnits(s);
-                if (need > have - used) continue;
-                used += need; n++;
-            }
-            return n;
-        }
-
-        private static int TreatWithHerb(Herb h, Func<Sickness, bool> which = null)
-        {
-            var item = HerbItem(h);
-            if (item == null) return 0;
-            var roster = MobileParty.MainParty.ItemRoster;
-            int have = roster.GetItemNumber(item), used = 0, treated = 0;
-            foreach (var s in MyOpenCases())
-            {
-                if (which != null && !which(s)) continue;
-                int need = HerbUnits(s);
-                if (need > have - used) continue;
-                used += need; treated++;
-                StartTreatment(s, h.Quality);
-            }
-            if (used <= 0) return 0;
-            roster.AddToCounts(item, -used);
-            WorldSim.Say(L.F("AIL_e7b1c70b", $"Usas {used} de {HerbName(h)}: empieza el tratamiento de {treated} enfermo(s)."), Colors.Green);
-            return treated;
-        }
-
-        private static void TakeAsGuard(Herb h)
-        {
-            var item = HerbItem(h);
-            int need = GuardUnits();
-            if (item == null || MobileParty.MainParty.ItemRoster.GetItemNumber(item) < need)
-            {
-                WorldSim.Say(L.F("AIL_e7b1c711", $"No llevas suficientes: hacen falta {need}."), Colors.Red);
-                return;
-            }
-            MobileParty.MainParty.ItemRoster.AddToCounts(item, -need);
             var st = WorldSim.State;
-            double now = CampaignTime.Now.ToDays;
-            bool running = st.HerbGuardUntilDay > now;
-            st.HerbGuard = running ? Math.Max(st.HerbGuard, h.Guard) : h.Guard;
-            st.HerbGuardUntilDay = Math.Max(running ? st.HerbGuardUntilDay : now, now + h.Days);
-            WorldSim.Say(L.F("AIL_e7b1c70c", $"Tu partida toma {HerbName(h)}: enfermará un {(int)Math.Round(st.HerbGuard * 100f)}% menos durante {(int)Math.Ceiling(st.HerbGuardUntilDay - now)} días."), Colors.Green);
+            st.HerbGuard = h.Guard;
+            st.HerbGuardUntilDay = CampaignTime.Now.ToDays + h.Days;
+            WorldSim.Say(L.F("AIL_e7b1c70c", $"Tu partida toma {HerbName(h)}: enfermará un {(int)Math.Round(h.Guard * 100f)}% menos durante {h.Days} días."), Colors.Green);
         }
 
-        /// <summary>Each day the herbs carried go to whoever is sick and untreated: the best to the grave cases, the plainest to the rest.</summary>
-        private static void HerbDaily(double now)
+        private static int _refundSession = -1;
+
+        /// <summary>
+        /// Once per loaded campaign, on the map: herbs carried from older versions leave the party's inventory and their
+        /// price is paid back. Herbs are bought and used in the hospital now.
+        /// </summary>
+        private static void RefundCarriedHerbs()
         {
-            if (!HerbsOn || !S.Get.HerbsAutoUse || MobileParty.MainParty == null || MobileParty.MainParty.MapEvent != null) return;
-            if (!AnySick || MyOpenCases().Count == 0) return;
-            for (int i = Herbs.Length - 1; i >= 0; i--)
-                if (HerbCount(Herbs[i]) > 0) TreatWithHerb(Herbs[i], s => s.Severity >= 3);
-            for (int i = 0; i < Herbs.Length; i++)
-                if (HerbCount(Herbs[i]) > 0) TreatWithHerb(Herbs[i]);
-        }
-
-        private static string Strength(Herb h) => h.Quality.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture);
-
-        private static string HerbHint(Herb h) =>
-            L.F("AIL_e7b1c6ff", $"Como tratamiento, fuerza ×{Strength(h)}. Contra el contagio, un {(int)Math.Round(h.Guard * 100f)}% menos durante {h.Days} días. Llevas {HerbCount(h)}.");
-
-        /// <summary>Lines for the hospital's text: herbs carried, what they still guard against, what the clan owes.</summary>
-        private static string HerbText(Settlement st)
-        {
-            var sb = new System.Text.StringBuilder();
-            if (HerbsOn)
+            if (_refundSession == WorldSim.Session || !WorldSim.OnMap()) return;
+            _refundSession = WorldSim.Session;
+            try
             {
-                var carried = Herbs.Select(h => (h, n: HerbCount(h))).Where(x => x.n > 0).Select(x => x.n + " × " + HerbName(x.h)).ToList();
-                if (carried.Count > 0) sb.Append(L.F("AIL_e7b1c70d", $"\nLlevas hierbas curativas: {string.Join(", ", carried)}."));
-                var state = WorldSim.State;
-                double now = CampaignTime.Now.ToDays;
-                if (state.HerbGuardUntilDay > now && state.HerbGuard > 0f)
-                    sb.Append(L.F("AIL_e7b1c70e", $"\nLas hierbas protegen a tu partida {(int)Math.Ceiling(state.HerbGuardUntilDay - now)} día(s) más (un {(int)Math.Round(state.HerbGuard * 100f)}% menos de contagio)."));
-            }
-            int debt = DebtOf(Clan.PlayerClan);
-            if (debt > 0) sb.Append(L.F("AIL_e7b1c723", $"\nTu clan debe {debt} denarios a los médicos; se cobran con los gastos del día."));
-            return sb.ToString();
-        }
-
-        private static void ShowHerbShop(Settlement st)
-        {
-            if (st == null) return;
-            int best = TierBestHerb[MedicalTier(st)];
-            var items = new List<InquiryElement>();
-            foreach (var h in Herbs.Where(x => x.Strength <= best))
-                foreach (int n in new[] { 1, 5 })
+                var party = MobileParty.MainParty;
+                if (party == null || Hero.MainHero == null) return;
+                var roster = party.ItemRoster;
+                int doses = 0, gold = 0;
+                foreach (var h in Herbs)
                 {
-                    int price = HerbPrice(h) * n;
-                    items.Add(new InquiryElement(new KeyValuePair<Herb, int>(h, n), L.F("AIL_e7b1c6fe", $"{n} × {HerbName(h)}: {price} denarios"), null,
-                        HerbItem(h) != null && Hero.MainHero.Gold >= price, HerbHint(h)));
+                    var item = HerbItem(h);
+                    if (item == null) continue;
+                    int n = roster.GetItemNumber(item);
+                    if (n <= 0) continue;
+                    roster.AddToCounts(item, -n);
+                    doses += n;
+                    gold += n * HerbPrice(h);
                 }
-            MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
-                L.T("AIL_e7b1c6fc", "Hierbas curativas"),
-                L.F("AIL_e7b1c6fd", $"Los boticarios de {st.Name} venden estas hierbas. Las mejores solo llegan a las ciudades ricas y a las capitales. Llevas {Hero.MainHero.Gold} denarios."),
-                items, true, 1, 1, L.T("AIL_e7b1c700", "Comprar"), L.T("AIL_e7b1c701", "Cerrar"),
-                sel =>
-                {
-                    if (sel == null || sel.Count == 0) return;
-                    var pick = (KeyValuePair<Herb, int>)sel[0].Identifier;
-                    MainThread.Post(() =>
-                    {
-                        try
-                        {
-                            var item = HerbItem(pick.Key);
-                            int price = HerbPrice(pick.Key) * pick.Value;
-                            if (item == null || Settlement.CurrentSettlement != st) return;
-                            if (Hero.MainHero.Gold < price) { WorldSim.Say(L.T("AIL_e7b1c703", "No tienes oro suficiente."), Colors.Red); return; }
-                            GiveGoldAction.ApplyForCharacterToSettlement(Hero.MainHero, st, price);
-                            MobileParty.MainParty.ItemRoster.AddToCounts(item, pick.Value);
-                            WorldSim.Say(L.F("AIL_e7b1c702", $"Compras {pick.Value} de {HerbName(pick.Key)} por {price} denarios."), Colors.Green);
-                            Refresh();
-                            ShowHerbShop(st);
-                        }
-                        catch (Exception ex) { Log.Error("[disease] herb purchase", ex); }
-                    });
-                }, null, "", false), true);
-        }
-
-        /// <summary>What to do with the herbs carried: treat the sick, or take them against contagion. Works anywhere.</summary>
-        private static void ShowHerbUse()
-        {
-            var carried = Herbs.Where(h => HerbCount(h) > 0).ToList();
-            if (carried.Count == 0) { WorldSim.Say(L.T("AIL_e7b1c70a", "No llevas hierbas curativas."), Colors.Yellow); return; }
-            var cases = MyOpenCases();
-            int guardNeed = GuardUnits();
-            var items = new List<InquiryElement>();
-            foreach (var h in carried)
-            {
-                int have = HerbCount(h);
-                int can = Covered(cases, have, out int used);
-                items.Add(new InquiryElement(new KeyValuePair<Herb, bool>(h, true), L.F("AIL_e7b1c705", $"Tratar a tus enfermos con {HerbName(h)} (llevas {have})"), null, can > 0,
-                    cases.Count == 0 ? L.T("AIL_e7b1c70f", "No tienes a nadie enfermo sin tratar.")
-                    : can == 0 ? L.F("AIL_e7b1c711", $"No llevas suficientes: hacen falta {cases.Min(HerbUnits)}.")
-                    : L.F("AIL_e7b1c707", $"Empieza el tratamiento de {can} de tus {cases.Count} enfermo(s) sin tratar, con fuerza ×{Strength(h)}. Gasta {used}.")));
-                items.Add(new InquiryElement(new KeyValuePair<Herb, bool>(h, false), L.F("AIL_e7b1c706", $"Tomar {HerbName(h)} contra el contagio (hacen falta {guardNeed}, llevas {have})"), null, have >= guardNeed,
-                    L.F("AIL_e7b1c708", $"Toda tu partida enferma un {(int)Math.Round(h.Guard * 100f)}% menos durante {h.Days} días. Se suma a la prevención del hospital.")));
+                if (doses <= 0) return;
+                Hero.MainHero.ChangeHeroGold(gold);
+                Log.Info($"[disease] {doses} carried herb dose(s) removed from the party and {gold} denars paid back");
+                WorldSim.Say(L.F("AIL_e7b1c945", $"Las hierbas curativas ya no se llevan encima: se compran y se usan en el hospital. Te devuelven {gold} denarios por las {doses} dosis que llevabas."), Colors.Yellow);
             }
-            MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
-                L.T("AIL_e7b1c6fc", "Hierbas curativas"), L.T("AIL_e7b1c704", "Elige qué hacer con las hierbas que llevas."),
-                items, true, 1, 1, L.T("AIL_e7b1c709", "Usar"), L.T("AIL_e7b1c701", "Cerrar"),
-                sel =>
-                {
-                    if (sel == null || sel.Count == 0) return;
-                    var pick = (KeyValuePair<Herb, bool>)sel[0].Identifier;
-                    MainThread.Post(() =>
-                    {
-                        try
-                        {
-                            if (Campaign.Current == null || MobileParty.MainParty == null) return;
-                            if (pick.Value) TreatWithHerb(pick.Key); else TakeAsGuard(pick.Key);
-                            if (Settlement.CurrentSettlement != null && Campaign.Current.CurrentMenuContext?.GameMenu?.StringId == "ailegacy_hospital") Refresh();
-                        }
-                        catch (Exception ex) { Log.Error("[disease] herb use", ex); }
-                    });
-                }, null, "", false), true);
-        }
-
-        /// <summary>The herb key on the campaign map.</summary>
-        private static void HerbKey()
-        {
-            if (!Hotkeys.Pressed(Hotkeys.Id.Herbs)) return;
-            if (!HerbsOn || !WorldSim.OnMap()) return;
-            try { if (InformationManager.IsAnyInquiryActive()) return; } catch { }
-            ShowHerbUse();
-        }
-
-        private static void AddHerbMenu(CampaignGameStarter starter)
-        {
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_herbs_buy", L.T("AIL_e7b1c6fb", "{=!}Comprar hierbas curativas"),
-                args => { args.optionLeaveType = GameMenuOption.LeaveType.Trade; return HerbsOn; },
-                args => { try { ShowHerbShop(Settlement.CurrentSettlement); } catch (Exception ex) { Log.Error("[disease] herb shop", ex); } }, false, -1);
-
-            starter.AddGameMenuOption("ailegacy_hospital", "ailegacy_hospital_herbs_use", L.T("AIL_e7b1c728", "{=!}Usar tus hierbas curativas"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Manage;
-                    if (!HerbsOn) return false;
-                    if (!Herbs.Any(h => HerbCount(h) > 0)) { args.IsEnabled = false; args.Tooltip = new TextObject("{=!}" + L.T("AIL_e7b1c70a", "No llevas hierbas curativas.")); }
-                    return true;
-                },
-                args => { try { ShowHerbUse(); } catch (Exception ex) { Log.Error("[disease] herb use", ex); } }, false, -1);
+            catch (Exception ex) { Log.Error("[disease] refund of carried herbs", ex); }
         }
 
         // ============================================================ garrisons and militias

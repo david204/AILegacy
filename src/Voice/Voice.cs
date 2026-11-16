@@ -36,6 +36,25 @@ namespace AILegacy.Voice
         private static Thread _worker;
         private static System.Media.SoundPlayer _player;
         private static readonly object PlayerGate = new object();
+        // Lines queued, being synthesized or playing right now
+        private static int _pending;
+        // Stopwatch timestamp at which the line playing now ends (0 = nothing is playing)
+        private static long _endsAt;
+
+        /// <summary>A line is queued, being synthesized or playing. Scene talk waits on this before the next speaker.</summary>
+        public static bool IsSpeaking => Volatile.Read(ref _pending) > 0;
+
+        /// <summary>Seconds until the line playing now ends; 0 when nothing is playing (a line still being synthesized counts in IsSpeaking only).</summary>
+        public static double SecondsLeft
+        {
+            get
+            {
+                long end = Interlocked.Read(ref _endsAt);
+                if (end == 0) return 0;
+                double s = (end - Stopwatch.GetTimestamp()) / (double)Stopwatch.Frequency;
+                return s > 0 ? s : 0;
+            }
+        }
 
         /// <summary>Gestures between asterisks, stage notes in brackets and the like are not read out.</summary>
         private static string Clean(string text)
@@ -57,7 +76,8 @@ namespace AILegacy.Voice
                 string t = Clean(text);
                 if (t.Length < 2) return;
                 EnsureWorker();
-                Lines.TryAdd((_gen, key ?? "", female, t));
+                Interlocked.Increment(ref _pending);
+                if (!Lines.TryAdd((_gen, key ?? "", female, t))) Interlocked.Decrement(ref _pending);
             }
             catch (Exception ex) { Log.Error("Voice: enqueue", ex); }
         }
@@ -66,8 +86,9 @@ namespace AILegacy.Voice
         public static void Stop()
         {
             Interlocked.Increment(ref _gen);
-            while (Lines.TryTake(out _)) { }
+            while (Lines.TryTake(out _)) Interlocked.Decrement(ref _pending);
             lock (PlayerGate) { try { _player?.Stop(); } catch { } }
+            Interlocked.Exchange(ref _endsAt, 0);
         }
 
         private static void EnsureWorker()
@@ -94,20 +115,26 @@ namespace AILegacy.Voice
                     using (var player = new System.Media.SoundPlayer(ms))
                     {
                         player.Load();
+                        double secs = Duration(wav);
                         // started under the same lock Stop takes, so a Stop can never slip in between the check and the start
                         lock (PlayerGate)
                         {
                             if (job.gen != _gen) continue;
                             _player = player;
                             player.Play();
+                            Interlocked.Exchange(ref _endsAt, Stopwatch.GetTimestamp() + (long)((secs + 0.15) * Stopwatch.Frequency));
                         }
-                        double secs = Duration(wav);
                         var watch = Stopwatch.StartNew();
                         while (watch.Elapsed.TotalSeconds < secs + 0.15 && job.gen == _gen) Thread.Sleep(50);
                         lock (PlayerGate) { if (job.gen != _gen) { try { player.Stop(); } catch { } } _player = null; }
                     }
                 }
                 catch (Exception ex) { Log.Warn("Voice: could not speak the sentence: " + ex.GetBaseException().Message); }
+                finally
+                {
+                    Interlocked.Exchange(ref _endsAt, 0);
+                    Interlocked.Decrement(ref _pending);
+                }
             }
         }
 
@@ -157,9 +184,105 @@ namespace AILegacy.Voice
             return null;
         }
 
+        // ---- Windows' newer voices (Pablo, Laura, Helena... the ones in Settings > Time & language > Speech).
+        // System.Speech on .NET Framework only lists the old "Desktop" voices, which in many languages are all women.
+        // SAPI itself can use the newer ones if asked for their registry category, through plain COM.
+        private const string OneCoreCategory = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech_OneCore\Voices";
+        private class OneCoreVoice { public string Name; public bool Female; public string Culture; public int Index; }
+        private static List<OneCoreVoice> _oneCore;
+
+        private static object ComNew(string progId) => Activator.CreateInstance(Type.GetTypeFromProgID(progId, true));
+        private static object ComCall(object o, string name, params object[] args) => o.GetType().InvokeMember(name, System.Reflection.BindingFlags.InvokeMethod, null, o, args);
+        private static object ComGet(object o, string name) => o.GetType().InvokeMember(name, System.Reflection.BindingFlags.GetProperty, null, o, null);
+        private static void ComSet(object o, string name, object value, bool byRef = false) =>
+            o.GetType().InvokeMember(name, byRef ? System.Reflection.BindingFlags.PutRefDispProperty : System.Reflection.BindingFlags.SetProperty, null, o, new[] { value });
+
+        private static object OneCoreTokens()
+        {
+            var cat = ComNew("SAPI.SpObjectTokenCategory");
+            ComCall(cat, "SetId", OneCoreCategory, false);
+            return ComCall(cat, "EnumerateTokens", "", "");
+        }
+
+        /// <summary>The newer voices, read once. Empty on a Windows without them or if SAPI refuses.</summary>
+        private static List<OneCoreVoice> OneCoreVoices()
+        {
+            if (_oneCore != null) return _oneCore;
+            var list = new List<OneCoreVoice>();
+            try
+            {
+                var tokens = OneCoreTokens();
+                int n = (int)ComGet(tokens, "Count");
+                for (int i = 0; i < n; i++)
+                {
+                    var t = ComCall(tokens, "Item", i);
+                    string culture = "";
+                    try
+                    {
+                        string lcid = ((string)ComCall(t, "GetAttribute", "Language") ?? "").Split(';')[0];
+                        culture = new System.Globalization.CultureInfo(Convert.ToInt32(lcid, 16)).Name;
+                    }
+                    catch { }
+                    list.Add(new OneCoreVoice
+                    {
+                        Name = (string)ComCall(t, "GetDescription", 0),
+                        Female = string.Equals((string)ComCall(t, "GetAttribute", "Gender"), "Female", StringComparison.OrdinalIgnoreCase),
+                        Culture = culture, Index = i,
+                    });
+                }
+                Log.Info("Voice: Windows voices beyond the Desktop ones: " + (list.Count == 0 ? "none" : string.Join(", ", list.Select(v => $"{v.Name} ({(v.Female ? "F" : "M")})"))));
+            }
+            catch (Exception ex) { Log.Warn("Voice: the newer Windows voices could not be read: " + ex.GetBaseException().Message); }
+            _oneCore = list;
+            return list;
+        }
+
+        private static byte[] FromOneCore(OneCoreVoice v, string text, AILegacySettings cfg)
+        {
+            var tokens = OneCoreTokens();
+            var voice = ComNew("SAPI.SpVoice");
+            ComSet(voice, "Voice", ComCall(tokens, "Item", v.Index), true);
+            ComSet(voice, "Rate", Math.Max(-10, Math.Min(10, cfg.VoiceRate)));
+            var stream = ComNew("SAPI.SpMemoryStream");
+            ComSet(ComGet(stream, "Format"), "Type", 22);          // 22 kHz, 16 bit, mono
+            ComSet(voice, "AudioOutputStream", stream, true);
+            ComCall(voice, "Speak", text, 0);
+            var pcm = ComCall(stream, "GetData") as byte[];
+            if (pcm == null || pcm.Length == 0) return null;
+            // raw samples: put the WAV header in front so the player can read it
+            using (var ms = new MemoryStream())
+            using (var w = new BinaryWriter(ms))
+            {
+                const int rate = 22050, bits = 16, channels = 1;
+                w.Write(Encoding.ASCII.GetBytes("RIFF")); w.Write(36 + pcm.Length); w.Write(Encoding.ASCII.GetBytes("WAVE"));
+                w.Write(Encoding.ASCII.GetBytes("fmt ")); w.Write(16); w.Write((short)1); w.Write((short)channels); w.Write(rate);
+                w.Write(rate * channels * bits / 8); w.Write((short)(channels * bits / 8)); w.Write((short)bits);
+                w.Write(Encoding.ASCII.GetBytes("data")); w.Write(pcm.Length); w.Write(pcm);
+                w.Flush();
+                return ms.ToArray();
+            }
+        }
+
         // Windows' own voices: no network, no key
         private static byte[] FromWindows(string key, bool female, string text, AILegacySettings cfg)
         {
+            // A newer voice of the right sex and language comes first: the old list often has no man at all
+            try
+            {
+                string lang = LanguageCode(cfg.Language);
+                var modern = OneCoreVoices();
+                var pool = modern.Where(v => v.Culture.StartsWith(lang, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (pool.Count == 0) pool = modern;
+                string wanted = Pick(female ? cfg.VoiceFemaleVoices : cfg.VoiceMaleVoices, key, null);
+                var chosen = (wanted != null ? modern.FirstOrDefault(v => v.Name.IndexOf(wanted, StringComparison.OrdinalIgnoreCase) >= 0) : null);
+                if (chosen == null && wanted == null)
+                {
+                    var same = pool.Where(v => v.Female == female).ToList();
+                    if (same.Count > 0) chosen = same[Math.Abs(Hash(key)) % same.Count];
+                }
+                if (chosen != null) { var wav = FromOneCore(chosen, text, cfg); if (wav != null) return wav; }
+            }
+            catch (Exception ex) { Log.Warn("Voice: newer Windows voice failed, using the Desktop ones: " + ex.GetBaseException().Message); }
             using (var synth = new System.Speech.Synthesis.SpeechSynthesizer())
             {
                 var installed = synth.GetInstalledVoices().Where(v => v.Enabled).Select(v => v.VoiceInfo).ToList();

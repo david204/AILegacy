@@ -5,9 +5,27 @@
       <Children>
         <Widget DataSource="{Bubbles}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true">
           <ItemTemplate>
-            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="340" HorizontalAlignment="Left" VerticalAlignment="Top" ScaledPositionXOffset="@X" ScaledPositionYOffset="@Y" IsVisible="@IsVisible" DoNotAcceptEvents="true" Sprite="BlankWhiteSquare_9" Color="#000000B4">
+            <!-- Box centred over the head (Bubbles.BoxWidth x BoxHeight); the plate sits at its bottom and is as wide as its text -->
+            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="760" SuggestedHeight="360" HorizontalAlignment="Left" VerticalAlignment="Top" ScaledPositionXOffset="@X" ScaledPositionYOffset="@Y" IsVisible="@IsVisible" DoNotAcceptEvents="true">
               <Children>
-                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="8" MarginRight="8" MarginTop="6" MarginBottom="6" Brush="Popup.Button.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Center" Text="@Text" DoNotAcceptEvents="true" />
+                <!-- Friendly or neutral speaker: gold -->
+                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsVisible="@ShowGold" DoNotAcceptEvents="true" Sprite="BlankWhiteSquare_9" Color="#0A0805B4">
+                  <Children>
+                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MaxWidth="520" MarginLeft="10" MarginRight="10" MarginTop="5" MarginBottom="5" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="@FontSize" Brush.FontColor="#F2C76AFF" Brush.TextHorizontalAlignment="Center" Text="@Text" ClipContents="false" DoNotAcceptEvents="true" />
+                  </Children>
+                </Widget>
+                <!-- Hostile speaker: red -->
+                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsVisible="@ShowRed" DoNotAcceptEvents="true" Sprite="BlankWhiteSquare_9" Color="#0A0805B4">
+                  <Children>
+                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MaxWidth="520" MarginLeft="10" MarginRight="10" MarginTop="5" MarginBottom="5" HorizontalAlignment="Center" VerticalAlignment="Center" Brush="Popup.Button.Text" Brush.FontSize="@FontSize" Brush.FontColor="#E8584AFF" Brush.TextHorizontalAlignment="Center" Text="@Text" ClipContents="false" DoNotAcceptEvents="true" />
+                  </Children>
+                </Widget>
+                <!-- Reply being written: a small plate with animated dots -->
+                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="64" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsVisible="@IsThinking" DoNotAcceptEvents="true" Sprite="BlankWhiteSquare_9" Color="#0A0805B4">
+                  <Children>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" MarginBottom="4" Brush="Popup.Button.Text" Brush.FontSize="26" Brush.FontColor="#F2C76AFF" Brush.TextHorizontalAlignment="Center" Text="@Text" DoNotAcceptEvents="true" />
+                  </Children>
+                </Widget>
               </Children>
             </Widget>
           </ItemTemplate>

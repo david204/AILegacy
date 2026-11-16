@@ -33,9 +33,44 @@ namespace AILegacy.Dialogue
             public bool Deferred;
             /// <summary>Notice shown just before the line ("X joins the conversation").</summary>
             public string Pre;
+            /// <summary>Group talk line: it goes to the log when it is spoken (or dropped), not when it was written.</summary>
+            public bool Group;
+            /// <summary>Scene talk lines (not group talk): who says it and to whom, and the talk it belongs to, so both remember it and bystanders overhear it.</summary>
+            public Speaker WhoS, ToS;
+            public Talk Talk;
         }
+
+        /// <summary>One talk between two people in the scene. Each keeps a single note in their history that grows line by line.</summary>
+        private class Talk
+        {
+            public Speaker A, B;
+            public string Place;
+            public ChatTurn NoteA, NoteB;
+            public readonly List<string> Said = new List<string>();
+        }
+
+        // Display time of a line over a head: 5 s plus 0.045 s a character, 30 s at most
+        internal static float ShowSeconds(string text) => Math.Min(30f, 5f + 0.045f * (text?.Length ?? 0));
+        // Without voice: after a line has had time to be read, this pause before the next speaker
+        private const float SilentPause = 3f;
+        // With voice: this gap after the audio ends before the next speaker
+        private const float VoiceGap = 0.7f;
+
+        // The two people of the current scene talk, kept on the spot and turned to each other
+        private static readonly List<Agent> Held = new List<Agent>();
+        private static bool _paused;
+        private static bool _memDirty;
+        // A voiced line waits here until its audio starts, so text and voice come out together
+        private static Line _voiceWait;
+        private static float _voiceWaitLeft, _voiceHold;
+        // The line on now is voiced: the next one waits until the audio is over (at most _voiceCap more seconds)
+        private static bool _afterVoice;
+        private static float _voiceCap;
         private static float _hold;
         private static Agent _speaking;
+        // The one spoken to in a group line turns to the speaker while it lasts
+        private static Agent _listening;
+        private static bool _curGroup;
 
         private static readonly Random Rng = new Random();
         private static readonly Queue<Line> Play = new Queue<Line>();
@@ -98,7 +133,10 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
         private static int _gen;       // bumped on cancel so a late AI reply gets thrown away
 
         internal static bool ErrandBusy => _errand != null;
-        internal static bool IsPlaying => Play.Count > 0 || _lineLeft > 0f;
+        internal static bool IsPlaying => Play.Count > 0 || _lineLeft > 0f || _voiceWait != null || _afterVoice;
+
+        /// <summary>Group talk lines are still queued or one of them is being spoken.</summary>
+        internal static bool GroupPlaying => ((_lineLeft > 0f || _afterVoice) && _curGroup) || (_voiceWait != null && _voiceWait.Group) || Play.Any(l => l.Group);
 
         /// <summary>Once the current lines finish, this character goes off to find the other one.</summary>
         internal static void SendTo(Agent who, Agent target, string said, bool back)
@@ -122,6 +160,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             string da = Describe(e.Who, out var sa), db = Describe(e.Target, out var sb);
             StartWalk(e.Who, e.Target, 120f);
             if (_walker == null) { DropErrand(L.F("AIL_98b23f3f", $"{sa.Name} no puede moverse ahora")); return; }
+            HoldPair(e.Who, e.Target);
             e.Stage = 1;
             string pairKey = string.CompareOrdinal(sa.Key, sb.Key) < 0 ? sa.Key + "|" + sb.Key : sb.Key + "|" + sa.Key;
             string player = ContextBuilder.PlayerNameFor(sa) ?? "a traveller they do not know";
@@ -155,12 +194,13 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             if (string.IsNullOrWhiteSpace(e.Report)) return;
             try
             {
-                float secs = Math.Max(3f, Math.Min(9f, 1.5f + e.Report.Length * 0.06f));
+                float secs = ShowSeconds(e.Report);
                 Bubbles.Show(e.Who, e.Report, secs);
                 InformationManager.DisplayMessage(new InformationMessage($"{e.Who.Name}: {e.Report}", Colors.Yellow));
                 try { e.Who.SetLookAgent(Agent.Main); _looking = e.Who; _lineLeft = secs; } catch { }
                 Describe(e.Who, out var sp);
                 if (sp.IsHero) { sp.Memory.Turns.Add(new ChatTurn { Role = "npc", Text = "[On coming back to them] " + e.Report, Day = CampaignTime.Now.ToDays }); SaveFiles.Flush(); }
+                Overhear(new Speaker[0], e.Report, sp, 1f, e.Who);
                 GroupTalk.Note($"{sp.Name}: {e.Report}");
             }
             catch (Exception ex) { Log.Error("Come back to tell it", ex); }
@@ -454,6 +494,8 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
             if (pairKey == _lastPair && (DateTime.UtcNow - _lastPairAt).TotalSeconds < cfg.AmbientCooldownSeconds * 2) { _timer = 30f; return; }
             float apart = first.Position.Distance(second.Position);
             if (cfg.AmbientWalk && apart > 3f) StartWalk(first, second);
+            // Both stay where they are for the whole talk, turned to each other (the walker once it arrives)
+            HoldPair(first, second);
 
             var others = SharedPeople(st, sa, sb2);
             string playerKnown = null, onlooker = "nobody in particular";
@@ -499,7 +541,7 @@ Answer ONLY with JSON: { ""lines"": [ { ""who"": ""A"", ""text"": ""..."", ""moo
         }
 
         // ---- turn-by-turn talk
-        private class Chain { public string Base, Key; public Agent A, B; public Speaker SA, SB; public int Left, Step; public readonly List<string> Said = new List<string>(); }
+        private class Chain { public string Base, Key; public Agent A, B; public Speaker SA, SB; public int Left, Step; public readonly List<string> Said = new List<string>(); public Talk Talk; }
         private static Chain _chain;
 
         private static readonly Tpl TChainFirst = new Tpl("scene_conversations/turns_opening.txt",
@@ -561,13 +603,21 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                         if (errand != null) errand.Report = ((string)j["report"] ?? "").Trim();
                         if (!(j["lines"] is JArray lines)) return;
                         int max = S.Get.AmbientMaxChars + 60;
+                        // the talk these lines belong to (one for a whole turn-by-turn chain)
+                        Talk talk = chain?.Talk;
+                        if (talk == null && sa != null)
+                        {
+                            talk = new Talk { A = sa, B = b != null ? sb : null, Place = Settlement.CurrentSettlement?.Name?.ToString() };
+                            if (chain != null) chain.Talk = talk;
+                        }
                         foreach (var l in lines.OfType<JObject>().Take(maxLines))
                         {
                             string text = ((string)l["text"] ?? "").Trim();
                             if (text.Length < 2) continue;
                             if (text.Length > max) text = text.Substring(0, max);
                             bool isB = ((string)l["who"] ?? "A").Trim().ToUpperInvariant() == "B" && b != null;
-                            Play.Enqueue(new Line { Who = isB ? b : a, To = isB ? a : (b ?? Agent.Main), Text = text, Mood = (string)l["mood"] });
+                            Play.Enqueue(new Line { Who = isB ? b : a, To = isB ? a : (b ?? Agent.Main), Text = text, Mood = (string)l["mood"],
+                                                    WhoS = isB ? sb : sa, ToS = isB ? sa : (b != null ? sb : null), Talk = talk });
                             // Errand lines go into the group log, so whoever went knows them on the way back
                             if (errand != null && sa != null && sb != null) GroupTalk.Note($"{(isB ? sb.Name : sa.Name)} (to {(isB ? sa.Name : sb.Name)}, away from the group): {text}");
                         }
@@ -608,17 +658,24 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             });
         }
 
-        /// <summary>Queues lines to show one at a time over heads. Used by group talk.</summary>
-        internal static void Enqueue(Mission m, List<(Agent who, Agent to, string text, string mood, string pre, bool deferred)> lines)
+        /// <summary>
+        /// Queues lines to show one at a time over heads. Used by group talk. Each line reaches the log when it is spoken.
+        /// append = false cuts whatever is playing (you spoke); true adds them after it (the group goes on by itself).
+        /// </summary>
+        internal static void Enqueue(Mission m, List<(Agent who, Agent to, string text, string mood, string pre, bool deferred)> lines, bool append = false)
         {
-            FlushDeferred();
-            Play.Clear();
-            _hold = 0f;
+            if (!append)
+            {
+                FlushDeferred();
+                Play.Clear();
+                _hold = 0f;
+                _lineLeft = 0f;
+                _voiceWait = null; _afterVoice = false; _voiceHold = 0f;
+                _paused = false;
+            }
             _chain = null;      // if you step in, their private talk ends
-            _lineLeft = 0f;
             _mission = m;
-            // group talk already writes these to the log, except the deferred ones
-            foreach (var l in lines) Play.Enqueue(new Line { Who = l.who, To = l.to, Text = l.text, Mood = l.mood, Quiet = true, Pre = l.pre, Deferred = l.deferred });
+            foreach (var l in lines) Play.Enqueue(new Line { Who = l.who, To = l.to, Text = l.text, Mood = l.mood, Quiet = true, Pre = l.pre, Deferred = l.deferred, Group = true });
         }
 
         private static readonly Color GroupLineColor = Colors.Yellow, NoticeColor = Colors.Gray;
@@ -628,15 +685,15 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             try
             {
                 if (l.Pre != null) InformationManager.DisplayMessage(new InformationMessage(l.Pre, NoticeColor));
-                if (l.Deferred && l.Who != null) InformationManager.DisplayMessage(new InformationMessage($"{l.Who.Name}: {l.Text}", GroupLineColor));
+                if ((l.Deferred || l.Group) && l.Who != null) InformationManager.DisplayMessage(new InformationMessage($"{l.Who.Name}: {l.Text}", GroupLineColor));
             }
             catch { }
         }
 
-        /// <summary>Lines dropped before being spoken still reach the log, so nothing a joiner said is lost.</summary>
+        /// <summary>Lines dropped before being spoken still reach the log, so nothing said in the group is lost.</summary>
         private static void FlushDeferred()
         {
-            foreach (var l in Play) if (l.Deferred || l.Pre != null) Announce(l);
+            foreach (var l in Play) if (l.Deferred || l.Group || l.Pre != null) Announce(l);
         }
 
         private static readonly HashSet<string> OverheardBy = new HashSet<string>();
@@ -682,9 +739,11 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
         /// A line spoken in a scene reaches the named characters standing around. speaker null = the player said it to
         /// 'addressed'; otherwise that character said it (to the player, or within the group in 'addressed').
         /// The people in 'addressed' and the speaker heard it directly, so they are skipped.
-        /// reach scales the hearing distance: 0.25 for a whisper, 2 for a shout.
+        /// reach scales the hearing distance: 0.25 for a whisper, 2 for a shout. from = the speaking agent when it is
+        /// known (needed for people who are not heroes; otherwise the speaker's hero is looked up in the scene).
+        /// Distance is measured along the walkable path; a wall in between muffles the words.
         /// </summary>
-        public static void Overhear(IList<Speaker> addressed, string said, Speaker speaker = null, float reach = 1f)
+        public static void Overhear(IList<Speaker> addressed, string said, Speaker speaker = null, float reach = 1f, Agent from = null)
         {
             try
             {
@@ -700,20 +759,32 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 double now = CampaignTime.Now.ToDays;
                 float radius = Math.Max(1f, cfg.OverhearRadius * reach);
                 // where the words come from
-                var origin = Agent.Main.Position;
+                Agent src = Agent.Main;
                 if (speaker != null)
                 {
-                    var sa = Mission.Current.Agents.FirstOrDefault(x => x != null && x.IsActive() && x.Character is CharacterObject sc && speaker.IsHero && sc.IsHero && sc.HeroObject == speaker.Hero);
-                    if (sa != null) origin = sa.Position;
+                    src = from != null && from.IsActive() ? from
+                        : Mission.Current.Agents.FirstOrDefault(x => x != null && x.IsActive() && x.Character is CharacterObject sc && speaker.IsHero && sc.IsHero && sc.HeroObject == speaker.Hero);
+                    if (src == null) src = Agent.Main;      // not found in the scene: they were talking to you, so about where you stand
                 }
+                var origin = src.Position;
+                string how = reach <= 0.5f ? ", in a whisper" : reach >= 1.5f ? ", shouted" : "";
                 foreach (var a in Mission.Current.Agents)
                 {
-                    if (a == null || !a.IsHuman || !a.IsActive() || a == Agent.Main) continue;
+                    if (a == null || !a.IsHuman || !a.IsActive() || a == Agent.Main || a == src) continue;
                     var c = a.Character as CharacterObject;
                     var h = c != null && c.IsHero ? c.HeroObject : null;
                     if (h == null || h == Hero.MainHero || inside.Contains(h)) continue;
-                    float dist = a.Position.Distance(origin);
-                    if (dist > radius) continue;
+                    float straight = a.Position.Distance(origin);
+                    if (straight > radius) continue;
+                    // A wall or a floor between them: the sound goes round (path) or comes through muffled
+                    bool muffled = !Bubbles.LineOfSight(src.GetEyeGlobalPosition(), a.GetEyeGlobalPosition());
+                    float dist = straight;
+                    if (muffled)
+                    {
+                        float path = PathDistance(src, a);
+                        dist = Math.Max(straight * 1.8f, path > 0f ? Math.Min(path, straight * 3f) : 0f);
+                        if (dist > radius) continue;
+                    }
                     string slot = key + "|" + h.StringId + "|" + (int)(now * 4);
                     if (speaker == null)
                     {
@@ -731,18 +802,33 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     if (caught.Replace("…", "").Replace("·", "").Trim().Length < 8) continue;      // too far to make anything out
                     bool partial = caught != said;
                     var mem = MemoryStore.Get(h.StringId, h.Name.ToString());
+                    string where = $"[Overheard nearby, day {(int)now}, about {Math.Max(1, (int)Math.Round(straight))} m away{(muffled ? ", muffled by a wall" : "")}{how}] ";
                     InfoExchange.AddHeard(mem, new HeardItem
                     {
                         FromName = InfoExchange.OwnEars, Secrecy = "private", Day = now,
-                        Text = (partial ? "From a distance, you caught only part of what " : "Standing nearby, you overheard ")
+                        Text = where + (partial ? (muffled ? "Through the wall, you caught only part of what " : "From a distance, you caught only part of what ") : (muffled ? "Through the wall, you overheard " : "Standing nearby, you overheard "))
                                + (speaker == null ? (partial ? "they said to " : "them say to ") : (partial ? speaker.Name + " said to " : speaker.Name + " say to "))
                                + names + $": «{caught}»" + (partial ? " (the gaps are what you could not hear; do not fill them in as if you knew)" : ""),
                     });
-                    Log.Info($"[scene] {h.Name} overhears {(partial ? "half of " : "")}what {(speaker == null ? "you say" : speaker.Name + " says")} to {names} ({dist:0.0} m)");
+                    Log.Info($"[scene] {h.Name} overhears {(partial ? "half of " : "")}what {(speaker == null ? "you say" : speaker.Name + " says")} to {names} ({straight:0.0} m, heard as {dist:0.0} m{(muffled ? ", through a wall" : "")})");
                 }
                 if (OverheardBy.Count > 800) { OverheardBy.Clear(); HeardCount.Clear(); }
             }
             catch (Exception ex) { Log.Error("Overhear in passing", ex); }
+        }
+
+        /// <summary>Walking distance between two agents in the scene, or -1 if there is no path or it can't be measured.</summary>
+        private static float PathDistance(Agent a, Agent b)
+        {
+            try
+            {
+                var scene = Mission.Current?.Scene;
+                if (scene == null) return -1f;
+                var p0 = a.GetWorldPosition();
+                var p1 = b.GetWorldPosition();
+                return scene.GetPathDistanceBetweenPositions(ref p0, ref p1, 0.3f, out float d) && d > 0f ? d : -1f;
+            }
+            catch { return -1f; }
         }
 
         public static void Tick(float dt)
@@ -752,75 +838,48 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 var cfg = S.Get;
                 if (!cfg.EnableAmbient || !SceneOk(out var st))
                 {
-                    if (Play.Count > 0) Play.Clear();
+                    // Group talk also works where scene chats don't (on the road, or with them turned off): its lines still play
+                    if (GroupOnlyQueue() && GroupSceneOk())
+                    {
+                        bool win = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
+                        PlayStep(dt, cfg, win, win);
+                        return;
+                    }
+                    if (Play.Count > 0) { FlushDeferred(); Play.Clear(); }
+                    _lineLeft = 0f;
+                    _voiceWait = null; _afterVoice = false; _paused = false;
                     StopLooking();
                     ReleaseWalker();
                     if (_errand != null) { _gen++; DropErrand(null); }
                     if (Mission.Current == null) SceneMove.Forget();
                     return;
                 }
-                bool talking = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
+                // A dialogue window is open: the talk around waits for it to close
+                bool window = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
+                bool talking = window || ChatSession.IsBusy;
 
                 // If one is walking over to the other, the talk waits until they arrive (or give up)
                 if (_walker != null && !_arrived)
                 {
+                    if (talking) return;            // paused while the window is open; the walk goes on and the clock stops
                     _walkLeft -= dt;
-                    if (!_walker.IsActive() || _walkTo == null || !_walkTo.IsActive() || _walkLeft <= 0f || talking)
+                    if (!_walker.IsActive() || _walkTo == null || !_walkTo.IsActive() || _walkLeft <= 0f)
                     {
-                        if (talking || _walkLeft <= 0f) { Play.Clear(); _gen++; ReleaseWalker(); if (_errand != null) DropErrand("no ha llegado a tiempo"); }
+                        if (_walkLeft <= 0f) { Play.Clear(); _gen++; ReleaseWalker(); if (_errand != null) DropErrand("no ha llegado a tiempo"); }
                         else _arrived = true;
                     }
-                    else if (_walker.Position.Distance(_walkTo.Position) <= 3f) _arrived = true;
+                    else if (_walker.Position.Distance(_walkTo.Position) <= 3f)
+                    {
+                        _arrived = true;
+                        // there now: stays put, turned to the other one
+                        if (SceneMove.Hold(_walker, _walkTo) && !Held.Contains(_walker)) Held.Add(_walker);
+                    }
                     else return;
                 }
 
-                if (Play.Count > 0 || _lineLeft > 0f)
+                if (Play.Count > 0 || _lineLeft > 0f || _voiceWait != null || _afterVoice || _paused || (_chain != null && !_busy))
                 {
-                    if (Mission.Current != _mission) { Play.Clear(); _lineLeft = 0f; StopLooking(); return; }
-                    _lineLeft -= dt;
-                    if (_lineLeft <= 0f)
-                    {
-                        StopLooking();
-                        if (Play.Count == 0 && _chain != null && !_busy && !talking)
-                        {
-                            // Turn by turn and not finished yet: ask for the next batch
-                            ContinueChain();
-                            if (_chain != null) return;
-                        }
-                        if (Play.Count == 0)
-                        {
-                            ReleaseWalker();
-                            if (_ambientPlaying)
-                            {
-                                // Quiet stretch before the next talk
-                                _ambientPlaying = false;
-                                _lastPairAt = DateTime.UtcNow;
-                                _timer = Math.Max(_timer, cfg.AmbientCooldownSeconds * (0.8f + (float)Rng.NextDouble() * 0.4f));
-                            }
-                        }
-                        if (Play.Count > 0 && !talking)
-                        {
-                            // Someone joining speaks once they have walked up, not from across the room (12 s at most)
-                            var next = Play.Peek();
-                            if (next.Deferred && next.Who != null && next.Who.IsActive() && Agent.Main != null
-                                && next.Who.Position.Distance(Agent.Main.Position) > 4.5f && (_hold += dt) < 12f) return;
-                            _hold = 0f;
-                            var l = Play.Dequeue();
-                            Announce(l);
-                            if (l.Who != null && l.Who.IsActive())
-                            {
-                                float secs = Math.Max(2.5f, Math.Min(9f, 1.5f + l.Text.Length * 0.06f));
-                                Bubbles.Show(l.Who, l.Text, secs);
-                                if (cfg.VoiceInGroups) AILegacy.Voice.Speech.Say((l.Who.Character?.StringId ?? "") + "|" + l.Who.Name, l.Who.IsFemale, l.Text);
-                                Gestures.Play(l.Who, l.Mood); _speaking = l.Who;
-                                if (!l.Quiet && cfg.AmbientToLog)
-                                    InformationManager.DisplayMessage(new InformationMessage($"{l.Who.Name}: {l.Text}", new Color(0.78f, 0.78f, 0.7f)));
-                                if (l.To != null && l.To.IsActive() && l.Who.IsAIControlled) { try { l.Who.SetLookAgent(l.To); _looking = l.Who; } catch { } }
-                                _lineLeft = secs + 0.4f;
-                            }
-                        }
-                        else if (talking) { FlushDeferred(); Play.Clear(); }
-                    }
+                    PlayStep(dt, cfg, talking, window);
                     return;
                 }
 
@@ -832,8 +891,9 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                     TickReturn(dt);
                     return;
                 }
-                if (_walker != null && !_busy) ReleaseWalker();     // the AI gave no talk, don't leave the walker standing there
-                if (_busy || talking || ChatSession.IsBusy || Initiative.Busy) return;
+                // the AI gave no talk (or it is over): don't leave them standing there
+                if ((_walker != null || Held.Count > 0) && !_busy && _chain == null) ReleaseWalker();
+                if (_busy || talking || Initiative.Busy) return;
                 if (!Bubbles.Available)
                 {
                     if (!_warned) { _warned = true; Log.Warn("[scene] overhead text is not available (disabled in MCM, failed earlier, or the screen is not a scene): no chats"); }
@@ -844,7 +904,251 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
                 _timer = cfg.AmbientIntervalSeconds * (0.7f + (float)Rng.NextDouble() * 0.6f);
                 TryStart(st);
             }
-            catch (Exception ex) { Log.Error("Scene life", ex); Play.Clear(); _busy = false; }
+            catch (Exception ex) { Log.Error("Scene life", ex); Play.Clear(); _busy = false; _voiceWait = null; _afterVoice = false; _paused = false; }
+        }
+
+        /// <summary>Nothing but group talk lines are queued or playing.</summary>
+        private static bool GroupOnlyQueue() => (Play.Count > 0 || _lineLeft > 0f || _voiceWait != null || _afterVoice) && Play.All(l => l.Group)
+                                                && (_voiceWait == null || _voiceWait.Group) && ((_lineLeft <= 0f && !_afterVoice) || _curGroup);
+
+        private static bool GroupSceneOk()
+        {
+            try
+            {
+                var m = Mission.Current;
+                if (m == null || Campaign.Current == null || Agent.Main == null || !Agent.Main.IsActive() || !S.Get.EnableGroupTalk) return false;
+                return m.Mode != MissionMode.Battle && m.Mode != MissionMode.Duel && m.Mode != MissionMode.Deployment;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// One frame of the queued lines: the current one runs out, the next one is spoken. A line is shown for
+        /// ShowSeconds; the next speaker waits for the voice to end, or without voice for a short pause after reading.
+        /// </summary>
+        private static void PlayStep(float dt, AILegacySettings cfg, bool talking, bool window)
+        {
+            if (Mission.Current != _mission) { Play.Clear(); _lineLeft = 0f; _voiceWait = null; _afterVoice = false; _paused = false; StopLooking(); return; }
+
+            // In a dialogue window group talk lines go to the log as before
+            if (window && (Play.Any(l => l.Group) || (_voiceWait != null && _voiceWait.Group))) DropGroupLines();
+            if (talking)
+            {
+                // the scene talk waits until the window closes
+                bool scene = Play.Any(l => !l.Group) || (_voiceWait != null && !_voiceWait.Group) || (!_curGroup && (_lineLeft > 0f || _afterVoice)) || _chain != null;
+                if (scene) { Pause(); return; }
+                if (window || Play.Count == 0) { if (_lineLeft > 0f) _lineLeft -= dt; return; }
+            }
+            if (_paused) { Resume(); if (_paused) return; }
+
+            // A voiced line waits for its audio to start, so the words and the text come out together (10 s at most)
+            if (_voiceWait != null)
+            {
+                _voiceWaitLeft -= dt;
+                double left = AILegacy.Voice.Speech.SecondsLeft;
+                if (left <= 0 && AILegacy.Voice.Speech.IsSpeaking && _voiceWaitLeft > 0f) return;
+                var vl = _voiceWait; _voiceWait = null;
+                if (vl.Who != null && vl.Who.IsActive()) Present(vl, cfg, left > 0 ? (float)left : 0f, true);
+                return;
+            }
+
+            _lineLeft -= dt;
+            if (_lineLeft > 0f) return;
+            if (_afterVoice)
+            {
+                // the next speaker waits until the voice is done, then a breath
+                if (AILegacy.Voice.Speech.IsSpeaking && (_voiceCap -= dt) > 0f) return;
+                _afterVoice = false;
+                _lineLeft = VoiceGap;
+                return;
+            }
+            StopLooking();
+            _curGroup = false;
+            if (Play.Count == 0 && _chain != null && !_busy)
+            {
+                // Turn by turn and not finished yet: ask for the next batch
+                ContinueChain();
+                if (_chain != null) return;
+            }
+            if (Play.Count == 0)
+            {
+                if (_busy || _chain != null) return;
+                ReleaseWalker();
+                if (_ambientPlaying)
+                {
+                    // Quiet stretch before the next talk
+                    _ambientPlaying = false;
+                    _lastPairAt = DateTime.UtcNow;
+                    _timer = Math.Max(_timer, cfg.AmbientCooldownSeconds * (0.8f + (float)Rng.NextDouble() * 0.4f));
+                }
+                return;
+            }
+
+            // Someone joining speaks once they have walked up, not from across the room (12 s at most)
+            var next = Play.Peek();
+            if (next.Deferred && next.Who != null && next.Who.IsActive() && Agent.Main != null
+                && next.Who.Position.Distance(Agent.Main.Position) > 4.5f && (_hold += dt) < 12f) return;
+            // Voiced only where you could hear it. Whatever is still being said finishes first, so the next audio is this line's
+            bool voiced = cfg.VoiceInGroups && AILegacy.Voice.Speech.Enabled && next.Who != null && next.Who.IsActive() && Bubbles.CanHear(next.Who);
+            if (voiced && AILegacy.Voice.Speech.IsSpeaking && (_voiceHold += dt) < 15f) return;
+            _hold = 0f; _voiceHold = 0f;
+            var l = Play.Dequeue();
+            Announce(l);
+            if (l.Who == null || !l.Who.IsActive()) return;
+            _curGroup = l.Group;
+            if (voiced)
+            {
+                AILegacy.Voice.Speech.Say((l.Who.Character?.StringId ?? "") + "|" + l.Who.Name, l.Who.IsFemale, l.Text);
+                if (AILegacy.Voice.Speech.IsSpeaking) { _voiceWait = l; _voiceWaitLeft = 10f; return; }
+            }
+            Present(l, cfg, 0f, false);
+        }
+
+        /// <summary>The line appears over the speaker, who gestures and looks at the one spoken to; that one turns to them.</summary>
+        private static void Present(Line l, AILegacySettings cfg, float audio, bool voiced)
+        {
+            float show = ShowSeconds(l.Text);
+            Bubbles.Show(l.Who, l.Text, audio > 0f ? Math.Max(show, audio + 1f) : show);
+            Gestures.Play(l.Who, l.Mood); _speaking = l.Who;
+            if (!l.Quiet && cfg.AmbientToLog)
+                InformationManager.DisplayMessage(new InformationMessage($"{l.Who.Name}: {l.Text}", new Color(0.78f, 0.78f, 0.7f)));
+            if (l.To != null && l.To.IsActive() && l.Who.IsAIControlled) { try { l.Who.SetLookAgent(l.To); _looking = l.Who; } catch { } }
+            if (!l.Group && l.To != null && l.To != Agent.Main && l.To != l.Who) { SceneMove.Face(l.To, l.Who); SceneMove.Face(l.Who, l.To); }
+            // In a group, whoever is spoken to (if not you) turns to the speaker
+            if (l.Group && l.To != null && l.To != Agent.Main && l.To != l.Who && l.To.IsActive() && l.To.IsAIControlled)
+            { try { l.To.SetLookAgent(l.Who); _listening = l.To; } catch { } }
+            _curGroup = l.Group;
+            if (voiced && (audio > 0f || AILegacy.Voice.Speech.IsSpeaking))
+            {
+                _afterVoice = true;
+                _voiceCap = show + 20f;
+                _lineLeft = Math.Min(1f, show);
+            }
+            else
+            {
+                _afterVoice = false;
+                _lineLeft = Math.Min(show, 2f + 0.05f * l.Text.Length) + SilentPause;
+            }
+            Remember(l);
+        }
+
+        private static string Clip(string s, int max) => string.IsNullOrEmpty(s) || s.Length <= max ? s ?? "" : s.Substring(0, max) + "…";
+
+        /// <summary>
+        /// A scene talk line goes into both speakers' histories (one note per talk that grows line by line, so they
+        /// remember it when you talk to them) and reaches whoever stands within earshot.
+        /// </summary>
+        private static void Remember(Line l)
+        {
+            var t = l.Talk;
+            if (t == null || l.WhoS == null) return;
+            try
+            {
+                double day = CampaignTime.Now.ToDays;
+                t.Said.Add($"{l.WhoS.Name}: «{Clip(l.Text, 160)}»");
+                int total = t.Said.Sum(x => x.Length);
+                while (t.Said.Count > 1 && total > 900) { total -= t.Said[0].Length; t.Said.RemoveAt(0); }
+                string body = string.Join(" / ", t.Said);
+                string at = string.IsNullOrEmpty(t.Place) ? "" : " in " + t.Place;
+                bool playerNear = Agent.Main != null && Bubbles.CanHear(l.Who);
+                if (t.B == null)
+                    t.NoteA = Note(t.A, t.NoteA, $"[In a group: as they walked past{at}, you called out to them — {body}]", day);
+                else
+                {
+                    string near = playerNear ? ", within earshot of the one you are speaking with now" : "";
+                    t.NoteA = Note(t.A, t.NoteA, $"[In a group: you were talking with {t.B.Name}{at}{near} — {body}]", day);
+                    t.NoteB = Note(t.B, t.NoteB, $"[In a group: you were talking with {t.A.Name}{at}{near} — {body}]", day);
+                }
+                _memDirty = true;
+            }
+            catch (Exception ex) { Log.Error("Remember a scene line", ex); }
+            // Bystanders within earshot catch it too
+            try { Overhear(l.ToS != null ? new[] { l.ToS } : new Speaker[0], l.Text, l.WhoS, 1f, l.Who); } catch { }
+        }
+
+        private static ChatTurn Note(Speaker s, ChatTurn turn, string text, double day)
+        {
+            if (s?.Memory == null) return turn;
+            if (turn == null || !s.Memory.Turns.Contains(turn))
+            {
+                turn = new ChatTurn { Role = "player", Text = text, Day = day };
+                s.Memory.Turns.Add(turn);
+            }
+            else { turn.Text = text; turn.Day = day; }
+            return turn;
+        }
+
+        /// <summary>Group talk lines still waiting go to the log at once (as when a dialogue window opens); scene talk lines stay.</summary>
+        private static void DropGroupLines()
+        {
+            if (_voiceWait != null && _voiceWait.Group) _voiceWait = null;        // already in the log
+            var keep = new List<Line>();
+            foreach (var l in Play) { if (l.Group) Announce(l); else keep.Add(l); }
+            Play.Clear();
+            foreach (var l in keep) Play.Enqueue(l);
+            if (_curGroup) { _afterVoice = false; }
+        }
+
+        /// <summary>A dialogue window opened: the scene talk stops where it is and waits.</summary>
+        private static void Pause()
+        {
+            if (_paused) return;
+            _paused = true;
+            StopLooking();
+            // the line waiting for its voice goes back to the front, to be said again afterwards
+            if (_voiceWait != null)
+            {
+                var rest = Play.ToList();
+                Play.Clear();
+                Play.Enqueue(_voiceWait);
+                foreach (var x in rest) Play.Enqueue(x);
+                _voiceWait = null;
+                AILegacy.Voice.Speech.Stop();
+            }
+            else if (_afterVoice && !_curGroup) { _afterVoice = false; AILegacy.Voice.Speech.Stop(); }
+            // whoever you are talking to belongs to the dialogue now; the other one keeps their place
+            try
+            {
+                var cm = Campaign.Current?.ConversationManager;
+                var inTalk = cm?.ConversationAgents;
+                if (inTalk != null)
+                    foreach (var a in Held.ToList())
+                        if (inTalk.Any(x => ReferenceEquals(x, a))) { SceneMove.Release(a); Held.Remove(a); }
+            }
+            catch { }
+            Log.Info("[scene] a dialogue window opened: the talk nearby waits for it to close");
+        }
+
+        /// <summary>The window closed: the two take the talk up again if they are still together, or it ends.</summary>
+        private static void Resume()
+        {
+            _paused = false;
+            var next = Play.FirstOrDefault(x => !x.Group);
+            Agent a = next?.Who ?? _chain?.A, b = next != null ? (next.To != Agent.Main ? next.To : null) : _chain?.B;
+            if (a == null || !a.IsActive() || (b != null && (!b.IsActive() || a.Position.Distance(b.Position) > 8f)))
+            {
+                if (next != null || _chain != null) Log.Info("[scene] after the dialogue window the two are no longer together: their talk ends");
+                var keep = Play.Where(x => x.Group).ToList();
+                Play.Clear();
+                foreach (var x in keep) Play.Enqueue(x);
+                _chain = null;
+                _lineLeft = 0f; _afterVoice = false;
+                return;
+            }
+            if (b != null) HoldPair(a, b);
+            _lineLeft = Math.Max(_lineLeft, 2f);
+            Log.Info("[scene] the dialogue window closed: the talk nearby goes on");
+        }
+
+        /// <summary>Both keep their place for the talk, turned to each other. The one walking over is held once there.</summary>
+        private static void HoldPair(Agent a, Agent b)
+        {
+            if (a == null || b == null) return;
+            foreach (var (x, y) in new[] { (b, a), (a, b) })
+            {
+                if (x == _walker && !_arrived) continue;
+                if (SceneMove.Hold(x, y) && !Held.Contains(x)) Held.Add(x);
+            }
         }
 
         /// <summary>The first agent walks up to within a couple of steps of the second.</summary>
@@ -858,20 +1162,25 @@ Add ""done"": true to the JSON if the talk ends with these lines, otherwise ""do
             catch (Exception ex) { Log.Error("Approach to talk", ex); _walker = null; _walkTo = null; _arrived = true; }
         }
 
-        /// <summary>The walker goes back to what it was doing.</summary>
+        /// <summary>The walker and the ones held for the talk go back to what they were doing.</summary>
         private static void ReleaseWalker()
         {
             var w = _walker;
             _walker = null; _walkTo = null; _arrived = true;
-            if (w == null) return;
-            SceneMove.Release(w);
+            if (w != null) SceneMove.Release(w);
+            // only those still held by us: someone may have been sent off since (to follow you, on an errand)
+            foreach (var a in Held) if (a != w && SceneMove.IsHeld(a)) SceneMove.Release(a);
+            Held.Clear();
+            if (_memDirty) { _memDirty = false; try { SaveFiles.Flush(); } catch { } }
         }
 
         private static void StopLooking()
         {
             if (_speaking != null) { Gestures.End(_speaking); _speaking = null; }
+            // the ones held for a talk keep looking at each other
+            if (_listening != null) { try { if (_listening.IsActive() && !SceneMove.IsHeld(_listening)) _listening.SetLookAgent(null); } catch { } _listening = null; }
             if (_looking == null) return;
-            try { if (_looking.IsActive()) _looking.SetLookAgent(null); } catch { }
+            try { if (_looking.IsActive() && !SceneMove.IsHeld(_looking)) _looking.SetLookAgent(null); } catch { }
             _looking = null;
         }
     }

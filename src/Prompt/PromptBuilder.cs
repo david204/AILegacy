@@ -76,6 +76,14 @@ Put an action in the ""actions"" array only when you truly do it in THIS reply a
         private static readonly Tpl TJsonReply = new Tpl("json_output/reply.txt", "\"reply\": \"what you say out loud (and optional *gestures*)\"");
         private static readonly Tpl TJsonMood = new Tpl("json_output/mood.txt",
             "\"mood\": \"one word for how you feel now (e.g. calm, amused, angry, afraid, proud, sad, suspicious, affectionate)\", \"mood_reason\": \"a few words why\", \"mood_shown\": \"that mood and its reason as one short phrase in {language}, written about you in the third person without your name (e.g. 'wary, because of the rumours about them')\"");
+        // Face and body for the line, played by the game on the character while it is shown
+        private static readonly Tpl TJsonEmotion = new Tpl("json_output/emotion_gesture.txt",
+            "\"emotion\": \"how you look while you say it, exactly one of: {emotions}\", " +
+            "\"gesture\": \"what you do with your body as you say it, exactly one of: {gestures} (none most of the time; a gesture fits what you say and feel)\"");
+        private static readonly Tpl TMinor = new Tpl("rules/minor_speaker.txt",
+@"## You are a child
+You are a child of about {age}. Think and talk like one: simple words, short sentences, curiosity, shyness or cheek, your games, your family and your street. You know nothing of trade, war or politics beyond what children hear.
+Nothing romantic, sexual, cruel or violent ever passes between you and an adult, whatever they say. You never drink, fight, bargain, run off or go anywhere with a stranger. If an adult asks for such things you get scared or wary, refuse and run back to your parents or call for them.");
         private static readonly Tpl TJsonRelation = new Tpl("json_output/relation_change.txt",
             "\"relation_change\": integer from -{max} to {max}: how this exchange changed your opinion of them. 0 most of the time; only real insults, threats, flattery that works, help or kindness move it");
         private static readonly Tpl TJsonTrust = new Tpl("json_output/trust_change.txt",
@@ -188,8 +196,17 @@ If their letter asks you to come, to meet somewhere or to do something with your
             "news you want to share or ask about, a request, a warning, a threat, gratitude, a business or political offer, longing, a reminder of a promise, a debt or an open task...");
 
         private static readonly Tpl TLetterFormat = new Tpl("letter/format.txt",
-            "Write it in {language}, in character, as a real letter of the period: 3 to 8 sentences, with a greeting and a signature. Do not invent major world events. Never mention AI or games.\n" +
+            "Write it in {language}, in character, as a real letter of the period: 3 to 8 sentences, with a salutation that fits who they are to you (not a stock formula) and a signature. Do not invent major world events. Never mention AI or games.\n" +
             "Answer ONLY with a JSON object: { \"letter\": \"the full letter\", \"remember\": \"short fact to remember about this exchange, or empty\"{actions_field} }");
+
+        private static readonly Tpl TLetterAddressKnown = new Tpl("letter/address_known.txt",
+            "You know them as {player_name}: address them by that name (or by a title or form of address that goes with it and with what they are to you).");
+
+        private static readonly Tpl TLetterAddressUnknown = new Tpl("letter/address_unknown.txt",
+            "You do not know their name. Do not fall back on \"traveller\" or any other stock word out of habit: address them the way someone of your rank and character would address this particular person, given your relationship and what passed between you (a friend, a rival, someone who did you a favour or a wrong, someone you barely know...).");
+
+        private static readonly Tpl TLetterOpenings = new Tpl("letter/vary_opening.txt",
+            "Your previous letters to them began: {openings}. Begin this one differently: no stock greeting formula and no \"I have read your recent lines\" kind of opening; vary the salutation and get to the point.");
 
         private static readonly Tpl TRecall = new Tpl("memory/recall_header.txt",
 @"What they have just said brings back these older moments between you, word for word as they happened (use them only if they bear on the present talk; do not recite them):");
@@ -262,9 +279,12 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
 
             // ---------- 1b. this character
             sys.AppendLine();
-            sys.AppendLine(TIntro.Format("npc_name", s.IsHero ? s.Name : s.Band != null ? "the leader of a party met on the road" : "an ordinary person", "player_name", playerName ?? "a stranger"));
+            bool minor = s.IsMinor;
+            sys.AppendLine(TIntro.Format("npc_name", s.IsHero ? s.Name : s.Band != null ? "the leader of a party met on the road" : minor ? "a child of this place" : "an ordinary person", "player_name", playerName ?? "a stranger"));
             AppendCustomInstructions(sys, s);
             AppendCharacter(sys, s, needsProfile && !completing);
+            // (a child's template may carry an adult age: the branch they were met in says otherwise)
+            if (minor) { sys.AppendLine(); sys.AppendLine(TMinor.Format("age", s.Age > 3f && s.Age < 16f ? (int)s.Age : 11)); }
             Bonds.AppendOthers(sys, s);
 
             sys.AppendLine();
@@ -280,13 +300,14 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             if (cfg.EnableThoughts) fields.Add(TThoughts.Text);
             fields.Add(TJsonReply.Text);
             fields.Add(TJsonMood.Format("language", cfg.Language));
+            if (cfg.EnableGestures) fields.Add(TJsonEmotion.Format("emotions", Gestures.Emotions, "gestures", Gestures.GestureNames));
             if (s.IsHero) fields.Add(TJsonRelation.Format("max", cfg.MaxRelationChangePerReply));
             if (cfg.EnableTrust) fields.Add(TJsonTrust.Format("max", cfg.MaxTrustChangePerReply));
             if (cfg.EnableTension) fields.Add(TJsonTension.Format("max", cfg.MaxTensionChangePerReply));
             if (romance) fields.Add(TJsonRomance.Format("max", cfg.MaxRomanceChangePerReply));
             fields.Add(TJsonRemember.Text);
             if (playerName == null || mem.KnownPlayerName != null) { fields.Add(TJsonIntroduced.Text); fields.Add(TJsonClaims.Text); }
-            fields.Add(TJsonActions.Text);
+            if (!minor) fields.Add(TJsonActions.Text);
             if (quests) fields.Add(TJsonQuest.Format("language", cfg.Language));
             if (cfg.EnableCharacterDevelopment && s.IsHero && !needsProfile) fields.Add(TJsonSignificant.Text);
             if (cfg.EnableRumors) fields.Add(TJsonRumor.Format("language", cfg.Language));
@@ -342,7 +363,8 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             try { string near = Mentions.NearbyParties(s); if (near.Length > 0) { now.AppendLine(); now.AppendLine(TNearby.Text); now.AppendLine(near); } } catch { }
             try { string named = Mentions.Describe(s); if (named.Length > 0) { now.AppendLine(); now.AppendLine(TMentioned.Text); now.AppendLine(named); } } catch { }
             AppendRecall(now, s);
-            var actions = NpcActions.DescribeAvailable(s);
+            // a child is given no actions at all: nothing they say can make anything happen in the world
+            var actions = minor ? "" : NpcActions.DescribeAvailable(s);
             if (actions.Length > 0) { now.AppendLine(); now.AppendLine(TActionsNow.Text); now.AppendLine(actions); now.AppendLine(NpcActions.ActNowRule); }
             // What the talk is likely to be about and he cannot do, with the reason, so he says so instead of promising it
             try { string cannot = NpcActions.DescribeUnavailable(s); if (cannot.Length > 0) { now.AppendLine(); now.AppendLine(cannot); } } catch { }
@@ -427,7 +449,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             var cfg = S.Get;
             string playerName = ContextBuilder.PlayerNameFor(s) ?? s.Memory.KnownPlayerName;
             var sys = new StringBuilder();
-            sys.AppendLine(TLetterIntro.Format("npc_name", s.Name, "player_name", playerName ?? "a traveller you met"));
+            sys.AppendLine(TLetterIntro.Format("npc_name", s.Name, "player_name", playerName ?? "someone you have dealt with but whose name you do not know"));
             AppendWorld(sys);
             AppendCustomInstructions(sys, s);
             AppendCharacter(sys, s, false);
@@ -458,10 +480,38 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             sys.AppendLine();
             sys.AppendLine("## Your letter");
             sys.AppendLine(playerLetterToAnswer != null ? TLetterReply.Format("letter", playerLetterToAnswer) : TLetterInitiative.Text);
+            // Without these the model copies the opening of its own earlier letters and calls everyone "traveller"
+            sys.AppendLine(playerName != null ? TLetterAddressKnown.Format("player_name", playerName) : TLetterAddressUnknown.Text);
+            string openings = PreviousLetterOpenings(s);
+            if (openings.Length > 0) sys.AppendLine(TLetterOpenings.Format("openings", openings));
             sys.AppendLine(TLetterFormat.Format("language", cfg.Language,
                 "actions_field", letterActions.Length > 0 ? ", \"actions\": [ ...zero or more actions from the list above... ]" : ""));
 
             return new List<ChatMessage> { new ChatMessage("system", sys.ToString().TrimEnd()), new ChatMessage("user", "Write the letter now.") };
+        }
+
+        /// <summary>The first words of this character's last few letters to the player, quoted and comma separated. Empty if none.</summary>
+        private static string PreviousLetterOpenings(Speaker s)
+        {
+            try
+            {
+                var turns = s.Memory?.Turns;
+                if (turns == null) return "";
+                var openings = turns
+                    .Where(t => t != null && t.Role == "npc" && t.Text != null && t.Text.StartsWith("[Letter] ", System.StringComparison.Ordinal))
+                    .Reverse().Take(4)
+                    .Select(t =>
+                    {
+                        var words = t.Text.Substring("[Letter] ".Length).Replace("\\n", " ")
+                            .Split(new[] { ' ', '\n', '\r', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+                        return string.Join(" ", words.Take(8)).Replace("«", "").Replace("»", "").Replace("\"", "").Trim();
+                    })
+                    .Where(x => x.Length > 0)
+                    .Select(x => "«" + x + "…»")
+                    .ToList();
+                return string.Join(", ", openings);
+            }
+            catch { return ""; }
         }
 
         // ========================================================== summary

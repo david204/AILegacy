@@ -255,19 +255,24 @@ namespace AILegacy.Patches
         }
     }
 
-    /// <summary>A ruler's set_tax action raises or lowers tax income in their towns.</summary>
-    [HarmonyPatch(typeof(DefaultSettlementTaxModel), nameof(DefaultSettlementTaxModel.GetTownTaxRatio))]
+    /// <summary>
+    /// A ruler's set_tax action raises or lowers tax income in their towns, and world events can hurt or help a town's
+    /// trade. Each one is a line of the game's own tax breakdown, so the town's tooltip says why.
+    /// </summary>
+    [HarmonyPatch(typeof(DefaultSettlementTaxModel), nameof(DefaultSettlementTaxModel.CalculateTownTax))]
     internal static class KingdomTaxPatch
     {
-        private static void Postfix(Town town, ref float __result)
+        private static int _errors;
+
+        private static void Postfix(Town town, ref ExplainedNumber __result)
         {
             try
             {
-                if (WorldSim.State.KingdomTaxPercent.Count > 0) __result *= WorldSim.TaxFactor(town);
-                // a world event that hurts or helps this town's trade
-                if (WorldSim.State.Effects.Count > 0 && town?.Settlement != null) __result *= 1f + WorldSim.SettlementTaxFactor(town.Settlement);
+                if (town == null || (WorldSim.State.KingdomTaxPercent.Count == 0 && WorldSim.State.Effects.Count == 0)) return;
+                foreach (var (factor, label) in WorldSim.TaxModifiers(town))
+                    if (Math.Abs(factor) >= 0.005f) __result.AddFactor(factor, new TaleWorlds.Localization.TextObject("{=!}" + label));
             }
-            catch (Exception ex) { Log.Error("Crown tax", ex); }
+            catch (Exception ex) { if (_errors++ < 5) Log.Error("Crown tax", ex); }
         }
     }
 }

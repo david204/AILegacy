@@ -135,6 +135,7 @@ namespace AILegacy.Prompt
             sb.AppendLine(string.IsNullOrWhiteSpace(given) ? $"You are the leader of {what} ({p.Name}); you speak for all of them." : $"Name: {given}, leader of {what} ({p.Name}); you speak for all of them.");
             sb.AppendLine($"Gender: {(c.IsFemale ? "woman" : "man")}, age about {(int)c.Age}");
             if (c.Culture != null) sb.AppendLine($"Culture: {c.Culture.Name}");
+            if (!string.IsNullOrWhiteSpace(s.Role)) sb.AppendLine("What you are: " + s.Role);
             if (bandit)
                 sb.AppendLine("You live outside the law: robbery, ransom and whatever the road gives. You respect strength and coin, not titles. You have no lord and owe nothing to any realm.");
             else if (p.IsCaravan)
@@ -163,9 +164,10 @@ namespace AILegacy.Prompt
             var sb = new StringBuilder();
             var given = s.Memory.Profile?.GivenName;
             sb.AppendLine(string.IsNullOrWhiteSpace(given) ? $"You are an ordinary person ({c.Name})." : $"Name: {given} ({c.Name})");
-            sb.AppendLine($"Gender: {(c.IsFemale ? "woman" : "man")}, age about {(int)c.Age}");
+            if (s.IsMinor) sb.AppendLine($"Gender: {(c.IsFemale ? "girl" : "boy")}, age about {(c.Age > 3f && c.Age < 16f ? (int)c.Age : 11)}");
+            else sb.AppendLine($"Gender: {(c.IsFemale ? "woman" : "man")}, age about {(int)c.Age}");
             if (c.Culture != null) sb.AppendLine($"Culture: {c.Culture.Name}");
-            sb.AppendLine("Role in the world: " + ResidentRole(c));
+            sb.AppendLine("Role in the world: " + (string.IsNullOrWhiteSpace(s.Role) ? ResidentRole(c) : s.Role));
             var st = s.ResidentSettlement;
             if (st != null)
             {
@@ -181,7 +183,8 @@ namespace AILegacy.Prompt
                 var law = AILegacy.World.Laws.ForSubject(st.OwnerClan?.Kingdom);
                 if (law.Length > 0) sb.AppendLine(law);
             }
-            sb.AppendLine("You are a commoner: you know local gossip, prices and people, little of high politics, and you are careful around armed strangers and nobles.");
+            if (s.IsMinor) sb.AppendLine("You are a child: you know your street, your family, the games and the tales children tell, and you are wary of armed strangers.");
+            else sb.AppendLine("You are a commoner: you know local gossip, prices and people, little of high politics, and you are careful around armed strangers and nobles.");
             var wars = DescribeWars(s.Faction);
             // a place held by a clan under no crown (rebels, a landed minor clan, a player without a kingdom) is in no realm
             if (wars.Length > 0) sb.AppendLine(s.Faction is Kingdom ? "Your lord's realm is at war with: " + wars : TLordClanWars.Format("wars", wars));

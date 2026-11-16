@@ -32,8 +32,10 @@ namespace AILegacy.Dialogue
             public float Wait;
             public bool Unprovoked;                              // you hit them out of nowhere
             public List<Agent> Helpers = new List<Agent>();      // people who step in to defend them
-            /// <summary>How it ended when it wasn't simply won or lost: truce, fled, yielded, player_yielded. Null otherwise.</summary>
+            /// <summary>How it ended when it wasn't simply won or lost: truce, fled, yielded, player_yielded, struck_down. Null otherwise.</summary>
             public string Ending;
+            /// <summary>A fist fight inside a tavern: part of the evening, the patrons stay and watch and nobody calls the guard.</summary>
+            public bool Tavern;
         }
 
         private static PendingFight _fight;
@@ -119,18 +121,24 @@ namespace AILegacy.Dialogue
                 }
                 Withdrawn.Clear(); TeamBefore.Clear();
                 foreach (var foe in foes) TeamBefore[foe] = foe.Team;
+                f.Tavern = f.Kind == "brawl" && InTavern();
+                if (_foughtIn != m) { Fought.Clear(); _foughtIn = m; }
+                foreach (var foe in foes) Fought.Add(foe);
                 fh.StartCustomFight(new List<Agent> { Agent.Main }, foes, false, false, won =>
                 {
+                    try { ReleasePatrons(); } catch (Exception ex) { Log.Error("Release the tavern patrons", ex); }
                     try { Unguard(); } catch (Exception ex) { Log.Error("Heal after friendly fight", ex); }
                     try { if (stripped != null) foreach (var st in stripped) Restore(st); }
                     catch (Exception ex) { Log.Error("Return weapons after the fight", ex); }
                     MainThread.Post(() => OnFightEnded(f, won));
                 });
-                // Fist fight or friendly duel: nobody dies. At half health they yield and the fight ends
+                // Fist fight or friendly duel: nobody dies. The player (and both sides of a duel) yield at half health;
+                // the other side of a fist fight is knocked out cold
                 if (IsFriendly(f)) Guard(f, new List<Agent> { Agent.Main }.Concat(foes));
-                _active = f; _wave = 6f; _waves = 0; _alarm = false;
+                _active = f; _activeIn = m; _wave = 6f; _waves = 0; _alarm = false;
                 ActiveFoes.Clear(); ActiveFoes.AddRange(foes); _unleash = 0f;
                 Unleash();
+                if (f.Tavern) CalmPatrons(f);
                 Say(f.Unprovoked ? L.F("AIL_1ee35da7", $"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F("AIL_96bdc93c", $"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F("AIL_70eda317", $"¡Duelo a muerte con {f.Who.Name}!") : L.F("AIL_e97439d8", $"¡Duelo con {f.Who.Name}!"), Colors.Red);
                 Log.Info($"Fight started with {f.Who.Name}: {f.Kind}");
                 FightBanter.Begin(f.Who, f.Opponent, f.Kind, IsFriendly(f) ? null : foes.Where(x => x != f.Opponent).ToList());
@@ -141,8 +149,10 @@ namespace AILegacy.Dialogue
 
         // ============================================================ friendly fights: no deaths
 
-        // Fist fights (always) and duels that aren't to the death or an armed assault: whoever drops to half their starting
-        // health yields and the fight ends. Nobody dies. Friendly duels deal half damage. Afterwards everyone gets back
+        // Fist fights (always) and duels that aren't to the death or an armed assault: nobody dies. In a friendly duel
+        // whoever drops to half their starting health yields and the fight ends, and blows deal half damage. In a fist
+        // fight only the player yields at half: the people they fight with go down for real, knocked out cold on the
+        // floor by the engine (DecideState makes sure it is never a death). Afterwards those still standing get back
         // the health they had before. Only a duel to the death (or an assault with steel) can kill.
         private class Guarded
         {
@@ -185,6 +195,9 @@ namespace AILegacy.Dialogue
             {
                 var g = GuardedAgents.FirstOrDefault(x => x.Agent == a);
                 if (g == null) return;
+                // Fists: the NPC side is not held up at half health, they take the beating until they drop.
+                // Someone the game keeps alive on purpose (not mortal) still yields the old way, or they would never fall
+                if (_friendly.Kind == "brawl" && a != Agent.Main && g.Prev == Agent.MortalityState.Mortal) return;
                 float h = newHealth;
                 if (_friendly.Kind == "duel") h = oldHealth - (oldHealth - newHealth) * FriendlyDuelDamage;
                 float floor = Math.Max(1f, (float)Math.Ceiling(g.Start * YieldAt));
@@ -241,6 +254,20 @@ namespace AILegacy.Dialogue
                 fh.EndFight(y == 1);
             }
             catch (Exception ex) { Log.Error("End friendly fight", ex); }
+        }
+
+        /// <summary>
+        /// Asked by the engine (through FightWatch) when someone's health runs out. Anyone in a friendly fight is knocked
+        /// out, never killed. AgentState.None leaves the decision to the game.
+        /// </summary>
+        internal static AgentState DecideState(Agent a)
+        {
+            try
+            {
+                if (a == null || _friendly == null || GuardedAgents.Count == 0) return AgentState.None;
+                return GuardedAgents.Any(g => g.Agent == a) ? AgentState.Unconscious : AgentState.None;
+            }
+            catch { return AgentState.None; }
         }
 
         // ============================================================ what fighters decide mid-fight
@@ -449,6 +476,9 @@ namespace AILegacy.Dialogue
         public static void ResetSession()
         {
             _fight = null; _active = null; _surrender = null; _surrenderParty = null; KeepEncounter = false; _autoAttack = 0f;
+            _struck = null; _watched = null; _foughtIn = null; _quietUntil = 0f; Fought.Clear();
+            try { ReleasePatrons(); } catch { Calmed.Clear(); Watching.Clear(); }
+            try { StopBells(); } catch { _bells = null; }
             try { Unguard(); } catch { GuardedAgents.Clear(); _friendly = null; _yield = 0; }
             _bandJoin = null;
             ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear(); Withdrawn.Clear(); TeamBefore.Clear();
@@ -565,11 +595,307 @@ namespace AILegacy.Dialogue
         private static readonly List<Agent> ToFade = new List<Agent>();
         public static void FadeAfterTalk(Agent a) { if (a != null && !ToFade.Contains(a)) ToFade.Add(a); }
 
-        private static float _streetCool;
+        // ============================================================ who fought here, and the quiet after it
+
+        private static readonly HashSet<Agent> Fought = new HashSet<Agent>();
+        private static Mission _foughtIn;
+        private static float _quietUntil;
+
+        /// <summary>Took part in a fight with the player in this scene: idle remarks and small talk should leave them alone.</summary>
+        public static bool FoughtHere(Agent a)
+        {
+            try { return a != null && _foughtIn != null && _foughtIn == Mission.Current && Fought.Contains(a); }
+            catch { return false; }
+        }
+
+        /// <summary>A fight with the player ended moments ago in this scene: nobody around is in the mood for idle remarks.</summary>
+        public static bool QuietAfterFight
+        {
+            get
+            {
+                try { var m = Mission.Current; return m != null && m == _foughtIn && (_active != null || m.CurrentTime < _quietUntil); }
+                catch { return false; }
+            }
+        }
+
+        // ============================================================ tavern patrons watch a fist fight
+
+        // Patrons we took the alarm away from (with the flags they had), and those we turned to watch
+        private static readonly Dictionary<Agent, AgentFlag> Calmed = new Dictionary<Agent, AgentFlag>();
+        private static readonly HashSet<Agent> Watching = new HashSet<Agent>();
+
+        private static bool IsFighter(Agent a)
+        {
+            var f = _active;
+            return f != null && (a == f.Opponent || ActiveFoes.Contains(a) || f.Helpers.Contains(a) || Summoned.Contains(a));
+        }
+
+        /// <summary>
+        /// Asked by the game's alarm logic (TavernCalmPatch): during our fist fight in a tavern, nobody but the fighters
+        /// treats the player as a danger, so the patrons stay at their tables instead of running.
+        /// </summary>
+        internal static bool KeepCalm(Agent a)
+        {
+            try
+            {
+                var f = _active;
+                if (f == null || !f.Tavern || a == null || a == Agent.Main) return false;
+                return !IsFighter(a);
+            }
+            catch { return false; }
+        }
+
+        /// <summary>The fist fight in the tavern starts: the patrons lose the urge to flee, and those close by turn to watch.</summary>
+        private static void CalmPatrons(PendingFight f)
+        {
+            try
+            {
+                ReleasePatrons();
+                var m = Mission.Current; var me = Agent.Main;
+                if (m == null || me == null) return;
+                foreach (var a in m.Agents)
+                {
+                    try
+                    {
+                        if (a == null || a == me || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || IsFighter(a)) continue;
+                        float d = a.Position.Distance(me.Position);
+                        if (d > 40f) continue;
+                        var flags = a.GetAgentFlags();
+                        Calmed[a] = flags;
+                        if ((flags & AgentFlag.CanGetAlarmed) != 0) a.SetAgentFlags(flags & ~AgentFlag.CanGetAlarmed);
+                        if (!a.IsAlarmStateNormal())
+                        {
+                            a.SetWatchState(Agent.WatchState.Patrolling);
+                            a.GetComponent<SandBox.CampaignAgentComponent>()?.AgentNavigator?.GetBehaviorGroup<SandBox.Missions.AgentBehaviors.AlarmedBehaviorGroup>()?.DisableScriptedBehavior();
+                        }
+                        if (d <= 12f) { a.SetLookAgent(me); Watching.Add(a); }
+                    }
+                    catch { }
+                }
+                Log.Info($"[fight] tavern brawl: {Calmed.Count} patrons stay and watch");
+            }
+            catch (Exception ex) { Log.Error("Calm the tavern patrons", ex); }
+        }
+
+        /// <summary>The fight is over (or the scene changed): the patrons get back their alarm and stop staring.</summary>
+        private static void ReleasePatrons()
+        {
+            var m = Mission.Current;
+            foreach (var kv in Calmed)
+            {
+                try
+                {
+                    var a = kv.Key;
+                    if (a == null || m == null || a.Mission != m || !a.IsActive()) continue;
+                    if ((kv.Value & AgentFlag.CanGetAlarmed) != 0) a.SetAgentFlags(a.GetAgentFlags() | AgentFlag.CanGetAlarmed);
+                }
+                catch { }
+            }
+            foreach (var a in Watching)
+            {
+                try { if (a != null && m != null && a.Mission == m && a.IsActive()) a.SetLookAgent(null); }
+                catch { }
+            }
+            Calmed.Clear(); Watching.Clear();
+        }
+
+        // ============================================================ the first blow starts it
+
+        // The player's first blow at a bystander, seen by FightWatch during the engine's hit callback. The fight is set up
+        // on the next tick, outside the engine callback.
+        private static Agent _struck;
+        private static bool _struckArmed;
+        private static Mission _watched;
+
+        /// <summary>Settlement scene, nothing else going on, and the settings allow it: the player may pick a fight by hitting someone.</summary>
+        private static bool StreetFightAllowed(Mission m)
+        {
+            if (m == null || Campaign.Current == null) return false;
+            var cfg = S.Get;
+            if (!cfg.AllowCombat || !cfg.AllowStreetViolence) return false;
+            var me = Agent.Main;
+            if (me == null || !me.IsActive() || me.MountAgent != null || m.Mode != MissionMode.StartUp) return false;
+            if (Settlement.CurrentSettlement == null) return false;
+            string loc = CampaignMission.Current?.Location?.StringId;
+            if (string.IsNullOrEmpty(loc) || loc == "arena") return false;
+            if (Campaign.Current.ConversationManager?.IsConversationInProgress == true) return false;
+            var fh = m.GetMissionBehavior<MissionFightHandler>();
+            return fh != null && !fh.IsThereActiveFight();
+        }
+
+        /// <summary>A grown-up townsperson on foot who is neither the player's enemy already nor one of their own.</summary>
+        private static bool StreetTarget(Agent a)
+        {
+            var me = Agent.Main;
+            if (a == null || me == null || a == me || !a.IsHuman || a.IsMount || !a.IsActive() || !a.IsAIControlled) return false;
+            if (!(a.Character is CharacterObject c) || c.Age < 18f || a.Age < 18f) return false;
+            // Enemies already take real blows from the game; the player's own men (same team) are not picked on
+            if (a.IsEnemyOf(me) || (a.Team != null && me.Team != null && a.Team == me.Team)) return false;
+            var h = c.HeroObject;
+            if (h != null && (h == P || h.Clan == Clan.PlayerClan || h.IsPlayerCompanion)) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Asked by FirstHitPatch for every blow the player lands on someone the game would treat as a friend (it cancels
+        /// those: no damage, and the player is stunned). True lets the first blow at a bystander land for real.
+        /// </summary>
+        internal static bool LetPlayerHit(Mission m, Agent attacker, Agent victim)
+        {
+            try
+            {
+                if (attacker == null || attacker != Agent.Main || !attacker.IsPlayerControlled || victim == null) return false;
+                if (_active != null) return false;
+                // Between the first blow and the next tick the fight is not set up yet: further blows at them land too
+                if (_struck != null) return victim == _struck;
+                if (_fight != null) return false;
+                return StreetFightAllowed(m) && StreetTarget(victim);
+            }
+            catch { return false; }
+        }
+
+        /// <summary>The engine reports a melee blow from the player. The first one at a bystander picks the fight.</summary>
+        internal static void OnPlayerHit(Agent victim, AttackCollisionData cd)
+        {
+            try
+            {
+                if (_struck != null || _fight != null || _active != null || cd.IsMissile) return;
+                var m = Mission.Current;
+                if (!StreetFightAllowed(m) || !StreetTarget(victim)) return;
+                _struck = victim;
+                // Steel in hand counts only if the blow came from it; a kick or a shield bash is still a scuffle
+                _struckArmed = cd.AffectorWeaponSlotOrMissileIndex >= 0 && !cd.IsAlternativeAttack;
+                Log.Info($"[scene] first blow at {victim.Name} ({(_struckArmed ? "weapon" : "bare hands")})");
+            }
+            catch (Exception ex) { Log.Error("First blow", ex); }
+        }
+
+        /// <summary>Puts our hit watcher into each settlement scene once it is running.</summary>
+        private static void EnsureWatch()
+        {
+            try
+            {
+                var m = Mission.Current;
+                if (m == null || m == _watched || m.CurrentState != Mission.State.Continuing || Agent.Main == null) return;
+                _watched = m;
+                if (m.GetMissionBehavior<MissionFightHandler>() == null || m.GetMissionBehavior<Patches.FightWatch>() != null) return;
+                m.AddMissionBehavior(new Patches.FightWatch());
+            }
+            catch (Exception ex) { Log.Error("Watch blows in the scene", ex); }
+        }
+
+        /// <summary>
+        /// The blow landed on the last frame: a fist fight if it was bare hands, a real one if it came from a weapon.
+        /// Their kin nearby step in, and if steel is drawn, so do nearby guards.
+        /// </summary>
+        private static void TakeFirstBlow()
+        {
+            var victim = _struck; bool armed = _struckArmed;
+            _struck = null;
+            try
+            {
+                var m = Mission.Current; var me = Agent.Main;
+                if (m == null || me == null || !me.IsActive() || victim == null || (victim.Mission != null && victim.Mission != m) || _fight != null || _active != null) return;
+                if (!(victim.Character is CharacterObject vc)) return;
+                var cfg = S.Get;
+                var sp = vc.IsHero && vc.HeroObject != null ? Speaker.FromHero(vc.HeroObject) : Speaker.FromResident(vc, victim);
+                var f = new PendingFight { Who = sp, Opponent = victim, Kind = armed ? "duel" : "brawl", Wait = 0f, Unprovoked = true };
+                if (!victim.IsActive())
+                {
+                    // Cut down with the first blow: nobody left to fight, only what it costs
+                    f.Ending = "struck_down";
+                    Log.Info($"[scene] the player cuts down {sp.Name} with the first blow");
+                    OnFightEnded(f, true);
+                    return;
+                }
+                // Defenders: their household nearby, plus nearby guards if steel is drawn
+                foreach (var a in m.Agents)
+                {
+                    if (f.Helpers.Count >= cfg.StreetFightHelpers) break;
+                    if (a == null || a == me || a == victim || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || !(a.Character is CharacterObject c) || c.Age < 18f) continue;
+                    float dist = a.Position.Distance(victim.Position);
+                    bool kin = vc.IsHero && c.IsHero && c.HeroObject?.Clan != null && c.HeroObject.Clan == vc.HeroObject?.Clan && c.HeroObject.Clan != Clan.PlayerClan && dist <= 12f;
+                    bool guard = armed && dist <= 20f && (c.Occupation == Occupation.Guard || c.Occupation == Occupation.Soldier || c.Occupation == Occupation.PrisonGuard);
+                    if (!kin && !guard) continue;
+                    f.Helpers.Add(a);
+                    if (guard) Yell(a);
+                    Say(L.F("AIL_9ccbdf55", $"{a.Name} sale en defensa de {sp.Name}."), Colors.Red);
+                }
+                if (armed) { try { victim.MakeVoice(SkinVoiceManager.VoiceType.Fear, SkinVoiceManager.CombatVoiceNetworkPredictionType.NoPrediction); } catch { } }
+                Log.Info($"[scene] the player strikes {sp.Name} without a word ({f.Kind}; {f.Helpers.Count} defending them)");
+                if (armed && cfg.StreetSummonTroops) Say(Hotkeys.Fix(L.T("AIL_c4f81902", "Puedes llamar a tus hombres: Ctrl+X (diez) o Ctrl+Alt+X (todos los que quepan). Solo en la calle.")), Colors.Gray);
+                _fight = f;
+                StartFight();
+            }
+            catch (Exception ex) { Log.Error("Street fight", ex); }
+        }
+
+        // ============================================================ the alarm, heard and not only read
+
+        private const string BellsEvent = "event:/mission/ambient/detail/warning_bells";      // looping: stopped by hand
+        private const string HornEvent = "event:/alerts/horns/reinforcements";                // one-shot, 2D
+        private static TaleWorlds.Engine.SoundEvent _bells;
+        private static Mission _bellsIn;
+        private static float _bellsLeft;
+
+        private static void Yell(Agent a)
+        {
+            try { if (a != null && a.IsActive()) a.MakeVoice(SkinVoiceManager.VoiceType.Yell, SkinVoiceManager.CombatVoiceNetworkPredictionType.NoPrediction); }
+            catch { }
+        }
+
+        /// <summary>The settlement raises the alarm: the big banner, the bells over the rooftops, the street hears it.</summary>
+        private static void RingAlarm(string text)
+        {
+            var m = Mission.Current; var me = Agent.Main;
+            Say(text, Colors.Red);
+            try { MBInformationManager.AddQuickInformation(new TaleWorlds.Localization.TextObject(text), 0, null, null, ""); }
+            catch (Exception ex) { Log.Error("Alarm banner", ex); }
+            if (m == null || me == null) return;
+            try
+            {
+                StopBells();
+                var ev = TaleWorlds.Engine.SoundEvent.CreateEventFromString(BellsEvent, m.Scene);
+                if (ev != null && ev.IsValid)
+                {
+                    // Up above the street, as from a bell tower: heard all over, wherever the player runs
+                    ev.SetPosition(me.Position + new Vec3(0f, 0f, 18f));
+                    ev.Play();
+                    _bells = ev; _bellsIn = m; _bellsLeft = 15f;
+                }
+                TaleWorlds.Engine.SoundEvent.PlaySound2D(HornEvent);
+            }
+            catch (Exception ex) { Log.Error("Alarm sound", ex); }
+            try
+            {
+                // Everyone within earshot of the bells takes fright or comes running
+                var pos = me.Position;
+                m.AddSoundAlarmFactorToAgents(me, in pos, 40f);
+            }
+            catch (Exception ex) { Log.Error("Alarm in the street", ex); }
+        }
+
+        private static void StopBells()
+        {
+            var ev = _bells;
+            _bells = null;
+            if (ev == null) return;
+            // Only touch the sound while its scene is alive; a closed scene takes its sounds with it
+            if (_bellsIn != null && _bellsIn == Mission.Current) { try { ev.Stop(); ev.Release(); } catch { } }
+            _bellsIn = null;
+        }
+
+        private static void TickBells(float dt)
+        {
+            if (_bells == null) return;
+            if (Mission.Current != _bellsIn) { _bells = null; _bellsIn = null; return; }
+            if ((_bellsLeft -= dt) <= 0f) StopBells();
+        }
 
         // ============================================================ the fight grows: guard waves, alarm, your men
 
         private static PendingFight _active;
+        private static Mission _activeIn;
         private static float _wave;
         private static int _waves;
         private static bool _alarm;
@@ -594,8 +920,9 @@ namespace AILegacy.Dialogue
                 if (m == null || Agent.Main == null || _active == null) return;
                 var fh = m.GetMissionBehavior<MissionFightHandler>();
                 if (fh == null || !fh.IsThereActiveFight()) return;
-                // fists in a tavern are a show; steel drawn anywhere sends ordinary people running
-                bool tavern = InTavern() && _active.Kind == "brawl";
+                // fists in a tavern are a show (TavernCalmPatch keeps the game from alarming the patrons; this catches
+                // anyone alarmed some other way); steel drawn anywhere sends ordinary people running
+                bool tavern = _active.Tavern;
                 var here = Agent.Main.Position;
                 foreach (var a in m.Agents)
                 {
@@ -644,6 +971,7 @@ namespace AILegacy.Dialogue
                     if (g != null) { g.DisableCalmDown = true; g.AddBehavior<SandBox.Missions.AgentBehaviors.FightBehavior>(); g.SetScriptedBehavior<SandBox.Missions.AgentBehaviors.FightBehavior>(); }
                 }
                 if (!playerSide) { ActiveFoes.Add(a); if (_active != null && !_active.Helpers.Contains(a)) _active.Helpers.Add(a); }
+                if (_foughtIn == Mission.Current) Fought.Add(a);
                 return true;
             }
             catch (Exception ex) { Log.Error("Add to the fight", ex); return false; }
@@ -680,11 +1008,17 @@ namespace AILegacy.Dialogue
             if (!_alarm && (down >= 3 || (down >= 1 && _waves >= 2)))
             {
                 _alarm = true;
-                Say(L.F("AIL_2f7a736d", $"¡Suena la campana de alarma en {Settlement.CurrentSettlement?.Name}: acude toda la guardia!"), Colors.Red);
+                RingAlarm(L.F("AIL_2f7a736d", $"¡Suena la campana de alarma en {Settlement.CurrentSettlement?.Name}: acude toda la guardia!"));
             }
             // No guard left in the street: the alarm brings men from the real garrison and from the lords inside the walls
             if (come.Count == 0) { if (_alarm && cfg.StreetGarrisonReinforcements) SpawnDefenders(fh, f, Math.Min(cfg.StreetGuardWaveSize * 2, cfg.StreetMaxGuards - f.Helpers.Count)); return; }
-            int joined = come.Count(a => JoinFight(fh, a, false));
+            int joined = 0;
+            foreach (var a in come)
+            {
+                if (!JoinFight(fh, a, false)) continue;
+                joined++;
+                Yell(a);      // they come shouting, not in silence
+            }
             if (joined > 0)
             {
                 _waves++;
@@ -740,6 +1074,7 @@ namespace AILegacy.Dialogue
                             a.WieldInitialWeapons();
                             Defenders.Add((a, src));
                             JoinFight(fh, a, false);
+                            if (done < 3) Yell(a);
                             done++;
                         }
                         if (done >= want) break;
@@ -866,70 +1201,6 @@ namespace AILegacy.Dialogue
             }
         }
 
-        /// <summary>
-        /// In a settlement scene, swinging (fist or weapon) at someone right in front of you starts a fight with them:
-        /// a fist fight if your hands are empty, a real one if your weapon is out. Their relatives step in, and if
-        /// steel is drawn, so do nearby guards.
-        /// </summary>
-        private static void StreetCheck(float dt)
-        {
-            try
-            {
-                if ((_streetCool -= dt) > 0f) return;
-                var cfg = S.Get;
-                if (!cfg.AllowCombat || !cfg.AllowStreetViolence) return;
-                var m = Mission.Current; var me = Agent.Main;
-                if (m == null || me == null || !me.IsActive() || me.MountAgent != null || Settlement.CurrentSettlement == null) return;
-                if (m.Mode != MissionMode.StartUp) return;
-                if (me.GetCurrentActionStage(1) != Agent.ActionStage.AttackRelease) return;
-                var fh = m.GetMissionBehavior<MissionFightHandler>();
-                if (fh == null || fh.IsThereActiveFight()) return;
-
-                var look = me.LookDirection.AsVec2;
-                if (look.Length < 0.01f) return;
-                look = look.Normalized();
-                // They must be really in reach and right in front. A swing at the air near someone doesn't count
-                bool armedNow = !me.WieldedWeapon.IsEmpty;
-                float reach = armedNow ? 1.9f : 1.25f, cone = armedNow ? 0.86f : 0.9f;
-                Agent victim = null; float best = reach;
-                foreach (var a in m.Agents)
-                {
-                    if (a == null || a == me || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || !(a.Character is CharacterObject c) || c.Age < 18f) continue;
-                    if (a.Team != null && me.Team != null && a.IsEnemyOf(me)) continue;
-                    var d = a.Position.AsVec2 - me.Position.AsVec2;
-                    float dist = d.Length;
-                    if (dist > best || dist < 0.05f || Math.Abs(a.Position.z - me.Position.z) > 1.5f) continue;
-                    if (Vec2.DotProduct(look, d * (1f / dist)) < cone) continue;
-                    best = dist; victim = a;
-                }
-                // Missed swing: wait a bit before checking again, or we'd scan everyone on every frame of the swing
-                if (victim == null) { _streetCool = 0.4f; return; }
-                _streetCool = 3f;
-
-                var vc = (CharacterObject)victim.Character;
-                var sp = vc.IsHero && vc.HeroObject != null ? Speaker.FromHero(vc.HeroObject) : Speaker.FromResident(vc, victim);
-                bool armed = !me.WieldedWeapon.IsEmpty;
-                var f = new PendingFight { Who = sp, Opponent = victim, Kind = armed ? "duel" : "brawl", Wait = 0f, Unprovoked = true };
-                // Defenders: their household nearby, plus nearby guards if steel is drawn
-                foreach (var a in m.Agents)
-                {
-                    if (f.Helpers.Count >= cfg.StreetFightHelpers) break;
-                    if (a == null || a == me || a == victim || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || !(a.Character is CharacterObject c) || c.Age < 18f) continue;
-                    float dist = a.Position.Distance(victim.Position);
-                    bool kin = vc.IsHero && c.IsHero && c.HeroObject?.Clan != null && c.HeroObject.Clan == vc.HeroObject?.Clan && c.HeroObject.Clan != Clan.PlayerClan && dist <= 12f;
-                    bool guard = armed && dist <= 20f && (c.Occupation == Occupation.Guard || c.Occupation == Occupation.Soldier || c.Occupation == Occupation.PrisonGuard);
-                    if (!kin && !guard) continue;
-                    f.Helpers.Add(a);
-                    Say(L.F("AIL_9ccbdf55", $"{a.Name} sale en defensa de {sp.Name}."), Colors.Red);
-                }
-                Log.Info($"[scene] the player strikes {sp.Name} without a word ({f.Kind}; {f.Helpers.Count} defending them)");
-                if (armed && cfg.StreetSummonTroops) Say(Hotkeys.Fix(L.T("AIL_c4f81902", "Puedes llamar a tus hombres: Ctrl+X (diez) o Ctrl+Alt+X (todos los que quepan). Solo en la calle.")), Colors.Gray);
-                _fight = f;
-                StartFight();
-            }
-            catch (Exception ex) { Log.Error("Street fight", ex); _streetCool = 5f; }
-        }
-
         private class Stripped
         {
             public Agent Agent;
@@ -977,6 +1248,7 @@ namespace AILegacy.Dialogue
                 case "fled": return firstPerson ? "I broke off and ran." : "You broke off and ran from them.";
                 case "yielded": return firstPerson ? "I yielded and they accepted it." : "You yielded and they accepted it.";
                 case "player_yielded": return firstPerson ? "they yielded to me and I accepted it." : "They yielded to you and you accepted it.";
+                case "struck_down": return firstPerson ? "they struck me down with the first blow." : "They struck you down with the first blow.";
                 default: return firstPerson ? (playerWon ? "they beat me." : "I beat them.") : (playerWon ? "They beat you." : "You beat them.");
             }
         }
@@ -985,25 +1257,44 @@ namespace AILegacy.Dialogue
         {
             try
             {
-                FightBanter.End(playerWon);
+                FightBanter.End(playerWon, f.Ending);
                 _active = null;
+                StopBells();
                 DismissSummoned();
                 DismissDefenders();
+                // The fighters are left alone by idle remarks, and the whole place goes quiet for a minute
+                var mq = Mission.Current;
+                if (mq != null)
+                {
+                    if (_foughtIn != mq) { Fought.Clear(); _foughtIn = mq; }
+                    if (f.Opponent != null) Fought.Add(f.Opponent);
+                    _quietUntil = mq.CurrentTime + 60f;
+                }
                 var s = f.Who;
                 var mem = s.Memory;
                 string you = Prompt.ContextBuilder.PlayerNameFor(s) ?? "the stranger";
                 string what = f.Kind == "brawl" ? "a fist fight" : f.Kind == "death" ? "a duel to the death" : "a duel";
-                Log.Info($"Fight with {s.Name} ({f.Kind}): {(playerWon ? "player wins" : "player loses")}");
+                bool knockedOut = f.Opponent != null && f.Opponent.State == AgentState.Unconscious;
+                // A fist fight in a tavern is rough fun, not a crime: no witnesses hunt, no guard, no manhunt
+                bool barBrawl = f.Kind == "brawl" && f.Tavern;
+                Log.Info($"Fight with {s.Name} ({f.Kind}{(barBrawl ? ", tavern" : "")}): {(playerWon ? "player wins" : "player loses")}{(knockedOut ? ", knocked out" : "")}");
 
                 // They remember it, so the next chat knows
                 mem.Turns.Add(new ChatTurn
                 {
                     Role = "player", Day = CampaignTime.Now.ToDays,
-                    Text = $"[What happened: {(f.Unprovoked ? $"{you} attacked you without a word of warning, and you fought {what}" : $"you and {you} fought {what}")}. " + HowItEnded(f, playerWon, false) + "]"
+                    Text = $"[What happened: {(f.Unprovoked ? $"{you} attacked you without a word of warning, and you fought {what}" : $"you and {you} fought {what}")}{(barBrawl ? " in the tavern" : "")}. " + HowItEnded(f, playerWon, false)
+                           + (knockedOut && playerWon ? " You were knocked out cold and came to on the floor, bruised." : "") + "]"
                 });
                 // Witnesses: an assault only costs you if someone alive saw it, and only by name if they know you
                 Witness.Result seen = null;
-                if (f.Unprovoked)
+                if (f.Unprovoked && barBrawl)
+                {
+                    ChatSession.AddNote(mem, $"{you} picked a fist fight with me in the tavern for no reason.", S.Get.MaxNotesPerHero, s.Name);
+                    mem.Trust = Math.Max(-100, mem.Trust - 15);
+                    Say(L.T("AIL_e7b1c9a1", "Una pelea de taberna más: nadie llama a la guardia."), Colors.Gray);
+                }
+                else if (f.Unprovoked)
                 {
                     var victims = new List<Agent> { f.Opponent };
                     victims.AddRange(f.Helpers);
@@ -1013,14 +1304,22 @@ namespace AILegacy.Dialogue
                     float crime = (f.Kind == "brawl" ? 5f : 15f) * (seen.Level == 2 ? 1f : seen.Level == 1 ? 0.5f : 0f);
                     try { var stf = Settlement.CurrentSettlement?.MapFaction; if (crime > 0f && stf != null && stf != P.MapFaction) ChangeCrimeRatingAction.Apply(stf, crime, true); } catch { }
                     Say(seen.Level == 0 ? L.T("AIL_ef1030cb", "Nadie lo ha visto: nadie sabrá que has sido tú.")
-                      : seen.Level == 1 ? L.F("AIL_a58c5f5d", $"Te han visto ({seen.Count} testigo(s)), pero nadie sabe quién eres: buscan a un forastero armado.")
+                      : seen.Level == 1 ? (f.Kind == "brawl" ? L.F("AIL_e7b1c9a0", $"Te han visto ({seen.Count} testigo(s)), pero nadie sabe quién eres: buscan a un forastero que se lio a puñetazos.")
+                                                             : L.F("AIL_a58c5f5d", $"Te han visto ({seen.Count} testigo(s)), pero nadie sabe quién eres: buscan a un forastero armado."))
                       : L.F("AIL_992e899d", $"{seen.ByWhom} te ha reconocido: se sabrá que has sido tú."), seen.Level == 0 ? Colors.Green : seen.Level == 1 ? Colors.Yellow : Colors.Red);
                 }
                 ChatSession.AddNote(mem, f.Ending == null ? (playerWon ? $"{you} beat me in {what}." : $"I beat {you} in {what}.") : $"{what} with {you}: {HowItEnded(f, playerWon, true)}", S.Get.MaxNotesPerHero, s.Name);
                 if (f.Ending == "fled") { try { SceneActions.WalkAway(f.Opponent); } catch { } }
                 // Beaten in a fist fight or a friendly duel: down on the floor for a while, nursing it
+                // (someone knocked out cold already lies there: the engine took them out of the scene, Knockdown skips them)
                 else if (playerWon && IsFriendly(f) && (f.Ending == null || f.Ending == "yielded")) { try { SceneActions.Knockdown(f.Opponent, 40f); } catch { } }
                 mem.Tension = Math.Max(0, mem.Tension - 40);
+                // Knocked out cold: they come to bruised and hurt, wounded like after a lost battle
+                if (knockedOut && s.IsHero && s.Hero != null && s.Hero.IsAlive && s.Hero != P)
+                {
+                    try { int cap = Math.Max(1, s.Hero.MaxHitPoints / 5); if (s.Hero.HitPoints > cap) s.Hero.HitPoints = cap; }
+                    catch (Exception ex) { Log.Error("Wound the one knocked out", ex); }
+                }
 
                 if (s.IsHero)
                 {
@@ -1044,6 +1343,8 @@ namespace AILegacy.Dialogue
                         Say(L.F("AIL_080a0e95", $"{s.Name} te deja por muerto. Sobrevives de milagro."), Colors.Red);
                     }
                 }
+                else if (f.Ending == "struck_down") Say(L.F("AIL_e7b1c9a2", $"{s.Name} cae al primer golpe."), Colors.Red);
+                else if (playerWon && knockedOut) Say(L.F("AIL_e7b1c9a3", $"{s.Name} cae redondo y se queda en el suelo, sin sentido. Has ganado la pelea."), Colors.Yellow);
                 else Say(playerWon ? L.F("AIL_d0109f54", $"Has vencido a {s.Name}.") : L.F("AIL_805db527", $"{s.Name} te ha vencido."), Colors.Yellow);
 
                 // The news depends on who saw it
@@ -1051,7 +1352,9 @@ namespace AILegacy.Dialogue
                 {
                     bool victimDead = !(f.Opponent != null && (f.Opponent.IsActive() || f.Opponent.State == AgentState.Unconscious));
                     string victimEn = s.IsHero ? $"{s.Name}{(s.Hero.IsLord ? $", a noble of clan {s.Hero.Clan?.Name}" : "")}" : (s.IsFemale ? "a local woman" : "a local man") + $" ({s.Character?.Name})";
-                    string doer = seen.Level == 2 ? $"{P.Name} of clan {Clan.PlayerClan?.Name}" : seen.Level == 1 ? "an armed stranger whom witnesses saw but nobody could name" : "someone nobody saw";
+                    string doer = seen.Level == 2 ? $"{P.Name} of clan {Clan.PlayerClan?.Name}"
+                                : seen.Level == 1 ? (f.Kind == "brawl" ? "a brawling stranger whom witnesses saw but nobody could name" : "an armed stranger whom witnesses saw but nobody could name")
+                                : "someone nobody saw";
                     int downed = f.Helpers.Count(h => h != null && !h.IsActive());
                     WorldSim.OnIncident($"{doer} attacked {victimEn} {(f.Kind == "brawl" ? "with bare fists" : "with drawn steel")}, without provocation. " +
                                         (victimDead ? "The victim was left dead. " : playerWon ? "The victim was left on the ground, alive. " : "The attacker got the worst of it. ") +
@@ -1060,8 +1363,8 @@ namespace AILegacy.Dialogue
                                         Settlement.CurrentSettlement, f.Kind != "brawl");
                 }
 
-                // A nearby guard comes to ask questions (nobody comes if nobody saw it)
-                if (seen == null || seen.Level > 0) Justice.OnFightEnded(s, f.Opponent, f.Kind, playerWon, f.Unprovoked);
+                // A nearby guard comes to ask questions (nobody comes if nobody saw it, nor over a tavern brawl)
+                if (!barBrawl && (seen == null || seen.Level > 0)) Justice.OnFightEnded(s, f.Opponent, f.Kind, playerWon, f.Unprovoked);
 
                 if (seen != null && seen.Level < 2)
                 {
@@ -1073,10 +1376,12 @@ namespace AILegacy.Dialogue
                         NewsStore.Add(new NewsItem
                         {
                             Type = "rumor", Importance = s.IsHero ? 2 : 1,
-                            Text = anyone ? $"An armed stranger attacked {victimName}{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Witnesses saw the attacker but nobody knows who it was."
+                            Text = anyone ? (f.Kind == "brawl" ? $"A stranger set about {victimName} with bare fists{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Witnesses saw the attacker but nobody knows who it was."
+                                                               : $"An armed stranger attacked {victimName}{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Witnesses saw the attacker but nobody knows who it was.")
                                           : $"{victimName} was found {(f.Kind == "brawl" ? "beaten" : "cut down")}{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Nobody saw who did it.",
                             TitleEs = anyone ? L.T("AIL_f7d8e495", "Agresión de un forastero") : L.T("AIL_0aaea1bc", "Agresión sin testigos"),
-                            TextEs = anyone ? L.F("AIL_122eb7e1", $"Un forastero armado atacó a {victimEs}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Hay quien vio al agresor, pero nadie sabe quién era.")
+                            TextEs = anyone ? (f.Kind == "brawl" ? L.F("AIL_e7b1c9a4", $"Un forastero la emprendió a puñetazos con {victimEs}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Hay quien lo vio, pero nadie sabe quién era.")
+                                                                 : L.F("AIL_122eb7e1", $"Un forastero armado atacó a {victimEs}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Hay quien vio al agresor, pero nadie sabe quién era."))
                                             : L.F("AIL_ce1a0814", $"Han encontrado a {victimEs} {(f.Kind == "brawl" ? L.T("AIL_717f4a1a", "apaleado") : L.T("AIL_07cfa3c4", "acuchillado"))}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Nadie vio quién lo hizo."),
                             SettlementId = s.Settlement?.StringId,
                             Kingdoms = s.Faction != null ? new List<string> { s.Faction.StringId } : new List<string>(),
@@ -1273,7 +1578,12 @@ namespace AILegacy.Dialogue
                     if (fhNow == null || !fhNow.IsThereActiveFight()) ActiveFoes.Clear();
                     else if ((_unleash -= dt) <= 0f) { _unleash = 1f; Unleash(); }
                 }
-                if (!talking && _fight == null) StreetCheck(dt);
+                // The scene closed mid-fight: the game never reports the end, so forget it here
+                if (_active != null && Mission.Current != _activeIn) { Log.Info("[fight] the scene closed before the fight ended"); _active = null; }
+                EnsureWatch();
+                TickBells(dt);
+                if (Calmed.Count > 0 && _active == null) ReleasePatrons();      // the fight ended some other way
+                if (_struck != null) { if (talking || Mission.Current == null) _struck = null; else TakeFirstBlow(); }
 
                 if (KeepEncounter && !talking && !ChatSession.IsBusy) KeepEncounter = false;
 

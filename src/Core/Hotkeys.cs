@@ -44,7 +44,7 @@ namespace AILegacy.Core
                 case Id.Yield: return c.KeyYield;
                 case Id.Truce: return c.KeyTruce;
                 case Id.SummonTen: return c.KeySummonTen;
-                case Id.Herbs: return c.KeyHerbs;
+                case Id.Herbs: return "";      // retired: herbs are used in the hospital now, not carried (kept so the ids keep their order)
                 default: return c.KeySummonAll;
             }
         }

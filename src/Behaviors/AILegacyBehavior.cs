@@ -94,6 +94,8 @@ namespace AILegacy.Behaviors
             CampaignEvents.HeroKilledEvent.AddNonSerializedListener(this, World.Facts.OnHeroKilled);
             // Whom the player puts to death, read before the game hands their clan and crown to someone else
             CampaignEvents.BeforeHeroKilledEvent.AddNonSerializedListener(this, World.Captivity.OnBeforeHeroKilled);
+            // Where "Back" returns is only good for the conversation it was set in
+            CampaignEvents.ConversationEnded.AddNonSerializedListener(this, OnConversationEnded);
         }
 
         public override void SyncData(IDataStore dataStore)
@@ -307,30 +309,31 @@ namespace AILegacy.Behaviors
                 priority: 110);
             starter.AddDialogLine("ailegacy_npc_listen_p", "ailegacy_npc_listen_p", PrisonerOptions, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
-            // --- Common people in towns and villages
-            starter.AddPlayerLine(
-                "ailegacy_res_start", "town_or_village_player", "ailegacy_res_listen",
-                L.T("AIL_73c1647d", "{=!}Oye, ¿tienes un momento? [Charla libre]"),
-                () => !S.Get.UseDialogStyle && CanTalkResident(),
-                () => MainThread.Post(() =>
-                {
-                    var cm = Campaign.Current.ConversationManager;
-                    var c = cm.OneToOneConversationCharacter;
-                    if (c != null) ChatSession.Start(Speaker.FromResident(c, cm.OneToOneConversationAgent));
-                }),
-                priority: 110);
-            starter.AddDialogLine("ailegacy_res_listen", "ailegacy_res_listen", "town_or_village_player", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
-
-            // --- Lordless parties on the map (bandits, caravans, villagers on the road), chat window style
-            foreach (var token in BandTokens)
+            // --- Common people in towns and villages, in every branch of the game's where one is met (tavern, arena,
+            // shops, guards, alleys, children...), chat window style. Each returns to its own branch.
+            foreach (var b in ResidentBranches)
             {
-                string back = token;
-                starter.AddPlayerLine("ailegacy_band_start_" + token, token, "ailegacy_band_listen_" + token,
+                string back = b.Token, role = b.Role;
+                bool child = b.Child;
+                starter.AddPlayerLine("ailegacy_res_start_" + back, back, "ailegacy_res_listen_" + back,
                     L.T("AIL_73c1647d", "{=!}Oye, ¿tienes un momento? [Charla libre]"),
-                    () => !S.Get.UseDialogStyle && CanTalkBand(),
-                    () => MainThread.Post(() => { var sp = BandSpeaker(); if (sp != null) ChatSession.Start(sp); }),
+                    () => !S.Get.UseDialogStyle && CanTalkResident(child),
+                    () => MainThread.Post(() => { var sp = ResidentSpeaker(role, child); if (sp != null) ChatSession.Start(sp); }),
                     priority: 110);
-                starter.AddDialogLine("ailegacy_band_listen_" + token, "ailegacy_band_listen_" + token, back, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
+                starter.AddDialogLine("ailegacy_res_listen_" + back, "ailegacy_res_listen_" + back, back, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
+            }
+
+            // --- Parties met on the map (bandits, caravans, villagers on the road, patrols, minor factions, your caravans,
+            // a party breaking up), chat window style
+            foreach (var b in PartyBranches)
+            {
+                string back = b.Token, role = b.Role;
+                starter.AddPlayerLine("ailegacy_band_start_" + back, back, "ailegacy_band_listen_" + back,
+                    L.T("AIL_73c1647d", "{=!}Oye, ¿tienes un momento? [Charla libre]"),
+                    () => !S.Get.UseDialogStyle && CanTalkParty(),
+                    () => MainThread.Post(() => { var sp = PartySpeaker(role); if (sp != null) ChatSession.Start(sp); }),
+                    priority: 110);
+                starter.AddDialogLine("ailegacy_band_listen_" + back, "ailegacy_band_listen_" + back, back, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
             }
 
             Log.Info($"AI Legacy ready: dialogues added, {MemoryStore.Count} characters in memory, {System.Linq.Enumerable.Count(NewsStore.All)} news items");
@@ -349,8 +352,11 @@ namespace AILegacy.Behaviors
                 () =>
                 {
                     if (!Initiative.Matches()) return false;
+                    bool hostile = Initiative.HostilePending;
                     var c = Initiative.Take();
                     if (c == null) return false;
+                    ResetReturn();
+                    _fromHostileInit = hostile;
                     MBTextManager.SetTextVariable("AIL_DLG", new TextObject("{=!}" + c.ConsumeDialogText()));
                     return true;
                 },
@@ -386,7 +392,7 @@ namespace AILegacy.Behaviors
                         who.SituationKind = "initiative";
                         who.Situation = TAmbush.Format("theirs", BandParty().MemberRoster.TotalManCount, "yours", TaleWorlds.CampaignSystem.Party.MobileParty.MainParty.MemberRoster.TotalManCount,
                             "purse", Hero.MainHero.Gold, "sea", BandParty().IsCurrentlyAtSea ? TAmbushSea.Text : "", "player", Hero.MainHero.Name.ToString());
-                        _fromPrisonerBranch = false; _fromSurrenderDemand = false; _bandReturn = "bandit_defender";
+                        ResetReturn(); _bandReturn = "bandit_defender";
                         var s = ChatSession.StartDialog(who);
                         if (s == null) return false;
                         s.AskOpening("You and your men have just blocked their way on the road. Speak first.");
@@ -401,9 +407,7 @@ namespace AILegacy.Behaviors
                 () => S.Get.UseDialogStyle && CanTalkHero(),
                 () =>
                 {
-                    _fromPrisonerBranch = false;
-                    _fromSurrenderDemand = false;
-                    _bandReturn = null;
+                    ResetReturn();
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
@@ -413,9 +417,8 @@ namespace AILegacy.Behaviors
                 () => S.Get.UseDialogStyle && CanTalkHero(),
                 () =>
                 {
-                    _fromPrisonerBranch = false;
+                    ResetReturn();
                     _fromSurrenderDemand = true;
-                    _bandReturn = null;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
@@ -424,9 +427,8 @@ namespace AILegacy.Behaviors
                 () => S.Get.UseDialogStyle && CanTalkHero(),
                 () =>
                 {
+                    ResetReturn();
                     _fromPrisonerBranch = true;
-                    _fromSurrenderDemand = false;
-                    _bandReturn = null;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) MainThread.Post(s.AskInput);
                 }, priority: 120);
@@ -435,19 +437,16 @@ namespace AILegacy.Behaviors
                 () => S.Get.UseDialogStyle && World.SceneImages.Enabled && CanTalkHero(),
                 () =>
                 {
-                    _fromPrisonerBranch = false;
-                    _fromSurrenderDemand = false;
-                    _bandReturn = null;
+                    ResetReturn();
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
                     if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
                 }, priority: 119);
             starter.AddPlayerLine("ailegacy_d_start_ri", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_e7b1c7d0", "{=!}Hablar (con imagen de escena) [AI Legacy]"),
-                () => S.Get.UseDialogStyle && World.SceneImages.Enabled && CanTalkResident(),
+                () => S.Get.UseDialogStyle && World.SceneImages.Enabled && CanTalkResident(false),
                 () =>
                 {
-                    _bandReturn = null;
-                    var cm = Campaign.Current.ConversationManager;
-                    var s = ChatSession.StartDialog(Speaker.FromResident(cm.OneToOneConversationCharacter, cm.OneToOneConversationAgent));
+                    ResetReturn();
+                    var s = ChatSession.StartDialog(ResidentSpeaker(null, false));
                     if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
                 }, priority: 119);
             // An adult child of yours born out of wedlock: you acknowledge them before everyone
@@ -460,33 +459,42 @@ namespace AILegacy.Behaviors
             starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),
                 () => Scenes.MapTalk.Queue(Hero.OneToOneConversationHero), priority: 119);
-            starter.AddPlayerLine("ailegacy_d_start_r", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
-                () => S.Get.UseDialogStyle && CanTalkResident(),
-                () =>
-                {
-                    _bandReturn = null;
-                    var cm = Campaign.Current.ConversationManager;
-                    var s = ChatSession.StartDialog(Speaker.FromResident(cm.OneToOneConversationCharacter, cm.OneToOneConversationAgent));
-                    if (s != null) MainThread.Post(s.AskInput);
-                }, priority: 120);
-
-            // Lordless parties on the map: the leader of some bandits (whether they attack you or you approach them),
-            // a caravan or villagers. Each has its own branch in the game, and "Back" returns to it.
-            foreach (var token in BandTokens)
+            // Townsfolk in every branch of the game's where one is met: the tavern, the arena, the shops, the guards, the
+            // alleys, the children... Each has its own branch in the game, and "Back" returns to it.
+            foreach (var b in ResidentBranches)
             {
-                string back = token;
-                starter.AddPlayerLine("ailegacy_d_start_" + token, token, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
-                    () => S.Get.UseDialogStyle && CanTalkBand(),
+                string back = b.Token, role = b.Role;
+                bool child = b.Child;
+                starter.AddPlayerLine("ailegacy_d_start_res_" + back, back, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                    () => S.Get.UseDialogStyle && CanTalkResident(child),
                     () =>
                     {
-                        _fromPrisonerBranch = false;
-                        _fromSurrenderDemand = false;
+                        ResetReturn();
                         _bandReturn = back;
-                        var s = ChatSession.StartDialog(BandSpeaker());
+                        var s = ChatSession.StartDialog(ResidentSpeaker(role, child));
                         if (s != null) MainThread.Post(s.AskInput);
                     }, priority: 120);
-                starter.AddDialogLine("ailegacy_d_ret_" + token, "ailegacy_d_ret", back, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
-                    () => _bandReturn == back && Hero.OneToOneConversationHero == null && BandParty() != null, null, priority: 126);
+                starter.AddDialogLine("ailegacy_d_ret_res_" + back, "ailegacy_d_ret", back, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
+                    () => _bandReturn == back && Hero.OneToOneConversationHero == null && TaleWorlds.MountAndBlade.Mission.Current != null, null, priority: 126);
+            }
+
+            // Parties on the map: the leader of some bandits (whether they attack you or you approach them), a caravan,
+            // villagers, a patrol, a minor faction, one of your own caravans, a party breaking up. Each has its own branch
+            // in the game, and "Back" returns to it.
+            foreach (var b in PartyBranches)
+            {
+                string back = b.Token, role = b.Role;
+                starter.AddPlayerLine("ailegacy_d_start_" + back, back, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                    () => S.Get.UseDialogStyle && CanTalkParty(),
+                    () =>
+                    {
+                        ResetReturn();
+                        _bandReturn = back;
+                        var s = ChatSession.StartDialog(PartySpeaker(role));
+                        if (s != null) MainThread.Post(s.AskInput);
+                    }, priority: 120);
+                starter.AddDialogLine("ailegacy_d_ret_" + back, "ailegacy_d_ret", back, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
+                    () => _bandReturn == back && TaleWorlds.MountAndBlade.Mission.Current == null, null, priority: 126);
             }
 
             // The NPC "waits" while you type. The options here are evaluated BEFORE you type,
@@ -499,36 +507,64 @@ namespace AILegacy.Behaviors
             starter.AddPlayerLine("ailegacy_d_backw", "ailegacy_d_optw", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
                 () => true, null, priority: 110);
 
-            // After seeing the reply
+            // After seeing the reply. While a reply that ends or turns the talk is held, Continue is the only way on.
+            bool Open(ChatSession c) => c != null && !c.Holding;
             starter.AddPlayerLine("ailegacy_d_say", "ailegacy_d_opts", "ailegacy_d_wait", L.T("AIL_92eb34bb", "{=!}Decir algo más"),
-                () => { var c = Cur(); return c != null && !c.Ended; },
+                () => { var c = Cur(); return Open(c) && !c.Ended; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.AskInput); }, priority: 125);
             // Whole conversation in a scrollable window
             starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_cdf7046b", "{=!}Repasar lo hablado"),
-                () => { var c = Cur(); return c != null && c.Who != null && c.Who.Memory.Turns.Count > 2; },
+                () => { var c = Cur(); return Open(c) && c.Who != null && c.Who.Memory.Turns.Count > 2; },
                 () => { var c = Cur(); if (c != null) { var who = c.Who; MainThread.Post(() => UI.Books.OpenTranscript(who)); } }, priority: 109);
             starter.AddPlayerLine("ailegacy_d_video_make", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c85f", "{=!}Grabar esta escena en vídeo"),
-                () => { var c = Cur(); return c != null && c.CanMakeVideo && !c.HasVideo; },
+                () => { var c = Cur(); return Open(c) && c.CanMakeVideo && !c.HasVideo; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.MakeVideo); }, priority: 106);
             starter.AddPlayerLine("ailegacy_d_video_show", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c860", "{=!}Ver el vídeo"),
-                () => { var c = Cur(); return c != null && c.HasVideo; },
+                () => { var c = Cur(); return Open(c) && c.HasVideo; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.ShowVideo); }, priority: 122);
             starter.AddPlayerLine("ailegacy_d_picture", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c7d1", "{=!}Ver la escena"),
-                () => { var c = Cur(); return c != null && c.HasPicture; },
+                () => { var c = Cur(); return Open(c) && c.HasPicture; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.ShowPicture); }, priority: 123);
             // The last reply went wrong: the player says how, and it may become a lesson
             starter.AddPlayerLine("ailegacy_d_flag", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_e7b1c7b6", "{=!}Señalar un error de la IA"),
-                () => { var c = Cur(); return c != null && c.CanReport; },
+                () => { var c = Cur(); return Open(c) && c.CanReport; },
                 () => { var c = Cur(); if (c != null) MainThread.Post(c.ReportMistake); }, priority: 108);
             starter.AddPlayerLine("ailegacy_d_leave", "ailegacy_d_opts", "close_window", L.T("AIL_41e43789", "{=!}Marcharse"),
-                () => { var c = Cur(); return c != null && c.Ended; },
+                () => { var c = Cur(); return Open(c) && c.Ended; },
+                LeaveMapEncounter, priority: 124);
+            starter.AddPlayerLine("ailegacy_d_back", "ailegacy_d_opts", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
+                () => { var c = Cur(); return c == null || (!c.Holding && !c.Ended); }, null, priority: 110);
+
+            // The reply that ends or turns the talk: read it, hear it out, then Continue carries it out. Pressed while the
+            // voice still speaks, it waits and goes on by itself when the voice ends.
+            starter.AddPlayerLine("ailegacy_d_cont", "ailegacy_d_opts", "ailegacy_d_hold", L.T("AIL_e7b1ca08", "{=!}Continuar"),
+                () => { var c = Cur(); return c != null && c.Holding; },
+                () => { var c = Cur(); c?.Continue(); }, priority: 200);
+            starter.AddDialogLine("ailegacy_d_hold_wait", "ailegacy_d_hold", "ailegacy_d_opts", "{=!}{AIL_DLG}",
                 () =>
                 {
-                    try { if (PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement && !Combat.KeepEncounter) PlayerEncounter.LeaveEncounter = true; }
-                    catch (Exception ex) { Log.Error("Leaving", ex); }
-                }, priority: 124);
-            starter.AddPlayerLine("ailegacy_d_back", "ailegacy_d_opts", "ailegacy_d_ret", L.T("AIL_0042ce81", "{=!}Volver"),
-                () => { var c = Cur(); return c == null || !c.Ended; }, null, priority: 110);
+                    var c = Cur();
+                    if (c == null || !c.Holding) return false;
+                    MBTextManager.SetTextVariable("AIL_DLG", new TextObject("{=!}" + c.WaitVoiceText()));
+                    return true;
+                }, null, priority: 130);
+            // It was carried out and the talk is over: what came of it, then the conversation closes
+            starter.AddDialogLine("ailegacy_d_hold_end", "ailegacy_d_hold", "close_window", "{=!}{AIL_DLG}",
+                () =>
+                {
+                    var c = Cur();
+                    if (c == null || !c.Ended) return false;
+                    MBTextManager.SetTextVariable("AIL_DLG", new TextObject("{=!}" + c.ConsumeDialogText()));
+                    return true;
+                }, LeaveMapEncounter, priority: 125);
+            // It was carried out and the talk goes on (a new companion, a walk together)
+            starter.AddDialogLine("ailegacy_d_hold_go", "ailegacy_d_hold", "ailegacy_d_opts", "{=!}{AIL_DLG}",
+                () =>
+                {
+                    var c = Cur();
+                    MBTextManager.SetTextVariable("AIL_DLG", new TextObject("{=!}" + (c?.ConsumeDialogText() ?? "...")));
+                    return true;
+                }, null, priority: 120);
 
             // The reply in the dialogue box. If they're still thinking, loop back to "See their reply".
             starter.AddDialogLine("ailegacy_d_think", "ailegacy_d_show", "ailegacy_d_optw", "{=!}{AIL_DLG}",
@@ -553,6 +589,11 @@ namespace AILegacy.Behaviors
                 () => _fromPrisonerBranch && IsMainPartyPrisoner(), null, priority: 125);
             starter.AddDialogLine("ailegacy_d_ret_s", "ailegacy_d_ret", SurrenderDemandOptions, L.T("AIL_e7b1c4d7", "{=!}¿Y bien? ¿Os rendís o no?"),
                 () => _fromSurrenderDemand && Hero.OneToOneConversationHero != null, null, priority: 124);
+            // An enemy who rode the player down spoke first: "Back" goes to the game's own hostile encounter (its greeting,
+            // then the surrender demand or whatever the game has for this meeting), as if the talk had not happened
+            starter.AddDialogLine("ailegacy_d_ret_hostile", "ailegacy_d_ret", "start", L.T("AIL_e7b1ca09", "{=!}Basta de palabras."),
+                () => _fromHostileInit && Hero.OneToOneConversationHero != null && TaleWorlds.MountAndBlade.Mission.Current == null,
+                () => _fromHostileInit = false, priority: 127);
             starter.AddDialogLine("ailegacy_d_ret_h", "ailegacy_d_ret", "hero_main_options", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                 () => Hero.OneToOneConversationHero != null, null, priority: 120);
             starter.AddDialogLine("ailegacy_d_ret_r", "ailegacy_d_ret", "town_or_village_player", L.T("AIL_fb96809a", "{=!}¿Algo más?"),
@@ -585,13 +626,124 @@ namespace AILegacy.Behaviors
             return h != null && h != Hero.MainHero && h.IsAlive && !h.IsChild;
         }
 
+        private struct Branch
+        {
+            public string Token;    // the game's player-options state the talk line is added to, and where "Back" returns
+            public string Role;     // what the character is there, for the prompt (null = from their occupation)
+            public bool Child;      // a branch for children only
+            public Branch(string token, string role, bool child = false) { Token = token; Role = role; Child = child; }
+        }
+
         /// <summary>
-        /// Game dialogue branches for lordless parties (TaleWorlds.CampaignSystem 1.4.8): BanditInteractionsCampaignBehavior
-        /// ("bandit_attacker" if you approach them, "bandit_defender" if they attack you), CaravansCampaignBehavior and VillagerCampaignBehavior.
+        /// The game's own branches where a townsperson (an agent in the scene, not a hero) waits for the player's choice,
+        /// checked against SandBox.dll and TaleWorlds.CampaignSystem.dll 1.5.7: CommonVillagers, Guards, TavernEmployees,
+        /// BoardGame, Barber, Traders, Crafting, WorkshopsCharacters, ArenaMaster, Recruitment and Alley campaign behaviors.
         /// </summary>
-        private static readonly string[] BandTokens = { "bandit_attacker", "bandit_defender", "caravan_talk", "village_farmer_talk" };
-        /// <summary>Branch that "Back" returns to when the current chat is with the leader of a lordless party.</summary>
+        private static readonly Branch[] ResidentBranches =
+        {
+            new Branch("town_or_village_player", null),
+            new Branch("town_or_village_player_children_post_rhyme", "a child of this place, out playing in the streets", true),
+            new Branch("town_or_village_children_player_no_rhyme", "a child of this place, on the way back to their parents", true),
+            new Branch("town_or_village_escorting", "a local who is walking the stranger to the person they asked for"),
+            new Branch("prison_guard_talk", "guard of the prison here, who keeps the keys and the prisoners"),
+            new Branch("castle_guard_talk", "guard at the door of the lord's hall, who decides who goes in"),
+            new Branch("tavernkeeper_talk", "keeper of this tavern: you pour, cook, rent rooms and hear every rumour"),
+            new Branch("tavernmaid_talk", "serving maid in this tavern"),
+            new Branch("talk_bard_player", "musician who plays and sings in this tavern for coins"),
+            new Branch("ransom_broker_intro", "ransom broker: you buy prisoners and arrange ransoms between enemies"),
+            new Branch("ransom_broker_info_talk", "ransom broker: you buy prisoners and arrange ransoms between enemies"),
+            new Branch("ransom_broker_talk", "ransom broker: you buy prisoners and arrange ransoms between enemies"),
+            new Branch("taverngamehost_talk", "host of the board games in this tavern, who plays against all comers for bets"),
+            new Branch("barber_question1", "barber, who cuts hair and trims beards"),
+            new Branch("weaponsmith_talk_player", "weapon seller in the market"),
+            new Branch("blacksmith_player", "blacksmith who works the forge"),
+            new Branch("shopworker_npc_player", "worker in a workshop here"),
+            new Branch("player_options", "worker in a workshop that belongs to the stranger in front of you, your employer"),
+            new Branch("arena_intro_1", "master of the arena: you run the practice fights and the tournaments"),
+            new Branch("arena_intro_1a", "master of the arena: you run the practice fights and the tournaments"),
+            new Branch("arena_master_talk", "master of the arena: you run the practice fights and the tournaments"),
+            new Branch("arena_master_post_practice_fight_talk", "master of the arena: you run the practice fights and the tournaments"),
+            new Branch("mercenary_tavern_talk", "leader of a few mercenaries waiting in the tavern for someone to hire them"),
+            new Branch("alley_player_owned_start_thug", "a thug of the gang that holds one of the alleys for the stranger in front of you, your boss"),
+            new Branch("alley_player_owned_start", "the one who runs an alley here for the stranger in front of you, your boss"),
+            new Branch("alley_talk_start", "a thug of the gang that controls this alley"),
+            new Branch("alley_talk_start_confront", "a thug of the gang that controls this alley, ready for a fight"),
+            new Branch("alley_first_talk_start", "a thug of the gang that controls this alley"),
+            new Branch("alley_options", "a thug of the gang that controls this alley"),
+        };
+
+        /// <summary>
+        /// The game's branches for parties met on the map: BanditInteractions ("bandit_attacker" if you approach them,
+        /// "bandit_defender" if they attack you, minor factions), Caravans (also your own), Villagers, PatrolParties and
+        /// DisbandParty. The leader can be a hero (a minor faction, your caravan master) or not.
+        /// </summary>
+        private static readonly Branch[] PartyBranches =
+        {
+            new Branch("bandit_attacker", null),
+            new Branch("bandit_defender", null),
+            new Branch("minor_faction_talk_hostile_response", null),
+            new Branch("caravan_talk", null),
+            new Branch("player_caravan_talk_start", "the master of a caravan that trades for the stranger in front of you, your employer"),
+            new Branch("player_caravan_talk_end", "the master of a caravan that trades for the stranger in front of you, your employer"),
+            new Branch("village_farmer_talk", null),
+            new Branch("patrol_talk_start_1", "the leader of a patrol that keeps the roads around its town safe"),
+            new Branch("disbanding_leaderless_party_start_response", "one of a party whose leader is gone: the men are breaking up and going home"),
+        };
+
+        /// <summary>Branch that "Back" returns to when the current chat started in one of the branches above.</summary>
         private static string _bandReturn;
+        /// <summary>The current chat began with an enemy who rode the player down (initiative).</summary>
+        private static bool _fromHostileInit;
+
+        /// <summary>A new chat entry: forget where the last one came from.</summary>
+        private static void ResetReturn()
+        {
+            _bandReturn = null;
+            _fromPrisonerBranch = false;
+            _fromSurrenderDemand = false;
+            _fromHostileInit = false;
+        }
+
+        private static void OnConversationEnded(IEnumerable<CharacterObject> _) => ResetReturn();
+
+        /// <summary>On the map, talking to a party is an encounter: leaving the talk leaves it, as the game's farewell does.</summary>
+        private static void LeaveMapEncounter()
+        {
+            try { if (PlayerEncounter.Current != null && !PlayerEncounter.InsideSettlement && !Combat.KeepEncounter) PlayerEncounter.LeaveEncounter = true; }
+            catch (Exception ex) { Log.Error("Leaving", ex); }
+        }
+
+        /// <summary>Talk with the one leading a party on the map, a hero or not.</summary>
+        private static bool CanTalkParty()
+        {
+            if (CanTalkBand()) return true;
+            try
+            {
+                var h = Hero.OneToOneConversationHero;
+                return TaleWorlds.MountAndBlade.Mission.Current == null && CanTalkHero() && h.PartyBelongedTo != null && h.PartyBelongedTo.LeaderHero == h;
+            }
+            catch { return false; }
+        }
+
+        private static Speaker PartySpeaker(string role)
+        {
+            var h = Hero.OneToOneConversationHero;
+            if (h != null) return Speaker.FromHero(h);
+            var s = BandSpeaker();
+            if (s != null) s.Role = role;
+            return s;
+        }
+
+        private static Speaker ResidentSpeaker(string role, bool child)
+        {
+            var cm = Campaign.Current?.ConversationManager;
+            var c = cm?.OneToOneConversationCharacter;
+            if (c == null) return null;
+            var s = Speaker.FromResident(c, cm.OneToOneConversationAgent);
+            s.Role = role;
+            s.KnownChild = child;
+            return s;
+        }
 
         /// <summary>The lordless party you're talking to on the map right now.</summary>
         private static TaleWorlds.CampaignSystem.Party.MobileParty BandParty()
@@ -646,12 +798,16 @@ How it ends is decided by what is said, with your actions: take their money (tak
             return p == null || c == null ? null : Speaker.FromBand(c, p);
         }
 
-        private static bool CanTalkResident()
+        /// <summary>
+        /// A townsperson in a scene. Children only in the game's branches for children, where the prompt keeps them
+        /// children (no actions, nothing romantic or violent; romance is for adult heroes only anyway).
+        /// </summary>
+        private static bool CanTalkResident(bool childBranch)
         {
             if (!S.Get.EnableResidents) return false;
             var cm = Campaign.Current?.ConversationManager;
             var c = cm?.OneToOneConversationCharacter;
-            return c != null && !c.IsHero && cm.OneToOneConversationAgent != null && c.Age >= 16;
+            return c != null && !c.IsHero && cm.OneToOneConversationAgent != null && (childBranch || c.Age >= 16);
         }
     }
 }

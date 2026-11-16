@@ -1,0 +1,201 @@
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.7">
+      <Children>
+        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="1640" SuggestedHeight="950" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="StdAssets\Popup\canvas" />
+
+            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="34" MarginRight="34" MarginTop="16" MarginBottom="18" StackLayout.LayoutMethod="VerticalTopToBottom">
+              <Children>
+                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="52" Brush="Popup.Title.Text" Brush.FontSize="34" Text="@Title" />
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginBottom="8" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
+
+                <!-- Facts: the place on the left, your party on the right -->
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="160">
+                  <Children>
+                    <RichTextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="770" HorizontalAlignment="Left" MarginLeft="8" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Text="@FactsLeft" />
+                    <RichTextWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="770" HorizontalAlignment="Right" MarginRight="8" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Text="@FactsRight" />
+                  </Children>
+                </Widget>
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginTop="4" MarginBottom="8" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
+
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="590">
+                  <Children>
+
+                    <!-- Left: you, companions, troops, prisoners -->
+                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="900" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.35">
+                      <Children>
+                        <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="18" AutoHideScrollBars="true" ClipRect="PatientClip" InnerPanel="PatientClip\PatientList" VerticalScrollbar="..\PatientBarHolder\PatientBar">
+                          <Children>
+                            <Widget Id="PatientClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                              <Children>
+                                <ListPanel Id="PatientList" DataSource="{Sections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <ItemTemplate>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="12" MarginRight="6" MarginTop="10" MarginBottom="4" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="24" Brush.TextHorizontalAlignment="Left" Text="@Title" />
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="44" MarginTop="2">
+                                          <Children>
+                                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="250" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Text="@Info" />
+                                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="240" SuggestedHeight="42" HorizontalAlignment="Right" VerticalAlignment="Center" Brush="Popup.Done.Button" Command.Click="ExecuteHealWounds" IsVisible="@HasWoundButton" IsEnabled="@CanHealWounds">
+                                              <Children>
+                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="18" Text="@WoundButtonText" />
+                                              </Children>
+                                            </ButtonWidget>
+                                          </Children>
+                                        </Widget>
+                                        <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="4" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.FontColor="#B8A888FF" Brush.TextHorizontalAlignment="Left" Text="@EmptyText" IsVisible="@HasEmptyText" />
+                                        <ListPanel DataSource="{Patients}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                          <ItemTemplate>
+                                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="4" MarginRight="4" Brush="Popup.SelectionElement.Tuple" Command.Click="ExecuteToggle" IsSelected="@IsMarked" IsEnabled="@CanMark">
+                                              <Children>
+                                                <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="30" HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="8" MarginTop="8" Brush="Popup.Tuple.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Center" Text="@MarkText" />
+                                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="54" MarginRight="10" MarginTop="6" MarginBottom="8" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                                  <Children>
+                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Tuple.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Left" Text="@Line1" />
+                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Left" Text="@Line2" />
+                                                  </Children>
+                                                </ListPanel>
+                                              </Children>
+                                            </ButtonWidget>
+                                          </ItemTemplate>
+                                        </ListPanel>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" MarginTop="10" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.2" />
+                                      </Children>
+                                    </ListPanel>
+                                  </ItemTemplate>
+                                </ListPanel>
+                              </Children>
+                            </Widget>
+                          </Children>
+                        </ScrollablePanel>
+                        <Widget Id="PatientBarHolder" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="16" HorizontalAlignment="Right">
+                          <Children>
+                            <ScrollbarWidget Id="PatientBar" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" AlignmentAxis="Vertical" Handle="PatientHandle" MaxValue="100" MinValue="0" MarginTop="4" MarginBottom="4">
+                              <Children>
+                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="3" HorizontalAlignment="Center" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
+                                <Widget Id="PatientHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="9" SuggestedHeight="40" MinHeight="20" HorizontalAlignment="Center" Sprite="BlankWhiteSquare_9" Color="#C9B48AFF" />
+                              </Children>
+                            </ScrollbarWidget>
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </Widget>
+
+                    <!-- Right: way of treatment, totals, prevention, what the physicians know -->
+                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="652" HorizontalAlignment="Right" Sprite="BlankWhiteSquare_9" Color="#000000FF" AlphaFactor="0.35">
+                      <Children>
+                        <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginRight="18" AutoHideScrollBars="true" ClipRect="CareClip" InnerPanel="CareClip\CareInner" VerticalScrollbar="..\CareBarHolder\CareBar">
+                          <Children>
+                            <Widget Id="CareClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                              <Children>
+                                <ListPanel Id="CareInner" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                  <Children>
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginTop="10" Brush="Popup.Title.Text" Brush.FontSize="24" Brush.TextHorizontalAlignment="Left" Text="@TreatTitle" IsVisible="@HasDiseases" />
+                                    <ListPanel DataSource="{Methods}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@HasDiseases">
+                                      <ItemTemplate>
+                                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="10" MarginRight="6" MarginTop="4" Brush="Popup.SelectionElement.Tuple" Command.Click="ExecuteSelect" IsSelected="@IsSelected">
+                                          <Children>
+                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginRight="10" MarginTop="6" MarginBottom="8" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                              <Children>
+                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Tuple.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Left" Text="@Name" />
+                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Left" Text="@Detail" />
+                                              </Children>
+                                            </ListPanel>
+                                          </Children>
+                                        </ButtonWidget>
+                                      </ItemTemplate>
+                                    </ListPanel>
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginRight="10" MarginTop="4" Brush="Popup.Description.Text" Brush.FontSize="16" Brush.FontColor="#B8A888FF" Brush.TextHorizontalAlignment="Left" Text="@MethodNote" IsVisible="@HasMethodNote" />
+
+                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="48" MarginTop="10" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasDiseases">
+                                      <Children>
+                                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="190" SuggestedHeight="44" MarginRight="10" Brush="Popup.Cancel.Button" Command.Click="ExecuteMarkAll">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="18" Text="@MarkAllText" />
+                                          </Children>
+                                        </ButtonWidget>
+                                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="190" SuggestedHeight="44" MarginRight="10" Brush="Popup.Cancel.Button" Command.Click="ExecuteMarkSevere">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="18" Text="@MarkSevereText" />
+                                          </Children>
+                                        </ButtonWidget>
+                                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="190" SuggestedHeight="44" Brush="Popup.Cancel.Button" Command.Click="ExecuteClear">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="18" Text="@ClearText" />
+                                          </Children>
+                                        </ButtonWidget>
+                                      </Children>
+                                    </ListPanel>
+
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginRight="10" MarginTop="10" Brush="Popup.Description.Text" Brush.FontSize="18" Brush.TextHorizontalAlignment="Left" Text="@Summary" IsVisible="@HasDiseases" />
+                                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="330" SuggestedHeight="56" MarginTop="10" HorizontalAlignment="Center" Brush="Popup.Done.Button" Command.Click="ExecuteTreat" IsEnabled="@CanTreat" IsVisible="@HasDiseases">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="22" Text="@TreatText" />
+                                      </Children>
+                                    </ButtonWidget>
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginRight="10" MarginTop="8" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.FontColor="#B8E0A0FF" Brush.TextHorizontalAlignment="Left" Text="@Status" IsVisible="@HasStatus" />
+
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" MarginTop="14" MarginLeft="10" MarginRight="6" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.2" IsVisible="@HasDiseases" />
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginTop="10" Brush="Popup.Title.Text" Brush.FontSize="24" Brush.TextHorizontalAlignment="Left" Text="@PreventionTitle" IsVisible="@HasDiseases" />
+                                    <ListPanel DataSource="{Preventions}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
+                                      <ItemTemplate>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginRight="6" MarginTop="8">
+                                          <Children>
+                                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginRight="232" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Text="@Text" />
+                                            <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="222" SuggestedHeight="44" HorizontalAlignment="Right" VerticalAlignment="Top" Brush="Popup.Done.Button" Command.Click="ExecuteBuy" IsEnabled="@CanBuy">
+                                              <Children>
+                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Brush.FontSize="17" Text="@ButtonText" />
+                                              </Children>
+                                            </ButtonWidget>
+                                          </Children>
+                                        </Widget>
+                                      </ItemTemplate>
+                                    </ListPanel>
+
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="1" MarginTop="14" MarginLeft="10" MarginRight="6" Sprite="BlankWhiteSquare_9" Color="#FFFFFFFF" AlphaFactor="0.2" />
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginTop="10" Brush="Popup.Title.Text" Brush.FontSize="24" Brush.TextHorizontalAlignment="Left" Text="@OutbreaksTitle" />
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="14" MarginRight="10" MarginTop="6" MarginBottom="14" Brush="Popup.Description.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Text="@Outbreaks" />
+                                  </Children>
+                                </ListPanel>
+                              </Children>
+                            </Widget>
+                          </Children>
+                        </ScrollablePanel>
+                        <Widget Id="CareBarHolder" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="16" HorizontalAlignment="Right">
+                          <Children>
+                            <ScrollbarWidget Id="CareBar" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" AlignmentAxis="Vertical" Handle="CareHandle" MaxValue="100" MinValue="0" MarginTop="4" MarginBottom="4">
+                              <Children>
+                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="3" HorizontalAlignment="Center" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
+                                <Widget Id="CareHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="9" SuggestedHeight="40" MinHeight="20" HorizontalAlignment="Center" Sprite="BlankWhiteSquare_9" Color="#C9B48AFF" />
+                              </Children>
+                            </ScrollbarWidget>
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </Widget>
+
+                  </Children>
+                </Widget>
+
+                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginTop="12" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                  <Children>
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="251" SuggestedHeight="64" Brush="Popup.Cancel.Button" Command.Click="ExecuteClose">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@CloseText" />
+                      </Children>
+                    </ButtonWidget>
+                  </Children>
+                </ListPanel>
+              </Children>
+            </ListPanel>
+
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="StdAssets\Popup\canvas_gradient" IsEnabled="false" />
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="18" ExtendTop="18" ExtendRight="18" ExtendBottom="18" IsEnabled="false" />
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

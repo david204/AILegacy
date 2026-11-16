@@ -229,9 +229,22 @@ Answer ONLY with JSON: { ""conduct"": { ""yields_at"": 0, ""yield_line"": """", 
             catch (Exception ex) { Log.Error("Fight lines: tick", ex); Clear(); }
         }
 
-        public static void End(bool playerWon)
+        /// <summary>
+        /// The opponent's last word. Someone knocked out cold or dead says nothing (Combat narrates it). After a truce or
+        /// a flight they already spoke their line. If the AI never answered, a short fixed line, so it is never a random remark.
+        /// </summary>
+        public static void End(bool playerWon, string ending = null)
         {
-            try { if (_opp != null) Show(_opp, _name, playerWon ? _defeat : _victory, Colors.Yellow); }
+            try
+            {
+                if (_opp != null && _opp.IsActive() && (ending == null || ending == "yielded" || ending == "player_yielded"))
+                {
+                    string line = playerWon ? _defeat : _victory;
+                    if (string.IsNullOrWhiteSpace(line))
+                        line = playerWon ? L.T("AIL_e7b1c9a5", "Basta... Tú ganas.") : L.T("AIL_e7b1c9a6", "¡Y que te sirva de lección!");
+                    Show(_opp, _name, line, Colors.Yellow);
+                }
+            }
             catch { }
             Clear();
         }

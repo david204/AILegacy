@@ -339,6 +339,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
         public string ImageStyle { get; set; } = "Painterly medieval illustration, oil on canvas, muted earthy colours, soft natural light, detailed, no text, no watermark";
 
+        [SettingPropertyText("{=AIL_e7b1c8a0}Pollinations token (optional, free)", Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1c8a1}With «Free (Pollinations)», pictures come with its watermark and a slower queue. With a free account at auth.pollinations.ai you get a token: paste it here and the watermark goes. Only used for Pollinations.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
+        public string ImagePollinationsToken { get; set; } = "";
+
         [SettingPropertyText("{=AIL_e7b1c4f7}Local Stable Diffusion address", Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}F. Pictures", GroupOrder = 15)]
         public string ImageLocalUrl { get; set; } = "http://127.0.0.1:7860";
@@ -515,6 +520,11 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_a7e1d3c3}Sound when the reply arrives", Order = 8, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
         public bool ReplyReadySound { get; set; } = true;
+
+        [SettingPropertyButton("{=AIL_e7b1ca0a}Force close a stuck dialogue", Content = "{=AIL_e7b1ca0b}Close", Order = 8, RequireRestart = false,
+            HintText = "{=AIL_e7b1ca0c}If a conversation hangs (the box does not answer, the window does not close, or the map is left on an encounter), this closes it: the AI Legacy talk, the game's conversation and an open encounter on the map with no battle. What was said is kept.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General", GroupOrder = 1)]
+        public Action ForceCloseDialogue { get; set; } = () => Later(Dialogue.ChatSession.ForceClose);
 
         [SettingPropertyBool("{=AIL_e6b1c010}Activities in towns and villages", Order = 9, RequireRestart = false,
             HintText = "{=AIL_e6b1c011}Two options in the town and village menus that take a few hours, with the game's waiting bar: ask around to hear what people are saying (one AI request), and spend the evening with your men (morale, and trust from companions).")]
@@ -1277,16 +1287,6 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
         public int MinDaysBetweenLetters { get; set; } = 4;
 
-        [SettingPropertyBool("{=AIL_e7b1c64e}A letter arrives as a map notice", Order = 5, RequireRestart = false,
-            HintText = "{=AIL_e7b1c64f}A letter from a character shows as one of the round notices at the right of the map; click it to read and answer it, right click to discard it. Notices last until you leave the game (the letter stays in their memory either way). Off: the letter opens in a window as it arrives.")]
-        [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
-        public bool LetterMapNotification { get; set; } = true;
-
-        [SettingPropertyBool("{=AIL_e7b1c650}Also open the letter at once", Order = 6, RequireRestart = false,
-            HintText = "{=AIL_e7b1c651}With the map notice on, the letter also opens in a window as it arrives, as it did before.")]
-        [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
-        public bool LetterPopup { get; set; } = false;
-
         [SettingPropertyInteger("{=AIL_9d30d4f1}Messenger cost per distance unit", 0, 100, Order = 3, RequireRestart = false,
             HintText = "{=AIL_0ebbc439}Denars per distance unit on the map. Letters are sent from the tavern district.")]
         [SettingPropertyGroup("{=AIL_4bb74331}6. Letters", GroupOrder = 6)]
@@ -1479,13 +1479,13 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
         public int AmbientCommonerLines { get; set; } = 3;
 
-        [SettingPropertyInteger("{=AIL_3e132ba1}Group: seconds of your silence before they continue (0 = never)", 0, 180, Order = 5, RequireRestart = false,
-            HintText = "{=AIL_f08739d1}If you say nothing during this time, the AI decides whether someone in the group continues the conversation (pushes you, or they start talking among themselves). Each time is one request.")]
+        [SettingPropertyInteger("{=AIL_e7b1c950}Group: seconds of your silence before they nudge you (0 = they never go on without you)", 0, 180, Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c951}After answering you, the group goes on talking among themselves for a few lines and then waits for you. If one of them asked you something and you stay silent this long, they carry on without you (once more later, at most). Someone left alone with you says a last word and the talk ends. 0: they only answer you.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
-        public int GroupSilenceSeconds { get; set; } = 20;
+        public int GroupSilenceSeconds { get; set; } = 10;
 
-        [SettingPropertyInteger("{=AIL_b4fc9c6e}Group: consecutive times they continue without you", 0, 6, Order = 5, RequireRestart = false,
-            HintText = "{=AIL_26e90847}How many times in a row they can continue the conversation without you saying anything. When you speak, the count starts over.")]
+        [SettingPropertyInteger("{=AIL_e7b1c952}Group: lines they say among themselves after answering you", 0, 8, Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1c953}After answering you, how many more lines they say to each other before winding down (two more lines at most) and waiting for you. When you speak, the count starts over. Each 2 to 4 lines are one request, asked for while the previous ones are still being said. 0: they only answer you.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}D. Scenes", GroupOrder = 13)]
         public int GroupSilenceFollowUps { get; set; } = 4;
 
@@ -1841,14 +1841,9 @@ namespace AILegacy.Settings
 
         // Herbs, garrisons, tooltips, deaths, debt
         [SettingPropertyBool("{=AIL_e7b1c6e7}Healing herbs", Order = 85, RequireRestart = false,
-            HintText = "{=AIL_e7b1c6e8}Five qualities of herbs sold in the hospitals, better ones in richer towns and the best only in a capital. They are goods in your inventory: use them anywhere (Alt+H on the map, or in the hospital) to treat your sick or to make your party catch less for some days.")]
+            HintText = "{=AIL_e7b1c94a}Five qualities of herbs that the hospitals use on the spot, better ones in richer towns and the best only in a capital: as a stronger way of treating your sick, or drunk by your whole party against contagion for some days. Nothing is carried in your inventory.")]
         [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
         public bool EnableHealingHerbs { get; set; } = true;
-
-        [SettingPropertyBool("{=AIL_e7b1c6e9}Herbs: treat your sick with them automatically", Order = 86, RequireRestart = false,
-            HintText = "{=AIL_e7b1c6ea}Each day, your sick heroes and soldiers with no treatment get the herbs you carry: the best ones for the grave cases, the plainest for the rest. Off: only when you use them yourself.")]
-        [SettingPropertyGroup("{=AIL_513640bb}C. Diseases/{=AIL_e7b1c7b4}4. Treatment and healing", GroupOrder = 4)]
-        public bool HerbsAutoUse { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_e7b1c6eb}Garrisons and militias fall ill", Order = 87, RequireRestart = false,
             HintText = "{=AIL_e7b1c6ec}Where there is an outbreak, the garrison and the militia may catch it. It spreads among them, the physicians of the place see to them every few days, and a serious disease left to run kills some each day. It shows in the settlement's tooltip and in the militia's daily change.")]
@@ -2551,11 +2546,6 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
         public string KeySummonAll { get; set; } = "Ctrl+Alt+X";
-
-        [SettingPropertyText("{=AIL_e7b1c6f4}Use healing herbs (on the map)", Order = 7, RequireRestart = false,
-            HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
-        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
-        public string KeyHerbs { get; set; } = "Alt+H";
 
         // ------------------------------------------------------------ Editor
         [SettingPropertyButton("{=AIL_1cb10851}Open the AI Legacy editor", Content = "{=AIL_5a216c13}Open", Order = 0, RequireRestart = false,
