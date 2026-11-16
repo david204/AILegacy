@@ -34,6 +34,9 @@ namespace AILegacy.World
             CampaignEvents.OnSiegeEventStartedEvent.AddNonSerializedListener(owner, OnSiegeStarted);
             CampaignEvents.OnSiegeEventEndedEvent.AddNonSerializedListener(owner, OnSiegeEnded);
             CampaignEvents.HourlyTickEvent.AddNonSerializedListener(owner, OnHourlyTick);
+            CampaignEvents.SettlementEntered.AddNonSerializedListener(owner, VisitNews.OnSettlementEntered);
+            CampaignEvents.OnSettlementLeftEvent.AddNonSerializedListener(owner, VisitNews.OnSettlementLeft);
+            VisitNews.Reset();
             Captures.Clear();
             SiegeEnds.Clear();
             _watchDay = -1;
@@ -114,13 +117,26 @@ namespace AILegacy.World
             NewsStore.Add(n);
         });
 
+        /// <summary>
+        /// A death the caller tells itself, with a richer record (a death in a conversation, Dialogue/Combat.cs): the
+        /// game's own death event for this hero adds no second news item. Cleared by the next death reported.
+        /// </summary>
+        public static string ToldElsewhere;
+
         private static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool showNotification) => Safe("muerte", () =>
         {
-            if (victim == null || !(victim.IsLord || victim.IsNotable || victim.IsPlayerCompanion)) return;
+            if (victim == null) return;
+            if (ToldElsewhere != null && ToldElsewhere == victim.StringId) { ToldElsewhere = null; return; }
+            if (!(victim.IsLord || victim.IsNotable || victim.IsPlayerCompanion)) return;
             // "Lost" is how the game quietly removes notables, so it's only news for a lord
             if (detail.ToString() == "Lost" && !victim.IsLord) return;
             string how, howEs;
-            switch (detail.ToString())
+            // Killed by a disease (it kills through the game's old-age death): the banner at the top of the screen,
+            // "X died from Y", is shown by the disease code itself (DiseasesPeople); here it is only the news text,
+            // which feeds what people know and is no card unless the dead was a sovereign
+            string disease = null;
+            try { disease = Diseases.DiedOf(victim, detail); } catch { }
+            switch (disease != null ? "Disease" : detail.ToString())
             {
                 case "DiedOfOldAge": how = "died of old age"; howEs = L.T("AIL_feb8d02f", "ha muerto de vejez"); break;
                 case "DiedInLabor": how = "died in childbirth"; howEs = L.T("AIL_5d51e858", "ha muerto en el parto"); break;
@@ -132,6 +148,7 @@ namespace AILegacy.World
                     howEs = killer != null ? L.F("AIL_923a5224", $"ha sido ejecutado por {killer.Name}") : L.T("AIL_93c01ba7", "ha sido ejecutado"); break;
                 case "Murdered": how = "was murdered"; howEs = L.T("AIL_7c907518", "ha sido asesinado"); break;
                 case "Lost": how = "has disappeared and is presumed dead"; howEs = L.T("AIL_6c0ce598", "ha desaparecido y se le da por muerto"); break;
+                case "Disease": how = $"died of {disease}"; howEs = L.F("AIL_e7b1d80c", $"ha muerto de {disease}"); break;
                 default: how = "has died"; howEs = L.T("AIL_00ec5af6", "ha muerto"); break;
             }
             // the head of a mercenary or minor clan is no kingdom's loss: court talk, not something that shakes a realm
@@ -665,6 +682,320 @@ namespace AILegacy.World
                 return L.F("AIL_e7b1c72b", $", jefe del clan {h.Clan.Name}, que no sirve a ningún reino,");
             if (h.IsClanLeader && h.Clan != null) return L.F("AIL_7282058a", $", jefe del clan {h.Clan.Name},");
             return h.Clan != null && h.IsLord ? L.F("AIL_a4990140", $", del clan {h.Clan.Name},") : "";
+        }
+    }
+
+    /// <summary>
+    /// Everything the player did during one visit to a settlement (attacks, street fights, duels, the dead, the guard,
+    /// the alarm), told as ONE piece of news once the player has left it, the way AIInfluence keeps a fight record per
+    /// visit and lets the world hear of it when the player is back on the map. The consequences of each incident (crime,
+    /// relations, what the witnesses and the victims remember) are applied where they happen; only the news waits here.
+    /// With world events on, the whole record goes to the AI in one request; otherwise a summary is written here.
+    /// </summary>
+    internal static class VisitNews
+    {
+        public class Fight
+        {
+            public string VictimName = "";
+            public string HeroId, FactionId;
+            public bool IsHero, IsLord, Female;
+            /// <summary>brawl | duel | death</summary>
+            public string Kind;
+            public bool Unprovoked, Tavern, PlayerWon;
+            public string Ending;
+            /// <summary>killed | senseless | down (beaten, alive) | standing (the attacker got the worst, or it was broken off)</summary>
+            public string Fate;
+            /// <summary>-1 = an agreed fight (nobody hunts anyone), 0 = nobody saw it, 1 = seen but not named, 2 = recognised by name.</summary>
+            public int SeenLevel = -1;
+            public int Witnesses;
+            public string ByWhom = "";
+            public int Defenders, DefendersDown, DefendersKilled;
+        }
+
+        private static Settlement _where;
+        private static bool _open;
+        private static Campaign _campaign;
+        private static readonly List<Fight> Fights = new List<Fight>();
+        private static bool _alarm;
+        private static int _guards;
+        // what the guard did, in order: let_go, fine, arrest, resist_won, resist_lost, escaped, caught, jailed
+        private static readonly List<string> GuardSteps = new List<string>();
+        private static int _fine;
+
+        private static Hero P => Hero.MainHero;
+
+        public static void Reset()
+        {
+            Fights.Clear(); GuardSteps.Clear();
+            _where = null; _open = false; _alarm = false; _guards = 0; _fine = 0;
+            _campaign = Campaign.Current;
+        }
+
+        /// <summary>Something happened here: the buffer belongs to the settlement the player is in now.</summary>
+        private static void Touch()
+        {
+            if (_campaign != Campaign.Current) Reset();
+            var here = Settlement.CurrentSettlement;
+            if (_open && here != _where) Flush();
+            _where = here; _open = true; _campaign = Campaign.Current;
+        }
+
+        public static void AddFight(Fight f)
+        {
+            if (f == null) return;
+            try { Touch(); Fights.Add(f); Log.Info($"[visit news] fight #{Fights.Count} kept for the end of the visit: {f.Kind}{(f.Unprovoked ? ", unprovoked" : "")} with {f.VictimName} ({f.Fate})"); }
+            catch (Exception ex) { Log.Error("Visit news: keep a fight", ex); }
+        }
+
+        public static void AlarmRung() { try { Touch(); _alarm = true; } catch { } }
+
+        public static void GuardsCame(int n) { try { if (n <= 0) return; Touch(); _guards += n; } catch { } }
+
+        public static void Guard(string step, int fine = 0)
+        {
+            try
+            {
+                Touch();
+                GuardSteps.Add(step);
+                if (fine > 0) _fine += fine;
+                Log.Info($"[visit news] the guard: {step}{(fine > 0 ? " " + fine : "")}");
+            }
+            catch (Exception ex) { Log.Error("Visit news: the guard", ex); }
+        }
+
+        public static void OnSettlementEntered(MobileParty party, Settlement st, Hero hero)
+        {
+            try
+            {
+                if (party == null || party != MobileParty.MainParty) return;
+                if (_open && st != _where) Flush();
+                NewsStore.BeginVisit(st?.StringId);
+            }
+            catch (Exception ex) { Log.Error("Visit news: entering", ex); }
+        }
+
+        public static void OnSettlementLeft(MobileParty party, Settlement st)
+        {
+            try
+            {
+                if (party == null || party != MobileParty.MainParty) return;
+                if (_open) Flush();
+                NewsStore.EndVisit();
+            }
+            catch (Exception ex) { Log.Error("Visit news: leaving", ex); }
+        }
+
+        /// <summary>Game thread, often. If the leaving was missed (jailed, a scene outside any settlement), the scene being
+        /// closed with the player no longer in that place is the end of the visit.</summary>
+        public static void Tick()
+        {
+            if (!_open) return;
+            try
+            {
+                if (_campaign != Campaign.Current) { Reset(); return; }
+                if (TaleWorlds.MountAndBlade.Mission.Current != null) return;
+                if (Campaign.Current?.ConversationManager?.IsConversationInProgress == true) return;
+                if (_where == null || (MobileParty.MainParty?.CurrentSettlement != _where && Settlement.CurrentSettlement != _where)) Flush();
+            }
+            catch (Exception ex) { Log.Error("Visit news: tick", ex); Reset(); }
+        }
+
+        // fists against a commoner are a scuffle, not news, unless the player went from one to the next
+        private static bool Newsworthy(Fight f, bool spree) => !(f.Kind == "brawl" && !f.IsHero) || (spree && f.Unprovoked && !f.Tavern);
+
+        private static string Cap(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s.Substring(1);
+
+        /// <summary>Tells the whole visit, once, and empties the buffer.</summary>
+        public static void Flush()
+        {
+            var st = _where;
+            var fights = Fights.ToList(); var steps = GuardSteps.ToList();
+            bool alarm = _alarm; int guards = _guards, fine = _fine;
+            Reset();
+            try
+            {
+                if (Campaign.Current == null || P == null) return;
+                bool spree = fights.Count(f => f.Unprovoked && f.Kind == "brawl" && !f.Tavern) >= 2;
+                var worthy = fights.Where(f => Newsworthy(f, spree)).ToList();
+                var attacks = worthy.Where(f => f.Unprovoked && f.SeenLevel >= 0).ToList();
+                var agreed = worthy.Where(f => !(f.Unprovoked && f.SeenLevel >= 0)).ToList();
+                if (attacks.Count == 0 && agreed.Count == 0 && steps.Count == 0) return;
+
+                string place = st?.Name?.ToString();
+                string placeLocal = place ?? L.T("AIL_e7b1d400", "los caminos");
+                int level = attacks.Count > 0 ? attacks.Max(f => f.SeenLevel) : 2;
+                string byWhom = attacks.FirstOrDefault(f => f.SeenLevel == 2)?.ByWhom ?? "";
+                int witnesses = attacks.Count > 0 ? attacks.Max(f => f.Witnesses) : 0;
+                bool anyArmed = attacks.Any(f => f.Kind != "brawl"), anyFists = attacks.Any(f => f.Kind == "brawl");
+                int killed = attacks.Count(f => f.Fate == "killed") + attacks.Sum(f => f.DefendersKilled);
+                int senseless = attacks.Count(f => f.Fate == "senseless");
+                int wounded = attacks.Count(f => f.Fate == "down") + attacks.Sum(f => Math.Max(0, f.DefendersDown - f.DefendersKilled));
+                int defenders = attacks.Sum(f => f.Defenders), defendersDown = attacks.Sum(f => f.DefendersDown);
+                var heroVictims = attacks.Where(f => f.IsHero).Select(f => f.VictimName).Distinct().ToList();
+
+                // ---- English: the record the prompts read (and the AI gets, whole)
+                string doerEn = level == 2 ? $"{P.Name} of clan {Clan.PlayerClan?.Name}"
+                              : level == 1 ? (anyArmed ? "an armed stranger whom witnesses saw but nobody could name" : "a brawling stranger whom witnesses saw but nobody could name")
+                              : "someone nobody saw";
+                var en = new System.Text.StringBuilder();
+                if (attacks.Count > 0)
+                {
+                    en.Append($"During one visit to {place ?? "the place"}, {doerEn} attacked {attacks.Count} {(attacks.Count == 1 ? "person" : "people")} without provocation, in the order it happened: ");
+                    int i = 0;
+                    foreach (var f in attacks)
+                    {
+                        string victim = f.IsHero ? $"{f.VictimName}{(f.IsLord ? " (a noble)" : "")}" : $"{(f.Female ? "a local woman" : "a local man")} ({f.VictimName})";
+                        string fate = f.Fate == "killed" ? "killed" : f.Fate == "senseless" ? "knocked senseless" : f.Fate == "down" ? "beaten and left on the ground, alive" : "not hurt: the attacker got the worst of it";
+                        en.Append(i > 0 ? "; " : "");
+                        i++;
+                        en.Append($"{i}) {victim}, {(f.Kind == "brawl" ? "with bare fists" : "with drawn steel")}{(f.Ending == "struck_down" ? " at the first blow" : "")}: {fate}");
+                        if (f.Defenders > 0) en.Append($", {f.Defenders} came to the defence (guards or kin), {f.DefendersDown} of them cut down{(f.DefendersKilled > 0 ? $" ({f.DefendersKilled} dead)" : "")}");
+                    }
+                    en.Append(". ");
+                    en.Append($"Dead in all: {killed}. Wounded: {wounded}. Knocked senseless: {senseless}. ");
+                    if (alarm) en.Append("The alarm bell was rung and the whole guard came running. ");
+                    else if (guards > 0) en.Append($"The guard heard it and came ({guards} guards). ");
+                    en.Append(level == 2 ? $"{byWhom} recognised the attacker: people know it was {P.Name}. "
+                            : level == 1 ? $"{witnesses} witness(es) saw the attacker, but nobody knows who it was. "
+                            : "Nobody alive saw who did it: the victims were simply found. ");
+                }
+                foreach (var f in agreed)
+                {
+                    string what = f.Kind == "brawl" ? "a fist fight" : f.Kind == "death" ? "a duel to the death" : "a duel";
+                    string winner = f.PlayerWon ? P.Name.ToString() : f.VictimName, loser = f.PlayerWon ? f.VictimName : P.Name.ToString();
+                    en.Append($"{winner} defeated {loser} in {what}{(f.Tavern ? " in the tavern" : "")}{(place != null && attacks.Count == 0 ? $" at {place}" : "")}. ");
+                }
+                string doerSteps = attacks.Count > 0 && level < 2 ? "the attacker" : P.Name.ToString();
+                foreach (var s in steps) en.Append(StepEn(s, doerSteps, place, fine));
+                string textEn = en.ToString().Trim();
+
+                var kingdoms = new List<string>();
+                if (st?.MapFaction != null) kingdoms.Add(st.MapFaction.StringId);
+                kingdoms.AddRange(worthy.Where(f => !string.IsNullOrEmpty(f.FactionId)).Select(f => f.FactionId));
+                kingdoms = kingdoms.Distinct().ToList();
+                var heroes = worthy.Where(f => f.IsHero && !string.IsNullOrEmpty(f.HeroId)).Select(f => f.HeroId).ToList();
+                // the player's name only goes with the news when people here know it
+                if (level == 2 || agreed.Count > 0 || attacks.Count == 0) heroes.Add(P.StringId);
+                heroes = heroes.Distinct().ToList();
+
+                // ---- The AI writes it: one request with everything that happened here
+                var cfg = S.Get;
+                if (attacks.Count > 0 && WorldSim.Enabled && cfg.ReactiveEvents && cfg.IncidentEvents)
+                {
+                    WorldSim.OnIncident(textEn + " This is the whole record of one visit: write ONE event that tells all of it together, never one per victim.", st, anyArmed || killed > 0);
+                    Log.Info($"[visit news] {fights.Count} fight(s) in {place ?? "a scene"}: one world event requested");
+                    return;
+                }
+
+                // ---- Otherwise the summary, written here
+                string doer = level == 2 ? P.Name.ToString() : level == 1 ? (anyArmed ? L.T("AIL_e7b1d401", "un forastero armado") : L.T("AIL_e7b1d402", "un forastero")) : L.T("AIL_e7b1d403", "alguien a quien nadie vio");
+                var es = new List<string>();
+                if (attacks.Count > 0)
+                {
+                    if (attacks.Count == 1)
+                    {
+                        var f = attacks[0];
+                        string victim = f.IsHero ? f.VictimName : (f.Female ? L.T("AIL_53ab6227", "una vecina") : L.T("AIL_1c6f47d4", "un vecino"));
+                        es.Add(L.F("AIL_e7b1d404", $"{Cap(doer)} atacó a {victim} en {placeLocal}."));
+                    }
+                    else
+                    {
+                        es.Add(L.F("AIL_e7b1d405", $"{Cap(doer)} atacó a {attacks.Count} personas en {placeLocal}."));
+                        if (heroVictims.Count > 0) es.Add(L.F("AIL_e7b1d406", $"Entre ellas, {string.Join(", ", heroVictims)}."));
+                    }
+                    es.Add(anyArmed && anyFists ? L.T("AIL_e7b1d407", "Empezó a puñetazos y acabó con el acero en la mano.")
+                         : anyArmed ? L.T("AIL_e7b1d408", "Fue con el acero desenvainado.") : L.T("AIL_e7b1d409", "Fue a puñetazos, sin armas."));
+                    if (killed + wounded + senseless == 0) es.Add(L.T("AIL_e7b1d40a", "Nadie cayó: el agresor se llevó la peor parte."));
+                    else
+                    {
+                        if (killed > 0) es.Add(L.F("AIL_e7b1d40b", $"Muertos: {killed}."));
+                        if (wounded > 0) es.Add(L.F("AIL_e7b1d40c", $"Heridos: {wounded}."));
+                        if (senseless > 0) es.Add(L.F("AIL_e7b1d40d", $"Dejados sin sentido: {senseless}."));
+                    }
+                    if (defenders > 0)
+                    {
+                        es.Add(L.F("AIL_e7b1d40e", $"Salieron a defender a las víctimas {defenders} personas, entre guardias y parientes."));
+                        if (defendersDown > 0) es.Add(L.F("AIL_e7b1d40f", $"De ellas cayeron {defendersDown}."));
+                    }
+                    if (alarm) es.Add(L.T("AIL_e7b1d410", "Sonó la campana de alarma y acudió toda la guardia."));
+                    else if (guards > 0) es.Add(L.T("AIL_e7b1d411", "La guardia oyó la pelea y acudió."));
+                    es.Add(level == 2 ? L.F("AIL_e7b1d412", $"{byWhom} reconoció al agresor: se sabe que fue {P.Name}.")
+                         : level == 1 ? L.F("AIL_e7b1d413", $"Hubo testigos ({witnesses}), pero nadie sabe quién era.")
+                         : L.T("AIL_e7b1d414", "Nadie vio quién lo hizo: solo se encontró a las víctimas."));
+                }
+                foreach (var f in agreed)
+                {
+                    string whatEs = f.Kind == "brawl" ? L.T("AIL_03bb5d20", "una pelea a puñetazos") : f.Kind == "death" ? L.T("AIL_58f9d028", "un duelo a muerte") : L.T("AIL_a65a644d", "un duelo");
+                    string winner = f.PlayerWon ? P.Name.ToString() : f.VictimName, loser = f.PlayerWon ? f.VictimName : P.Name.ToString();
+                    es.Add(L.F("AIL_c140427d", $"{winner} venció a {loser} en {whatEs}") + (place != null && attacks.Count == 0 ? L.F("AIL_d63eaabc", $" en {place}.") : "."));
+                }
+                string doerStepsEs = attacks.Count > 0 && level < 2 ? L.T("AIL_e7b1d415", "el agresor") : P.Name.ToString();
+                foreach (var s in steps) { string line = StepLocal(s, doerStepsEs, placeLocal, fine); if (line != null) es.Add(line); }
+
+                string title;
+                if (attacks.Count > 0)
+                    title = killed >= 3 ? L.F("AIL_e7b1d416", $"Matanza en {placeLocal}")
+                          : killed >= 1 ? L.F("AIL_e7b1d417", $"Sangre en {placeLocal}")
+                          : attacks.Count >= 2 ? L.F("AIL_e7b1d418", $"Ataques en {placeLocal}")
+                          : level == 2 ? L.F("AIL_e7b1d419", $"Agresión de {P.Name}")
+                          : level == 1 ? L.T("AIL_f7d8e495", "Agresión de un forastero") : L.T("AIL_0aaea1bc", "Agresión sin testigos");
+                else if (agreed.Count >= 2) title = L.F("AIL_e7b1d41a", $"Peleas en {placeLocal}");
+                else if (agreed.Count == 1) title = agreed[0].Kind == "brawl" ? L.T("AIL_a0bdbcf2", "Pelea a puñetazos") : L.T("AIL_0db9b33c", "Duelo");
+                else
+                {
+                    string last = steps.LastOrDefault() ?? "";
+                    title = last == "let_go" ? L.T("AIL_ca1dd233", "La guardia lo deja pasar")
+                          : last == "fine" ? L.T("AIL_74ddb46b", "Multa de la guardia")
+                          : last == "resist_won" || last == "escaped" ? L.T("AIL_e7b1d41b", "Huida de la guardia")
+                          : L.T("AIL_efa2c194", "Detenido por la guardia");
+                }
+
+                // how far it travels: a slaughter or a noble killed reaches the realm, a noble hurt or the guard cut down the court
+                bool heroKilled = attacks.Any(f => f.IsHero && f.Fate == "killed");
+                int imp = heroKilled || killed >= 5 ? 3 : attacks.Any(f => f.IsHero || f.DefendersKilled > 0) || alarm || killed >= 2 ? 2 : 1;
+                if (agreed.Any(f => f.Kind == "death" && f.IsHero)) imp = Math.Max(imp, 3);
+                else if (agreed.Any(f => f.IsHero || f.Kind != "brawl")) imp = Math.Max(imp, 2);
+
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "rumor", Importance = imp, Text = textEn, TitleEs = title, TextEs = string.Join(" ", es),
+                    SettlementId = st?.StringId, Kingdoms = kingdoms, Heroes = heroes,
+                });
+                Log.Info($"[visit news] {fights.Count} fight(s), {steps.Count} guard step(s) in {place ?? "a scene"}: one news item");
+            }
+            catch (Exception ex) { Log.Error("Visit news: tell the visit", ex); }
+        }
+
+        private static string StepEn(string step, string doer, string place, int fine)
+        {
+            switch (step)
+            {
+                case "let_go": return $"The guard questioned {doer} and let them go. ";
+                case "fine": return $"The guard fined {doer} {fine} denars. ";
+                case "arrest": return $"The guard arrested {doer}. ";
+                case "resist_won": return $"{Cap(doer)} fought the guard to avoid arrest and got away. ";
+                case "resist_lost": return $"{Cap(doer)} fought the guard to avoid arrest and was overpowered. ";
+                case "escaped": return $"{Cap(doer)} ran from the guard and escaped from {place ?? "the place"}. ";
+                case "caught": return $"{Cap(doer)} tried to run from the guard but was caught. ";
+                case "jailed": return $"{Cap(doer)} was taken to the cells of {place ?? "the place"}. ";
+                default: return "";
+            }
+        }
+
+        private static string StepLocal(string step, string doer, string place, int fine)
+        {
+            switch (step)
+            {
+                case "let_go": return L.F("AIL_e7b1d41c", $"{Cap(doer)} fue interrogado por la guardia, que lo dejó marchar.");
+                case "fine": return L.F("AIL_e7b1d41d", $"{Cap(doer)} tuvo que pagar a la guardia una multa de {fine} denarios.");
+                case "arrest": return L.F("AIL_e7b1d41e", $"{Cap(doer)} fue detenido por la guardia.");
+                case "resist_won": return L.F("AIL_e7b1d41f", $"{Cap(doer)} se resistió a la guardia y logró escapar.");
+                case "resist_lost": return L.F("AIL_e7b1d420", $"{Cap(doer)} se resistió a la guardia y acabó reducido.");
+                case "escaped": return L.F("AIL_e7b1d421", $"{Cap(doer)} echó a correr y escapó de {place}.");
+                case "caught": return L.F("AIL_e7b1d422", $"{Cap(doer)} intentó huir de la guardia, pero lo alcanzaron.");
+                case "jailed": return L.F("AIL_e7b1d423", $"{Cap(doer)} acabó en los calabozos de {place}.");
+                default: return null;
+            }
         }
     }
 }

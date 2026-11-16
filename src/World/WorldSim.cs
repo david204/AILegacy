@@ -189,6 +189,16 @@ namespace AILegacy.World
         /// <summary>Current dungeon sentence: where, and until which day.</summary>
         [JsonProperty("jail_in")] public string JailSettlementId;
         [JsonProperty("jail_until")] public double JailReleaseDay = -1;
+        /// <summary>The trial in course (Dialogue/Verdict.cs): judge, days of the term, escape attempts used in this imprisonment, what the case was, and a dungeon menu still to show.</summary>
+        [JsonProperty("jail_judge", NullValueHandling = NullValueHandling.Ignore)] public string JailJudgeId;
+        [JsonProperty("jail_days", DefaultValueHandling = DefaultValueHandling.Ignore)] public int JailDays;
+        [JsonProperty("jail_tries", DefaultValueHandling = DefaultValueHandling.Ignore)] public int JailEscapeTries;
+        [JsonProperty("jail_case", NullValueHandling = NullValueHandling.Ignore)] public string JailCase;
+        [JsonProperty("jail_standing", NullValueHandling = NullValueHandling.Ignore)] public string JailStanding;
+        [JsonProperty("jail_crime", NullValueHandling = NullValueHandling.Ignore)] public string JailCrime;
+        [JsonProperty("jail_menu", NullValueHandling = NullValueHandling.Ignore)] public string JailMenu;
+        /// <summary>Last day a hostile lord caught the player and spoke first: the wait before the next one is shared by all of them.</summary>
+        [JsonProperty("hostile_initiative_day")] public double LastHostileInitiativeDay = -1;
         [JsonProperty("uniques")] public List<string> UniqueIds = new List<string>();
         /// <summary>Townsfolk the player has talked to: their memory and the face they keep (World/ResidentFaces.cs).</summary>
         [JsonProperty("residents")] public List<Memory.HeroMemory> Residents = new List<Memory.HeroMemory>();
@@ -211,6 +221,8 @@ namespace AILegacy.World
         /// <summary>A ruler's stance toward another kingdom: "a|b" -> -100..100.</summary>
         [JsonProperty("stance")] public Dictionary<string, int> Stance = new Dictionary<string, int>();
         [JsonProperty("outbreaks")] public List<Outbreak> Outbreaks = new List<Outbreak>();
+        /// <summary>Quarantines of a settlement, with or without a disease in it (settlement id -> day it ends; -1 = until lifted).</summary>
+        [JsonProperty("quarantines")] public Dictionary<string, double> Quarantines = new Dictionary<string, double>();
         /// <summary>Heroes and parties that are ill right now, and who is immune to what until which day ("hero|disease").</summary>
         [JsonProperty("sick")] public List<Sickness> Sick = new List<Sickness>();
         [JsonProperty("sick_immune")] public Dictionary<string, double> SickImmune = new Dictionary<string, double>();
@@ -332,7 +344,7 @@ namespace AILegacy.World
         {
             _session++;
             for (int i = 0; i < ModelDay.Length; i++) ModelDay[i] = -1;
-            lock (Triggers) Triggers.Clear();
+            lock (Triggers) { Triggers.Clear(); Talks.Clear(); }
             _urgent = false;
             _reactRetries = 0;
             while (Pending.TryDequeue(out _)) { }
@@ -589,25 +601,45 @@ For THIS batch, write: {batch}. Ground each one in the data like any other event
             return raw.Select(v => (int)Math.Round(v * 100.0 / sum)).ToArray();
         }
 
-        /// <summary>The block that tells the chronicler the wanted mix and the kind of each event of this batch, drawn by the shares. Empty with no preference.</summary>
+        /// <summary>Above this war weariness on BOTH sides of a war, the batch is forced to be military (AIInfluence's only push towards peace).</summary>
+        private const float ForcedMilitaryFatigue = 75f;
+
+        /// <summary>A war in which both sides are past <see cref="ForcedMilitaryFatigue"/>, as "a and b", or null.</summary>
+        private static string WornOutWar()
+        {
+            var ks = Kingdoms.Where(k => k != null && !k.IsEliminated).ToList();
+            for (int i = 0; i < ks.Count; i++)
+                for (int j = i + 1; j < ks.Count; j++)
+                    if (ks[i].IsAtWarWith(ks[j]) && Fatigue(ks[i]) > ForcedMilitaryFatigue && Fatigue(ks[j]) > ForcedMilitaryFatigue)
+                        return $"{ks[i].Name} and {ks[j].Name}";
+            return null;
+        }
+
+        /// <summary>
+        /// The block that tells the chronicler the kind of this batch. As in AIInfluence the whole batch is ONE kind,
+        /// drawn by the shares of the settings (normalised), and it is military whatever the dice say when a war
+        /// has worn both its sides past 75 %. Empty with no preference and no worn-out war.
+        /// </summary>
         private static string EventMixBlock(int count)
         {
             try
             {
+                string worn = WornOutWar();
                 var shares = MixShares();
-                if (shares == null) return "";
-                int total = shares.Sum();
-                string mix = string.Join(", ", MixKinds.Select((k, i) => $"{k} {shares[i]}%").Where((s, i) => shares[i] > 0));
-                var picks = new List<string>();
-                for (int n = 0; n < count; n++)
+                if (shares == null && worn == null) return "";
+                string mix = shares == null ? "no preference" : string.Join(", ", MixKinds.Select((k, i) => $"{k} {shares[i]}%").Where((s, i) => shares[i] > 0));
+                string pick;
+                if (worn != null) pick = "military";
+                else
                 {
+                    int total = shares.Sum();
                     int roll = Rng.Next(Math.Max(1, total)), i = 0;
                     while (i < shares.Length - 1 && (roll -= shares[i]) >= 0) i++;
                     while (shares[i] == 0 && i > 0) i--;      // rounding left a zero share at the end
-                    picks.Add(MixKinds[i]);
+                    pick = MixKinds[i];
                 }
-                string batch = count == 1 ? $"one {picks[0]} event" : string.Join(", ", picks.Select((p, n) => $"event {n + 1} {p}"));
-                Log.Info($"[world] event mix for this batch: {string.Join(", ", picks)}");
+                string batch = (count == 1 ? $"one {pick} event" : $"{count} {pick} events") + (worn != null ? $" (forced: the war between {worn} has worn out both sides; look at that war)" : "");
+                Log.Info($"[world] kind of this batch: {pick}{(worn != null ? " (forced, both sides of a war past 75% weariness: " + worn + ")" : "")}");
                 return TEventMix.Format("mix", mix, "batch", batch);
             }
             catch (Exception ex) { Log.Error("[world] event mix", ex); return ""; }
@@ -619,6 +651,40 @@ For THIS batch, write: {batch}. Ground each one in the data like any other event
         // REAL game events that just happened and deserve a world reaction (not saved, they only matter right now).
         // Each one carries its fact sheet: the news line alone does not say whose man anyone is.
         private static readonly List<Trigger> Triggers = new List<Trigger>();
+        /// <summary>The triggers among <see cref="Triggers"/> that are the player's conversations (dialogue mode). Guarded by the same lock.</summary>
+        private static readonly HashSet<Trigger> Talks = new HashSet<Trigger>();
+
+        /// <summary>
+        /// What kind of pass the chronicler makes for a trigger, as in AIInfluence's off-schedule modes: a death of
+        /// someone of note, a kingdom destroyed, the player's conversations, or an incident (a fight in a settlement,
+        /// an arrest). Nothing else (war, peace, sieges, captures) ever sets one off.
+        /// </summary>
+        private static string ModeOf(Trigger t) =>
+            t?.News?.Type == "death" ? "death" : t?.News?.Type == "kingdom" ? "kingdom" : t != null && Talks.Contains(t) ? "dialogue" : "incident";
+
+        private static readonly Tpl TModeDeath = new Tpl("dynamic_events_generator/mode_death.txt",
+@"## MODE: A DEATH
+Someone of note has died. What is written above under THIS HAS JUST REALLY HAPPENED and the facts are the whole death record: everything people can know about it. Write ONE event about the death and its consequences, told as people tell it (who died, where, how it looked to those who saw or found it), then what follows: grief, the succession, who now leads the clan or the realm, fear, suspicion, calls for vengeance or justice, unrest. This replaces the rule above that the event must not retell the fact: here the death itself is the news.
+- A natural death (old age, illness, childbirth) is told as natural. Never invent a murder, a plot, a killer, witnesses or wounds the record does not give. If nobody knows who did it, it stays unknown.
+- A ruler's successor only as the record gives it; if the succession is undecided, the realm awaits it.
+{mandatory}");
+        private static readonly Tpl TModeDeathRuler = new Tpl("dynamic_events_generator/mode_death_ruler.txt",
+            "- The dead was a sovereign: the event is mandatory.");
+        private static readonly Tpl TModeDeathOther = new Tpl("dynamic_events_generator/mode_death_other.txt",
+            "- If nothing in the record would carry beyond the place, return { \"events\": [] }.");
+        private static readonly Tpl TModeKingdom = new Tpl("dynamic_events_generator/mode_kingdom_destroyed.txt",
+@"## MODE: A REALM DESTROYED
+A kingdom has just ceased to exist. Write ONE event about its end and what follows from it: its former lords scattering or swearing to new crowns, its people, its neighbours. This replaces the rule above that the event must not retell the fact.");
+        private static readonly Tpl TModeDialogue = new Tpl("dynamic_events_generator/mode_dialogue.txt",
+@"## MODE: CONVERSATIONS
+What is written above under THIS HAS JUST REALLY HAPPENED are conversations the player has just had, with what was said in them. Write 0 to 3 events grounded in them, ONLY when what was said could realistically become public AND matters to the world: major politics, warfare, diplomacy, trade, a ruler's marriage, a death or a scandal. This replaces the rule above about writing ONE development.
+- Leave out anything private, confidential or hidden even when it matters; also personal problems, ordinary life, passing mentions, weather, food, travel, small gossip, patrols and bandit skirmishes.
+- If nothing qualifies, return { ""events"": [] }.
+- When several events come from the same conversation, give kingdom_engagement only to the most significant one and leave it empty in the others, so one talk does not call for several statements.");
+        private static readonly Tpl TNoDisease = new Tpl("dynamic_events_generator/no_disease_now.txt",
+            "- disease: NOT available this time (no new outbreak can start now). Leave the disease field out.");
+        private static readonly Tpl TModeBatch = new Tpl("dynamic_events_generator/mode_world_state.txt",
+            "If the data truly cannot support an event, return { \"events\": [] }.");
 
         private static readonly Tpl TReact = new Tpl("dynamic_events_generator/react_to_real_event.txt",
 @"## THIS HAS JUST REALLY HAPPENED
@@ -649,8 +715,13 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             var cfg = S.Get;
             if (!Enabled || !cfg.ReactiveEvents || n == null || Campaign.Current == null) return;
             string t = n.Type ?? "";
-            if (t == "statement" || t == "custom" || t.StartsWith("event_")) return;     // don't feed the AI's own writing back into itself
-            if (n.NoReaction || n.Importance < cfg.ReactiveMinImportance) return;
+            // As in AIInfluence, war or peace (or a siege, a battle, a capture) never sets off an event: the next batch
+            // sees them in the state of the world. Off the schedule only the death of someone of note (always a
+            // ruler's) and a kingdom destroyed come from here; fights in a settlement and the player's conversations
+            // come through OnIncident and OnConversation.
+            if (t != "death" && t != "kingdom") return;
+            if (n.NoReaction) return;
+            if (t == "death" && n.Importance < 4 && n.Importance < cfg.ReactiveMinImportance) return;
             var trigger = Facts.ForNews(n);
             lock (Triggers)
             {
@@ -689,6 +760,37 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             catch (Exception ex) { Log.Error("Player event", ex); }
         }
 
+        /// <summary>
+        /// A conversation of the player's with public weight (the character set a rumour going). As in AIInfluence the
+        /// chronicler reads it and writes 0 to 3 public events from it, or none; the rumour itself is never a card of
+        /// its own. Several talks waiting at once go in the same pass.
+        /// </summary>
+        /// <param name="talkEn">Who talked, and what was said that could get about (any language; English is best).</param>
+        public static void OnConversation(string talkEn, Settlement where)
+        {
+            try
+            {
+                var cfg = S.Get;
+                if (!Enabled || !cfg.ReactiveEvents || !cfg.IncidentEvents || string.IsNullOrWhiteSpace(talkEn) || Campaign.Current == null) return;
+                string t = talkEn.Trim();
+                if (t.Length > 1500) t = t.Substring(0, 1500) + "…";
+                string head = t.Substring(0, Math.Min(60, t.Length));
+                t += where != null ? $" [This conversation took place at {where.Name} ({where.StringId}), of {where.MapFaction?.Name}.]" : "";
+                var trigger = Facts.ForIncident(t, where);
+                lock (Triggers)
+                {
+                    // a newer pass over the same talk replaces the older one still waiting
+                    var same = Triggers.FirstOrDefault(x => Talks.Contains(x) && x.Where == where && x.Text != null && x.Text.StartsWith(head));
+                    if (same != null) { Triggers.Remove(same); Talks.Remove(same); }
+                    if (Triggers.Count >= 5) { Talks.Remove(Triggers[0]); Triggers.RemoveAt(0); }
+                    Triggers.Add(trigger);
+                    Talks.Add(trigger);
+                }
+                Log.Info("[world] conversation queued for the chronicler: " + (t.Length > 120 ? t.Substring(0, 120) + "…" : t));
+            }
+            catch (Exception ex) { Log.Error("Conversation for the chronicler", ex); }
+        }
+
         private static void TryReact()
         {
             var cfg = S.Get;
@@ -698,35 +800,42 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             if (!_urgent && State.LastReactiveHour >= 0 && hour - State.LastReactiveHour < cfg.ReactiveMinHoursBetween) return;
             _urgent = false;
             List<Trigger> take;
+            string mode;
             lock (Triggers)
             {
                 if (Triggers.Count == 0) return;
-                take = Triggers.ToList();
-                Triggers.Clear();
+                // One mode per pass, each with its own instructions. A death is told on its own; conversations,
+                // incidents and fallen realms waiting together go in one pass
+                mode = ModeOf(Triggers[0]);
+                take = mode == "death" ? new List<Trigger> { Triggers[0] } : Triggers.Where(x => ModeOf(x) == mode).ToList();
+                foreach (var x in take) Triggers.Remove(x);
             }
             State.LastReactiveHour = hour;
-            GenerateEvents(false, take);
+            GenerateEvents(false, take, mode);
         }
 
         /// <summary>The reaction failed, so its events go back in the queue (at most twice in a row).</summary>
         private static void RequeueTriggers(List<Trigger> take)
         {
-            if (take == null || take.Count == 0 || ++_reactRetries > 2) return;
+            if (take == null || take.Count == 0) return;
             lock (Triggers)
             {
+                if (++_reactRetries > 2) { foreach (var t in take) Talks.Remove(t); return; }
                 foreach (var t in take.AsEnumerable().Reverse()) if (!Triggers.Contains(t)) Triggers.Insert(0, t);
-                while (Triggers.Count > 5) Triggers.RemoveAt(Triggers.Count - 1);
+                while (Triggers.Count > 5) { Talks.Remove(Triggers[Triggers.Count - 1]); Triggers.RemoveAt(Triggers.Count - 1); }
             }
         }
 
-        public static void GenerateEvents(bool forced = false, List<Trigger> reactTo = null)
+        public static void GenerateEvents(bool forced = false, List<Trigger> reactTo = null, string mode = null)
         {
             var cfg = S.Get;
             if (!Enabled || Campaign.Current == null) return;
             if (!forced && !CanCall) return;
             bool reactive = reactTo != null && reactTo.Count > 0;
+            if (reactive && mode == null) mode = ModeOf(reactTo[0]);
             if (IsReserved(reactive ? "react" : "events")) return;     // already requested, still waiting for it to arrive or apply
-            int count = reactive ? 1 : cfg.WorldEventsPerGeneration;
+            // AIInfluence: one event per scheduled batch and per death, fight or fallen realm; 0 to 3 from conversations
+            int count = reactive ? (mode == "dialogue" ? 3 : 1) : Math.Max(1, cfg.WorldEventsPerGeneration);
             var sys = new StringBuilder();
             sys.AppendLine(TEventGen.Format("count", count, "language", Lang, "min_len", cfg.WorldEventMinLength, "max_len", cfg.WorldEventMaxLength,
                 "open", OpenStories(), "max_now", InstantFactor,
@@ -735,6 +844,10 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 "max_spread", cfg.DiseaseMaxSpreadRate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "max_death", cfg.DiseaseMaxDeathChance.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture),
                 "min_combat", cfg.DiseaseMinCombatModifier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "min_speed", cfg.DiseaseMinMapSpeedModifier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture),
                 "max_morale", cfg.DiseaseMaxMoralePenalty, "max_skill", cfg.DiseaseMaxPhysicalSkillPenalty));
+            // no new outbreak can start now (limit of outbreaks, or too soon after the last one): the field is not offered
+            bool noDisease = false;
+            try { noDisease = Diseases.EventOutbreakBlocked(); } catch { }
+            if (noDisease) sys.AppendLine(TNoDisease.Text.Trim());
             var lore = WorldLore.Text;
             if (!string.IsNullOrWhiteSpace(lore)) { sys.AppendLine(); sys.AppendLine("## The world"); sys.AppendLine(lore); }
             sys.AppendLine();
@@ -787,22 +900,32 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 string allowedText = allowed.Count > 0 ? string.Join(", ", allowed) : "(none: this is local talk)";
                 sys.AppendLine();
                 bool hasFacts = TReact.Text.Contains("{facts}");
-                sys.AppendLine(TReact.Format("triggers", string.Join("\n", reactTo.Select(x => "- " + x.Text)), "facts", factText, "allowed", allowedText));
+                sys.AppendLine(TReact.Format("triggers", string.Join("\n", reactTo.Select(x => "- " + x.Text + SuccessionNote(x))), "facts", factText, "allowed", allowedText));
                 if (!hasFacts) sys.AppendLine(TFactsBlock.Format("facts", factText, "allowed", allowedText));
+                sys.AppendLine();
+                if (mode == "death")
+                    sys.AppendLine(TModeDeath.Format("mandatory", (reactTo.Any(x => x.News?.Importance >= 4) ? TModeDeathRuler : TModeDeathOther).Text.Trim()));
+                else if (mode == "kingdom") sys.AppendLine(TModeKingdom.Text.Trim());
+                else if (mode == "dialogue") sys.AppendLine(TModeDialogue.Text.Trim());
             }
+            else { sys.AppendLine(); sys.AppendLine(TModeBatch.Text.Trim()); }
             Ask(reactive ? L.T("AIL_ce8115b0", "reacción a un suceso real") : "generar eventos",
                 new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", reactive ? "Write the development now." : "Write the events now.") },
                 count * 800 + 400, j =>
                 {
-                    if (reactive) _reactRetries = 0;
+                    if (reactive) { _reactRetries = 0; lock (Triggers) foreach (var t in reactTo) Talks.Remove(t); }
                     else
                     {
-                        // The schedule is consumed when the batch arrives. Not like clockwork: the next gap is 60% to 140% of the setting
+                        // The schedule is consumed when the batch arrives: the next one comes exactly the setting's days
+                        // later, as in AIInfluence (a batch that fails is tried again the next day)
                         double d = CampaignTime.Now.ToDays;
                         State.LastEventGenerationDay = d;
-                        State.NextEventGenerationDay = d + S.Get.WorldEventsIntervalDays * (0.6 + Rng.NextDouble() * 0.8);
+                        State.NextEventGenerationDay = d + Math.Max(1, S.Get.WorldEventsIntervalDays);
                     }
-                    ApplyEvents(j, S.Get.FactCheckEvents ? allowed : null);
+                    int published = ApplyEvents(j, S.Get.FactCheckEvents ? allowed : null, count, mode, reactTo);
+                    // the death or the fall that set it off is now told by the event's own card
+                    if (reactive && published > 0) foreach (var t in reactTo) if (t.News != null) t.News.Told = true;
+                    if (reactive) Log.Info($"[world] {mode} pass: {published} event(s) published");
                 },
                 key: reactive ? "react" : "events", failed: reactive ? (Action)(() => RequeueTriggers(reactTo)) : null);
         }
@@ -847,12 +970,14 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         }
 
         /// <param name="allowed">For a reaction to a real event: the only kingdoms it may involve. null for the scheduled batch.</param>
-        private static void ApplyEvents(JObject j, HashSet<string> allowed = null)
+        /// <returns>How many events were published.</returns>
+        private static int ApplyEvents(JObject j, HashSet<string> allowed, int max, string mode, List<Trigger> reactTo)
         {
-            if (!(j["events"] is JArray arr)) return;
-            bool continued = false;
+            if (!(j["events"] is JArray arr)) return 0;
+            bool continued = false, engaged = false;
+            int published = 0;
             FactModel model = null;
-            foreach (var x in arr.OfType<JObject>().Take(S.Get.WorldEventsPerGeneration))
+            foreach (var x in arr.OfType<JObject>().Take(Math.Max(1, max)))
             {
                 var e = new WorldEvent
                 {
@@ -926,6 +1051,19 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         e.Engagement[kg.StringId] = Math.Max(0, Math.Min(100, chance));
                     }
                 if (strangers.Count > 0) Log.Info($"[world] «{e.Title}»: kingdoms unrelated to the real event, discarded: {string.Join(", ", strangers)}");
+                // From conversations only the main event (the first one that calls on a crown) gives rulers a turn
+                if (mode == "dialogue" && e.Engagement.Count > 0)
+                {
+                    if (engaged) { Log.Info($"[world] «{e.Title}»: another event of the same talk already calls on the crowns, its engagement is dropped"); e.Engagement.Clear(); }
+                    engaged = true;
+                }
+                // A sovereign's death card says who follows him, as the game has it right now
+                if (mode == "death" && reactTo != null)
+                    foreach (var tr in reactTo)
+                    {
+                        string line = SuccessionLocal(tr);
+                        if (line.Length > 0 && !e.Text.Contains(line)) e.Text = e.Text.TrimEnd() + "\n\n" + line;
+                    }
                 // A reaction left with no kingdom is local talk. With importance 3 or 4 and no kingdom the news would
                 // reach every court in the world, so it is held at 2: only the place it names hears of it.
                 if (allowed != null && e.Kingdoms.Count == 0 && e.Importance > 2)
@@ -934,6 +1072,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     e.Importance = 2;
                 }
                 Publish(e);
+                published++;
                 if (x["economic_effects"] is JArray fx) foreach (var f in fx.OfType<JObject>().Take(4)) AddEffect(e, f, allowed);
                 if (x["clan_effects"] is JArray cfx) foreach (var f in cfx.OfType<JObject>().Take(2)) AddClanEffect(e, f);
                 // What's behind the event, known only to a few
@@ -943,6 +1082,61 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 var rebel = (string)(x["clan_rebellion"]?.Type == JTokenType.String ? x["clan_rebellion"] : null);
                 if (!string.IsNullOrWhiteSpace(rebel)) Diplomacy.Rebellion(rebel);
             }
+            return published;
+        }
+
+        // ---- the succession of a dead sovereign, read from the game when the death is told
+
+        /// <summary>The kingdom a ruler's death news is about, when the dead was its ruler (importance 4).</summary>
+        private static Kingdom RealmOfDeadRuler(Trigger t)
+        {
+            var n = t?.News;
+            if (n == null || n.Type != "death" || n.Importance < 4) return null;
+            foreach (var id in n.Kingdoms)
+            {
+                var k = Campaign.Current?.Kingdoms.FirstOrDefault(x => x.StringId == id);
+                if (k != null) return k;
+            }
+            return null;
+        }
+
+        /// <summary>A new ruler being elected right now in this realm.</summary>
+        private static bool Electing(Kingdom k)
+        {
+            try { return k.UnresolvedDecisions.Any(d => d != null && d.GetType().Name.IndexOf("KingSelection", StringComparison.Ordinal) >= 0); }
+            catch { return false; }
+        }
+
+        /// <summary>For the prompt: who follows a dead sovereign (English), or empty.</summary>
+        private static string SuccessionNote(Trigger t)
+        {
+            try
+            {
+                var k = RealmOfDeadRuler(t);
+                if (k == null) return "";
+                string dead = Hero.Find(t.News.Heroes.FirstOrDefault() ?? "")?.Name?.ToString();
+                if (k.IsEliminated) return " Succession: the realm did not survive its ruler.";
+                if (Electing(k)) return " Succession: undecided; the lords of the realm are electing a new ruler.";
+                if (k.Leader != null && k.Leader.IsAlive && k.Leader.Name?.ToString() != dead) return $" Succession: {k.Leader.Name} of clan {k.RulingClan?.Name} now rules {k.Name}.";
+                return " Succession: undecided; the realm awaits it.";
+            }
+            catch { return ""; }
+        }
+
+        /// <summary>For the player's card: who follows a dead sovereign, in the player's language, or empty.</summary>
+        public static string SuccessionLocal(Trigger t)
+        {
+            try
+            {
+                var k = RealmOfDeadRuler(t);
+                if (k == null) return "";
+                string dead = Hero.Find(t.News.Heroes.FirstOrDefault() ?? "")?.Name?.ToString();
+                if (k.IsEliminated) return L.F("AIL_e7b1d807", $"Sucesión: el reino de {k.Name} no sobrevive a su soberano.");
+                if (Electing(k)) return L.F("AIL_e7b1d808", $"Sucesión: los señores de {k.Name} eligen un nuevo soberano.");
+                if (k.Leader != null && k.Leader.IsAlive && k.Leader.Name?.ToString() != dead) return L.F("AIL_e7b1d809", $"Sucesión: {k.Leader.Name} reina ahora en {k.Name}.");
+                return L.F("AIL_e7b1d80a", $"Sucesión: {k.Name} espera a su nuevo soberano.");
+            }
+            catch { return ""; }
         }
 
         private const int OpenStoryDays = 45, InstantFactor = 6;

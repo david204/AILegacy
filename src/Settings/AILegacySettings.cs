@@ -781,7 +781,7 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_170fa0ef}Romance with married people", Order = 7, RequireRestart = false,
             HintText = "{=AIL_9e5a3fd7}Off: someone who is married (or you, if you are) doesn't accept another wedding. On: they can accept it, and the previous marriage ends.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
-        public bool RomanceWithMarried { get; set; } = false;
+        public bool RomanceWithMarried { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_f0c471e9}Romance that stops the game from marrying them to someone else (0 = don't stop)", 0, 100, Order = 7, RequireRestart = false,
             HintText = "{=AIL_bdf82f15}From this level of romance with you, the game does not marry that character off to someone else on its own.")]
@@ -818,12 +818,16 @@ namespace AILegacy.Settings
 
         [SettingPropertyInteger("{=AIL_d582953e}Romance needed to accept marriage", 0, 100, Order = 9, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public int RomanceForMarriage { get; set; } = 60;
+        public int RomanceForMarriage { get; set; } = 50;
 
         [SettingPropertyInteger("{=AIL_635ff613}Days without seeing each other before romance cools", 1, 120, Order = 10, RequireRestart = false,
-            HintText = "{=AIL_a643593e}After this many days without talking or writing to each other, romance drops 1 point per day (with your spouse it doesn't drop below 40).")]
+            HintText = "{=AIL_e7b1d612}After this many days without talking or writing to each other, romance drops every day by the amount below (with your spouse it doesn't drop below 40).")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public int RomanceDecayAfterDays { get; set; } = 14;
+        public int RomanceDecayAfterDays { get; set; } = 7;
+
+        [SettingPropertyInteger("{=AIL_e7b1d613}Romance lost per day once it cools", 1, 100, Order = 10, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public int RomanceDecayAmount { get; set; } = 2;
 
         [SettingPropertyBool("{=AIL_0ea1a4c8}Intimacy", Order = 11, RequireRestart = false,
             HintText = "{=AIL_49588f47}With high romance, the NPC may agree to spend the night with you (never described). Between spouses it can end in pregnancy.")]
@@ -834,10 +838,14 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public int RomanceForIntimacy { get; set; } = 70;
 
+        [SettingPropertyInteger("{=AIL_e7b1d614}Romance gained with intimacy", 0, 50, Order = 12, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public int IntimacyRomanceIncrease { get; set; } = 15;
+
         [SettingPropertyInteger("{=AIL_6b1ca542}Pregnancy chance (%)", 0, 100, Order = 13, RequireRestart = false,
             HintText = "{=AIL_6ac2e619}Each time you share intimacy with your spouse. With someone you are not married to, see «Children out of wedlock» below.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public int PregnancyChancePercent { get; set; } = 25;
+        public int PregnancyChancePercent { get; set; } = 15;
 
         [SettingPropertyBool("{=AIL_a1c0e5d1}Mood from causes", Order = 20, RequireRestart = false,
             HintText = "{=AIL_a1c0e5d2}Each character's mood comes from what has happened to them, several things at once: a battle won or lost, a tournament, being a prisoner or wounded, a dead relative or friend, a war just declared, a birth. Each one lasts a few days. Off: only how the last talk left them counts.")]
@@ -972,13 +980,32 @@ namespace AILegacy.Settings
         public bool AllowNpcArrests { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_fedffd7f}The lord of the place judges you", Order = 14, RequireRestart = false,
-            HintText = "{=AIL_5b102155}If the guard locks you up outside your fief and your kingdom, the lord of the place passes sentence (release, fine or days in the dungeon), changes your reputation there and what they think of you, and their sentence is announced as news. They need to know who you are there.")]
+            HintText = "{=AIL_5b102155}If the guard locks you up outside your fief and your kingdom, the lord of the place passes sentence (release, days in the dungeon or, if allowed, death), changes your reputation there and what they think of you, and their sentence is announced as news. They need to know who you are there.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
         public bool AllowVerdict { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_ac30aa7a}Maximum sentence (days in the dungeon)", 1, 60, Order = 14, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_e7b1d81f}Shortest sentence (days in the dungeon)", 1, 100, Order = 14, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
-        public int VerdictMaxDays { get; set; } = 10;
+        public int VerdictMinDays { get; set; } = 1;
+
+        [SettingPropertyInteger("{=AIL_ac30aa7a}Maximum sentence (days in the dungeon)", 1, 100, Order = 14, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public int VerdictMaxDays { get; set; } = 20;
+
+        [SettingPropertyBool("{=AIL_e7b1d820}Judges may execute you", Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1d821}If you are in the lord's dungeon, the lord may have you executed: the game then goes on as after your death in battle. Off: the worst sentence is the longest term in the dungeon.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public bool VerdictAllowExecution { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1d822}Daily chance of a chance to escape (%)", 0, 25, Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1d823}While you serve a term in a dungeon, each day this is the chance that an opportunity to escape comes. You decide whether to try; how likely it is to work depends on your Roguery. Got away or caught, the lord judges you again. 0 = never.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public int VerdictEscapeChancePerDay { get; set; } = 5;
+
+        [SettingPropertyInteger("{=AIL_e7b1d824}Escape attempts per imprisonment", 0, 5, Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1d825}How many times you can try to escape during one stay in a dungeon. A new sentence after a failed attempt gives no new attempts.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public int VerdictEscapeMaxAttempts { get; set; } = 2;
 
         [SettingPropertyBool("{=AIL_15eec8c6}Lines during fights", Order = 14, RequireRestart = false,
             HintText = "{=AIL_7aad4a7d}In fights and duels within a scene, your opponent says lines depending on how it's going, and onlookers shout. Just one request to the AI when the fight starts.")]
@@ -1031,7 +1058,7 @@ namespace AILegacy.Settings
 
         // Children out of wedlock
         [SettingPropertyBool("{=AIL_e7b1c825}Children out of wedlock", Order = 50, RequireRestart = false,
-            HintText = "{=AIL_e7b1c826}Intimacy between two people who are not married to each other can leave a child. The game carries the pregnancy with the true father. At birth: if you are a parent, you choose whether to raise the child in your house; a married mother may pass it off as her husband's (a secret only the two parents know); otherwise the child carries a baseborn surname after the mother's culture, and her husband and head of house take it badly. The child becomes legitimate if the parents marry, if the child marries or heads a house, or if you acknowledge them.")]
+            HintText = "{=AIL_e7b1c826}Intimacy between two people who are not married to each other can leave a child. The game carries the pregnancy with the true father. At birth, if you are a parent, you are asked whether you raise the child as your own in your clan; if not, it stays in the other parent's clan. A married mother may pass it off as her husband's; otherwise the child carries a baseborn surname after the mother's culture and, if the mother knows who the father is, a rumour names him. A father the mother never knew is never named or blamed. You can acknowledge a child of yours once of age by talking to them: they come into your clan as legitimate. The child also becomes legitimate if the parents marry, or if the child marries or heads a house.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public bool EnableBastards { get; set; } = true;
 
@@ -1056,7 +1083,7 @@ namespace AILegacy.Settings
         public int BastardSecretKeptPercent { get; set; } = 70;
 
         [SettingPropertyBool("{=AIL_e7b1c82f}Out of wedlock: consequences", Order = 55, RequireRestart = false,
-            HintText = "{=AIL_e7b1c830}When it is not kept secret, whoever is to blame (the father, or you if you would not raise the child) loses relation with the guardian's spouse and head of house.")]
+            HintText = "{=AIL_e7b1c830}When it is not kept secret, whoever is to blame (the father, or you if you would not raise the child) loses relation with the guardian's spouse and head of house. Not if the mother does not know who the father is.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public bool BastardConsequences { get; set; } = true;
 
@@ -1080,14 +1107,14 @@ namespace AILegacy.Settings
 
         // Concubines
         [SettingPropertyBool("{=AIL_e7b1c838}Concubines", Order = 60, RequireRestart = false,
-            HintText = "{=AIL_e7b1c839}Someone unmarried who loves you deeply can agree, in a conversation, to leave their house and live with you as your concubine: they join your clan and your company, their old head of house takes it badly, and children may come (born out of wedlock, with you known as the parent). It ends when either of you decides, when one of you dies, or when you marry them. Meanwhile nobody else can marry them.")]
+            HintText = "{=AIL_e7b1d611}Someone unmarried who loves you deeply can agree, in a conversation, to leave their house and live with you as your concubine: they join your clan and your company (if they lead a party, its soldiers come into yours), their old head of house takes it badly, and children may come (born out of wedlock, with you known as the parent). While you are married, whoever says yes to marrying you becomes your concubine instead, or the wedding does not happen. It ends when either of you decides, when one of you dies, or when you marry them. Meanwhile nobody else can marry them.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public bool EnableConcubines { get; set; } = true;
+        public bool EnableConcubines { get; set; } = false;
 
         [SettingPropertyInteger("{=AIL_e7b1c83a}Concubines: romance needed", 0, 100, Order = 61, RequireRestart = false,
             HintText = "{=AIL_e7b1c83b}How deep the romance must be before someone will even consider it. Recommended: 60 to 85.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public int ConcubineMinRomance { get; set; } = 70;
+        public int ConcubineMinRomance { get; set; } = 80;
 
         [SettingPropertyInteger("{=AIL_e7b1c83c}Concubines: chance of children (% of a married couple's)", 0, 200, Order = 62, RequireRestart = false,
             HintText = "{=AIL_e7b1c83d}Living together, children come at the game's own daily pace for a couple who share a roof, times this. 100 = the same as spouses; 0 = never. Recommended: 50 to 100.")]
@@ -1140,7 +1167,7 @@ namespace AILegacy.Settings
         [SettingPropertyInteger("{=AIL_871af31c}Relation gained when completing a task", 0, 20, Order = 17, RequireRestart = false,
             HintText = "{=AIL_3a0aca3f}If you fail or the deadline passes, you lose half.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
-        public int QuestRelationReward { get; set; } = 4;
+        public int QuestRelationReward { get; set; } = 0;
 
         [SettingPropertyBool("{=AIL_5454e867}Items, documents and workshops", Order = 18, RequireRestart = false,
             HintText = "{=AIL_ba299376}Giving and receiving items, roleplay documents (letters of introduction, contracts, safe-conducts) and buying workshops by talking.")]
@@ -1679,29 +1706,23 @@ namespace AILegacy.Settings
 
         // ------------------------------------------------------------ Diseases
         [SettingPropertyBool("{=AIL_68f76b26}Diseases", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_6a0ec00a}Outbreaks by season or from an event: they damage the settlement, spread to neighbors, sicken your troops if you enter, and are slowed by quarantines.")]
+            HintText = "{=AIL_e7b1d726}Outbreaks come from world events, or as an epidemic when several heroes sick with the same disease gather in one town or castle. They damage the settlement, travel with sick lords, caravans and villagers, weaken whoever stays there, and are held back by quarantines.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
         public bool EnableDiseases { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_5e55369d}Maximum simultaneous outbreaks", 1, 30, Order = 1, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_5e55369d}Maximum simultaneous outbreaks", 1, 30, Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1d729}How many outbreaks world events may have going at the same time. Outbreaks carried by the sick or born of an epidemic are not held back by it.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
-        public int DiseaseMaxSimultaneous { get; set; } = 4;
+        public int DiseaseMaxSimultaneous { get; set; } = 3;
 
         [SettingPropertyInteger("{=AIL_36b9fe81}Maximum severity", 1, 5, Order = 2, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
-        public int DiseaseMaxSeverity { get; set; } = 4;
+        public int DiseaseMaxSeverity { get; set; } = 5;
 
-        [SettingPropertyInteger("{=AIL_77ca23b7}Minimum days between new outbreaks", 1, 200, Order = 3, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_77ca23b7}Minimum days between new outbreaks", 1, 200, Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1d72a}Days that must pass after an outbreak starts before a world event may start another one.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
-        public int DiseaseMinDaysBetweenOutbreaks { get; set; } = 20;
-
-        [SettingPropertyInteger("{=AIL_b3d0b991}Daily chance of a seasonal outbreak (per thousand)", 0, 200, Order = 4, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
-        public int DiseaseSeasonalChancePerMille { get; set; } = 25;
-
-        [SettingPropertyInteger("{=AIL_e00fb19f}Daily spread to a neighbor per severity level (per thousand)", 0, 200, Order = 5, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
-        public int DiseaseSpreadChancePerMille { get; set; } = 12;
+        public int DiseaseMinDaysBetweenOutbreaks { get; set; } = 14;
 
         [SettingPropertyInteger("{=AIL_0361e655}Prosperity lost per day per severity level", 0, 50, Order = 6, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
@@ -1712,7 +1733,7 @@ namespace AILegacy.Settings
         public bool DiseaseFromEvents { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_eade4433}Your troops can fall ill", Order = 8, RequireRestart = false,
-            HintText = "{=AIL_c6dc6d42}When entering or staying in a place with disease, some of your soldiers may fall ill (they are left as wounded).")]
+            HintText = "{=AIL_e7b1d727}While you stay in a place with disease, some of your soldiers may fall ill. They stay in the ranks but slow the march, lower morale and fight worse, and the worst cases can die.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
         public bool DiseaseAffectsPlayerTroops { get; set; } = true;
 
@@ -1721,22 +1742,14 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
         public bool QuarantineClosesGates { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_b7d2f022}Bribe to enter a quarantined place, per severity level (0 = no way in)", 0, 5000, Order = 21, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
-        public int QuarantineBribeGold { get; set; } = 300;
-
-        [SettingPropertyInteger("{=AIL_1b8ccb46}Chance of falling ill per severity level (%)", 0, 30, Order = 9, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
-        public int DiseaseTroopChancePerSeverity { get; set; } = 8;
-
         // People and parties fall ill: limits of what a disease may do
         [SettingPropertyFloatingInteger("{=AIL_e7b1c611}Limits: highest spread rate of a disease", 0.1f, 1f, "0.00", Order = 30, RequireRestart = false,
             HintText = "{=AIL_e7b1c612}How catching a disease can be at most, whether the event that brought it says so or it is worked out from its severity. It scales every contagion chance below.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public float DiseaseMaxSpreadRate { get; set; } = 0.8f;
 
-        [SettingPropertyFloatingInteger("{=AIL_e7b1c613}Limits: highest daily chance of dying (0 = nobody dies of disease)", 0f, 1f, "0.00", Order = 31, RequireRestart = false,
-            HintText = "{=AIL_e7b1c614}Only serious diseases (severity 3 or more) kill: surely when they run their full course untreated, and with this daily risk at most from the halfway point. At 0 no hero and no soldier dies of disease.")]
+        [SettingPropertyFloatingInteger("{=AIL_e7b1d72b}Limits: highest daily chance of dying", 0f, 1f, "0.00", Order = 31, RequireRestart = false,
+            HintText = "{=AIL_e7b1d728}Only serious diseases (severity 3 or more) kill. From 80% of their course a sick hero or soldier runs this daily risk at most; at 100% they always die. Values an event proposes above this are lowered to it.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b1}1. Limits", GroupOrder = 1)]
         public float DiseaseMaxDeathChance { get; set; } = 0.3f;
 
@@ -1795,37 +1808,37 @@ namespace AILegacy.Settings
         [SettingPropertyFloatingInteger("{=AIL_e7b1c626}Seasonal: base chance (every 6 hours)", 0.0005f, 0.1f, "0.0000", Order = 51, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a1}Chance, every 6 hours, that a hero or a band travelling the map catches something mild. The season and the weather below are added to it, and the total never goes above the highest chance. Recommended: 0.001 to 0.003.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalDiseaseBaseChance { get; set; } = 0.002f;
+        public float SeasonalDiseaseBaseChance { get; set; } = 0.001f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c627}Seasonal: highest chance after all additions", 0.01f, 0.5f, "0.000", Order = 52, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a2}The chance never goes above this, however many additions pile up (winter, a blizzard, at sea). Recommended: 0.02 to 0.05.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalDiseaseMaxChance { get; set; } = 0.04f;
+        public float SeasonalDiseaseMaxChance { get; set; } = 0.02f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c628}Seasonal: added in winter", 0f, 0.2f, "0.0000", Order = 53, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalWinterBonus { get; set; } = 0.005f;
+        public float SeasonalWinterBonus { get; set; } = 0.004f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c629}Seasonal: added in autumn", 0f, 0.2f, "0.0000", Order = 54, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalAutumnBonus { get; set; } = 0.003f;
+        public float SeasonalAutumnBonus { get; set; } = 0.002f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62a}Seasonal: added in spring", 0f, 0.2f, "0.0000", Order = 55, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalSpringBonus { get; set; } = 0.002f;
+        public float SeasonalSpringBonus { get; set; } = 0.0015f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62b}Seasonal: added in summer", 0f, 0.1f, "0.0000", Order = 56, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a3}Added to the base chance during that season. Recommended: 0 to 0.005, with winter the highest.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalSummerBonus { get; set; } = 0.001f;
+        public float SeasonalSummerBonus { get; set; } = 0.0005f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62c}Seasonal: added in light rain", 0f, 0.1f, "0.0000", Order = 57, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalWeatherLightRainBonus { get; set; } = 0.0012f;
+        public float SeasonalWeatherLightRainBonus { get; set; } = 0.001f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62d}Seasonal: added in heavy rain or a storm", 0f, 0.15f, "0.0000", Order = 58, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
@@ -1840,7 +1853,7 @@ namespace AILegacy.Settings
         [SettingPropertyFloatingInteger("{=AIL_e7b1c62f}Seasonal: added in a blizzard", 0f, 0.2f, "0.0000", Order = 60, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases/{=AIL_e7b1c7b3}3. Seasonal illnesses", GroupOrder = 3)]
-        public float SeasonalWeatherBlizzardBonus { get; set; } = 0.003f;
+        public float SeasonalWeatherBlizzardBonus { get; set; } = 0.004f;
 
         [SettingPropertyFloatingInteger("{=AIL_e7b1c630}Seasonal: added on wet ground", 0f, 0.1f, "0.0000", Order = 61, RequireRestart = false,
             HintText = "{=AIL_e7b1c7a4}Added to the base chance while the party is in that weather or at sea. Recommended: 0 to 0.004.")]
@@ -1977,13 +1990,24 @@ namespace AILegacy.Settings
         public int ErrandAnswersPerDay { get; set; } = 4;
 
         [SettingPropertyBool("{=AIL_a815af23}NPCs approach you on the map", Order = 2, RequireRestart = false,
-            HintText = "{=AIL_cc079ac8}A noble who already knows you and passes nearby may ride up to you to talk, if they have a reason: an open task, something they heard about you, affection or resentment. They ask whether you will receive them.")]
+            HintText = "{=AIL_cc079ac8}A lord in sight, known to you or not, may ride up to you to talk: an open task, something they heard about you, affection, resentment, or just to see who you are. As they approach they ask whether you will receive them.")]
         [SettingPropertyGroup("{=AIL_884d0de2}C. Initiative and errands", GroupOrder = 12)]
         public bool EnableMapInitiative { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_3225c875}Hourly chance that someone nearby approaches (%)", 0, 100, Order = 3, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_e7b1d828}Chance per lord in sight, every 5 hours (%)", 0, 50, Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1d829}Every 5 game hours each lord in sight, known or not, rolls this chance to ride over and talk, plus 2 if your relation is above 20, 1 if below -20, 2 for romance above 50, 2 if you have talked more than 10 times, 4 if you have not talked in 20 days, 2 for someone riding in your party.")]
         [SettingPropertyGroup("{=AIL_884d0de2}C. Initiative and errands", GroupOrder = 12)]
-        public int MapInitiativeChancePercent { get; set; } = 6;
+        public int MapApproachBaseChance { get; set; } = 2;
+
+        [SettingPropertyBool("{=AIL_e7b1d82a}Hostile lords speak first", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1d82b}A lord at war with you whose party is stronger and is riding you down speaks first when he catches you.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}C. Initiative and errands", GroupOrder = 12)]
+        public bool EnableHostileInitiative { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1d82c}Days before another hostile lord speaks first", 1, 30, Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1d82d}After a hostile lord has caught you and spoken first, no hostile lord does it again for this many days.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}C. Initiative and errands", GroupOrder = 12)]
+        public int HostileInitiativeCooldownDays { get; set; } = 3;
 
         [SettingPropertyInteger("{=AIL_f42f2a6a}Minimum days between approaches", 0, 60, Order = 4, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_884d0de2}C. Initiative and errands", GroupOrder = 12)]
@@ -2150,13 +2174,13 @@ namespace AILegacy.Settings
         public bool BackgroundEvents { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_18b82bcb}Background events: every how many days (approx.)", 1, 100, Order = 1, RequireRestart = false,
-            HintText = "{=AIL_d43bd671}It doesn't fall like clockwork: the actual interval varies between 60 % and 140 % of this value.")]
+            HintText = "{=AIL_d43bd671}A batch comes exactly every this many days. Each batch is of a single kind, drawn from the event mix below; it is military when a war has worn out both sides past 75 %. A batch that fails is tried again the next day.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
         public int WorldEventsIntervalDays { get; set; } = 7;
 
         [SettingPropertyInteger("{=AIL_c0d9e15c}Events per batch", 1, 4, Order = 2, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int WorldEventsPerGeneration { get; set; } = 2;
+        public int WorldEventsPerGeneration { get; set; } = 1;
 
         [SettingPropertyInteger("{=AIL_e7b1d200}Event mix: military (%)", 0, 100, Order = 2, RequireRestart = false,
             HintText = "{=AIL_e7b1d201}Share of the background events about war: battles, raids, sieges, armies gathering, marching or breaking up, border provocations, cattle seized. The five shares are weighed against each other, they need not add up to 100 (all at 0 = no preference).")]
@@ -2183,17 +2207,17 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
         public int EventMixIntrigue { get; set; } = 20;
 
-        [SettingPropertyInteger("{=AIL_072e561a}Minimum length of an event (characters)", 80, 800, Order = 3, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_072e561a}Minimum length of an event (characters)", 50, 800, Order = 3, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int WorldEventMinLength { get; set; } = 200;
+        public int WorldEventMinLength { get; set; } = 100;
 
         [SettingPropertyInteger("{=AIL_5b79eb8c}Maximum length of an event (characters)", 200, 1400, Order = 4, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
         public int WorldEventMaxLength { get; set; } = 600;
 
-        [SettingPropertyInteger("{=AIL_dd736c20}Days an event stays \"up in the air\"", 5, 120, Order = 5, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_dd736c20}Days an event stays \"up in the air\"", 1, 300, Order = 5, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int WorldEventLifespanDays { get; set; } = 30;
+        public int WorldEventLifespanDays { get; set; } = 100;
 
         [SettingPropertyInteger("{=AIL_b32fb45c}Notify on screen from importance", 1, 5, Order = 6, RequireRestart = false,
             HintText = "{=AIL_580cc0e5}1 = all, 4 = only those that shake the world, 5 = never.")]
@@ -2236,17 +2260,18 @@ namespace AILegacy.Settings
         public bool BlockForeignWarPeace { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_c3e1a901}Kings who may speak out per day", 1, 8, Order = 17, RequireRestart = false,
-            HintText = "{=AIL_c3e1a902}When something big happens, several kings can speak about it. They take turns, each one knowing what the others said. Every declaration is one AI request.")]
+            HintText = "{=AIL_c3e1a902}With 1 (as in AIInfluence) at most one declaration every 25 to 36 game hours in the whole world; with more, the day is shared out among that many. They take turns, each one knowing what the others said. Answers to a pending proposal (accepting or rejecting a peace, an alliance, a trade, a ransom or an exchange) never wait for this limit. Every declaration is one AI request.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int MaxStatementsPerDay { get; set; } = 3;
+        public int MaxStatementsPerDay { get; set; } = 1;
 
-        [SettingPropertyInteger("{=AIL_c3e1a903}Game hours between one king's declaration and the next", 1, 24, Order = 18, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_e7b1d805}Game hours between two declarations in the whole world", 12, 64, Order = 18, RequireRestart = false,
+            HintText = "{=AIL_e7b1d806}With one king per day: after any AI king speaks, the next declaration anywhere waits this many game hours plus 1 to 12 at random (with 24, one every 25 to 36 hours). Answers to a pending proposal never wait for it.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int HoursBetweenStatements { get; set; } = 4;
+        public int StatementSpacingHours { get; set; } = 24;
 
         [SettingPropertyInteger("{=AIL_4ae4ed78}Minimum days between declarations by the same king", 1, 60, Order = 19, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int MinDaysBetweenStatements { get; set; } = 3;
+        public int MinDaysBetweenStatements { get; set; } = 1;
 
         [SettingPropertyInteger("{=AIL_e7b1c758}Minimum days between declarations in the whole world (0 = no limit)", 0, 30, Order = 21, RequireRestart = false,
             HintText = "{=AIL_e7b1c759}After any AI king speaks, no other AI king does until this many days have passed, however much the AI wants them to. It also means one declaration at a time. With 0 only the limits per day and per king above apply. Your own declarations are never held back. Answers to a pending proposal are not held back by this, so that proposals do not run out unanswered. Recommended: 1 or 2; 0 turns it off.")]
@@ -2265,13 +2290,13 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
         public int ProposalLifetimeDays { get; set; } = 30;
 
-        [SettingPropertyInteger("{=AIL_ab45cede}Minimum length of a declaration", 80, 800, Order = 25, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_ab45cede}Minimum length of a declaration", 50, 1000, Order = 25, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int StatementMinLength { get; set; } = 200;
+        public int StatementMinLength { get; set; } = 100;
 
-        [SettingPropertyInteger("{=AIL_9ba9f600}Maximum length of a declaration", 200, 1600, Order = 26, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_9ba9f600}Maximum length of a declaration", 100, 1600, Order = 26, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int StatementMaxLength { get; set; } = 700;
+        public int StatementMaxLength { get; set; } = 500;
 
         [SettingPropertyInteger("{=AIL_0d849eb1}Maximum shift in stance between crowns per declaration", 1, 50, Order = 27, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
@@ -2285,13 +2310,13 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
         public int MaxReparations { get; set; } = 100000;
 
-        [SettingPropertyInteger("{=AIL_ffcd4d39}Crown tax: minimum (%)", -50, 0, Order = 30, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_ffcd4d39}Crown tax: minimum (%)", -100, 0, Order = 30, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int KingdomTaxMinPercent { get; set; } = -10;
+        public int KingdomTaxMinPercent { get; set; } = -50;
 
         [SettingPropertyInteger("{=AIL_9ff27d57}Crown tax: maximum (%)", 0, 100, Order = 31, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]
-        public int KingdomTaxMaxPercent { get; set; } = 30;
+        public int KingdomTaxMaxPercent { get; set; } = 50;
 
         [SettingPropertyBool("{=AIL_cddce6e0}Kings can declare war on you if you rule", Order = 32, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy", GroupOrder = 11)]

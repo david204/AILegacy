@@ -290,6 +290,7 @@ namespace AILegacy.Behaviors
             Diseases.AddMenus(starter);
             try { World.ArenaTraining.AddMenus(starter); } catch (Exception ex) { Log.Error("Arena training menu", ex); }
             try { World.Activities.AddMenus(starter); } catch (Exception ex) { Log.Error("Activities menus", ex); }
+            try { Dialogue.Verdict.AddMenus(starter); } catch (Exception ex) { Log.Error("Dungeon menus", ex); }
 
             // --- Heroes (lords, notables, companions, wanderers), chat window style
             starter.AddPlayerLine(
@@ -452,12 +453,11 @@ namespace AILegacy.Behaviors
                     if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
                 }, priority: 119);
             // An adult child of yours born out of wedlock: you acknowledge them before everyone
-            starter.AddPlayerLine("ailegacy_acknowledge", "hero_main_options", "ailegacy_acknowledge_reply", L.T("AIL_e7b1c823", "{=!}Te reconozco como hijo mío, legítimo ante todos."),
+            starter.AddPlayerLine("ailegacy_acknowledge", "hero_main_options", "ailegacy_acknowledge_reply", L.T("AIL_e7b1c823", "{=!}Te reconozco como hijo mío. Desde hoy eres de verdad parte de nuestra familia."),
                 () => Bastards.CanAcknowledge(Hero.OneToOneConversationHero),
                 () => Bastards.Acknowledge(Hero.OneToOneConversationHero), priority: 101);
             starter.AddDialogLine("ailegacy_acknowledge_reply", "ailegacy_acknowledge_reply", "lord_pretalk", L.T("AIL_e7b1c824", "{=!}*se te queda mirando un largo momento* Toda la vida esperando oír eso."),
-                null, null, priority: 100);
-            // On the map: dismount and talk face to face in a terrain scene
+                null, null, priority: 100);            // On the map: dismount and talk face to face in a terrain scene
             starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),
                 () => Scenes.MapTalk.Queue(Hero.OneToOneConversationHero), priority: 119);

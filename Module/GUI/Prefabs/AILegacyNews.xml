@@ -19,14 +19,14 @@
                         <EditableTextWidget UpdateChildrenStates="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="8" MarginBottom="8" MarginLeft="10" MarginRight="10" Brush="SaveLoad.Search.InputText" DefaultSearchText="@SearchPlaceholder" Text="@SearchText" />
                       </Children>
                     </BrushWidget>
-                    <ListPanel DataSource="{Records}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                    <!-- each button keeps the width of its own text; the selected one only changes colour (a StretchToParent child inside a CoverChildren button made it fill the row) -->
+                    <ListPanel DataSource="{Records}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" MarginLeft="404" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <ItemTemplate>
-                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="38" MarginLeft="8" VerticalAlignment="Center" Command.Click="ExecuteSelect">
+                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="38" MarginRight="8" HorizontalAlignment="Left" VerticalAlignment="Center" Command.Click="ExecuteSelect">
                           <Children>
                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@Color">
                               <Children>
                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#FFFFFFFF" Text="@Text" />
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="3" VerticalAlignment="Bottom" Sprite="BlankWhiteSquare_9" Color="#F4E1B5FF" IsVisible="@IsSelected" />
                               </Children>
                             </Widget>
                           </Children>
@@ -41,12 +41,11 @@
                   <Children>
                     <ListPanel DataSource="{Categories}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <ItemTemplate>
-                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="6" Command.Click="ExecuteSelect">
+                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="6" HorizontalAlignment="Left" Command.Click="ExecuteSelect">
                           <Children>
                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@Color">
                               <Children>
                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#FFFFFFFF" Text="@Text" />
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="3" VerticalAlignment="Bottom" Sprite="BlankWhiteSquare_9" Color="#F4E1B5FF" IsVisible="@IsSelected" />
                               </Children>
                             </Widget>
                           </Children>

@@ -837,6 +837,33 @@ namespace AILegacy.Dialogue
         private static readonly List<(Agent who, float left)> Away = new List<(Agent, float)>();
 
         /// <summary>
+        /// A death in the talk, seen on screen: one killing blow to the head, credited to the killer's agent when
+        /// there is one, so the body falls with the death animation (as AIInfluence does it).
+        /// </summary>
+        public static void DeathBlow(Agent victim, Agent killer)
+        {
+            try
+            {
+                if (victim == null || !victim.IsActive() || Mission.Current == null) return;
+                var b = new Blow(killer != null && killer.IsActive() ? killer.Index : -1);
+                b.DamageType = TaleWorlds.Core.DamageTypes.Cut;
+                b.BoneIndex = victim.Monster.HeadLookDirectionBoneIndex;
+                b.GlobalPosition = victim.Position;
+                b.GlobalPosition.z += victim.GetEyeGlobalHeight();
+                b.BaseMagnitude = 10000f;
+                b.InflictedDamage = 10000;
+                b.SwingDirection = victim.LookDirection;
+                b.Direction = b.SwingDirection;
+                b.DamageCalculated = true;
+                b.DamagedPercentage = 1f;
+                b.VictimBodyPart = BoneBodyPartType.Head;
+                victim.Die(b);
+                Log.Info($"Death in the talk: {victim.Name} falls in the scene");
+            }
+            catch (Exception ex) { Log.Error("Death blow in the scene", ex); }
+        }
+
+        /// <summary>
         /// Someone leaving the talk turns away and walks a few steps off before going back to their routine.
         /// Anyone seated, mounted or busy with something just stops looking at the player.
         /// </summary>

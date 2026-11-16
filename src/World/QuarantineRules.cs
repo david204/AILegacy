@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using AILegacy.Core;
 using AILegacy.Settings;
+using Helpers;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
@@ -16,38 +16,93 @@ namespace AILegacy.World
 {
     /// <summary>
     /// Quarantine that actually closes the gates. While it lasts, map parties don't pick the place as a destination,
-    /// caravans and villagers stay away, no tournaments are called, and the player is stopped at the gate (turn back, or
-    /// bribe the guards and go in at your own risk). The owner and enemies coming to take the place aren't affected.
+    /// caravans and villagers stay away and no tournaments are called. The player who comes to a town finds a menu
+    /// with only "Leave"; at a castle the guard sergeant turns them back. Inside a quarantined town or castle the
+    /// streets, arena, market, tavern, back streets, port, prison and garrison are closed, and whoever is ill cannot
+    /// leave. The owner, the ruler of the owner's realm and enemies at war are not stopped at the gate.
     /// </summary>
     internal static class QuarantineRules
     {
+        // The gate menu keeps the id of the old one, so a save made in it still finds it
         private const string GateMenu = "ailegacy_quarantine_gate";
-        private static string _passFor;       // settlement the player is already allowed inside (let in, or was there before it closed)
-        private static string _backMenu;      // game menu to return to after getting through
+        private const string CastleMenu = "ailegacy_quarantine_castle_denied";
+        private static string _passFor;       // settlement the player was inside of when it closed
+
+        // The game's menu options a quarantine closes for anyone inside, and the ones that leave a settlement
+        private static readonly string[] Closes =
+        {
+            "town_streets", "town_arena", "trade", "town_backstreet", "town_tavern", "town_port", "go_to_port", "visit_port", "take_a_walk_around_the_castle", "castle_prison",
+            "castle_prison_cheat", "manage_garrison", "manage_production", "open_stash", "leave_troops_to_garrison", "castle_return_to_army",
+        };
+        private static readonly string[] Leaves = { "town_leave", "castle_leave", "leave" };
 
         public static bool Closed(Settlement st)
         {
-            try { return st != null && Diseases.Enabled && S.Get.QuarantineClosesGates && Diseases.At(st)?.Quarantined == true; }
+            try { return st != null && Diseases.Enabled && S.Get.QuarantineClosesGates && Diseases.IsQuarantined(st); }
             catch { return false; }
         }
 
         private static bool AnyClosed()
         {
-            try { return Diseases.Enabled && S.Get.QuarantineClosesGates && WorldSim.State != null && WorldSim.State.Outbreaks.Any(o => o.Quarantined); }
+            try { return Diseases.Enabled && S.Get.QuarantineClosesGates && Diseases.AnyQuarantine; }
             catch { return false; }
         }
 
-        private static bool PlayerExempt(Settlement st)
+        /// <summary>The owner, the ruler of the owner's realm, and whoever comes at war, are let through the gate.</summary>
+        public static bool PlayerExempt(Settlement st)
         {
+            if (st == null) return true;
             if (st.OwnerClan == Clan.PlayerClan) return true;
-            if (st.MapFaction is Kingdom k && k.Leader == Hero.MainHero) return true;
-            var pf = Hero.MainHero?.MapFaction;
+            var me = Hero.MainHero;
+            var realm = st.OwnerClan?.Kingdom;
+            if (me != null && me.IsKingdomLeader && realm != null && realm == me.Clan?.Kingdom) return true;
+            if (MobileParty.MainParty?.BesiegedSettlement == st) return true;
+            var pf = me?.MapFaction;
             return pf != null && st.MapFaction != null && pf.IsAtWarWith(st.MapFaction);      // the game already keeps enemies out
         }
 
+        private static bool PlayerIll()
+        {
+            try { return Hero.MainHero != null && Diseases.OfHero(Hero.MainHero) != null; } catch { return false; }
+        }
+
+        /// <summary>
+        /// The player is turned away at the gate. Someone who was already inside when it closed and has fallen ill stays
+        /// in: they may not leave, and turning them out to the gate menu would leave them no way to wait it out.
+        /// </summary>
         public static bool StopsPlayer(Settlement st)
         {
-            try { return Closed(st) && !PlayerExempt(st) && _passFor != st.StringId; } catch { return false; }
+            try { return Closed(st) && !PlayerExempt(st) && !(_passFor == st.StringId && PlayerIll()); } catch { return false; }
+        }
+
+        /// <summary>The player is ill inside a quarantined place that is not their clan's: the ways out are shut.</summary>
+        public static bool ExitBlocked()
+        {
+            try
+            {
+                var st = Settlement.CurrentSettlement;
+                return st != null && st.OwnerClan != Clan.PlayerClan && Closed(st) && PlayerIll();
+            }
+            catch { return false; }
+        }
+
+        /// <summary>Inside a quarantined town or castle, whoever owns it: the closed options stay closed.</summary>
+        public static bool InsideClosed()
+        {
+            try
+            {
+                var st = Settlement.CurrentSettlement;
+                return st != null && (st.IsTown || st.IsCastle) && Closed(st);
+            }
+            catch { return false; }
+        }
+
+        /// <summary>For the game's menu options (Patches\DiseaseExtraPatch.cs): grey out what the quarantine closes. Null when it stays as it is.</summary>
+        public static string GreyOut(string optionId, bool isLeave)
+        {
+            if (string.IsNullOrEmpty(optionId) || !AnyClosed()) return null;
+            if (isLeave) return Leaves.Contains(optionId) && ExitBlocked() ? L.T("AIL_e7b1d70e", "Estás infectado y no puedes salir del asentamiento en cuarentena.") : null;
+            return Closes.Contains(optionId) && InsideClosed() ? L.T("AIL_e7b1d70d", "Cerrado por cuarentena.") : null;
         }
 
         public static bool Barred(MobileParty party, Settlement st)
@@ -82,7 +137,7 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("[quarantine] map AI", ex); }
         }
 
-        /// <summary>If the quarantine starts while the player is inside, or a save loads inside, they aren't thrown out.</summary>
+        /// <summary>The quarantine starts while the player is inside, or a save loads inside: noted for StopsPlayer.</summary>
         public static void NotePlayerInside()
         {
             try { _passFor = Settlement.CurrentSettlement?.StringId; } catch { _passFor = null; }
@@ -93,78 +148,90 @@ namespace AILegacy.World
             if (party != null && party.IsMainParty) _passFor = null;
         }
 
+        private static Settlement Here => PlayerEncounter.LocationEncounter?.Settlement ?? Settlement.CurrentSettlement ?? PlayerEncounter.EncounterSettlement;
+
+        /// <summary>The town's menus give way to the closed gate, the castle's to the guard sergeant who turns the player back.</summary>
         public static void OnGameMenuOpened(MenuCallbackArgs args)
         {
             try
             {
                 string id = args?.MenuContext?.GameMenu?.StringId;
-                if (id != "town" && id != "castle" && id != "village" && id != "town_outside" && id != "castle_outside") return;
-                var st = Settlement.CurrentSettlement ?? PlayerEncounter.EncounterSettlement;
-                if (st == null || !StopsPlayer(st)) return;
-                _backMenu = id;
-                GameMenu.SwitchToMenu(GateMenu);
+                bool town = id == "town" || id == "town_outside" || id == "town_outside_ended";
+                if (!town && id != "castle") return;
+                var st = Here;
+                if (st == null || (town ? !st.IsTown : !st.IsCastle) || !StopsPlayer(st)) return;
+                GameMenu.SwitchToMenu(town ? GateMenu : CastleMenu);
             }
             catch (Exception ex) { Log.Error("[quarantine] gate", ex); }
         }
 
-        private static Settlement Here => Settlement.CurrentSettlement ?? PlayerEncounter.EncounterSettlement;
-
-        private static int BribeCost(Settlement st)
+        /// <summary>The castle guard turns away a request to enter (from the game's "Request entry to the castle").</summary>
+        public static bool DenyCastleEntry()
         {
-            int b = S.Get.QuarantineBribeGold;
-            var o = Diseases.At(st);
-            return b <= 0 || o == null ? 0 : b * Math.Max(1, o.Severity);
+            try
+            {
+                var st = Settlement.CurrentSettlement;
+                if (st == null || !st.IsCastle || !StopsPlayer(st)) return false;
+                GameMenu.SwitchToMenu(CastleMenu);
+                return true;
+            }
+            catch (Exception ex) { Log.Error("[quarantine] castle request", ex); return false; }
         }
 
-        private static string GateText()
+        private static void GateInit(MenuCallbackArgs args)
         {
-            var st = Here; var o = Diseases.At(st);
-            if (st == null || o == null) return "";
-            int left = (int)Math.Max(1, Math.Ceiling(o.QuarantineUntilDay - CampaignTime.Now.ToDays));
-            return L.F("AIL_b7d2f001", $"{st.Name} está en cuarentena por {o.Name}. La guardia tiene las puertas cerradas y no deja pasar a nadie de fuera. Quedan unos {left} días.");
+            var st = Here;
+            try { if (st?.Town != null) args.MenuContext.SetBackgroundMeshName(st.Town.WaitMeshName); } catch { }
+            string text = st == null
+                ? L.T("AIL_e7b1d70a", "Este asentamiento está cerrado por cuarentena. No se te permite entrar.")
+                : L.F("AIL_e7b1d709", $"{st.Name} está cerrada por cuarentena. No se te permite entrar.");
+            MBTextManager.SetTextVariable("AIL_QGATE", BraceSafe(text));
         }
+
+        private static void CastleInit(MenuCallbackArgs args)
+        {
+            try { args.MenuContext.SetBackgroundMeshName("encounter_guards"); } catch { }
+            var st = Settlement.CurrentSettlement;
+            TextObject text;
+            if (st != null)
+            {
+                text = new TextObject("{=!}" + L.T("AIL_e7b1d70b", "El sargento de la guardia levanta la mano antes de que llegues a la puerta. «{?PLAYER.GENDER}Mi señora{?}Mi señor{\\?}, {SETTLEMENT_NAME} está en cuarentena por orden de {LORD.LINK}. Nadie entra ni sale hasta que se levante la cuarentena. Debo pediros que deis media vuelta.»"));
+                text.SetTextVariable("SETTLEMENT_NAME", st.EncyclopediaLinkWithName);
+                try { if (Hero.MainHero != null) StringHelpers.SetCharacterProperties("PLAYER", Hero.MainHero.CharacterObject, text); } catch { }
+                try { var lord = st.OwnerClan?.Leader; if (lord != null) StringHelpers.SetCharacterProperties("LORD", lord.CharacterObject, text); } catch { }
+            }
+            else text = new TextObject("{=!}" + L.T("AIL_e7b1d70c", "La guardia te cierra el paso. Este castillo está en cuarentena. No se te permite entrar."));
+            MBTextManager.SetTextVariable("AIL_QCASTLE", text);
+        }
+
+        /// <summary>Braces in a settlement's name would be read as text variables.</summary>
+        private static string BraceSafe(string s) => (s ?? "").Replace("{", "(").Replace("}", ")");
 
         public static void AddMenus(CampaignGameStarter starter)
         {
-            starter.AddGameMenu(GateMenu, "{=!}{AIL_QGATE}", args => MBTextManager.SetTextVariable("AIL_QGATE", GateText()));
-
-            starter.AddGameMenuOption(GateMenu, "ailegacy_qgate_bribe", L.T("AIL_b7d2f002", "{=!}Sobornar a la guardia de la puerta ({AIL_QBRIBE} denarios)"),
-                args =>
-                {
-                    args.optionLeaveType = GameMenuOption.LeaveType.Bribe;
-                    int cost = BribeCost(Here);
-                    if (cost <= 0) return false;
-                    MBTextManager.SetTextVariable("AIL_QBRIBE", cost);
-                    if (Hero.MainHero.Gold < cost)
-                    {
-                        args.IsEnabled = false;
-                        args.Tooltip = new TextObject("{=!}" + L.T("AIL_b7d2f003", "No llevas tanto oro."));
-                    }
-                    return true;
-                },
-                args =>
-                {
-                    var st = Here;
-                    int cost = BribeCost(st);
-                    if (st == null || Hero.MainHero.Gold < cost) return;
-                    GiveGoldAction.ApplyForCharacterToSettlement(Hero.MainHero, st, cost);
-                    _passFor = st.StringId;
-                    WorldSim.Say(L.F("AIL_b7d2f004", $"La guardia mira hacia otro lado. Entras en {st.Name} por tu cuenta y riesgo."), Colors.Yellow);
-                    Diseases.SickenAtGate(st);
-                    GameMenu.SwitchToMenu(string.IsNullOrEmpty(_backMenu) ? (st.IsTown ? "town" : st.IsCastle ? "castle" : "village") : _backMenu);
-                }, false, -1);
-
-            starter.AddGameMenuOption(GateMenu, "ailegacy_qgate_leave", L.T("AIL_b7d2f005", "{=!}Dar media vuelta"),
+            starter.AddGameMenu(GateMenu, "{=!}{AIL_QGATE}", GateInit, GameMenu.MenuOverlayType.SettlementWithBoth);
+            starter.AddGameMenuOption(GateMenu, "ailegacy_qgate_leave", L.T("AIL_e7b1d710", "{=!}Irse"),
                 args => { args.optionLeaveType = GameMenuOption.LeaveType.Leave; return true; },
                 args =>
                 {
                     try
                     {
-                        if (MobileParty.MainParty.CurrentSettlement != null) PlayerEncounter.LeaveSettlement();
+                        var party = MobileParty.MainParty;
+                        if (party?.CurrentSettlement != null)
+                        {
+                            try { party.Position = party.CurrentSettlement.GatePosition; } catch { }
+                            PlayerEncounter.LeaveSettlement();
+                        }
                         PlayerEncounter.Finish();
+                        try { Campaign.Current.SaveHandler.SignalAutoSave(); } catch { }
                     }
                     catch (Exception ex) { Log.Error("[quarantine] leaving the gate", ex); }
                 }, true, -1);
+
+            starter.AddGameMenu(CastleMenu, "{=!}{AIL_QCASTLE}", CastleInit);
+            starter.AddGameMenuOption(CastleMenu, "ailegacy_qcastle_back", "{=veWOovVv}Continue...",
+                args => { args.optionLeaveType = GameMenuOption.LeaveType.Leave; return true; },
+                args => GameMenu.SwitchToMenu("castle_outside"), false, -1);
         }
     }
 }

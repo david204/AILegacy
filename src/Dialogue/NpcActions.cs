@@ -63,23 +63,27 @@ namespace AILegacy.Dialogue
         private static readonly HashSet<string> DeathKinds = new HashSet<string> { "executed", "killed", "suicide", "poison", "wounds", "illness", "accident" };
 
         /// <summary>
-        /// Where a death by roleplay can happen: held by the player, in the player's party, in a scene with the player,
-        /// inside a settlement without leading a party, or alone on the road. Never for someone at the head of troops
-        /// or held by another party.
+        /// Where a death by roleplay can happen, in AIInfluence's order: anyone standing in the scene with the player;
+        /// a prisoner of the player's party or one held in a town or castle; someone in the player's party, in a
+        /// settlement without a party, or alone on the road. Never someone with troops around them on the map or held
+        /// by another party.
         /// </summary>
         private static bool CanDieHere(Speaker s)
         {
             try
             {
                 var h = s.Hero;
-                if (S.Get.RoleplayDeathAnywhere || HeldByPlayer(s) || h.IsWounded) return true;
-                if (h.IsPrisoner) return false;
-                var party = h.PartyBelongedTo;
-                if (party == MobileParty.MainParty) return true;
-                if (party != null && party.LeaderHero == h && party.MemberRoster.TotalManCount >= 2) return false;
+                if (S.Get.RoleplayDeathAnywhere) return true;
                 if (TaleWorlds.MountAndBlade.Mission.Current != null && SceneAgent() != null) return true;
-                if (party == null && h.CurrentSettlement != null) return true;
-                return party != null && party.MemberRoster.TotalManCount <= 1;
+                if (h.IsPrisoner)
+                {
+                    if (HeldByPlayer(s)) return true;
+                    if (h.CurrentSettlement != null && (h.CurrentSettlement.IsTown || h.CurrentSettlement.IsCastle)) return true;
+                    return h.PartyBelongedToAsPrisoner == null;
+                }
+                var party = h.PartyBelongedTo;
+                if (party != null && party != MobileParty.MainParty) return party.MemberRoster.TotalManCount <= 1;
+                return true;
             }
             catch { return false; }
         }
@@ -196,6 +200,8 @@ namespace AILegacy.Dialogue
             { "wait", "wait_here" }, { "wait_near", "wait_here" }, { "siege", "besiege" }, { "return", "resume_duties" }, { "stop", "resume_duties" },
             { "raise_army", "form_army" }, { "create_army", "form_army" }, { "disband_army", "leave_army" },
             { "marry", "accept_marriage" }, { "intimate", "intimacy" }, { "fist_fight", "brawl" }, { "fight", "brawl" },
+            { "friendly_duel", "duel" }, { "hostile_duel", "duel_to_death" }, { "challenge", "propose_duel" }, { "challenge_duel", "propose_duel" },
+            { "decline_marriage", "reject_marriage" }, { "refuse_marriage", "reject_marriage" },
             { "release", "set_free" }, { "free", "set_free" }, { "recruit", "join_party" }, { "join", "join_party" },
             { "end_conversation", "leave" }, { "goodbye", "leave" }, { "let_them_pass", "let_pass" }, { "let_them_go", "let_pass" },
             { "give_items", "give_item" }, { "take_items", "take_item" }, { "transfer_troops", "give_troops" },
@@ -209,10 +215,10 @@ namespace AILegacy.Dialogue
         // Only one action per group per reply: fighting, surrendering, dying and letting go can't be combined
         private static readonly string[][] Exclusive =
         {
-            new[] { "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "die", "let_pass", "call_guards", "call_help", "arrest", "let_go" },
+            new[] { "brawl", "duel", "duel_to_death", "propose_duel", "attack", "surrender", "accept_surrender", "die", "let_pass", "call_guards", "call_help", "arrest", "let_go" },
             // one way of walking off at a time
             new[] { "guide", "go_talk_to", "go_with", "come_along", "go_into", "stay_here" },
-            new[] { "propose_marriage", "accept_marriage" },
+            new[] { "propose_marriage", "accept_marriage", "reject_marriage" },
             new[] { "set_free", "die" },
             new[] { "declare_war", "make_peace" },
         };
@@ -691,7 +697,8 @@ namespace AILegacy.Dialogue
                               "Example: make_peace:they_pay=8000;they_cede=Varcheg — or, if you are the one buying the peace: make_peace:you_pay=5000. " +
                               "Only terms that both of you agreed to in so many words. The side that is losing the war is the one that pays; you never pay more than your treasury holds. " +
                               "Each term at most once, sums as plain whole numbers above zero, and a town or castle by its full name. " +
-                              "With or without terms, they are shown the treaty and nothing is signed, paid or handed over until they confirm it.",
+                              "Using it is your signature: the peace is signed at once with exactly these terms, and what each side owes is paid and handed over there and then. " +
+                              "So use it only after they have agreed in so many words to the same terms; while you are still haggling, keep talking.",
                 IsAvailable = s => S.Get.AllowDiplomacy && s.IsHero && s.Hero.IsKingdomLeader && PlayerIsRuler && s.Hero.MapFaction.IsAtWarWith(PlayerKingdom) && WarPeaceSettled(s.Hero.MapFaction),
                 Extra = s => $"Your treasury holds {Math.Max(0, s.Hero.Gold)} denars." +
                              (Duress(s) ? " You are their prisoner: a peace you agree to from your chains is as binding as any other, and what they wring out of you goes into its terms (you_pay, you_pay_daily, you_cede)." : ""),
@@ -708,9 +715,9 @@ namespace AILegacy.Dialogue
                 },
                 Execute = (s, arg, ctx) =>
                 {
-                    // With a price either way or with none, the peace is drawn up, shown to the player, and signed
-                    // only on his yes: a talk never ends a war without a click. Whatever the character wrote after
-                    // the colon, nothing here may throw into the dialogue.
+                    // As in AIInfluence's accept_peace: the ruler's acceptance of terms agreed in the talk signs the
+                    // peace at once, with no window. Whatever the character wrote after the colon, nothing here may
+                    // throw into the dialogue.
                     try
                     {
                         var terms = PeaceTermsFrom(arg, out string badTerm);
@@ -729,7 +736,8 @@ namespace AILegacy.Dialogue
             new ActionDef
             {
                 Name = "propose_marriage", Usage = "propose_marriage",
-                Description = "You ask the other person to marry you. Only if you truly want this union and the moment is right; they will answer yes or no themselves.",
+                Description = "You ask the other person to marry you, in the same reply in which your words propose. It only records your proposal: " +
+                              "their answer comes in their own words in a later message. If they clearly say yes, use accept_marriage then; if they say no, let it go.",
                 IsAvailable = s => S.Get.AllowMarriage && s.IsHero && !s.Hero.IsPrisoner && Rel(s) >= S.Get.MinRelationForMarriage
                                    && (!S.Get.EnableRomance || s.Memory.Romance >= S.Get.RomanceForMarriage)
                                    && CanWed(s.Hero),
@@ -738,25 +746,17 @@ namespace AILegacy.Dialogue
                     if (P.Spouse == s.Hero || s.Hero.Spouse == P) return null;
                     if (Repeated(s, "propose_marriage", 1)) return null;
                     LastDone[s.Key + "|propose_marriage"] = (1, DateTime.UtcNow);
-                    NoteOutcome(s, "[Pending: you have asked them to marry you. They have not answered yet: the wedding happens only if they say yes.]");
-                    Ask(L.F("AIL_b8f2e6a1", $"{s.Name} te pide matrimonio"),
-                        L.F("AIL_b8f2e6a2", $"Si aceptas, la boda se celebra ahora y es para siempre: {s.Name} pasará a ser de tu casa."),
-                        L.T("AIL_b8f2e6a3", "Aceptar"), L.T("AIL_b8f2e6a4", "Rechazar"),
-                        () => FinishWedding(s),
-                        () =>
-                        {
-                            NoteOutcome(s, "[Did not happen: they refused your marriage proposal. You are not married; it hurts your pride.]");
-                            try { Bonds.ChangeRomance(s, -10); ChangeRelationAction.ApplyPlayerRelation(s.Hero, -2, false, true); } catch { }
-                            Say(L.F("AIL_b8f2e6a5", $"Rechazas la propuesta de {s.Name}."));
-                            Memory.SaveFiles.Flush();
-                        });
-                    return L.F("AIL_b8f2e6a6", $"{s.Name} te pide matrimonio.");
+                    // As in AIInfluence: no window. The proposal waits for the player's answer in the talk.
+                    NoteOutcome(s, "[Pending: you have asked them to marry you. They answer in their own words: if they clearly accept, use accept_marriage in your reply; " +
+                                   "a question, silence or a refusal is not a yes.]");
+                    return L.F("AIL_e7b1d600", $"¡{s.Name} te ha propuesto matrimonio! Responde en la conversación.");
                 }
             },
             new ActionDef
             {
                 Name = "accept_marriage", Usage = "accept_marriage",
-                Description = "You say yes to the other person's marriage proposal. Only if they explicitly proposed and you truly love or want this union. The wedding takes place if they confirm it.",
+                Description = "You say yes to the marriage: either they proposed to you in so many words, or you proposed earlier and they have just clearly accepted. " +
+                              "Only if you truly love or want this union. The wedding is held as soon as this talk ends.",
                 IsAvailable = s => S.Get.AllowMarriage && s.IsHero && !s.Hero.IsPrisoner && Rel(s) >= S.Get.MinRelationForMarriage
                                    && (!S.Get.EnableRomance || s.Memory.Romance >= S.Get.RomanceForMarriage)
                                    && CanWed(s.Hero),
@@ -769,7 +769,8 @@ namespace AILegacy.Dialogue
                     if (!S.Get.AllowMarriage) return "no marriage can be made in a talk in this world";
                     if (h.IsPrisoner) return "you are a prisoner: no wedding can be held from a cell, and a promise of one is only a promise";
                     if (!CanWed(h))
-                        return h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan ? "you are the head of your own house and will not leave it to marry into theirs"
+                        return WedsAsConcubine(h) ? "they are already married, so you could only live with them as their concubine, and " + (World.Concubines.WhyNot(h, false, true) ?? "that is not possible")
+                             : h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan && !HasHeir(h) ? $"you are the head of clan {h.Clan.Name} and nobody in it could take it over if you left"
                              : h.Spouse != null && h.Spouse.IsAlive ? $"you are married to {h.Spouse.Name}"
                              : P.Spouse != null && P.Spouse.IsAlive ? "they are already married"
                              : "a marriage between the two of you is not possible";
@@ -784,18 +785,26 @@ namespace AILegacy.Dialogue
                     if (P.Spouse == h || h.Spouse == P) return null;
                     if (Repeated(s, "accept_marriage", 1)) return null;
                     LastDone[s.Key + "|accept_marriage"] = (1, DateTime.UtcNow);
-                    // Second step: the wedding needs the player's explicit yes (a stray line doesn't marry anyone)
-                    NoteOutcome(s, "[Pending: you have said yes to marrying them. The wedding takes place only if they confirm it now.]");
-                    Ask(L.F("AIL_b8f2e6a7", $"{s.Name} acepta casarse contigo"),
-                        L.F("AIL_b8f2e6a2", $"Si aceptas, la boda se celebra ahora y es para siempre: {s.Name} pasará a ser de tu casa."),
-                        L.T("AIL_b8f2e6a8", "Casarse"), L.T("AIL_b8f2e6a9", "Todavía no"),
-                        () => FinishWedding(s),
-                        () =>
-                        {
-                            NoteOutcome(s, "[Did not happen: they drew back at the last moment and did not go through with the wedding. You are not married.]");
-                            Memory.SaveFiles.Flush();
-                        });
-                    return L.F("AIL_b8f2e6aa", $"{s.Name} acepta casarse contigo.");
+                    // In the dialogue this runs once the player has read the reply and pressed Continue ("the wedding
+                    // will take place after the conversation"), and the talk ends with it, as in AIInfluence.
+                    ctx.EndConversation = true;
+                    // Illegitimate Children: with concubines on, a player who is already married takes them as a
+                    // concubine instead; if they cannot be one, there is no wedding either.
+                    if (WedsAsConcubine(h)) return TakeAsConcubine(s);
+                    return FinishWedding(s);
+                }
+            },
+            new ActionDef
+            {
+                Name = "reject_marriage", Usage = "reject_marriage",
+                Description = "You turn down a marriage proposal: theirs to you, or you take back yours after they said no. Your words say why.",
+                IsAvailable = s => S.Get.AllowMarriage && s.IsHero && P.Spouse != s.Hero,
+                Execute = (s, arg, ctx) =>
+                {
+                    if (Repeated(s, "reject_marriage", 1)) return null;
+                    LastDone[s.Key + "|reject_marriage"] = (1, DateTime.UtcNow);
+                    NoteOutcome(s, "[Done: the marriage proposal between you is turned down. You are not engaged.]");
+                    return L.F("AIL_e7b1d601", $"{s.Name} ha rechazado la propuesta de matrimonio.");
                 }
             },
             new ActionDef
@@ -819,8 +828,9 @@ namespace AILegacy.Dialogue
                             if (h.Occupation != Occupation.Lord) { h.SetNewOccupation(Occupation.Lord); World.People.SyncOccupation(h); }
                             if (h.Clan == null || h.Clan != Clan.PlayerClan && h.Clan.Leader != h) h.Clan = Clan.PlayerClan;
                         }
-                        // If either one was still married (the "romance with married" setting), that marriage ends
-                        if (h.Spouse != null && h.Spouse != P) EndMarriage(h);
+                        // If either one was still married (the "romance with married" setting), that marriage ends.
+                        // Theirs ends in a divorce that leaves bad blood, as Illegitimate Children does it.
+                        if (h.Spouse != null && h.Spouse != P) Divorce(h);
                         if (P.Spouse != null && P.Spouse != h) EndMarriage(P);
                         // The head of another house hands it over first. Otherwise their old clan is left with a
                         // leader who now belongs to yours.
@@ -841,7 +851,7 @@ namespace AILegacy.Dialogue
                         return null;
                     }
                     Bonds.ChangeRomance(s, 10);
-                    return L.F("AIL_fd4aafcb", $"¡Te casas con {s.Name}!");
+                    return L.F("AIL_e7b1d603", $"¡{s.Name} se casa contigo! Enhorabuena.");
                 }
             },
             new ActionDef
@@ -1152,14 +1162,17 @@ namespace AILegacy.Dialogue
             },
             new ActionDef
             {
-                Name = "follow_me", Usage = "follow_me:<days>", Letter = true,
-                Description = "You lead your party to the other person and ride alongside their party, following them for that many days. " +
+                Name = "follow_me", Usage = "follow_me", Letter = true,
+                Description = "You ride with your party alongside the other person's party on the map and follow them wherever they go, until one of you calls it off (then use resume_duties). " +
+                              "If you have no party of your own, you set out with a few companions of yours once they leave this place. " +
                               "By letter this means: you set out now to join them wherever they are.",
-                IsAvailable = s => CanOrder(s) && !AtWarWithPlayer(s),
+                IsAvailable = s => (CanOrder(s) || (s.IsHero && OrderSystem.CanFollowWithoutParty(s.Hero))) && !AtWarWithPlayer(s),
                 Execute = (s, arg, ctx) =>
                 {
-                    SplitArg(arg, out _, out var days);
-                    if (!OrderSystem.Give(s.Hero, "follow", null, P.Name.ToString(), days)) return null;
+                    // AIInfluence's follow_player has no length: it lasts until it is called off
+                    bool onFoot = OrderSystem.PartyLedBy(s.Hero) == null;
+                    if (onFoot ? !OrderSystem.FollowWithoutParty(s.Hero) : !OrderSystem.Give(s.Hero, "follow", null, P.Name.ToString(), OrderSystem.OpenEnded)) return null;
+                    if (onFoot && !ctx.ViaLetter) return L.F("AIL_e7b1d608", $"{s.Name} saldrá tras de ti con su propia partida en cuanto dejes este lugar.");
                     return ctx.ViaLetter ? L.F("AIL_3e251e73", $"{s.Name} se pone en camino para reunirse contigo.") : L.F("AIL_cc47eaca", $"{s.Name} te seguirá con su grupo.");
                 }
             },
@@ -1707,19 +1720,47 @@ namespace AILegacy.Dialogue
             {
                 Name = "join_clan", Usage = "join_clan",
                 Description = "You leave your own house and join the other person's clan as one of their own, for good. A rare step: only if you are not the head of your clan, " +
-                              "have little to lose where you are, and are bound to them by deep loyalty, love or debt.",
+                              "have little to lose where you are, and are bound to them by deep loyalty, love or debt. If you lead a party of your own, it comes with you into their clan; otherwise you ride with them.",
                 IsAvailable = s => S.Get.AllowClanChanges && s.IsHero && s.Hero.IsLord && !s.Hero.IsClanLeader && !s.Hero.IsPrisoner && s.Hero.Clan != null && s.Hero.Clan != PC
-                                   && !s.Hero.Clan.IsMinorFaction && s.Hero.PartyBelongedTo == null && s.Hero.Spouse != s.Hero.Clan.Leader && !AtWarWithPlayer(s),
+                                   && !s.Hero.Clan.IsMinorFaction && s.Hero.Spouse != s.Hero.Clan.Leader && !AtWarWithPlayer(s),
                 Execute = (s, arg, ctx) =>
                 {
-                    var old = s.Hero.Clan;
+                    var h = s.Hero;
+                    var old = h.Clan;
                     // A governor who just switches clan leaves the town with a foreign governor (and the game crashes when you open it)
-                    try { if (s.Hero.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(s.Hero); }
+                    try { if (h.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(h); }
                     catch (Exception ex) { Log.Error("Remove governorship before changing clan", ex); }
-                    FreeBeforeJoining(s.Hero);
-                    if (s.Hero.IsPrisoner) return Nope(null, "you are still held prisoner and could not join their clan");
-                    s.Hero.Clan = PC;
-                    return L.F("AIL_7765746a", $"{s.Name} deja el clan {old.Name} y se une al tuyo.");
+                    FreeBeforeJoining(h);
+                    if (h.IsPrisoner) return Nope(null, "you are still held prisoner and could not join their clan");
+                    // As AIInfluence: a lord with a party of his own keeps it, now in the player's clan; one on foot (or
+                    // riding in someone else's party, or in a party lent to follow the player) joins the player's party.
+                    var own = OrderSystem.PartyLedBy(h);
+                    bool temp = own != null && OrderSystem.IsTempParty(own);
+                    h.Clan = PC;
+                    string how = "";
+                    try
+                    {
+                        if (own != null && !temp)
+                        {
+                            if (own.Army != null && own.Army.LeaderParty != MobileParty.MainParty)
+                            {
+                                if (own.Army.LeaderParty == own) DisbandArmyAction.ApplyByUnknownReason(own.Army); else own.Army = null;
+                            }
+                            own.ActualClan = PC;
+                            OrderSystem.Cancel(h, silent: true);
+                            own.Ai.SetDoNotMakeNewDecisions(false);
+                            Log.Info($"{h.Name} joins the player's clan with their party ({own.MemberRoster.TotalManCount} men)");
+                            how = " " + L.F("AIL_e7b1d607", $"Su partida ({own.MemberRoster.TotalManCount} hombres) pasa a ser de tu clan.");
+                        }
+                        else
+                        {
+                            if (temp) OrderSystem.DissolveTempParty(h, own);
+                            else OrderSystem.Cancel(h, silent: true);
+                            if (h.PartyBelongedTo != MobileParty.MainParty && h.IsAlive && !h.IsPrisoner) AddHeroToPartyAction.Apply(h, MobileParty.MainParty);
+                        }
+                    }
+                    catch (Exception ex) { Log.Error("Join the clan: party", ex); }
+                    return L.F("AIL_7765746a", $"{s.Name} deja el clan {old.Name} y se une al tuyo.") + how;
                 }
             },
             new ActionDef
@@ -1747,18 +1788,37 @@ namespace AILegacy.Dialogue
             new ActionDef
             {
                 Name = "duel", Usage = "duel",
-                Description = "You fight the other person in a duel with weapons until one of you falls, as a matter of honour or sport, starting as soon as you stop talking. " +
-                              "Only if they challenged you and you accept, or you challenge them and they have just agreed.",
+                Description = "You fight the other person in a duel with weapons until one of you falls, as a matter of honour or sport; nobody dies. It starts as soon as you stop talking. " +
+                              "Only when they challenged you in so many words and you accept, or you offered it with propose_duel and they have clearly accepted in a later message.",
                 IsAvailable = s => (Combat.CanFightHere() || MapFight(s)) && !(s.IsHero && s.Hero.IsPrisoner),
-                Execute = (s, arg, ctx) => Challenge(s, "duel")
+                Execute = (s, arg, ctx) => Challenge(s, "duel", ctx)
             },
             new ActionDef
             {
                 Name = "duel_to_death", Usage = "duel_to_death",
-                Description = "A duel with weapons where the loser dies. Only for mortal insults, blood feuds or matters you would truly die for, and only when both of you clearly agreed to those terms. " +
-                              "Cautious characters and those with much to lose refuse.",
+                Description = "A duel with weapons where the loser dies, starting as soon as you stop talking. Only for mortal insults, blood feuds or matters you would truly die for, and only when both of you clearly agreed to those terms " +
+                              "(they challenged you and you accept, or you offered it with propose_duel and they accepted). Cautious characters and those with much to lose refuse.",
                 IsAvailable = s => (Combat.CanFightHere() || MapFight(s)) && s.IsHero && !s.Hero.IsPrisoner,
-                Execute = (s, arg, ctx) => Challenge(s, "death")
+                Execute = (s, arg, ctx) => Challenge(s, "death", ctx)
+            },
+            new ActionDef
+            {
+                Name = "propose_duel", Usage = "propose_duel:<friendly or death>",
+                Description = "You challenge the other person to a duel, in the same reply in which your words do it: friendly (with weapons, until one falls, nobody dies) or death (to the death). " +
+                              "It only records your challenge and never starts the fight: wait for their answer in their own words, and only if they clearly accept use duel or duel_to_death. " +
+                              "A question, haggling over the terms or silence is not acceptance.",
+                IsAvailable = s => (Combat.CanFightHere() || MapFight(s)) && !(s.IsHero && s.Hero.IsPrisoner),
+                Execute = (s, arg, ctx) =>
+                {
+                    bool death = (arg ?? "").Trim().ToLowerInvariant().StartsWith("death") || (arg ?? "").ToLowerInvariant().Contains("hostile");
+                    if (death && !s.IsHero) death = false;
+                    if (Repeated(s, "propose_duel", death ? 2 : 1)) return null;
+                    LastDone[s.Key + "|propose_duel"] = (death ? 2 : 1, DateTime.UtcNow);
+                    NoteOutcome(s, $"[Pending: you have challenged them to a {(death ? "duel to the death" : "friendly duel")}. Their explicit acceptance is still needed: " +
+                                   $"use {(death ? "duel_to_death" : "duel")} only after they clearly accept these terms and you are ready to begin.]");
+                    return death ? L.F("AIL_e7b1d604", $"{s.Name} te desafía a un duelo a muerte. Responde en la conversación para aceptar o rechazar.")
+                                 : L.F("AIL_e7b1d605", $"{s.Name} te ofrece un duelo amistoso. Responde en la conversación para aceptar o rechazar.");
+                }
             },
             new ActionDef
             {
@@ -1768,8 +1828,8 @@ namespace AILegacy.Dialogue
                               "suicide (you take your own life), poison, wounds (you were already dying of your wounds and this is your last breath), illness, accident. " +
                               "<what is found> is one sentence, in the language you speak, about what those who come afterwards find on you or beside you (a letter, a ring, a weapon, nothing at all); leave it empty if there is nothing worth telling. " +
                               "Say your last words in the same reply. If in any doubt, do not use it.",
-                IsAvailable = s => S.Get.AllowRoleplayDeath && s.IsHero && s.Hero.IsAlive && s.Hero != P && CanDieHere(s)
-                                   && !(s.Hero.Clan == Clan.PlayerClan && !S.Get.RoleplayDeathAnywhere),
+                // Anyone present can die, the player's own people too (AIInfluence's roleplay death check)
+                IsAvailable = s => S.Get.AllowRoleplayDeath && s.IsHero && s.Hero.IsAlive && s.Hero != P && CanDieHere(s),
                 Execute = (s, arg, ctx) =>
                 {
                     ctx.EndConversation = true;
@@ -1781,6 +1841,10 @@ namespace AILegacy.Dialogue
                     // an execution needs a prisoner of yours; without one it is a killing by your hand
                     if (kind == "executed" && !HeldByPlayer(s)) kind = "killed";
                     Combat.QueueDeath(s.Hero, kind, how, found);
+                    // In a scene the body falls in front of the player, as in AIInfluence: a killing blow once the
+                    // conversation is over, from the player's hand when they did it.
+                    var agent = SceneAgent();
+                    if (agent != null) ChatSession.StrikeAfterTalk(agent, kind == "executed" || kind == "killed");
                     return $"{s.Name} muere: {(string.IsNullOrWhiteSpace(how) ? L.T("AIL_4b487b93", "aquí acaba su historia") : how)}.";
                 }
             },
@@ -1825,19 +1889,16 @@ namespace AILegacy.Dialogue
                 {
                     if (Repeated(s, "accept_surrender", 1)) return null;
                     LastDone[s.Key + "|accept_surrender"] = (1, DateTime.UtcNow);
-                    NoteOutcome(s, "[Pending: you are ready to take their surrender. It happens only if they go through with it now.]");
-                    Ask(L.F("AIL_b8f2e6ab", $"Rendirte a {s.Name}"),
-                        L.F("AIL_b8f2e6ac", $"Tú y todos tus hombres quedaréis prisioneros de {s.Name}. No hay vuelta atrás."),
-                        L.T("AIL_b8f2e6ad", "Rendirse"), L.T("AIL_b8f2e6ae", "No"),
-                        () =>
-                        {
-                            NoteOutcome(s, "[Done: they have surrendered to you. They and their men are your prisoners now.]");
-                            Memory.SaveFiles.Flush();
-                            Combat.QueuePlayerSurrender();
-                            ChatSession.EndFromOutside();
-                        },
-                        () => { NoteOutcome(s, "[Did not happen: they did not surrender after all.]"); Memory.SaveFiles.Flush(); });
-                    return L.F("AIL_b8f2e6af", $"{s.Name} está dispuesto a aceptar tu rendición.");
+                    // In the dialogue this runs once the player has read the reply and pressed Continue ("you have
+                    // surrendered... click to continue"), as in AIInfluence: there is no window. The surrender itself
+                    // happens when the talk closes, so it is closed right after.
+                    NoteOutcome(s, "[Done: they have surrendered to you. They and their men are your prisoners now.]");
+                    Memory.SaveFiles.Flush();
+                    Combat.QueuePlayerSurrender();
+                    ctx.EndConversation = true;
+                    int session = WorldSim.Session;
+                    MainThread.Post(() => { if (session == WorldSim.Session) ChatSession.EndFromOutside(); });
+                    return L.F("AIL_e7b1d606", $"Te has rendido a {s.Name}.");
                 }
             },
             new ActionDef
@@ -2147,14 +2208,16 @@ namespace AILegacy.Dialogue
             {
                 // Already your spouse, no second wedding
                 if (h == null || h == P || P.Spouse == h || h.Spouse == P) return false;
+                // The player is already married and concubines are on: the yes makes them a concubine, if they can be one
+                if (WedsAsConcubine(h)) return World.Concubines.WhyNot(h, false, true) == null;
                 if (SafeSuitable(h)) return true;
                 var cfg = S.Get;
                 if (!cfg.MarryCommoners && !(h.IsLord)) return false;
                 if (h == null || !h.IsAlive || h.IsChild || h.Age < 18 || P.Age < 18 || h == P || Bonds.IsCloseFamily(h)) return false;
                 if (h.IsFemale == P.IsFemale && !cfg.RomanceSameSex) return false;
                 if ((h.Spouse != null && h.Spouse != P || P.Spouse != null && P.Spouse != h) && !cfg.RomanceWithMarried) return false;
-                if (h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan) return false;      // another clan's leader won't leave it for a wedding
-                if (h.MapFaction is Kingdom k && k.Leader == h) return false;
+                // The head of another clan can marry and steps down first (AIInfluence), unless nobody could take it over
+                if (h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan && !HasHeir(h)) return false;
                 return h.IsLord || h.IsWanderer || h.IsNotable || h.IsPlayerCompanion;
             }
             catch { return false; }
@@ -2647,78 +2710,114 @@ leave: renounced your ruler");
 
         private static void Say(string msg) => TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage(msg, TaleWorlds.Library.Colors.Yellow));
 
-        /// <summary>A decision that needs the player's word: a yes/no popup over the dialogue.</summary>
-        private static void Ask(string title, string text, string yes, string no, Action onYes, Action onNo)
+        /// <summary>The wedding, once the character has said yes. Returns what the player is shown, or null.</summary>
+        private static string FinishWedding(Speaker s)
         {
-            int session = WorldSim.Session;
-            MainThread.Post(() =>
-            {
-                try
-                {
-                    TaleWorlds.Library.InformationManager.ShowInquiry(new TaleWorlds.Library.InquiryData(title, text, true, true, yes, no,
-                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onYes?.Invoke(); } catch (Exception ex) { Log.Error("Player decision", ex); } }),
-                        () => MainThread.Post(() => { try { if (session == WorldSim.Session) onNo?.Invoke(); } catch (Exception ex) { Log.Error("Player decision", ex); } })), true);
-                }
-                catch (Exception ex) { Log.Error("Decision window", ex); }
-            });
-        }
-
-        /// <summary>The wedding, once both have said yes.</summary>
-        private static void FinishWedding(Speaker s)
-        {
+            string cannot = L.F("AIL_e7b1d602", $"{s.Name} no puede casarse contigo ahora.");
             try
             {
-                // Something may have changed between the yes and the confirmation, so check the wedding is still possible
+                // Something may have changed since the yes, so check the wedding is still possible
                 if (!s.IsHero || !s.Hero.IsAlive || s.Hero.IsPrisoner || !CanWed(s.Hero))
                 {
                     NoteOutcome(s, "[Did not happen: the wedding could not take place after all. You are not married.]");
-                    return;
+                    return Nope(cannot, "the wedding could not take place");
                 }
                 var def = All.First(a => a.Name == "wed_now");
                 var msg = def.Execute(s, "", new ActionContext());
                 if (msg == null)
                 {
                     NoteOutcome(s, "[Did not happen: the wedding could not take place after all. You are not married.]");
-                    return;
+                    return Nope(cannot, "the wedding could not take place");
                 }
                 NoteOutcome(s, "[Done: the two of you are married now, husband and wife from this day.]");
-                Say(msg);
-                RecordAsNews(s, "accept_marriage");
                 Memory.SaveFiles.Flush();
+                return msg;
             }
-            catch (Exception ex) { Log.Error("Wedding", ex); }
+            catch (Exception ex) { Log.Error("Wedding", ex); return Nope(cannot, "the wedding could not take place"); }
         }
 
-        /// <summary>An armed duel doesn't just start: the player accepts or backs out.</summary>
-        private static string Challenge(Speaker s, string kind)
+        /// <summary>
+        /// Illegitimate Children's rule: with concubines on, someone who says yes to a player who is already married
+        /// becomes their concubine instead of a second spouse.
+        /// </summary>
+        private static bool WedsAsConcubine(Hero h)
+        {
+            try { return h != null && World.Concubines.Enabled && P.Spouse != null && P.Spouse.IsAlive && P.Spouse != h && h.Spouse != P; }
+            catch { return false; }
+        }
+
+        /// <summary>The yes to a marriage turned into concubinage. If they cannot be a concubine, nothing happens.</summary>
+        private static string TakeAsConcubine(Speaker s)
+        {
+            var h = s.Hero;
+            string why = World.Concubines.WhyNot(h, false, true);
+            if (why != null)
+            {
+                NoteOutcome(s, $"[Did not happen: they are already married, so you could only have lived with them as their concubine, and {why}. There is no wedding.]");
+                return Nope(L.F("AIL_e7b1d602", $"{s.Name} no puede casarse contigo ahora."), "they are married and " + why);
+            }
+            try
+            {
+                FreeBeforeJoining(h);
+                if (h.Spouse != null && h.Spouse != P) Divorce(h);
+                StepDownAsClanLeader(h);
+                if (h.GovernorOf != null) ChangeGovernorAction.RemoveGovernorOf(h);
+            }
+            catch (Exception ex) { Log.Error("Concubine instead of a wedding: prepare", ex); }
+            var msg = World.Concubines.Take(h, false);
+            if (msg == null) return Nope(L.F("AIL_e7b1d602", $"{s.Name} no puede casarse contigo ahora."), "it could not be done");
+            Log.Info($"{s.Name} accepted marriage with a player who is already married: concubine instead");
+            Memory.SaveFiles.Flush();
+            return msg;
+        }
+
+        /// <summary>A married character leaves their spouse for the player: as Illegitimate Children does it, -30 between the two and -40 with the player.</summary>
+        private static void Divorce(Hero h)
+        {
+            var ex = h?.Spouse;
+            if (ex == null) return;
+            EndMarriage(h);
+            try
+            {
+                if (ex.IsAlive)
+                {
+                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(h, ex, -30, false);
+                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(P, ex, -40, true);
+                }
+            }
+            catch (Exception e) { Log.Warn("Divorce: relation change failed: " + e.Message); }
+            NoteTo(h, $"[Done: you ended your marriage to {ex.Name} to be with {P.Name}.]");
+            NoteTo(ex, $"[Since you last spoke: {h.Name} divorced you to be with {P.Name}. Things between you are badly strained.]");
+            Log.Info($"{h.Name} divorces {ex.Name} to be with the player");
+        }
+
+        /// <summary>A line in someone else's history (not the one in front of the player).</summary>
+        private static void NoteTo(Hero h, string text)
+        {
+            try { if (h != null) Memory.MemoryStore.Get(h.StringId, h.Name.ToString()).Turns.Add(new Memory.ChatTurn { Role = "player", Day = CampaignTime.Now.ToDays, Text = text }); }
+            catch { }
+        }
+
+        /// <summary>Someone in their clan could take it over: another living adult noble.</summary>
+        private static bool HasHeir(Hero h)
+        {
+            try { var c = h?.Clan; return c != null && c.Heroes.Any(x => x != h && x.IsAlive && !x.IsChild && x.IsLord); }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// A duel the character accepts now, as AIInfluence's friendly_duel/hostile_duel: there is no window, it starts
+        /// once the player has read the reply and the talk is over.
+        /// </summary>
+        private static string Challenge(Speaker s, string kind, ActionContext ctx)
         {
             if (Repeated(s, "challenge|" + kind, 1)) return null;
             LastDone[s.Key + "|challenge|" + kind] = (1, DateTime.UtcNow);
-            NoteOutcome(s, kind == "death" ? "[Pending: a duel to the death stands between you. It begins only if they take it up now.]"
-                                           : "[Pending: a duel stands between you. It begins only if they take it up now.]");
-            Ask(L.F("AIL_b8f2e6b0", $"Duelo con {s.Name}"),
-                kind == "death" ? L.T("AIL_b8f2e6b1", "A muerte: quien caiga no se levanta. ¿Aceptas?") : L.T("AIL_b8f2e6b2", "Con armas, hasta que uno caiga. Nadie muere. ¿Aceptas?"),
-                L.T("AIL_b8f2e6b3", "Luchar"), L.T("AIL_b8f2e6b4", "Echarse atrás"),
-                () =>
-                {
-                    // Checked when accepting: the chat with them must still be open and the place must allow it
-                    string msg = null;
-                    var talk = ChatSession.Active;
-                    if (talk != null && talk.Who != null && talk.Who.Key == s.Key && !(s.IsHero && (!s.Hero.IsAlive || s.Hero.IsPrisoner)))
-                        msg = Combat.CanFightHere() ? Combat.QueueFight(s, kind) : MapFight(s) ? StartMapFight(s, kind) : null;
-                    if (msg == null) { NoteOutcome(s, "[Did not happen: the duel could not be fought after all.]"); Memory.SaveFiles.Flush(); return; }
-                    NoteOutcome(s, "[Done: they took up the duel; it is being fought now.]");
-                    Say(msg);
-                    ChatSession.EndFromOutside();
-                },
-                () =>
-                {
-                    NoteOutcome(s, "[Did not happen: they backed down from the duel in front of you. No fight took place.]");
-                    try { if (s.IsHero) Bonds.ChangeTension(s, -10); } catch { }
-                    Say(L.F("AIL_b8f2e6b5", $"Te echas atrás ante {s.Name}."));
-                    Memory.SaveFiles.Flush();
-                });
-            return L.F("AIL_b8f2e6b6", $"{s.Name} está dispuesto a batirse contigo.");
+            string msg = Combat.CanFightHere() ? Combat.QueueFight(s, kind) : MapFight(s) ? StartMapFight(s, kind) : null;
+            if (msg == null) return Nope(null, "there is no place to fight it here and now");
+            ctx.EndConversation = true;
+            NoteOutcome(s, "[Done: the duel is agreed; it is fought as soon as you stop talking.]");
+            return msg;
         }
 
         private static readonly string[] PeaceTermKeys = { "they_pay", "you_pay", "they_pay_daily", "you_pay_daily", "they_cede", "you_cede" };
@@ -2818,8 +2917,8 @@ leave: renounced your ruler");
         }
 
         /// <summary>
-        /// A peace settled in the talk, with a price or without: the player is shown who pays whom and decides.
-        /// Nothing is signed, paid or handed over without his yes.
+        /// A peace settled in the talk, with a price or without. The ruler's acceptance is the signature: like
+        /// AIInfluence's accept_peace, it is signed and paid at once, with no window for the player.
         /// </summary>
         private static string OfferTreaty(Speaker s, Newtonsoft.Json.Linq.JObject terms)
         {
@@ -2828,34 +2927,18 @@ leave: renounced your ruler");
             if (p == null) return Nope(null, (why ?? "the treaty could not be drawn up") + ". Nothing was signed, paid or handed over");
             if (Repeated(s, "treaty", 1)) return null;
             LastDone[s.Key + "|treaty"] = (1, DateTime.UtcNow);
-            NoteOutcome(s, $"[Pending: you have put a treaty of peace in front of them. Its terms as written in it, with your realm as the proposer and theirs as the receiver: {World.Diplomacy.ChatPeaceNote(p)}. " +
-                           "Nothing is signed, paid or handed over unless they confirm it now.]");
-            Ask(L.F("AIL_e7b1c776", $"Tratado de paz con {theirs.Name}"), World.Diplomacy.ChatPeaceText(p),
-                L.T("AIL_e7b1c777", "Firmar"), L.T("AIL_e7b1c778", "No firmar"),
-                () =>
-                {
-                    string done = World.Diplomacy.SignChatPeace(p, out string no, out string noForPlayer);
-                    if (done == null)
-                    {
-                        NoteOutcome(s, $"[Did not happen: the peace was not signed, because {no}. Your realms are still at war and nothing was paid or handed over. This is not a refusal by them.]");
-                        Say(noForPlayer != null ? L.F("AIL_e7b1c782", $"La paz no se ha firmado: {noForPlayer}. No se ha pagado ni entregado nada.")
-                                                : L.T("AIL_e7b1c779", "La paz no se ha firmado: lo acordado ya no se puede cumplir."));
-                        Memory.SaveFiles.Flush();
-                        return;
-                    }
-                    MarkWarPeace(theirs);
-                    NoteOutcome(s, $"[Done: they signed and the war between your realms is over. The terms, with your realm as the proposer and theirs as the receiver: {World.Diplomacy.ChatPeaceNote(p)}. " +
-                                   "All of it has been paid and handed over already: do not use make_peace, take_gold or give_gold for it again.]");
-                    Say(done);
-                    Memory.SaveFiles.Flush();
-                },
-                () =>
-                {
-                    NoteOutcome(s, "[Did not happen: they read the treaty and would not sign it. Your realms are still at war and nothing was paid or handed over.]");
-                    Say(L.F("AIL_e7b1c77a", $"No firmas la paz con {theirs.Name}."));
-                    Memory.SaveFiles.Flush();
-                });
-            return L.F("AIL_e7b1c77b", $"{s.Name} te pone delante un tratado de paz.");
+            string done = World.Diplomacy.SignChatPeace(p, out string no, out string noForPlayer);
+            if (done == null)
+            {
+                NoteOutcome(s, $"[Did not happen: the peace was not signed, because {no}. Your realms are still at war and nothing was paid or handed over. This is not a refusal by them.]");
+                return Nope(noForPlayer != null ? L.F("AIL_e7b1c782", $"La paz no se ha firmado: {noForPlayer}. No se ha pagado ni entregado nada.")
+                                                : L.T("AIL_e7b1c779", "La paz no se ha firmado: lo acordado ya no se puede cumplir."), "the peace could not be signed: " + no);
+            }
+            MarkWarPeace(theirs);
+            NoteOutcome(s, $"[Done: you signed the peace and the war between your realms is over. The terms, with your realm as the proposer and theirs as the receiver: {World.Diplomacy.ChatPeaceNote(p)}. " +
+                           "All of it has been paid and handed over already: do not use make_peace, take_gold or give_gold for it again.]");
+            Memory.SaveFiles.Flush();
+            return done;
         }
 
         // War and peace decided in a chat: a few days must pass between one and the other with the same kingdom

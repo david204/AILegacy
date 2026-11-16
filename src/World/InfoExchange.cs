@@ -294,7 +294,9 @@ urgent: they meant it as urgent");
                     {
                         if (m.RelayToId != null) Relay(m, to, now);
                         else Forward(m, to, now);
-                        if (m.WantsAnswer && m.Hops == 0) Answer(m, to);
+                        // Straight from the source, it is a meeting face to face, off screen (AIInfluence): what was
+                        // said and handed over, then the recipient's own private decision (and the answer, if asked)
+                        if (m.Hops == 0) Meet(m, to);
                     }
 
                     // Public news spreads by word of mouth
@@ -302,7 +304,8 @@ urgent: they meant it as urgent");
                         NewsStore.Add(new NewsItem
                         {
                             Type = "rumor", Importance = 2, Text = $"{m.FromName} has been telling people: {m.Text}",
-                            TitleEs = L.F("AIL_5ff5abe9", $"Lo que cuenta {m.FromName}"), TextEs = "",
+                            // the card's text in the player's language (it used to be left empty)
+                            TitleEs = L.F("AIL_5ff5abe9", $"Lo que cuenta {m.FromName}"), TextEs = L.F("AIL_e7b1d831", $"{m.FromName} va contando por ahí: «{m.Text}»"),
                             Heroes = new List<string> { m.FromId, m.ToId, P.StringId },
                             Kingdoms = to.MapFaction != null ? new List<string> { to.MapFaction.StringId } : new List<string>(),
                             SettlementId = (to.CurrentSettlement ?? to.HomeSettlement)?.StringId,
@@ -390,6 +393,152 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
 
         private static double _answerDay = -1;
         private static int _answersToday;
+
+        private static readonly Tpl TMeeting = new Tpl("info_exchange/meeting.txt",
+@"You are {to_name}: {to_desc}
+{from_name} ({relation_to_sender}) has just met you face to face, away from {player}'s eyes, and told you about {about}: «{text}» ({secrecy}).
+What you already know or have heard about {player}: {known}
+Your relation with {player}: {relation_player}.{asks}
+Write the meeting as it went, then decide in private what YOU do about it. It is a claim that reached you, not a fact you saw: weigh who told it and why.
+- ""meeting"": 2-3 English sentences, from your point of view: what was said, what was handed over or promised, how you took it.
+- ""answer"": {answer_rule}
+- ""decision"": what you do now, one of: ""none"" (most of the time), ""visit"" (ride over to {player} on the map to speak with them yourself), ""letter"" (write to {player}), ""order"" (move your own party: go_to, patrol, besiege or raid a place named in the data). Only what someone like you would really do about THIS.
+- ""letter"": only for ""letter"": the letter to {player}, 2-5 sentences in {language}, in your voice.
+- ""order"": only for ""order"": { ""type"": ""go_to|patrol|besiege|raid"", ""settlement"": ""name"" }.
+- ""reason"": a few English words: why you decided it.
+Answer ONLY with JSON: { ""meeting"": ""..."", ""answer"": """", ""decision"": ""none"", ""letter"": """", ""order"": { ""type"": """", ""settlement"": """" }, ""reason"": ""..."" }");
+
+        /// <summary>
+        /// The off-screen meeting where word goes from one character to another, as in AIInfluence: one AI request
+        /// writes what was said and handed over, and the recipient decides in private what to do: nothing, ride over
+        /// to the player, write the player a letter, or move their party. An answer goes back if the sender asked for
+        /// one. Shares the daily cap of answers.
+        /// </summary>
+        private static void Meet(NpcMessage m, Hero to)
+        {
+            try
+            {
+                var cfg = S.Get;
+                var from = Hero.Find(m.FromId);
+                if (from == null || !from.IsAlive || to == null || !to.IsAlive || to == P) return;
+                // small talk is only remembered; worth telling or urgent word gets a real meeting
+                if (m.Importance < 2 && !m.WantsAnswer) return;
+                double today = Math.Floor(CampaignTime.Now.ToDays);
+                if (today != _answerDay) { _answerDay = today; _answersToday = 0; }
+                if (_answersToday >= Math.Max(1, cfg.ErrandAnswersPerDay)) { Log.Info($"Errand: no meeting between {m.FromName} and {to.Name} today (daily cap)"); return; }
+                _answersToday++;
+                var s = Speaker.FromHero(to);
+                var mem = s.Memory;
+                string known = string.IsNullOrWhiteSpace(mem.Summary) ? (mem.ConversationCount > 0 ? "you have met them" : "you have never met them") : mem.Summary;
+                if (known.Length > 500) known = known.Substring(0, 500);
+                string desc = $"{(to.IsFemale ? "woman" : "man")}, {(int)to.Age}, {to.Culture?.Name}, {(to.IsLord ? "noble of clan " + to.Clan?.Name : to.IsNotable ? "notable" : "commoner")}"
+                              + (mem.Profile != null && !mem.Profile.IsEmpty ? ". " + mem.Profile.Personality : "");
+                bool asks = m.WantsAnswer && cfg.ErrandAnswers;
+                string prompt = TMeeting.Format("to_name", to.Name.ToString(), "to_desc", desc, "from_name", m.FromName,
+                    "relation_to_sender", ContextBuilder.DescribeRelation(to.GetRelation(from)), "player", P.Name.ToString(), "text", m.Text, "known", known,
+                    "about", m.About ?? P.Name.ToString(), "secrecy", m.Secrecy == "secret" ? "sworn to secrecy" : m.Secrecy == "public" ? "news they are telling everyone" : "for you only",
+                    "relation_player", ContextBuilder.DescribeRelation((int)to.GetRelationWithPlayer()),
+                    "asks", asks ? " They expect an answer from you." : "",
+                    "answer_rule", asks ? "your word back to " + m.FromName + ", one or two English sentences." : "leave empty.",
+                    "language", cfg.Language);
+                int session = WorldSim.Session;
+                Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "errand", maxTokensOverride: 450,
+                    preferredProvider: cfg.ProviderWorld).ContinueWith(t =>
+                {
+                    var res = t.IsFaulted ? null : t.Result;
+                    MainThread.Post(() =>
+                    {
+                        try
+                        {
+                            if (session != WorldSim.Session || res == null || !res.Ok) return;
+                            int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
+                            if (a < 0 || b <= a) return;
+                            var j = Newtonsoft.Json.Linq.JObject.Parse(res.Text.Substring(a, b - a + 1));
+                            if (!to.IsAlive || !from.IsAlive) return;
+                            ApplyMeeting(m, from, to, j, asks);
+                        }
+                        catch (Exception ex) { Log.Error("Errand meeting", ex); }
+                    });
+                });
+            }
+            catch (Exception ex) { Log.Error("Errand meeting", ex); }
+        }
+
+        private static string Str(Newtonsoft.Json.Linq.JToken t, int max)
+        {
+            string v = t != null && t.Type == Newtonsoft.Json.Linq.JTokenType.String ? ((string)t ?? "").Trim() : "";
+            return v.Length > max ? v.Substring(0, max) : v;
+        }
+
+        private static void ApplyMeeting(NpcMessage m, Hero from, Hero to, Newtonsoft.Json.Linq.JObject j, bool asks)
+        {
+            double now = CampaignTime.Now.ToDays;
+            string meeting = Str(j["meeting"], 500), reason = Str(j["reason"], 160), decision = Str(j["decision"], 20).ToLowerInvariant();
+            var toMem = MemoryStore.Get(to.StringId, to.Name.ToString());
+            if (meeting.Length > 5)
+            {
+                // both remember the meeting as it went
+                toMem.Turns.Add(new ChatTurn { Role = "player", Text = $"[You met {m.FromName}, away from {P.Name}: {meeting}]", Day = now });
+                NoteSender(m, $"You met {to.Name} and told them your word. {meeting}");
+            }
+            Log.Info($"Errand meeting {m.FromName} → {to.Name}: {meeting} | decision: {decision}{(reason.Length > 0 ? " (" + reason + ")" : "")}");
+
+            string ans = Str(j["answer"], 400);
+            if (asks && ans.Length >= 5)
+            {
+                double hours = Hours(to, from);
+                Messages.Add(new NpcMessage
+                {
+                    Id = WorldSim.NewId("m"), FromId = to.StringId, FromName = to.Name.ToString(), ToId = from.StringId,
+                    Text = $"In answer to your word about {m.About ?? P.Name.ToString()}: {ans}", Secrecy = m.Secrecy == "public" ? "private" : m.Secrecy,
+                    Day = now, ArriveDay = now + hours / 24.0, DeliveryDueDay = now + hours / 24.0, IsAnswer = true, Chain = new List<string> { to.StringId }, About = m.About,
+                });
+                Log.Info($"Reply from {to.Name} to {from.Name} (arrives in {hours:0} h): {ans}");
+            }
+
+            try
+            {
+                switch (decision)
+                {
+                    case "visit":
+                    {
+                        // rides over like any lord who takes the initiative on the map: the "wants to talk" window comes up as they approach
+                        bool enemy = to.MapFaction != null && P.MapFaction != null && to.MapFaction.IsAtWarWith(P.MapFaction);
+                        if (enemy || !OrderSystem.CanTakeOrders(to) || OrderSystem.Find(to) != null || Dialogue.Initiative.Busy) { Log.Info($"Errand meeting: {to.Name} wanted to visit the player but cannot ride now"); break; }
+                        string why = $"{m.FromName} told you something about {m.About ?? "them"} and you want to hear it from them yourself" + (reason.Length > 0 ? $" ({reason})" : "");
+                        toMem.InitiativeReason = why;
+                        toMem.LastInitiativeDay = now;
+                        if (OrderSystem.Give(to, "approach", null, P.Name.ToString(), 1.0, reason: "after a meeting with " + m.FromName))
+                            Dialogue.Initiative.StartMap(to, MapInitiative.ApproachText(why));
+                        break;
+                    }
+                    case "letter":
+                    {
+                        string letter = Str(j["letter"], 1500).Replace("\\n", "\n");
+                        if (letter.Length < 10) break;
+                        double hours = Hours(to, P);
+                        toMem.Turns.Add(new ChatTurn { Role = "npc", Text = "[Letter] " + letter, Day = now });
+                        toMem.LettersSent++;
+                        toMem.LastLetterDay = now;
+                        MemoryStore.Letters.Add(new PendingLetter { HeroId = to.StringId, Text = letter, FromPlayer = false, ArriveDay = now + hours / 24.0 });
+                        Log.Info($"Errand meeting: {to.Name} writes to the player (arrives in {hours:0} h)");
+                        break;
+                    }
+                    case "order":
+                    {
+                        if (!(j["order"] is Newtonsoft.Json.Linq.JObject o)) break;
+                        string type = Str(o["type"], 20).ToLowerInvariant().Replace("go_to", "goto");
+                        if (type != "goto" && type != "patrol" && type != "besiege" && type != "raid") break;
+                        var st = OrderSystem.FindSettlement(Str(o["settlement"], 80));
+                        if (st == null || !OrderSystem.CanTakeOrders(to) || OrderSystem.Find(to) != null) break;
+                        bool ok = OrderSystem.Give(to, type, st.StringId, st.Name.ToString(), 5.0, auto: true, reason: "after a meeting with " + m.FromName);
+                        Log.Info($"Errand meeting: {to.Name} decides to {type} {st.Name}{(ok ? "" : " (the order could not be given)")}");
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex) { Log.Error("Errand meeting: decision", ex); }
+        }
 
         /// <summary>Whoever receives a message that asks for an answer sends one back (one short AI request, a few a day at most).</summary>
         private static void Answer(NpcMessage m, Hero to)
@@ -536,6 +685,12 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
         private static readonly Random Rng = new Random();
         private static Hero P => Hero.MainHero;
 
+        /// <summary>
+        /// Every game hour. As in AIInfluence: a hostile lord at war with the player whose party is stronger and is
+        /// already riding the player down speaks first when he catches them (at most one every few days, shared by
+        /// all hostile lords); and every 5 game hours each lord in sight, known or not, rolls a small chance (2 % by
+        /// default, plus bonuses for friendship, grudge, romance, familiarity and a long silence) to ride over and talk.
+        /// </summary>
         public static void OnHourlyTick()
         {
             try
@@ -549,13 +704,17 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
                 if (P.IsPrisoner || PlayerCaptivity.IsCaptive) { CaptorVisit(); return; }
                 if (main == null || main.MapEvent != null || main.CurrentSettlement != null || main.Army != null && main.Army.LeaderParty != main) return;
                 double now = CampaignTime.Now.ToDays;
-                if (MemoryStore.LastInitiativeDay >= 0 && now - MemoryStore.LastInitiativeDay < cfg.MapInitiativeMinDaysBetween) return;
-                if (OrderSystem.Orders.Any(o => o.Type == "approach")) return;
-                if (Rng.Next(100) >= cfg.MapInitiativeChancePercent) return;
-
                 float range = Math.Max(4f, main.SeeingRange * 0.9f);
                 var here = main.GetPosition2D;
-                var candidates = new List<(Hero h, double w, string why)>();
+
+                if (cfg.EnableHostileInitiative && HostileCatch(main, here, range, now)) return;
+
+                // the friendly roll comes every 5 game hours
+                if (((long)Math.Floor(CampaignTime.Now.ToHours)) % 5 != 0) return;
+                if (MemoryStore.LastInitiativeDay >= 0 && now - MemoryStore.LastInitiativeDay < cfg.MapInitiativeMinDaysBetween) return;
+                if (OrderSystem.Orders.Any(o => o.Type == "approach")) return;
+
+                var rolled = new List<(Hero h, string why, bool inParty)>();
                 // People riding with you don't need to approach, they just ask for a moment
                 try
                 {
@@ -564,12 +723,11 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
                         var h = e.Character?.HeroObject;
                         if (h == null || h == P || !h.IsAlive || h.IsWounded) continue;
                         var mem = MemoryStore.Find(h.StringId);
-                        if (mem == null || mem.ConversationCount == 0) continue;
-                        if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < cfg.MapInitiativeDaysPerNpc) continue;
-                        if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay < 1) continue;
-                        var (w, why) = Motive(h, mem);
-                        if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay >= 20) { w += 1.5; why = (why.Length > 0 ? why + "; " : "") + "you ride together every day and have not really talked in weeks"; }
-                        if (w > 0) candidates.Add((h, w, why));
+                        if (!Rested(mem, now, cfg)) continue;
+                        if (Rng.NextDouble() * 100.0 >= Chance(h, mem, now, true)) continue;
+                        var (_, why) = Motive(h, mem);
+                        if (mem != null && mem.LastConversationDay >= 0 && now - mem.LastConversationDay >= 20) why = (why.Length > 0 ? why + "; " : "") + "you ride together every day and have not really talked in weeks";
+                        rolled.Add((h, why, true));
                     }
                 }
                 catch { }
@@ -579,50 +737,112 @@ Answer ONLY with JSON: { ""answer"": ""your word back, in English"" }");
                     if (p.Army != null && p.Army.LeaderParty != p) continue;
                     if (p.GetPosition2D.Distance(here) > range) continue;
                     var h = p.LeaderHero;
-                    if (h.MapFaction != null && P.MapFaction != null && h.MapFaction != P.MapFaction && h.MapFaction.IsAtWarWith(P.MapFaction))
-                    {
-                        // An enemy who knows you, holds a grudge and knows they're stronger rides you down to say it to your face
-                        // first (at most every three days per character)
-                        var hm = MemoryStore.Find(h.StringId);
-                        if (hm == null || hm.ConversationCount == 0 || !OrderSystem.CanTakeOrders(h) || OrderSystem.Find(h) != null) continue;
-                        if (hm.LastInitiativeDay >= 0 && now - hm.LastInitiativeDay < 3) continue;
-                        int hrel = (int)h.GetRelationWithPlayer();
-                        bool grudge = hrel <= -20 || Bonds.Tension(hm) >= 40 || hm.LiesSuspected > 0;
-                        if (!grudge || p.Party.CalculateCurrentStrength() < main.Party.CalculateCurrentStrength() * 1.2f) continue;
-                        candidates.Add((h, 2.0, "HOSTILE|" + (hrel <= -20 ? "you bear them a grudge" : hm.LiesSuspected > 0 ? "they lied to you and you have not forgotten" : "things were left ugly between you")));
-                        continue;
-                    }
+                    if (h == P || h.Clan == Clan.PlayerClan) continue;
+                    // an enemy only speaks first by catching you (HostileCatch)
+                    if (h.MapFaction != null && P.MapFaction != null && h.MapFaction.IsAtWarWith(P.MapFaction)) continue;
                     if (!OrderSystem.CanTakeOrders(h) || OrderSystem.Find(h) != null) continue;
+                    // known or not: a lord you have never met may ride over too
                     var mem = MemoryStore.Find(h.StringId);
-                    if (mem == null || mem.ConversationCount == 0) continue;                // only people who already know you
-                    if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < cfg.MapInitiativeDaysPerNpc) continue;
-                    if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay < 1) continue;
-
-                    var (w, why) = Motive(h, mem);
-                    if (w > 0) candidates.Add((h, w, why));
+                    if (!Rested(mem, now, cfg)) continue;
+                    if (Rng.NextDouble() * 100.0 >= Chance(h, mem, now, false)) continue;
+                    var (_, why) = Motive(h, mem);
+                    if (why.Length == 0) why = mem == null || mem.ConversationCount == 0
+                        ? "you have never met them; you saw their banner on the road and want to know who they are and what they are about"
+                        : "you saw their banner on the road and wanted a word with them";
+                    rolled.Add((h, why, false));
                 }
-                if (candidates.Count == 0) return;
-                double total = candidates.Sum(c => c.w), roll = Rng.NextDouble() * total;
-                foreach (var c in candidates)
+                if (rolled.Count == 0) return;
+                var c = rolled[Rng.Next(rolled.Count)];
+                var m = MemoryStore.Get(c.h.StringId, c.h.Name.ToString());
+                m.LastInitiativeDay = now;
+                m.InitiativeReason = c.why;
+                MemoryStore.LastInitiativeDay = now;
+                if (c.inParty)
                 {
-                    roll -= c.w;
-                    if (roll > 0) continue;
-                    var mem = MemoryStore.Find(c.h.StringId);
-                    mem.LastInitiativeDay = now;
-                    mem.InitiativeReason = c.why;
-                    MemoryStore.LastInitiativeDay = now;
-                    if (c.h.PartyBelongedTo == main)
-                    {
-                        Log.Info($"Map initiative: {c.h.Name}, from your party, asks to talk ({c.why})");
-                        Initiative.StartMap(c.h, TPartyAsk.Format("reasons", c.why));
-                        return;
-                    }
-                    OrderSystem.Give(c.h, "approach", null, P.Name.ToString(), 0.5);
-                    Log.Info($"Map initiative: {c.h.Name} heads for the player ({c.why})");
+                    Log.Info($"Map initiative: {c.h.Name}, from your party, asks to talk ({c.why})");
+                    Initiative.StartMap(c.h, TPartyAsk.Format("reasons", c.why));
                     return;
                 }
+                OrderSystem.Give(c.h, "approach", null, P.Name.ToString(), 0.5);
+                // The opening line is prepared while they ride over, so the "wants to talk" window can come up as they approach
+                Initiative.StartMap(c.h, TMapApproach.Format("reasons", c.why));
+                Log.Info($"Map initiative: {c.h.Name} heads for the player ({c.why})");
             }
             catch (Exception ex) { Log.Error("Map initiative", ex); }
+        }
+
+        /// <summary>Not talked to in the last day, and not asked to talk lately (per character).</summary>
+        private static bool Rested(HeroMemory mem, double now, AILegacySettings cfg)
+        {
+            if (mem == null) return true;
+            if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < cfg.MapInitiativeDaysPerNpc) return false;
+            if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay < 1) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Chance in percent that this lord rides over this time: the base chance plus AIInfluence's bonuses (relation
+        /// above 20 +2, below -20 +1, romance above 50 +2, more than 10 talks +2, no talk for 20 days +4, riding in
+        /// your party +2).
+        /// </summary>
+        private static double Chance(Hero h, HeroMemory mem, double now, bool inParty)
+        {
+            double c = Math.Max(0, S.Get.MapApproachBaseChance);
+            int rel = 0;
+            try { rel = (int)h.GetRelationWithPlayer(); } catch { }
+            if (rel > 20) c += 2;
+            else if (rel < -20) c += 1;
+            if (mem != null)
+            {
+                if (mem.Romance > 50) c += 2;
+                if (mem.ConversationCount > 10) c += 2;
+                if (mem.ConversationCount > 0 && mem.LastConversationDay >= 0 && now - mem.LastConversationDay > 20) c += 4;
+            }
+            if (inParty) c += 2;
+            return c;
+        }
+
+        /// <summary>
+        /// A hostile lord at war with the player, stronger, and already riding the player's party down: he will speak
+        /// first when he catches them. Once one has caught the player, no hostile lord does it again for some days.
+        /// </summary>
+        private static bool HostileCatch(MobileParty main, TaleWorlds.Library.Vec2 here, float range, double now)
+        {
+            var st = WorldSim.State;
+            if (st.LastHostileInitiativeDay > now) st.LastHostileInitiativeDay = -1;      // an older save was loaded
+            if (st.LastHostileInitiativeDay >= 0 && now - st.LastHostileInitiativeDay < Math.Max(1, S.Get.HostileInitiativeCooldownDays)) return false;
+            if (P.MapFaction == null) return false;
+            float mine = main.Party.CalculateCurrentStrength();
+            foreach (var p in MobileParty.All)
+            {
+                if (p == null || !p.IsActive || p.IsMainParty || !p.IsLordParty || p.LeaderHero == null || p.MapEvent != null || p.CurrentSettlement != null) continue;
+                if (p.Army != null && p.Army.LeaderParty != p) continue;
+                var h = p.LeaderHero;
+                if (h.MapFaction == null || !h.MapFaction.IsAtWarWith(P.MapFaction) || h.IsPrisoner) continue;
+                if (p.GetPosition2D.Distance(here) > range) continue;
+                bool chasing = p.TargetParty == main || p.ShortTermTargetParty == main;
+                if (!chasing || p.Party.CalculateCurrentStrength() <= mine) continue;
+                var hm = MemoryStore.Get(h.StringId, h.Name.ToString());
+                if (hm.LastInitiativeDay >= 0 && now - hm.LastInitiativeDay < 1) continue;
+                int hrel = (int)h.GetRelationWithPlayer();
+                string why = hm.ConversationCount == 0 ? "you have never met them, but they serve an enemy crown and are weaker than you"
+                           : hrel <= -20 ? "you bear them a grudge" : hm.LiesSuspected > 0 ? "they lied to you and you have not forgotten"
+                           : Bonds.Tension(hm) >= 40 ? "things were left ugly between you" : "they serve an enemy crown and are weaker than you";
+                hm.LastInitiativeDay = now;
+                hm.InitiativeReason = "HOSTILE|" + why;
+                if (Initiative.StartMap(h, THostile.Format("reasons", why), hostile: true))
+                {
+                    Log.Info($"Map initiative: {h.Name}, an enemy, is riding the player down and will speak first ({why})");
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>A hostile lord just caught the player and opened the talk: the shared wait starts.</summary>
+        public static void HostileCaught()
+        {
+            try { WorldSim.State.LastHostileInitiativeDay = CampaignTime.Now.ToDays; } catch { }
         }
 
         /// <summary>
@@ -714,6 +934,9 @@ Open with that, in your own voice, as someone who shares the road and the camp w
 Open with it, in your own voice: a demand, a taunt, an offer of terms, or a last word before blood. You decide how this ends with one of the actions open to you (attack them, let them pass, or take their surrender if they yield); do not decide in your very first words.");
 
         public static void Touch() { var _ = TMapApproach.Key; }
+
+        /// <summary>The opening instruction of a lord riding over to talk, with why he comes.</summary>
+        public static string ApproachText(string why) => TMapApproach.Format("reasons", why);
 
         /// <summary>The NPC's party reached the player's.</summary>
         public static void Arrived(Hero h)

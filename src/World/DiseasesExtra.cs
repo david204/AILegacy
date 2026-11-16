@@ -286,9 +286,8 @@ namespace AILegacy.World
                 Count = Math.Max(1f, total * 0.05f), StartDay = now, CareDay = now,
             });
             _forceIndex = null;
+            // nothing on screen: the settlement's tooltip shows its sick garrison and militia
             Log.Info($"[disease] {(kind == ForceSickness.Militia ? "the militia" : "the garrison")} of {st.Name} falls ill with {o.NameEn}");
-            if (st.OwnerClan != null && st.OwnerClan == Clan.PlayerClan)
-                WorldSim.Say(kind == ForceSickness.Militia ? L.F("AIL_e7b1c714", $"La milicia de {st.Name} ha enfermado de {o.Name}.") : L.F("AIL_e7b1c713", $"La guarnición de {st.Name} ha enfermado de {o.Name}."), Colors.Red);
         }
 
         private static void ForceDaily(double now)
@@ -341,10 +340,10 @@ namespace AILegacy.World
             }
             f.Progress = Math.Max(0f, Math.Min(sev <= 2 ? 90f : 100f, f.Progress));
             if (f.Progress <= 0f || f.Count < 0.5f) { RemoveForce(f); return; }
-            if (cfg.DiseaseMaxDeathChance <= 0f || sev <= 2) return;
-            float rate = f.Progress >= 100f ? 0.05f + sev * 0.01f : f.Progress >= 80f ? (f.Progress - 80f) / 400f : 0f;
+            float rate = DailyDeathRate(f.Progress, sev, FxOf(sev, false, f.Fx).Death);
             if (rate <= 0f) return;
-            float toll = Math.Min(total, Math.Max(1f, f.Count * rate));
+            float toll = Math.Min(total, militia ? f.Count * rate : Whole(f.Count * rate));
+            if (toll <= 0f) return;
             if (militia)
             {
                 f.Loss = toll;
@@ -356,8 +355,7 @@ namespace AILegacy.World
             if (garrison == null || garrison.MapEvent != null || st.IsUnderSiege) return;      // not while they fight
             int dead = KillRegulars(garrison.MemberRoster, (int)toll);
             f.Count = Math.Max(0f, f.Count - dead);
-            if (dead > 0 && st.OwnerClan != null && st.OwnerClan == Clan.PlayerClan)
-                WorldSim.Say(L.F("AIL_e7b1c712", $"{dead} soldado(s) de la guarnición de {st.Name} mueren de {f.Name}."), Colors.Red);
+            if (dead > 0) Log.Info($"[disease] {dead} soldier(s) of the garrison of {st.Name} die of {f.NameEn}");
         }
 
         // ============================================================ map tooltips
@@ -399,6 +397,14 @@ namespace AILegacy.World
             }
         }
 
+        /// <summary>Share of the men who are sick, as the tooltip writes it: whole percents, two decimals below 1%.</summary>
+        private static string Rate(int sick, int total)
+        {
+            if (sick <= 0 || total <= 0) return "0";
+            float pct = Math.Min(100f, sick * 100f / total);
+            return pct < 1f ? Math.Max(0.01f, pct).ToString("0.##", System.Globalization.CultureInfo.CurrentCulture) : pct.ToString("F0", System.Globalization.CultureInfo.CurrentCulture);
+        }
+
         private static void TipBand(ref List<TipLine> lines, List<Sickness> l, int total, string label, bool extended)
         {
             if (l == null || total <= 0) return;
@@ -407,7 +413,7 @@ namespace AILegacy.World
             if (sick <= 0) return;
             sick = Math.Min(sick, total);
             TipHead(ref lines);
-            lines.Add(new TipLine { Label = label, Value = L.F("AIL_e7b1c71c", $"{sick} de {total} enfermos") });
+            lines.Add(new TipLine { Label = label, Value = L.F("AIL_e7b1d708", $"{Rate(sick, total)}% infectados ({sick}/{total})") });
             if (!extended) return;
             for (int i = 0; i < l.Count; i++)
             {

@@ -135,6 +135,14 @@ namespace AILegacy.Dialogue
                 _walkOffAgent = null;
                 if (TaleWorlds.MountAndBlade.Mission.Current != null && a.IsActive()) SceneActions.WalkAway(a);
             }
+            if (_strikeAgent != null && DateTime.UtcNow >= _strikeAt)
+            {
+                var cm = Campaign.Current?.ConversationManager;
+                if (cm != null && cm.IsConversationInProgress) { _strikeAt = DateTime.UtcNow.AddMilliseconds(300); return; }
+                var a = _strikeAgent;
+                _strikeAgent = null;
+                if (TaleWorlds.MountAndBlade.Mission.Current != null && a.IsActive()) SceneActions.DeathBlow(a, _strikeByPlayer ? TaleWorlds.MountAndBlade.Agent.Main : null);
+            }
         }
 
         /// <summary>The character in front of the player in a scene (not on the map, where the game draws a portrait).</summary>
@@ -929,7 +937,7 @@ namespace AILegacy.Dialogue
             if (Holding)
             {
                 Log.Info($"{_s.Name}: {(_held.Count > 0 ? string.Join(", ", _held) : "end of the talk")} held until the player continues");
-                string how = L.T("AIL_e7b1ca03", "(Termina de leer o de escuchar y pulsa «Continuar»)");
+                string how = HeldNotice();
                 string leaving = _heldLeave ? L.F("AIL_e7b1ca04", $"*{_s.Name} se da la vuelta para marcharse…*") : "";
                 if (UseWindow)
                 {
@@ -1183,7 +1191,7 @@ namespace AILegacy.Dialogue
                 }
                 // An important rumour starts its own world incident (once, unless it becomes more important)
                 if (grew && reply.RumorImportance >= 2 && _s.IsHero)
-                    WorldSim.OnIncident($"A rumour has started to spread, first told by {_s.Name}: {reply.RumorText}", _s.Settlement, false);
+                    WorldSim.OnConversation($"A conversation between {Hero.MainHero.Name} and {_s.Name}. What could get about from it: {reply.RumorText}", _s.Settlement);
             }
             return shown;
         }
@@ -1211,6 +1219,8 @@ namespace AILegacy.Dialogue
         {
             "leave", "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "let_pass", "call_guards", "arrest", "die",
             "join_party", "join_with_band", "join_their_company", "come_along", "go_into",
+            // the wedding is held once the talk is over (AIInfluence: "the wedding will take place after the conversation")
+            "accept_marriage",
             // scene actions that take them out of the talk or bring trouble on: after the last word, like leaving
             "guide", "go_talk_to", "go_with", "call_help", "detain",
         };
@@ -1222,7 +1232,37 @@ namespace AILegacy.Dialogue
             { "let_them_pass", "let_pass" }, { "let_them_go", "let_pass" }, { "recruit", "join_party" }, { "join", "join_party" },
             { "lead_to", "guide" }, { "take_to", "guide" }, { "escort_to", "guide" }, { "go_talk", "go_talk_to" }, { "talk_to", "go_talk_to" },
             { "shout_for_help", "call_help" }, { "help", "call_help" }, { "arrest_other", "detain" },
+            { "marry", "accept_marriage" }, { "friendly_duel", "duel" }, { "hostile_duel", "duel_to_death" },
         };
+
+        /// <summary>
+        /// What the player is told while the reply waits for Continue, as AIInfluence words each case (the wedding,
+        /// a surrender either way, a death). Anything else gets the plain line.
+        /// </summary>
+        private string HeldNotice()
+        {
+            var names = (_held ?? new List<string>()).Select(HeldName).ToList();
+            if (names.Contains("die")) return L.F("AIL_e7b1d60d", $"{_s.Name} vive sus últimos instantes… (termina de leer o de escuchar y pulsa «Continuar»)");
+            if (names.Contains("accept_marriage")) return L.T("AIL_e7b1d60e", "La boda será al terminar la conversación… (termina de leer o de escuchar y pulsa «Continuar»)");
+            if (names.Contains("accept_surrender")) return L.F("AIL_e7b1d60f", $"Te has rendido a {_s.Name}… (termina de leer o de escuchar y pulsa «Continuar»)");
+            if (names.Contains("surrender")) return L.F("AIL_e7b1d610", $"{_s.Name} se dispone a rendirse… (termina de leer o de escuchar y pulsa «Continuar»)");
+            return L.T("AIL_e7b1ca03", "(Termina de leer o de escuchar y pulsa «Continuar»)");
+        }
+
+        // Someone who died in the talk falls in front of the player once the game has closed the conversation
+        private static TaleWorlds.MountAndBlade.Agent _strikeAgent;
+        private static bool _strikeByPlayer;
+        private static DateTime _strikeAt;
+
+        /// <summary>
+        /// A death in a scene is seen: once the conversation is closed, the character's body takes a killing blow, from
+        /// the player when they did it (AIInfluence kills the agent the same way).
+        /// </summary>
+        public static void StrikeAfterTalk(TaleWorlds.MountAndBlade.Agent victim, bool byPlayer)
+        {
+            if (victim == null) return;
+            _strikeAgent = victim; _strikeByPlayer = byPlayer; _strikeAt = DateTime.UtcNow.AddMilliseconds(300);
+        }
 
         private static string HeldName(string command)
         {
@@ -1394,7 +1434,7 @@ namespace AILegacy.Dialogue
             try { var a = Active; if (a != null) { a._held = null; a._continueWhenSilent = false; a.Close(false); } } catch (Exception ex) { Log.Error("Force close: session", ex); }
             try { ChatWindow.Current?.Close(); } catch (Exception ex) { Log.Error("Force close: window", ex); }
             try { Initiative.Cancel(); } catch { }
-            _clipAgent = null; _walkOffAgent = null;
+            _clipAgent = null; _walkOffAgent = null; _strikeAgent = null;
             try
             {
                 var cm = Campaign.Current?.ConversationManager;

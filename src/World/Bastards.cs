@@ -37,13 +37,23 @@ namespace AILegacy.World
         [JsonProperty("legit")] public List<string> Legitimized = new List<string>();
         /// <summary>Each child's name as it was born, to give it back when legitimized.</summary>
         [JsonProperty("names")] public Dictionary<string, string> BirthNames = new Dictionary<string, string>();
+        /// <summary>Record format. 0 = written before the mother's house and the father's knowledge were kept (those births stay as they were).</summary>
+        [JsonProperty("v", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Version;
+        /// <summary>Whether the mother had met the father when she conceived. Null on older records: worked out when needed.</summary>
+        [JsonProperty("met", NullValueHandling = NullValueHandling.Ignore)] public bool? Met;
+        /// <summary>The player, as parent, has owned the child before everyone.</summary>
+        [JsonProperty("acknowledged", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Acknowledged;
+        /// <summary>The scandal (relation lost with the mother's husband and head of house) has already been paid.</summary>
+        [JsonProperty("scandal", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool ScandalPaid;
     }
 
     /// <summary>
     /// Children out of wedlock. The pregnancy itself goes in the game's own queue with the right father (the game only ever
     /// writes the mother's husband), so the clock, stillbirths and labour are the game's. This keeps the record of who the
-    /// father is, and at birth: who raises the child, a surname for the baseborn, a secret kept or the scandal, and later
-    /// the ways a child is made legitimate.
+    /// father is, and at birth: the child grows up in its mother's house with a baseborn surname; a married mother may pass
+    /// it off as her husband's, an unmarried one may keep the father's name to herself, or the scandal comes out. Later the
+    /// player, as parent, may acknowledge the child (through the mother, or face to face once the child is of age), and
+    /// there are the other ways a child is made legitimate. The father is only ever named if the mother knows who he is.
     /// </summary>
     internal static class Bastards
     {
@@ -113,8 +123,11 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             catch (Exception ex) { Log.Error("Illegitimate pregnancy: game queue", ex); return false; }
         }
 
-        /// <summary>A child conceived out of wedlock. True if the pregnancy took.</summary>
-        public static bool Conceive(Hero mother, Hero father)
+        /// <summary>
+        /// A child conceived out of wedlock. True if the pregnancy took. <paramref name="met"/>: whether the two were together
+        /// when it happened (an affair, intimacy); null works it out from what the mother knows of him.
+        /// </summary>
+        public static bool Conceive(Hero mother, Hero father, bool? met = null)
         {
             if (!Enabled || mother == null || father == null || !mother.IsFemale || father.IsFemale || mother.IsPregnant || !mother.IsAlive || !father.IsAlive) return false;
             if (mother.Spouse == father) return false;
@@ -123,6 +136,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             {
                 Id = WorldSim.NewId("bst"), MotherId = mother.StringId, FatherId = father.StringId, ConceivedDay = CampaignTime.Now.ToDays,
                 HusbandId = mother.Spouse != null && mother.Spouse != father && mother.Spouse.IsAlive ? mother.Spouse.StringId : null,
+                Version = 2, Met = met ?? HaveMet(mother, father),
             };
             WorldSim.State.Bastards.Add(b);
             // without MakePregnantAction there is no conception event: tell the mood system by hand
@@ -141,7 +155,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 var mother = other.IsFemale ? other : P; var father = other.IsFemale ? P : other;
                 if (mother.IsPregnant || mother.Age < 18 || mother.Age >= 46) return;
                 float chance = S.Get.BastardChancePercent * 10f * Mood.FertilityFactor(mother);
-                if (Rng.Next(1000) < Math.Min(1000f, chance)) Conceive(mother, father);
+                if (Rng.Next(1000) < Math.Min(1000f, chance)) Conceive(mother, father, met: true);
             }
             catch (Exception ex) { Log.Error("[bastards] intimacy with the player", ex); }
         }
@@ -216,7 +230,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 float best = lovers.Max(x => x.w);
                 if (roll >= Daily(cfg.BastardNpcYearlyPercent / 100f * Math.Min(3f, dw * best))) return;
                 double total = lovers.Sum(x => x.w), pick = Rng.NextDouble() * total;
-                foreach (var (h, wt) in lovers) { if ((pick -= wt) > 0) continue; Conceive(w, h); return; }
+                foreach (var (h, wt) in lovers) { if ((pick -= wt) > 0) continue; Conceive(w, h, met: true); return; }
             }
             catch (Exception ex) { Log.Error("[bastards] daily roll", ex); }
         }
@@ -234,101 +248,260 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 b.Born = true; b.Lost = false;
                 var father = Hero.Find(b.FatherId);
                 if (children == null || children.Count == 0 || father == null) { Log.Info($"[bastards] the child of {mother.Name} and {b.FatherId} is stillborn"); return; }
-                foreach (var c in children) if (c != null) { b.Children.Add(c.StringId); b.BirthNames[c.StringId] = c.FirstName?.ToString() ?? c.Name.ToString(); }
-                Log.Info($"[bastards] {mother.Name} gives birth to {children.Count} child(ren) by {father.Name}");
+                // a pregnancy from before this was kept: worked out now and settled by the rules below
+                if (b.Met == null) b.Met = HaveMet(mother, father);
+                b.Version = 2;
+                var kids = children.Where(c => c != null).ToList();
+                foreach (var c in kids) { b.Children.Add(c.StringId); b.BirthNames[c.StringId] = c.FirstName?.ToString() ?? c.Name.ToString(); }
+                Log.Info($"[bastards] {mother.Name} gives birth to {kids.Count} child(ren) by {father.Name}");
                 // married to each other by now: nothing to hide or name
-                if (mother.Spouse == father) { foreach (var c in children) Legitimize(b, c, quiet: true); return; }
-                bool playerParent = mother == P || father == P;
-                if (playerParent)
+                if (mother.Spouse == father) { foreach (var c in kids) Legitimize(b, c, quiet: true); SaveFiles.Dirty(); return; }
+                if (mother == P || father == P)
                 {
                     var other = mother == P ? father : mother;
-                    if (other.Clan == Clan.PlayerClan) { foreach (var c in children) Name(b, c); return; }
-                    AskGuardian(b, children, other);
+                    // the other parent lives in the player's clan: the child stays there, nothing to ask
+                    if (other.Clan == Clan.PlayerClan) { foreach (var c in kids) ToPlayerClan(b, c); SaveFiles.Dirty(); return; }
+                    AskGuardian(b, kids, mother, father, other);
                     return;
                 }
-                foreach (var c in children) RaiseWith(b, c, mother, father);
+                RaiseWith(b, kids, mother, mother, father, father);
                 SaveFiles.Dirty();
             }
             catch (Exception ex) { Log.Error("[bastards] birth", ex); }
         }
 
-        private static void AskGuardian(Bastard b, List<Hero> children, Hero other)
+        /// <summary>Raised by the player, in the player's clan, as a lord. Still baseborn until acknowledged.</summary>
+        private static void ToPlayerClan(Bastard b, Hero c)
         {
-            string names = string.Join(", ", children.Select(c => c.FirstName?.ToString() ?? c.Name.ToString()));
+            if (c.Clan != Clan.PlayerClan) c.Clan = Clan.PlayerClan;
+            if (c.Occupation != Occupation.Lord) c.SetNewOccupation(Occupation.Lord);
+            Name(b, c);
+        }
+
+        /// <summary>The player is a parent: raise the child as your own in your clan, or leave it with the other parent.</summary>
+        private static void AskGuardian(Bastard b, List<Hero> kids, Hero mother, Hero father, Hero other)
+        {
+            string names = string.Join(", ", kids.Select(c => c.FirstName?.ToString() ?? c.Name.ToString()));
             int session = WorldSim.Session;
-            string question = other.IsFemale
-                ? L.F("AIL_e7b1c817", $"{other.Name} ha dado a luz: {names}, hijo de los dos. ¿Lo crías como tuyo, en tu casa? Si no, se queda con {other.Name}, y quien se entere no lo olvidará.")
-                : L.F("AIL_e7b1c835", $"Has dado a luz: {names}, hijo tuyo y de {other.Name}. ¿Lo crías en tu casa? Si no, se queda con {other.Name}, y quien se entere no lo olvidará.");
-            InformationManager.ShowInquiry(new InquiryData(L.T("AIL_e7b1c816", "Un hijo fuera del matrimonio"), question,
-                true, true, L.T("AIL_e7b1c818", "Criarlo en tu casa"), L.T("AIL_e7b1c819", "Que se quede con su madre o su padre"),
+            string question = mother == P
+                ? L.F("AIL_e7b1d512", $"Has dado a luz a {names}. ¿Lo criarás como tuyo y lo acogerás en tu clan?")
+                : L.F("AIL_e7b1d511", $"{mother.Name} ha dado a luz a {names}. ¿Lo criarás como tuyo y lo acogerás en tu clan?");
+            InformationManager.ShowInquiry(new InquiryData(L.T("AIL_e7b1d510", "Ha nacido un hijo bastardo"), question,
+                true, true, L.T("AIL_e7b1d513", "Sí"), L.T("AIL_e7b1d514", "No"),
                 () =>
                 {
                     if (session != WorldSim.Session || Campaign.Current == null) return;
-                    try { foreach (var c in children) { if (c.Clan != Clan.PlayerClan) c.Clan = Clan.PlayerClan; Name(b, c); } Log.Info("[bastards] player raises the child at home"); }
-                    catch (Exception ex) { Log.Error("[bastards] guardianship: at home", ex); }
+                    try { foreach (var c in kids) ToPlayerClan(b, c); Log.Info("[bastards] the player raises the child in their clan"); SaveFiles.Dirty(); }
+                    catch (Exception ex) { Log.Error("[bastards] guardianship: player's clan", ex); }
                 },
                 () =>
                 {
                     if (session != WorldSim.Session || Campaign.Current == null) return;
-                    try { foreach (var c in children) RaiseWith(b, c, other, P); }
-                    catch (Exception ex) { Log.Error("[bastards] guardianship: with the other parent", ex); }
+                    try { RaiseWith(b, kids, other, mother, father, P); Log.Info("[bastards] the child stays with the other parent"); SaveFiles.Dirty(); }
+                    catch (Exception ex) { Log.Error("[bastards] guardianship: other parent", ex); }
                 }), true);
         }
 
-        /// <summary>The child stays with <paramref name="guardian"/>. A married mother may pass it off as her husband's.</summary>
-        private static void RaiseWith(Bastard b, Hero child, Hero guardian, Hero culprit)
+        /// <summary>
+        /// The child grows up with <paramref name="guardian"/>, in their clan (no clan: a wanderer). A married mother may pass
+        /// it off as her husband's. Otherwise, if the mother knows who the father is, it comes out: a rumour naming him, and he
+        /// pays for it (or <paramref name="culprit"/>: the player who would not raise it) with the guardian's spouse and head of house. A father the mother cannot name is never named or blamed:
+        /// there is only talk in her town.
+        /// </summary>
+        private static void RaiseWith(Bastard b, List<Hero> kids, Hero guardian, Hero mother, Hero father, Hero culprit)
         {
             var cfg = S.Get;
-            if (guardian.Clan != null && child.Clan != guardian.Clan) child.Clan = guardian.Clan;
-            var husband = guardian.IsFemale ? guardian.Spouse : null;
-            var mother = Hero.Find(b.MotherId); var father = Hero.Find(b.FatherId);
-            if (husband != null && husband.IsAlive && husband != father && Rng.Next(100) < cfg.BastardSecretKeptPercent)
+            if (guardian.Clan == null)
             {
-                // Kept secret: the world takes the child for the husband's
-                try
-                {
-                    var field = HarmonyLib.AccessTools.Field(typeof(Hero), "_children");
-                    // the setter adds the child to the new father's list but never takes it off the old one
-                    while ((field?.GetValue(father) as IList)?.Contains(child) == true) ((IList)field.GetValue(father)).Remove(child);
-                    child.Father = husband;
-                    var theirs = field?.GetValue(husband) as IList;
-                    if (theirs != null) { int seen = 0; for (int i = theirs.Count - 1; i >= 0; i--) if (theirs[i] == child && ++seen > 1) theirs.RemoveAt(i); }
-                    b.Secret = true;
-                    var sec = StorySecrets.AddEvent($"{child.Name} is not the child of {husband.Name}: the true father is {father?.Name}.",
-                        L.F("AIL_e7b1c81a", $"{child.Name} no es hijo de {husband.Name}: su verdadero padre es {father?.Name}."), new[] { mother, father, child }, new[] { mother, father }, "high");
-                    b.SecretId = sec?.Id;
-                    Log.Info($"[bastards] {child.Name} is passed off as the child of {husband.Name}");
-                    return;
-                }
-                catch (Exception ex) { Log.Error("[bastards] saved secret", ex); }
+                foreach (var c in kids) { Name(b, c); c.Clan = null; if (c.Occupation != Occupation.Wanderer) c.SetNewOccupation(Occupation.Wanderer); }
+                Log.Info($"[bastards] {guardian.Name} has no house: the child grows up a wanderer");
+                return;
             }
-            Name(b, child);
+            foreach (var c in kids)
+            {
+                if (c.Clan != guardian.Clan) c.Clan = guardian.Clan;
+                if (c.Occupation != Occupation.Lord) c.SetNewOccupation(Occupation.Lord);
+            }
+            bool knows = FatherKnown(b);
+            var husband = guardian.IsFemale ? guardian.Spouse : null;
+            bool married = husband != null && husband.IsAlive && husband != father;
+            // one roll for the whole birth
+            if (married && Rng.Next(100) < cfg.BastardSecretKeptPercent)
+            {
+                foreach (var c in kids) if (!PassOff(b, c, mother, father, husband, knows)) Name(b, c);
+                if (b.Secret) return;
+            }
+            else foreach (var c in kids) Name(b, c);
+            if (!knows) { LocalTalk(b, kids, mother, mother.Spouse != null && mother.Spouse.IsAlive && mother.Spouse != father); Log.Info($"[bastards] {mother.Name} does not know who the father is"); return; }
+            Scandal(b, guardian, culprit);
+            PublicTalk(b, kids, mother, father);
+        }
+
+        /// <summary>Kept secret: the world takes the child for the husband's. False if the game would not have it.</summary>
+        private static bool PassOff(Bastard b, Hero child, Hero mother, Hero father, Hero husband, bool knows)
+        {
+            try
+            {
+                var field = HarmonyLib.AccessTools.Field(typeof(Hero), "_children");
+                // the setter adds the child to the new father's list but never takes it off the old one
+                while ((field?.GetValue(father) as IList)?.Contains(child) == true) ((IList)field.GetValue(father)).Remove(child);
+                child.Father = husband;
+                var theirs = field?.GetValue(husband) as IList;
+                if (theirs != null) { int seen = 0; for (int i = theirs.Count - 1; i >= 0; i--) if (theirs[i] == child && ++seen > 1) theirs.RemoveAt(i); }
+                b.Secret = true;
+                // a mother who cannot name the father knows only that the child is not her husband's
+                string fname = knows ? FatherNameFor(b, mother, father) : father.Name.ToString();
+                var sec = StorySecrets.AddEvent($"{child.Name} is not the child of {husband.Name}: the true father is {fname}.",
+                    L.F("AIL_e7b1c81a", $"{child.Name} no es hijo de {husband.Name}: su verdadero padre es {fname}."), new[] { mother, father, child },
+                    knows ? new[] { mother, father } : new[] { father }, "high");
+                b.SecretId = sec?.Id;
+                Log.Info($"[bastards] {child.Name} is passed off as the child of {husband.Name}");
+                return true;
+            }
+            catch (Exception ex) { Log.Error("[bastards] saved secret", ex); return false; }
+        }
+
+        /// <summary>
+        /// The father is known: whoever is to blame (the father, or the player who would not raise the child) loses relation with the guardian's spouse and head of house.
+        /// Paid once, and not when the guardian is of the player's own clan.
+        /// </summary>
+        private static void Scandal(Bastard b, Hero guardian, Hero culprit)
+        {
+            var cfg = S.Get;
+            if (b.ScandalPaid || b.Version < 2 || guardian == null || culprit == null) return;
+            b.ScandalPaid = true;
             if (!cfg.BastardConsequences || guardian.Clan == Clan.PlayerClan) return;
-            // The scandal: whoever is to blame pays for it with the guardian's spouse and head of house
             try
             {
                 var spouse = guardian.Spouse;
-                if (culprit != null && spouse != null && spouse.IsAlive && spouse != culprit)
+                if (spouse != null && spouse.IsAlive && spouse != culprit)
                 {
                     if (culprit == P) ChangeRelationAction.ApplyPlayerRelation(spouse, -cfg.BastardSpouseRelationLoss, false, true);
                     else ChangeRelationAction.ApplyRelationChangeBetweenHeroes(culprit, spouse, -cfg.BastardSpouseRelationLoss, false);
                 }
                 var head = guardian.Clan?.Leader;
-                if (culprit != null && head != null && head != guardian && head != culprit && head.IsAlive)
+                if (head != null && head != guardian && head != culprit && head.IsAlive)
                 {
                     if (culprit == P) ChangeRelationAction.ApplyPlayerRelation(head, -cfg.BastardClanLeaderRelationLoss, false, true);
                     else ChangeRelationAction.ApplyRelationChangeBetweenHeroes(culprit, head, -cfg.BastardClanLeaderRelationLoss, false);
                 }
-                if (mother != null && father != null)
-                    NewsStore.Add(new NewsItem
-                    {
-                        Type = "rumor", Importance = 2, Text = $"{mother.Name} has borne a child out of wedlock, by {father.Name}.",
-                        TitleEs = L.F("AIL_e7b1c81b", $"Un hijo ilegítimo de {father.Name}"), TextEs = L.F("AIL_e7b1c81c", $"{mother.Name} ha dado a luz a {child.Name}, y todos saben que el padre es {father.Name}."),
-                        Kingdoms = new[] { mother.MapFaction, father.MapFaction }.Where(f => f != null).Select(f => f.StringId).Distinct().ToList(),
-                        Heroes = new List<string> { mother.StringId, father.StringId, child.StringId },
-                    });
+                Log.Info($"[bastards] scandal: {culprit.Name} pays for the child raised by {guardian.Name}");
             }
             catch (Exception ex) { Log.Error("[bastards] scandal", ex); }
+        }
+
+        /// <summary>Talk that names the father: a rumour, never "everyone knows".</summary>
+        private static void PublicTalk(Bastard b, List<Hero> kids, Hero mother, Hero father)
+        {
+            try
+            {
+                string fname = FatherNameFor(b, mother, father), names = string.Join(", ", kids.Select(c => c.Name.ToString()));
+                // the name she knows the player by may not be his own: then the talk does not point at him
+                bool real = fname == father.Name.ToString();
+                var heroes = new List<string> { mother.StringId }; heroes.AddRange(kids.Select(c => c.StringId));
+                if (real) heroes.Add(father.StringId);
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "rumor", Importance = 2,
+                    Text = $"It is said that {mother.Name} has borne a child out of wedlock, {names}, and that the father is {fname}.",
+                    TitleEs = L.F("AIL_e7b1d503", $"Se habla de un hijo ilegítimo de {fname}"),
+                    TextEs = L.F("AIL_e7b1d504", $"Se dice que {mother.Name} ha dado a luz a {names} fuera del matrimonio, y que el padre es {fname}."),
+                    Kingdoms = new[] { mother.MapFaction, real ? father.MapFaction : null }.Where(f => f != null).Select(f => f.StringId).Distinct().ToList(),
+                    Heroes = heroes,
+                });
+            }
+            catch (Exception ex) { Log.Error("[bastards] rumour", ex); }
+        }
+
+        /// <summary>A birth out of wedlock with no father named: talk in the mother's own town, at most.</summary>
+        private static void LocalTalk(Bastard b, List<Hero> kids, Hero mother, bool married)
+        {
+            try
+            {
+                var place = mother.CurrentSettlement ?? mother.PartyBelongedTo?.CurrentSettlement ?? mother.HomeSettlement;
+                if (place == null) return;
+                string names = string.Join(", ", kids.Select(c => c.Name.ToString()));
+                string text, local;
+                if (married)
+                {
+                    text = $"It is whispered that {names}, the child {mother.Name} has borne, is not her husband's, and no one knows whose it is.";
+                    local = L.F("AIL_e7b1d507", $"Se murmura que {names}, el hijo que ha tenido {mother.Name}, no es de su marido, y nadie sabe de quién es.");
+                }
+                else
+                {
+                    text = $"{mother.Name} has given birth to {names} out of wedlock. No one knows who the father is.";
+                    local = L.F("AIL_e7b1d505", $"{mother.Name} ha dado a luz a {names} fuera del matrimonio. Nadie sabe quién es el padre.");
+                }
+                var heroes = new List<string> { mother.StringId }; heroes.AddRange(kids.Select(c => c.StringId));
+                NewsStore.Add(new NewsItem
+                {
+                    Type = "rumor", Importance = 1, SettlementId = place.StringId, NoReaction = true,
+                    Text = text, TitleEs = L.T("AIL_e7b1c816", "Un hijo fuera del matrimonio"), TextEs = local,
+                    Kingdoms = mother.MapFaction != null ? new List<string> { mother.MapFaction.StringId } : new List<string>(),
+                    Heroes = heroes,
+                });
+            }
+            catch (Exception ex) { Log.Error("[bastards] local talk", ex); }
+        }
+
+        // ============================================================ who knows who the father is
+
+        /// <summary>
+        /// Whether the mother had met the father: for the player, she remembers him (they have talked) or knows him from
+        /// family, clan or dealings; for anyone else, they share a house, a relation or a memory of each other.
+        /// </summary>
+        private static bool HaveMet(Hero mother, Hero father)
+        {
+            try
+            {
+                if (mother == null || father == null) return false;
+                if (mother == P) return true;
+                if (father == P)
+                {
+                    var sp = Speaker.FromHero(mother);
+                    if (sp.Memory != null && sp.Memory.ConversationCount > 0) return true;
+                    string why = ContextBuilder.WhyKnowsPlayer(sp);
+                    return why == "family" || why == "clan" || why == "past_dealings";
+                }
+                if (mother.Clan != null && mother.Clan == father.Clan) return true;
+                if (mother.GetRelation(father) != 0) return true;
+                return Speaker.FromHero(mother).Memory?.Others?.ContainsKey(father.StringId) == true;
+            }
+            catch { return false; }
+        }
+
+        private static bool MetOf(Bastard b)
+        {
+            if (b.Met.HasValue) return b.Met.Value;
+            return HaveMet(Hero.Find(b.MotherId), Hero.Find(b.FatherId));
+        }
+
+        /// <summary>The mother knows who fathered the child: she met him and, if it is the player, knows his name.</summary>
+        public static bool FatherKnown(Bastard b)
+        {
+            try
+            {
+                if (b == null) return false;
+                if (b.Acknowledged) return true;
+                var mother = Hero.Find(b.MotherId); var father = Hero.Find(b.FatherId);
+                if (mother == null || father == null) return b.Met != false;
+                if (mother == P) return true;
+                if (!MetOf(b)) return false;
+                return father != P || ContextBuilder.PlayerNameFor(Speaker.FromHero(mother)) != null;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>Talk names the father: the mother knows him and has not kept quiet (or he owned the child himself).</summary>
+        private static bool FatherPublic(Bastard b) => b.Acknowledged || (!b.Secret && FatherKnown(b));
+
+        /// <summary>The name the mother knows the father by (the player may have given her another), or a description.</summary>
+        private static string FatherNameFor(Bastard b, Hero mother, Hero father)
+        {
+            if (father == null) return "someone";
+            if (father != P || b.Acknowledged || mother == P) return father.Name.ToString();
+            try { return ContextBuilder.PlayerNameFor(Speaker.FromHero(mother)) ?? "a man whose name she never learned"; }
+            catch { return "a man whose name she never learned"; }
         }
 
         /// <summary>The baseborn surname, after the mother's culture. The birth name is kept to give back later.</summary>
@@ -359,17 +532,20 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             return b != null && !b.Secret && !b.Legitimized.Contains(child.StringId);
         }
 
-        public static void Legitimize(Bastard b, Hero child, bool quiet = false)
+        /// <summary>
+        /// Takes the baseborn surname off. <paramref name="move"/> (the parents marrying each other): the child also goes to
+        /// their house, the player's if the player is one of them; otherwise it stays where it grew up.
+        /// </summary>
+        public static void Legitimize(Bastard b, Hero child, bool quiet = false, bool move = false)
         {
             try
             {
                 if (b == null || child == null || b.Legitimized.Contains(child.StringId)) return;
                 if (b.BirthNames.TryGetValue(child.StringId, out string first) && !string.IsNullOrWhiteSpace(first))
                     child.SetName(new TextObject("{=!}" + first), new TextObject("{=!}" + first));
-                // a child still in no house of either parent goes to the father's (or the player's)
                 var father = Hero.Find(b.FatherId); var mother = Hero.Find(b.MotherId);
                 var home = father == P || mother == P ? Clan.PlayerClan : father?.Clan ?? mother?.Clan;
-                if (home != null && !home.IsBanditFaction && child.Clan != home && child.Spouse == null && child.Clan?.Leader != child) child.Clan = home;
+                if (move && home != null && !home.IsBanditFaction && child.Clan != home && child.Spouse == null && child.Clan?.Leader != child) child.Clan = home;
                 if (b.SecretId != null) StorySecrets.Reveal(b.SecretId, null);
                 // marked only once it is all done, so a failure can be tried again
                 b.Legitimized.Add(child.StringId);
@@ -387,7 +563,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             {
                 if (!Enabled || a == null || b == null) return;
                 foreach (var r in All.Where(x => x.Born && ((x.MotherId == a.StringId && x.FatherId == b.StringId) || (x.MotherId == b.StringId && x.FatherId == a.StringId))).ToList())
-                    foreach (var id in r.Children.ToList()) { var c = Hero.Find(id); if (c != null && c.IsAlive) Legitimize(r, c); }
+                    foreach (var id in r.Children.ToList()) { var c = Hero.Find(id); if (c != null && c.IsAlive) Legitimize(r, c, move: true); }
                 if (S.Get.BastardLegitimizeOnMarriage)
                     foreach (var h in new[] { a, b }) if (IsBaseborn(h)) Legitimize(RecordOf(h), h);
             }
@@ -408,14 +584,20 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             return child != null && Enabled && b != null && IsBaseborn(child) && child.Age >= 18 && (b.FatherId == P?.StringId || b.MotherId == P?.StringId);
         }
 
+        /// <summary>The player owns the adult child as theirs: legitimate, into the player's clan as a lord. No other cost.</summary>
         public static void Acknowledge(Hero child)
         {
             var b = RecordOf(child);
-            if (b == null) return;
-            Legitimize(b, child);
+            if (b == null || child == null) return;
             try
             {
-                if (child.Clan != Clan.PlayerClan && child.Clan?.Leader != child) { child.Clan = Clan.PlayerClan; if (child.Occupation != Occupation.Lord) child.SetNewOccupation(Occupation.Lord); }
+                b.Acknowledged = true;
+                Legitimize(b, child, quiet: true);
+                if (child.Clan != Clan.PlayerClan && child.Clan?.Leader != child) child.Clan = Clan.PlayerClan;
+                if (child.Occupation != Occupation.Lord) child.SetNewOccupation(Occupation.Lord);
+                WorldSim.Say(L.F("AIL_e7b1d50e", $"{child.Name} es ahora hijo legítimo tuyo y entra en tu clan."), Colors.Yellow);
+                Log.Info($"[bastards] the player acknowledges {child.Name}");
+                SaveFiles.Dirty();
             }
             catch (Exception ex) { Log.Error("[bastards] acknowledge", ex); }
         }
@@ -470,16 +652,42 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 string Kids(Bastard b) => string.Join(", ", b.Children.Select(Hero.Find).Where(c => c != null).Select(c => c.Name.ToString()));
                 foreach (var b in All.Where(x => !x.Lost))
                 {
-                    string state = !b.Born ? "You are carrying a child" : "You have " + (b.Children.Count == 1 ? "a child, " : "children, ") + Kids(b) + ",";
-                    string secret = b.Secret ? ": the world believes " + (b.Children.Count == 1 ? "it is" : "they are") + " your husband's" : b.Born ? "; it is known" : "";
-                    if (b.MotherId == id) lines.Add(TMother.Format("state", state, "father", N(b.FatherId), "secret", secret));
-                    else if (b.FatherId == id) lines.Add(TFather.Format("state", (!b.Born ? "She is carrying your child" : "You have " + (b.Children.Count == 1 ? "a child, " : "children, ") + Kids(b) + ","),
-                        "mother", N(b.MotherId), "secret", b.Secret ? ": the world believes the child is her husband's" : ""));
-                    else if (b.HusbandId == id && b.Born && !b.Secret) lines.Add(THusband.Format("mother", N(b.MotherId), "father", N(b.FatherId), "children", Kids(b)));
-                    else if (b.Children.Contains(id))
+                    bool asMother = b.MotherId == id, asFather = b.FatherId == id, asHusband = b.HusbandId == id && b.Born && !b.Secret, asChild = b.Children.Contains(id);
+                    if (!asMother && !asFather && !asHusband && !asChild) continue;
+                    var mother = Hero.Find(b.MotherId); var father = Hero.Find(b.FatherId);
+                    // what the mother knows is all anyone close to her knows: an unknown father is never named
+                    bool knows = FatherKnown(b), isPublic = FatherPublic(b);
+                    string fatherForMother = knows ? FatherNameFor(b, mother, father).Replace("she never learned", "you never learned")
+                        : b.FatherId == P?.StringId && MetOf(b) ? "a stranger whose name you never learned (you would know his face)"
+                        : "a man you cannot name: you do not know who the father is";
+                    if (asMother)
                     {
-                        if (b.Legitimized.Contains(id)) lines.Add(TLegitChild.Format("father", N(b.FatherId), "mother", N(b.MotherId)));
-                        else if (!b.Secret) lines.Add(TChild.Format("father", N(b.FatherId), "known", "", "heir", h.Clan?.Leader == h ? "" : " and cannot inherit unless someone makes you so"));
+                        string state = !b.Born ? "You are carrying a child" : "You have " + (b.Children.Count == 1 ? "a child, " : "children, ") + Kids(b) + ",";
+                        string secret = b.Secret ? ": the world believes " + (b.Children.Count == 1 ? "it is" : "they are") + " your husband's"
+                            : b.Acknowledged ? "; the father has acknowledged the child as his before everyone"
+                            : !b.Born || !knows ? ""
+                            : b.Version < 2 ? "; it is known" : "; people talk, and it is rumoured who the father is";
+                        lines.Add(TMother.Format("state", state, "father", fatherForMother, "secret", secret));
+                    }
+                    else if (asFather)
+                    {
+                        string theMother = b.MotherId == P?.StringId ? ContextBuilder.PlayerNameFor(s) ?? "a woman whose name you never learned" : N(b.MotherId);
+                        string secret = b.Secret ? ": the world believes the child is her husband's"
+                            : b.Acknowledged ? "; the child has been acknowledged before everyone"
+                            : !knows ? "; she does not know the child is yours"
+                            : !b.Born ? ""
+                            : b.Version < 2 ? "" : "; it is rumoured that you are the father";
+                        lines.Add(TFather.Format("state", (!b.Born ? "She is carrying your child" : "You have " + (b.Children.Count == 1 ? "a child, " : "children, ") + Kids(b) + ","),
+                            "mother", theMother, "secret", secret));
+                    }
+                    else if (asHusband)
+                        lines.Add(THusband.Format("mother", N(b.MotherId), "father", isPublic ? FatherNameFor(b, mother, father) : "another man (you do not know who)", "children", Kids(b)));
+                    else if (asChild)
+                    {
+                        string fatherForChild = knows ? FatherNameFor(b, mother, father).Replace("she never learned", "your mother never learned") : "unknown: your mother never knew who he was";
+                        if (b.Legitimized.Contains(id)) lines.Add(TLegitChild.Format("father", knows ? fatherForChild : "an unknown father", "mother", N(b.MotherId)));
+                        else if (!b.Secret) lines.Add(TChild.Format("father", fatherForChild, "known", "",
+                            "heir", h.Clan?.Leader == h ? "" : " and cannot inherit unless someone makes you so"));
                     }
                 }
                 return string.Join("\n", lines);
@@ -508,7 +716,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         {
             var lines = new List<string>();
             foreach (var b in All)
-                lines.Add($"{b.Id}: {Hero.Find(b.MotherId)?.Name}+{Hero.Find(b.FatherId)?.Name} día {(int)b.ConceivedDay} {(b.Lost ? "perdido" : b.Born ? "nacido: " + string.Join(", ", b.Children.Select(id => Hero.Find(id)?.Name?.ToString() ?? id)) : "en camino")}{(b.Secret ? " (secreto)" : "")}");
+                lines.Add($"{b.Id}: {Hero.Find(b.MotherId)?.Name}+{Hero.Find(b.FatherId)?.Name} día {(int)b.ConceivedDay} {(b.Lost ? "perdido" : b.Born ? "nacido: " + string.Join(", ", b.Children.Select(id => Hero.Find(id)?.Name?.ToString() ?? id)) : "en camino")}{(b.Secret ? " (secreto)" : "")}{(!FatherKnown(b) ? " (padre desconocido para la madre)" : "")}{(b.Acknowledged ? " (reconocido)" : "")}");
             return lines.Count == 0 ? "Sin registros." : string.Join("\n", lines);
         }
     }

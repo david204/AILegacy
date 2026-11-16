@@ -36,13 +36,15 @@ namespace AILegacy.World
         [JsonProperty("hits", NullValueHandling = NullValueHandling.Ignore)] public List<NewsHit> Hits;
         /// <summary>The outbreak the event started, as it was then.</summary>
         [JsonProperty("disease", NullValueHandling = NullValueHandling.Ignore)] public NewsDisease Disease;
+        /// <summary>A death or a fall already told by the world event it set off: that event's card stands for it in the news window.</summary>
+        [JsonProperty("told", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Told;
         /// <summary>Local talk that must never set off a world reaction, whatever the importance threshold is.</summary>
         [JsonIgnore] public bool NoReaction;
         /// <summary>Local title and text are only valid if they're still in the current language.</summary>
         [JsonIgnore] private bool LocalOk => string.IsNullOrEmpty(Lang) || Lang == AILegacy.Core.L.Code;
         [JsonIgnore] public string DisplayTitle => string.IsNullOrWhiteSpace(TitleEs) || !LocalOk ? Headline(Text) : TitleEs;
         [JsonIgnore] public string DisplayText => string.IsNullOrWhiteSpace(TextEs) || !LocalOk ? Text : TextEs;
-        private static string Headline(string t)
+        internal static string Headline(string t)
         {
             t = t ?? "";
             int dot = t.IndexOf('.');
@@ -100,7 +102,7 @@ namespace AILegacy.World
 
         public static IEnumerable<NewsItem> All => _items;
 
-        public static void Clear() => _items = new List<NewsItem>();
+        public static void Clear() { _items = new List<NewsItem>(); _visitPlace = null; _visitSince = -1; }
 
         public static bool Contains(NewsItem n) => n != null && _items.Contains(n);
 
@@ -111,9 +113,53 @@ namespace AILegacy.World
 
         public static void Load(List<NewsItem> items) => _items = items ?? new List<NewsItem>();
 
+        // The settlement the player is visiting (or last visited) and the day the visit began
+        private static string _visitPlace;
+        private static double _visitSince = -1;
+
+        /// <summary>The player entered a settlement: a new visit starts there.</summary>
+        public static void BeginVisit(string settlementId)
+        {
+            _visitPlace = settlementId;
+            _visitSince = CampaignTime.Now.ToDays;
+        }
+
+        /// <summary>The player left it: what is told from now on about that place is no longer part of the visit.</summary>
+        public static void EndVisit()
+        {
+            _visitPlace = null;
+            _visitSince = -1;
+        }
+
+        private static string TitleKey(NewsItem n) => (string.IsNullOrWhiteSpace(n.TitleEs) ? NewsItem.Headline(n.Text) : n.TitleEs).Trim().ToLowerInvariant();
+
+        /// <summary>
+        /// Never two items with the same title about the same place within one visit: the second one is merged into the
+        /// first (who and which realms it touches, how far it travels, and its text if the new one says more).
+        /// </summary>
+        private static bool MergedIntoVisit(NewsItem n)
+        {
+            if (string.IsNullOrEmpty(n.SettlementId) || n.SettlementId != _visitPlace || _visitSince < 0 || n.StoryId != null) return false;
+            string key = TitleKey(n);
+            if (key.Length == 0) return false;
+            var old = _items.LastOrDefault(o => o.SettlementId == n.SettlementId && o.Day >= _visitSince && o.StoryId == null && TitleKey(o) == key);
+            if (old == null) return false;
+            foreach (var h in n.Heroes) if (!old.Heroes.Contains(h)) old.Heroes.Add(h);
+            foreach (var k in n.Kingdoms) if (!old.Kingdoms.Contains(k)) old.Kingdoms.Add(k);
+            old.Importance = Math.Max(old.Importance, Math.Max(1, Math.Min(4, n.Importance)));
+            if ((n.Text?.Length ?? 0) > (old.Text?.Length ?? 0)) old.Text = n.Text;
+            if ((n.TextEs?.Length ?? 0) > (old.TextEs?.Length ?? 0)) old.TextEs = n.TextEs;
+            if (old.Heroes.Contains(Hero.MainHero?.StringId)) old.PlayerInvolved = true;
+            Core.Log.Info($"News merged into an item of this visit with the same title ({old.Id}): {n.Text}");
+            return true;
+        }
+
         public static void Add(NewsItem n)
         {
             if (n == null || string.IsNullOrWhiteSpace(n.Text)) return;
+            if (n.Heroes == null) n.Heroes = new List<string>();
+            if (n.Kingdoms == null) n.Kingdoms = new List<string>();
+            if (MergedIntoVisit(n)) return;
             n.Id = n.Id ?? Guid.NewGuid().ToString("N").Substring(0, 10);
             n.Day = CampaignTime.Now.ToDays;
             // News written by the mod itself (not the AI) records its language, so it isn't shown after a language switch

@@ -233,11 +233,21 @@ namespace AILegacy.World
                     var giver = q.GiverId == h.StringId ? h : Hero.Find(q.GiverId);
                     int paid = giver != null && giver.IsAlive ? Math.Min(q.RewardGold, Math.Max(0, giver.Gold)) : 0;
                     if (paid > 0) GiveGoldAction.ApplyBetweenCharacters(giver, P, paid);
+                    // As in AIInfluence the reward is the denars and some renown for the player's clan (2 to 10); relation
+                    // and trust are left to what the characters themselves say. An extra relation can still be set in MCM
                     if (cfg.QuestRelationReward > 0 && giver != null && giver.IsAlive) ChangeRelationAction.ApplyPlayerRelation(giver, cfg.QuestRelationReward, affectRelatives: false, showQuickNotification: true);
-                    Bonds.ChangeTrust(s, 10);
-                    if (giver != null && giver != h && giver.IsAlive) Bonds.ChangeTrust(Speaker.FromHero(giver), 5);
+                    int renown = Rng.Next(2, 11);
+                    try
+                    {
+                        if (Clan.PlayerClan != null)
+                        {
+                            GainRenownAction.Apply(P, renown, true);
+                            TaleWorlds.Core.MBInformationManager.AddQuickInformation(new TaleWorlds.Localization.TextObject("{=!}" + L.F("AIL_e7b1d832", $"El renombre de tu clan aumenta en {renown}")), 0, null, null, "");
+                        }
+                    }
+                    catch (Exception ex) { Log.Error("Quest renown", ex); }
                     GameJournal.Close(q, "completed", string.IsNullOrWhiteSpace(r.Reason) ? L.F("AIL_01ad2df2", $"{s.Name} da el encargo por cumplido.") : r.Reason);
-                    shown.Add(L.F("AIL_89bc1b1d", $"Encargo cumplido: «{q.Name}»") + (paid > 0 ? L.F("AIL_795b98cd", $", recibes {paid} denarios") : ""));
+                    shown.Add(L.F("AIL_89bc1b1d", $"Encargo cumplido: «{q.Name}»") + (paid > 0 ? L.F("AIL_795b98cd", $", recibes {paid} denarios") : "") + L.F("AIL_e7b1d833", $", +{renown} de renombre"));
                     News(q, s, true);
                     break;
                 }
@@ -428,14 +438,25 @@ namespace AILegacy.World
             }
         }
 
-        /// <summary>On load, closes tasks whose people died meanwhile (or in an old save) before touching the journal.</summary>
+        /// <summary>
+        /// On load, closes tasks whose people died meanwhile (or in an old save) before touching the journal, and gives
+        /// one whose deadline already passed 7 more days, as AIInfluence does, instead of failing it on the next tick.
+        /// </summary>
         public static void CloseDeadOnLoad()
         {
             try
             {
+                double now = CampaignTime.Now.ToDays;
                 foreach (var q in Quests.Where(x => x.Active).ToList())
                 {
                     if (!q.Active) continue;
+                    if (now >= q.DueDay)
+                    {
+                        q.DueDay = now + 7;
+                        try { GameJournal.Find(q.Id)?.ChangeQuestDueTime(CampaignTime.Days((float)q.DueDay)); }
+                        catch (Exception ex) { Log.Warn("Quest deadline in the journal: " + ex.Message); }
+                        Log.Info($"[quest] '{q.Name}' was already past its deadline on load: extended by 7 days");
+                    }
                     var giver = Hero.Find(q.GiverId);
                     if (giver == null || giver.IsDead) { CloseForDeath(q.GiverId); continue; }
                     if (!string.IsNullOrEmpty(q.ObjTargetId) && (q.ObjType == "talk_to" || q.ObjType == "deliver_item" || q.ObjType == "deliver_document"))

@@ -38,6 +38,12 @@ namespace AILegacy.World
         /// type, target, days (StayDays), Then and WaitDays; its deadline is set when it starts.
         /// </summary>
         [JsonProperty("next", NullValueHandling = NullValueHandling.Ignore)] public List<PartyOrder> Next;
+        /// <summary>A notable, wanderer or lord on foot agreed to follow: their party is made once the player is out on the map.</summary>
+        [JsonProperty("need_party", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool NeedParty;
+        /// <summary>The party made for them only to follow the player; sent home and broken up when the order ends.</summary>
+        [JsonProperty("temp_party", NullValueHandling = NullValueHandling.Ignore)] public string TempPartyId;
+        /// <summary>Where they came from (settlement), to go back to.</summary>
+        [JsonProperty("home", NullValueHandling = NullValueHandling.Ignore)] public string HomeId;
     }
 
     /// <summary>
@@ -52,6 +58,14 @@ namespace AILegacy.World
             "your clan holds no land, so these days you are patrolling the country around {place} with your men, of your own accord");
         private static readonly Prompt.Tpl TOwnCare = new Prompt.Tpl("orders/seeking_care.txt",
             "there is sickness in your party, so you are taking it to {place} to have the physicians there treat you and your men, of your own accord");
+        private static readonly Prompt.Tpl TGoingHome = new Prompt.Tpl("orders/going_home.txt",
+            "you have stopped riding with {player} and are on your way back home to {place} with the few companions you set out with");
+        private static readonly Prompt.Tpl TWaitingToFollow = new Prompt.Tpl("orders/waiting_to_follow.txt",
+            "you agreed to follow {player} on the road: as soon as they leave this place you will set out after them with a small party of your own, and ride with them until one of you calls it off");
+
+        /// <summary>Length of an order that only ends when it is called off (AIInfluence's follow_player has no limit).</summary>
+        public const double OpenEnded = 100000;
+        private const int OrderMaxShown = 1000;
 
         // ============================================================ queries
 
@@ -91,10 +105,12 @@ namespace AILegacy.World
         {
             var o = FindAny(h);
             if (o == null) return "";
-            if (o.Auto) return (o.Reason == "care" ? TOwnCare : TOwnPatrol).Format("place", o.TargetName ?? "");
-            int days = Math.Max(0, (int)Math.Ceiling(o.UntilDay - CampaignTime.Now.ToDays));
             string who = Hero.MainHero.Name.ToString();
-            string left = days <= 0 ? "ending today" : $"for about {days} more day(s)";
+            if (o.Type == "home") return TGoingHome.Format("player", who, "place", o.TargetName ?? "");
+            if (o.Auto) return (o.Reason == "care" ? TOwnCare : TOwnPatrol).Format("place", o.TargetName ?? "");
+            if (o.NeedParty) return TWaitingToFollow.Format("player", who);
+            int days = Math.Max(0, (int)Math.Ceiling(o.UntilDay - CampaignTime.Now.ToDays));
+            string left = days <= 0 ? "ending today" : days > OrderMaxShown ? "until one of you calls it off" : $"for about {days} more day(s)";
             switch (o.Type)
             {
                 case "follow": return o.Arrived ? $"you agreed to ride with {who}'s party and follow them ({left})" : $"you are on your way to join {who}'s party, as agreed";
@@ -258,8 +274,12 @@ namespace AILegacy.World
                 return true;
             }
 
-            Cancel(h, silent: true);
+            // A party lent to follow the player stays theirs under the new order
+            var was = FindAny(h);
+            string tempParty = was?.TempPartyId, home = was?.HomeId;
+            if (was != null) Release(was, h, null, sendHome: false);
             var o = Start(h, type, targetId, targetName, days, then, waitDays, auto, reason, null);
+            if (tempParty != null && o != null && PartyLedBy(h)?.StringId == tempParty) { o.TempPartyId = tempParty; o.HomeId = home; }
             if (chainable) { _chainHero = h.StringId; _chainTick = Environment.TickCount; }
             Log.Info(auto && reason == "care" ? $"[disease] {h.Name} ({h.Clan?.Name}) takes their party to {targetName} for treatment"
                    : auto ? $"[landless] {h.Name} ({h.Clan?.Name}) patrols on their own around {targetName} ({days:0.#} days)" : $"Order for {h.Name}: {type} {targetName} ({days:0.#} days)");
@@ -274,6 +294,8 @@ namespace AILegacy.World
                                      Next = next != null && next.Count > 0 ? next : null };
             // To join you or keep a meeting they have to get there first. The real deadline starts on arrival
             if (type == "follow" || type == "return") o.UntilDay = CampaignTime.Now.ToDays + Math.Max(days, cfg.OrderMaxDays);
+            // Following the player has no end of its own: it lasts until it is called off
+            if (type == "follow" && !auto) { o.StayDays = OpenEnded; o.UntilDay = CampaignTime.Now.ToDays + OpenEnded; }
             if (type == "meet") o.StayDays = cfg.OrderDefaultDays;
             Orders.Add(o);
             // Don't move the party while inside a scene (pulling it out of the settlement while you talk breaks the scene).
@@ -293,7 +315,8 @@ namespace AILegacy.World
             return true;
         }
 
-        private static void Release(PartyOrder o, Hero h, string message)
+        /// <param name="sendHome">A party lent only to follow the player rides back home and is broken up there.</param>
+        private static void Release(PartyOrder o, Hero h, string message, bool sendHome = true)
         {
             Orders.Remove(o);
             try
@@ -304,6 +327,121 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Orders: release", ex); }
             if (message != null && !o.Auto) Say(message);
             Log.Info($"Order finished ({o.Type} {o.TargetName}) of {h?.Name}");
+            if (sendHome && o.TempPartyId != null && o.Type != "home") StartHome(h, o.TempPartyId, o.HomeId);
+        }
+
+        // ============================================================ following without a party of one's own
+
+        /// <summary>
+        /// A notable, wanderer or lord without a party of their own can still agree to follow the player: AIInfluence
+        /// gives them a party for it (a lord a real one of their clan, the others a small temporary one).
+        /// </summary>
+        public static bool CanFollowWithoutParty(Hero h)
+        {
+            try
+            {
+                if (!S.Get.EnableMapOrders || h == null || h == Hero.MainHero || !h.IsAlive || h.IsPrisoner || h.IsChild || h.Age < 18) return false;
+                if (h.PartyBelongedTo != null || h.CurrentSettlement == null || FindAny(h) != null && !FindAny(h).Auto) return false;
+                return h.IsNotable || h.IsWanderer || h.IsLord;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>The order to follow, for someone on foot: the party is made once the player is out on the map.</summary>
+        public static bool FollowWithoutParty(Hero h)
+        {
+            if (!CanFollowWithoutParty(h)) return false;
+            var was = FindAny(h);
+            if (was != null) Release(was, h, null, sendHome: false);
+            var st = h.CurrentSettlement;
+            Orders.Add(new PartyOrder
+            {
+                HeroId = h.StringId, Type = "follow", TargetName = Hero.MainHero.Name.ToString(), NeedParty = true, HomeId = st?.StringId,
+                StayDays = OpenEnded, UntilDay = CampaignTime.Now.ToDays + OpenEnded,
+            });
+            Log.Info($"Order for {h.Name}: follow the player; their party is made once the player leaves {st?.Name}");
+            return true;
+        }
+
+        /// <summary>True for a party this system made only so that someone could follow the player.</summary>
+        public static bool IsTempParty(MobileParty p) => p != null && Orders.Any(o => o.TempPartyId == p.StringId);
+
+        /// <summary>Makes the party for someone who agreed to follow on foot. Null if it cannot be made now.</summary>
+        private static MobileParty MakeFollowParty(Hero h, PartyOrder o)
+        {
+            var st = h.CurrentSettlement ?? (o.HomeId != null ? Settlement.Find(o.HomeId) : null);
+            if (st == null) return null;
+            // a lord gets a real party of their clan, the way the game spawns one
+            if (h.IsLord && h.Clan != null && !h.Clan.IsEliminated)
+            {
+                try
+                {
+                    var real = Helpers.MobilePartyHelper.CreateNewClanMobileParty(h, h.Clan);
+                    if (real != null && real.LeaderHero == h) { Log.Info($"Orders: party made for {h.Name} of clan {h.Clan.Name} to follow the player"); return real; }
+                }
+                catch (Exception ex) { Log.Warn($"Orders: could not make a clan party for {h.Name}: {ex.Message}"); }
+            }
+            if (h.PartyBelongedTo != null) return null;
+            var name = new TaleWorlds.Localization.TextObject(L.F("AIL_e7b1d60a", $"Partida de {h.Name} (temporal)"));
+            var party = TaleWorlds.CampaignSystem.Party.PartyComponents.CustomPartyComponent.CreateCustomPartyWithTroopRoster(
+                st.GatePosition, 0.5f, st, name, Clan.PlayerClan,
+                TaleWorlds.CampaignSystem.Roster.TroopRoster.CreateDummyTroopRoster(), TaleWorlds.CampaignSystem.Roster.TroopRoster.CreateDummyTroopRoster(), h);
+            if (party == null) return null;
+            AddHeroToPartyAction.Apply(h, party, false);
+            party.PartyComponent.ChangePartyLeader(h);
+            if (party.LeaderHero != h) { Log.Warn($"Orders: {h.Name} could not lead the party made for them; it is undone"); DissolveTempParty(h, party); return null; }
+            o.TempPartyId = party.StringId;
+            Log.Info($"Orders: temporary party {party.StringId} made for {h.Name} to follow the player, from {st.Name}");
+            return party;
+        }
+
+        /// <summary>The lent party goes back to where they came from, and is broken up on arrival.</summary>
+        private static void StartHome(Hero h, string partyId, string homeId)
+        {
+            try
+            {
+                var p = PartyLedBy(h);
+                if (h == null || !h.IsAlive || p == null || p.StringId != partyId) return;
+                var home = (homeId != null ? Settlement.Find(homeId) : null) ?? h.HomeSettlement
+                           ?? Settlement.All.Where(s => s.IsTown).OrderBy(s => s.GetPosition2D.Distance(p.GetPosition2D)).FirstOrDefault();
+                if (home == null) { DissolveTempParty(h, p); return; }
+                var o = new PartyOrder { HeroId = h.StringId, Type = "home", TargetId = home.StringId, TargetName = home.Name.ToString(), TempPartyId = partyId, HomeId = home.StringId,
+                                         Auto = true, Reason = "home", StayDays = 30, UntilDay = CampaignTime.Now.ToDays + 30 };
+                Orders.Add(o);
+                if (TaleWorlds.MountAndBlade.Mission.Current == null) Apply(o, h, p);
+                Log.Info($"Orders: {h.Name} rides back to {home.Name} with the party lent to follow the player");
+            }
+            catch (Exception ex) { Log.Error("Orders: send the lent party home", ex); }
+        }
+
+        /// <summary>Breaks up a party made only to follow the player. The hero is left on foot (the caller places them).</summary>
+        public static void DissolveTempParty(Hero h, MobileParty p)
+        {
+            try
+            {
+                Orders.RemoveAll(o => o.HeroId == h?.StringId || p != null && o.TempPartyId == p.StringId);
+                if (p == null || !p.IsActive || p.IsMainParty) return;
+                if (h != null && h.PartyBelongedTo == p) p.MemberRoster.RemoveTroop(h.CharacterObject);
+                DestroyPartyAction.Apply(null, p);
+                Log.Info($"Orders: temporary party of {h?.Name} broken up");
+            }
+            catch (Exception ex) { Log.Error("Orders: break up the lent party", ex); }
+        }
+
+        /// <summary>Home again: the hero stays in their settlement and the lent party is gone.</summary>
+        private static void ArriveHome(PartyOrder o, Hero h, MobileParty p, Settlement home)
+        {
+            Orders.Remove(o);
+            try
+            {
+                if (p.MapEvent != null) { Orders.Add(o); return; }
+                home = home ?? Settlement.All.Where(s => s.IsTown).OrderBy(s => s.GetPosition2D.Distance(p.GetPosition2D)).FirstOrDefault();
+                if (home == null) { DissolveTempParty(h, p); return; }
+                TeleportHeroAction.ApplyImmediateTeleportToSettlement(h, home);
+                if (p.IsActive) DestroyPartyAction.Apply(null, p);
+                Log.Info($"Orders: {h.Name} is back in {home.Name}; the lent party is broken up");
+            }
+            catch (Exception ex) { Log.Error("Orders: arrive home", ex); }
         }
 
         private static void Say(string msg) => InformationManager.DisplayMessage(new InformationMessage(msg, Colors.Yellow));
@@ -346,6 +484,20 @@ namespace AILegacy.World
                 {
                     var h = Hero.Find(o.HeroId);
                     if (h == null || h.IsDead) { Orders.Remove(o); continue; }
+                    // On foot, waiting to set out: the party is made once the player is out on the map, not in a scene
+                    // or a settlement (AIInfluence defers it the same way)
+                    if (o.NeedParty)
+                    {
+                        if (h.IsPrisoner || h.PartyBelongedTo != null && PartyLedBy(h) == null) { Release(o, h, null); continue; }
+                        if (PartyLedBy(h) == null)
+                        {
+                            if (TaleWorlds.MountAndBlade.Mission.Current != null || MobileParty.MainParty == null || MobileParty.MainParty.CurrentSettlement != null) continue;
+                            if (Hero.MainHero.MapFaction != null && h.MapFaction != null && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction)) { Release(o, h, null); continue; }
+                            if (MakeFollowParty(h, o) == null) { Release(o, h, L.F("AIL_e7b1d60b", $"{h.Name} no ha podido salir tras de ti.")); continue; }
+                            Say(L.F("AIL_e7b1d60c", $"La partida de {h.Name} se pone en camino para seguirte."));
+                        }
+                        o.NeedParty = false;
+                    }
                     var p = PartyLedBy(h);
                     // Defeated, captured or without a party: the deal is left undone, and both sides know it
                     if (p == null || h.IsPrisoner)
@@ -366,6 +518,7 @@ namespace AILegacy.World
                     if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction != Hero.MainHero.MapFaction
                         && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction) && (o.Type == "follow" || o.Type == "meet" || o.Type == "return"))
                     { Release(o, h, L.F("AIL_35617af2", $"{h.Name} ya no acude a tu llamada: ahora sois enemigos.")); continue; }
+                    if (o.Type == "home" && now >= o.UntilDay) { if (p.MapEvent == null) ArriveHome(o, h, p, Settlement.Find(o.TargetId) ?? h.HomeSettlement ?? p.HomeSettlement); continue; }
                     if (now >= o.UntilDay) { Done(o, h, EndText(o, h)); continue; }
                     if (p.MapEvent != null) continue;                                                     // in a battle
                     Apply(o, h, p);
@@ -395,7 +548,26 @@ namespace AILegacy.World
         {
             bool back = o.Then == "follow" && o.Type != "follow" && o.Type != "return" && !o.Auto;
             var rest = o.Next != null ? new List<PartyOrder>(o.Next) : new List<PartyOrder>();
-            Release(o, h, message);
+            Release(o, h, message, sendHome: false);
+            try
+            {
+                // a lent party keeps going with the next leg; with nothing left to do, it rides home
+                if (o.TempPartyId != null)
+                {
+                    ContinueAfter(o, h, back, rest);
+                    var next = FindAny(h);
+                    if (next != null) { next.TempPartyId = o.TempPartyId; next.HomeId = o.HomeId; }
+                    else StartHome(h, o.TempPartyId, o.HomeId);
+                    return;
+                }
+                ContinueAfter(o, h, back, rest);
+            }
+            catch (Exception ex) { Log.Error("Orders: return", ex); }
+        }
+
+        /// <summary>After an order ends: the next agreed leg, or riding back to the player when that was agreed.</summary>
+        private static void ContinueAfter(PartyOrder o, Hero h, bool back, List<PartyOrder> rest)
+        {
             try
             {
                 if (h == null || h.IsPrisoner || !h.IsAlive || !CanTakeOrders(h)) return;
@@ -444,9 +616,21 @@ namespace AILegacy.World
             var nav = p.IsCurrentlyAtSea ? p.NavigationCapability : MobileParty.NavigationType.Default;
             var st = o.Type == "follow" || o.Type == "wait" || o.Type == "attack" || o.Type == "approach" || o.Type == "return" || o.Type == "escort" || string.IsNullOrEmpty(o.TargetId) ? null : Settlement.Find(o.TargetId);
             p.Ai.SetDoNotMakeNewDecisions(true);
+            // A party lent to a notable or wanderer has no soldiers: nobody goes after it while it rides with the player
+            // or back home (AIInfluence keeps such parties out of fights the same way)
+            if (o.TempPartyId != null && p.StringId == o.TempPartyId) try { p.IgnoreByOtherPartiesTill(CampaignTime.HoursFromNow(2f)); } catch { }
 
             switch (o.Type)
             {
+                case "home":
+                {
+                    var home = st ?? h.HomeSettlement;
+                    if (home == null) { DissolveTempParty(h, p); return; }
+                    if (p.CurrentSettlement == home || p.GetPosition2D.Distance(home.GatePosition.ToVec2()) <= 2f) { ArriveHome(o, h, p, home); return; }
+                    if (p.DefaultBehavior != AiBehavior.GoToSettlement || p.TargetSettlement != home) p.SetMoveGoToSettlement(home, nav, false);
+                    break;
+                }
+
                 case "follow":
                     if (p.DefaultBehavior != AiBehavior.EscortParty || p.TargetParty != MobileParty.MainParty)
                         p.SetMoveEscortParty(MobileParty.MainParty, nav, false);

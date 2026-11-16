@@ -137,7 +137,7 @@ namespace AILegacy.Dialogue
                     if (h == null || h.IsDead) { mem.Romance = 0; continue; }
                     if (h.PartyBelongedTo != null && h.PartyBelongedTo.IsMainParty) continue;   // travels with the player, doesn't cool
                     int floor = h.Spouse == P ? 40 : 0;
-                    if (mem.Romance > floor) mem.Romance--;
+                    if (mem.Romance > floor) mem.Romance = Math.Max(floor, mem.Romance - Math.Max(1, cfg.RomanceDecayAmount));
                 }
             }
             catch (Exception ex) { Log.Error("Romance: daily tick", ex); }
@@ -150,7 +150,7 @@ namespace AILegacy.Dialogue
             var h = s.Hero;
             mem.LastIntimacyDay = CampaignTime.Now.ToDays;
             Touch(mem);
-            try { ChangeRomance(s, 8); } catch { }
+            try { ChangeRomance(s, S.Get.IntimacyRomanceIncrease); } catch { }
             try
             {
                 if (h.Spouse == P && h.IsFemale != P.IsFemale)

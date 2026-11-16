@@ -34,6 +34,10 @@ namespace AILegacy.Dialogue
             public List<Agent> Helpers = new List<Agent>();      // people who step in to defend them
             /// <summary>How it ended when it wasn't simply won or lost: truce, fled, yielded, player_yielded, struck_down. Null otherwise.</summary>
             public string Ending;
+            /// <summary>A duel agreed in a talk: the 3-second "ready your weapon" warning was already given.</summary>
+            public bool Announced;
+            /// <summary>The player broke the terms of an agreed duel by calling troops: it became a battle.</summary>
+            public bool Betrayed;
             /// <summary>A fist fight inside a tavern: part of the evening, the patrons stay and watch and nobody calls the guard.</summary>
             public bool Tavern;
         }
@@ -75,7 +79,8 @@ namespace AILegacy.Dialogue
         {
             var a = TalkingAgent();
             if (a == null) return null;
-            _fight = new PendingFight { Who = s, Opponent = a, Kind = kind, Wait = 0.6f };
+            // An agreed duel starts 3 seconds after the talk closes, with AIInfluence's warning (Tick)
+            _fight = new PendingFight { Who = s, Opponent = a, Kind = kind, Wait = kind == "brawl" ? 0.6f : 3f };
             Log.Info($"Pending fight with {s.Name}: {kind}");
             switch (kind)
             {
@@ -140,6 +145,7 @@ namespace AILegacy.Dialogue
                 Unleash();
                 if (f.Tavern) CalmPatrons(f);
                 Say(f.Unprovoked ? L.F("AIL_1ee35da7", $"¡Atacas a {f.Who.Name}!") : f.Kind == "brawl" ? L.F("AIL_96bdc93c", $"¡Pelea a puñetazos con {f.Who.Name}!") : f.Kind == "death" ? L.F("AIL_70eda317", $"¡Duelo a muerte con {f.Who.Name}!") : L.F("AIL_e97439d8", $"¡Duelo con {f.Who.Name}!"), Colors.Red);
+                if (f.Announced) Banner(L.T("AIL_e7b1d82f", "¡Empieza el duelo!"));
                 Log.Info($"Fight started with {f.Who.Name}: {f.Kind}");
                 FightBanter.Begin(f.Who, f.Opponent, f.Kind, IsFriendly(f) ? null : foes.Where(x => x != f.Opponent).ToList());
                 Say(Hotkeys.Fix(L.T("AIL_e7b1c508", "(Alt+Y: rendirte · Alt+P: pedir tregua)")), Colors.Gray);
@@ -150,7 +156,7 @@ namespace AILegacy.Dialogue
         // ============================================================ friendly fights: no deaths
 
         // Fist fights (always) and duels that aren't to the death or an armed assault: nobody dies. In a friendly duel
-        // whoever drops to half their starting health yields and the fight ends, and blows deal half damage. In a fist
+        // whoever drops to 20 health yields and the fight ends (AIInfluence). In a fist
         // fight only the player yields at half: the people they fight with go down for real, knocked out cold on the
         // floor by the engine (DecideState makes sure it is never a death). Afterwards those still standing get back
         // the health they had before. Only a duel to the death (or an assault with steel) can kill.
@@ -166,8 +172,8 @@ namespace AILegacy.Dialogue
         private static PendingFight _friendly;
         private static int _yield;              // 0 = nobody yielded, 1 = opponent yields (you win), 2 = you yield
         private static bool _inHealthFix;
-        private const float FriendlyDuelDamage = 0.5f;
         private const float YieldAt = 0.5f;
+        private const float DuelYieldHealth = 20f;
 
         private static bool IsFriendly(PendingFight f) => f != null && (f.Kind == "brawl" || (f.Kind == "duel" && !f.Unprovoked));
 
@@ -199,8 +205,9 @@ namespace AILegacy.Dialogue
                 // Someone the game keeps alive on purpose (not mortal) still yields the old way, or they would never fall
                 if (_friendly.Kind == "brawl" && a != Agent.Main && g.Prev == Agent.MortalityState.Mortal) return;
                 float h = newHealth;
-                if (_friendly.Kind == "duel") h = oldHealth - (oldHealth - newHealth) * FriendlyDuelDamage;
-                float floor = Math.Max(1f, (float)Math.Ceiling(g.Start * YieldAt));
+                // A friendly duel ends when a duelist drops to 20 health (AIInfluence), with blows at full strength;
+                // in a fist fight the player yields at half
+                float floor = _friendly.Kind == "duel" ? Math.Max(1f, Math.Min(DuelYieldHealth, g.Start - 1f)) : Math.Max(1f, (float)Math.Ceiling(g.Start * YieldAt));
                 bool yields = h <= floor;
                 if (yields) h = Math.Max(floor, 1f);
                 if (Math.Abs(h - newHealth) > 0.01f)
@@ -1022,11 +1029,17 @@ namespace AILegacy.Dialogue
             var cfg = S.Get;
 
             // Ctrl+X calls your troops ten at a time, Ctrl+Alt+X calls as many as fit (keys set in MCM)
-            // No troops in a friendly fight
-            if (cfg.StreetSummonTroops && !IsFriendly(f))
+            // No troops in a fist fight. In a duel agreed in a talk, calling them breaks its terms: it becomes a battle
+            // (nobody is spared any more) and the betrayal is remembered, as in AIInfluence
+            if (cfg.StreetSummonTroops && f.Kind != "brawl")
             {
                 bool all = Hotkeys.Pressed(Hotkeys.Id.SummonAll);
-                if (all || Hotkeys.Pressed(Hotkeys.Id.SummonTen)) SummonTroops(fh, all ? cfg.StreetMaxOwnTroops : 10);
+                if (all || Hotkeys.Pressed(Hotkeys.Id.SummonTen))
+                {
+                    int before = Summoned.Count;
+                    SummonTroops(fh, all ? cfg.StreetMaxOwnTroops : 10);
+                    if (Summoned.Count > before && !f.Unprovoked && !f.Betrayed) BetrayDuel(f);
+                }
             }
 
             if (!f.Unprovoked || f.Kind == "brawl" || !cfg.StreetGuardWaves) return;
@@ -1043,6 +1056,7 @@ namespace AILegacy.Dialogue
             {
                 _alarm = true;
                 RingAlarm(L.F("AIL_2f7a736d", $"¡Suena la campana de alarma en {Settlement.CurrentSettlement?.Name}: acude toda la guardia!"));
+                VisitNews.AlarmRung();
             }
             // No guard left in the street: the alarm brings men from the real garrison and from the lords inside the walls
             if (come.Count == 0) { if (_alarm && cfg.StreetGarrisonReinforcements) SpawnDefenders(fh, f, Math.Min(cfg.StreetGuardWaveSize * 2, cfg.StreetMaxGuards - f.Helpers.Count)); return; }
@@ -1056,6 +1070,7 @@ namespace AILegacy.Dialogue
             if (joined > 0)
             {
                 _waves++;
+                VisitNews.GuardsCame(joined);
                 Say(_waves == 1 ? L.T("AIL_9f068a43", "La guardia ha oído la pelea y viene a por ti.") : L.F("AIL_5336141e", $"Llegan {joined} guardias más."), Colors.Red);
                 Unleash();
             }
@@ -1118,6 +1133,7 @@ namespace AILegacy.Dialogue
                 if (done > 0)
                 {
                     _waves++;
+                    VisitNews.GuardsCame(done);
                     Say(L.F("AIL_e7b1c86d", $"Llegan {done} soldados de la guarnición y de los señores que hay en {st.Name}."), Colors.Red);
                     Log.Info($"[fight] {done} defenders from the garrison and the lords of {st.Name}");
                     Unleash();
@@ -1381,65 +1397,78 @@ namespace AILegacy.Dialogue
                 else if (playerWon && knockedOut) Say(L.F("AIL_e7b1c9a3", $"{s.Name} cae redondo y se queda en el suelo, sin sentido. Has ganado la pelea."), Colors.Yellow);
                 else Say(playerWon ? L.F("AIL_d0109f54", $"Has vencido a {s.Name}.") : L.F("AIL_805db527", $"{s.Name} te ha vencido."), Colors.Yellow);
 
-                // The news depends on who saw it
-                if (f.Unprovoked && seen != null && (f.Kind != "brawl" || s.IsHero))
+                // The news waits for the end of the visit: everything the player does here is told once, together,
+                // when they leave (the fight against the guard to avoid arrest is told as part of the guard's story)
+                if (!Justice.Resisting)
                 {
-                    bool victimDead = !(f.Opponent != null && (f.Opponent.IsActive() || f.Opponent.State == AgentState.Unconscious));
-                    string victimEn = s.IsHero ? $"{s.Name}{(s.Hero.IsLord ? $", a noble of clan {s.Hero.Clan?.Name}" : "")}" : (s.IsFemale ? "a local woman" : "a local man") + $" ({s.Character?.Name})";
-                    string doer = seen.Level == 2 ? $"{P.Name} of clan {Clan.PlayerClan?.Name}"
-                                : seen.Level == 1 ? (f.Kind == "brawl" ? "a brawling stranger whom witnesses saw but nobody could name" : "an armed stranger whom witnesses saw but nobody could name")
-                                : "someone nobody saw";
-                    int downed = f.Helpers.Count(h => h != null && !h.IsActive());
-                    WorldSim.OnIncident($"{doer} attacked {victimEn} {(f.Kind == "brawl" ? "with bare fists" : "with drawn steel")}, without provocation. " +
-                                        (victimDead ? "The victim was left dead. " : playerWon ? "The victim was left on the ground, alive. " : "The attacker got the worst of it. ") +
-                                        (downed > 0 ? $"{downed} who came to the victim's defence (guards or kin) were also cut down. " : "") +
-                                        (seen.Level == 0 ? "There were no living witnesses: the body was simply found." : $"{seen.Count} witness(es) saw it."),
-                                        Settlement.CurrentSettlement, f.Kind != "brawl");
+                    var op = f.Opponent;
+                    bool broken = f.Ending == "truce" || f.Ending == "fled" || f.Ending == "player_yielded";
+                    string fate = op == null ? "killed" : op.State == AgentState.Unconscious ? "senseless"
+                                : op.IsActive() ? (playerWon && !broken ? "down" : "standing") : "killed";
+                    VisitNews.AddFight(new VisitNews.Fight
+                    {
+                        VictimName = s.Name ?? "", HeroId = s.IsHero ? s.Hero?.StringId : null, FactionId = s.Faction?.StringId,
+                        IsHero = s.IsHero, IsLord = s.IsHero && s.Hero != null && s.Hero.IsLord, Female = s.IsFemale,
+                        Kind = f.Kind, Unprovoked = f.Unprovoked, Tavern = f.Tavern, PlayerWon = playerWon, Ending = f.Ending, Fate = fate,
+                        SeenLevel = seen?.Level ?? -1, Witnesses = seen?.Count ?? 0, ByWhom = seen?.ByWhom ?? "",
+                        Defenders = f.Helpers.Count(h => h != null),
+                        DefendersDown = f.Helpers.Count(h => h != null && !h.IsActive()),
+                        DefendersKilled = f.Helpers.Count(h => h != null && h.State == AgentState.Killed),
+                    });
                 }
 
                 // A nearby guard comes to ask questions (nobody comes if nobody saw it, nor over a tavern brawl)
                 if (!barBrawl && (seen == null || seen.Level > 0)) Justice.OnFightEnded(s, f.Opponent, f.Kind, playerWon, f.Unprovoked);
-
-                if (seen != null && seen.Level < 2)
-                {
-                    // Without your name: the story spreads, not who did it
-                    if (s.IsHero || f.Kind != "brawl")
-                    {
-                        string victimName = s.IsHero ? s.Name : (s.IsFemale ? "a local woman" : "a local man"), victimEs = s.IsHero ? s.Name : (s.IsFemale ? L.T("AIL_53ab6227", "una vecina") : L.T("AIL_1c6f47d4", "un vecino"));
-                        bool anyone = seen.Level == 1;
-                        NewsStore.Add(new NewsItem
-                        {
-                            Type = "rumor", Importance = s.IsHero ? 2 : 1,
-                            Text = anyone ? (f.Kind == "brawl" ? $"A stranger set about {victimName} with bare fists{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Witnesses saw the attacker but nobody knows who it was."
-                                                               : $"An armed stranger attacked {victimName}{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Witnesses saw the attacker but nobody knows who it was.")
-                                          : $"{victimName} was found {(f.Kind == "brawl" ? "beaten" : "cut down")}{(s.Settlement != null ? " at " + s.Settlement.Name : "")}. Nobody saw who did it.",
-                            TitleEs = anyone ? L.T("AIL_f7d8e495", "Agresión de un forastero") : L.T("AIL_0aaea1bc", "Agresión sin testigos"),
-                            TextEs = anyone ? (f.Kind == "brawl" ? L.F("AIL_e7b1c9a4", $"Un forastero la emprendió a puñetazos con {victimEs}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Hay quien lo vio, pero nadie sabe quién era.")
-                                                                 : L.F("AIL_122eb7e1", $"Un forastero armado atacó a {victimEs}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Hay quien vio al agresor, pero nadie sabe quién era."))
-                                            : L.F("AIL_ce1a0814", $"Han encontrado a {victimEs} {(f.Kind == "brawl" ? L.T("AIL_717f4a1a", "apaleado") : L.T("AIL_07cfa3c4", "acuchillado"))}{(s.Settlement != null ? L.T("AIL_4b08b3e0", " en ") + s.Settlement.Name : "")}. Nadie vio quién lo hizo."),
-                            SettlementId = s.Settlement?.StringId,
-                            Kingdoms = s.Faction != null ? new List<string> { s.Faction.StringId } : new List<string>(),
-                            Heroes = s.IsHero ? new List<string> { s.Hero.StringId } : new List<string>(),
-                        });
-                    }
-                }
-                else if (s.IsHero || f.Kind != "brawl")
-                {
-                    string winner = playerWon ? P.Name.ToString() : s.Name, loser = playerWon ? s.Name : P.Name.ToString();
-                    string whatEs = f.Kind == "brawl" ? L.T("AIL_03bb5d20", "una pelea a puñetazos") : f.Kind == "death" ? L.T("AIL_58f9d028", "un duelo a muerte") : L.T("AIL_a65a644d", "un duelo");
-                    NewsStore.Add(new NewsItem
-                    {
-                        Type = "rumor", Importance = f.Kind == "death" && s.IsHero ? 3 : 2,
-                        Text = $"{winner} defeated {loser} in {what}" + (s.Settlement != null ? $" at {s.Settlement.Name}." : "."),
-                        TitleEs = f.Kind == "brawl" ? L.T("AIL_a0bdbcf2", "Pelea a puñetazos") : L.T("AIL_0db9b33c", "Duelo"),
-                        TextEs = L.F("AIL_c140427d", $"{winner} venció a {loser} en {whatEs}") + (s.Settlement != null ? L.F("AIL_d63eaabc", $" en {s.Settlement.Name}.") : "."),
-                        SettlementId = s.Settlement?.StringId,
-                        Kingdoms = s.Faction != null ? new List<string> { s.Faction.StringId } : new List<string>(),
-                        Heroes = s.IsHero ? new List<string> { s.Hero.StringId, P.StringId } : new List<string> { P.StringId },
-                    });
-                }
+                else BackToTalk(f, playerWon);
             }
             catch (Exception ex) { Log.Error("End of the fight", ex); }
+        }
+
+        /// <summary>A banner at the top of the screen (the duel's warnings, as AIInfluence shows them).</summary>
+        private static void Banner(string text)
+        {
+            try { MBInformationManager.AddQuickInformation(new TaleWorlds.Localization.TextObject("{=!}" + text.Replace("{", "(").Replace("}", ")")), 0, null, null, ""); }
+            catch { Say(text, Colors.Yellow); }
+        }
+
+        /// <summary>
+        /// After a duel agreed in a talk, the opponent (still standing) comes back to the conversation, knowing how it
+        /// ended. Not after a betrayal, a flight or a fist fight.
+        /// </summary>
+        private static void BackToTalk(PendingFight f, bool playerWon)
+        {
+            try
+            {
+                if (f == null || f.Unprovoked || f.Betrayed || f.Kind == "brawl" || f.Ending == "fled") return;
+                var a = f.Opponent;
+                if (a == null || !a.IsActive() || Mission.Current == null || Agent.Main == null || !Agent.Main.IsActive()) return;
+                var s = f.Who;
+                s.SituationKind = "initiative";
+                s.Situation = playerWon ? "The duel is over: the player has won and you have lost." : "The duel is over: you have won and the player has lost.";
+                if (Initiative.Start(a, s, s.Situation + " Speak first.")) Log.Info($"Returned to conversation after duel: {s.Name}");
+            }
+            catch (Exception ex) { Log.Error("Back to the talk after a duel", ex); }
+        }
+
+        /// <summary>The player called troops into a duel agreed in a talk: it is a battle now, and the betrayal is remembered.</summary>
+        private static void BetrayDuel(PendingFight f)
+        {
+            try
+            {
+                f.Betrayed = true;
+                // nobody is spared any more: what was a friendly duel is fought to the end
+                if (IsFriendly(f)) { Unguard(); f.Kind = "death"; }
+                var s = f.Who;
+                string you = Prompt.ContextBuilder.PlayerNameFor(s) ?? "the stranger";
+                string place = Settlement.CurrentSettlement?.Name?.ToString();
+                s.Memory.Turns.Add(new ChatTurn { Role = "player", Day = CampaignTime.Now.ToDays,
+                    Text = $"[What happened: {you} broke the terms of the duel you had agreed and called troops into the fight. The duel turned into a battle.]" });
+                ChatSession.AddNote(s.Memory, $"{you} broke the terms of our duel{(place != null ? " at " + place : "")} and set their troops on me.", S.Get.MaxNotesPerHero, s.Name);
+                if (s.IsHero && s.Hero != null) TaleWorlds.CampaignSystem.Actions.ChangeRelationAction.ApplyPlayerRelation(s.Hero, -10, affectRelatives: true, showQuickNotification: true);
+                Say(L.F("AIL_e7b1d830", $"Rompes las condiciones del duelo con {s.Name}: el duelo se convierte en una batalla."), Colors.Red);
+                Log.Info($"[fight] the player broke the agreed duel with {s.Name} and called troops: it is a battle now");
+            }
+            catch (Exception ex) { Log.Error("Duel betrayal", ex); }
         }
 
         // ============================================================ map: attack and surrender
@@ -1602,6 +1631,7 @@ namespace AILegacy.Dialogue
                 if (Campaign.Current == null) { _fight = null; _surrender = null; _surrenderParty = null; ToKill.Clear(); KeepEncounter = false; _autoAttack = 0f; return; }
                 bool talking = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
                 FightBanter.Tick(dt);
+                VisitNews.Tick();
                 if (_yield != 0) EndFriendlyOnYield();
                 if (GuardedAgents.Count > 0 && Mission.Current == null) Unguard();
                 if (Defenders.Count > 0 && Mission.Current == null) DismissDefenders();      // the scene closed without the fight's own end: settle the count anyway
@@ -1625,7 +1655,16 @@ namespace AILegacy.Dialogue
                 if (_fight != null && !talking)
                 {
                     if (Mission.Current == null) { _fight = null; }
-                    else if ((_fight.Wait -= dt) <= 0f) StartFight();
+                    else
+                    {
+                        // an agreed duel: 3 seconds to ready your weapon
+                        if (!_fight.Announced && _fight.Kind != "brawl" && !_fight.Unprovoked && _fight.Wait > 1f)
+                        {
+                            _fight.Announced = true;
+                            Banner(L.T("AIL_e7b1d82e", "El duelo empieza en 3 segundos. Prepara tu arma."));
+                        }
+                        if ((_fight.Wait -= dt) <= 0f) StartFight();
+                    }
                 }
 
                 if (_surrender != null && !talking && Mission.Current == null) DoSurrender();
@@ -1638,10 +1677,13 @@ namespace AILegacy.Dialogue
                     ToFade.Clear();
                 }
                 if (_bandJoin != null && Mission.Current == null && !talking && !ChatSession.IsBusy) TickBandJoin();
-                if (RoleDeaths.Count > 0 && Mission.Current == null && !talking && !ChatSession.IsBusy)
+                // A death in a conversation goes through as soon as the talk is closed: in the scene too, once the
+                // visible blow has dropped the body (SceneActions.DeathBlow), as AIInfluence does
+                if (RoleDeaths.Count > 0 && !talking && !ChatSession.IsBusy)
                 {
                     foreach (var d in RoleDeaths.ToList())
                     {
+                        if (Mission.Current != null && StillStanding(d.who)) continue;
                         RoleDeaths.Remove(d);
                         try
                         {
@@ -1649,27 +1691,32 @@ namespace AILegacy.Dialogue
                             string victim = d.who.Name.ToString(), clanId = d.who.MapFaction?.StringId, heroId = d.who.StringId;
                             var where = d.who.CurrentSettlement ?? Settlement.CurrentSettlement;
                             bool byPlayer = d.kind == "executed" || d.kind == "killed";
-                            // The game only knows a few ways to die: execution, a killing with a culprit, or one without
-                            if (d.kind == "executed") KillCharacterAction.ApplyByExecution(d.who, P, true, true);
-                            else KillCharacterAction.ApplyByMurder(d.who, d.kind == "killed" ? P : null, true);
+                            // read before the death hands the crown or the clan to someone else
+                            int imp = d.who.IsKingdomLeader ? 4 : d.who.IsLord ? 3 : 2;
+                            // One death, one news item: this record (how it went, what was found) replaces the game's own
+                            NewsTracker.ToldElsewhere = heroId;
+                            // Always the game's murder (with the player as culprit when it was his doing), never its
+                            // execution: AIInfluence avoids the execution's own honour and relation penalties
+                            var home = d.who.CurrentSettlement;
+                            KillCharacterAction.ApplyByMurder(d.who, byPlayer ? P : null, true);
+                            NewsTracker.ToldElsewhere = null;
+                            DropNotable(home, d.who);
                             Log.Info($"Role-play death carried out: {victim} ({d.kind})");
                             // How it happened, who did it and what was found go to the news, where characters learn of it
                             string text = DeathInEnglish(d.kind, victim, P.Name.ToString()) + (d.how.Length > 2 ? $" ({d.how})" : "") + "."
                                           + (d.found.Length > 2 ? $" Found afterwards: {d.found}" : "");
                             var item = new NewsItem
                             {
-                                Type = "death", Importance = d.who.IsLord ? 3 : 2, Text = text, SettlementId = where?.StringId,
+                                Type = "death", Importance = imp, Text = text, SettlementId = where?.StringId,
                                 Kingdoms = clanId != null ? new List<string> { clanId } : new List<string>(),
                                 Heroes = byPlayer ? new List<string> { heroId, P.StringId } : new List<string> { heroId },
                             };
                             // What the player reads: how they died as a sentence, then how it went and what was on them
                             // when the character said so. Nothing found is ever added to the inventory, and it says so.
-                            if (d.how.Length > 2 || d.found.Length > 2)
-                            {
-                                item.TitleEs = L.F("AIL_e7b1c4e0", $"Muerte de {victim}");
-                                item.TextEs = DeathForPlayer(d.kind, victim, d.how, d.found);
-                                InformationManager.ShowInquiry(new InquiryData(item.TitleEs, item.TextEs, true, false, L.T("AIL_f6d0c4b4", "Enterado"), "", null, null), true);
-                            }
+                            // No window: the news item (and, for someone of note, the event the chronicler writes
+                            // from it) is the one place it is told.
+                            item.TitleEs = L.F("AIL_e7b1c4e0", $"Muerte de {victim}");
+                            item.TextEs = DeathForPlayer(d.kind, victim, d.how, d.found);
                             NewsStore.Add(item);
                         }
                         catch (Exception ex) { Log.Error("Role-play death", ex); }
@@ -1685,6 +1732,31 @@ namespace AILegacy.Dialogue
                 }
             }
             catch (Exception ex) { Log.Error("Combat: tick", ex); _fight = null; _surrender = null; }
+        }
+
+        /// <summary>The hero still has a living agent in the scene (the blow has not dropped them yet).</summary>
+        private static bool StillStanding(Hero h)
+        {
+            try
+            {
+                var m = Mission.Current;
+                if (m == null || h == null) return false;
+                return m.Agents.Any(a => a != null && a.IsActive() && a.IsHuman && (a.Character as CharacterObject)?.HeroObject == h);
+            }
+            catch { return false; }
+        }
+
+        private static readonly System.Reflection.FieldInfo FNotables = HarmonyLib.AccessTools.Field(typeof(Settlement), "_notablesCache");
+
+        /// <summary>A notable killed in a talk is taken off the place's list of notables right away (AIInfluence does it to avoid a crash).</summary>
+        private static void DropNotable(Settlement st, Hero h)
+        {
+            try
+            {
+                if (st == null || h == null || FNotables == null) return;
+                if (FNotables.GetValue(st) is System.Collections.IList list && list.Contains(h)) list.Remove(h);
+            }
+            catch (Exception ex) { Log.Warn("Removing a dead notable from the list: " + ex.Message); }
         }
 
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));

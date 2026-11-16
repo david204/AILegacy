@@ -7,7 +7,10 @@ using HarmonyLib;
 using Helpers;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.CampaignBehaviors;
+using TaleWorlds.CampaignSystem.ComponentInterfaces;
 using TaleWorlds.CampaignSystem.GameComponents;
+using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.LogEntries;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.SceneInformationPopupTypes;
@@ -214,6 +217,114 @@ namespace AILegacy.Patches
                 __result = text;
             }
             catch (Exception ex) { DiseaseEffects.Report("enciclopedia", ex); }
+        }
+    }
+
+    // ============================================================ quarantine
+
+    /// <summary>Inside a quarantined town or castle the closed options are greyed out, and an infected player's ways out too.</summary>
+    [HarmonyPatch(typeof(GameMenuOption), nameof(GameMenuOption.GetConditionsHold))]
+    internal static class QuarantineMenuOptionPatch
+    {
+        private static readonly MethodInfo SetTooltip = AccessTools.PropertySetter(typeof(GameMenuOption), nameof(GameMenuOption.Tooltip));
+
+        private static void Postfix(GameMenuOption __instance, ref bool __result)
+        {
+            try
+            {
+                if (!__result || __instance == null || !Diseases.AnyQuarantine) return;
+                string why = QuarantineRules.GreyOut(__instance.IdString, __instance.IsLeave);
+                if (why == null) return;
+                __instance.SetEnable(false);
+                SetTooltip?.Invoke(__instance, new object[] { new TextObject("{=!}" + why) });
+            }
+            catch (Exception ex) { DiseaseEffects.Report("opción de menú en cuarentena", ex); }
+        }
+    }
+
+    /// <summary>A quarantined town or castle no longer lets the player straight in: they have to ask at the gate (and are turned back).</summary>
+    [HarmonyPatch(typeof(DefaultSettlementAccessModel), nameof(DefaultSettlementAccessModel.CanMainHeroEnterSettlement))]
+    internal static class QuarantineAccessPatch
+    {
+        private static void Postfix(Settlement settlement, ref SettlementAccessModel.AccessDetails accessDetails)
+        {
+            try
+            {
+                if (settlement == null || !(settlement.IsTown || settlement.IsCastle) || !Diseases.AnyQuarantine || !QuarantineRules.StopsPlayer(settlement)) return;
+                if (accessDetails.AccessLevel == SettlementAccessModel.AccessLevel.FullAccess && accessDetails.AccessMethod == SettlementAccessModel.AccessMethod.Direct)
+                    accessDetails.AccessMethod = SettlementAccessModel.AccessMethod.ByRequest;
+            }
+            catch (Exception ex) { DiseaseEffects.Report("acceso en cuarentena", ex); }
+        }
+    }
+
+    /// <summary>"Request entry to the castle": the guard sergeant of a quarantined castle turns the player back.</summary>
+    [HarmonyPatch]
+    internal static class QuarantineCastleRequestPatch
+    {
+        private static MethodBase TargetMethod() => AccessTools.Method(typeof(EncounterGameMenuBehavior), "game_menu_request_entry_to_castle_on_consequence");
+
+        private static bool Prepare() => TargetMethod() != null;
+
+        private static bool Prefix()
+        {
+            try { return !(Diseases.AnyQuarantine && QuarantineRules.DenyCastleEntry()); }
+            catch (Exception ex) { DiseaseEffects.Report("petición de entrada en cuarentena", ex); return true; }
+        }
+    }
+
+    /// <summary>What a quarantine costs a town or castle each day, as a line of the game's own breakdown (twice as much with no disease inside).</summary>
+    internal static class QuarantineStats
+    {
+        public static void Add(Town town, int stat, ref ExplainedNumber result)
+        {
+            try
+            {
+                if (town?.Settlement == null || !Diseases.AnyQuarantine) return;
+                float v = Diseases.QuarantineStat(town.Settlement, stat);
+                if (Math.Abs(v) >= 0.005f) result.Add(v, new TextObject("{=!}" + Diseases.QuarantineLabel));
+            }
+            catch (Exception ex) { DiseaseEffects.Report("cuarentena en la ciudad", ex); }
+        }
+    }
+
+    [HarmonyPatch(typeof(DefaultSettlementProsperityModel), nameof(DefaultSettlementProsperityModel.CalculateProsperityChange))]
+    internal static class QuarantineProsperityPatch
+    {
+        private static void Postfix(Town fortification, ref ExplainedNumber __result) => QuarantineStats.Add(fortification, WorldSim.StatProsperity, ref __result);
+    }
+
+    [HarmonyPatch(typeof(DefaultSettlementFoodModel), nameof(DefaultSettlementFoodModel.CalculateTownFoodStocksChange))]
+    internal static class QuarantineFoodPatch
+    {
+        private static void Postfix(Town town, ref ExplainedNumber __result) => QuarantineStats.Add(town, WorldSim.StatFood, ref __result);
+    }
+
+    [HarmonyPatch(typeof(DefaultSettlementSecurityModel), nameof(DefaultSettlementSecurityModel.CalculateSecurityChange))]
+    internal static class QuarantineSecurityPatch
+    {
+        private static void Postfix(Town town, ref ExplainedNumber __result) => QuarantineStats.Add(town, WorldSim.StatSecurity, ref __result);
+    }
+
+    [HarmonyPatch(typeof(DefaultSettlementLoyaltyModel), nameof(DefaultSettlementLoyaltyModel.CalculateLoyaltyChange))]
+    internal static class QuarantineLoyaltyPatch
+    {
+        private static void Postfix(Town town, ref ExplainedNumber __result) => QuarantineStats.Add(town, WorldSim.StatLoyalty, ref __result);
+    }
+
+    /// <summary>A quarantined town brings in less tax: three quarters with a disease inside, half with none.</summary>
+    [HarmonyPatch(typeof(DefaultSettlementTaxModel), nameof(DefaultSettlementTaxModel.CalculateTownTax))]
+    internal static class QuarantineTaxPatch
+    {
+        private static void Postfix(Town town, ref ExplainedNumber __result)
+        {
+            try
+            {
+                if (town?.Settlement == null || !Diseases.AnyQuarantine) return;
+                float m = Diseases.QuarantineTax(town.Settlement);
+                if (m < 0.999f) __result.AddFactor(m - 1f, new TextObject("{=!}" + Diseases.QuarantineLabel));
+            }
+            catch (Exception ex) { DiseaseEffects.Report("impuestos en cuarentena", ex); }
         }
     }
 

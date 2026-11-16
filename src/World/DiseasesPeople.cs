@@ -52,13 +52,16 @@ namespace AILegacy.World
         [JsonProperty("quality")] public float Quality = 1f;
         [JsonProperty("after_rate")] public float AfterRate;   // what a finished treatment keeps doing for a few days
         [JsonProperty("after_days")] public int AfterDays;
-        [JsonProperty("warned")] public int Warned;            // last threshold the player was told about
+        [JsonProperty("warned")] public int Warned;            // no longer used: kept so older saves load the same
+        /// <summary>The Cheat Death perk already pulled this hero back once from this illness.</summary>
+        [JsonProperty("cheated", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool CheatedDeath;
     }
 
     /// <summary>
     /// The people side of the disease system: heroes and parties catch what goes around (the season, a stricken place,
     /// their own men, prisoners, an army, a battle), it worsens or heals day by day, treatment and a good surgeon help,
-    /// and it weighs on combat, march speed and morale (see Patches\DiseasePatch.cs).
+    /// and it weighs on combat, march speed and morale (see Patches\DiseasePatch.cs). The sick carry it to new places
+    /// and make epidemics break out (PlaceRound). The player is only told vaguely that someone feels unwell.
     /// </summary>
     internal static partial class Diseases
     {
@@ -347,17 +350,19 @@ namespace AILegacy.World
                 };
                 Sick.Add(s); Touch();
                 Log.Info($"[disease] {h.Name} falls ill with {nameEn} (severity {sev})");
-                if (h == Hero.MainHero) WorldSim.Say(L.F("AIL_e7b1c5ee", $"Has caído enfermo: {s.Name}."), Colors.Red);
-                else if (Close(h)) WorldSim.Say(L.F("AIL_e7b1c5ef", $"{h.Name} ha caído enfermo: {s.Name}."), Colors.Red);
+                // the player only feels it coming on: the name of the illness is for the hospital and the tooltips
+                if (h == Hero.MainHero) WorldSim.Say(L.T("AIL_e7b1d700", "No te encuentras bien..."), Colors.Gray);
+                else if (h.PartyBelongedTo == MobileParty.MainParty) WorldSim.Say(L.T("AIL_e7b1d701", "Alguien de tu partida no se encuentra bien..."), Colors.Gray);
                 return s;
             }
             catch (Exception ex) { Log.Error("[disease] character infection", ex); return null; }
         }
 
-        private static bool Close(Hero h) => h != null && (h.PartyBelongedTo == MobileParty.MainParty || (h.Clan != null && h.Clan == Clan.PlayerClan));
-
-        /// <summary>Soldiers (or prisoners) of a party fall sick. Returns how many new ones.</summary>
-        public static int InfectBand(MobileParty p, int kind, string name, string nameEn, int severity, bool seasonal, DiseaseFx fx, double untilDay, int count, bool wound = true, bool quiet = false)
+        /// <summary>
+        /// Soldiers (or prisoners) of a party fall sick. Returns how many new ones. Nobody is laid low as wounded: the sick
+        /// stay in the ranks and weigh on the march, morale and fighting, and the worst cases die slowly (TickBand).
+        /// </summary>
+        public static int InfectBand(MobileParty p, int kind, string name, string nameEn, int severity, bool seasonal, DiseaseFx fx, double untilDay, int count, bool quiet = false)
         {
             try
             {
@@ -391,33 +396,16 @@ namespace AILegacy.World
                     };
                     Sick.Add(s); Touch();
                 }
-                // a chill creeping through the ranks is told once, not man by man
-                if (p.IsMainParty && !quiet && (fresh || !seasonal))
+                if (p.IsMainParty)
                 {
-                    // a real outbreak lays the player's men low like before; a seasonal chill only weakens them
-                    if (wound && !seasonal && kind == Sickness.Troops) WoundRegulars(roster, added);
-                    WorldSim.Say(kind == Sickness.Troops ? L.F("AIL_e7b1c5f0", $"{added} de tus soldados enferman de {s.Name}.") : L.F("AIL_e7b1c5f1", $"{added} de tus prisioneros enferman de {s.Name}."), Colors.Red);
+                    Log.Info($"[disease] {added} {(kind == Sickness.Troops ? "soldier(s)" : "prisoner(s)")} of the player's party fall ill with {nameEn}{(fresh ? "" : $" (now {s.Count})")}");
+                    // the men only look unwell; prisoners brought in sick are told by name, as they come from the battle
+                    if (kind == Sickness.Troops) WorldSim.Say(L.T("AIL_e7b1d702", "Parece que las tropas de tu partida han enfermado."), Colors.Gray);
+                    else if (!quiet) WorldSim.Say(L.F("AIL_e7b1d705", $"Los prisioneros capturados están infectados: {s.Name} ({added})"), Colors.Gray);
                 }
                 return added;
             }
             catch (Exception ex) { Log.Error("[disease] troop infection", ex); return 0; }
-        }
-
-        /// <summary>Soldiers of the player just laid low by an outbreak (already wounded and announced by the caller).</summary>
-        private static void RegisterSickTroops(Outbreak o, int count) =>
-            InfectBand(MobileParty.MainParty, Sickness.Troops, o.Name, o.NameEn, o.Severity, false, o.Fx, o.UntilDay + 3, count, false, true);
-
-        private static int WoundRegulars(TroopRoster roster, int toll)
-        {
-            int done = 0;
-            foreach (var e in roster.GetTroopRoster().Where(x => x.Character != null && !x.Character.IsHero && x.Number - x.WoundedNumber > 0).OrderBy(_ => Rng.Next()).ToList())
-            {
-                if (done >= toll) break;
-                int n = Math.Min(e.Number - e.WoundedNumber, toll - done);
-                roster.WoundTroop(e.Character, n);
-                done += n;
-            }
-            return done;
         }
 
         private static int KillRegulars(TroopRoster roster, int toll)
@@ -427,7 +415,8 @@ namespace AILegacy.World
             {
                 if (done >= toll) break;
                 int n = Math.Min(e.Number, toll - done);
-                roster.AddToCounts(e.Character, -n, false, -Math.Min(n, e.WoundedNumber));      // the sick ones are among the wounded
+                // the sick stand in the ranks, not among the wounded: those only go when nobody else of that troop is left
+                roster.AddToCounts(e.Character, -n, false, -Math.Max(0, e.WoundedNumber - (e.Number - n)));
                 done += n;
             }
             return done;
@@ -579,48 +568,161 @@ namespace AILegacy.World
 
         // ---- a stricken place
 
-        private static float PlaceFactor(Outbreak o, Settlement st)
+        // Base chances, every six hours, of catching it in a stricken place (the player's own is SettlementInfectionBaseChance in MCM)
+        private const float LordCatch = 0.075f, NotableCatch = 0.09f, CaravanCatch = 0.1f;
+        // Share of that chance each soldier of a party staying there runs
+        private const float TroopExposure = 0.25f;
+        // Base chance that a sick carrier starts the disease in a place where there was none
+        private const float CarrierSpread = 0.05f;
+        // Heroes down with the same disease in one town or castle that make an epidemic break out there
+        private const int EpidemicHeroes = 4;
+
+        /// <summary>Richer places keep cleaner streets and wells: 1 for the poorest, down to 0.5. Villages count as poor.</summary>
+        private static float Crowding(Settlement st)
         {
             float prosperity = st.Town != null ? st.Town.Prosperity : 1000f;
-            float crowding = 1f - Math.Min(0.5f, prosperity / 10000f);      // richer places keep cleaner streets and wells
-            return crowding * FxOf(o.Severity, false, o.Fx).Spread * (o.Quarantined ? S.Get.QuarantineInfectionReduction : 1f);
+            return 1f - Math.Min(0.5f, prosperity / 10000f);
         }
+
+        private static float PlaceFactor(Outbreak o, Settlement st) =>
+            Crowding(st) * FxOf(o.Severity, o.Seasonal, o.Fx).Spread * (o.Quarantined ? S.Get.QuarantineInfectionReduction : 1f);
 
         private static float HeroResist(Hero h) => 1f - Math.Min(0.5f, Medicine(h) / 600f);
 
         private static void CatchAt(Hero h, Outbreak o, Settlement st, float baseChance, float perSeverity)
         {
-            if (h == null || !h.IsAlive) return;
+            if (h == null || !h.IsAlive || h.IsChild) return;
             float guard = h == Hero.MainHero || h.PartyBelongedTo == MobileParty.MainParty ? PlayerGuard : 1f;
             if (Roll(baseChance * (1f + o.Severity * perSeverity) * PlaceFactor(o, st) * HeroResist(h) * guard))
-                InfectHero(h, o.Name, o.NameEn, o.Severity, false, o.Fx, o.UntilDay + 3);
+                InfectHero(h, o.Name, o.NameEn, o.Severity, o.Seasonal, o.Fx, o.UntilDay + 3);
         }
 
-        /// <summary>Every six hours, whoever is inside a place with an outbreak may catch it: residents, visiting lords and their men, and the player's company.</summary>
+        /// <summary>The soldiers of a party staying in a stricken place: each healthy one runs a small chance.</summary>
+        private static void CatchTroopsAt(MobileParty p, Outbreak o, Settlement st)
+        {
+            int regulars = p.MemberRoster.TotalRegulars;
+            if (regulars <= 0) return;
+            int healthy = regulars - (OfTroops(p)?.FirstOrDefault(x => x.NameEn == o.NameEn)?.Count ?? 0);
+            float each = S.Get.SettlementInfectionBaseChance * TroopExposure * (1f + o.Severity * 0.1f) * PlaceFactor(o, st)
+                         * (1f - MedEff(TroopMedicine(p, false), o.Severity)) * (p.IsMainParty ? PlayerGuard : 1f);
+            int n = Whole(Math.Max(0, healthy) * each);
+            if (n > 0) InfectBand(p, Sickness.Troops, o.Name, o.NameEn, o.Severity, o.Seasonal, o.Fx, o.UntilDay + 3, n);
+        }
+
+        private static bool CaravanMaster(Hero h) => h?.PartyBelongedTo != null && h.PartyBelongedTo.IsCaravan && h.PartyBelongedTo.LeaderHero == h;
+
+        /// <summary>
+        /// Every six hours. Whoever is inside a place with an outbreak may catch it: you, the lords, notables, wanderers
+        /// and caravan masters there, and the men of every party staying in it. Then the sick carry it on: a lord or a
+        /// caravan master who is ill brings it to the place where they stop, and villagers with sick men to their village.
+        /// Last, four heroes down with the same disease in one town or castle make an epidemic break out there.
+        /// </summary>
         private static void PlaceRound()
         {
             var cfg = S.Get;
+            var here = new Dictionary<Settlement, List<Hero>>();
+            foreach (var h in Hero.AllAliveHeroes)
+            {
+                var at = h?.CurrentSettlement;
+                if (at == null || h.IsChild) continue;
+                if (!here.TryGetValue(at, out var l)) here[at] = l = new List<Hero>();
+                l.Add(h);
+            }
+
             foreach (var o in All.ToList())
             {
                 var st = Settlement.Find(o.SettlementId);
                 if (st == null) continue;
-                foreach (var h in st.HeroesWithoutParty.Concat(st.Notables).Distinct().ToList())
-                    CatchAt(h, o, st, cfg.SettlementInfectionBaseChance, 0.1f);
+                if (here.TryGetValue(st, out var people))
+                    foreach (var h in people)
+                    {
+                        if (h == Hero.MainHero) { CatchAt(h, o, st, cfg.SettlementInfectionBaseChance, 0.1f); continue; }
+                        if (CaravanMaster(h)) { CatchAt(h, o, st, CaravanCatch, 0.1f); continue; }
+                        if (OfHero(h) != null) continue;      // already ill with something
+                        if (h.IsLord) CatchAt(h, o, st, LordCatch, 0.1f);
+                        else if (h.IsNotable || h.IsWanderer) CatchAt(h, o, st, NotableCatch, 0.1f);
+                    }
                 foreach (var p in st.Parties.ToList())
                 {
-                    if (p == null || !p.IsActive) continue;
-                    if (p.IsMainParty)
-                    {
-                        foreach (var e in p.MemberRoster.GetTroopRoster().Where(x => x.Character.IsHero).ToList())
-                            CatchAt(e.Character.HeroObject, o, st, cfg.SettlementInfectionBaseChance, 0.1f);
-                        continue;      // the player's soldiers have their own daily roll (OnDailyTick)
-                    }
-                    if (!p.IsLordParty && !p.IsCaravan) continue;
-                    CatchAt(p.LeaderHero, o, st, cfg.SettlementInfectionBaseChance, 0.1f);
-                    int regulars = p.MemberRoster.TotalRegulars;
-                    if (regulars > 0 && Roll(0.075f * (1f + o.Severity * 0.1f) * PlaceFactor(o, st)))
-                        InfectBand(p, Sickness.Troops, o.Name, o.NameEn, o.Severity, false, o.Fx, o.UntilDay + 3, Math.Max(1, (int)(regulars * 0.03f)));
+                    if (p == null || !p.IsActive || p.IsGarrison || p.IsMilitia) continue;      // garrison and militia: ForceRound
+                    CatchTroopsAt(p, o, st);
                 }
+            }
+
+            if (!AnySick) return;
+            try { CarryRound(here); } catch (Exception ex) { Log.Error("[disease] carriers", ex); }
+            try { EpidemicRound(here); } catch (Exception ex) { Log.Error("[disease] epidemics", ex); }
+        }
+
+        /// <summary>Days an outbreak carried somewhere else lasts: part of how long the carrier's own illness runs.</summary>
+        private static int CarriedDays(Sickness s) => (int)Math.Max(7, Math.Max(1.0, s.UntilDay - s.StartDay) * S.Get.DiseaseSpreadInheritFactor);
+
+        private static bool CarryInto(Settlement st, Sickness s, float share, string who)
+        {
+            if (At(st) != null) return false;
+            var f = FxOf(s);
+            if (!Roll(CarrierSpread * share * f.Spread * (1f + s.Severity * 0.1f) * Crowding(st))) return false;
+            var n = Start(st, s.Name, s.NameEn, s.Severity, CarriedDays(s), true, s.Fx, seasonal: s.Seasonal);
+            if (n != null) Log.Info($"[disease] {who} carries {s.NameEn} to {st.Name}");
+            return n != null;
+        }
+
+        private static void CarryRound(Dictionary<Settlement, List<Hero>> here)
+        {
+            // sick lords and caravan masters, wherever they stop that is free of disease and not shut
+            foreach (var kv in here)
+            {
+                var st = kv.Key;
+                if (!(st.IsTown || st.IsCastle || st.IsVillage) || At(st) != null || IsQuarantined(st)) continue;
+                foreach (var h in kv.Value)
+                {
+                    if (h == Hero.MainHero || !(h.IsLord || CaravanMaster(h))) continue;
+                    var mine = OfHero(h);
+                    if (mine == null) continue;
+                    foreach (var s in mine.ToList())
+                        if (CarryInto(st, s, 1f, h.Name.ToString())) break;
+                    if (At(st) != null) break;
+                }
+            }
+            // villagers home with sick men: it may take hold in the village, and its notables may catch it
+            foreach (var s in Sick.Where(x => x != null && x.Kind == Sickness.Troops).ToList())
+            {
+                var p = FindParty(s.TargetId);
+                var village = p?.CurrentSettlement;
+                if (p == null || !p.IsVillager || village == null || !village.IsVillage || At(village) != null) continue;
+                int regulars = p.MemberRoster.TotalRegulars;
+                if (regulars <= 0 || !CarryInto(village, s, Math.Min(1f, s.Count / (float)regulars), p.Name.ToString())) continue;
+                var o = At(village);
+                foreach (var h in village.Notables.ToList())
+                    if (h != null && h.IsAlive && !h.IsLord && OfHero(h) == null) CatchAt(h, o, village, NotableCatch, 0.1f);
+            }
+        }
+
+        private static void EpidemicRound(Dictionary<Settlement, List<Hero>> here)
+        {
+            foreach (var kv in here)
+            {
+                var st = kv.Key;
+                if (!(st.IsTown || st.IsCastle) || kv.Value.Count < EpidemicHeroes || At(st) != null || IsQuarantined(st)) continue;
+                // each hero counts once per disease, whatever else they have
+                var count = new Dictionary<string, int>();
+                var sample = new Dictionary<string, Sickness>();
+                foreach (var h in kv.Value)
+                {
+                    var mine = OfHero(h);
+                    if (mine == null) continue;
+                    foreach (var s in mine.Where(x => x?.NameEn != null).GroupBy(x => x.NameEn).Select(g => g.First()))
+                    {
+                        count.TryGetValue(s.NameEn, out int c);
+                        count[s.NameEn] = c + 1;
+                        if (!sample.ContainsKey(s.NameEn)) sample[s.NameEn] = s;
+                    }
+                }
+                var ripe = count.Where(x => x.Value >= EpidemicHeroes).Select(x => sample[x.Key]).ToList();
+                if (ripe.Count == 0) continue;
+                var pick = ripe[Rng.Next(ripe.Count)];
+                var n = Start(st, pick.Name, pick.NameEn, pick.Severity, CarriedDays(pick), true, pick.Fx, seasonal: pick.Seasonal);
+                if (n != null) Log.Info($"[disease] epidemic of {pick.NameEn} in {st.Name}: {count[pick.NameEn]} sick heroes there");
             }
         }
 
@@ -680,26 +782,15 @@ namespace AILegacy.World
 
         // ---- a sick party arrives somewhere
 
+        /// <summary>A sick lord or caravan master riding into a friendly place sees its physicians. Carrying the disease in is PlaceRound's.</summary>
         private static void OnAnyPartyEntered(MobileParty party, Settlement st)
         {
-            if (party == null || st == null || !AnySick) return;
+            if (party == null || st == null || !AnySick || party.IsMainParty) return;
             var lead = OfHero(party.LeaderHero);
             var troops = OfTroops(party);
             if (lead == null && troops == null) return;
             bool hostile = party.MapFaction != null && st.MapFaction != null && party.MapFaction.IsAtWarWith(st.MapFaction);
-            if (!party.IsMainParty && !hostile && (st.IsTown || st.IsCastle || st.IsVillage)) SeekCare(party, st, lead, troops);
-
-            // carried in: a party with a real disease may start it where there was none
-            if (st.IsHideout || !(st.IsTown || st.IsCastle || st.IsVillage) || At(st) != null) return;
-            int regulars = Math.Max(1, party.MemberRoster.TotalRegulars);
-            var carried = Worst((troops ?? new List<Sickness>()).Concat(lead ?? new List<Sickness>()).Where(x => !x.Seasonal && x.Severity >= 2).ToList());
-            if (carried == null) return;
-            float share = carried.Kind == Sickness.Hero ? 0.5f : Math.Max(0.2f, Math.Min(1f, carried.Count / (float)regulars));
-            if (!Roll(0.05f * FxOf(carried).Spread * share)) return;
-            double now = CampaignTime.Now.ToDays;
-            int days = (int)Math.Max(10, (carried.UntilDay - now) * S.Get.DiseaseSpreadInheritFactor);
-            var n = Start(st, carried.Name, carried.NameEn, Math.Max(1, carried.Severity - (Rng.Next(2) == 0 ? 1 : 0)), days, true, carried.Fx);
-            if (n != null) Log.Info($"[disease] {party.Name} carries {carried.NameEn} to {st.Name}");
+            if (!hostile && (st.IsTown || st.IsCastle || st.IsVillage)) SeekCare(party, st, lead, troops);
         }
 
         /// <summary>Strength of a course of treatment from the physicians of a place: by its medical level, lowest with a village healer.</summary>
@@ -800,22 +891,28 @@ namespace AILegacy.World
                 StartTreatment(s, CareQuality(h.CurrentSettlement));
             Advance(s, Medicine(h), now, h.CurrentSettlement != null && QuarantineRules.Closed(h.CurrentSettlement));
             if (s.Progress <= 0f) { Recover(s, h, now); return; }
-            float death = FxOf(s).Death;
-            if (s.Severity > 2 && death > 0f)
-            {
-                // at the very end it kills; from the halfway point there is a growing daily risk
-                float t = s.Progress / 100f;
-                if (s.Progress >= 100f || (s.Progress >= 50f && Roll(death * t * t))) { Kill(h, s); return; }
-            }
-            if (h == Hero.MainHero || Close(h))
-            {
-                int step = s.Progress >= 80f ? 80 : s.Progress >= 50f ? 50 : 0;
-                if (step > s.Warned && h == Hero.MainHero)
-                    WorldSim.Say(L.F("AIL_e7b1c5f5", $"Tu {s.Name} empeora ({(int)s.Progress}%). Necesitas un médico."), Colors.Red);
-                s.Warned = step;
-            }
+            // Only serious diseases kill: from 80% a daily risk, the disease's death chance; at 100% it always does
+            if (s.Severity > 2 && s.Progress >= 80f && (s.Progress >= 100f || Roll(FxOf(s).Death)) && !CheatDeath(h, s)) Kill(h, s);
         }
 
+        /// <summary>A hero with the Cheat Death perk pulls through once: the illness falls back to half its course.</summary>
+        private static bool CheatDeath(Hero h, Sickness s)
+        {
+            try
+            {
+                if (s.CheatedDeath || !h.GetPerkValue(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultPerks.Medicine.CheatDeath)) return false;
+                s.CheatedDeath = true;
+                s.Progress = 50f;
+                Log.Info($"[disease] {h.Name} cheats death from {s.NameEn} (back to 50%)");
+                return true;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// The disease kills the hero through the game's own death of old age, the player included: with an heir the game
+        /// passes the clan on, without one the campaign ends, as with any other death of the player.
+        /// </summary>
         private static void Kill(Hero h, Sickness s)
         {
             // never in the middle of a battle or siege, never someone a running quest hangs on
@@ -828,33 +925,20 @@ namespace AILegacy.World
                 { s.Progress = Math.Min(s.Progress, 95f); return; }
             }
             catch { }
-            // An illness never ends the campaign: the player only dies of it when someone is left to carry on
-            if (h == Hero.MainHero)
-            {
-                bool heir = false;
-                try { heir = Clan.PlayerClan != null && Clan.PlayerClan.Heroes.Any(x => x != null && x != h && x.IsAlive && !x.IsChild && !x.IsPrisoner); } catch { }
-                if (!heir) { s.Progress = Math.Min(s.Progress, 95f); return; }
-            }
             string who = h.Name.ToString();
-            bool close = Close(h), isPlayer = h == Hero.MainHero;
-            Settlement where = h.CurrentSettlement ?? h.HomeSettlement;
-            var realm = h.MapFaction;
-            bool known = h.IsLord;
-            bool ownTexts = NoteDeath(h, s);
-            KillCharacterAction.ApplyByOldAge(h, true);
+            bool isPlayer = h == Hero.MainHero;
+            // a notice at the top for a lord or someone the player has met, if they are of the player's clan or known to them
+            bool notice = !isPlayer && (h.IsLord || h.HasMet) && (h.Clan == Clan.PlayerClan || h.HasMet);
+            NoteDeath(h, s);
+            Log.Info($"[disease] {who} dies of {s.NameEn}");
+            KillCharacterAction.ApplyByOldAge(h, false);
             if (isPlayer) { Remove(s); return; }      // the game takes over from here (heir, or the end)
-            if (h.IsAlive) { ForgetDeath(h); s.Progress = 95f; return; }
+            if (h.IsAlive) { ForgetDeath(h); s.Progress = 95f; Log.Info($"[disease] {who} did not die after all"); return; }
             ConfirmDeath(h);
             Remove(s);
-            Log.Info($"[disease] {who} dies of {s.NameEn}");
-            if (close && !ownTexts) WorldSim.Say(L.F("AIL_e7b1c5f8", $"{who} ha muerto de {s.Name}."), Colors.Red);
-            if (known)
-                NewsStore.Add(new NewsItem
-                {
-                    Type = "event_disease", Importance = 2, Text = $"{who} has died of {s.NameEn}.",
-                    TitleEs = L.F("AIL_e7b1c606", $"Muere {who}"), TextEs = L.F("AIL_e7b1c5f8", $"{who} ha muerto de {s.Name}."),
-                    SettlementId = where?.StringId, Kingdoms = realm != null ? new List<string> { realm.StringId } : new List<string>(),
-                });
+            if (notice)
+                try { MBInformationManager.AddQuickInformation(new TextObject("{=!}" + L.F("AIL_e7b1c5f8", $"{who} ha muerto de {s.Name}.")), 0, h.CharacterObject, null, ""); }
+                catch (Exception ex) { Log.Error("[disease] death notice", ex); }
         }
 
         private static void Recover(Sickness s, Hero h, double now)
@@ -862,8 +946,7 @@ namespace AILegacy.World
             Remove(s);
             int days = s.Seasonal ? S.Get.SeasonalPostRecoveryImmunityDays : OutbreakImmunityDays;
             if (days > 0) Immune[ImmuneKey(h, s.Seasonal, s.NameEn)] = now + days;
-            if (h == Hero.MainHero) WorldSim.Say(L.F("AIL_e7b1c5f2", $"Te has recuperado de {s.Name}."), Colors.Green);
-            else if (Close(h)) WorldSim.Say(L.F("AIL_e7b1c5f3", $"{h.Name} se ha recuperado de {s.Name}."), Colors.Green);
+            if (h == Hero.MainHero && OfHero(h) == null) WorldSim.Say(L.T("AIL_e7b1d703", "Te has recuperado del todo."), Colors.Green);
         }
 
         private static void TickBand(Sickness s, double now)
@@ -878,17 +961,32 @@ namespace AILegacy.World
             if (now >= s.UntilDay || s.Progress <= 0f)
             {
                 Remove(s);
-                if (p.IsMainParty && !prisoners) WorldSim.Say(L.F("AIL_e7b1c5f4", $"Tus soldados ya están libres de {s.Name}."), Colors.Green);
+                if (p.IsMainParty)
+                {
+                    if (prisoners) WorldSim.Say(L.F("AIL_e7b1d706", $"Los prisioneros se han recuperado de {s.Name}"), Colors.Green);
+                    else if (OfTroops(p) == null) WorldSim.Say(L.T("AIL_e7b1d704", "Tus tropas se han recuperado del todo."), Colors.Green);
+                }
                 return;
             }
-            if (S.Get.DiseaseMaxDeathChance <= 0f || p.MapEvent != null) return;
-            float rate = s.Progress >= 100f ? 0.05f + s.Severity * 0.01f : s.Progress >= 80f ? (s.Progress - 80f) / 400f : 0f;
-            if (rate <= 0f) return;
-            int dead = KillRegulars(roster, Math.Max(1, (int)(s.Count * rate)));
+            if (p.MapEvent != null) return;
+            int dead = KillRegulars(roster, Whole(s.Count * DailyDeathRate(s.Progress, s.Severity, FxOf(s).Death)));
+            if (dead <= 0) return;
             s.Count -= dead;
-            if (dead > 0 && p.IsMainParty)
-                WorldSim.Say(prisoners ? L.F("AIL_e7b1c5f7", $"{dead} de tus prisioneros mueren de {s.Name}.") : L.F("AIL_e7b1c5f6", $"{dead} de tus soldados mueren de {s.Name}."), Colors.Red);
+            Log.Info($"[disease] {dead} {(prisoners ? "prisoner(s)" : "soldier(s)")} of {p.Name} die of {s.NameEn}");
+            // the player hears of dead prisoners; the soldiers who die of it go quietly, the party screen shows them gone
+            if (prisoners && p.IsMainParty) WorldSim.Say(L.F("AIL_e7b1c5f7", $"{dead} de tus prisioneros mueren de {s.Name}."), Colors.Gray);
             if (s.Count <= 0) Remove(s);
+        }
+
+        /// <summary>
+        /// Share of the sick men a serious disease (severity 3 or more) kills each day: none before 80%, then a slowly
+        /// growing share, 5% and more at 100%; never less than the disease's own death chance once past 80%.
+        /// </summary>
+        internal static float DailyDeathRate(float progress, int severity, float deathChance)
+        {
+            if (severity <= 2 || progress < 80f) return 0f;
+            float rate = progress >= 100f ? 0.05f + severity * 0.01f : (progress - 80f) / 400f;
+            return Math.Max(rate, deathChance);
         }
 
         /// <summary>Inside a party it passes between the leader, the companions, the rank and file and the prisoners; in an army, between parties.</summary>
@@ -944,7 +1042,7 @@ namespace AILegacy.World
                     if (captives > 0 && cfg.PrisonerSpreadModifier > 0f)
                     {
                         int c = Whole(captives * 0.025f * share * f.Spread * sevMult * cfg.PrisonerSpreadModifier);
-                        if (c > 0) InfectBand(p, Sickness.Prisoners, s.Name, s.NameEn, s.Severity, s.Seasonal, s.Fx, s.UntilDay, c);
+                        if (c > 0) InfectBand(p, Sickness.Prisoners, s.Name, s.NameEn, s.Severity, s.Seasonal, s.Fx, s.UntilDay, c, quiet: true);
                     }
                     // to the parties marching in the same army
                     if (p.Army != null)

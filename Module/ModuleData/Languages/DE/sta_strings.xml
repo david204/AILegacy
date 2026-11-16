@@ -446,7 +446,7 @@
     <string id="AIL_5a9ce79b" text="Frist abgelaufen" />
     <string id="AIL_5abeb44e" text="Clanrebellionen" />
     <string id="AIL_5affe75c" text="Hier drinnen dürfen deine Männer nicht hinein: nur auf der Straße." />
-    <string id="AIL_5b102155" text="Wenn die Wache dich außerhalb deines Lehens und deines Reichs einsperrt, fällt der Herr des Ortes das Urteil (Freilassung, Strafe oder Tage im Verlies), ändert deinen Ruf dort und was er von dir hält, und sein Urteil wird als Nachricht ausgerufen. Voraussetzung ist, dass man dort weiß, wer du bist." />
+    <string id="AIL_5b102155" text="Sperrt dich die Wache außerhalb deines Lehens und deines Reiches ein, spricht der Herr des Ortes das Urteil (Freilassung, Tage im Kerker oder, wenn erlaubt, den Tod), ändert deinen Ruf dort und was er von dir hält, und sein Urteil wird als Nachricht verkündet. Man muss dort wissen, wer du bist." />
     <string id="AIL_5b4803a4" text="Der Clan {0} schließt sich {1} an" />
     <string id="AIL_5b79eb8c" text="Maximale Länge eines Ereignisses (Zeichen)" />
     <string id="AIL_5b7a333a" text=" (früher gehörte es {0})." />
@@ -1006,7 +1006,7 @@
     <string id="AIL_cb8abbac" text="Ziel: mit {0} sprechen und zurückkehren." />
     <string id="AIL_cbd20bc6" text="Ein Ereignis kann einen Vasallenclan gegen seine Krone aufbringen (nie deinen und nie den herrschenden Clan), wenn er sich wirklich schlecht mit seinem König versteht." />
     <string id="AIL_cbe9f6a8" text="&#10;&#10;Zuletzt:&#10;" />
-    <string id="AIL_cc079ac8" text="Ein Adliger, der dich schon kennt und in der Nähe vorbeikommt, kann zu dir reiten, um zu sprechen, wenn er einen Grund hat: einen offenen Auftrag, etwas, das er über dich gehört hat, Zuneigung oder Groll. Er fragt dich, ob du ihn empfängst." />
+    <string id="AIL_cc079ac8" text="Ein Herr in Sicht, ob bekannt oder nicht, kann zu dir reiten, um zu reden: eine offene Aufgabe, etwas, das er über dich gehört hat, Zuneigung, Groll oder nur, um zu sehen, wer du bist. Während er sich nähert, fragt er, ob du ihn empfängst." />
     <string id="AIL_cc456770" text="Versiegelter Brief von Lucon" />
     <string id="AIL_cc47eaca" text="{0} wird dir mit der eigenen Gruppe folgen." />
     <string id="AIL_ccda8e3e" text="Interner Fehler beim Aufbau des Kontexts: " />
@@ -1041,7 +1041,7 @@
     <string id="AIL_d36c447b" text="OK" />
     <string id="AIL_d37eb730" text="Maximaler Effekt: Wohlstand pro Tag" />
     <string id="AIL_d4237d66" text="AI Legacy" />
-    <string id="AIL_d43bd671" text="Er kommt nicht wie ein Uhrwerk: Die tatsächliche Frist schwankt zwischen 60 % und 140 % dieses Werts." />
+    <string id="AIL_d43bd671" text="Ein Schub kommt genau alle so viele Tage. Jeder Schub ist von einer einzigen Art, gezogen aus der Ereignismischung unten; er ist militärisch, wenn ein Krieg beide Seiten über 75 % erschöpft hat. Ein gescheiterter Schub wird am nächsten Tag erneut versucht." />
     <string id="AIL_d49df131" text="Wenn ein Charakter stirbt, mit dem du mehrmals gesprochen hast, schreibt die KI seine Chronik (wer er war, was zwischen euch war, wie er endete). Sie erscheint auf dem Bildschirm und bleibt in den Nachrichten. Eine Anfrage pro Chronik." />
     <string id="AIL_d4db6271" text="Bei geladenem Spielstand: Holt aus AIInfluence Gedächtnis, Persönlichkeit, Erinnerungen und Anweisungen der NPCs DIESER Kampagne. Überschreibt niemanden, der in AI Legacy bereits ein Gedächtnis hat." />
     <string id="AIL_d53be13f" text="Mindestbedeutung, um eine Reaktion auszulösen" />
@@ -1477,7 +1477,7 @@
     <string id="AIL_b7d2f026" text="Landlose Clans, die du kennst, am Leben lassen" />
     <string id="AIL_b7d2f027" text="Das Spiel löst einen Clan ohne Königreich und ohne Land nach einiger Zeit auf und tötet seine Mitglieder. Ist dies aktiv, verschont es verbannte Clans und Clans mit Leuten, mit denen du gesprochen hast." />
     <string id="AIL_c3e1a901" text="Könige, die sich pro Tag äußern dürfen" />
-    <string id="AIL_c3e1a902" text="Wenn etwas Großes geschieht, können sich mehrere Könige dazu äußern. Sie sprechen nacheinander, und jeder weiß, was die anderen gesagt haben. Jede Erklärung ist eine KI-Anfrage." />
+    <string id="AIL_c3e1a902" text="Mit 1 (wie in AIInfluence) höchstens eine Erklärung alle 25 bis 36 Spielstunden in der ganzen Welt; mit mehr wird der Tag unter so vielen aufgeteilt. Sie sprechen nacheinander und jeder weiß, was die anderen gesagt haben. Antworten auf einen offenen Vorschlag (Frieden, Bündnis, Handel, Lösegeld oder Austausch annehmen oder ablehnen) warten nie auf diese Grenze. Jede Erklärung ist eine KI-Anfrage." />
     <string id="AIL_c3e1a903" text="Spielstunden zwischen der Erklärung eines Königs und der nächsten" />
     <string id="AIL_c3e1a904" text="Gruppe: Benannte Charaktere können alle Aktionen nutzen" />
     <string id="AIL_c3e1a905" text="In einem Gruppengespräch können Fürsten und andere benannte Charaktere dasselbe tun wie allein mit dir: Gold geben, Treue schwören, sich dir anschließen, dich herausfordern. Aus: nur Szenenaktionen, wie bisher. Die Gruppenanfrage wird dadurch länger." />
@@ -2140,20 +2140,20 @@
     <string id="AIL_e7b1c820" text="{0} gemeinsame(s) Kind(er) außerhalb der Ehe" />
     <string id="AIL_e7b1c821" text="uneheliche Tochter" />
     <string id="AIL_e7b1c822" text="unehelicher Sohn" />
-    <string id="AIL_e7b1c823" text="{=!}Ich erkenne dich als mein Kind an, ehelich vor allen." />
+    <string id="AIL_e7b1c823" text="{=!}Ich erkenne dich als mein Kind an. Von heute an gehörst du wirklich zu unserer Familie." />
     <string id="AIL_e7b1c824" text="{=!}*sieht dich lange an* Mein ganzes Leben habe ich darauf gewartet, das zu hören." />
     <string id="AIL_e7b1c825" text="Kinder außerhalb der Ehe" />
-    <string id="AIL_e7b1c826" text="Intimität zwischen zwei Menschen, die nicht miteinander verheiratet sind, kann ein Kind hinterlassen. Das Spiel führt die Schwangerschaft mit dem wahren Vater. Bei der Geburt: Bist du ein Elternteil, entscheidest du, ob das Kind in deinem Haus aufwächst; eine verheiratete Mutter kann es als Kind ihres Mannes ausgeben (ein Geheimnis, das nur die beiden Eltern kennen); sonst trägt es einen Bastardnamen nach der Kultur der Mutter, und ihr Mann und ihr Hausoberhaupt nehmen es übel. Das Kind wird ehelich, wenn die Eltern heiraten, wenn es heiratet oder ein Haus anführt, oder wenn du es anerkennst." />
+    <string id="AIL_e7b1c826" text="Intimität zwischen zwei Menschen, die nicht miteinander verheiratet sind, kann ein Kind hinterlassen. Das Spiel führt die Schwangerschaft mit dem wahren Vater. Bei der Geburt wirst du, wenn du ein Elternteil bist, gefragt, ob du das Kind als dein eigenes in deinem Clan aufziehst; wenn nicht, bleibt es im Clan des anderen Elternteils. Eine verheiratete Mutter kann es als Kind ihres Mannes ausgeben; sonst trägt das Kind einen Bastardnamen nach der Kultur der Mutter, und wenn sie weiß, wer der Vater ist, nennt ihn ein Gerücht. Ein Vater, den die Mutter nie kannte, wird nie genannt oder beschuldigt. Du kannst ein Kind von dir anerkennen, sobald es volljährig ist, indem du mit ihm sprichst: Es kommt ehelich in deinen Clan. Das Kind wird auch ehelich, wenn die Eltern heiraten oder wenn es selbst heiratet oder ein Haus anführt." />
     <string id="AIL_e7b1c827" text="Außerhalb der Ehe: Chance auf ein Kind mit einer Liebschaft (%)" />
     <string id="AIL_e7b1c828" text="Jedes Mal, wenn du mit jemandem intim bist, mit dem du nicht verheiratet bist. Der Tag ihres Zyklus vervielfacht sie, wie unter Ehepartnern. Empfohlen: 10 bis 25." />
     <string id="AIL_e7b1c829" text="Außerhalb der Ehe: Affären zwischen anderen Figuren (% im Jahr)" />
     <string id="AIL_e7b1c82a" text="Chance im Jahr, dass eine Adlige von einem Mann eines anderen Hauses empfängt, mit dem sie Zeit verbringt (gleiche Stadt, Armee oder Gruppe), für eine gewöhnliche unverheiratete Frau unter 30. Unehrlichkeit, unglückliche Ehen und Zuneigung erhöhen sie bis aufs Dreifache; eine verheiratete ehrenhafte Person geht nie fremd. 0 = aus. Empfohlen: 0 bis 3." />
     <string id="AIL_e7b1c82b" text="Außerhalb der Ehe: deinen Clan schützen" />
     <string id="AIL_e7b1c82c" text="An: Frauen deines Clans empfangen nie durch eine Affäre der KI." />
-    <string id="AIL_e7b1c82d" text="Außerhalb der Ehe: Chance, dass eine verheiratete Mutter es geheim hält (%)" />
+    <string id="AIL_e7b1c82d" text="Außerehelich: Chance, dass eine verheiratete Mutter es geheim hält (%)" />
     <string id="AIL_e7b1c82e" text="Wenn das Kind bei einer verheirateten Mutter bleibt: die Chance, dass es als Kind ihres Mannes gilt. Empfohlen: 50 bis 80." />
     <string id="AIL_e7b1c82f" text="Außerhalb der Ehe: Folgen" />
-    <string id="AIL_e7b1c830" text="Wird das Geheimnis nicht gewahrt, verliert der Schuldige (der Vater, oder du, wenn du das Kind nicht aufziehen wolltest) Beziehung zum Ehepartner und Hausoberhaupt dessen, der es aufzieht." />
+    <string id="AIL_e7b1c830" text="Bleibt es nicht geheim, verliert der Schuldige (der Vater, oder du, wenn du das Kind nicht aufziehen wolltest) Beziehung zum Ehepartner und Hausoberhaupt dessen, der es aufzieht. Nicht, wenn die Mutter nicht weiß, wer der Vater ist." />
     <string id="AIL_e7b1c831" text="Außerhalb der Ehe: verlorene Beziehung zum Ehepartner" />
     <string id="AIL_e7b1c832" text="Außerhalb der Ehe: verlorene Beziehung zum Hausoberhaupt" />
     <string id="AIL_e7b1c833" text="Außerhalb der Ehe: Heirat macht ehelich" />
@@ -2469,5 +2469,175 @@
     <string id="AIL_e7b1d10b" text="ja" />
     <string id="AIL_e7b1d10c" text="nein" />
     <string id="AIL_e7b1d300" text="{0} wird in den Kampf hineingezogen." />
+    <string id="AIL_e7b1d500" text="Ich will unseren Sohn {0} als meinen anerkennen, ehelich und meinem Haus zugehörig." />
+    <string id="AIL_e7b1d501" text="Ich will unsere Tochter {0} als meine anerkennen, ehelich und meinem Haus zugehörig." />
+    <string id="AIL_e7b1d502" text="*hält deinem Blick einen langen Moment stand* So sei es. Soll die ganze Welt wissen, wessen Kind {0} ist." />
+    <string id="AIL_e7b1d503" text="Gerede über ein uneheliches Kind von {0}" />
+    <string id="AIL_e7b1d504" text="Es heißt, {0} habe {1} außerhalb der Ehe zur Welt gebracht, und der Vater sei {2}." />
+    <string id="AIL_e7b1d505" text="{0} hat {1} außerhalb der Ehe zur Welt gebracht. Niemand weiß, wer der Vater ist." />
+    <string id="AIL_e7b1d506" text="{0} hat {1} außerhalb der Ehe zur Welt gebracht und nicht gesagt, wer der Vater ist." />
+    <string id="AIL_e7b1d507" text="Man munkelt, {0}, das Kind, das {1} geboren hat, sei nicht von ihrem Mann, und niemand weiß, von wem." />
+    <string id="AIL_e7b1d508" text="Der Vater von {0} ist {1}, auch wenn {2} es niemandem gesagt hat." />
+    <string id="AIL_e7b1d509" text="{0} erkennt {1} an" />
+    <string id="AIL_e7b1d50a" text="{0} hat {1}, außerhalb der Ehe geboren, öffentlich als eigenes Kind anerkannt." />
+    <string id="AIL_e7b1d50b" text="{0} hat {1} zur Welt gebracht, dein Kind. Es wächst im Haus der Mutter auf; willst du es anerkennen, sprich mit ihr." />
+    <string id="AIL_e7b1d50c" text="{0} hat {1} zur Welt gebracht, dein Kind, auch wenn sie nicht weiß, wer der Vater ist. Es wächst in ihrem Haus auf." />
+    <string id="AIL_e7b1d50d" text="{0} hat {1} zur Welt gebracht, dein Kind, und gibt es als Kind von {2} aus." />
+    <string id="AIL_e7b1d50e" text="{0} ist nun dein eheliches Kind und tritt deinem Clan bei." />
+    <string id="AIL_e7b1d400" text="den Straßen" />
+    <string id="AIL_e7b1d401" text="ein bewaffneter Fremder" />
+    <string id="AIL_e7b1d402" text="ein Fremder" />
+    <string id="AIL_e7b1d403" text="jemand, den niemand gesehen hat," />
+    <string id="AIL_e7b1d404" text="{0} hat in {2} jemanden angegriffen: {1}." />
+    <string id="AIL_e7b1d405" text="{0} hat in {2} {1} Menschen angegriffen." />
+    <string id="AIL_e7b1d406" text="Darunter {0}." />
+    <string id="AIL_e7b1d407" text="Es begann mit Fäusten und endete mit blankem Stahl." />
+    <string id="AIL_e7b1d408" text="Es geschah mit blankem Stahl." />
+    <string id="AIL_e7b1d409" text="Es geschah mit bloßen Fäusten, ohne Waffen." />
+    <string id="AIL_e7b1d40a" text="Niemand ging zu Boden: Der Angreifer zog den Kürzeren." />
+    <string id="AIL_e7b1d40b" text="Tote: {0}." />
+    <string id="AIL_e7b1d40c" text="Verwundete: {0}." />
+    <string id="AIL_e7b1d40d" text="Bewusstlos geschlagen: {0}." />
+    <string id="AIL_e7b1d40e" text="{0} Menschen, Wachen und Verwandte, kamen den Opfern zu Hilfe." />
+    <string id="AIL_e7b1d40f" text="Davon gingen {0} zu Boden." />
+    <string id="AIL_e7b1d410" text="Die Alarmglocke läutete, und die ganze Wache eilte herbei." />
+    <string id="AIL_e7b1d411" text="Die Wache hörte den Kampf und kam herbei." />
+    <string id="AIL_e7b1d412" text="{0} hat den Angreifer erkannt: Man weiß, dass es {1} war." />
+    <string id="AIL_e7b1d413" text="Es gab Zeugen ({0}), aber niemand weiß, wer es war." />
+    <string id="AIL_e7b1d414" text="Niemand hat gesehen, wer es war: Man fand nur die Opfer." />
+    <string id="AIL_e7b1d415" text="der Angreifer" />
+    <string id="AIL_e7b1d416" text="Gemetzel in {0}" />
+    <string id="AIL_e7b1d417" text="Blut in {0}" />
+    <string id="AIL_e7b1d418" text="Überfälle in {0}" />
+    <string id="AIL_e7b1d419" text="Überfall durch {0}" />
+    <string id="AIL_e7b1d41a" text="Kämpfe in {0}" />
+    <string id="AIL_e7b1d41b" text="Flucht vor der Wache" />
+    <string id="AIL_e7b1d41c" text="{0} wurde von der Wache verhört und durfte gehen." />
+    <string id="AIL_e7b1d41d" text="{0} musste der Wache eine Strafe von {1} Denaren zahlen." />
+    <string id="AIL_e7b1d41e" text="{0} wurde von der Wache festgenommen." />
+    <string id="AIL_e7b1d41f" text="{0} wehrte sich gegen die Wache und konnte entkommen." />
+    <string id="AIL_e7b1d420" text="{0} wehrte sich gegen die Wache und wurde überwältigt." />
+    <string id="AIL_e7b1d421" text="{0} rannte davon und entkam aus {1}." />
+    <string id="AIL_e7b1d422" text="{0} versuchte, vor der Wache zu fliehen, wurde aber eingeholt." />
+    <string id="AIL_e7b1d423" text="{0} landete im Kerker von {1}." />
+    <string id="AIL_e7b1d510" text="Ein Bastard ist geboren" />
+    <string id="AIL_e7b1d511" text="{0} hat {1} zur Welt gebracht. Ziehst du das Kind als dein eigenes auf und nimmst es in deinen Clan auf?" />
+    <string id="AIL_e7b1d512" text="Du hast {0} zur Welt gebracht. Ziehst du das Kind als dein eigenes auf und nimmst es in deinen Clan auf?" />
+    <string id="AIL_e7b1d513" text="Ja" />
+    <string id="AIL_e7b1d514" text="Nein" />
+    <string id="AIL_e7b1d600" text="{0} hat dir einen Heiratsantrag gemacht! Antworte im Gespräch." />
+    <string id="AIL_e7b1d601" text="{0} hat den Heiratsantrag abgelehnt." />
+    <string id="AIL_e7b1d602" text="{0} kann dich jetzt nicht heiraten." />
+    <string id="AIL_e7b1d603" text="{0} heiratet dich! Herzlichen Glückwunsch." />
+    <string id="AIL_e7b1d604" text="{0} fordert dich zu einem Duell auf Leben und Tod heraus. Antworte im Gespräch, um anzunehmen oder abzulehnen." />
+    <string id="AIL_e7b1d605" text="{0} bietet dir ein freundschaftliches Duell an. Antworte im Gespräch, um anzunehmen oder abzulehnen." />
+    <string id="AIL_e7b1d606" text="Du hast dich {0} ergeben." />
+    <string id="AIL_e7b1d607" text="Die Gruppe ({0} Mann) gehört jetzt deinem Clan." />
+    <string id="AIL_e7b1d608" text="{0} zieht dir mit einer eigenen Gruppe nach, sobald du diesen Ort verlässt." />
+    <string id="AIL_e7b1d609" text="{0} schließt sich deiner Gruppe an und bringt {1} Soldaten mit." />
+    <string id="AIL_e7b1d60a" text="Gruppe von {0} (vorübergehend)" />
+    <string id="AIL_e7b1d60b" text="{0} konnte dir nicht nachziehen." />
+    <string id="AIL_e7b1d60c" text="Die Gruppe von {0} macht sich auf, dir zu folgen." />
+    <string id="AIL_e7b1d60d" text="{0} erlebt die letzten Augenblicke… (Lies oder hör zu Ende und drücke „Weiter“)" />
+    <string id="AIL_e7b1d60e" text="Die Hochzeit findet nach dem Gespräch statt… (Lies oder hör zu Ende und drücke „Weiter“)" />
+    <string id="AIL_e7b1d60f" text="Du hast dich {0} ergeben… (Lies oder hör zu Ende und drücke „Weiter“)" />
+    <string id="AIL_e7b1d610" text="{0} ist im Begriff, sich zu ergeben… (Lies oder hör zu Ende und drücke „Weiter“)" />
+    <string id="AIL_e7b1d611" text="Jemand Unverheiratetes, der dich tief liebt, kann in einem Gespräch zustimmen, das eigene Haus zu verlassen und als Konkubine bei dir zu leben: tritt deinem Clan und deiner Gruppe bei (führt sie eine eigene Gruppe, kommen deren Soldaten zu deiner), das frühere Hausoberhaupt nimmt es übel, und Kinder können kommen (unehelich, mit dir als bekanntem Elternteil). Solange du verheiratet bist, wird wer zustimmt, dich zu heiraten, stattdessen deine Konkubine, oder es gibt keine Hochzeit. Es endet, wenn einer von euch es beschließt, wenn einer stirbt oder wenn du sie heiratest. Solange kann niemand sonst sie heiraten." />
+    <string id="AIL_e7b1d612" text="Nach diesen Tagen ohne Gespräch oder Briefwechsel sinkt die Romantik täglich um den Wert darunter (bei deinem Ehepartner nicht unter 40)." />
+    <string id="AIL_e7b1d613" text="Romantikverlust pro Tag, sobald sie abkühlt" />
+    <string id="AIL_e7b1d614" text="Romantikgewinn durch Intimität" />
+    <string id="AIL_e7b1d700" text="Du fühlst dich nicht wohl..." />
+    <string id="AIL_e7b1d701" text="Jemand in deiner Gruppe fühlt sich nicht wohl..." />
+    <string id="AIL_e7b1d702" text="Es scheint, dass die Truppen deiner Gruppe erkrankt sind." />
+    <string id="AIL_e7b1d703" text="Du bist vollständig genesen." />
+    <string id="AIL_e7b1d704" text="Deine Truppen sind vollständig genesen." />
+    <string id="AIL_e7b1d705" text="Die gemachten Gefangenen sind infiziert: {0} ({1})" />
+    <string id="AIL_e7b1d706" text="Die Gefangenen haben sich von {0} erholt" />
+    <string id="AIL_e7b1d707" text="Quarantäne verwalten" />
+    <string id="AIL_e7b1d708" text="{0} % infiziert ({1}/{2})" />
+    <string id="AIL_e7b1d709" text="{0} ist wegen Quarantäne geschlossen. Du darfst nicht hinein." />
+    <string id="AIL_e7b1d70a" text="Diese Siedlung ist wegen Quarantäne geschlossen. Du darfst nicht hinein." />
+    <string id="AIL_e7b1d70b" text="Der Wachfeldwebel hebt die Hand, bevor du das Tor erreichst. „{?PLAYER.GENDER}Meine Dame{?}Mein Herr{\?}, {SETTLEMENT_NAME} steht auf Befehl von {LORD.LINK} unter Quarantäne. Niemand kommt hinein oder hinaus, bis die Quarantäne aufgehoben ist. Ich muss Euch bitten umzukehren.“" />
+    <string id="AIL_e7b1d70c" text="Die Wachen versperren dir den Weg. Diese Burg steht unter Quarantäne. Du darfst nicht hinein." />
+    <string id="AIL_e7b1d70d" text="Wegen Quarantäne geschlossen." />
+    <string id="AIL_e7b1d70e" text="Du bist infiziert und kannst die Siedlung unter Quarantäne nicht verlassen." />
+    <string id="AIL_e7b1d70f" text="{=!}Quarantäne verwalten" />
+    <string id="AIL_e7b1d710" text="{=!}Gehen" />
+    <string id="AIL_e7b1d711" text="Siedlung: {0}" />
+    <string id="AIL_e7b1d712" text="Aktive Krankheiten:" />
+    <string id="AIL_e7b1d713" text=" (UNTER QUARANTÄNE)" />
+    <string id="AIL_e7b1d714" text="{0} (Schweregrad {1})" />
+    <string id="AIL_e7b1d715" text="Verbleibende Tage: {0}" />
+    <string id="AIL_e7b1d716" text="Keine aktiven Krankheiten." />
+    <string id="AIL_e7b1d717" text="WARNUNG: keine aktive Krankheit. Die Nachteile der Quarantäne verdoppeln sich!" />
+    <string id="AIL_e7b1d718" text="Auswirkungen der Quarantäne:" />
+    <string id="AIL_e7b1d719" text="Bremst die Ansteckung" />
+    <string id="AIL_e7b1d71a" text="Verhindert Epidemien" />
+    <string id="AIL_e7b1d71b" text="Schränkt Handel und Besuche ein" />
+    <string id="AIL_e7b1d71d" text="Quarantäne aufheben" />
+    <string id="AIL_e7b1d71e" text="Öffnet die Siedlung für Besucher." />
+    <string id="AIL_e7b1d71f" text="Quarantäne über die Stadt verhängen" />
+    <string id="AIL_e7b1d720" text="Quarantäne über die Burg verhängen" />
+    <string id="AIL_e7b1d721" text="Schließt die Siedlung, bis du die Quarantäne aufhebst." />
+    <string id="AIL_e7b1d722" text="Quarantäne in {0} aufgehoben." />
+    <string id="AIL_e7b1d723" text="Quarantäne über {0} verhängt. Hebe sie auf, wann du willst." />
+    <string id="AIL_e7b1d724" text="Keine aktive Krankheit: Die Quarantäne bringt schwere wirtschaftliche Nachteile." />
+    <string id="AIL_e7b1d726" text="Ausbrüche entstehen durch Weltereignisse oder als Epidemie, wenn sich mehrere Helden mit derselben Krankheit in einer Stadt oder Burg aufhalten. Sie schaden der Siedlung, reisen mit kranken Herren, Karawanen und Dorfbewohnern, schwächen jeden, der dort bleibt, und werden durch Quarantänen gebremst." />
+    <string id="AIL_e7b1d727" text="Solange du an einem Ort mit Krankheit bleibst, können einige deiner Soldaten erkranken. Sie bleiben in den Reihen, verlangsamen aber den Marsch, senken die Moral und kämpfen schlechter, und die schlimmsten Fälle können sterben." />
+    <string id="AIL_e7b1d728" text="Nur schwere Krankheiten (Schweregrad 3 oder mehr) töten. Ab 80 % ihres Verlaufs trägt ein kranker Held oder Soldat höchstens dieses tägliche Risiko; bei 100 % stirbt er immer. Höhere Werte, die ein Ereignis vorschlägt, werden darauf gesenkt." />
+    <string id="AIL_e7b1d729" text="Wie viele Ausbrüche Weltereignisse gleichzeitig laufen lassen dürfen. Von Kranken verschleppte oder aus einer Epidemie entstandene Ausbrüche werden dadurch nicht begrenzt." />
+    <string id="AIL_e7b1d72a" text="Tage, die nach Beginn eines Ausbruchs vergehen müssen, bevor ein Weltereignis einen weiteren auslösen darf." />
+    <string id="AIL_e7b1d72b" text="Grenzen: höchstes tägliches Sterberisiko" />
+    <string id="AIL_e7b1d800" text="{0} {1} {2}. Du kannst jederzeit mit einer Erklärung unter «Weltgeschehen» antworten." />
+    <string id="AIL_e7b1d801" text="{0} {1} {2}{3}. Noch {4} Tag(e) für eine Antwort." />
+    <string id="AIL_e7b1d802" text="Vorschläge, die auf deine Antwort warten (nimm sie an oder lehne sie ab, indem du es in deiner Erklärung sagst):" />
+    <string id="AIL_e7b1d803" text="Vorschläge, die auf deine Antwort warten" />
+    <string id="AIL_e7b1d804" text="Antworte mit «Eine Erklärung abgeben»: sag, ob du annimmst oder ablehnst, oder schlag andere Bedingungen vor." />
+    <string id="AIL_e7b1d805" text="Spielstunden zwischen zwei Erklärungen in der ganzen Welt" />
+    <string id="AIL_e7b1d806" text="Bei einem König pro Tag: Nachdem ein KI-König gesprochen hat, wartet die nächste Erklärung überall so viele Spielstunden plus zufällig 1 bis 12 (bei 24 eine alle 25 bis 36 Stunden). Antworten auf einen offenen Vorschlag warten nie." />
+    <string id="AIL_e7b1d807" text="Nachfolge: Das Reich {0} überlebt seinen Herrscher nicht." />
+    <string id="AIL_e7b1d808" text="Nachfolge: Die Fürsten von {0} wählen einen neuen Herrscher." />
+    <string id="AIL_e7b1d809" text="Nachfolge: {0} herrscht nun über {1}." />
+    <string id="AIL_e7b1d80a" text="Nachfolge: {0} wartet auf seinen neuen Herrscher." />
+    <string id="AIL_e7b1d80c" text="ist an {0} gestorben" />
+    <string id="AIL_e7b1d80d" text="der Herr" />
+    <string id="AIL_e7b1d80e" text="{0} lässt dich nicht verfolgen." />
+    <string id="AIL_e7b1d80f" text="Du wirst zum Tode verurteilt." />
+    <string id="AIL_e7b1d810" text="Du wirst aus dem Kerker gelassen." />
+    <string id="AIL_e7b1d811" text="{0} Tag(e) kommen zu deiner Strafe im Kerker von {1} hinzu." />
+    <string id="AIL_e7b1d812" text="Du verbringst {0} Tag(e) im Kerker von {1}." />
+    <string id="AIL_e7b1d813" text="Dein Ruf als Verbrecher in {0} steigt um {1}." />
+    <string id="AIL_e7b1d814" text="Urteil von {0}" />
+    <string id="AIL_e7b1d815" text="Schließen" />
+    <string id="AIL_e7b1d816" text="Weiter" />
+    <string id="AIL_e7b1d817" text="Auf Befehl von {0} schließen die Wachen deine Zelle auf und führen dich aus dem Kerker von {1}." />
+    <string id="AIL_e7b1d818" text="{0} Tag(e) im Kerker von {1} liegen hinter dir. Wie {2} befahl, lassen dich die Wachen gehen." />
+    <string id="AIL_e7b1d819" text="Im Morgengrauen holen dich die Wachen. {0} hat dich zum Tode verurteilt, und das Urteil wird vor den Leuten von {1} vollstreckt." />
+    <string id="AIL_e7b1d81a" text="Du schleichst am dösenden Wächter vorbei, die Treppe hinauf und aus dem Kerker von {0}. Am Morgen bist du weit fort von seinen Mauern, doch {1} wird davon erfahren." />
+    <string id="AIL_e7b1d81b" text="Du kommst bis zur Treppe, dann packen dich die Wachen. Sie verprügeln dich und werfen dich zurück in die Zelle von {0}. {1} wird dich dafür erneut richten." />
+    <string id="AIL_e7b1d81c" text="In der Nacht nickt der Wächter an deiner Zellentür ein, und der alte Riegel gibt unter deiner Hand ein wenig nach. Du könntest versuchen, aus dem Kerker von {0} zu entkommen. Fassen dich die Wachen, richtet dich {1} erneut. Verbleibende Versuche danach: {2}." />
+    <string id="AIL_e7b1d81d" text="Flucht versuchen ({AIL_ESCAPE_ODDS} % Chance)" />
+    <string id="AIL_e7b1d81e" text="In der Zelle bleiben" />
+    <string id="AIL_e7b1d81f" text="Kürzeste Strafe (Tage im Kerker)" />
+    <string id="AIL_e7b1d820" text="Richter dürfen dich hinrichten" />
+    <string id="AIL_e7b1d821" text="Bist du im Kerker des Herrn, kann er dich hinrichten lassen: Das Spiel geht dann weiter wie nach deinem Tod in der Schlacht. Aus: Die schwerste Strafe ist die längste Haft im Kerker." />
+    <string id="AIL_e7b1d822" text="Tägliche Chance auf eine Fluchtgelegenheit (%)" />
+    <string id="AIL_e7b1d823" text="Während du eine Strafe im Kerker absitzt, ist das jeden Tag die Chance auf eine Fluchtgelegenheit. Du entscheidest, ob du es versuchst; der Erfolg hängt von deiner Gaunerei ab. Entkommen oder gefasst, der Herr richtet dich erneut. 0 = nie." />
+    <string id="AIL_e7b1d824" text="Fluchtversuche pro Haft" />
+    <string id="AIL_e7b1d825" text="Wie oft du während eines Kerkeraufenthalts zu fliehen versuchen kannst. Eine neue Strafe nach einem gescheiterten Versuch gibt keine neuen Versuche." />
+    <string id="AIL_e7b1d826" text="{0} kommt herüber, um mit dir zu sprechen." />
+    <string id="AIL_e7b1d827" text="{0}{1}, reitet auf deine Gruppe zu und bittet um ein Gespräch." />
+    <string id="AIL_e7b1d828" text="Chance pro Herr in Sicht, alle 5 Stunden (%)" />
+    <string id="AIL_e7b1d829" text="Alle 5 Spielstunden würfelt jeder Herr in Sicht, bekannt oder nicht, diese Chance, herüberzureiten und zu reden, plus 2 bei einer Beziehung über 20, 1 unter -20, 2 bei Romanze über 50, 2 bei mehr als 10 Gesprächen, 4 wenn ihr seit 20 Tagen nicht gesprochen habt, 2 für jemanden, der in deiner Gruppe reitet." />
+    <string id="AIL_e7b1d82a" text="Feindliche Herren sprechen zuerst" />
+    <string id="AIL_e7b1d82b" text="Ein Herr, der mit dir im Krieg ist, dessen Trupp stärker ist und der dich verfolgt, spricht zuerst, wenn er dich einholt." />
+    <string id="AIL_e7b1d82c" text="Tage, bis ein anderer feindlicher Herr wieder zuerst spricht" />
+    <string id="AIL_e7b1d82d" text="Nachdem ein feindlicher Herr dich eingeholt und zuerst gesprochen hat, tut es so viele Tage lang kein feindlicher Herr mehr." />
+    <string id="AIL_e7b1d82e" text="Das Duell beginnt in 3 Sekunden. Mach deine Waffe bereit." />
+    <string id="AIL_e7b1d82f" text="Das Duell beginnt!" />
+    <string id="AIL_e7b1d830" text="Du brichst die Bedingungen des Duells mit {0}: Das Duell wird zur Schlacht." />
+    <string id="AIL_e7b1d831" text="{0} erzählt überall herum: «{1}»" />
+    <string id="AIL_e7b1d832" text="Das Ansehen deines Clans steigt um {0}" />
+    <string id="AIL_e7b1d833" text=", +{0} Ansehen" />
   </strings>
 </base>

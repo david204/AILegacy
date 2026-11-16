@@ -42,6 +42,8 @@ namespace AILegacy.Dialogue
             public Action OnUnanswered;   // player left or the conversation couldn't open
             public bool Escorted;         // map: rode over under an "approach" order, which keeps their party at the player's side
             public double ReadyHour = -1; // map: campaign hour the opening line was ready (give-up timer)
+            public bool Received;         // map: the player said yes while they were still riding over; the talk opens when they arrive
+            public double ReceivedHour = -1;
         }
 
         private static Approach _p;
@@ -176,6 +178,8 @@ namespace AILegacy.Dialogue
         {
             var p = _p;
             if (p == null || p.Reply == null) return null;
+            // an enemy who caught the player (by our encounter or by the game's own chase): the shared wait starts
+            if (p.Hostile) World.MapInitiative.HostileCaught();
             var session = ChatSession.StartDialog(p.Who);
             if (session == null) return null;
             if (!session.Seeded)
@@ -261,6 +265,22 @@ namespace AILegacy.Dialogue
             if (party.MapEvent != null) { End(p, "got caught up in a battle, the approach is dropped"); return; }
             if (p.Asked)
             {
+                if (p.Received)
+                {
+                    // Received while still on the way: they ride the rest (at the player's side, under their order)
+                    // and the talk opens as soon as they are next to the player's party
+                    if (p.Escorted)
+                    {
+                        var o = World.OrderSystem.FindAny(h);
+                        if (o == null || o.Type != "approach") { End(p, "stopped riding over after being received"); return; }
+                        KeepClose(party);
+                    }
+                    if (CampaignTime.Now.ToHours - p.ReceivedHour > CatchUpHours) { End(p, "never reached the player's party after being received, gave up"); return; }
+                    if (!WorldSim.OnMap() || !Letters.LetterSystem.PlayerFreeOnMap()) return;
+                    if (party.GetPosition2D.Distance(main.GetPosition2D) > AskDistance) return;
+                    Open(p, h, party);
+                    return;
+                }
                 // Waiting for the window's answer or for the conversation to open
                 if (p.Age > 240f) End(p);
                 return;
@@ -289,8 +309,9 @@ namespace AILegacy.Dialogue
             // Only with the player free on the map (no menu, battle, conversation or other window): an inquiry shown
             // behind another one waits in the game's queue while time runs and they ride off
             if (!WorldSim.OnMap() || !Letters.LetterSystem.PlayerFreeOnMap()) return;
-            // Not close enough yet: they keep coming
-            if (dist > AskDistance) return;
+            // An enemy has to catch the player first. A friendly lord asks as he approaches (AIInfluence): the
+            // "wants to talk" window comes up as soon as his words are ready, wherever he is on his way
+            if (p.Hostile && dist > AskDistance) return;
 
             Ask(p, h, party, dist);
         }
@@ -309,6 +330,21 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Initiative: keep the party close", ex); }
         }
 
+        /// <summary>Opens the talk with a lord who came over (or rides with the player) and was received.</summary>
+        private static void Open(Approach p, Hero h, MobileParty party)
+        {
+            try
+            {
+                var talkParty = h.PartyBelongedTo ?? party;
+                // Their party goes back to its own business after the talk, unless they agree to something in it
+                ReleaseParty(p);
+                CampaignMapConversation.OpenConversation(
+                    new ConversationCharacterData(CharacterObject.PlayerCharacter, PartyBase.MainParty),
+                    new ConversationCharacterData(h.CharacterObject, talkParty.Party));
+            }
+            catch (Exception ex) { Log.Error("Initiative: open conversation on the map", ex); End(p); }
+        }
+
         private static void Ask(Approach p, Hero h, MobileParty party, float dist)
         {
             p.Asked = true;
@@ -322,6 +358,7 @@ namespace AILegacy.Dialogue
                 try
                 {
                     ReleaseParty(p);
+                    World.MapInitiative.HostileCaught();
                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_f4c8e2a1", $"{h.Name} te corta el paso."), Colors.Red));
                     EncounterManager.StartPartyEncounter(party.Party, PartyBase.MainParty);
                 }
@@ -331,6 +368,7 @@ namespace AILegacy.Dialogue
             // The window pauses the game, so they stay where they are until the player answers
             InformationManager.ShowInquiry(new InquiryData(L.F("AIL_c65afb5d", $"{h.Name} quiere hablar contigo"),
                 p.InParty ? L.F("AIL_f4c8e2a2", $"{h.Name}, que cabalga contigo, te pide un momento.")
+                          : dist > AskDistance ? L.F("AIL_e7b1d827", $"{h.Name}{(h.Clan != null ? L.T("AIL_4514967a", ", del clan ") + h.Clan.Name : "")}, cabalga hacia tu grupo y pide hablar contigo.")
                           : L.F("AIL_b6d441ce", $"{h.Name}{(h.Clan != null ? L.T("AIL_4514967a", ", del clan ") + h.Clan.Name : "")}, ha cabalgado hasta tu grupo y pide hablar contigo."),
                 true, true, L.T("AIL_f4c8e2a3", "Recibirle"), L.T("AIL_f4c8e2a4", "Ahora no"),
                 () => MainThread.Post(() =>
@@ -339,11 +377,15 @@ namespace AILegacy.Dialogue
                     {
                         if (_p != p || !WorldSim.OnMap()) { End(p, "could not be received (the moment passed)"); return; }
                         var talkParty = h.PartyBelongedTo ?? party;
-                        // Their party goes back to its own business after the talk, unless they agree to something in it
-                        ReleaseParty(p);
-                        CampaignMapConversation.OpenConversation(
-                            new ConversationCharacterData(CharacterObject.PlayerCharacter, PartyBase.MainParty),
-                            new ConversationCharacterData(h.CharacterObject, talkParty.Party));
+                        // Still on the way: they ride up to the player's side and wait there; the talk opens when they arrive
+                        if (!p.InParty && talkParty.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D) > AskDistance)
+                        {
+                            p.Received = true;
+                            p.ReceivedHour = CampaignTime.Now.ToHours;
+                            InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1d826", $"{h.Name} se acerca para hablar contigo."), Colors.Yellow));
+                            return;
+                        }
+                        Open(p, h, talkParty);
                     }
                     catch (Exception ex) { Log.Error("Initiative: open conversation on the map", ex); End(p); }
                 }),

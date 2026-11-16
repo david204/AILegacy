@@ -1074,7 +1074,10 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
                     Kingdoms = stn?.MapFaction != null ? new List<string> { stn.MapFaction.StringId } : new List<string>(),
                     Heroes = members.Where(x => x.Who.IsHero).Select(x => x.Who.Hero.StringId).Take(4).ToList(),
                 });
-                WorldSim.OnIncident($"A rumour has started to spread among those who were present ({string.Join(", ", members.Select(x => x.Who.Name).Take(4))}): {rumor}", stn, false);
+                // As in AIInfluence the rumour is not a card of its own: the chronicler reads the talk and writes 0 to 3
+                // public events from it (WorldSim dialogue mode). The news item above only feeds what people know.
+                WorldSim.OnConversation($"A group conversation with {Hero.MainHero?.Name} among {string.Join(", ", members.Select(x => x.Who.Name).Take(4))}. "
+                    + (summary.Length > 5 ? $"What was said: {summary} " : "") + $"What could get about from it: {rumor}", stn);
             }
             foreach (var x in members)
             {

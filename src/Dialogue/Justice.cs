@@ -47,6 +47,9 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
 
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
 
+        /// <summary>The player is fighting the guard to avoid the cell: that fight is part of the guard's story, not a news item of its own.</summary>
+        public static bool Resisting => _resisting;
+
         public static bool Active(Speaker s) => s != null && _guard != null && !_resolved && s.SituationKind == "justice" && s.Key == _guard.Key;
 
         // ============================================================ find a guard and send them over
@@ -131,25 +134,16 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
 
         // ============================================================ the guard's verdict
 
-        private static void Close(string rumorEn, string titleEs, string textEs)
+        /// <summary>The guard settled it. The news is told with the rest of the visit, once the player leaves.</summary>
+        private static void Close(string step, int fine = 0)
         {
             _resolved = true;
-            try
-            {
-                var st = Settlement.CurrentSettlement;
-                NewsStore.Add(new NewsItem
-                {
-                    Type = "rumor", Importance = 1, Text = rumorEn, TitleEs = titleEs, TextEs = textEs, SettlementId = st?.StringId,
-                    Kingdoms = st?.MapFaction != null ? new List<string> { st.MapFaction.StringId } : new List<string>(), Heroes = new List<string> { P.StringId },
-                });
-            }
-            catch { }
+            VisitNews.Guard(step, fine);
         }
 
         public static string LetGo(Speaker s)
         {
-            var st = Settlement.CurrentSettlement;
-            Close($"The guard of {st?.Name} questioned {P.Name} after a disturbance and let them go.", L.T("AIL_ca1dd233", "La guardia lo deja pasar"), L.F("AIL_05112fe7", $"La guardia de {st?.Name} interrogó a {P.Name} tras un altercado y lo dejó marchar."));
+            Close("let_go");
             return L.T("AIL_3f4f693a", "El guardia te deja marchar.");
         }
 
@@ -161,7 +155,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             if (P.Gold < amount) return L.F("AIL_6d808299", $"No llevas {amount} denarios para pagar la multa.");
             if (st != null) GiveGoldAction.ApplyForCharacterToSettlement(P, st, amount);
             else P.ChangeHeroGold(-amount);
-            Close($"The guard of {st?.Name} fined {P.Name} {amount} denars for a disturbance.", L.T("AIL_74ddb46b", "Multa de la guardia"), L.F("AIL_23d64abe", $"La guardia de {st?.Name} multó a {P.Name} con {amount} denarios por un altercado."));
+            Close("fine", amount);
             return L.F("AIL_dc5f5110", $"Pagas una multa de {amount} denarios.");
         }
 
@@ -173,7 +167,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             _arrestIn = st;
             _jailGuard = s; _jailStanding = Standing(st); _jailCrime = Crime(st);
             try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 10f, true); } catch { }
-            Close($"The guard of {st.Name} arrested {P.Name} after a disturbance.", L.T("AIL_efa2c194", "Detenido por la guardia"), L.F("AIL_b8f58f0d", $"La guardia de {st.Name} detuvo a {P.Name} tras un altercado."));
+            Close("arrest");
             return L.F("AIL_f2440a00", $"El guardia te detiene: vas a los calabozos de {st.Name}.");
         }
 
@@ -229,12 +223,14 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                         {
                             try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 15f, true); } catch { }
                             Say(L.F("AIL_e1f3b7ab", $"Escapas por los pelos de {st.Name}: ahora te buscan."), Colors.Yellow);
+                            VisitNews.Guard("escaped");
                             _escapeFrom = st;
                         }
                         else
                         {
                             try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, 8f, true); } catch { }
                             Say(L.T("AIL_e1f3b7ac", "No llegas lejos: te alcanzan."), Colors.Red);
+                            VisitNews.Guard("caught");
                             _jailIn = st;
                         }
                         return;
@@ -268,12 +264,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                     Say(L.T("AIL_e1f3b7ae", "La guardia te reduce."), Colors.Red);
                     _jailIn = st;
                 }
-                NewsStore.Add(new NewsItem
-                {
-                    Type = "rumor", Importance = 1, SettlementId = st.StringId, Heroes = new List<string> { P.StringId },
-                    Kingdoms = st.MapFaction != null ? new List<string> { st.MapFaction.StringId } : new List<string>(),
-                    Text = playerWon ? $"{P.Name} fought the guard of {st.Name} to avoid arrest and got away." : $"{P.Name} fought the guard of {st.Name} to avoid arrest and was overpowered.",
-                });
+                VisitNews.Guard(playerWon ? "resist_won" : "resist_lost");
             }
             catch (Exception ex) { Log.Error("Arrest: after the fight", ex); }
         }
@@ -289,6 +280,7 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
             {
                 if (Campaign.Current == null) { _guard = null; _jailIn = null; _arrestIn = null; _escapeFrom = null; _asking = false; _resisting = false; return; }
                 bool talking = Campaign.Current.ConversationManager?.IsConversationInProgress == true;
+                if (!string.IsNullOrEmpty(WorldSim.State?.JailMenu)) Verdict.Pump();      // a dungeon menu waiting to be shown
 
                 // Was resisting but the fight never started (scene changed). Don't leave it hanging, take them to jail
                 if (_resisting)
@@ -351,7 +343,8 @@ What weighs on you: how bad it was (fists are common, steel is serious, a death 
                         var st = _jailIn; _jailIn = null;
                         if (Settlement.CurrentSettlement == st)
                         {
-                            // same as the game does when a prison break fails
+                            // same as the game does when a prison break fails (the visit's news is told as the player leaves)
+                            VisitNews.Guard("jailed");
                             PlayerEncounter.LeaveSettlement();
                             PlayerEncounter.Finish();
                             TakePrisonerAction.Apply(st.Party, P);

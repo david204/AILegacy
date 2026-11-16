@@ -11,6 +11,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
@@ -71,8 +72,12 @@ namespace AILegacy.World
 
         private static int CountOf(Hero partner) => partner == null ? 0 : All.Count(c => c.PartnerId == partner.StringId);
 
-        /// <summary>Why they cannot become the player's concubine right now, or null if they can.</summary>
-        public static string WhyNot(Hero h)
+        /// <summary>
+        /// Why they cannot become the player's concubine right now, or null if they can. Saying yes to a marriage with
+        /// a player who is already married skips the romance needed (Illegitimate Children does not ask it there) and
+        /// lets someone married go, since that marriage is ended first.
+        /// </summary>
+        public static string WhyNot(Hero h, bool checkRomance = true, bool allowMarried = false)
         {
             var cfg = S.Get;
             if (!Enabled || h == null || P == null || h == P) return "no";
@@ -80,23 +85,24 @@ namespace AILegacy.World
             if (Is(h)) return $"you already live with {PartnerOf(h)?.Name} as their concubine";
             if (CountOf(h) > 0) return "you keep a concubine of your own";
             if (!h.IsAlive || h.IsChild || h.Age < 18 || P.Age < 18) return "you are not of age for that";
-            if (h.Spouse != null && h.Spouse.IsAlive) return "you are married";
             if (h.Spouse == P) return "you are already their spouse";
+            if (!allowMarried && h.Spouse != null && h.Spouse.IsAlive) return "you are married";
             if (h.IsFemale == P.IsFemale && !cfg.RomanceSameSex) return "it is not done";
             if (Bonds.IsCloseFamily(h)) return "you are close kin";
             if (h.IsPrisoner) return "you are their prisoner";
             if (h.MapFaction is Kingdom k && k.Leader == h) return "you rule a kingdom and will not live as anyone's concubine";
+            if (!checkRomance) return null;
             var mem = MemoryStore.Find(h.StringId);
             if (mem == null || mem.Romance < cfg.ConcubineMinRomance) return $"your feelings for them are not that deep yet (romance {mem?.Romance ?? 0} of {cfg.ConcubineMinRomance})";
             return null;
         }
 
         /// <summary>The concubine's old house loses them. Run after the caller has freed them from parties and posts.</summary>
-        public static string Take(Hero h)
+        public static string Take(Hero h, bool checkRomance = true)
         {
             try
             {
-                if (WhyNot(h) != null) return null;
+                if (WhyNot(h, checkRomance) != null) return null;
                 var c = new Concubine { HeroId = h.StringId, OriginClanId = h.Clan?.StringId, OriginOccupation = (int)h.Occupation, WasNotable = h.IsNotable, SinceDay = CampaignTime.Now.ToDays };
                 var head = h.Clan?.Leader;
                 if (head != null && head != h && head != P && head.IsAlive && head.GetRelationWithPlayer() < 30)
@@ -109,7 +115,7 @@ namespace AILegacy.World
                 try
                 {
                     var cm = Campaign.Current.ConversationManager;
-                    void Join() { try { if (h.IsAlive && IsWithPlayer(h) && h.Clan == Clan.PlayerClan && h.PartyBelongedTo == null && !h.IsPrisoner) AddHeroToPartyAction.Apply(h, MobileParty.MainParty); } catch (Exception ex) { Log.Error("Concubine: join party", ex); } }
+                    void Join() { try { if (h.IsAlive && IsWithPlayer(h) && h.Clan == Clan.PlayerClan && !h.IsPrisoner) MoveIntoPlayerParty(h); } catch (Exception ex) { Log.Error("Concubine: join party", ex); } }
                     if (cm != null && cm.IsConversationInProgress) cm.ConversationEndOneShot += Join; else Join();
                 }
                 catch { }
@@ -119,6 +125,42 @@ namespace AILegacy.World
                 return L.F("AIL_e7b1c836", $"{h.Name} deja su casa para vivir contigo como concubina.");
             }
             catch (Exception ex) { Log.Error("Concubine: take", ex); return null; }
+        }
+
+        /// <summary>
+        /// Into the player's party, as Illegitimate Children's household move does it: one who leads a party of their
+        /// own brings its soldiers into the player's party, the party is broken up, and the heroes who rode in it
+        /// come along too. Anyone else just joins the player's party, from wherever they were.
+        /// </summary>
+        private static void MoveIntoPlayerParty(Hero h)
+        {
+            var main = MobileParty.MainParty;
+            if (h == null || main == null) return;
+            if (h.GovernorOf != null) try { ChangeGovernorAction.RemoveGovernorOf(h); } catch (Exception ex) { Log.Warn("Concubine: governorship: " + ex.Message); }
+            var own = h.PartyBelongedTo;
+            // a party only lent to follow the player is simply let go
+            if (own != null && own.LeaderHero == h && OrderSystem.IsTempParty(own)) { OrderSystem.DissolveTempParty(h, own); own = h.PartyBelongedTo; }
+            if (own != null && own != main && own.LeaderHero == h && own.IsActive)
+            {
+                if (own.MapEvent != null || own.SiegeEvent != null) { Log.Warn($"Concubine: {h.Name}'s party is fighting; they join later"); return; }
+                var troops = TroopRoster.CreateDummyTroopRoster();
+                var heroes = new List<Hero>();
+                foreach (var e in own.MemberRoster.GetTroopRoster().ToList())
+                {
+                    if (e.Character == null) continue;
+                    if (e.Character.IsHero) { if (e.Character.HeroObject != null && !heroes.Contains(e.Character.HeroObject)) heroes.Add(e.Character.HeroObject); }
+                    else troops.Add(e);
+                }
+                int men = troops.TotalManCount;
+                OrderSystem.Cancel(h, silent: true);
+                main.MemberRoster.Add(troops);
+                DestroyPartyAction.Apply(own.Party, own);
+                foreach (var x in heroes)
+                    if (x?.CharacterObject != null && x.IsAlive && !x.IsPrisoner && main.MemberRoster.FindIndexOfTroop(x.CharacterObject) < 0) AddHeroToPartyAction.Apply(x, main, true);
+                Log.Info($"[concubines] {h.Name} brings {men} soldier(s) and {heroes.Count} hero(es) into the player's party; their own party is broken up");
+                if (men > 0) InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1d609", $"{h.Name} se une a tu partida y trae consigo a {men} soldados."), Colors.Green));
+            }
+            else if (main.MemberRoster.FindIndexOfTroop(h.CharacterObject) < 0) AddHeroToPartyAction.Apply(h, main, true);
         }
 
         /// <summary>It ends: back to their house and their old life, with a hard word between them. Null if they were not one.</summary>

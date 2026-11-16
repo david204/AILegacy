@@ -163,12 +163,27 @@ namespace AILegacy.UI
         private readonly Action<NewsFilterVM> _onSelect;
         private bool _isSelected;
         private string _text;
-        public NewsFilterVM(string key, string text, string color, Action<NewsFilterVM> onSelect) { Key = key; _text = text ?? ""; Color = color; _onSelect = onSelect; }
+        private readonly string _color, _selectedColor;
+        public NewsFilterVM(string key, string text, string color, Action<NewsFilterVM> onSelect) { Key = key; _text = text ?? ""; _color = color; _selectedColor = Lighten(color); _onSelect = onSelect; }
         public string Key { get; }
         public void ExecuteSelect() => _onSelect?.Invoke(this);
         [DataSourceProperty] public string Text { get => _text; set { if (value != _text) { _text = value; OnPropertyChangedWithValue(value, nameof(Text)); } } }
-        [DataSourceProperty] public string Color { get; }
-        [DataSourceProperty] public bool IsSelected { get => _isSelected; set { if (value != _isSelected) { _isSelected = value; OnPropertyChangedWithValue(value, nameof(IsSelected)); } } }
+        /// <summary>The selected button only changes colour (a lighter shade of its own); its size never changes.</summary>
+        [DataSourceProperty] public string Color => _isSelected ? _selectedColor : _color;
+        [DataSourceProperty] public bool IsSelected { get => _isSelected; set { if (value != _isSelected) { _isSelected = value; OnPropertyChangedWithValue(value, nameof(IsSelected)); OnPropertyChangedWithValue(Color, nameof(Color)); } } }
+
+        /// <summary>#RRGGBBAA mixed halfway towards white, fully opaque. Anything unreadable falls back to a warm gold.</summary>
+        private static string Lighten(string hex)
+        {
+            try
+            {
+                string h = (hex ?? "").TrimStart('#');
+                if (h.Length < 6) return "#A37434FF";
+                int Mix(int i) { int c = Convert.ToInt32(h.Substring(i, 2), 16); return c + (255 - c) * 45 / 100; }
+                return $"#{Mix(0):X2}{Mix(2):X2}{Mix(4):X2}FF";
+            }
+            catch { return "#A37434FF"; }
+        }
     }
 
     public class NewsFeedVM : ViewModel

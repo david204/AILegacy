@@ -223,15 +223,30 @@ namespace AILegacy.World
         // ============================================================ a ruler held prisoner
 
         private static readonly Tpl TRulerCaptive = new Tpl("world/ruler_captive.txt",
-            " (a captive of {captor} right now: this ruler issues no statements of their own and can only answer a peace offered to them)");
+            " (a captive of {captor} right now: this ruler issues no statements while held)");
         private static readonly Tpl TRulerCaptiveUnknown = new Tpl("world/ruler_captive_unknown.txt",
-            " (a captive right now: this ruler issues no statements of their own and can only answer a peace offered to them)");
+            " (a captive right now: this ruler issues no statements while held)");
         private static readonly Tpl TTaskCaptive = new Tpl("kingdom_statement/task_captive.txt",
             "You are a prisoner{captor} and cannot rule freely. From your cell you may only answer the peace proposals addressed to you: accept_peace, reject_peace, or propose_peace with other terms. Any other action is thrown away. Issue your statement now.");
         private static readonly Tpl TTaskCaptiveOf = new Tpl("kingdom_statement/task_captive_of.txt", " of {captor}");
 
-        /// <summary>An AI ruler who is somebody's prisoner: he takes no turn of his own and only answers a peace offered to him.</summary>
-        public static bool RulerCaptive(Kingdom k) => k?.Leader != null && k.Leader.IsPrisoner && !PlayerRules(k);
+        /// <summary>
+        /// An AI ruler held prisoner by the player (in his party or in a dungeon of his clan): as in AIInfluence he
+        /// issues no statements at all while held, and the player deals with him face to face. A ruler held by
+        /// anyone else keeps speaking from his cell like any other.
+        /// </summary>
+        public static bool RulerCaptive(Kingdom k)
+        {
+            try
+            {
+                if (k?.Leader == null || !k.Leader.IsPrisoner || PlayerRules(k)) return false;
+                var p = k.Leader.PartyBelongedToAsPrisoner;
+                if (p == null) return false;
+                if (p == TaleWorlds.CampaignSystem.Party.PartyBase.MainParty) return true;
+                return p.Settlement != null && p.Settlement.OwnerClan == Clan.PlayerClan;
+            }
+            catch { return false; }
+        }
 
         /// <summary>Who holds this hero: "Derthert (Vlandia)", or the town or castle whose dungeon it is. null when the game does not say.</summary>
         private static string Captor(Hero h)
@@ -1400,16 +1415,50 @@ siege: far away, but under your siege right now");
             }
         }
 
-        /// <summary>Proposals aimed at the player as ruler: the player decides through a popup.</summary>
+        /// <summary>
+        /// Proposals aimed at the player as ruler. As in AIInfluence there is no yes/no popup: the proposal stays
+        /// pending (listed in the news window and in the statement screen) and the player answers it whenever he likes
+        /// with a statement of his own. Only a line in the log tells him it arrived.
+        /// </summary>
         private static void NotifyPlayer()
         {
             var mine = PlayerRealm;
-            if (!PlayerRules(mine) || !WorldSim.OnMap()) return;
+            if (!PlayerRules(mine)) return;
             foreach (var p in St.Proposals.Where(x => x.To == mine.StringId && !x.Notified).ToList())
             {
                 p.Notified = true;
-                AskPlayer(p);
+                var from = WorldSim.FindKingdom(p.From);
+                if (from == null) continue;
+                string verb = IsDemand(p.Type) ? L.T("AIL_3958d81a", "te exige") : L.T("AIL_be07e5b5", "te propone");
+                WorldSim.Say(L.F("AIL_e7b1d800", $"{from.Name} {verb} {TypeEs(p.Type)}. Puedes responder cuando quieras con una declaración desde «Sucesos del mundo»."), Colors.Yellow);
             }
+        }
+
+        /// <summary>
+        /// What other crowns propose to or demand of the player's realm and is still waiting for his answer, one line
+        /// each in the player's language. Empty when he does not rule or nothing is pending.
+        /// </summary>
+        public static List<string> PendingForPlayer()
+        {
+            var lines = new List<string>();
+            try
+            {
+                var mine = PlayerRealm;
+                if (St == null || !PlayerRules(mine)) return lines;
+                double now = CampaignTime.Now.ToDays;
+                foreach (var p in St.Proposals.Where(x => x.To == mine.StringId).OrderBy(x => x.ExpiresDay))
+                {
+                    var from = WorldSim.FindKingdom(p.From);
+                    if (from == null) continue;
+                    string verb = IsDemand(p.Type) ? L.T("AIL_3958d81a", "te exige") : L.T("AIL_be07e5b5", "te propone");
+                    int left = Math.Max(0, (int)Math.Ceiling(p.ExpiresDay - now));
+                    string line = L.F("AIL_e7b1d801", $"{from.Name} {verb} {TypeEs(p.Type)}{(p.Type == "peace" ? TermsForPlayer(p) : TermsEs(p))}. Quedan {left} día(s) para responder.");
+                    if (p.Type == "peace" && p.Counter) line += " " + L.T("AIL_e7b1c771", "Es su respuesta a la paz que tú habías propuesto: tu propuesta queda retirada y solo valen estas condiciones.");
+                    lines.Add(line);
+                }
+            }
+            catch (Exception ex) { Log.Error("[diplomacy] proposals pending for the player", ex); }
+            return lines;
         }
 
         // A proposal this close to running out, whose ruler has not had a turn yet, no longer waits on the dice
@@ -1437,9 +1486,9 @@ siege: far away, but under your siege right now");
             // 1) Pressure to answer: rulers with an unanswered proposal go first, the one closest to running out ahead
             foreach (var k in rulers)
             {
-                // a ruler held prisoner still answers a peace offered to him, and nothing else
-                bool held = RulerCaptive(k);
-                var waiting = St.Proposals.Where(p => p.To == k.StringId && (!held || p.Type == "peace")).ToList();
+                // a ruler the player holds prisoner is silent: not even an answer (AIInfluence)
+                if (RulerCaptive(k)) continue;
+                var waiting = St.Proposals.Where(p => p.To == k.StringId).ToList();
                 if (waiting.Count == 0 || !Ready(k, now, 1)) continue;
                 bool lastCall = waiting.Any(p => !p.Seen && p.ExpiresDay - now <= LastCallDays);
                 if (lastCall || Rng.Next(100) < cfg.ResponsePressurePercent) answers.Add((k, waiting.Min(p => p.ExpiresDay)));
@@ -1465,23 +1514,23 @@ siege: far away, but under your siege right now");
                 }
 
             int room = Math.Max(1, cfg.MaxStatementsPerDay) - queue.Count;
-            double due = Math.Max(now * 24 + 1, queue.Count == 0 ? 0 : queue.Max(q => q.DueHour) + cfg.HoursBetweenStatements);
+            double due = Math.Max(now * 24 + 1, queue.Count == 0 ? 0 : queue.Max(q => q.DueHour) + 1);
             // one turn per ruler, and none while their previous statement is still in flight
             bool Taken(Kingdom k) => queue.Any(q => q.KingdomId == k.StringId) || WorldSim.IsReserved("statement:" + k.StringId);
             void Add(Kingdom k, WorldEvent ev, string why)
             {
                 queue.Add(new QueuedStatement { KingdomId = k.StringId, EventId = ev?.Id, DueHour = due, Why = why });
-                due += Math.Max(1, cfg.HoursBetweenStatements);
+                due += 1;      // the real spacing is enforced when they speak (OnHourlyTick)
                 room--;
             }
 
-            // Answers are outside the world-wide gap: held back by it they ran out unanswered, and that counted as
-            // a refusal. They still share the cap per day and go out hours apart like everyone.
+            // Answers are outside every gap and the daily cap (held back they ran out unanswered, and that counted as a
+            // refusal). Everyone else speaks in a single line: with one king per day (the default) 25-36 game hours
+            // apart as in AIInfluence, with more per day as many times a day as the setting says (OnHourlyTick).
+            // Answers to a pending proposal are never held back by the daily cap: a ruler must always be able to
+            // accept or reject a peace, an alliance, a trade, a ransom or an exchange
             foreach (var c in answers.OrderBy(c => c.expires))
-            {
-                if (room <= 0) return;
                 if (!Taken(c.k)) Add(c.k, null, null);
-            }
             if (room <= 0) return;
 
             if (cfg.MinDaysBetweenAnyStatements > 0)
@@ -1553,16 +1602,16 @@ siege: far away, but under your siege right now");
                 if (!WorldSim.CanCall) return;
                 double hour = CampaignTime.Now.ToHours, now = CampaignTime.Now.ToDays;
                 St.StatementQueue.RemoveAll(q => q == null || q.KingdomId == null);
-                QueuedStatement next = null;
-                if (S.Get.MinDaysBetweenAnyStatements <= 0) next = St.StatementQueue.OrderBy(q => q.DueHour).FirstOrDefault(q => q.DueHour <= hour);
-                else
-                {
-                    // Enforced here whatever was queued and whatever the AI asked for: one at a time, hours apart,
-                    // and the gap in days for everyone who is not answering a proposal.
-                    if (InFlight || HoursSinceAnyone(hour) < S.Get.HoursBetweenStatements) return;
-                    bool gapPassed = WorldGapPassed(now);
-                    next = St.StatementQueue.OrderBy(q => q.DueHour).FirstOrDefault(q => q.DueHour <= hour && (gapPassed || IsAnswer(q)));
-                }
+                // Enforced here whatever was queued and whatever the AI asked for: one statement at a time in the whole
+                // world, the spacing in hours (setting + 1-12 at random, like AIInfluence: 25-36 h by default) for
+                // everyone, answers included, and the gap in days for everyone who is not answering a proposal.
+                if (InFlight) return;
+                double since = HoursSinceAnyone(hour);
+                // Priority: answers to pending proposals first (they wait only one hour after anyone), then a ruler
+                // weighing his wars (where war and peace are decided), then events. Only answers skip the cadence.
+                bool gapPassed = WorldGapPassed(now) && since >= GapAfterLast();
+                QueuedStatement next = St.StatementQueue.Where(q => q.DueHour <= hour && (IsAnswer(q) ? since >= 1 : gapPassed))
+                    .OrderBy(q => IsAnswer(q) ? 0 : q.Why == "wars" ? 1 : 2).ThenBy(q => q.DueHour).FirstOrDefault();
                 if (next == null) return;
                 if (WorldSim.IsReserved("statement:" + next.KingdomId)) return;   // previous one hasn't landed yet, wait
                 St.StatementQueue.Remove(next);
@@ -1570,14 +1619,14 @@ siege: far away, but under your siege right now");
                 if (k == null || k.IsEliminated || k.Leader == null || PlayerRules(k) || !Ready(k, now, 1)) return;
                 WorldEvent ev = null;
                 bool wars = next.Why == "wars";
-                // taken prisoner after his turn was queued: he keeps it only to answer a peace
+                // taken prisoner by the player after his turn was queued: he is silent while held
                 bool held = RulerCaptive(k);
-                if (held && (wars || next.EventId != null))
+                if (held)
                 {
                     // Not queued again: nothing is used up by dropping it. The event keeps his name on it and his
                     // wars are weighed again every day (QueueStatements), so he gets his turn once he is free.
                     Log.Info($"[diplomacy] turn of {k.Leader.Name} ({k.Name}) removed: is imprisoned{(Captor(k.Leader) is string c0 ? " by " + c0 : "")}. " +
-                             (wars ? "Their wars are re-weighed every day" : "The event stays open for them") + " and they will speak when freed.");
+                             (wars ? "Their wars are re-weighed every day" : next.EventId != null ? "The event stays open for them" : "Proposals to them stay pending") + " and they will speak when freed.");
                     return;
                 }
                 if (wars)
@@ -1593,6 +1642,24 @@ siege: far away, but under your siege right now");
                 MakeStatement(k, ev, wars);     // the occasion is used up when the reply is applied (ApplyStatement)
             }
             catch (Exception ex) { Log.Error("[diplomacy] declaration turn", ex); }
+        }
+
+        /// <summary>Game hours between two statements anywhere in the world: the setting, never under 1.</summary>
+        private static int SpacingHours() => Math.Max(1, S.Get.StatementSpacingHours);
+
+        /// <summary>
+        /// The gap that must pass after the last AI statement before the next one: the spacing plus 1 to 12 hours,
+        /// the extra drawn once per statement (from the hour it was made, so it stays the same across saves and loads).
+        /// </summary>
+        private static double GapAfterLast()
+        {
+            // More than one king a day chosen by the player: the day is shared out among them instead
+            int perDay = Math.Max(1, S.Get.MaxStatementsPerDay);
+            if (perDay > 1) return Math.Max(1.0, 24.0 / perDay);
+            double last = -1;
+            foreach (var d in St.LastStatementDay.Values) if (d > last) last = d;
+            int extra = last < 0 ? 1 : 1 + (int)(((long)Math.Floor(last * 24) * 2654435761L & 0x7fffffff) % 12);
+            return SpacingHours() + extra;
         }
 
         private static bool Ready(Kingdom k, double now, int minDays) =>
@@ -2473,15 +2540,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     {
                         // The peace they already proposed gives this side all it now asks for and asks of it no
                         // more than it now offers: two plain ones, or an offer to pay answered with a plain one.
-                        // The player proposing a peace that is already offered to them has not accepted it: the
-                        // offer is put in front of them again and they decide there. Nothing is signed for them.
-                        if (PlayerRules(k))
-                        {
-                            theirs.Notified = true;
-                            AskPlayer(theirs);
-                            return IsPlain(theirs) ? L.F("AIL_e7b1c763", $"{o.Name} ya te había ofrecido la paz sin condiciones: tú decides si la aceptas.")
-                                                   : L.F("AIL_e7b1c76f", $"{o.Name} ya te había propuesto esa paz{TermsForPlayer(theirs)}: tú decides si la aceptas.");
-                        }
+                        // The player answers proposals with statements (no popup, as in AIInfluence): proclaiming
+                        // the very peace that is on the table is his answer to it, and it is signed as offered.
                         // Both asking for the same peace is a peace. Before, each offer sat waiting for the other side to
                         // say "accept" in so many words, and two rulers who wanted the same thing never got it. When
                         // the offer on the table is the player's, this is an AI ruler accepting what the player proposed:
@@ -2933,39 +2993,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
 
         // ============================================================ player as ruler
 
-        /// <summary>Another crown proposes or demands something from the player, who decides through a popup.</summary>
-        private static void AskPlayer(Proposal p)
-        {
-            var from = WorldSim.FindKingdom(p.From); var mine = PlayerRealm;
-            if (from == null || mine == null) return;
-            string verb = IsDemand(p.Type) ? L.T("AIL_3958d81a", "te exige") : L.T("AIL_be07e5b5", "te propone");
-            string accept = AcceptAction(p.Type), reject = RejectAction(p.Type);
-            void Answer(string type)
-            {
-                MainThread.Post(() =>
-                {
-                    try
-                    {
-                        var r = Resolve(mine, new JObject { ["type"] = type, ["target_kingdom"] = from.StringId });
-                        if (r == null) return;
-                        WorldSim.Say(r, Colors.Yellow);
-                        NewsStore.Add(new NewsItem
-                        {
-                            Type = "statement", Importance = 3, Text = $"{Hero.MainHero.Name}, ruler of {mine.Name}, answered {from.Name}: {type.Replace('_', ' ')}.",
-                            TitleEs = L.F("AIL_3f2c88e6", $"Respuesta de {mine.Name} a {from.Name}"), TextEs = r, Kingdoms = new List<string> { mine.StringId, from.StringId },
-                        });
-                        SaveFiles.Flush(heroes: false);
-                    }
-                    catch (Exception ex) { Log.Error("Player reply to a proposal", ex); }
-                });
-            }
-            InformationManager.ShowInquiry(new InquiryData(L.F("AIL_f85f4507", $"Mensaje de {from.Leader.Name}, de {from.Name}"),
-                // a peace says which way each payment goes: what they offer the player and what they ask of him
-                L.F("AIL_ab129b00", $"{from.Name} {verb} {TypeEs(p.Type)}{(p.Type == "peace" ? TermsForPlayer(p) : TermsEs(p))}.\n\nSi no contestas ahora, la propuesta sigue en pie {S.Get.ProposalLifetimeDays} días y puedes responder con una declaración.")
-                + (p.Type == "peace" && p.Counter ? "\n\n" + L.T("AIL_e7b1c771", "Es su respuesta a la paz que tú habías propuesto: tu propuesta queda retirada y solo valen estas condiciones.") : "")
-                + (p.Type == "peace" ? "\n\n" + L.T("AIL_e7b1c772", "Con una declaración también puedes proponer otras condiciones: exigir u ofrecer un pago, un tributo o una plaza. Tu propuesta sustituiría a esta.") : ""),
-                true, true, "Aceptar", "Rechazar", () => Answer(accept), () => Answer(reject)), true);
-        }
+        // Proposals to the player as ruler: no popup (see NotifyPlayer); he answers with a statement.
 
         // ============================================================ a peace talked out face to face
 
@@ -3059,6 +3087,15 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
 
         public static bool PlayerCanDeclare => Enabled && PlayerRules(PlayerRealm);
 
+        /// <summary>The proposals waiting for the player's answer, as a block for the statement screen (empty if none).</summary>
+        private static string PendingBlock()
+        {
+            var lines = PendingForPlayer();
+            if (lines.Count == 0) return "";
+            return "\n\n" + L.T("AIL_e7b1d802", "Propuestas que esperan tu respuesta (acéptalas o recházalas diciéndolo en tu declaración):")
+                   + "\n" + string.Join("\n", lines.Select(x => "• " + x));
+        }
+
         /// <summary>Player's diplomatic statement (rulers only): free text that the AI turns into actions.</summary>
         public static void PlayerStatement()
         {
@@ -3067,7 +3104,8 @@ For a law, law_name and law_text are the ruler's own words; choose law_effects t
             InformationManager.ShowTextInquiry(new TextInquiryData(L.T("AIL_fec92cb7", "Declaración de la corona"),
                 L.T("AIL_f00983f3", "Escribe lo que proclamas ante Calradia. Lo que decidas con claridad (guerra, paz, alianza, tributo, impuestos, feudos…) se llevará a cabo; lo demás quedará como palabras.")
                 + "\n\n" + L.T("AIL_e7b1c773", "Para la paz puedes exigir o también ofrecer: un pago de una vez, un tributo diario o una ciudad o castillo de tu reino. Di con claridad quién paga a quién.")
-                + " " + L.T("AIL_e7b1d21a", "Si tienes nobles suyos presos, puedes pedir un rescate por ellos o proponer un canje de cautivos."),
+                + " " + L.T("AIL_e7b1d21a", "Si tienes nobles suyos presos, puedes pedir un rescate por ellos o proponer un canje de cautivos.")
+                + PendingBlock(),
                 true, true, L.T("AIL_e5c9b3ad", "Proclamar"), L.T("AIL_e5c9b3a4", "Cancelar"), text =>
                 {
                     text = (text ?? "").Trim();

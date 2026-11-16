@@ -446,7 +446,7 @@
     <string id="AIL_5a9ce79b" text="已逾期" />
     <string id="AIL_5abeb44e" text="家族叛乱" />
     <string id="AIL_5affe75c" text="你的部下不能进到这里面：只能在街上。" />
-    <string id="AIL_5b102155" text="如果守卫把你关在你的封地和王国之外，当地领主会作出判决（释放、罚款或地牢刑期），改变你在那里的名声和他对你的看法，判决还会作为新闻公布。前提是那里的人知道你是谁。" />
+    <string id="AIL_5b102155" text="若守卫在你的封地和王国之外把你关押，当地领主会作出判决（释放、地牢关押若干天，或在允许时处死），改变你在当地的名声和他对你的看法，判决会作为新闻公布。前提是当地有人知道你是谁。" />
     <string id="AIL_5b4803a4" text="{0} 家族加入 {1}" />
     <string id="AIL_5b79eb8c" text="事件的最大长度（字符数）" />
     <string id="AIL_5b7a333a" text=" （此前属于 {0}）。" />
@@ -1006,7 +1006,7 @@
     <string id="AIL_cb8abbac" text="目标：与 {0} 交谈，然后返回。" />
     <string id="AIL_cbd20bc6" text="一个事件可以使一个封臣家族起兵反抗其王室（绝不会是你的家族或统治家族），前提是他与国王确实关系不好。" />
     <string id="AIL_cbe9f6a8" text="&#10;&#10;最近的内容：&#10;" />
-    <string id="AIL_cc079ac8" text="已经认识你且路过附近的贵族，如果有理由（一项未完成的委托、听到的关于你的事、好感或怨恨），可以骑马来找你交谈。他会问你是否愿意接见。" />
+    <string id="AIL_cc079ac8" text="视野内的领主（无论你是否认识）可能骑马过来与你交谈：未完成的委托、听说了你的事、好感、怨恨，或只是想看看你是谁。他在靠近时会询问你是否接见。" />
     <string id="AIL_cc456770" text="卢孔的封印信" />
     <string id="AIL_cc47eaca" text="{0} 将带着他的队伍跟随你。" />
     <string id="AIL_ccda8e3e" text="构建上下文时出现内部错误： " />
@@ -1041,7 +1041,7 @@
     <string id="AIL_d36c447b" text="好的" />
     <string id="AIL_d37eb730" text="最大影响：每日繁荣度" />
     <string id="AIL_d4237d66" text="AI Legacy" />
-    <string id="AIL_d43bd671" text="它不像时钟那样准时：实际间隔在此值的 60 % 到 140 % 之间浮动。" />
+    <string id="AIL_d43bd671" text="每批事件恰好每隔这么多天到来。每批只有一种类型，按下方的事件比例抽取；若某场战争双方疲惫都超过 75%，则为军事类。失败的批次会在次日重试。" />
     <string id="AIL_d49df131" text="当你多次交谈过的角色死亡时，AI会写下他的纪事（他是谁、你们之间发生过什么、如何结束）。它显示在屏幕上，并保留在新闻中。每篇纪事一次请求。" />
     <string id="AIL_d4db6271" text="已载入存档时：从 AIInfluence 导入本战役中NPC的记忆、性格、回忆和指令。不会覆盖在 AI Legacy 中已有记忆的人。" />
     <string id="AIL_d53be13f" text="引发反应的最低重要性" />
@@ -1477,7 +1477,7 @@
     <string id="AIL_b7d2f026" text="保留你认识的无地家族" />
     <string id="AIL_b7d2f027" text="一个既无王国又无领地的家族过一段时间会被游戏解散，其成员也会被杀。开启后，被放逐的家族和有你交谈过的人的家族不会被解散。" />
     <string id="AIL_c3e1a901" text="每天可以表态的国王数量" />
-    <string id="AIL_c3e1a902" text="发生大事时，可以有几位国王对此表态。他们依次发言，每一位都知道其他人说了什么。每次声明是一次AI请求。" />
+    <string id="AIL_c3e1a902" text="设为 1 时（与 AIInfluence 相同），全世界每 25 到 36 个游戏小时最多一次声明；设得更多时，一天按此数分配。他们轮流发言，每人都知道前人说了什么。对待决提议的答复（接受或拒绝和平、联盟、贸易、赎金或交换）从不受此限制。每次声明是一次 AI 请求。" />
     <string id="AIL_c3e1a903" text="一位国王声明与下一位之间相隔的游戏小时数" />
     <string id="AIL_c3e1a904" text="群聊：有名字的角色可以使用所有行动" />
     <string id="AIL_c3e1a905" text="在群聊中，领主和其他有名字的角色可以做他们与你单独交谈时能做的事：给金币、宣誓效忠、加入你、向你挑战。关闭：只有场景行动，和以前一样。会让群聊请求变长。" />
@@ -2140,20 +2140,20 @@
     <string id="AIL_e7b1c820" text="{0}个婚外共同子女" />
     <string id="AIL_e7b1c821" text="私生女" />
     <string id="AIL_e7b1c822" text="私生子" />
-    <string id="AIL_e7b1c823" text="{=!}我承认你是我的孩子，在众人面前名正言顺。" />
+    <string id="AIL_e7b1c823" text="{=!}我承认你是我的孩子。从今天起，你真正成为我们家族的一员。" />
     <string id="AIL_e7b1c824" text="{=!}*久久地望着你* 我等这句话等了一辈子。" />
     <string id="AIL_e7b1c825" text="婚外子女" />
-    <string id="AIL_e7b1c826" text="两个彼此未婚的人亲密后可能留下孩子。游戏会以真正的父亲进行怀孕。出生时：如果你是父母之一，你可以选择是否在你家中抚养；已婚的母亲可能把孩子当作丈夫的孩子（只有亲生父母知道的秘密）；否则孩子会按母亲的文化取一个私生子姓氏，她的丈夫和家主会很不满。若父母结婚、孩子本人结婚或成为家主，或你承认他，孩子就成为合法子嗣。" />
+    <string id="AIL_e7b1c826" text="两个彼此未婚的人之间的亲密关系可能会留下孩子。游戏会以真正的父亲来记录这次怀孕。孩子出生时，如果你是父母之一，会询问你是否把孩子当作自己的骨肉在你的家族中抚养；否则孩子留在另一方父母的家族。已婚的母亲可能让孩子冒充丈夫的骨肉；否则孩子会按母亲的文化取一个私生子的姓氏，如果母亲知道父亲是谁，就会有流言点出他的名字。母亲从不认识的父亲永远不会被提起或指责。孩子成年后，你可以通过与孩子交谈来承认他：孩子会以合法身份加入你的家族。父母结婚、孩子本人结婚或成为一族之长时，孩子也会成为合法子嗣。" />
     <string id="AIL_e7b1c827" text="婚外：与情人生子的几率（%）" />
     <string id="AIL_e7b1c828" text="每次与非配偶亲密时。她处于周期的哪一天会使几率成倍变化，与配偶之间相同。建议：10 至 25。" />
     <string id="AIL_e7b1c829" text="婚外：其他角色之间的私情（每年%）" />
     <string id="AIL_e7b1c82a" text="一位贵族女子每年与她常相处的其他家族男子（同城、同军或同队）怀孕的几率，以未满30岁的普通未婚女子为准。不讲名誉、婚姻不幸和彼此倾慕会让几率提高，最多三倍；已婚且重名誉的人从不越轨。0 = 关闭。建议：0 至 3。" />
     <string id="AIL_e7b1c82b" text="婚外：保护你的家族" />
     <string id="AIL_e7b1c82c" text="开启：你家族的女性不会因AI私情而怀孕。" />
-    <string id="AIL_e7b1c82d" text="婚外：已婚母亲保守秘密的几率（%）" />
-    <string id="AIL_e7b1c82e" text="孩子留在已婚母亲身边时：被当作其丈夫孩子的几率。建议：50 至 80。" />
+    <string id="AIL_e7b1c82d" text="婚外子女：已婚母亲保守秘密的几率（%）" />
+    <string id="AIL_e7b1c82e" text="孩子留在已婚母亲身边时：被当作她丈夫骨肉的几率。推荐：50到80。" />
     <string id="AIL_e7b1c82f" text="婚外：后果" />
-    <string id="AIL_e7b1c830" text="若秘密未能保住，过错方（父亲，或不愿抚养孩子的你）会与抚养者的配偶和家主关系下降。" />
+    <string id="AIL_e7b1c830" text="若秘密未能保住，责任人（父亲，或不愿抚养孩子的你）与抚养者的配偶及其家族族长的关系会下降。若母亲不知道父亲是谁则不适用。" />
     <string id="AIL_e7b1c831" text="婚外：与配偶的关系下降" />
     <string id="AIL_e7b1c832" text="婚外：与家主的关系下降" />
     <string id="AIL_e7b1c833" text="婚外：结婚即获合法身份" />
@@ -2469,5 +2469,175 @@
     <string id="AIL_e7b1d10b" text="是" />
     <string id="AIL_e7b1d10c" text="否" />
     <string id="AIL_e7b1d300" text="{0}被卷入了打斗。" />
+    <string id="AIL_e7b1d500" text="我想承认我们的儿子{0}是我的骨肉，让他成为合法子嗣，归入我的家族。" />
+    <string id="AIL_e7b1d501" text="我想承认我们的女儿{0}是我的骨肉，让她成为合法子嗣，归入我的家族。" />
+    <string id="AIL_e7b1d502" text="*久久地注视着你* 那就这样吧。让全世界都知道{0}是谁的孩子。" />
+    <string id="AIL_e7b1d503" text="传言{0}有个私生子" />
+    <string id="AIL_e7b1d504" text="据说{0}在婚外生下了{1}，而孩子的父亲是{2}。" />
+    <string id="AIL_e7b1d505" text="{0}在婚外生下了{1}。没人知道孩子的父亲是谁。" />
+    <string id="AIL_e7b1d506" text="{0}在婚外生下了{1}，却没有说出孩子的父亲是谁。" />
+    <string id="AIL_e7b1d507" text="有人私下议论，{1}生下的孩子{0}并非她丈夫的骨肉，也没人知道是谁的。" />
+    <string id="AIL_e7b1d508" text="{0}的父亲是{1}，不过{2}从未对任何人提起。" />
+    <string id="AIL_e7b1d509" text="{0}承认了{1}" />
+    <string id="AIL_e7b1d50a" text="{0}公开承认婚外所生的{1}是自己的孩子。" />
+    <string id="AIL_e7b1d50b" text="{0}生下了{1}，是你的孩子。孩子将在母亲家中长大；若想承认这个孩子，就去和她谈谈。" />
+    <string id="AIL_e7b1d50c" text="{0}生下了{1}，是你的孩子，不过她并不知道孩子的父亲是谁。孩子将在她家中长大。" />
+    <string id="AIL_e7b1d50d" text="{0}生下了{1}，是你的孩子，却让人以为是{2}的骨肉。" />
+    <string id="AIL_e7b1d50e" text="{0}现在是你的合法子女，并加入了你的家族。" />
+    <string id="AIL_e7b1d400" text="路上" />
+    <string id="AIL_e7b1d401" text="一名持械的外乡人" />
+    <string id="AIL_e7b1d402" text="一名外乡人" />
+    <string id="AIL_e7b1d403" text="一个没人看见的人" />
+    <string id="AIL_e7b1d404" text="{0}在{2}袭击了{1}。" />
+    <string id="AIL_e7b1d405" text="{0}在{2}袭击了{1}个人。" />
+    <string id="AIL_e7b1d406" text="其中有{0}。" />
+    <string id="AIL_e7b1d407" text="起初是拳脚相加，最后动了刀剑。" />
+    <string id="AIL_e7b1d408" text="行凶者拔出了刀剑。" />
+    <string id="AIL_e7b1d409" text="只是赤手空拳，没有动兵器。" />
+    <string id="AIL_e7b1d40a" text="没有人倒下：行凶者自己吃了亏。" />
+    <string id="AIL_e7b1d40b" text="死者：{0}。" />
+    <string id="AIL_e7b1d40c" text="伤者：{0}。" />
+    <string id="AIL_e7b1d40d" text="被打昏者：{0}。" />
+    <string id="AIL_e7b1d40e" text="有{0}人（卫兵和亲属）出来保护受害者。" />
+    <string id="AIL_e7b1d40f" text="其中{0}人倒下。" />
+    <string id="AIL_e7b1d410" text="警钟敲响，全城卫兵都赶来了。" />
+    <string id="AIL_e7b1d411" text="卫兵听到打斗声赶来了。" />
+    <string id="AIL_e7b1d412" text="{0}认出了行凶者：大家都知道是{1}干的。" />
+    <string id="AIL_e7b1d413" text="有目击者（{0}人），但没人知道他是谁。" />
+    <string id="AIL_e7b1d414" text="没人看见是谁干的，只发现了受害者。" />
+    <string id="AIL_e7b1d415" text="行凶者" />
+    <string id="AIL_e7b1d416" text="{0}血案" />
+    <string id="AIL_e7b1d417" text="{0}见血" />
+    <string id="AIL_e7b1d418" text="{0}接连遇袭" />
+    <string id="AIL_e7b1d419" text="{0}行凶" />
+    <string id="AIL_e7b1d41a" text="{0}打斗" />
+    <string id="AIL_e7b1d41b" text="逃脱卫兵" />
+    <string id="AIL_e7b1d41c" text="{0}被卫兵盘问后放走了。" />
+    <string id="AIL_e7b1d41d" text="{0}被卫兵罚了{1}第纳尔。" />
+    <string id="AIL_e7b1d41e" text="{0}被卫兵逮捕了。" />
+    <string id="AIL_e7b1d41f" text="{0}拒捕反抗卫兵，成功逃脱。" />
+    <string id="AIL_e7b1d420" text="{0}拒捕反抗卫兵，最终被制服。" />
+    <string id="AIL_e7b1d421" text="{0}拔腿就跑，逃出了{1}。" />
+    <string id="AIL_e7b1d422" text="{0}想从卫兵手中逃走，却被追上了。" />
+    <string id="AIL_e7b1d423" text="{0}被关进了{1}的牢房。" />
+    <string id="AIL_e7b1d510" text="私生子降生" />
+    <string id="AIL_e7b1d511" text="{0}生下了{1}。你要把孩子当作自己的骨肉抚养，并接纳进你的家族吗？" />
+    <string id="AIL_e7b1d512" text="你生下了{0}。你要把孩子当作自己的骨肉抚养，并接纳进你的家族吗？" />
+    <string id="AIL_e7b1d513" text="是" />
+    <string id="AIL_e7b1d514" text="否" />
+    <string id="AIL_e7b1d600" text="{0}向你求婚了！请在对话中回答。" />
+    <string id="AIL_e7b1d601" text="{0}拒绝了求婚。" />
+    <string id="AIL_e7b1d602" text="{0}现在无法与你成婚。" />
+    <string id="AIL_e7b1d603" text="{0}与你成婚了！恭喜。" />
+    <string id="AIL_e7b1d604" text="{0}向你发起生死决斗。请在对话中回答接受或拒绝。" />
+    <string id="AIL_e7b1d605" text="{0}向你提出友好决斗。请在对话中回答接受或拒绝。" />
+    <string id="AIL_e7b1d606" text="你已向{0}投降。" />
+    <string id="AIL_e7b1d607" text="其队伍（{0}人）现归你的家族所有。" />
+    <string id="AIL_e7b1d608" text="你一离开此地，{0}就会带着自己的队伍随你出发。" />
+    <string id="AIL_e7b1d609" text="{0}加入了你的队伍，并带来了{1}名士兵。" />
+    <string id="AIL_e7b1d60a" text="{0}的队伍（临时）" />
+    <string id="AIL_e7b1d60b" text="{0}未能随你出发。" />
+    <string id="AIL_e7b1d60c" text="{0}的队伍启程跟随你。" />
+    <string id="AIL_e7b1d60d" text="{0}正经历最后的时刻……（读完或听完后点击“继续”）" />
+    <string id="AIL_e7b1d60e" text="婚礼将在对话结束后举行……（读完或听完后点击“继续”）" />
+    <string id="AIL_e7b1d60f" text="你已向{0}投降……（读完或听完后点击“继续”）" />
+    <string id="AIL_e7b1d610" text="{0}准备投降……（读完或听完后点击“继续”）" />
+    <string id="AIL_e7b1d611" text="深爱你的未婚之人可以在交谈中同意离开自己的家族，作为侍妾与你同住：加入你的家族和队伍（若其率领自己的队伍，士兵会并入你的队伍），其原家主会很不满，也可能有孩子（婚外所生，你是公认的父亲或母亲）。你已婚时，同意嫁给你的人会改为成为你的侍妾，否则婚礼不会举行。当你们任何一方决定、一方死亡或你娶其为妻时结束。在此期间，其他人不能与其成婚。" />
+    <string id="AIL_e7b1d612" text="超过这些天没有交谈或通信后，浪漫度每天按下方数值下降（与配偶的浪漫度不会低于 40）。" />
+    <string id="AIL_e7b1d613" text="冷却后每天损失的浪漫度" />
+    <string id="AIL_e7b1d614" text="亲密带来的浪漫度" />
+    <string id="AIL_e7b1d700" text="你感觉不太舒服……" />
+    <string id="AIL_e7b1d701" text="你队伍里有人感觉不舒服……" />
+    <string id="AIL_e7b1d702" text="你队伍里的部队似乎病倒了。" />
+    <string id="AIL_e7b1d703" text="你已经完全康复了。" />
+    <string id="AIL_e7b1d704" text="你的部队已经完全康复了。" />
+    <string id="AIL_e7b1d705" text="俘获的囚犯已被感染：{0}（{1}）" />
+    <string id="AIL_e7b1d706" text="囚犯已从{0}中康复" />
+    <string id="AIL_e7b1d707" text="隔离管理" />
+    <string id="AIL_e7b1d708" text="{0}% 已感染（{1}/{2}）" />
+    <string id="AIL_e7b1d709" text="{0}因隔离而封闭，你不得进入。" />
+    <string id="AIL_e7b1d70a" text="此定居点因隔离而封闭，你不得进入。" />
+    <string id="AIL_e7b1d70b" text="你还没走到城门，卫兵军士便抬手拦住了你。“{?PLAYER.GENDER}夫人{?}大人{\?}，奉{LORD.LINK}之命，{SETTLEMENT_NAME}正在隔离。在解除隔离之前，任何人不得进出。请您折返吧。”" />
+    <string id="AIL_e7b1d70c" text="卫兵拦住了你的去路。这座城堡正在隔离，你不得进入。" />
+    <string id="AIL_e7b1d70d" text="因隔离而关闭。" />
+    <string id="AIL_e7b1d70e" text="你已被感染，不能离开正在隔离的定居点。" />
+    <string id="AIL_e7b1d70f" text="{=!}管理隔离" />
+    <string id="AIL_e7b1d710" text="{=!}离开" />
+    <string id="AIL_e7b1d711" text="定居点：{0}" />
+    <string id="AIL_e7b1d712" text="当前疾病：" />
+    <string id="AIL_e7b1d713" text="（隔离中）" />
+    <string id="AIL_e7b1d714" text="{0}（严重程度 {1}）" />
+    <string id="AIL_e7b1d715" text="剩余天数：{0}" />
+    <string id="AIL_e7b1d716" text="当前没有疾病。" />
+    <string id="AIL_e7b1d717" text="警告：当前没有疾病，隔离的惩罚加倍！" />
+    <string id="AIL_e7b1d718" text="隔离效果：" />
+    <string id="AIL_e7b1d719" text="减缓疾病传播" />
+    <string id="AIL_e7b1d71a" text="阻止瘟疫爆发" />
+    <string id="AIL_e7b1d71b" text="限制贸易与访问" />
+    <string id="AIL_e7b1d71d" text="解除隔离" />
+    <string id="AIL_e7b1d71e" text="向访客开放此定居点。" />
+    <string id="AIL_e7b1d71f" text="对城镇实施隔离" />
+    <string id="AIL_e7b1d720" text="对城堡实施隔离" />
+    <string id="AIL_e7b1d721" text="封闭此定居点，直到你解除隔离。" />
+    <string id="AIL_e7b1d722" text="{0}的隔离已解除。" />
+    <string id="AIL_e7b1d723" text="已对{0}实施隔离，你可以随时解除。" />
+    <string id="AIL_e7b1d724" text="当前没有疾病：隔离将带来严重的经济惩罚。" />
+    <string id="AIL_e7b1d726" text="疫情源于世界事件，或当多名患有同一种疾病的英雄聚集在同一座城镇或城堡时爆发为瘟疫。它们会损害定居点，随患病的领主、商队和村民传播，削弱留在那里的人，并会被隔离遏制。" />
+    <string id="AIL_e7b1d727" text="当你停留在有疾病的地方时，你的部分士兵可能会染病。他们仍留在队伍中，但会拖慢行军、降低士气、战斗力下降，最严重的可能会死亡。" />
+    <string id="AIL_e7b1d728" text="只有严重疾病（严重程度 3 及以上）会致命。病程达到 80% 后，患病的英雄或士兵每天最多承受此死亡几率；达到 100% 时必死无疑。事件提出的更高数值会被降至此值。" />
+    <string id="AIL_e7b1d729" text="世界事件可同时引发的疫情数量。由病人带去或因瘟疫爆发的疫情不受此限制。" />
+    <string id="AIL_e7b1d72a" text="一次疫情开始后，需经过多少天世界事件才能引发下一次疫情。" />
+    <string id="AIL_e7b1d72b" text="上限：最高每日死亡几率" />
+    <string id="AIL_e7b1d800" text="{0}{1}{2}。你可以随时在「世界事件」中发表声明作答。" />
+    <string id="AIL_e7b1d801" text="{0}{1}{2}{3}。还剩 {4} 天可以答复。" />
+    <string id="AIL_e7b1d802" text="等待你答复的提议（在声明中说明接受或拒绝）：" />
+    <string id="AIL_e7b1d803" text="等待你答复的提议" />
+    <string id="AIL_e7b1d804" text="用「发表声明」作答：说明你接受还是拒绝，或提出其他条件。" />
+    <string id="AIL_e7b1d805" text="全世界两次声明之间的游戏小时数" />
+    <string id="AIL_e7b1d806" text="每天一位国王时：任何 AI 国王发言后，下一次声明需等待这些游戏小时再随机加 1 到 12 小时（设为 24 时，每 25 到 36 小时一次）。对待决提议的答复从不等待。" />
+    <string id="AIL_e7b1d807" text="继承：{0}王国随其君主一同覆灭。" />
+    <string id="AIL_e7b1d808" text="继承：{0}的领主们正在推选新君主。" />
+    <string id="AIL_e7b1d809" text="继承：{0}现已统治{1}。" />
+    <string id="AIL_e7b1d80a" text="继承：{0}正等待新君主。" />
+    <string id="AIL_e7b1d80c" text="死于{0}" />
+    <string id="AIL_e7b1d80d" text="领主" />
+    <string id="AIL_e7b1d80e" text="{0}没有追捕你。" />
+    <string id="AIL_e7b1d80f" text="你被判处死刑。" />
+    <string id="AIL_e7b1d810" text="你将被放出地牢。" />
+    <string id="AIL_e7b1d811" text="你在{1}地牢的刑期增加 {0} 天。" />
+    <string id="AIL_e7b1d812" text="你将在{1}地牢度过 {0} 天。" />
+    <string id="AIL_e7b1d813" text="你在{0}的犯罪值增加了 {1}。" />
+    <string id="AIL_e7b1d814" text="{0}的审判" />
+    <string id="AIL_e7b1d815" text="关闭" />
+    <string id="AIL_e7b1d816" text="继续" />
+    <string id="AIL_e7b1d817" text="奉{0}之命，守卫打开牢门，把你带出{1}的地牢。" />
+    <string id="AIL_e7b1d818" text="你已在{1}的地牢里熬过 {0} 天。按{2}的命令，守卫放你离开。" />
+    <string id="AIL_e7b1d819" text="黎明时守卫来带你。{0}已判你死刑，判决在{1}的民众面前执行。" />
+    <string id="AIL_e7b1d81a" text="你从打盹的守卫身边溜过，爬上楼梯，逃出{0}的地牢。天亮时你已远离城墙，但{1}会听说此事。" />
+    <string id="AIL_e7b1d81b" text="你刚到楼梯就被守卫抓住。他们痛打你一顿，把你扔回{0}的牢房。{1}将为此再次审判你。" />
+    <string id="AIL_e7b1d81c" text="夜里，牢门口的守卫打起了瞌睡，旧门闩在你手下微微松动。你可以试着逃出{0}的地牢。若被守卫抓住，{1}会再次审判你。这次之后还剩尝试机会：{2}。" />
+    <string id="AIL_e7b1d81d" text="尝试越狱（{AIL_ESCAPE_ODDS}% 几率）" />
+    <string id="AIL_e7b1d81e" text="留在牢房" />
+    <string id="AIL_e7b1d81f" text="最短刑期（地牢天数）" />
+    <string id="AIL_e7b1d820" text="法官可以处决你" />
+    <string id="AIL_e7b1d821" text="若你身在领主的地牢中，领主可以下令处决你：游戏随后如同你战死后那样继续。关闭时：最重的判决为最长的地牢刑期。" />
+    <string id="AIL_e7b1d822" text="每日出现越狱机会的几率（%）" />
+    <string id="AIL_e7b1d823" text="你在地牢服刑期间，这是每天出现越狱机会的几率。是否尝试由你决定；成功率取决于你的流氓技能。无论逃脱还是被抓，领主都会再次审判你。0 = 从不。" />
+    <string id="AIL_e7b1d824" text="每次关押的越狱次数" />
+    <string id="AIL_e7b1d825" text="一次关押期间可以尝试越狱的次数。越狱失败后的新判决不会带来新的次数。" />
+    <string id="AIL_e7b1d826" text="{0}正走过来想和你谈谈。" />
+    <string id="AIL_e7b1d827" text="{0}{1}正朝你的队伍骑来，请求与你交谈。" />
+    <string id="AIL_e7b1d828" text="视野内每位领主的几率，每 5 小时（%）" />
+    <string id="AIL_e7b1d829" text="每 5 个游戏小时，视野内的每位领主（无论是否认识）都以此几率前来交谈；关系高于 20 加 2，低于 -20 加 1，恋情高于 50 加 2，交谈超过 10 次加 2，20 天未交谈加 4，在你队伍中同行者加 2。" />
+    <string id="AIL_e7b1d82a" text="敌对领主先开口" />
+    <string id="AIL_e7b1d82b" text="与你交战、队伍更强且正在追击你的领主，追上你时会先开口。" />
+    <string id="AIL_e7b1d82c" text="另一位敌对领主再次先开口前的天数" />
+    <string id="AIL_e7b1d82d" text="敌对领主追上你并先开口后，这些天内不会再有敌对领主这样做。" />
+    <string id="AIL_e7b1d82e" text="决斗将在 3 秒后开始。准备好武器。" />
+    <string id="AIL_e7b1d82f" text="决斗开始！" />
+    <string id="AIL_e7b1d830" text="你违背了与{0}的决斗约定：决斗变成了战斗。" />
+    <string id="AIL_e7b1d831" text="{0}到处在说：「{1}」" />
+    <string id="AIL_e7b1d832" text="家族声望提高了 {0}" />
+    <string id="AIL_e7b1d833" text="，声望 +{0}" />
   </strings>
 </base>

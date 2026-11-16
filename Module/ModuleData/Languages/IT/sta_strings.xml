@@ -446,7 +446,7 @@
     <string id="AIL_5a9ce79b" text="Scadenza superata" />
     <string id="AIL_5abeb44e" text="Ribellioni di clan" />
     <string id="AIL_5affe75c" text="I tuoi uomini non possono entrare qui dentro: solo in strada." />
-    <string id="AIL_5b102155" text="Se la guardia ti rinchiude fuori dal tuo feudo e dal tuo regno, il signore del luogo emette la sentenza (rilascio, multa o giorni di prigione), cambia la tua fama lì e ciò che pensa di te, e la sua sentenza viene annunciata come notizia. Serve che lì sappiano chi sei." />
+    <string id="AIL_5b102155" text="Se la guardia ti rinchiude fuori dal tuo feudo e dal tuo regno, il signore del luogo emette la sentenza (rilascio, giorni di prigione o, se permesso, la morte), cambia la tua reputazione lì e ciò che pensa di te, e la sentenza viene annunciata come notizia. Lì devono sapere chi sei." />
     <string id="AIL_5b4803a4" text="Il clan {0} si unisce a {1}" />
     <string id="AIL_5b79eb8c" text="Lunghezza massima di un evento (caratteri)" />
     <string id="AIL_5b7a333a" text=" (prima era di {0})." />
@@ -1006,7 +1006,7 @@
     <string id="AIL_cb8abbac" text="Obiettivo: parlare con {0} e tornare." />
     <string id="AIL_cbd20bc6" text="Un evento può far ribellare un clan vassallo contro la sua corona (mai il tuo né il clan regnante), se va davvero male con il suo re." />
     <string id="AIL_cbe9f6a8" text="&#10;&#10;Ultime novità:&#10;" />
-    <string id="AIL_cc079ac8" text="Un nobile che ti conosce già e passa vicino può cavalcare fino a te per parlarti, se ha un motivo: un incarico aperto, qualcosa che ha sentito su di te, affetto o rancore. Ti chiede se lo ricevi." />
+    <string id="AIL_cc079ac8" text="Un signore in vista, che tu lo conosca o no, può cavalcare fino a te per parlare: un incarico aperto, qualcosa che ha sentito su di te, affetto, rancore o solo vedere chi sei. Mentre si avvicina ti chiede se lo ricevi." />
     <string id="AIL_cc456770" text="Lettera sigillata di Lucon" />
     <string id="AIL_cc47eaca" text="{0} ti seguirà con il suo gruppo." />
     <string id="AIL_ccda8e3e" text="Errore interno nella costruzione del contesto: " />
@@ -1041,7 +1041,7 @@
     <string id="AIL_d36c447b" text="Ok" />
     <string id="AIL_d37eb730" text="Effetto massimo: prosperità al giorno" />
     <string id="AIL_d4237d66" text="AI Legacy" />
-    <string id="AIL_d43bd671" text="Non scatta come un orologio: l'intervallo reale varia tra il 60 % e il 140 % di questo valore." />
+    <string id="AIL_d43bd671" text="Un gruppo arriva esattamente ogni tot giorni. Ogni gruppo è di un solo tipo, estratto dal mix di eventi qui sotto; è militare quando una guerra ha logorato entrambe le parti oltre il 75 %. Un gruppo fallito si riprova il giorno dopo." />
     <string id="AIL_d49df131" text="Quando muore un personaggio con cui hai parlato più volte, l'IA scrive la sua cronaca (chi fu, cosa c'è stato tra voi, come è finita). Compare a schermo e resta in Notizie. Una richiesta per cronaca." />
     <string id="AIL_d4db6271" text="Con una partita caricata: importa da AIInfluence la memoria, la personalità, i ricordi e le istruzioni degli NPC di QUESTA campagna. Non sovrascrive chi ha già memoria in AI Legacy." />
     <string id="AIL_d53be13f" text="Importanza minima per provocare una reazione" />
@@ -1477,7 +1477,7 @@
     <string id="AIL_b7d2f026" text="Tenere in vita i clan senza terra che conosci" />
     <string id="AIL_b7d2f027" text="Dopo un po' il gioco scioglie un clan senza regno e senza terre e ne uccide i membri. Con questa opzione risparmia i clan banditi e quelli con persone con cui hai parlato." />
     <string id="AIL_c3e1a901" text="Re che possono pronunciarsi al giorno" />
-    <string id="AIL_c3e1a902" text="Quando succede qualcosa di grosso, più re possono parlarne. Parlano a turno e ognuno sa che cosa hanno detto gli altri. Ogni dichiarazione è una richiesta all'IA." />
+    <string id="AIL_c3e1a902" text="Con 1 (come in AIInfluence), al massimo una dichiarazione ogni 25-36 ore di gioco in tutto il mondo; con di più, la giornata si divide tra loro. Parlano a turno, ognuno sapendo cosa hanno detto gli altri. Le risposte a una proposta in sospeso (accettare o rifiutare una pace, un’alleanza, un commercio, un riscatto o uno scambio) non aspettano mai questo limite. Ogni dichiarazione è una richiesta all’IA." />
     <string id="AIL_c3e1a903" text="Ore di gioco tra la dichiarazione di un re e la successiva" />
     <string id="AIL_c3e1a904" text="Gruppo: i personaggi con nome possono usare tutte le azioni" />
     <string id="AIL_c3e1a905" text="In una conversazione di gruppo, i signori e gli altri personaggi con nome possono fare ciò che farebbero da soli con te: dare oro, giurare fedeltà, unirsi a te, sfidarti. Disattivato: solo azioni di scena, come prima. Allunga la richiesta del gruppo." />
@@ -2140,10 +2140,10 @@
     <string id="AIL_e7b1c820" text="{0} figlio/i in comune fuori dal matrimonio" />
     <string id="AIL_e7b1c821" text="figlia bastarda" />
     <string id="AIL_e7b1c822" text="figlio bastardo" />
-    <string id="AIL_e7b1c823" text="{=!}Ti riconosco come mio figlio, legittimo davanti a tutti." />
+    <string id="AIL_e7b1c823" text="{=!}Ti riconosco come mio figlio. Da oggi fai davvero parte della nostra famiglia." />
     <string id="AIL_e7b1c824" text="{=!}*ti fissa a lungo* Ho aspettato tutta la vita di sentirlo." />
     <string id="AIL_e7b1c825" text="Figli fuori dal matrimonio" />
-    <string id="AIL_e7b1c826" text="L’intimità tra due persone non sposate tra loro può lasciare un figlio. Il gioco porta avanti la gravidanza con il vero padre. Alla nascita: se sei uno dei genitori, scegli se crescerlo nella tua casa; una madre sposata può farlo passare per figlio del marito (un segreto che conoscono solo i due genitori); altrimenti porta un cognome da bastardo secondo la cultura della madre, e il marito e il capo della casa la prendono male. Diventa legittimo se i genitori si sposano, se si sposa o guida una casa, o se lo riconosci." />
+    <string id="AIL_e7b1c826" text="L’intimità tra due persone non sposate tra loro può lasciare un figlio. Il gioco porta avanti la gravidanza con il vero padre. Alla nascita, se sei uno dei genitori, ti viene chiesto se crescerlo come tuo nel tuo clan; altrimenti resta nel clan dell’altro genitore. Una madre sposata può farlo passare per figlio del marito; altrimenti il bambino porta un cognome da bastardo secondo la cultura della madre e, se lei sa chi è il padre, una voce lo nomina. Un padre che la madre non ha mai conosciuto non viene mai nominato né incolpato. Puoi riconoscere un tuo figlio una volta maggiorenne parlandogli: entra nel tuo clan come legittimo. Diventa legittimo anche se i genitori si sposano, o se il figlio si sposa o guida una casata." />
     <string id="AIL_e7b1c827" text="Fuori dal matrimonio: probabilità di un figlio con un amante (%)" />
     <string id="AIL_e7b1c828" text="Ogni volta che condividi intimità con qualcuno che non hai sposato. Il giorno del suo ciclo la moltiplica, come tra coniugi. Consigliato: da 10 a 25." />
     <string id="AIL_e7b1c829" text="Fuori dal matrimonio: relazioni tra altri personaggi (% all’anno)" />
@@ -2153,7 +2153,7 @@
     <string id="AIL_e7b1c82d" text="Fuori dal matrimonio: probabilità che una madre sposata mantenga il segreto (%)" />
     <string id="AIL_e7b1c82e" text="Quando il bambino resta con una madre sposata: la probabilità che passi per figlio del marito. Consigliato: da 50 a 80." />
     <string id="AIL_e7b1c82f" text="Fuori dal matrimonio: conseguenze" />
-    <string id="AIL_e7b1c830" text="Quando il segreto non viene mantenuto, il colpevole (il padre, o tu se non hai voluto crescere il bambino) perde relazione con il coniuge e il capo della casa di chi lo cresce." />
+    <string id="AIL_e7b1c830" text="Quando il segreto non viene mantenuto, il colpevole (il padre, o tu se non hai voluto crescere il bambino) perde relazione con il coniuge e il capo della casata di chi lo cresce. Non se la madre non sa chi sia il padre." />
     <string id="AIL_e7b1c831" text="Fuori dal matrimonio: relazione persa con il coniuge" />
     <string id="AIL_e7b1c832" text="Fuori dal matrimonio: relazione persa con il capo della casa" />
     <string id="AIL_e7b1c833" text="Fuori dal matrimonio: sposarsi legittima" />
@@ -2469,5 +2469,175 @@
     <string id="AIL_e7b1d10b" text="sì" />
     <string id="AIL_e7b1d10c" text="no" />
     <string id="AIL_e7b1d300" text="{0} viene trascinato nella rissa." />
+    <string id="AIL_e7b1d500" text="Voglio riconoscere nostro figlio {0} come mio, legittimo e della mia casata." />
+    <string id="AIL_e7b1d501" text="Voglio riconoscere nostra figlia {0} come mia, legittima e della mia casata." />
+    <string id="AIL_e7b1d502" text="*sostiene il tuo sguardo a lungo* E così sia. Che tutto il mondo sappia di chi è figlio {0}." />
+    <string id="AIL_e7b1d503" text="Si parla di un figlio illegittimo di {0}" />
+    <string id="AIL_e7b1d504" text="Si dice che {0} abbia dato alla luce {1} fuori dal matrimonio, e che il padre sia {2}." />
+    <string id="AIL_e7b1d505" text="{0} ha dato alla luce {1} fuori dal matrimonio. Nessuno sa chi sia il padre." />
+    <string id="AIL_e7b1d506" text="{0} ha dato alla luce {1} fuori dal matrimonio, e non ha detto chi sia il padre." />
+    <string id="AIL_e7b1d507" text="Si mormora che {0}, il figlio avuto da {1}, non sia di suo marito, e nessuno sa di chi sia." />
+    <string id="AIL_e7b1d508" text="Il padre di {0} è {1}, anche se {2} non l’ha detto a nessuno." />
+    <string id="AIL_e7b1d509" text="{0} riconosce {1}" />
+    <string id="AIL_e7b1d50a" text="{0} ha riconosciuto pubblicamente {1}, nato fuori dal matrimonio, come proprio figlio." />
+    <string id="AIL_e7b1d50b" text="{0} ha dato alla luce {1}, figlio tuo. Crescerà nella casa della madre; se vuoi riconoscerlo, parla con lei." />
+    <string id="AIL_e7b1d50c" text="{0} ha dato alla luce {1}, figlio tuo, anche se lei non sa chi sia il padre. Crescerà nella sua casa." />
+    <string id="AIL_e7b1d50d" text="{0} ha dato alla luce {1}, figlio tuo, e lo fa passare per figlio di {2}." />
+    <string id="AIL_e7b1d50e" text="{0} è ora tuo figlio legittimo ed entra nel tuo clan." />
+    <string id="AIL_e7b1d400" text="le strade" />
+    <string id="AIL_e7b1d401" text="uno straniero armato" />
+    <string id="AIL_e7b1d402" text="uno straniero" />
+    <string id="AIL_e7b1d403" text="qualcuno che nessuno ha visto" />
+    <string id="AIL_e7b1d404" text="{0} ha aggredito {1} a {2}." />
+    <string id="AIL_e7b1d405" text="{0} ha aggredito {1} persone a {2}." />
+    <string id="AIL_e7b1d406" text="Tra loro, {0}." />
+    <string id="AIL_e7b1d407" text="È cominciata a pugni ed è finita con l'acciaio in mano." />
+    <string id="AIL_e7b1d408" text="Fu con l'acciaio sguainato." />
+    <string id="AIL_e7b1d409" text="Fu a pugni, senza armi." />
+    <string id="AIL_e7b1d40a" text="Nessuno è caduto: l'aggressore ha avuto la peggio." />
+    <string id="AIL_e7b1d40b" text="Morti: {0}." />
+    <string id="AIL_e7b1d40c" text="Feriti: {0}." />
+    <string id="AIL_e7b1d40d" text="Lasciati privi di sensi: {0}." />
+    <string id="AIL_e7b1d40e" text="{0} persone, tra guardie e parenti, sono accorse a difendere le vittime." />
+    <string id="AIL_e7b1d40f" text="Di loro ne sono caduti {0}." />
+    <string id="AIL_e7b1d410" text="È suonata la campana d'allarme ed è accorsa tutta la guardia." />
+    <string id="AIL_e7b1d411" text="La guardia ha sentito lo scontro ed è accorsa." />
+    <string id="AIL_e7b1d412" text="{0} ha riconosciuto l'aggressore: si sa che è stato {1}." />
+    <string id="AIL_e7b1d413" text="Ci sono stati testimoni ({0}), ma nessuno sa chi fosse." />
+    <string id="AIL_e7b1d414" text="Nessuno ha visto chi è stato: sono state trovate solo le vittime." />
+    <string id="AIL_e7b1d415" text="l'aggressore" />
+    <string id="AIL_e7b1d416" text="Strage a {0}" />
+    <string id="AIL_e7b1d417" text="Sangue a {0}" />
+    <string id="AIL_e7b1d418" text="Aggressioni a {0}" />
+    <string id="AIL_e7b1d419" text="Aggressione di {0}" />
+    <string id="AIL_e7b1d41a" text="Scontri a {0}" />
+    <string id="AIL_e7b1d41b" text="Fuga dalla guardia" />
+    <string id="AIL_e7b1d41c" text="{0} è stato interrogato dalla guardia, che l'ha lasciato andare." />
+    <string id="AIL_e7b1d41d" text="{0} ha dovuto pagare alla guardia una multa di {1} denari." />
+    <string id="AIL_e7b1d41e" text="{0} è stato arrestato dalla guardia." />
+    <string id="AIL_e7b1d41f" text="{0} ha resistito alla guardia ed è riuscito a fuggire." />
+    <string id="AIL_e7b1d420" text="{0} ha resistito alla guardia ed è stato sopraffatto." />
+    <string id="AIL_e7b1d421" text="{0} si è dato alla fuga ed è scappato da {1}." />
+    <string id="AIL_e7b1d422" text="{0} ha cercato di sfuggire alla guardia, ma è stato raggiunto." />
+    <string id="AIL_e7b1d423" text="{0} è finito nelle celle di {1}." />
+    <string id="AIL_e7b1d510" text="È nato un figlio bastardo" />
+    <string id="AIL_e7b1d511" text="{0} ha dato alla luce {1}. Lo crescerai come tuo e lo accoglierai nel tuo clan?" />
+    <string id="AIL_e7b1d512" text="Hai dato alla luce {0}. Lo crescerai come tuo e lo accoglierai nel tuo clan?" />
+    <string id="AIL_e7b1d513" text="Sì" />
+    <string id="AIL_e7b1d514" text="No" />
+    <string id="AIL_e7b1d600" text="{0} ti ha chiesto di sposarti! Rispondi nella conversazione." />
+    <string id="AIL_e7b1d601" text="{0} ha rifiutato la proposta di matrimonio." />
+    <string id="AIL_e7b1d602" text="{0} non può sposarti ora." />
+    <string id="AIL_e7b1d603" text="{0} ti sposa! Congratulazioni." />
+    <string id="AIL_e7b1d604" text="{0} ti sfida a un duello all'ultimo sangue. Rispondi nella conversazione per accettare o rifiutare." />
+    <string id="AIL_e7b1d605" text="{0} ti propone un duello amichevole. Rispondi nella conversazione per accettare o rifiutare." />
+    <string id="AIL_e7b1d606" text="Ti sei arreso a {0}." />
+    <string id="AIL_e7b1d607" text="Il suo gruppo ({0} uomini) ora appartiene al tuo clan." />
+    <string id="AIL_e7b1d608" text="{0} partirà al tuo seguito con un proprio gruppo appena lascerai questo luogo." />
+    <string id="AIL_e7b1d609" text="{0} si unisce al tuo gruppo e porta con sé {1} soldati." />
+    <string id="AIL_e7b1d60a" text="Gruppo di {0} (temporaneo)" />
+    <string id="AIL_e7b1d60b" text="{0} non è riuscito a partire al tuo seguito." />
+    <string id="AIL_e7b1d60c" text="Il gruppo di {0} si mette in cammino per seguirti." />
+    <string id="AIL_e7b1d60d" text="{0} vive i suoi ultimi istanti… (Finisci di leggere o di ascoltare e premi «Continua»)" />
+    <string id="AIL_e7b1d60e" text="Le nozze si terranno alla fine della conversazione… (Finisci di leggere o di ascoltare e premi «Continua»)" />
+    <string id="AIL_e7b1d60f" text="Ti sei arreso a {0}… (Finisci di leggere o di ascoltare e premi «Continua»)" />
+    <string id="AIL_e7b1d610" text="{0} si accinge ad arrendersi… (Finisci di leggere o di ascoltare e premi «Continua»)" />
+    <string id="AIL_e7b1d611" text="Una persona non sposata che ti ama profondamente può accettare, in una conversazione, di lasciare la sua casa e vivere con te come concubina: entra nel tuo clan e nel tuo gruppo (se guida un proprio gruppo, i suoi soldati passano al tuo), il suo vecchio capo della casa la prende male, e possono arrivare figli (fuori dal matrimonio, con te come genitore noto). Finché sei sposato, chi accetta di sposarti diventa invece tua concubina, oppure non ci sono nozze. Finisce quando uno dei due lo decide, quando uno muore o quando la sposi. Nel frattempo nessun altro può sposarla." />
+    <string id="AIL_e7b1d612" text="Passati questi giorni senza parlarvi né scrivervi, il romanticismo cala ogni giorno del valore qui sotto (con il tuo coniuge non scende sotto 40)." />
+    <string id="AIL_e7b1d613" text="Romanticismo perso al giorno quando si raffredda" />
+    <string id="AIL_e7b1d614" text="Romanticismo guadagnato con l'intimità" />
+    <string id="AIL_e7b1d700" text="Non ti senti bene..." />
+    <string id="AIL_e7b1d701" text="Qualcuno del tuo gruppo non si sente bene..." />
+    <string id="AIL_e7b1d702" text="Sembra che le truppe del tuo gruppo si siano ammalate." />
+    <string id="AIL_e7b1d703" text="Ti sei ripreso del tutto." />
+    <string id="AIL_e7b1d704" text="Le tue truppe si sono riprese del tutto." />
+    <string id="AIL_e7b1d705" text="I prigionieri catturati sono infetti: {0} ({1})" />
+    <string id="AIL_e7b1d706" text="I prigionieri sono guariti da {0}" />
+    <string id="AIL_e7b1d707" text="Gestione della quarantena" />
+    <string id="AIL_e7b1d708" text="{0}% infetti ({1}/{2})" />
+    <string id="AIL_e7b1d709" text="{0} è chiusa per quarantena. Non ti è permesso entrare." />
+    <string id="AIL_e7b1d70a" text="Questo insediamento è chiuso per quarantena. Non ti è permesso entrare." />
+    <string id="AIL_e7b1d70b" text="Il sergente della guardia alza una mano prima che tu raggiunga la porta. «{?PLAYER.GENDER}Mia signora{?}Mio signore{\?}, {SETTLEMENT_NAME} è in quarantena per ordine di {LORD.LINK}. Nessuno entra né esce finché la quarantena non sarà revocata. Devo chiedervi di tornare indietro.»" />
+    <string id="AIL_e7b1d70c" text="Le guardie ti sbarrano la strada. Questo castello è in quarantena. Non ti è permesso entrare." />
+    <string id="AIL_e7b1d70d" text="Chiuso per quarantena." />
+    <string id="AIL_e7b1d70e" text="Sei infetto e non puoi lasciare l'insediamento in quarantena." />
+    <string id="AIL_e7b1d70f" text="{=!}Gestisci la quarantena" />
+    <string id="AIL_e7b1d710" text="{=!}Andarsene" />
+    <string id="AIL_e7b1d711" text="Insediamento: {0}" />
+    <string id="AIL_e7b1d712" text="Malattie in corso:" />
+    <string id="AIL_e7b1d713" text=" (IN QUARANTENA)" />
+    <string id="AIL_e7b1d714" text="{0} (gravità {1})" />
+    <string id="AIL_e7b1d715" text="Giorni rimanenti: {0}" />
+    <string id="AIL_e7b1d716" text="Nessuna malattia in corso." />
+    <string id="AIL_e7b1d717" text="ATTENZIONE: nessuna malattia in corso. Le penalità della quarantena raddoppiano!" />
+    <string id="AIL_e7b1d718" text="Effetti della quarantena:" />
+    <string id="AIL_e7b1d719" text="Frena il contagio" />
+    <string id="AIL_e7b1d71a" text="Impedisce le epidemie" />
+    <string id="AIL_e7b1d71b" text="Limita il commercio e le visite" />
+    <string id="AIL_e7b1d71d" text="Revoca la quarantena" />
+    <string id="AIL_e7b1d71e" text="Apre l'insediamento alle visite." />
+    <string id="AIL_e7b1d71f" text="Imponi la quarantena alla città" />
+    <string id="AIL_e7b1d720" text="Imponi la quarantena al castello" />
+    <string id="AIL_e7b1d721" text="Chiude l'insediamento finché non revochi la quarantena." />
+    <string id="AIL_e7b1d722" text="Quarantena revocata a {0}." />
+    <string id="AIL_e7b1d723" text="Quarantena imposta a {0}. Revocala quando vuoi." />
+    <string id="AIL_e7b1d724" text="Nessuna malattia in corso: la quarantena porterà dure penalità economiche." />
+    <string id="AIL_e7b1d726" text="I focolai nascono da eventi del mondo, o come epidemia quando più eroi con la stessa malattia si trovano nella stessa città o castello. Danneggiano l'insediamento, viaggiano con signori, carovane e paesani malati, indeboliscono chi vi resta e vengono frenati dalle quarantene." />
+    <string id="AIL_e7b1d727" text="Finché resti in un luogo colpito dalla malattia, alcuni dei tuoi soldati possono ammalarsi. Restano nei ranghi ma rallentano la marcia, abbassano il morale e combattono peggio, e i casi più gravi possono morire." />
+    <string id="AIL_e7b1d728" text="Uccidono solo le malattie gravi (gravità 3 o più). Dall'80% del loro decorso un eroe o un soldato malato corre al massimo questo rischio giornaliero; al 100% muore sempre. I valori proposti da un evento sopra questo vengono ridotti a esso." />
+    <string id="AIL_e7b1d729" text="Quanti focolai gli eventi del mondo possono avere attivi contemporaneamente. Quelli portati dai malati o nati da un'epidemia non ne tengono conto." />
+    <string id="AIL_e7b1d72a" text="Giorni che devono passare dall'inizio di un focolaio prima che un evento del mondo possa avviarne un altro." />
+    <string id="AIL_e7b1d72b" text="Limiti: rischio giornaliero di morte più alto" />
+    <string id="AIL_e7b1d800" text="{0} {1} {2}. Puoi rispondere quando vuoi con una dichiarazione da «Eventi del mondo»." />
+    <string id="AIL_e7b1d801" text="{0} {1} {2}{3}. Restano {4} giorno/i per rispondere." />
+    <string id="AIL_e7b1d802" text="Proposte che attendono la tua risposta (accettale o respingile dicendolo nella tua dichiarazione):" />
+    <string id="AIL_e7b1d803" text="Proposte in attesa della tua risposta" />
+    <string id="AIL_e7b1d804" text="Rispondi con «Fai una dichiarazione»: di’ se accetti o rifiuti, oppure proponi altre condizioni." />
+    <string id="AIL_e7b1d805" text="Ore di gioco tra due dichiarazioni in tutto il mondo" />
+    <string id="AIL_e7b1d806" text="Con un re al giorno: dopo che un re dell’IA ha parlato, la dichiarazione successiva ovunque attende queste ore di gioco più da 1 a 12 a caso (con 24, una ogni 25-36 ore). Le risposte a una proposta in sospeso non aspettano mai." />
+    <string id="AIL_e7b1d807" text="Successione: il regno di {0} non sopravvive al suo sovrano." />
+    <string id="AIL_e7b1d808" text="Successione: i signori di {0} eleggono un nuovo sovrano." />
+    <string id="AIL_e7b1d809" text="Successione: ora {0} regna su {1}." />
+    <string id="AIL_e7b1d80a" text="Successione: {0} attende il suo nuovo sovrano." />
+    <string id="AIL_e7b1d80c" text="è morto di {0}" />
+    <string id="AIL_e7b1d80d" text="il signore" />
+    <string id="AIL_e7b1d80e" text="{0} non ti dà la caccia." />
+    <string id="AIL_e7b1d80f" text="Sei condannato a morte." />
+    <string id="AIL_e7b1d810" text="Sarai fatto uscire dalla prigione." />
+    <string id="AIL_e7b1d811" text="Si aggiungono {0} giorno/i alla tua pena nella prigione di {1}." />
+    <string id="AIL_e7b1d812" text="Passerai {0} giorno/i nella prigione di {1}." />
+    <string id="AIL_e7b1d813" text="La tua fama di criminale in {0} cresce di {1}." />
+    <string id="AIL_e7b1d814" text="Giudizio di {0}" />
+    <string id="AIL_e7b1d815" text="Chiudi" />
+    <string id="AIL_e7b1d816" text="Continua" />
+    <string id="AIL_e7b1d817" text="Per ordine di {0}, le guardie aprono la tua cella e ti portano fuori dalla prigione di {1}." />
+    <string id="AIL_e7b1d818" text="{0} giorno/i nella prigione di {1} sono alle tue spalle. Come ordinato da {2}, le guardie ti lasciano andare." />
+    <string id="AIL_e7b1d819" text="All’alba le guardie vengono a prenderti. {0} ti ha condannato a morte, e la sentenza viene eseguita davanti alla gente di {1}." />
+    <string id="AIL_e7b1d81a" text="Sgusci accanto alla guardia assopita, sali le scale ed esci dalla prigione di {0}. All’alba sei lontano dalle sue mura, ma {1} lo verrà a sapere." />
+    <string id="AIL_e7b1d81b" text="Arrivi fino alle scale prima che le guardie ti afferrino. Ti picchiano e ti rigettano nella cella di {0}. {1} ti giudicherà di nuovo per questo." />
+    <string id="AIL_e7b1d81c" text="Di notte la guardia alla porta della tua cella si appisola e il vecchio chiavistello cede un poco sotto la tua mano. Potresti tentare di fuggire dalla prigione di {0}. Se le guardie ti prendono, {1} ti giudicherà di nuovo. Tentativi rimasti dopo questo: {2}." />
+    <string id="AIL_e7b1d81d" text="Tentare la fuga ({AIL_ESCAPE_ODDS} % di probabilità)" />
+    <string id="AIL_e7b1d81e" text="Restare nella cella" />
+    <string id="AIL_e7b1d81f" text="Pena più breve (giorni di prigione)" />
+    <string id="AIL_e7b1d820" text="I giudici possono giustiziarti" />
+    <string id="AIL_e7b1d821" text="Se sei nella prigione del signore, può farti giustiziare: la partita prosegue allora come dopo la tua morte in battaglia. Disattivato: la pena peggiore è la detenzione più lunga." />
+    <string id="AIL_e7b1d822" text="Probabilità giornaliera di un’occasione di fuga (%)" />
+    <string id="AIL_e7b1d823" text="Mentre sconti una pena in prigione, ogni giorno è la probabilità che si presenti un’occasione di fuga. Decidi tu se provarci; la riuscita dipende dalla tua Furfanteria. Che tu fugga o venga preso, il signore ti giudica di nuovo. 0 = mai." />
+    <string id="AIL_e7b1d824" text="Tentativi di fuga per prigionia" />
+    <string id="AIL_e7b1d825" text="Quante volte puoi tentare la fuga durante una stessa detenzione. Una nuova pena dopo un tentativo fallito non dà nuovi tentativi." />
+    <string id="AIL_e7b1d826" text="{0} si avvicina per parlarti." />
+    <string id="AIL_e7b1d827" text="{0}{1}, cavalca verso il tuo gruppo e chiede di parlarti." />
+    <string id="AIL_e7b1d828" text="Probabilità per signore in vista, ogni 5 ore (%)" />
+    <string id="AIL_e7b1d829" text="Ogni 5 ore di gioco ogni signore in vista, conosciuto o no, tira questa probabilità di venire a parlarti, più 2 se la relazione supera 20, 1 se è sotto -20, 2 per una romance sopra 50, 2 se avete parlato più di 10 volte, 4 se non parlate da 20 giorni, 2 per chi cavalca nel tuo gruppo." />
+    <string id="AIL_e7b1d82a" text="I signori ostili parlano per primi" />
+    <string id="AIL_e7b1d82b" text="Un signore in guerra con te, con un gruppo più forte, che ti insegue, parla per primo quando ti raggiunge." />
+    <string id="AIL_e7b1d82c" text="Giorni prima che un altro signore ostile parli per primo" />
+    <string id="AIL_e7b1d82d" text="Dopo che un signore ostile ti ha raggiunto e ha parlato per primo, nessun signore ostile lo rifà per questi giorni." />
+    <string id="AIL_e7b1d82e" text="Il duello inizia tra 3 secondi. Prepara l’arma." />
+    <string id="AIL_e7b1d82f" text="Il duello ha inizio!" />
+    <string id="AIL_e7b1d830" text="Rompi le condizioni del duello con {0}: il duello si trasforma in una battaglia." />
+    <string id="AIL_e7b1d831" text="{0} va raccontando in giro: «{1}»" />
+    <string id="AIL_e7b1d832" text="La fama del tuo clan aumenta di {0}" />
+    <string id="AIL_e7b1d833" text=", +{0} di fama" />
   </strings>
 </base>

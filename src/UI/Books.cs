@@ -142,8 +142,13 @@ namespace AILegacy.UI
         {
             string t = n.Type ?? "";
             if (t.StartsWith("event_") || t == "statement" || t == "decree" || t == "custom") return true;
-            if (t == "rumor") return !string.IsNullOrWhiteSpace(n.TextEs);
-            return n.Importance >= 3 && (t == "war" || t == "peace" || t == "ruler" || t == "kingdom" || t == "death");
+            // A rumour is never a card of its own: the chronicler reads the conversation and writes its public events
+            // (AIInfluence's dialogue mode), so one rumour cannot give two cards. It stays under "see everything".
+            if (t == "rumor") return false;
+            // A death is a card only for a sovereign, and only until the world event it set off tells it (that event
+            // carries the succession). Lords, notables and companions are not cards of their own.
+            if (t == "death" || t == "kingdom") return n.Importance >= 4 && !n.Told;
+            return n.Importance >= 3 && (t == "war" || t == "peace" || t == "ruler");
         }
 
         /// <summary>One-word tag for the bottom left corner and its category key (which also picks its color).</summary>
@@ -293,6 +298,21 @@ namespace AILegacy.UI
                 c.SearchText = (c.Title + "\n" + c.Text).ToLowerInvariant();
                 all.Add((c, "law", true, int.MaxValue));
             }
+            // What other crowns propose to the player's realm and still waits for his answer: no popup asks him, he
+            // answers with a statement whenever he likes (the button at the bottom), so it is kept in sight here
+            try
+            {
+                var pending = Diplomacy.PendingForPlayer();
+                if (pending.Count > 0)
+                {
+                    var c = new NewsCardVM(L.T("AIL_e7b1d803", "Propuestas que esperan tu respuesta"), "",
+                        Clean(string.Join("\n\n", pending)) + "\n\n" + L.T("AIL_e7b1d804", "Responde con «Hacer una declaración»: di si aceptas o rechazas, o propón otras condiciones."),
+                        "", L.T("AIL_e14ea467", "Declaración"), "", 1) { TagColorValue = CategoryColor("statement") };
+                    c.SearchText = (c.Title + "\n" + c.Text).ToLowerInvariant();
+                    all.Insert(0, (c, "statement", true, int.MaxValue));
+                }
+            }
+            catch (Exception ex) { Core.Log.Error("Pending proposals in the news window", ex); }
             foreach (var n in NewsStore.All.Where(n => now - n.Day <= cfg.NewsLifetimeDays && (view.All || IsEvent(n))).OrderByDescending(n => n.Day).Take(120))
             {
                 try { var card = CardOf(n, now, out string cat); all.Add((card, cat, n.Type == "statement", (int)Math.Floor(n.Day))); }
