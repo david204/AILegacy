@@ -74,6 +74,8 @@ namespace AILegacy.Behaviors
             CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, World.ResidentFaces.OnLocationCharactersReady);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.LandlessPatrols.OnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.AiArenaTraining.OnDailyTick);
+            // A prophecy of the hermit whose day has come happens in the world
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.Hermit.OnDailyTick);
             NewsTracker.Register(this);
             // A campaign that starts with every kingdom at peace: only ever on creation, after the game has set its starting wars
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(this, Diplomacy.OnNewGameCreated);
@@ -120,6 +122,8 @@ namespace AILegacy.Behaviors
                 dataStore.SyncData(SaveKey, ref legacy);
                 dataStore.SyncData(SaveKeyChunks, ref chunks);
                 dataStore.SyncData(SaveKeyStamp, ref stamp);
+                // What the hermit of Mount Erithrys remembers, and the prophecy he has woven (World/Hermit.cs)
+                World.Hermit.SyncData(dataStore);
                 if (dataStore.IsLoading)
                 {
                     _inSaveCopy = chunks != null && chunks.Count > 0 ? Unpack(chunks) : legacy;
@@ -291,6 +295,9 @@ namespace AILegacy.Behaviors
             try { World.ArenaTraining.AddMenus(starter); } catch (Exception ex) { Log.Error("Arena training menu", ex); }
             try { World.Activities.AddMenus(starter); } catch (Exception ex) { Log.Error("Activities menus", ex); }
             try { Dialogue.Verdict.AddMenus(starter); } catch (Exception ex) { Log.Error("Dungeon menus", ex); }
+            // The hermit of Mount Erithrys: his memory for this campaign, and "Ask a deeper question" on his own dialogue
+            World.Hermit.OnSessionLaunched();
+            World.Hermit.AddDialogs(starter);
 
             // --- Heroes (lords, notables, companions, wanderers), chat window style
             starter.AddPlayerLine(
@@ -455,7 +462,8 @@ namespace AILegacy.Behaviors
             // An adult child of yours born out of wedlock: you acknowledge them before everyone
             starter.AddPlayerLine("ailegacy_acknowledge", "hero_main_options", "ailegacy_acknowledge_reply", L.T("AIL_e7b1c823", "{=!}Te reconozco como hijo mío. Desde hoy eres de verdad parte de nuestra familia."),
                 () => Bastards.CanAcknowledge(Hero.OneToOneConversationHero),
-                () => Bastards.Acknowledge(Hero.OneToOneConversationHero), priority: 101);
+                () => Bastards.Acknowledge(Hero.OneToOneConversationHero), priority: 101,
+                clickableConditionDelegate: (out TextObject why) => Bastards.CanPayLegitimize(out why));
             starter.AddDialogLine("ailegacy_acknowledge_reply", "ailegacy_acknowledge_reply", "lord_pretalk", L.T("AIL_e7b1c824", "{=!}*se te queda mirando un largo momento* Toda la vida esperando oír eso."),
                 null, null, priority: 100);            // On the map: dismount and talk face to face in a terrain scene
             starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),

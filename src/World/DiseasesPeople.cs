@@ -244,6 +244,7 @@ namespace AILegacy.World
             }
             if (name == null) return false;
             var cfg = S.Get;
+            if (speed < 1f) { float ease = SledgesEase(p); if (ease > 0f) speed = 1f - (1f - speed) * (1f - ease); }
             speed = Math.Max(cfg.DiseaseMinMapSpeedModifier, speed);
             morale = Math.Max(cfg.DiseaseMaxMoralePenalty, morale);
             return true;
@@ -290,13 +291,17 @@ namespace AILegacy.World
 
         private static bool NeedsCare(Sickness s) => !s.Treated && s.AfterDays <= 0 && s.Progress > 0f;
 
-        /// <summary>One day of the illness: under treatment it usually recedes, a good healer holds it or pushes it back, otherwise it grows.</summary>
-        private static void Advance(Sickness s, int medicine, double now, bool quarantinedCare)
+        /// <summary>
+        /// One day of the illness: under treatment it usually recedes, a good healer holds it or pushes it back, otherwise it grows.
+        /// The Medicine perks (DiseasesPerks.cs) come in as <paramref name="recovery"/> (faster healing),
+        /// <paramref name="slower"/> (slower worsening in a siege) and <paramref name="low"/> (below it, it wears off by itself).
+        /// </summary>
+        private static void Advance(Sickness s, int medicine, double now, bool quarantinedCare, float recovery = 1f, float slower = 0f, float low = 0f)
         {
             var cfg = S.Get;
             int sev = Sev(s.Severity);
-            float worse = DailyWorse[sev] * cfg.DiseaseProgressionMultiplier * (1f - MedEff(medicine, sev));
-            float better = DailyBetter[sev] * cfg.DiseaseRecoveryMultiplier;
+            float worse = DailyWorse[sev] * cfg.DiseaseProgressionMultiplier * (1f - MedEff(medicine, sev)) * (1f - slower);
+            float better = DailyBetter[sev] * cfg.DiseaseRecoveryMultiplier * recovery;
             float diff = Difficulty(s.Progress);
             if (s.Treated)
             {
@@ -317,7 +322,8 @@ namespace AILegacy.World
                 }
             }
             if (s.AfterDays > 0) { s.Progress -= s.AfterRate * diff; s.AfterDays--; }
-            else if (medicine >= HealerNeeded[sev]) s.Progress -= HealerRate[sev] * (0.5f + medicine / 300f) * diff;
+            else if (medicine >= HealerNeeded[sev]) s.Progress -= HealerRate[sev] * (0.5f + medicine / 300f) * diff * recovery;
+            else if (s.Progress < low) s.Progress -= better * 0.5f * diff;
             else s.Progress += worse;
             Cap(s);
         }
@@ -342,6 +348,8 @@ namespace AILegacy.World
                 var mine = OfHero(h);
                 if (mine != null && (mine.Count >= 2 || mine.Any(x => x.NameEn == nameEn) || (seasonal && mine.Any(x => x.Seasonal)))) return null;
                 if (h != Hero.MainHero && Sick.Count(x => x.Kind == Sickness.Hero) >= MaxSickHeroes) return null;
+                // the Medicine perks may keep it off (DiseasesPerks.cs)
+                if (Roll(HeroImmunity(h))) return null;
                 int sev = Sev(severity);
                 var s = new Sickness
                 {
@@ -371,6 +379,8 @@ namespace AILegacy.World
                 var roster = kind == Sickness.Troops ? p.MemberRoster : p.PrisonRoster;
                 int total = roster?.TotalRegulars ?? 0;
                 if (total <= 0) return 0;
+                // part of the men are spared by the surgeon's perks (DiseasesPerks.cs)
+                if (kind == Sickness.Troops) { count -= Whole(count * TroopImmunity(p)); if (count <= 0) return 0; }
                 double now = CampaignTime.Now.ToDays;
                 var list = kind == Sickness.Troops ? OfTroops(p) : OfPrisoners(p);
                 var s = list?.FirstOrDefault(x => x.NameEn == nameEn);
@@ -408,10 +418,10 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("[disease] troop infection", ex); return 0; }
         }
 
-        private static int KillRegulars(TroopRoster roster, int toll)
+        private static int KillRegulars(TroopRoster roster, int toll, int sparedTier = 0)
         {
             int done = 0;
-            foreach (var e in roster.GetTroopRoster().Where(x => x.Character != null && !x.Character.IsHero && x.Number > 0).OrderBy(x => x.Character.Tier).ToList())
+            foreach (var e in roster.GetTroopRoster().Where(x => x.Character != null && !x.Character.IsHero && x.Number > 0 && x.Character.Tier > sparedTier).OrderBy(x => x.Character.Tier).ToList())
             {
                 if (done >= toll) break;
                 int n = Math.Min(e.Number, toll - done);
@@ -585,7 +595,7 @@ namespace AILegacy.World
         }
 
         private static float PlaceFactor(Outbreak o, Settlement st) =>
-            Crowding(st) * FxOf(o.Severity, o.Seasonal, o.Fx).Spread * (o.Quarantined ? S.Get.QuarantineInfectionReduction : 1f);
+            Crowding(st) * FxOf(o.Severity, o.Seasonal, o.Fx).Spread * (o.Quarantined ? S.Get.QuarantineInfectionReduction : 1f) * PlaceSpread(st);
 
         private static float HeroResist(Hero h) => 1f - Math.Min(0.5f, Medicine(h) / 600f);
 
@@ -813,7 +823,7 @@ namespace AILegacy.World
             {
                 int cost = s.Kind == Sickness.Hero ? HeroCareCost(s, st) : BandCareCost(s, st);
                 if (payer != null && !PayCare(payer, cost, st)) continue;
-                StartTreatment(s, q);
+                StartTreatment(s, q * LodgingBonus(st, s.Kind == Sickness.Hero ? party.LeaderHero : null));
             }
         }
 
@@ -857,8 +867,12 @@ namespace AILegacy.World
                 foreach (var winner in parties[win])
                 {
                     int held = winner.PrisonRoster?.TotalRegulars ?? 0;
-                    if (held > 0 && Roll(S.Get.PrisonerSpreadModifier))
-                        InfectBand(winner, Sickness.Prisoners, worst.Name, worst.NameEn, worst.Severity, worst.Seasonal, worst.Fx, worst.UntilDay, Math.Max(1, (int)(held * Math.Max(0.05f, worstShare))));
+                    if (held <= 0 || !Roll(S.Get.PrisonerSpreadModifier)) continue;
+                    // Doctor's Oath: the surgeon sees to half of them
+                    float oath = OathShare(winner);
+                    int count = oath < 1f ? Whole(held * Math.Max(0.05f, worstShare) * oath) : Math.Max(1, (int)(held * Math.Max(0.05f, worstShare)));
+                    if (oath < 1f) Log.Info($"[disease] Doctor's Oath: the surgeon of {winner.Name} sees to part of the sick captives ({worst.NameEn})");
+                    if (count > 0) InfectBand(winner, Sickness.Prisoners, worst.Name, worst.NameEn, worst.Severity, worst.Seasonal, worst.Fx, worst.UntilDay, count);
                 }
             }
             catch (Exception ex) { Log.Error("[disease] infection in battle", ex); }
@@ -888,8 +902,9 @@ namespace AILegacy.World
             if (now >= s.UntilDay) { Recover(s, h, now); return; }
             // at home or lodged in a settlement, someone looks after them
             if (h != Hero.MainHero && h.PartyBelongedTo == null && h.PartyBelongedToAsPrisoner == null && h.CurrentSettlement != null && NeedsCare(s))
-                StartTreatment(s, CareQuality(h.CurrentSettlement));
-            Advance(s, Medicine(h), now, h.CurrentSettlement != null && QuarantineRules.Closed(h.CurrentSettlement));
+                StartTreatment(s, CareQuality(h.CurrentSettlement) * LodgingBonus(h.CurrentSettlement, h));
+            var hp = h.PartyBelongedTo;
+            Advance(s, Medicine(h), now, h.CurrentSettlement != null && QuarantineRules.Closed(h.CurrentSettlement), HeroRecovery(h), SiegeSlowing(hp), LowProgress(hp));
             if (s.Progress <= 0f) { Recover(s, h, now); return; }
             // Only serious diseases kill: from 80% a daily risk, the disease's death chance; at 100% it always does
             if (s.Severity > 2 && s.Progress >= 80f && (s.Progress >= 100f || Roll(FxOf(s).Death)) && !CheatDeath(h, s)) Kill(h, s);
@@ -957,10 +972,11 @@ namespace AILegacy.World
             var roster = prisoners ? p.PrisonRoster : p.MemberRoster;
             s.Count = Math.Min(s.Count, roster?.TotalRegulars ?? 0);
             if (s.Count <= 0) { Remove(s); return; }
-            if (now < s.UntilDay) Advance(s, TroopMedicine(p, prisoners), now, false);
+            if (now < s.UntilDay) Advance(s, TroopMedicine(p, prisoners), now, false, prisoners ? 1f : TroopRecovery(p), SiegeSlowing(p), prisoners ? BaseLow : LowProgress(p));
             if (now >= s.UntilDay || s.Progress <= 0f)
             {
                 Remove(s);
+                if (!prisoners) Harden(p, s);
                 if (p.IsMainParty)
                 {
                     if (prisoners) WorldSim.Say(L.F("AIL_e7b1d706", $"Los prisioneros se han recuperado de {s.Name}"), Colors.Green);
@@ -969,7 +985,15 @@ namespace AILegacy.World
                 return;
             }
             if (p.MapEvent != null) return;
-            int dead = KillRegulars(roster, Whole(s.Count * DailyDeathRate(s.Progress, s.Severity, FxOf(s).Death)));
+            // Physician of the People: some of the green men get over it by themselves
+            int healed = prisoners ? 0 : PhysicianRecovers(p, s, roster);
+            if (healed > 0)
+            {
+                s.Count -= healed;
+                Log.Info($"[disease] Physician of the People: {healed} tier 1-2 soldier(s) of {p.Name} get over {s.NameEn} on their own");
+                if (s.Count <= 0) { Remove(s); Harden(p, s); return; }
+            }
+            int dead = KillRegulars(roster, Whole(s.Count * DailyDeathRate(s.Progress, s.Severity, FxOf(s).Death)), prisoners ? 0 : SparedTier(p, s));
             if (dead <= 0) return;
             s.Count -= dead;
             Log.Info($"[disease] {dead} {(prisoners ? "prisoner(s)" : "soldier(s)")} of {p.Name} die of {s.NameEn}");
@@ -1007,7 +1031,7 @@ namespace AILegacy.World
                 int regulars = p.MemberRoster.TotalRegulars;
                 float damp = 150f / (150f + regulars);      // big hosts camp spread out
                 bool main = p.IsMainParty;
-                float guard = main ? PlayerGuard : 1f;
+                float guard = (main ? PlayerGuard : 1f) * PartySpread(p);      // Veterinarian (DiseasesPerks.cs)
                 var riders = (main ? p.MemberRoster.GetTroopRoster().Where(e => e.Character.IsHero).Select(e => e.Character.HeroObject) : new[] { p.LeaderHero }).Where(h => h != null && h.IsAlive).ToList();
                 var troops = (OfTroops(p) ?? new List<Sickness>()).ToList();
                 var held = (OfPrisoners(p) ?? new List<Sickness>()).ToList();

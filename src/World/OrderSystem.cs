@@ -395,6 +395,60 @@ namespace AILegacy.World
             return party;
         }
 
+        // ---- keeping the lent party alive (AIInfluence's NonCombatantPartyProtector)
+
+        private static System.Reflection.FieldInfo _disbandQueue;
+        private static bool _disbandQueueLooked;
+
+        /// <summary>
+        /// The game's own rules are not made for a party led by a notable or a wanderer: it may queue it to disband,
+        /// start disbanding it, or take its leader out. Every hour, while the order lasts, the party is taken off the
+        /// disband queue, a disband under way is called off, and a leader who dropped out is put back at its head.
+        /// Starting a disband is also refused outright (Patches\TempPartyPatch.cs).
+        /// </summary>
+        private static void ProtectTempParty(PartyOrder o, Hero h)
+        {
+            try
+            {
+                var p = MobileParty.All.FirstOrDefault(x => x.StringId == o.TempPartyId);
+                if (p == null || !p.IsActive || p.IsMainParty) return;
+                if (RemoveFromDisbandQueue(p)) Log.Info($"Orders: the party lent to {h.Name} was queued to disband by the game; taken off the queue");
+                if (p.IsDisbanding)
+                {
+                    DisbandPartyAction.CancelDisband(p);
+                    Log.Info($"Orders: the game had started disbanding the party lent to {h.Name}; called off");
+                }
+                if (p.LeaderHero != h && h.IsAlive && !h.IsPrisoner && h.PartyBelongedTo == null && p.MapEvent == null
+                    && TaleWorlds.MountAndBlade.Mission.Current == null)
+                {
+                    var was = p.LeaderHero;
+                    if (was != null) p.RemovePartyLeader();
+                    AddHeroToPartyAction.Apply(h, p, false);
+                    p.PartyComponent.ChangePartyLeader(h);
+                    Log.Info($"Orders: {h.Name} had been taken out of the party lent to them{(was != null ? " (" + was.Name + " was leading it)" : "")}; back at its head: {p.LeaderHero == h}");
+                }
+            }
+            catch (Exception ex) { Log.Error("Orders: protect the lent party", ex); }
+        }
+
+        /// <summary>Takes the party off the game's list of parties waiting to disband. True if it was on it.</summary>
+        private static bool RemoveFromDisbandQueue(MobileParty p)
+        {
+            try
+            {
+                var b = Campaign.Current?.GetCampaignBehavior<TaleWorlds.CampaignSystem.CampaignBehaviors.IDisbandPartyCampaignBehavior>();
+                if (b == null) return false;
+                if (!_disbandQueueLooked)
+                {
+                    _disbandQueueLooked = true;
+                    _disbandQueue = b.GetType().GetField("_partiesThatWaitingToDisband", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                    if (_disbandQueue == null) Log.Warn("Orders: the game's disband queue was not found; lent parties are only kept from starting to disband");
+                }
+                return _disbandQueue?.GetValue(b) is Dictionary<MobileParty, CampaignTime> q && q.Remove(p);
+            }
+            catch { return false; }
+        }
+
         /// <summary>The lent party goes back to where they came from, and is broken up on arrival.</summary>
         private static void StartHome(Hero h, string partyId, string homeId)
         {
@@ -484,6 +538,7 @@ namespace AILegacy.World
                 {
                     var h = Hero.Find(o.HeroId);
                     if (h == null || h.IsDead) { Orders.Remove(o); continue; }
+                    if (o.TempPartyId != null) ProtectTempParty(o, h);
                     // On foot, waiting to set out: the party is made once the player is out on the map, not in a scene
                     // or a settlement (AIInfluence defers it the same way)
                     if (o.NeedParty)

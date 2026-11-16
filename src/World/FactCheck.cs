@@ -830,7 +830,10 @@ namespace AILegacy.World
             {
                 string cl = c.ToLowerInvariant();
                 // the name itself, or the name with an ending ("Sturgians", "Vlandian", "Khuzaits")
-                if (cl == low || low.StartsWith(cl, StringComparison.Ordinal) || cl.StartsWith(low, StringComparison.Ordinal)) return word;
+                if (cl == low || low.StartsWith(cl, StringComparison.Ordinal)) return word;
+                // a real word that only begins a longer name ("North" of "Northern"); a name one or two letters short
+                // ("Praven" for Pravend) is a misspelling and goes on to the distance below
+                if (cl.StartsWith(low, StringComparison.Ordinal) && cl.Length - low.Length > 2) return word;
                 int d = EditDistance(low, cl, limit);
                 // two letters off only for longer words that start the same ("Burning" is not "Bruning")
                 if (d > limit || (d == 2 && (low.Length < 6 || cl[0] != low[0] || cl[1] != low[1]))) continue;
@@ -1093,5 +1096,678 @@ namespace AILegacy.World
             int v = ParseAmount(s);
             return i > 0 && i < s.Length && (s[i - 1] == '-' || s[i - 1] == '\u2212') ? -v : v;
         }
+
+        // ============================================================ grounding: names, falls, ports, people as places
+
+        // Words that often stand capitalised in a chronicle (a sentence start, a title) and are no name. A name written
+        // wrong is never "corrected" from one of these, and none of them makes a made-up clan or place.
+        private static readonly HashSet<string> CommonWords = new HashSet<string>
+        {
+            "the", "their", "there", "these", "those", "this", "that", "then", "than", "they", "them", "when", "where", "while", "which", "whose",
+            "what", "with", "without", "within", "after", "before", "since", "until", "under", "over", "above", "below", "between", "among", "against",
+            "despite", "though", "although", "because", "every", "each", "many", "some", "most", "other", "others", "another", "such", "only", "even",
+            "still", "again", "never", "always", "often", "perhaps", "maybe", "meanwhile", "elsewhere", "however", "nevertheless", "indeed", "worse",
+            "word", "words", "news", "rumour", "rumours", "rumor", "rumors", "whispers", "talk", "tales", "merchants", "merchant", "traders", "caravans",
+            "caravan", "lords", "nobles", "noble", "ladies", "peasants", "villagers", "farmers", "soldiers", "troops", "scouts", "envoys", "envoy",
+            "priests", "elders", "guards", "guard", "people", "folk", "crowds", "hunger", "famine", "plague", "grain", "bread", "prices", "price", "trade",
+            "taxes", "coin", "silver", "gold", "debts", "war", "wars", "peace", "truce", "battle", "battles", "siege", "sieges", "raid", "raids", "army",
+            "armies", "host", "banners", "banner", "crown", "throne", "court", "council", "guild", "guilds", "market", "markets", "temple", "fields",
+            "roads", "road", "river", "rivers", "valley", "hills", "plains", "coast", "forest", "woods", "mountains", "north", "south", "east", "west",
+            "northern", "southern", "eastern", "western", "great", "grand", "high", "old", "new", "young", "black", "white", "red", "golden", "iron",
+            "rival", "rivals", "royal", "ruling", "minor", "mercenary", "mercenaries", "free", "proud", "ancient", "holy", "sacred", "fear", "fears",
+            "anger", "unrest", "tension", "tensions", "calls", "demands", "threats", "refugees", "bandits", "raiders", "deserters", "smugglers", "spies",
+            "thieves", "fire", "flood", "storm", "winter", "summer", "spring", "autumn", "harvest", "fair", "feast", "wedding", "funeral", "death", "heir",
+            "heirs", "sons", "daughters", "children", "brothers", "sisters", "father", "mother", "widow", "house", "houses", "clans", "clan", "family",
+            "families", "realm", "realms", "kingdom", "kingdoms", "empire", "lands", "land", "city", "cities", "town", "towns", "castle", "castles",
+            "village", "villages", "fortress", "walls", "gates", "streets", "square", "hall", "keep", "harbour", "harbor", "port", "docks", "fleet",
+            "ships", "sea", "seas", "lake", "bridge", "pass", "border", "borders", "frontier", "imperial", "imperials", "calradia", "calradian", "calradic",
+            "vizier", "chancellor", "marshal", "steward", "captain", "commander", "general", "governor", "magistrate", "champion", "herald", "emissary",
+            "master", "mistress", "keeper", "warden", "duke", "duchess", "count", "countess", "baron", "baroness", "earl", "knight", "knights", "sergeant",
+            "thane", "boyar", "emir", "sheikh", "senate", "senator", "senators", "guildmaster", "elder", "chieftain", "warlord",
+            "los", "las", "del", "una", "unos", "unas", "este", "esta", "estos", "estas", "ese", "esa", "esos", "esas", "aquel", "cuando", "donde",
+            "mientras", "seg\u00fan", "segun", "tras", "ante", "desde", "hasta", "pese", "aunque", "porque", "cada", "muchos", "muchas", "algunos", "algunas",
+            "otros", "otras", "otro", "otra", "ahora", "entonces", "nunca", "siempre", "todav\u00eda", "todavia", "a\u00fan", "adem\u00e1s", "ademas", "incluso", "sin",
+            "embargo", "rumores", "mercaderes", "comerciantes", "caravanas", "se\u00f1ores", "senores", "damas", "campesinos", "aldeanos", "soldados", "tropas",
+            "exploradores", "emisarios", "enviados", "sacerdotes", "ancianos", "guardias", "gente", "pueblo", "hambre", "peste", "grano", "trigo", "precios",
+            "comercio", "impuestos", "plata", "deudas", "guerra", "tregua", "batalla", "asedio", "saqueo", "ej\u00e9rcito", "ejercito", "ej\u00e9rcitos", "hueste",
+            "estandartes", "corona", "trono", "corte", "consejo", "gremio", "gremios", "mercado", "templo", "campos", "caminos", "camino", "valle",
+            "colinas", "llanuras", "costa", "bosque", "monta\u00f1as", "norte", "oeste", "gran", "grande", "alto", "viejo", "vieja", "nuevo", "nueva", "negro",
+            "negra", "blanco", "rojo", "dorado", "hierro", "rivales", "menor", "mercenario", "libre", "antiguo", "sagrado", "miedo", "tensi\u00f3n", "tensiones",
+            "refugiados", "bandidos", "saqueadores", "desertores", "contrabandistas", "esp\u00edas", "espias", "ladrones", "fuego", "incendio", "inundaci\u00f3n",
+            "tormenta", "invierno", "verano", "primavera", "oto\u00f1o", "cosecha", "feria", "fiesta", "boda", "funeral", "muerte", "heredero", "herederos",
+            "hijos", "hijas", "hermanos", "padre", "madre", "viuda", "casa", "casas", "clanes", "familia", "reino", "reinos", "imperio", "imperiales",
+            "tierras", "tierra", "ciudad", "ciudades", "castillo", "castillos", "aldea", "aldeas", "fortaleza", "murallas", "puertas", "calles", "plaza",
+            "sal\u00f3n", "puerto", "flota", "barcos", "lago", "puente", "paso", "frontera", "fronteras",
+        };
+
+        /// <summary>A word (any case) that stands capitalised in texts without being a name.</summary>
+        public static bool IsCommon(string word)
+        {
+            string low = (word ?? "").ToLowerInvariant();
+            return CommonWords.Contains(low) || Titles.Contains(low) || (low.EndsWith("s") && Titles.Contains(low.Substring(0, low.Length - 1)));
+        }
+
+        /// <summary>A real name word, or one with the ending of its people ("Sturgians", "Vlandian", "khuzaits").</summary>
+        private static bool KnownWord(string low, ICollection<string> known)
+        {
+            if (known == null || low.Length < 3) return false;
+            if (known.Contains(low)) return true;
+            for (int cut = 1; cut <= 3 && low.Length - cut >= 4; cut++)
+                if (known.Contains(low.Substring(0, low.Length - cut))) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// The second pass over a text, against every real name of the world rather than the event's own: a
+        /// capitalised word of five letters or more that is no real name and no common word is set to the one real
+        /// name it is closest to, with the same first letter, one letter off, or two for a word of six letters or more
+        /// whose first two letters match ("Asinai" for Aserai, "Praven" for Pravend). A word as close to two names is
+        /// left alone. <paramref name="names"/> holds the names to set it to (places, realms, cultures, clans: not
+        /// people, there are too many of them and they are short); <paramref name="known"/> every word of every real
+        /// name (lowercase), which is never touched.
+        /// </summary>
+        public static string FixNamesGlobal(string text, IEnumerable<string> names, ICollection<string> known, List<string> changes)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            var cands = (names ?? Enumerable.Empty<string>()).SelectMany(NameWords)
+                .GroupBy(x => x.ToLowerInvariant()).Select(g => g.First()).ToList();
+            if (cands.Count == 0) return text;
+            var sb = new StringBuilder(text.Length);
+            int i = 0;
+            while (i < text.Length)
+            {
+                if (!char.IsLetter(text[i])) { sb.Append(text[i]); i++; continue; }
+                int j = i;
+                while (j < text.Length && char.IsLetter(text[j])) j++;
+                string word = text.Substring(i, j - i);
+                string fixedWord = FixWordGlobal(word, cands, known);
+                if (fixedWord != word) changes?.Add(word + " -> " + fixedWord);
+                sb.Append(fixedWord);
+                i = j;
+            }
+            return sb.ToString();
+        }
+
+        private static string FixWordGlobal(string word, List<string> cands, ICollection<string> known)
+        {
+            if (word.Length < 5 || !char.IsUpper(word[0])) return word;
+            string low = word.ToLowerInvariant();
+            if (KnownWord(low, known) || IsCommon(low)) return word;
+            string best = null;
+            int bestD = 3;
+            bool tie = false;
+            foreach (var c in cands)
+            {
+                string cl = c.ToLowerInvariant();
+                if (cl.Length < 4 || cl[0] != low[0]) continue;
+                if (cl == low || low.StartsWith(cl, StringComparison.Ordinal)) return word;
+                if (cl.StartsWith(low, StringComparison.Ordinal) && cl.Length - low.Length > 2) continue;
+                int d = EditDistance(low, cl, 2);
+                if (d > 2 || (d == 2 && (low.Length < 6 || cl[1] != low[1]))) continue;
+                if (d < bestD) { best = c; bestD = d; tie = false; }
+                else if (d == bestD && !string.Equals(best, c, StringComparison.OrdinalIgnoreCase)) tie = true;
+            }
+            if (best == null || tie) return word;
+            return word.ToUpperInvariant() == word ? best.ToUpperInvariant() : best;
+        }
+
+        // ---- made-up names that survive the corrections
+
+        private struct Token { public string Text, Low; public bool Cap, First; }
+
+        /// <summary>The words of a text with their case, and whether each one opens a sentence.</summary>
+        private static List<Token> Tokens(string text)
+        {
+            var list = new List<Token>();
+            bool first = true;
+            int i = 0;
+            text = text ?? "";
+            while (i < text.Length)
+            {
+                char c = text[i];
+                if (char.IsLetter(c))
+                {
+                    int j = i;
+                    while (j < text.Length && (char.IsLetter(text[j]) || ((text[j] == '\'' || text[j] == '\u2019') && j + 1 < text.Length && char.IsLetter(text[j + 1])))) j++;
+                    string w = text.Substring(i, j - i);
+                    // "Tasynor's" is Tasynor
+                    if (w.EndsWith("'s") || w.EndsWith("\u2019s")) w = w.Substring(0, w.Length - 2);
+                    list.Add(new Token { Text = w, Low = w.ToLowerInvariant(), Cap = char.IsUpper(w[0]), First = first });
+                    first = false;
+                    i = j;
+                    continue;
+                }
+                if (c == '.' || c == '!' || c == '?' || c == ';' || c == ':' || c == '\n' || c == '\u00ab' || c == '\u00bb' || c == '"' || c == '\u201c' || c == '\u201d' || c == '\u00a1' || c == '\u00bf') first = true;
+                i++;
+            }
+            return list;
+        }
+
+        private static readonly HashSet<string> BandNouns = new HashSet<string>
+        {
+            "brotherhood", "sisterhood", "order", "company", "band", "legion", "circle", "hand", "fist", "host", "league", "covenant", "fellowship", "brethren",
+        };
+        private static readonly HashSet<string> ClanLinks =new HashSet<string> { "de", "los", "las", "del", "of", "the", "la", "el" };
+        private static readonly HashSet<string> PlaceOfNouns = new HashSet<string>
+        {
+            "town", "city", "castle", "village", "fortress", "stronghold", "fort", "port", "harbour", "harbor",
+            "ciudad", "castillo", "aldea", "villa", "fortaleza", "puerto", "pueblo",
+        };
+
+        /// <summary>The capitalised words of a run that are names (sentence openers left out), lowercase.</summary>
+        private static List<string> CapRun(List<Token> t, int from, int step, int max)
+        {
+            var run = new List<string>();
+            for (int i = from; i >= 0 && i < t.Count && run.Count < max; i += step)
+            {
+                // a sentence opener is capitalised anyway: it ends the run and is left out of it
+                if (!t[i].Cap || ClanLinks.Contains(t[i].Low) || t[i].First) break;
+                run.Add(t[i].Low);
+            }
+            return run;
+        }
+
+        /// <summary>A run made up: none of its words is a real name or a person's name, and one of them is no common word either.</summary>
+        private static bool MadeUp(List<string> run, ICollection<string> known, ICollection<string> people)
+        {
+            if (run.Count == 0) return false;
+            if (run.Any(w => KnownWord(w, known) || (people != null && people.Contains(w)))) return false;
+            return run.Any(w => w.Length >= 3 && !IsCommon(w));
+        }
+
+        /// <summary>
+        /// A clan, a house or a place with a name of its own that exists nowhere in the world, after the names written
+        /// wrong were set right: "the Black Riding clan", "clan Ironhand", "House Varro", "the castle of Dunmoor",
+        /// "the Black Riders of Sturgia". <paramref name="known"/> holds every word of every real name (lowercase),
+        /// <paramref name="people"/> the words of the names of living lords. Capitalised words that only open a
+        /// sentence do not count. null when fine.
+        /// </summary>
+        public static string CheckInventedNames(string text, ICollection<string> known, ICollection<string> people)
+        {
+            var t = Tokens(text);
+            for (int i = 0; i < t.Count; i++)
+            {
+                string w = t[i].Low;
+                if (w == "clan" || w == "clans")
+                {
+                    // "the Black Riding clan"
+                    var before = CapRun(t, i - 1, -1, 3);
+                    before.Reverse();
+                    if (MadeUp(before, known, people)) return $"names a clan that does not exist: \u00ab{string.Join(" ", before)} clan\u00bb";
+                    // "clan Ironhand", "el clan de los Jinetes Negros"
+                    int j = i + 1;
+                    while (j < t.Count && !t[j].Cap && ClanLinks.Contains(t[j].Low) && j - i <= 3) j++;
+                    var after = CapRun(t, j, 1, 3);
+                    if (MadeUp(after, known, people)) return $"names a clan that does not exist: \u00abclan {string.Join(" ", after)}\u00bb";
+                }
+                else if (w == "house" && t[i].Cap && !t[i].First)
+                {
+                    var after = CapRun(t, i + 1, 1, 2);
+                    if (MadeUp(after, known, people)) return $"names a noble house that does not exist: \u00abHouse {string.Join(" ", after)}\u00bb";
+                }
+                else if (PlaceOfNouns.Contains(w) && i + 1 < t.Count && (t[i + 1].Low == "of" || t[i + 1].Low == "de"))
+                {
+                    // "the castle of Dunmoor"; a person after it is a check of its own (CheckHeroAsPlace)
+                    var after = CapRun(t, i + 2, 1, 3);
+                    if (MadeUp(after, known, people)) return $"names a place that does not exist: \u00ab{w} of {string.Join(" ", after)}\u00bb";
+                }
+                else if (w == "the" && !t[i].Cap)
+                {
+                    // "the Black Riders of Sturgia": a band with a name of its own, tied to a real realm or place
+                    var run = CapRun(t, i + 1, 1, 3);
+                    int of = i + 1 + run.Count;
+                    if (run.Count == 0 || of + 1 >= t.Count || t[of].Low != "of" || !t[of + 1].Cap || !KnownWord(t[of + 1].Low, known)) continue;
+                    // a band is many ("the Black Riders", "the Iron Brotherhood"); one person's byname ("the Lion of
+                    // Vlandia") is a way of speaking of a real lord
+                    string last = run[run.Count - 1];
+                    if (!(last.EndsWith("s") || BandNouns.Contains(last))) continue;
+                    if (MadeUp(run, known, people)) return $"names a band or a house that does not exist: \u00abthe {string.Join(" ", run)} of {t[of + 1].Text}\u00bb";
+                }
+            }
+            return null;
+        }
+
+        // ---- people written as places
+
+        private static readonly HashSet<string> FiefNouns = new HashSet<string>
+        {
+            "castle", "town", "city", "fief", "fiefs", "fortress", "stronghold", "walls", "gates", "garrison", "port", "harbour", "harbor", "siege", "village",
+            "castillo", "ciudad", "feudo", "feudos", "fortaleza", "murallas", "guarnici\u00f3n", "guarnicion", "asedio", "aldea", "villa", "puerto",
+        };
+        private static readonly HashSet<string> FiefAfterName = new HashSet<string> { "castle", "town", "city", "fortress", "stronghold", "keep", "fief", "harbour", "harbor", "port" };
+        private static readonly HashSet<string> StrikeVerbs = new HashSet<string>
+        {
+            "besieged", "besieging", "besiege", "besieges", "stormed", "storm", "storms", "sacked", "sack", "sacks", "raided", "raid", "raids", "conquered",
+            "conquer", "conquers", "asedi\u00f3", "asedio", "asediaron", "asedian", "asediar", "conquist\u00f3", "conquisto", "conquistaron", "conquistar", "saque\u00f3",
+            "saqueo", "saquearon", "saquear", "took", "taken", "seized", "tom\u00f3", "tomo", "tomaron",
+        };
+        private static readonly HashSet<string> TakeOfPeople = new HashSet<string> { "took", "taken", "seized", "tom\u00f3", "tomo", "tomaron" };
+        private static readonly HashSet<string> CaptiveWords = new HashSet<string>
+        {
+            "prisoner", "prisoners", "captive", "captives", "hostage", "hostages", "alive", "custody", "chains", "aside", "prisionero", "prisionera",
+            "prisioneros", "cautivo", "cautiva", "reh\u00e9n", "rehen", "vivo", "viva", "as", "como",
+        };
+        private static readonly HashSet<string> StrikeFillers = new HashSet<string> { "the", "town", "castle", "city", "of", "la", "el", "de", "ciudad", "castillo" };
+        private static readonly HashSet<string> TrustIn = new HashSet<string> { "faith", "trust", "confidence", "belief", "believe", "believes", "believed", "hope", "hopes", "interest", "pride", "proud" };
+
+        /// <summary>
+        /// A living lord written as if he were a place: "the fief of Tasynor", "Tasynor castle", "they besieged
+        /// Tasynor", "took Tasynor" (unless as a prisoner), "the lords gathered in Tasynor". "The lands of Tasynor" and
+        /// "Tasynor's castle" are his and are fine. <paramref name="people"/> holds the words of living lords' names that
+        /// are no place, realm or clan word (lowercase). null when fine.
+        /// </summary>
+        public static string CheckHeroAsPlace(string text, ICollection<string> people)
+        {
+            if (string.IsNullOrWhiteSpace(text) || people == null || people.Count == 0) return null;
+            foreach (var part in Sentences(text))
+            {
+                var w = Words(Soft(part.Key, true));
+                for (int i = 0; i < w.Length; i++)
+                {
+                    if (!people.Contains(w[i])) continue;
+                    string who = w[i];
+                    // "the fief of Tasynor", "el castillo de Tasynor"
+                    int b = i - 1;
+                    if (b >= 0 && (w[b] == "the" || w[b] == "la" || w[b] == "el")) b--;
+                    if (b >= 1 && (w[b] == "of" || w[b] == "de" || w[b] == "del") && FiefNouns.Contains(w[b - 1]))
+                        return $"writes \u00ab{w[b - 1]} of {who}\u00bb: {who} is a person, not a place";
+                    // "Tasynor castle"
+                    if (i + 1 < w.Length && FiefAfterName.Contains(w[i + 1])) return $"writes \u00ab{who} {w[i + 1]}\u00bb: {who} is a person, not a place";
+                    // "besieged Tasynor", "took the castle of Tasynor"
+                    int v = i - 1;
+                    while (v >= 0 && StrikeFillers.Contains(w[v]) && i - v <= 4) v--;
+                    if (v >= 0 && StrikeVerbs.Contains(w[v]))
+                    {
+                        bool asCaptive = TakeOfPeople.Contains(w[v]) && Range(w, i + 1, i + 7).Any(CaptiveWords.Contains);
+                        if (!asCaptive) return $"writes \u00ab{w[v]} {who}\u00bb: {who} is a person, not a place to strike or take";
+                    }
+                    // "gathered in Tasynor" (not "faith in Tasynor")
+                    if (i >= 1 && w[i - 1] == "in" && !(i >= 2 && TrustIn.Contains(w[i - 2]))) return $"writes \u00abin {who}\u00bb: {who} is a person, not a place";
+                }
+            }
+            return null;
+        }
+
+        // ---- places
+
+        private struct PlaceForm { public string[] Words; public PlaceFact Place; }
+
+        private static readonly HashSet<string> PlaceKindWords = new HashSet<string> { "castle", "castillo", "fortress", "fortaleza", "fort", "keep", "town", "city", "ciudad" };
+
+        /// <summary>Each place under its full name and under its name without "Castle" / "Castillo de", longest first.</summary>
+        private static List<PlaceForm> PlaceForms(IEnumerable<PlaceFact> places)
+        {
+            var list = new List<PlaceForm>();
+            var seen = new HashSet<string>();
+            foreach (var p in places ?? Enumerable.Empty<PlaceFact>())
+            {
+                if (p == null || string.IsNullOrWhiteSpace(p.Name)) continue;
+                var w = Words(Soft(p.Name)).ToList();
+                void Add(List<string> f)
+                {
+                    if (f.Count == 0 || string.Concat(f).Length < 4) return;
+                    if (seen.Add(string.Join(" ", f))) list.Add(new PlaceForm { Words = f.ToArray(), Place = p });
+                }
+                Add(w);
+                var cut = w.ToList();
+                while (cut.Count > 1 && PlaceKindWords.Contains(cut[cut.Count - 1])) cut.RemoveAt(cut.Count - 1);
+                while (cut.Count > 1 && (PlaceKindWords.Contains(cut[0]) || cut[0] == "de" || cut[0] == "del" || cut[0] == "of" || cut[0] == "the")) cut.RemoveAt(0);
+                Add(cut);
+            }
+            return list.OrderByDescending(f => f.Words.Length).ToList();
+        }
+
+        /// <summary>The place named at this word, and how many words its name takes. With <paramref name="possessive"/> "myzeas" counts as Myzea.</summary>
+        private static PlaceFact PlaceAt(string[] w, int at, List<PlaceForm> forms, bool possessive, out int len)
+        {
+            len = 0;
+            if (at < 0 || at >= w.Length) return null;
+            foreach (var f in forms)
+            {
+                if (at + f.Words.Length > w.Length) continue;
+                bool ok = true;
+                for (int k = 0; k < f.Words.Length && ok; k++)
+                {
+                    string x = w[at + k], y = f.Words[k];
+                    ok = x == y || (possessive && k == f.Words.Length - 1 && x == y + "s");
+                }
+                if (ok) { len = f.Words.Length; return f.Place; }
+            }
+            return null;
+        }
+
+        private static readonly HashSet<string> PortNouns = new HashSet<string>
+        {
+            "port", "ports", "harbour", "harbours", "harbor", "harbors", "docks", "dockyard", "dockyards", "shipyard", "shipyards", "wharf", "wharves",
+            "quay", "quays", "seaport", "fleet", "fleets", "navy", "naval", "coastal", "seaside", "puerto", "puertos", "astillero", "astilleros", "muelle",
+            "muelles", "d\u00e1rsena", "darsena", "flota", "flotas", "costera", "costero", "mar\u00edtima", "maritima", "mar\u00edtimo", "maritimo",
+        };
+        private static readonly HashSet<string> PortLinks = new HashSet<string> { "of", "at", "in", "de", "del", "en", "the", "la", "el", "town", "city", "castle", "ciudad", "castillo", "villa", "base" };
+        private static readonly HashSet<string> NoPortWords = new HashSet<string> { "no", "not", "without", "lacks", "lack", "landlocked", "inland", "never", "nor", "sin", "interior", "nunca" };
+
+        /// <summary>
+        /// A town or castle called a port, a harbour, a naval base or given a fleet or docks, when it has no port:
+        /// "the port of Myzea", "Myzea's harbour", "the coastal town of Myzea". "Myzea has no port" is fine. Villages
+        /// are left alone. null when fine.
+        /// </summary>
+        public static string CheckPortClaims(string text, IEnumerable<PlaceFact> places)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            var forms = PlaceForms((places ?? Enumerable.Empty<PlaceFact>()).Where(p => p.Kind == "town" || p.Kind == "castle"));
+            if (forms.Count == 0) return null;
+            foreach (var part in Sentences(text))
+            {
+                var w = Words(Soft(part.Key, true));
+                for (int i = 0; i < w.Length; i++)
+                {
+                    if (!PortNouns.Contains(w[i])) continue;
+                    if (Range(w, i - 3, i).Any(NoPortWords.Contains)) continue;
+                    // "the port (city) of Myzea", "harbour at Myzea"
+                    int j = i + 1;
+                    while (j < w.Length && PortLinks.Contains(w[j]) && j - i <= 4) j++;
+                    var p = PlaceAt(w, j, forms, false, out _);
+                    // "Myzea's harbour", "Myzea docks"
+                    if (p == null)
+                        for (int k = Math.Max(0, i - 4); k < i && p == null; k++)
+                        {
+                            var q = PlaceAt(w, k, forms, true, out int len);
+                            if (q != null && k + len == i) p = q;
+                        }
+                    if (p != null && !p.Port && !Range(w, i + 1, i + 3).Any(NoPortWords.Contains))
+                        return $"calls {p.Name} a port (\u00ab{w[i]}\u00bb), and {p.Name} has no harbour";
+                }
+            }
+            return null;
+        }
+
+        // ---- towns and castles said to have fallen
+
+        private static readonly HashSet<string> TakeVerbs = new HashSet<string>
+        {
+            "took", "taken", "captured", "seized", "conquered", "stormed", "wrested", "won", "lost", "tom\u00f3", "tomo", "tomaron", "tomado", "tomada",
+            "captur\u00f3", "capturo", "capturaron", "capturado", "conquist\u00f3", "conquisto", "conquistaron", "conquistado", "arrebat\u00f3", "arrebato", "arrebataron",
+            "arrebatado", "perdi\u00f3", "perdio", "perdieron", "perdido", "gan\u00f3", "gano", "ganaron",
+        };
+        private static readonly HashSet<string> LoseVerbs = new HashSet<string> { "lost", "perdi\u00f3", "perdio", "perdieron", "perdido" };
+        private static readonly HashSet<string> FellVerbs = new HashSet<string>
+        {
+            "fell", "fallen", "falls", "taken", "captured", "seized", "conquered", "stormed", "lost", "cay\u00f3", "cayo", "ca\u00eddo", "caido", "cae", "tomada",
+            "tomado", "capturada", "capturado", "conquistada", "conquistado", "perdida", "perdido", "arrebatada", "arrebatado",
+        };
+        private static readonly HashSet<string> FallNouns = new HashSet<string> { "fall", "capture", "conquest", "loss", "seizure", "ca\u00edda", "caida", "toma", "conquista", "p\u00e9rdida", "perdida", "captura" };
+        private static readonly HashSet<string> TakeFillers = new HashSet<string> { "the", "town", "city", "castle", "fortress", "stronghold", "keep", "of", "back", "la", "el", "ciudad", "castillo", "fortaleza", "de", "del" };
+        private static readonly HashSet<string> FellFillers = new HashSet<string>
+        {
+            "has", "have", "had", "was", "were", "is", "are", "been", "finally", "now", "at", "last", "already", "itself", "ha", "han", "hab\u00eda", "habia",
+            "fue", "finalmente", "ya", "por", "fin", "al", "town", "castle", "city", "sido", "|",
+        };
+        private static readonly HashSet<string> FallVerbs = new HashSet<string> { "fell", "fallen", "falls", "cayó", "cayo", "caído", "caido", "cae" };
+        private static readonly HashSet<string> Passive = new HashSet<string> { "was", "were", "been", "is", "are", "fue", "sido", "|" };
+        // "Myzea falls into despair" is no fall of Myzea
+        private static readonly HashSet<string> NotFalling = new HashSet<string>
+        {
+            "into", "silent", "quiet", "ill", "sick", "behind", "apart", "short", "prey", "victim", "asleep", "in", "on", "upon", "over", "under", "en",
+            "presa", "v\u00edctima", "victima", "enfermo", "enferma", "silencio", "sobre", "bajo",
+        };
+        private static readonly HashSet<string> ToRealm = new HashSet<string> { "to", "by", "a", "ante", "por" };
+        // Next to a fall, these make it a fear, a threat, an attempt, a wish or a story of long ago. Talk and rumour do not:
+        // a fall that never happened is false news however it is told.
+        private static readonly HashSet<string> NotCaptureHedges = new HashSet<string>
+        {
+            "was", "were", "had", "its", "their", "his", "her", "last", "end", "ended", "ends", "ending", "over", "peace", "truce", "old", "before", "said",
+            "say", "claim", "alleg", "accus", "suspect", "rumo", "whisper", "talk", "despite", "although", "without", "weary", "tired", "court", "offer",
+            "propos", "envoy", "call", "demand", "break", "broke", "betray", "question", "doubt", "debate", "until", "used",
+        };
+        private static readonly string[] CaptureOnlyHedges =
+        {
+            "fail", "attempt", "try", "tried", "trying", "si", "no", "nunca", "jam\u00e1s", "jamas", "podr", "pued", "quiz\u00e1", "quiza", "teme", "temor",
+            "miedo", "amenaz", "planea", "prepar", "pronto", "intent", "busc", "quier", "desea", "desean", "deseo", "esper", "casi", "anta\u00f1o", "hace",
+            "a\u00f1os", "years", "centur", "generation", "siglo", "generacion", "generaci\u00f3n",
+        };
+        private static readonly HashSet<string> ExactCaptureHedges = new HashSet<string> { "si", "no", "hace", "a\u00f1os", "casi", "try" };
+        private static readonly HashSet<string> LongAgo = new HashSet<string> { "ago", "years", "hace", "a\u00f1os", "anta\u00f1o", "siglos", "generations", "centuries", "generaciones" };
+
+        private static bool CaptureHedge(string w)
+        {
+            foreach (var h in Hedges)
+                if (!NotCaptureHedges.Contains(h) && (ExactHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal))) return true;
+            foreach (var h in CaptureOnlyHedges)
+                if (ExactCaptureHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        /// <summary>The nearest realm ending at or before <paramref name="at"/>, no further than <paramref name="reach"/> words back.</summary>
+        private static string RealmBefore(List<Realm> realms, int at, int reach) =>
+            realms.Where(r => r.To <= at && at - r.To <= reach).OrderByDescending(r => r.To).Select(r => r.Id).FirstOrDefault();
+
+        /// <summary>The realm after "to", "by", "ante", "into the hands of" within a few words after <paramref name="from"/>.</summary>
+        private static string RealmAfter(string[] w, List<Realm> realms, int from)
+        {
+            for (int j = from; j < w.Length && j <= from + 3; j++)
+            {
+                if (w[j] == "|") break;
+                if (!ToRealm.Contains(w[j]) && w[j] != "hands" && w[j] != "manos") continue;
+                var r = realms.FirstOrDefault(x => x.From > j && x.From <= j + 3);
+                if (r.Id != null) return r.Id;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// A town or castle said to have fallen, been taken, captured, seized, conquered or lost, in English or
+        /// Spanish ("Vlandia took Myzea", "Myzea has fallen to the Vlandians", "the fall of Myzea", "Myzea cay\u00f3 en
+        /// manos de Vlandia"), when the world has no such change of hands in the last days: <paramref name="changes"/>
+        /// holds every one, with the kingdoms on both sides. When the text names the realm that took it (or lost it),
+        /// that realm must be one of the two sides. Questions, conditions, negations, attempts, fears and falls long
+        /// ago are let through; rumour and talk are not. null when fine.
+        /// </summary>
+        public static string CheckCaptureClaims(string text, IEnumerable<PlaceFact> places, IEnumerable<OwnerChange> changes, FactModel m, int days)
+        {
+            if (string.IsNullOrWhiteSpace(text) || m == null) return null;
+            var forms = PlaceForms((places ?? Enumerable.Empty<PlaceFact>()).Where(p => p.Kind == "town" || p.Kind == "castle"));
+            if (forms.Count == 0) return null;
+            var all = (changes ?? Enumerable.Empty<OwnerChange>()).ToList();
+            foreach (var part in Sentences(text))
+            {
+                if (part.Value == '?') continue;
+                var w = Words(Soft(part.Key, true));
+                if (w.Length < 2) continue;
+                var opener = w.FirstOrDefault(x => x != "|");
+                if (opener != null && (Suppositions.Contains(opener) || opener == "si")) continue;
+                var realms = Realms(w, m);
+                for (int i = 0; i < w.Length; i++)
+                {
+                    PlaceFact place = null; int start = i, end = i; string realm = null;
+                    if (TakeVerbs.Contains(w[i]))
+                    {
+                        // "Vlandia took (the castle of) Myzea"
+                        int j = i + 1;
+                        while (j < w.Length && TakeFillers.Contains(w[j]) && j - i <= 4) j++;
+                        place = PlaceAt(w, j, forms, false, out int len);
+                        if (place != null)
+                        {
+                            end = j + len;
+                            realm = RealmBefore(realms, i, 8) ?? RealmAfter(w, realms, end);
+                        }
+                    }
+                    if (place == null && FallNouns.Contains(w[i]) && i + 1 < w.Length && (w[i + 1] == "of" || w[i + 1] == "de" || w[i + 1] == "del"))
+                    {
+                        // "the fall of Myzea (to Vlandia)", "Vlandia's capture of Myzea"
+                        int j = i + 2;
+                        while (j < w.Length && TakeFillers.Contains(w[j]) && j - i <= 5) j++;
+                        place = PlaceAt(w, j, forms, false, out int len);
+                        if (place != null)
+                        {
+                            end = j + len;
+                            realm = RealmAfter(w, realms, end) ?? RealmBefore(realms, i, 3);
+                        }
+                    }
+                    if (place == null)
+                    {
+                        // "Myzea (has) fallen (to Vlandia)", "Myzea was taken by Vlandia", "Myzea cay\u00f3 en manos de Vlandia"
+                        var p = PlaceAt(w, i, forms, false, out int len);
+                        if (p != null)
+                        {
+                            int j = i + len;
+                            while (j < w.Length && FellFillers.Contains(w[j]) && j - i - len <= 3) j++;
+                            if (j < w.Length && FellVerbs.Contains(w[j]))
+                            {
+                                bool falls = FallVerbs.Contains(w[j]);
+                                bool hands = Range(w, j + 1, j + 4).Any(x => x == "hands" || x == "manos");
+                                // "Myzea lost its trade", "Myzea has lost men" have Myzea doing it: a participle is a
+                                // fall only in the passive ("was taken", "ha sido tomada") or set apart ("Myzea, taken by")
+                                bool passive = falls || Range(w, i + len, j).Any(Passive.Contains);
+                                if (passive && !(falls && j + 1 < w.Length && NotFalling.Contains(w[j + 1]) && !hands))
+                                {
+                                    place = p; start = i; end = j + 1;
+                                    realm = RealmAfter(w, realms, end);
+                                    i = j;
+                                }
+                            }
+                        }
+                    }
+                    if (place == null) continue;
+                    // a fear, a threat, an attempt, a condition, a negation, or long ago
+                    string lead = string.Join(" ", w.Take(start));
+                    if (HedgeBefore(" " + lead + " ", 5, CaptureHedge)) continue;
+                    if (Range(w, end, end + 5).TakeWhile(x => x != "|" && !ClauseOpeners.Contains(x)).Any(LongAgo.Contains)) continue;
+                    var ch = all.Where(c => string.Equals(c.Place, place.Name, StringComparison.OrdinalIgnoreCase)).ToList();
+                    if (ch.Count == 0)
+                        return $"says {place.Name} fell or was taken, and it has not changed hands in the last {days} days (it is held by {(string.IsNullOrEmpty(place.Owner) ? "no kingdom" : place.Owner)})";
+                    if (realm != null && !ch.Any(c => c.To == realm || c.From == realm))
+                    {
+                        var last = ch.OrderBy(c => c.DaysAgo).First();
+                        return $"says {place.Name} changed hands with {realm}; it really passed from {(string.IsNullOrEmpty(last.From) ? "no kingdom" : last.From)} to {(string.IsNullOrEmpty(last.To) ? "no kingdom" : last.To)}";
+                    }
+                }
+            }
+            return null;
+        }
+
+        // ============================================================ what a ruler says he has done
+
+        private static readonly string[] WarDeeds =
+        {
+            " declare war ", " declares war ", " declared war ", " declaring war ", " war is declared ", " war has been declared ",
+            " go to war ", " goes to war ", " march to war ", " now at war with ", " at war with ",
+            " declaro la guerra ", " declaramos la guerra ", " declara la guerra ", " declaran la guerra ", " declarado la guerra ", " guerra está declarada ",
+            " guerra esta declarada ", " vamos a la guerra ", " en guerra con ",
+        };
+        private static readonly string[] PeaceDeeds =
+        {
+            " make peace ", " made peace ", " makes peace ", " sign peace ", " signed peace ", " signs peace ", " sign the peace ", " signed the peace ",
+            " signs the peace ", " peace is signed ", " peace is made ", " peace has been signed ", " peace has been made ", " accept peace ",
+            " accepts peace ", " accepted peace ", " accept the peace ", " accepts the peace ", " accepted the peace ", " accept their peace ",
+            " seal peace ", " sealed peace ", " seal the peace ", " sealed the peace ", " now at peace with ",
+            " firmamos la paz ", " firmo la paz ", " firmado la paz ", " firma la paz ", " aceptamos la paz ", " acepto la paz ", " acepta la paz ",
+            " aceptado la paz ", " hacemos las paces ", " hacemos la paz ", " sellamos la paz ", " paz está firmada ", " paz esta firmada ",
+            " paz queda firmada ", " ahora en paz con ",
+        };
+        private static readonly string[] AllianceDeeds =
+        {
+            " seal an alliance ", " sealed an alliance ", " seals an alliance ", " seal the alliance ", " sealed the alliance ", " seal our alliance ",
+            " accept the alliance ", " accepts the alliance ", " accepted the alliance ", " accept their alliance ", " accept your alliance ",
+            " alliance is sealed ", " alliance has been sealed ", " alliance is forged ", " forge an alliance ", " forged an alliance ", " now allies ",
+            " are now allied ", " now allied with ", " we are allies ",
+            " sellamos una alianza ", " sellamos la alianza ", " sellado una alianza ", " aceptamos la alianza ", " acepto la alianza ",
+            " aceptado la alianza ", " somos aliados ", " ahora aliados ", " alianza queda sellada ", " alianza está sellada ",
+        };
+        private static readonly HashSet<string> FirstPerson = new HashSet<string> { "i", "we", "my", "our", "us", "yo", "nosotros", "mi", "nuestro", "nuestra" };
+        private static readonly HashSet<string> StatePhrases = new HashSet<string>
+        {
+            " now at war with ", " at war with ", " en guerra con ", " now at peace with ", " ahora en paz con ", " now allied with ", " are now allied ", " now allies ",
+        };
+        // Next to a deed these make it a threat, an intention, a wish or a condition: nothing said to be done
+        private static readonly HashSet<string> NotDeedHedges = new HashSet<string> { "peace", "truce", "its", "their", "his", "her", "weary", "tired", "end", "ended", "ends", "ending", "over" };
+        private static readonly string[] DeedOnlyHedges =
+        {
+            "to", "si", "no", "nunca", "jamás", "jamas", "podr", "pued", "quizá", "quiza", "dispuest", "listo", "listos", "amenaz", "advier", "advert",
+            "prepar", "pronto", "quier", "desea", "deseo", "busc", "propon", "ofrec", "esper", "antes", "tal", "debe", "deber", "debemos", "seek", "ready",
+            "willing", "intend", "aim",
+        };
+        private static readonly HashSet<string> ExactDeedHedges = new HashSet<string> { "to", "si", "no", "tal", "antes", "aim" };
+        private static readonly HashSet<string> DeedConditions = new HashSet<string> { "if", "unless", "should", "si", "salvo", "menos", "until", "hasta" };
+
+        private static bool DeedHedge(string w)
+        {
+            foreach (var h in Hedges)
+                if (!NotDeedHedges.Contains(h) && (ExactHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal))) return true;
+            foreach (var h in DeedOnlyHedges)
+                if (ExactDeedHedges.Contains(h) ? w == h : w.StartsWith(h, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        /// <summary>A war declared, a peace signed or an alliance sealed that a ruler's words say is done, and the kingdom it is with (null when none is named).</summary>
+        public class Deed
+        {
+            public string Kind;      // war | peace | alliance
+            public string Target;    // kingdom id, or null
+            public string Phrase;
+        }
+
+        /// <summary>
+        /// Every war, peace or alliance a ruler's statement says is done, in English or Spanish: "I declare war on
+        /// Sturgia", "we have signed the peace", "sellamos una alianza con Vlandia". Threats, intentions, wishes,
+        /// conditions, negations and questions are not deeds ("I will declare war if", "we are ready to make peace").
+        /// <paramref name="speaker"/> is the ruler's own kingdom: never the other side of a deed.
+        /// </summary>
+        public static List<Deed> ClaimedDeeds(string text, FactModel m, string speaker)
+        {
+            var res = new List<Deed>();
+            if (string.IsNullOrWhiteSpace(text) || m == null) return res;
+            foreach (var part in Sentences(text))
+            {
+                if (part.Value == '?') continue;
+                string soft = Soft(part.Key, true);
+                var opener = Words(soft).FirstOrDefault(x => x != "|");
+                if (opener != null && (Suppositions.Contains(opener) || opener == "si")) continue;
+                var ms = Mentions(soft, m).Where(x => x.Id != speaker).ToList();
+                foreach (var kind in new[] { "war", "peace", "alliance" })
+                {
+                    var phrases = kind == "war" ? WarDeeds : kind == "peace" ? PeaceDeeds : AllianceDeeds;
+                    foreach (var ph in phrases)
+                        for (int at = soft.IndexOf(ph, StringComparison.Ordinal); at >= 0; at = soft.IndexOf(ph, at + 1, StringComparison.Ordinal))
+                        {
+                            if (HedgeBefore(soft.Substring(0, at + 1), 4, DeedHedge)) continue;
+                            int end = at + ph.Length - 1;
+                            if (Words(soft.Substring(end)).TakeWhile(x => x != "|").Take(5).Any(DeedConditions.Contains)) continue;
+                            // the other side: named right after the phrase, or else before it in the same sentence
+                            var after = ms.FirstOrDefault(x => x.Start >= end && x.Start <= end + NearChars * 2);
+                            var before = ms.LastOrDefault(x => x.End <= at + 1);
+                            // "Vlandia, now at war with the Empire": a state whose subject is another realm is not the speaker's
+                            if (StatePhrases.Contains(ph) && before.Id != null) continue;
+                            // "Vlandia declared war on the Empire": another realm right before the deed is the one doing it
+                            // ("Sturgia, I declare war on you" is the speaker's: a first person stands between)
+                            if (before.Id != null)
+                            {
+                                var gap = Words(soft.Substring(before.End, at + 1 - before.End)).Where(x => x != "|").ToList();
+                                if (gap.Count <= 3 && !gap.Any(FirstPerson.Contains)) continue;
+                            }
+                            string target = after.Id ?? before.Id;
+                            if (!res.Any(d => d.Kind == kind && d.Target == target)) res.Add(new Deed { Kind = kind, Target = target, Phrase = ph.Trim() });
+                        }
+                }
+            }
+            return res;
+        }
+    }
+
+    /// <summary>A town, castle or village as the checks see it.</summary>
+    public class PlaceFact
+    {
+        public string Name;
+        /// <summary>town | castle | village</summary>
+        public string Kind;
+        /// <summary>Id of the kingdom that holds it, "" for none.</summary>
+        public string Owner = "";
+        public bool Port;
+    }
+
+    /// <summary>A town or castle that changed hands lately, with the kingdoms on both sides ("" for none).</summary>
+    public class OwnerChange
+    {
+        public string Place;
+        public string From = "", To = "";
+        public double DaysAgo;
     }
 }

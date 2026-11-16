@@ -2645,5 +2645,80 @@
     <string id="AIL_e7b1d903" text="{0} ne vous écrira plus tant que vous ne lui aurez pas reparlé ou écrit." />
     <string id="AIL_e7b1d904" text="Interdit à la couronne d’expulser des clans du royaume" />
     <string id="AIL_e7b1d905" text="Interdit à la couronne de confisquer des fiefs" />
+    <string id="AIL_e7b1dc00" text="Des habitants au visage bien à eux" />
+    <string id="AIL_e7b1dc01" text="Donne à chaque villageois, citadin, enfant, employé de taverne et marchand un visage bien à lui : un type de visage, quelques traits marqués, sa propre taille et carrure, parfois une cicatrice, et un plus grand choix de coiffures et de barbes de sa culture. Seigneurs, compagnons et notables gardent leur visage. S'applique aux personnes qui apparaissent après le changement (entrez de nouveau dans le lieu)." />
+    <string id="AIL_e7b1dc02" text="Variété des visages" />
+    <string id="AIL_e7b1dc03" text="À quel point les gens s'écartent de leur modèle de base : forme et traits du visage, taille, poids et carrure, couleur de peau, de cheveux et d'yeux, chance d'avoir une cicatrice. Bas les garde proches de l'original, haut donne des traits plus marqués. Les enfants reçoivent toujours une version plus douce." />
+    <string id="AIL_e7b1dc04" text="Visage propre aussi pour soldats, gardes et bandits" />
+    <string id="AIL_e7b1dc05" text="Visage propre aussi pour les troupes ordinaires, gardes, mercenaires et bandits, en bataille comme dans les colonies. La coiffure ne change que si rien ne couvre la tête." />
+    <string id="AIL_e7b1dc06" text="Vêtements de tous les jours variés pour les habitants" />
+    <string id="AIL_e7b1dc07" text="Citadins et villageois s'habillent avec les vêtements de tous les jours de tout le petit peuple de leur culture (tuniques, robes, chausses, capes, gants) au lieu des quelques tenues de leur modèle. Les habits bien plus riches que les leurs sont écartés et les chapeaux restent tels quels. S'applique aux personnes qui apparaissent après le changement." />
+    <string id="AIL_e7b1dc08" text="{=!}Poser à l'ermite une question plus profonde [AI Legacy]" />
+    <string id="AIL_e7b1dc09" text="{=!}Le vieil homme ouvre un œil. «Parle, voyageur. La montagne entend tout.»" />
+    <string id="AIL_e7b1dc0a" text="(Envoyez votre message et attendez la réponse de l'ermite)" />
+    <string id="AIL_e7b1dc0b" text="{=!}Voir la réponse de l'ermite" />
+    <string id="AIL_e7b1dc0c" text="*L'ermite est encore plongé dans ses pensées…*" />
+    <string id="AIL_e7b1dc0d" text="*L'ermite attend en silence.*" />
+    <string id="AIL_e7b1dc0e" text="L'ermite" />
+    <string id="AIL_e7b1dc0f" text="Votre question pour l'ermite" />
+    <string id="AIL_e7b1dc10" text="*L'ermite garde les yeux fermés et ne dit rien.*" />
+    <string id="AIL_e7b1dc11" text="L'ermite est prêt à répondre." />
+    <string id="AIL_e7b1da00" text="{0} tombe aux mains de {1}" />
+    <string id="AIL_e7b1da01" text="{0} de {1} est tombé(e) aux mains de {2} après un siège mené par {3}{4}" />
+    <string id="AIL_e7b1da02" text="{0} aux mains des rebelles" />
+    <string id="AIL_e7b1da03" text="{0} de {1} est tombé(e) aux mains du clan {2} lors d’une rébellion" />
+    <string id="AIL_e7b1da04" text="Nouvelle : {0}" />
+    <string id="AIL_e7b1da05" text="déclaration de {0}, corrigée" />
+    <string id="AIL_e7b1db00" text="Religion :" />
+    <string id="AIL_e7b1db01" text="Il vous faut {0} d’influence." />
+    <string id="AIL_e7b1db02" text="Vous avez dépensé {0} d’influence." />
+    <string id="AIL_e7b1db03" text="Il n’y a aucune concubine à libérer." />
+    <string id="AIL_e7b1db04" text="{0} concubine(s) libérée(s)." />
+    <string id="AIL_e7b1db05" text="Désactiver la grossesse quotidienne du jeu pour vous et votre conjoint" />
+    <string id="AIL_e7b1db06" text="Chaque jour, le jeu tire au sort un enfant entre vous et votre conjoint, que vous soyez l’homme ou la femme. Activé : ce tirage n’a plus lieu et les enfants ne viennent que de l’intimité en conversation. Les grossesses déjà en cours et les autres couples ne changent pas. Par défaut : désactivé." />
+    <string id="AIL_e7b1db07" text="Hors mariage : influence pour reconnaître un enfant" />
+    <string id="AIL_e7b1db08" text="Ce que coûte à votre clan, en influence, la reconnaissance d’un de vos enfants adultes né hors mariage ; le double si vous ne régnez pas sur un royaume. Sans assez d’influence, l’option est grisée. 0 = gratuit. Par défaut : 150." />
+    <string id="AIL_e7b1db09" text="Libérer toutes les concubines" />
+    <string id="AIL_e7b1db0a" text="Libérer" />
+    <string id="AIL_e7b1db0b" text="Libère d’un coup toutes les concubines du monde, les vôtres et celles des seigneurs. Chacune retourne à sa maison et à sa vie d’avant, rentre chez elle et en veut à celui qui la gardait. Impossible à annuler." />
+    <string id="AIL_e7b1db0c" text="Contour vert sur les malades en bataille" />
+    <string id="AIL_e7b1db0d" text="En bataille rangée et en siège, un héros malade et, dans une troupe qui a des malades, à peu près autant de ses soldats qu’il y a de malades portent un contour vert, des deux côtés. Seulement en bataille, ni en ville ni à l’arène." />
+    <string id="AIL_e7b1db0e" text="Ordres et cris de bataille en mémoire" />
+    <string id="AIL_e7b1db0f" text="Ce que crient les chefs et les ordres que vous donnez avec vos mots s’inscrivent dans la mémoire de chaque héros de la bataille, pour qu’ils puissent en reparler ensuite et que les événements du monde en tiennent compte. Désactivé : ce qui se dit en bataille reste hors de leur mémoire." />
+    <string id="AIL_e7b1db10" text="{=!}Entraîner les troupes d’un compagnon, 8 heures" />
+    <string id="AIL_e7b1db11" text="{=!}Entraîner toutes vos troupes ensemble, 8 heures ({AIL_TRAIN_COST_ALL}{GOLD_ICON})" />
+    <string id="AIL_e7b1db12" text="{=!}Aucune troupe de votre clan en ville n’a de soldats valides à entraîner pour le moment." />
+    <string id="AIL_e7b1db13" text="{=!}« Toutes ensemble » ne sert que quand d’autres troupes de votre clan sont en ville. Pour vos seuls hommes, utilisez « Entraîner vos troupes »." />
+    <string id="AIL_e7b1db14" text="{=!}C’est vous qui payez. Les soldats de la troupe choisie gagnent de l’expérience ; elle reste en ville pendant l’entraînement." />
+    <string id="AIL_e7b1db15" text="{=!}C’est vous qui payez. Vos hommes et ceux des troupes de votre clan en ville s’entraînent en même temps." />
+    <string id="AIL_e7b1db16" text="Choisissez la troupe" />
+    <string id="AIL_e7b1db17" text="Les troupes de qui vont s’entraîner ?" />
+    <string id="AIL_e7b1db18" text="{0} : {1} soldats, {2} deniers" />
+    <string id="AIL_e7b1db19" text="Les troupes de {0} s’entraînent à l’arène sous les maîtres d’armes. On entend les coups des épées de bois et les cris des instructeurs." />
+    <string id="AIL_e7b1db1a" text="Toutes vos troupes s’entraînent ensemble à l’arène sous les maîtres d’armes. On entend les coups des épées de bois et les cris des instructeurs." />
+    <string id="AIL_e7b1db1b" text="Les troupes terminent l’entraînement : {0} ont gagné de l’expérience" />
+    <string id="AIL_e7b1db1c" text="Entraîne ses troupes" />
+    <string id="AIL_e7b1db1d" text="Entraînement des troupes à l’arène" />
+    <string id="AIL_e7b1db20" text="+15 % de vitesse de guérison d’une maladie (personnel)" />
+    <string id="AIL_e7b1db21" text="+10 % d’immunité aux maladies (personnel)" />
+    <string id="AIL_e7b1db22" text="+20 % de vitesse de guérison des maladies quand la troupe est à l’arrêt" />
+    <string id="AIL_e7b1db23" text="Une maladie sous 10 % de progression passe d’elle-même (5 % sans l’atout)" />
+    <string id="AIL_e7b1db24" text="-30 % du ralentissement sur la carte causé par les maladies" />
+    <string id="AIL_e7b1db25" text="Les prisonniers pris à des troupes malades arrivent deux fois moins malades" />
+    <string id="AIL_e7b1db26" text="+15 % de vitesse de guérison des maladies avec un moral au-dessus de 70" />
+    <string id="AIL_e7b1db27" text="+1 niveau médical quand vous êtes soigné dans une localité" />
+    <string id="AIL_e7b1db28" text="Les maladies progressent 30 % plus lentement pendant un siège" />
+    <string id="AIL_e7b1db29" text="-25 % de contagion au sein de la troupe" />
+    <string id="AIL_e7b1db2a" text="-20 % de contagion dans la localité que vous gouvernez" />
+    <string id="AIL_e7b1db2b" text="-25 % sur le prix des herbes et remèdes près de la localité que vous gouvernez" />
+    <string id="AIL_e7b1db2c" text="+3 % d’immunité de la troupe par type de nourriture transporté" />
+    <string id="AIL_e7b1db2d" text="Les troupes de rang 1 et 2 ne meurent pas de maladie (sauf de la peste)" />
+    <string id="AIL_e7b1db2e" text="Chaque jour, 30 % des troupes de rang 1 et 2 atteintes d’un mal grave s’en remettent seules" />
+    <string id="AIL_e7b1db2f" text="+1 niveau médical dans la localité que vous gouvernez" />
+    <string id="AIL_e7b1db30" text="Vous survivez une fois à une maladie qui atteint 100 % (elle retombe à 50 %)" />
+    <string id="AIL_e7b1db31" text="+10 % d’immunité aux maladies pour les héros de votre troupe" />
+    <string id="AIL_e7b1db32" text="+1 % de vitesse de guérison des maladies pour 10 hommes" />
+    <string id="AIL_e7b1db33" text="Les troupes qui surmontent une maladie grave gagnent 5 % d’immunité pour toujours" />
+    <string id="AIL_e7b1db34" text="+0,5 % d’immunité et +0,3 % de guérison par point de Médecine au-dessus de 250" />
   </strings>
 </base>

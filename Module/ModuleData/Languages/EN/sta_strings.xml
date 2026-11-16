@@ -2646,5 +2646,80 @@
     <string id="AIL_e7b1d903" text="{0} will not write to you again until you speak to them or write to them." />
     <string id="AIL_e7b1d904" text="Forbids the crown to expel clans from the realm" />
     <string id="AIL_e7b1d905" text="Forbids the crown to confiscate fiefs" />
+    <string id="AIL_e7b1dc00" text="Townsfolk with faces of their own" />
+    <string id="AIL_e7b1dc01" text="Gives every villager, townsperson, child, tavern worker and trader a face of their own: a face type, a few marked features, their own height and build, sometimes a scar, and a wider choice of the hairstyles and beards of their culture. Lords, companions and notables keep their faces. Applies to people who appear after the change (enter the place again)." />
+    <string id="AIL_e7b1dc02" text="Face variety" />
+    <string id="AIL_e7b1dc03" text="How far people stray from their plain template: face shape and features, height, weight and build, skin, hair and eye colour, chance of a scar. Low keeps them close to the original, high gives sharper looks. Children always get a milder version." />
+    <string id="AIL_e7b1dc04" text="Faces of their own also for soldiers, guards and bandits" />
+    <string id="AIL_e7b1dc05" text="Faces of their own also for ordinary troops, guards, mercenaries and bandits, in battles and in settlements. Hairstyles only change when nothing covers the head." />
+    <string id="AIL_e7b1dc06" text="Varied everyday clothes for townsfolk" />
+    <string id="AIL_e7b1dc07" text="Townspeople and villagers dress from the everyday clothes of all the common folk of their culture (tunics, dresses, trousers, cloaks, gloves) instead of the few outfits of their template. Clothes far richer than their own are left out and hats stay as they are. Applies to people who appear after the change." />
+    <string id="AIL_e7b1dc08" text="{=!}Ask the hermit a deeper question [AI Legacy]" />
+    <string id="AIL_e7b1dc09" text="{=!}The old man opens one eye. «Speak, wanderer. The mountain hears all.»" />
+    <string id="AIL_e7b1dc0a" text="(Send your message and wait for the hermit's answer)" />
+    <string id="AIL_e7b1dc0b" text="{=!}See the hermit's answer" />
+    <string id="AIL_e7b1dc0c" text="*The hermit is still lost in thought…*" />
+    <string id="AIL_e7b1dc0d" text="*The hermit waits in silence.*" />
+    <string id="AIL_e7b1dc0e" text="The hermit" />
+    <string id="AIL_e7b1dc0f" text="Your question for the hermit" />
+    <string id="AIL_e7b1dc10" text="*The hermit keeps his eyes closed and says nothing.*" />
+    <string id="AIL_e7b1dc11" text="The hermit is ready to answer." />
+    <string id="AIL_e7b1da00" text="{0} falls to {1}" />
+    <string id="AIL_e7b1da01" text="{0} of {1} has fallen to {2} after a siege led by {3}{4}" />
+    <string id="AIL_e7b1da02" text="{0} in rebel hands" />
+    <string id="AIL_e7b1da03" text="{0} of {1} has fallen to clan {2} in a rebellion" />
+    <string id="AIL_e7b1da04" text="News: {0}" />
+    <string id="AIL_e7b1da05" text="corrected statement by {0}" />
+    <string id="AIL_e7b1db00" text="Religion:" />
+    <string id="AIL_e7b1db01" text="You need {0} influence." />
+    <string id="AIL_e7b1db02" text="You spent {0} influence." />
+    <string id="AIL_e7b1db03" text="There are no concubines to release." />
+    <string id="AIL_e7b1db04" text="{0} concubine(s) released." />
+    <string id="AIL_e7b1db05" text="Turn off the game's daily pregnancy for you and your spouse" />
+    <string id="AIL_e7b1db06" text="The game rolls every day for a child between you and your spouse, whether you are the man or the woman. On: that roll is skipped, and children only come from intimacy in conversation. Pregnancies already under way and every other couple are not affected. Default: off." />
+    <string id="AIL_e7b1db07" text="Out of wedlock: influence to acknowledge a child" />
+    <string id="AIL_e7b1db08" text="What acknowledging an adult child of yours born out of wedlock costs your clan in influence; twice as much if you do not rule a kingdom. Without enough influence the option is greyed out. 0 = free. Default: 150." />
+    <string id="AIL_e7b1db09" text="Release all concubines" />
+    <string id="AIL_e7b1db0a" text="Release" />
+    <string id="AIL_e7b1db0b" text="Releases at once every concubine in the world, yours and the lords'. Each goes back to their old house and way of life and returns home, taking it badly with whoever kept them. It cannot be undone." />
+    <string id="AIL_e7b1db0c" text="Green outline on the sick in battle" />
+    <string id="AIL_e7b1db0d" text="In field battles and sieges, a sick hero and, in a party with sick men, about as many of its soldiers as are ill show a green outline, on both sides. Only in battles, not in towns or the arena." />
+    <string id="AIL_e7b1db0e" text="Battle orders and shouts in memory" />
+    <string id="AIL_e7b1db0f" text="What leaders shout and the orders you give in your own words are written into the memory of every hero in the battle, so they can bring it up afterwards and world events can take it into account. Off: battle chatter stays out of their memory." />
+    <string id="AIL_e7b1db10" text="{=!}Train a companion's troops, 8 hours" />
+    <string id="AIL_e7b1db11" text="{=!}Train all your troops together, 8 hours ({AIL_TRAIN_COST_ALL}{GOLD_ICON})" />
+    <string id="AIL_e7b1db12" text="{=!}No party of your clan in town has healthy soldiers to train right now." />
+    <string id="AIL_e7b1db13" text="{=!}“All together” only works when other parties of your clan are in town. For your own men alone, use “Train your troops”." />
+    <string id="AIL_e7b1db14" text="{=!}You pay. The soldiers of the party you choose gain experience; it stays in town while the training lasts." />
+    <string id="AIL_e7b1db15" text="{=!}You pay. Your men and those of your clan's parties in town train at the same time." />
+    <string id="AIL_e7b1db16" text="Choose the party" />
+    <string id="AIL_e7b1db17" text="Whose troops will train?" />
+    <string id="AIL_e7b1db18" text="{0}: {1} soldiers, {2} denars" />
+    <string id="AIL_e7b1db19" text="{0}'s troops train in the arena under the weapon masters. You hear the blows of wooden swords and the shouts of the instructors." />
+    <string id="AIL_e7b1db1a" text="All your troops train together in the arena under the weapon masters. You hear the blows of wooden swords and the shouts of the instructors." />
+    <string id="AIL_e7b1db1b" text="The troops finish the training: {0} have gained experience" />
+    <string id="AIL_e7b1db1c" text="Trains troops" />
+    <string id="AIL_e7b1db1d" text="Arena troop training" />
+    <string id="AIL_e7b1db20" text="+15% speed of recovering from a disease (personal)" />
+    <string id="AIL_e7b1db21" text="+10% immunity to diseases (personal)" />
+    <string id="AIL_e7b1db22" text="+20% speed of curing diseases while the party is stationary" />
+    <string id="AIL_e7b1db23" text="A disease below 10% progress wears off by itself (5% without the perk)" />
+    <string id="AIL_e7b1db24" text="-30% of the map slowdown caused by diseases" />
+    <string id="AIL_e7b1db25" text="Prisoners taken from sick parties arrive half as sick" />
+    <string id="AIL_e7b1db26" text="+15% speed of curing diseases while morale is above 70" />
+    <string id="AIL_e7b1db27" text="+1 medical level when you are treated in a settlement" />
+    <string id="AIL_e7b1db28" text="Diseases progress 30% slower during a siege" />
+    <string id="AIL_e7b1db29" text="-25% contagion inside the party" />
+    <string id="AIL_e7b1db2a" text="-20% contagion in the settlement you govern" />
+    <string id="AIL_e7b1db2b" text="-25% on the price of herbs and remedies near the settlement you govern" />
+    <string id="AIL_e7b1db2c" text="+3% party immunity for each kind of food it carries" />
+    <string id="AIL_e7b1db2d" text="Tier 1 and 2 troops do not die of disease (except of a plague)" />
+    <string id="AIL_e7b1db2e" text="Each day, 30% of tier 1 and 2 troops sick with something serious get over it by themselves" />
+    <string id="AIL_e7b1db2f" text="+1 medical level in the settlement you govern" />
+    <string id="AIL_e7b1db30" text="You survive once a disease that reaches 100% (it falls back to 50%)" />
+    <string id="AIL_e7b1db31" text="+10% immunity to diseases for the heroes of your party" />
+    <string id="AIL_e7b1db32" text="+1% speed of curing diseases for every 10 men" />
+    <string id="AIL_e7b1db33" text="Troops that get over a serious disease gain 5% immunity for good" />
+    <string id="AIL_e7b1db34" text="+0.5% immunity and +0.3% healing for each Medicine point above 250" />
   </strings>
 </base>

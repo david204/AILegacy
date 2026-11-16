@@ -131,7 +131,7 @@ namespace AILegacy.World
         }
 
         private static string HerbName(Herb h) => L.T(h.NameId, h.NameEs);
-        private static int HerbPrice(Herb h) => Math.Max(1, (int)(h.Cost * S.Get.DiseasePreventionHerbCostMultiplier));
+        private static int HerbPrice(Herb h) => Math.Max(1, (int)(h.Cost * S.Get.DiseasePreventionHerbCostMultiplier * (1f - HerbDiscount(Settlement.CurrentSettlement))));
 
         /// <summary>Doses one case takes: more for a worse disease, and for a band by the root of its size like the hospital's bill.</summary>
         private static int HerbUnits(Sickness s)

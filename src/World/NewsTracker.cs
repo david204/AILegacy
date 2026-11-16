@@ -95,14 +95,29 @@ namespace AILegacy.World
                 Kingdoms = Ids(newOwner?.MapFaction, oldOwner?.MapFaction),
                 Heroes = HeroIds(newOwner, oldOwner, capturer),
             };
+            bool rebellion = detail == ChangeOwnerOfSettlementAction.ChangeOwnerOfSettlementDetail.ByRebellion;
+            var newK = newOwner?.MapFaction as Kingdom; var oldK = oldOwner?.MapFaction as Kingdom;
             if (siege)
             {
+                // A real fall is news of its own, a card in the news window and a line on screen ("X falls to Y"),
+                // with who led the siege. It sets off no AI event: the next batch sees it in its list of changes of hands.
                 var who = capturer ?? newOwner;
                 n.Type = "capture"; n.Importance = 3;
-                n.Text = $"The {kind} of {s.Name} has fallen to {who?.Name}{FactionOf(who)} after a siege" +
+                string to = newK != null ? newK.Name.ToString() : who?.Name?.ToString();
+                n.Text = $"{s.Name} ({kind}{(oldK != null ? " of " + oldK.Name : "")}) has fallen to {to} after a siege led by {who?.Name}{FactionOf(who)}" +
                          (oldOwner != null ? $"; it belonged to {oldOwner.Name}{FactionOf(oldOwner)}." : ".");
-                n.TitleEs = L.F("AIL_3e887326", $"Cae {s.Name}");
-                n.TextEs = L.F("AIL_2a6395bc", $"{Cap(kindEs)} de {s.Name} ha caído tras un asedio en manos de {who?.Name}{DeEs(who)}") +
+                n.TitleEs = L.F("AIL_e7b1da00", $"{s.Name} cae ante {to}");
+                n.TextEs = L.F("AIL_e7b1da01", $"{Cap(kindEs)} de {s.Name} ha caído ante {to} tras un asedio dirigido por {who?.Name}{DeEs(who)}") +
+                           (oldOwner != null ? L.F("AIL_06be773b", $". Antes pertenecía a {oldOwner.Name}{DeEs(oldOwner)}.") : ".");
+            }
+            else if (rebellion)
+            {
+                n.Type = "capture"; n.Importance = 3;
+                string clan = newOwner?.Clan?.Name?.ToString() ?? newOwner?.Name?.ToString();
+                n.Text = $"{s.Name} ({kind}{(oldK != null ? " of " + oldK.Name : "")}) has been seized in a rebellion by clan {clan}" +
+                         (oldOwner != null ? $"; it belonged to {oldOwner.Name}{FactionOf(oldOwner)}." : ".");
+                n.TitleEs = L.F("AIL_e7b1da02", $"{s.Name}, en manos de los rebeldes");
+                n.TextEs = L.F("AIL_e7b1da03", $"{Cap(kindEs)} de {s.Name} ha caído en una rebelión en manos del clan {clan}") +
                            (oldOwner != null ? L.F("AIL_06be773b", $". Antes pertenecía a {oldOwner.Name}{DeEs(oldOwner)}.") : ".");
             }
             else
@@ -115,7 +130,12 @@ namespace AILegacy.World
                            (oldOwner != null && oldOwner != newOwner ? L.F("AIL_5b7a333a", $" (antes era de {oldOwner.Name}).") : ".");
             }
             NewsStore.Add(n);
+            // on screen at the importance the player chose for world events (as their cards are)
+            if (n.Type == "capture" && NewsStore.Contains(n) && n.Importance >= S.Get.WorldEventNotifyImportance)
+                WorldSim.Say(L.F("AIL_e7b1da04", $"Noticia: {n.TitleEs}"), CaptureColor);
         });
+
+        private static readonly TaleWorlds.Library.Color CaptureColor = TaleWorlds.Library.Color.FromUint(0xFFE05A47u);
 
         /// <summary>
         /// A death the caller tells itself, with a richer record (a death in a conversation, Dialogue/Combat.cs): the

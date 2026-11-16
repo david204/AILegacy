@@ -584,19 +584,47 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             return child != null && Enabled && b != null && IsBaseborn(child) && child.Age >= 18 && (b.FatherId == P?.StringId || b.MotherId == P?.StringId);
         }
 
-        /// <summary>The player owns the adult child as theirs: legitimate, into the player's clan as a lord. No other cost.</summary>
+        /// <summary>
+        /// Influence that acknowledging a child costs the player, as in the Bastard Children mod: the setting's amount,
+        /// twice that for someone who does not rule a kingdom. 0 = free.
+        /// </summary>
+        public static int LegitimizeCost()
+        {
+            int cost = Math.Max(0, S.Get.BastardLegitimizeInfluenceCost);
+            bool rules = P?.Clan?.Kingdom != null && P.Clan.Kingdom.Leader == P;
+            return rules ? cost : cost * 2;
+        }
+
+        /// <summary>For the dialogue line: greyed out, with the reason, while the player's clan lacks the influence.</summary>
+        public static bool CanPayLegitimize(out TaleWorlds.Localization.TextObject why)
+        {
+            int cost = LegitimizeCost();
+            why = null;
+            if (cost <= 0 || (Clan.PlayerClan != null && Clan.PlayerClan.Influence >= cost)) return true;
+            why = new TaleWorlds.Localization.TextObject("{=!}" + L.F("AIL_e7b1db01", $"Necesitas {cost} de influencia."));
+            return false;
+        }
+
+        /// <summary>The player owns the adult child as theirs: legitimate, into the player's clan as a lord, for the influence it costs.</summary>
         public static void Acknowledge(Hero child)
         {
             var b = RecordOf(child);
             if (b == null || child == null) return;
             try
             {
+                int cost = LegitimizeCost();
+                if (cost > 0 && Clan.PlayerClan != null)
+                {
+                    if (Clan.PlayerClan.Influence < cost) { Log.Warn($"[bastards] not enough influence to acknowledge {child.Name} ({Clan.PlayerClan.Influence:0} of {cost})"); return; }
+                    ChangeClanInfluenceAction.Apply(Clan.PlayerClan, -cost);
+                    InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1db02", $"Has gastado {cost} de influencia."), Colors.White));
+                }
                 b.Acknowledged = true;
                 Legitimize(b, child, quiet: true);
                 if (child.Clan != Clan.PlayerClan && child.Clan?.Leader != child) child.Clan = Clan.PlayerClan;
                 if (child.Occupation != Occupation.Lord) child.SetNewOccupation(Occupation.Lord);
                 WorldSim.Say(L.F("AIL_e7b1d50e", $"{child.Name} es ahora hijo legítimo tuyo y entra en tu clan."), Colors.Yellow);
-                Log.Info($"[bastards] the player acknowledges {child.Name}");
+                Log.Info($"[bastards] the player acknowledges {child.Name} ({cost} influence)");
                 SaveFiles.Dirty();
             }
             catch (Exception ex) { Log.Error("[bastards] acknowledge", ex); }

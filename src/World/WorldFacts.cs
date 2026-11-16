@@ -412,7 +412,7 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
 {geography}
 - Armies, envoys and merchants travel by road. An alliance or a trade agreement makes sense between neighbours, or between two crowns with a common neighbour they both have reason to fear. Crowns far apart, with other realms between them, have no reason to ally, to trade, to demand anything of each other or to go to war, and a distant war is not their concern.");
 
-        public static void Touch() { var _ = TCalendarMap.Key + TToday.Key + TDead.Key; }
+        public static void Touch() { var _ = TCalendarMap.Key + TToday.Key + TDead.Key + TFiefSheet.Key + TPortRule.Key; }
 
         private static Dictionary<string, float> _gap = new Dictionary<string, float>();
         private static float _span;
@@ -542,6 +542,90 @@ These people are DEAD. Nobody can obey them, serve them, meet them, plot against
             int year = CampaignTime.DaysInYear, season = CampaignTime.DaysInSeason, week = CampaignTime.DaysInWeek;
             if (year <= 0) { year = 84; season = 21; week = 7; }
             return TCalendarMap.Format("week", week, "season", season, "year", year, "half", year / 2, "geography", Geography(keep));
+        }
+
+        // ============================================================ the places of each realm, for the chronicler
+
+        /// <summary>Days of changes of hands the chronicler is shown, and how far back a fall it writes is checked against them.</summary>
+        public const int FiefChangeDays = 30, FiefCheckDays = 45;
+        private const int FiefBudget = 6000;
+
+        private static readonly Tpl TFiefSheet = new Tpl("dynamic_events_generator/fact_sheet.txt",
+@"## Towns and castles of each realm, with the clan that holds each (exact, right now)
+{fiefs}
+## Towns and castles that changed hands in the last {days} days (nothing else has changed hands)
+{changes}
+## Sieges going on right now
+{sieges}
+How to use these lists:
+- They hold every realm, town and castle there is, and who holds each; the clans are those of the list of who serves whom. Villages are not listed: name one only as it is written elsewhere in the data. Never make up a place, a clan, a house, an order or a band with a name of its own, and never write a person as a place: a lord holds fiefs, he is not one.
+- A town or castle may be said to have fallen, been taken, captured, seized, conquered or lost ONLY when it is listed above as having changed hands, and only to the realm that got it. A siege going on is no fall. Anything else is fear, threat or pressure and must read as such: a fall that did not happen is never news, not even as a rumour.
+{port_rule}");
+        private static readonly Tpl TPortRule = new Tpl("dynamic_events_generator/fact_sheet_ports.txt",
+            "- Only the places marked (port) lie on the sea and have a harbour, docks or ships. Never call any other place a port, a harbour or a naval base, nor give it a fleet.");
+
+        /// <summary>Whether this town or castle has a harbour (Settlement.HasPort, set from its port position; false without the naval content).</summary>
+        public static bool HasPort(Settlement s)
+        {
+            try { return s != null && s.HasPort; } catch { return false; }
+        }
+
+        private static string Ago(double day)
+        {
+            int d = (int)(CampaignTime.Now.ToDays - day);
+            return d <= 0 ? "today" : d == 1 ? "yesterday" : $"{d} days ago";
+        }
+
+        private static string Side(string clan, string kingdomName, string kingdomId) =>
+            (string.IsNullOrEmpty(clan) ? "an unknown clan" : "clan " + clan) +
+            (string.IsNullOrEmpty(kingdomId) ? (string.IsNullOrEmpty(kingdomName) ? " (no kingdom)" : $" of {kingdomName}") : $" of {kingdomName} [{kingdomId}]");
+
+        /// <summary>
+        /// The true list of places for the event generator: every town and castle of each realm with the clan that
+        /// holds it (and whether it has a harbour, when the world has any), the towns and castles that really changed
+        /// hands lately, and the sieges going on. Over the budget the weakest realms go first, never those in
+        /// <paramref name="keep"/>. Empty on error.
+        /// </summary>
+        public static string FiefSheet(ICollection<string> keep = null)
+        {
+            try
+            {
+                bool ports = Settlement.All.Any(s => s != null && (s.IsTown || s.IsCastle) && HasPort(s));
+                string Item(Settlement s) => s.Name + (ports && HasPort(s) ? " (port; " : " (") + (s.OwnerClan?.Name?.ToString() ?? "no clan") + ")";
+                var lines = new List<KeyValuePair<string, string>>();
+                foreach (var k in WorldSim.Kingdoms.OrderByDescending(x => x.CurrentTotalStrength))
+                {
+                    var fiefs = k.Fiefs.Where(f => f?.Settlement != null).Select(f => f.Settlement).ToList();
+                    var towns = fiefs.Where(s => s.IsTown).Select(Item).ToList();
+                    var castles = fiefs.Where(s => s.IsCastle).Select(Item).ToList();
+                    lines.Add(new KeyValuePair<string, string>(k.StringId,
+                        $"- {Tag(k)}: towns: {(towns.Count > 0 ? string.Join(", ", towns) : "none")}; castles: {(castles.Count > 0 ? string.Join(", ", castles) : "none")}."));
+                }
+                var free = Settlement.All.Where(s => s != null && (s.IsTown || s.IsCastle) && !(s.MapFaction is Kingdom)).Select(Item).ToList();
+                if (free.Count > 0) lines.Add(new KeyValuePair<string, string>(null, $"- Held by no kingdom: {string.Join(", ", free.Take(20))}."));
+                string fiefText = lines.Count == 0 ? "(none)" : Fit(lines, FiefBudget, keep, "");
+
+                var changes = History.RecentChanges(FiefChangeDays).Where(c => c.Place != null && (c.Place.IsTown || c.Place.IsCastle)).Take(20)
+                    .Select(c => $"- {c.Place.Name} ({(c.Place.IsTown ? "town" : "castle")}): from {Side(c.FromClan, c.FromKingdomName, c.FromKingdom)} to {Side(c.ToClan, c.ToKingdomName, c.ToKingdom)}, " +
+                                 $"{History.HowEn(c.How)}{(string.IsNullOrEmpty(c.By) ? "" : ", led by " + c.By)}, {Ago(c.Day)}.").ToList();
+
+                var sieges = new List<string>();
+                foreach (var s in Settlement.All)
+                {
+                    if (s == null || !(s.IsTown || s.IsCastle) || !s.IsUnderSiege) continue;
+                    var camp = s.SiegeEvent?.BesiegerCamp;
+                    var by = camp?.LeaderParty?.MapFaction as Kingdom;
+                    var lead = camp?.LeaderParty?.LeaderHero;
+                    sieges.Add($"- {s.Name} ({(s.IsTown ? "town" : "castle")} of {Tag(s.MapFaction as Kingdom)}) besieged by {(by != null ? Tag(by) : camp?.LeaderParty?.MapFaction?.Name?.ToString() ?? "an enemy host")}{(lead != null ? ", led by " + lead.Name : "")}.");
+                    if (sieges.Count >= 12) break;
+                }
+
+                return TFiefSheet.Format("fiefs", fiefText, "days", FiefChangeDays,
+                    "changes", changes.Count > 0 ? string.Join("\n", changes) : "(none: no town or castle has changed hands)",
+                    "sieges", sieges.Count > 0 ? string.Join("\n", sieges) : "(none)",
+                    "port_rule", ports ? TPortRule.Text.Trim() : "").TrimEnd();
+            }
+            catch (Exception ex) { Log.Error("Places of each realm for the AI", ex); return ""; }
         }
     }
 }

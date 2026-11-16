@@ -2645,5 +2645,80 @@
     <string id="AIL_e7b1d903" text="{0} schreibt dir nicht mehr, bis du wieder mit dieser Person sprichst oder ihr schreibst." />
     <string id="AIL_e7b1d904" text="Verbietet der Krone, Clans aus dem Reich zu verstoßen" />
     <string id="AIL_e7b1d905" text="Verbietet der Krone, Lehen einzuziehen" />
+    <string id="AIL_e7b1dc00" text="Einwohner mit eigenem Gesicht" />
+    <string id="AIL_e7b1dc01" text="Gibt jedem Dorfbewohner, Städter, Kind, Schankgehilfen und Händler ein eigenes Gesicht: einen Gesichtstyp, ein paar markante Züge, eigene Größe und Statur, manchmal eine Narbe und mehr Auswahl an Frisuren und Bärten seiner Kultur. Herren, Gefährten und Honoratioren behalten ihr Gesicht. Gilt für Leute, die nach der Änderung erscheinen (betritt den Ort erneut)." />
+    <string id="AIL_e7b1dc02" text="Vielfalt der Gesichter" />
+    <string id="AIL_e7b1dc03" text="Wie weit die Leute von ihrer schlichten Vorlage abweichen: Gesichtsform und Züge, Größe, Gewicht und Statur, Haut-, Haar- und Augenfarbe, Chance auf eine Narbe. Niedrig bleibt nah am Original, hoch gibt markantere Züge. Kinder bekommen immer eine mildere Fassung." />
+    <string id="AIL_e7b1dc04" text="Eigenes Gesicht auch für Soldaten, Wachen und Banditen" />
+    <string id="AIL_e7b1dc05" text="Eigenes Gesicht auch für gewöhnliche Truppen, Wachen, Söldner und Banditen, in Schlachten und in Siedlungen. Frisuren ändern sich nur, wenn nichts den Kopf bedeckt." />
+    <string id="AIL_e7b1dc06" text="Abwechslungsreiche Alltagskleidung für Einwohner" />
+    <string id="AIL_e7b1dc07" text="Städter und Dorfbewohner kleiden sich aus der Alltagskleidung aller einfachen Leute ihrer Kultur (Tuniken, Kleider, Hosen, Umhänge, Handschuhe) statt aus den wenigen Gewändern ihrer Vorlage. Viel reichere Kleidung als die eigene bleibt außen vor, Hüte bleiben, wie sie sind. Gilt für Leute, die nach der Änderung erscheinen." />
+    <string id="AIL_e7b1dc08" text="{=!}Dem Einsiedler eine tiefere Frage stellen [AI Legacy]" />
+    <string id="AIL_e7b1dc09" text="{=!}Der Alte öffnet ein Auge. «Sprich, Wanderer. Der Berg hört alles.»" />
+    <string id="AIL_e7b1dc0a" text="(Sende deine Nachricht und warte auf die Antwort des Einsiedlers)" />
+    <string id="AIL_e7b1dc0b" text="{=!}Die Antwort des Einsiedlers ansehen" />
+    <string id="AIL_e7b1dc0c" text="*Der Einsiedler ist noch tief in Gedanken versunken…*" />
+    <string id="AIL_e7b1dc0d" text="*Der Einsiedler wartet schweigend.*" />
+    <string id="AIL_e7b1dc0e" text="Der Einsiedler" />
+    <string id="AIL_e7b1dc0f" text="Deine Frage an den Einsiedler" />
+    <string id="AIL_e7b1dc10" text="*Der Einsiedler hält die Augen geschlossen und sagt nichts.*" />
+    <string id="AIL_e7b1dc11" text="Der Einsiedler ist bereit zu antworten." />
+    <string id="AIL_e7b1da00" text="{0} fällt an {1}" />
+    <string id="AIL_e7b1da01" text="{0} {1} ist nach einer Belagerung unter {3}{4} an {2} gefallen" />
+    <string id="AIL_e7b1da02" text="{0} in den Händen der Aufständischen" />
+    <string id="AIL_e7b1da03" text="{0} {1} ist bei einem Aufstand an den Clan {2} gefallen" />
+    <string id="AIL_e7b1da04" text="Nachricht: {0}" />
+    <string id="AIL_e7b1da05" text="berichtigte Erklärung von {0}" />
+    <string id="AIL_e7b1db00" text="Religion:" />
+    <string id="AIL_e7b1db01" text="Du brauchst {0} Einfluss." />
+    <string id="AIL_e7b1db02" text="Du hast {0} Einfluss ausgegeben." />
+    <string id="AIL_e7b1db03" text="Es gibt keine Konkubinen freizulassen." />
+    <string id="AIL_e7b1db04" text="{0} Konkubine(n) freigelassen." />
+    <string id="AIL_e7b1db05" text="Tägliche Schwangerschaft des Spiels für dich und deinen Ehepartner abschalten" />
+    <string id="AIL_e7b1db06" text="Das Spiel würfelt jeden Tag um ein Kind zwischen dir und deinem Ehepartner, ob du der Mann oder die Frau bist. An: Dieser Wurf entfällt, Kinder kommen nur durch Intimität im Gespräch. Laufende Schwangerschaften und alle anderen Paare bleiben unberührt. Standard: aus." />
+    <string id="AIL_e7b1db07" text="Unehelich: Einfluss, um ein Kind anzuerkennen" />
+    <string id="AIL_e7b1db08" text="Was es deinen Clan an Einfluss kostet, ein erwachsenes, unehelich geborenes Kind von dir anzuerkennen; doppelt so viel, wenn du kein Reich regierst. Ohne genug Einfluss ist die Option ausgegraut. 0 = kostenlos. Standard: 150." />
+    <string id="AIL_e7b1db09" text="Alle Konkubinen freilassen" />
+    <string id="AIL_e7b1db0a" text="Freilassen" />
+    <string id="AIL_e7b1db0b" text="Lässt auf einen Schlag alle Konkubinen der Welt frei, deine und die der Lords. Jede kehrt zu ihrem alten Haus und Leben zurück, geht nach Hause und nimmt es dem übel, der sie hielt. Kann nicht rückgängig gemacht werden." />
+    <string id="AIL_e7b1db0c" text="Grüner Umriss um Kranke in der Schlacht" />
+    <string id="AIL_e7b1db0d" text="In Feldschlachten und Belagerungen zeigen ein kranker Held und in einer Gruppe mit Kranken ungefähr so viele ihrer Soldaten, wie krank sind, einen grünen Umriss, auf beiden Seiten. Nur in Schlachten, nicht in Städten oder der Arena." />
+    <string id="AIL_e7b1db0e" text="Schlachtbefehle und Rufe im Gedächtnis" />
+    <string id="AIL_e7b1db0f" text="Was Anführer rufen und die Befehle, die du in eigenen Worten gibst, kommen ins Gedächtnis jedes Helden der Schlacht, damit sie es später ansprechen können und Weltereignisse es berücksichtigen. Aus: Schlachtgerede bleibt aus ihrem Gedächtnis." />
+    <string id="AIL_e7b1db10" text="{=!}Die Truppen eines Gefährten trainieren, 8 Stunden" />
+    <string id="AIL_e7b1db11" text="{=!}Alle deine Truppen zusammen trainieren, 8 Stunden ({AIL_TRAIN_COST_ALL}{GOLD_ICON})" />
+    <string id="AIL_e7b1db12" text="{=!}Keine Gruppe deines Clans in der Stadt hat gerade gesunde Soldaten zum Trainieren." />
+    <string id="AIL_e7b1db13" text="{=!}„Alle zusammen“ geht nur, wenn andere Gruppen deines Clans in der Stadt sind. Für deine eigenen Männer allein nimm „Truppen trainieren“." />
+    <string id="AIL_e7b1db14" text="{=!}Du zahlst. Die Soldaten der gewählten Gruppe gewinnen Erfahrung; sie bleibt in der Stadt, solange das Training dauert." />
+    <string id="AIL_e7b1db15" text="{=!}Du zahlst. Deine Männer und die der Gruppen deines Clans in der Stadt trainieren gleichzeitig." />
+    <string id="AIL_e7b1db16" text="Wähle die Gruppe" />
+    <string id="AIL_e7b1db17" text="Wessen Truppen sollen trainieren?" />
+    <string id="AIL_e7b1db18" text="{0}: {1} Soldaten, {2} Denare" />
+    <string id="AIL_e7b1db19" text="Die Truppen von {0} trainieren in der Arena unter den Waffenmeistern. Man hört die Schläge der Holzschwerter und die Rufe der Ausbilder." />
+    <string id="AIL_e7b1db1a" text="Alle deine Truppen trainieren zusammen in der Arena unter den Waffenmeistern. Man hört die Schläge der Holzschwerter und die Rufe der Ausbilder." />
+    <string id="AIL_e7b1db1b" text="Die Truppen beenden das Training: {0} haben Erfahrung gewonnen" />
+    <string id="AIL_e7b1db1c" text="Trainiert Truppen" />
+    <string id="AIL_e7b1db1d" text="Truppentraining in der Arena" />
+    <string id="AIL_e7b1db20" text="+15 % schnellere Genesung von einer Krankheit (persönlich)" />
+    <string id="AIL_e7b1db21" text="+10 % Immunität gegen Krankheiten (persönlich)" />
+    <string id="AIL_e7b1db22" text="+20 % schnellere Heilung von Krankheiten, solange die Gruppe steht" />
+    <string id="AIL_e7b1db23" text="Eine Krankheit unter 10 % Fortschritt klingt von selbst ab (5 % ohne den Vorteil)" />
+    <string id="AIL_e7b1db24" text="-30 % der Verlangsamung auf der Karte durch Krankheiten" />
+    <string id="AIL_e7b1db25" text="Gefangene aus kranken Gruppen kommen nur halb so oft krank an" />
+    <string id="AIL_e7b1db26" text="+15 % schnellere Heilung von Krankheiten bei Moral über 70" />
+    <string id="AIL_e7b1db27" text="+1 medizinische Stufe, wenn du in einer Siedlung behandelt wirst" />
+    <string id="AIL_e7b1db28" text="Krankheiten schreiten während einer Belagerung 30 % langsamer voran" />
+    <string id="AIL_e7b1db29" text="-25 % Ansteckung innerhalb der Gruppe" />
+    <string id="AIL_e7b1db2a" text="-20 % Ansteckung in der Siedlung, die du verwaltest" />
+    <string id="AIL_e7b1db2b" text="-25 % auf den Preis von Kräutern und Heilmitteln nahe der Siedlung, die du verwaltest" />
+    <string id="AIL_e7b1db2c" text="+3 % Immunität der Gruppe für jede Art von mitgeführter Nahrung" />
+    <string id="AIL_e7b1db2d" text="Truppen der Stufe 1 und 2 sterben nicht an Krankheit (außer an einer Seuche)" />
+    <string id="AIL_e7b1db2e" text="Jeden Tag erholen sich 30 % der schwer erkrankten Truppen der Stufe 1 und 2 von selbst" />
+    <string id="AIL_e7b1db2f" text="+1 medizinische Stufe in der Siedlung, die du verwaltest" />
+    <string id="AIL_e7b1db30" text="Du überlebst einmal eine Krankheit, die 100 % erreicht (sie fällt auf 50 % zurück)" />
+    <string id="AIL_e7b1db31" text="+10 % Immunität gegen Krankheiten für die Helden deiner Gruppe" />
+    <string id="AIL_e7b1db32" text="+1 % schnellere Heilung von Krankheiten je 10 Männer" />
+    <string id="AIL_e7b1db33" text="Truppen, die eine schwere Krankheit überstehen, erhalten dauerhaft 5 % Immunität" />
+    <string id="AIL_e7b1db34" text="+0,5 % Immunität und +0,3 % Heilung je Medizinpunkt über 250" />
   </strings>
 </base>

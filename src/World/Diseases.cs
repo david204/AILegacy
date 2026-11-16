@@ -429,7 +429,7 @@ namespace AILegacy.World
         private static int WoundedCount(TroopRoster r) => r.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => e.WoundedNumber);
         private static int CostRoster(TroopRoster r, Settlement st) =>
             (int)Math.Ceiling(r.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => e.WoundedNumber * (10 + e.Character.Tier * 8)) * HospitalPrice(st));
-        private static int CostPrevention(Settlement st) => (int)Math.Ceiling((50 + MobileParty.MainParty.MemberRoster.TotalManCount * 6) * HospitalPrice(st) * S.Get.DiseasePreventionHerbCostMultiplier);
+        private static int CostPrevention(Settlement st) => (int)Math.Ceiling((50 + MobileParty.MainParty.MemberRoster.TotalManCount * 6) * HospitalPrice(st) * S.Get.DiseasePreventionHerbCostMultiplier * (1f - HerbDiscount(st)));
         private const int PreventionDays = 12;
 
         private static void HealRoster(TroopRoster r)
@@ -515,6 +515,8 @@ namespace AILegacy.World
         {
             try { AddHospital(starter); } catch (Exception ex) { Log.Error("Hospital menu", ex); }
             try { QuarantineRules.AddMenus(starter); } catch (Exception ex) { Log.Error("Quarantine gate menu", ex); }
+            // once per campaign start: what each Medicine perk does against disease, in its description (DiseasesPerks.cs)
+            ApplyPerkTexts();
             foreach (var menu in new[] { "town", "castle" })
             {
                 starter.AddGameMenuOption(menu, "ailegacy_manage_quarantine_" + menu, L.T("AIL_e7b1d70f", "{=!}Gestionar la cuarentena"),

@@ -2645,5 +2645,80 @@
     <string id="AIL_e7b1d903" text="{0} non ti scriverà più finché non tornerai a parlargli o a scrivergli." />
     <string id="AIL_e7b1d904" text="Vieta alla corona di espellere clan dal regno" />
     <string id="AIL_e7b1d905" text="Vieta alla corona di confiscare feudi" />
+    <string id="AIL_e7b1dc00" text="Abitanti con un volto tutto loro" />
+    <string id="AIL_e7b1dc01" text="Dà a ogni paesano, cittadino, bambino, lavorante di taverna e mercante un volto tutto suo: un tipo di viso, qualche tratto marcato, statura e corporatura proprie, a volte una cicatrice e una scelta più ampia di acconciature e barbe della sua cultura. Signori, compagni e notabili mantengono il loro volto. Vale per chi compare dopo la modifica (rientra nel luogo)." />
+    <string id="AIL_e7b1dc02" text="Varietà dei volti" />
+    <string id="AIL_e7b1dc03" text="Quanto le persone si discostano dal loro modello: forma e tratti del viso, statura, peso e corporatura, colore di pelle, capelli e occhi, probabilità di una cicatrice. Basso li tiene vicini all'originale, alto dà tratti più marcati. I bambini ricevono sempre una versione più lieve." />
+    <string id="AIL_e7b1dc04" text="Volto proprio anche per soldati, guardie e banditi" />
+    <string id="AIL_e7b1dc05" text="Volto proprio anche per le truppe comuni, guardie, mercenari e banditi, in battaglia e negli insediamenti. L'acconciatura cambia solo se niente copre la testa." />
+    <string id="AIL_e7b1dc06" text="Abiti di tutti i giorni vari per gli abitanti" />
+    <string id="AIL_e7b1dc07" text="Cittadini e paesani si vestono con gli abiti di tutti i giorni di tutta la gente comune della loro cultura (tuniche, vesti, brache, mantelli, guanti) invece dei pochi abiti del loro modello. Si escludono i capi molto più ricchi dei loro e i cappelli restano come sono. Vale per chi compare dopo la modifica." />
+    <string id="AIL_e7b1dc08" text="{=!}Fare all'eremita una domanda più profonda [AI Legacy]" />
+    <string id="AIL_e7b1dc09" text="{=!}Il vecchio apre un occhio. «Parla, viandante. La montagna ode ogni cosa.»" />
+    <string id="AIL_e7b1dc0a" text="(Invia il tuo messaggio e attendi la risposta dell'eremita)" />
+    <string id="AIL_e7b1dc0b" text="{=!}Vedi la risposta dell'eremita" />
+    <string id="AIL_e7b1dc0c" text="*L'eremita è ancora assorto nei suoi pensieri…*" />
+    <string id="AIL_e7b1dc0d" text="*L'eremita attende in silenzio.*" />
+    <string id="AIL_e7b1dc0e" text="L'eremita" />
+    <string id="AIL_e7b1dc0f" text="La tua domanda per l'eremita" />
+    <string id="AIL_e7b1dc10" text="*L'eremita tiene gli occhi chiusi e non dice nulla.*" />
+    <string id="AIL_e7b1dc11" text="L'eremita è pronto a rispondere." />
+    <string id="AIL_e7b1da00" text="{0} cade in mano a {1}" />
+    <string id="AIL_e7b1da01" text="{0} di {1} è caduto in mano a {2} dopo un assedio guidato da {3}{4}" />
+    <string id="AIL_e7b1da02" text="{0} in mano ai ribelli" />
+    <string id="AIL_e7b1da03" text="{0} di {1} è caduto in mano al clan {2} durante una ribellione" />
+    <string id="AIL_e7b1da04" text="Notizia: {0}" />
+    <string id="AIL_e7b1da05" text="dichiarazione di {0}, corretta" />
+    <string id="AIL_e7b1db00" text="Religione:" />
+    <string id="AIL_e7b1db01" text="Ti servono {0} di influenza." />
+    <string id="AIL_e7b1db02" text="Hai speso {0} di influenza." />
+    <string id="AIL_e7b1db03" text="Non ci sono concubine da liberare." />
+    <string id="AIL_e7b1db04" text="{0} concubina/e liberata/e." />
+    <string id="AIL_e7b1db05" text="Disattiva la gravidanza giornaliera del gioco per te e il tuo coniuge" />
+    <string id="AIL_e7b1db06" text="Ogni giorno il gioco tira i dadi per un figlio tra te e il tuo coniuge, che tu sia l’uomo o la donna. Attivo: quel tiro salta e i figli arrivano solo dall’intimità nella conversazione. Le gravidanze già in corso e le altre coppie non cambiano. Predefinito: disattivato." />
+    <string id="AIL_e7b1db07" text="Fuori dal matrimonio: influenza per riconoscere un figlio" />
+    <string id="AIL_e7b1db08" text="Quanto costa al tuo clan, in influenza, riconoscere un tuo figlio adulto nato fuori dal matrimonio; il doppio se non governi un regno. Senza abbastanza influenza l’opzione è grigia. 0 = gratis. Predefinito: 150." />
+    <string id="AIL_e7b1db09" text="Libera tutte le concubine" />
+    <string id="AIL_e7b1db0a" text="Libera" />
+    <string id="AIL_e7b1db0b" text="Libera in un colpo tutte le concubine del mondo, le tue e quelle dei signori. Ognuna torna alla sua vecchia casa e alla sua vita di prima, rientra a casa e se la prende con chi la teneva. Non si può annullare." />
+    <string id="AIL_e7b1db0c" text="Contorno verde sui malati in battaglia" />
+    <string id="AIL_e7b1db0d" text="Nelle battaglie campali e negli assedi, un eroe malato e, in una compagnia con uomini malati, circa tanti soldati quanti sono i malati hanno un contorno verde, da entrambe le parti. Solo in battaglia, non in città né nell’arena." />
+    <string id="AIL_e7b1db0e" text="Ordini e grida di battaglia nella memoria" />
+    <string id="AIL_e7b1db0f" text="Ciò che gridano i comandanti e gli ordini che dai a parole restano nella memoria di ogni eroe della battaglia, così possono riparlarne dopo e gli eventi del mondo ne tengono conto. Disattivo: ciò che si dice in battaglia resta fuori dalla loro memoria." />
+    <string id="AIL_e7b1db10" text="{=!}Addestra le truppe di un compagno, 8 ore" />
+    <string id="AIL_e7b1db11" text="{=!}Addestra tutte le tue truppe insieme, 8 ore ({AIL_TRAIN_COST_ALL}{GOLD_ICON})" />
+    <string id="AIL_e7b1db12" text="{=!}Nessuna compagnia del tuo clan in città ha soldati sani da addestrare ora." />
+    <string id="AIL_e7b1db13" text="{=!}«Tutte insieme» funziona solo quando in città ci sono altre compagnie del tuo clan. Per i soli tuoi uomini, usa «Addestra le tue truppe»." />
+    <string id="AIL_e7b1db14" text="{=!}Paghi tu. I soldati della compagnia che scegli guadagnano esperienza; resta in città finché dura l’addestramento." />
+    <string id="AIL_e7b1db15" text="{=!}Paghi tu. I tuoi uomini e quelli delle compagnie del tuo clan in città si addestrano insieme." />
+    <string id="AIL_e7b1db16" text="Scegli la compagnia" />
+    <string id="AIL_e7b1db17" text="Le truppe di chi si addestreranno?" />
+    <string id="AIL_e7b1db18" text="{0}: {1} soldati, {2} denari" />
+    <string id="AIL_e7b1db19" text="Le truppe di {0} si addestrano nell’arena sotto i maestri d’armi. Si sentono i colpi delle spade di legno e le grida degli istruttori." />
+    <string id="AIL_e7b1db1a" text="Tutte le tue truppe si addestrano insieme nell’arena sotto i maestri d’armi. Si sentono i colpi delle spade di legno e le grida degli istruttori." />
+    <string id="AIL_e7b1db1b" text="Le truppe finiscono l’addestramento: {0} hanno guadagnato esperienza" />
+    <string id="AIL_e7b1db1c" text="Addestra le truppe" />
+    <string id="AIL_e7b1db1d" text="Addestramento delle truppe nell’arena" />
+    <string id="AIL_e7b1db20" text="+15% di rapidità nel guarire da una malattia (personale)" />
+    <string id="AIL_e7b1db21" text="+10% di immunità alle malattie (personale)" />
+    <string id="AIL_e7b1db22" text="+20% di rapidità nel curare le malattie con la compagnia ferma" />
+    <string id="AIL_e7b1db23" text="Una malattia sotto il 10% di avanzamento passa da sola (5% senza il vantaggio)" />
+    <string id="AIL_e7b1db24" text="-30% del rallentamento sulla mappa causato dalle malattie" />
+    <string id="AIL_e7b1db25" text="I prigionieri catturati a compagnie malate arrivano malati la metà" />
+    <string id="AIL_e7b1db26" text="+15% di rapidità nel curare le malattie con il morale sopra 70" />
+    <string id="AIL_e7b1db27" text="+1 livello medico quando vieni curato in un insediamento" />
+    <string id="AIL_e7b1db28" text="Le malattie avanzano del 30% più lentamente durante un assedio" />
+    <string id="AIL_e7b1db29" text="-25% di contagio all’interno della compagnia" />
+    <string id="AIL_e7b1db2a" text="-20% di contagio nell’insediamento che governi" />
+    <string id="AIL_e7b1db2b" text="-25% sul prezzo di erbe e rimedi vicino all’insediamento che governi" />
+    <string id="AIL_e7b1db2c" text="+3% di immunità della compagnia per ogni tipo di cibo che porta" />
+    <string id="AIL_e7b1db2d" text="Le truppe di livello 1 e 2 non muoiono di malattia (salvo una pestilenza)" />
+    <string id="AIL_e7b1db2e" text="Ogni giorno il 30% delle truppe di livello 1 e 2 malate di qualcosa di grave guarisce da sola" />
+    <string id="AIL_e7b1db2f" text="+1 livello medico nell’insediamento che governi" />
+    <string id="AIL_e7b1db30" text="Sopravvivi una volta a una malattia che arriva al 100% (torna al 50%)" />
+    <string id="AIL_e7b1db31" text="+10% di immunità alle malattie per gli eroi della tua compagnia" />
+    <string id="AIL_e7b1db32" text="+1% di rapidità nel curare le malattie ogni 10 uomini" />
+    <string id="AIL_e7b1db33" text="Le truppe che superano una malattia grave guadagnano il 5% di immunità per sempre" />
+    <string id="AIL_e7b1db34" text="+0,5% di immunità e +0,3% di guarigione per ogni punto di Medicina oltre 250" />
   </strings>
 </base>

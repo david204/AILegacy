@@ -336,7 +336,8 @@ namespace AILegacy.World
             if (open.Count == 0) return false;
             int cost = open.Sum(s => HospitalCost(s, m, st));
             if (!PayOrOwe(cost)) return false;
-            foreach (var s in open) StartTreatment(s, m.Quality);
+            // a hero's own Good Lodgings and the governor's Clean Infrastructure count a level more (DiseasesPerks.cs)
+            foreach (var s in open) StartTreatment(s, m.Quality * LodgingBonus(st, s.Kind == Sickness.Hero ? FindHero(s.TargetId) : null));
             int n = open.Count;
             WorldSim.Say(L.F("AIL_e7b1c944", $"Los médicos empiezan el tratamiento de {n} enfermo(s) por {cost} denarios."), Colors.Green);
             Log.Info($"[disease] hospital of {st?.Name}: {n} case(s) put under treatment for {cost} denars (strength {m.Quality:0.##})");

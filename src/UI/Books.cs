@@ -148,7 +148,8 @@ namespace AILegacy.UI
             // A death is a card only for a sovereign, and only until the world event it set off tells it (that event
             // carries the succession). Lords, notables and companions are not cards of their own.
             if (t == "death" || t == "kingdom") return n.Importance >= 4 && !n.Told;
-            return n.Importance >= 3 && (t == "war" || t == "peace" || t == "ruler");
+            // a town or castle really taken (by siege or in a rebellion) is a card too: the fall itself, told by the game
+            return n.Importance >= 3 && (t == "war" || t == "peace" || t == "ruler" || t == "capture");
         }
 
         /// <summary>One-word tag for the bottom left corner and its category key (which also picks its color).</summary>

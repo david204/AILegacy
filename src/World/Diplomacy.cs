@@ -1993,6 +1993,9 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             bool held = playerText == null && RulerCaptive(k);
             var types = new List<string>();
             var targets = new List<string>();     // kingdoms the decisions were aimed at
+            var attempts = new List<Attempt>();   // every action asked for, carried out or not
+            var warsBefore = WorldSim.Kingdoms.Where(o => o != k && k.IsAtWarWith(o)).ToList();
+            var alliesBefore = WorldSim.Kingdoms.Where(o => o != k && Allied(k, o)).ToList();
             s.ResultKinds = new List<string>();
             if (j["actions"] is JArray acts)
                 foreach (var a in acts.OfType<JObject>().Take(4))
@@ -2000,11 +2003,14 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     try
                     {
                         string type = (Str(a["type"]) ?? "").Trim().ToLowerInvariant();
+                        var at = new Attempt { Type = type, Target = WorldSim.FindKingdom(Target(a)) };
+                        attempts.Add(at);
                         if (held && type != "accept_peace" && type != "reject_peace" && type != "propose_peace")
-                        { Log.Warn($"[diplomacy] {s.RulerName} is imprisoned: action {type} ignored"); continue; }
+                        { at.Why = "you are a prisoner and may only answer a peace"; Log.Warn($"[diplomacy] {s.RulerName} is imprisoned: action {type} ignored"); continue; }
                         var r = Resolve(k, a);
                         if (r != null)
                         {
+                            at.Done = true;
                             s.Results.Add(r); s.ResultKinds.Add(DecisionKind(type)); types.Add(type);
                             if (s.Importance < 3) s.Importance = 3;
                             var to = WorldSim.FindKingdom(Target(a));
@@ -2022,6 +2028,160 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                     WorldSim.ChangeStance(k.StringId, o.StringId, Math.Max(-cfg.MaxStanceChange, Math.Min(cfg.MaxStanceChange, (int?)x["change"] ?? 0)));
                 }
 
+            // An AI ruler's words that claim a war declared, a peace signed or an alliance sealed that did not happen
+            // (a truce in the way, a house rule, or no such action at all): the decisions stand, the words are written
+            // again once, told what really happened, before anything is published
+            if (playerText == null && S.Get.FactCheckEvents)
+            {
+                string unkept = null;
+                try { unkept = Unkept(k, s, attempts, warsBefore, alliesBefore); }
+                catch (Exception ex) { Log.Error("[diplomacy] checking what a declaration claims", ex); }
+                if (unkept != null)
+                {
+                    Log.Warn($"[diplomacy] declaration by {s.RulerName} claims what did not happen ({unkept}): asking for it again | {s.SummaryEn}");
+                    RewriteStatement(k, s, j, types, targets, attempts, warsBefore, alliesBefore, unkept);
+                    return true;
+                }
+            }
+            PublishStatement(k, s, j, types, targets);
+            return true;
+        }
+
+        /// <summary>One action a ruler's answer asked for, and whether it was carried out.</summary>
+        private class Attempt
+        {
+            public string Type;
+            public Kingdom Target;
+            public bool Done;
+            public string Why;
+        }
+
+        /// <summary>
+        /// Why this ruler could not declare war on that kingdom, in English for the AI: the truce, a house rule, or
+        /// that it was never asked for. Read after the actions, so "already at war" never comes up.
+        /// </summary>
+        private static string WhyNoWar(Kingdom k, Kingdom o, List<Attempt> attempts)
+        {
+            if (o == null) return attempts.Any(a => a.Type == "declare_war") ? "the declaration could not be carried out" : "your answer carried no declare_war action";
+            var tried = attempts.FirstOrDefault(a => a.Type == "declare_war" && a.Target == o);
+            if (tried == null) return $"your answer carried no declare_war action against {o.Name}";
+            if (!string.IsNullOrEmpty(tried.Why)) return tried.Why;
+            if (PlayerRules(o) && !S.Get.AllowAiWarOnPlayer) return $"no crown may declare war on the realm of {o.Leader?.Name} under the rules of this world";
+            int truce = TruceDaysLeft(k, o);
+            if (truce > 0) return $"the truce with {o.Name} after your last peace lasts {truce} more day(s)";
+            int max = S.Get.MaxWarsPerKingdom;
+            if (max > 0 && WarCount(k) >= max) return $"{k.Name} is already at war with {WarCount(k)} realm(s), the most allowed";
+            if (max > 0 && WarCount(o) >= max) return $"{o.Name} is already at war with {WarCount(o)} realm(s), the most allowed";
+            return "the declaration could not be carried out";
+        }
+
+        /// <summary>
+        /// What the statement's words (its English summary, and its text when in English or Spanish) say is done and
+        /// is not: a war declared on a realm it is not at war with, a peace with a realm it still fights, an alliance
+        /// not sealed. A deed with no realm named counts as done when some war, peace or alliance of that kind came
+        /// out of this statement. Returns the reasons, in English, or null when the words hold.
+        /// </summary>
+        private static string Unkept(Kingdom k, RulerStatement s, List<Attempt> attempts, List<Kingdom> warsBefore, List<Kingdom> alliesBefore)
+        {
+            var model = Facts.BuildModel();
+            var deeds = FactCheck.ClaimedDeeds(s.SummaryEn, model, k.StringId).Concat(FactCheck.ClaimedDeeds(s.Text, model, k.StringId)).ToList();
+            if (deeds.Count == 0) return null;
+            var newWars = WorldSim.Kingdoms.Where(o => o != k && k.IsAtWarWith(o) && !warsBefore.Contains(o)).ToList();
+            var newPeace = warsBefore.Where(o => !o.IsEliminated && !k.IsAtWarWith(o)).ToList();
+            var newAllies = WorldSim.Kingdoms.Where(o => o != k && Allied(k, o) && !alliesBefore.Contains(o)).ToList();
+            var why = new List<string>();
+            foreach (var d in deeds)
+            {
+                var o = d.Target == null ? null : WorldSim.Kingdoms.FirstOrDefault(x => x.StringId == d.Target);
+                string line = null;
+                if (d.Kind == "war")
+                {
+                    if (o != null ? !k.IsAtWarWith(o) : newWars.Count == 0)
+                        line = $"the words declare war{(o != null ? " on " + o.Name : "")} («{d.Phrase}»), and no war was declared: {WhyNoWar(k, o, attempts)}";
+                }
+                else if (d.Kind == "peace")
+                {
+                    if (o != null ? k.IsAtWarWith(o) : newPeace.Count == 0)
+                        line = $"the words speak of a peace{(o != null ? " with " + o.Name : "")} as made («{d.Phrase}»), and none was signed" +
+                               (attempts.Any(a => a.Done && a.Type == "propose_peace" && (o == null || a.Target == o)) ? ": your proposal only waits for their answer" : "");
+                }
+                else if (o != null ? !Allied(k, o) : newAllies.Count == 0)
+                {
+                    line = $"the words speak of an alliance{(o != null ? " with " + o.Name : "")} as sealed («{d.Phrase}»), and none was" +
+                           (attempts.Any(a => a.Done && a.Type == "propose_alliance" && (o == null || a.Target == o)) ? ": your proposal only waits for their answer" : "");
+                }
+                if (line != null && !why.Contains(line)) why.Add(line);
+            }
+            return why.Count == 0 ? null : string.Join("; ", why);
+        }
+
+        private static readonly Tpl TRewrite = new Tpl("diplomacy/statement_rewrite.txt",
+@"You are {ruler}, ruler of {kingdom}. You have just written this public statement:
+«{text}»
+It cannot be published as it is, because it says things happened that did not:
+{reasons}
+What your decisions really did:
+{outcome}
+Write the statement again in {language}, {min_len}-{max_len} characters, in your own voice and with the same intent, saying only what is true: you may threaten, warn, demand, promise or announce what you mean to do, but never speak of a war declared, a peace signed or an alliance sealed that did not happen. If a truce stops you, you may say so.
+Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""summary"": ""the same in ONE English sentence"" }");
+
+        /// <summary>What the actions of a statement did, one per line, in English.</summary>
+        private static string Outcome(List<Attempt> attempts, Kingdom k)
+        {
+            if (attempts.Count == 0) return "- nothing: your answer carried no action";
+            return string.Join("\n", attempts.Select(a =>
+                $"- {a.Type}{(a.Target != null && a.Target != k ? " (" + a.Target.Name + ")" : "")}: " +
+                (a.Done ? "carried out" + (a.Type.StartsWith("propose_") ? " (a proposal that waits for their answer)" : "")
+                        : "NOT carried out" + (a.Type == "declare_war" ? ": " + WhyNoWar(k, a.Target, attempts) : !string.IsNullOrEmpty(a.Why) ? ": " + a.Why : ""))));
+        }
+
+        /// <summary>
+        /// The words of a statement asked for again, once, with the reasons they did not hold. A new text that holds is
+        /// published with the decisions; otherwise only the decisions are, in plain words, or nothing when there were none.
+        /// </summary>
+        private static void RewriteStatement(Kingdom k, RulerStatement s, JObject j, List<string> types, List<string> targets, List<Attempt> attempts,
+            List<Kingdom> warsBefore, List<Kingdom> alliesBefore, string reasons)
+        {
+            var cfg = S.Get;
+            void Plain(string why)
+            {
+                if (s.Results.Count == 0)
+                {
+                    Log.Warn($"[diplomacy] declaration by {s.RulerName} dropped ({why}); it decided nothing, so nothing is published");
+                    return;
+                }
+                Log.Warn($"[diplomacy] declaration by {s.RulerName}: {why}; only its decisions are published");
+                s.Text = string.Join(" ", s.Results);
+                s.SummaryEn = $"{s.RulerName} made decisions: " + string.Join("; ", attempts.Where(a => a.Done).Select(a => a.Type.Replace('_', ' ') + (a.Target != null && a.Target != k ? " (" + a.Target.Name + ")" : ""))) + ".";
+                PublishStatement(k, s, j, types, targets);
+            }
+            string sys = TRewrite.Format("ruler", s.RulerName, "kingdom", k.Name, "text", s.Text, "reasons", "- " + reasons.Replace("; ", "\n- "),
+                "outcome", Outcome(attempts, k), "language", cfg.Language, "min_len", cfg.StatementMinLength, "max_len", cfg.StatementMaxLength);
+            bool asked = WorldSim.Ask(L.F("AIL_e7b1da05", $"declaración de {s.RulerName}, corregida"),
+                new List<ChatMessage> { new ChatMessage("system", sys), new ChatMessage("user", "Write the statement again now.") }, 700,
+                r =>
+                {
+                    if (k.IsEliminated || k.Leader == null) { Log.Info($"[diplomacy] corrected declaration by {s.RulerName} discarded: the kingdom is gone"); return; }
+                    string text = WorldSim.Clean((string)(r["statement"]?.Type == JTokenType.String ? r["statement"] : null), 1600);
+                    string summary = WorldSim.Clean((string)(r["summary"]?.Type == JTokenType.String ? r["summary"] : null), 350);
+                    if (text.Length < 5) { Plain("the corrected statement came back empty"); return; }
+                    string oldText = s.Text, oldSummary = s.SummaryEn;
+                    s.Text = text;
+                    if (summary.Length > 5) s.SummaryEn = summary;
+                    string still = null;
+                    try { still = Unkept(k, s, attempts, warsBefore, alliesBefore); }
+                    catch (Exception ex) { Log.Error("[diplomacy] checking a corrected declaration", ex); }
+                    if (still != null) { s.Text = oldText; s.SummaryEn = oldSummary; Plain("the corrected statement still claims what did not happen: " + still); return; }
+                    Log.Info($"[diplomacy] declaration by {s.RulerName} written again to match what happened: {s.SummaryEn}");
+                    PublishStatement(k, s, j, types, targets);
+                },
+                key: "statement-fix:" + k.StringId + ":" + s.Id, failed: () => Plain("no corrected statement came back"));
+            if (!asked) Plain("the correction could not be asked for");
+        }
+
+        /// <summary>Records a statement, its card in the news and its lines on screen.</summary>
+        private static void PublishStatement(Kingdom k, RulerStatement s, JObject j, List<string> types, List<string> targets)
+        {
             St.Statements.Add(s);
             while (St.Statements.Count > 120) St.Statements.RemoveAt(0);
 
@@ -2045,12 +2205,12 @@ Use only the fields an action needs. relation_changes: how your stance towards o
             NewsStore.Add(new NewsItem
             {
                 Type = "statement", Importance = s.Importance, Text = $"{s.RulerName}, ruler of {k.Name}, declared: {s.SummaryEn}",
-                TitleEs = L.F("AIL_96136d3a", $"Declaración de {s.RulerName} ({k.Name})"), TextEs = s.Text, Kingdoms = involved, Heroes = new List<string> { k.Leader.StringId },
+                TitleEs = L.F("AIL_96136d3a", $"Declaración de {s.RulerName} ({k.Name})"), TextEs = s.Text, Kingdoms = involved,
+                Heroes = k.Leader != null ? new List<string> { k.Leader.StringId } : new List<string>(),
                 Decisions = decisions.Count > 0 ? decisions : null,
             });
             Log.Info($"[diplomacy] {s.RulerName}: {s.SummaryEn} | {string.Join(" | ", s.Results)}");
             ShowStatement(k, s, types, involved);
-            return true;
         }
 
         /// <summary>Kind of decision an action is, for the colored tag on the news card.</summary>
@@ -3090,7 +3250,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
 Answer ONLY with JSON: { ""summary"": ""what was said and decided, ONE English sentence"", ""importance"": 1-4, ""actions"": [ { ""type"": ""..."", ""target_kingdom"": ""id"", ""settlement"": ""name"", ""clan"": ""name"", ""daily_tribute"": 0, ""tribute_days"": 0, ""reparations"": 0, ""offer_daily_tribute"": 0, ""offer_tribute_days"": 0, ""offer_reparations"": 0, ""offer_settlement"": ""name"", ""prisoners"": 0, ""prisoner_names"": [""name""], ""trade_years"": 0, ""tax_percent"": 0, ""law_name"": ""..."", ""law_text"": ""..."", ""law_effects"": [ { ""effect"": ""id"", ""value"": 0, ""scope"": ""all"", ""target"": ""all"", ""min_clan_tier"": 0 } ], ""law_forbids"": [], ""policy"": ""id"", ""quarantine_days"": 0 } ], ""kingdom_engagement"": { ""kingdom_id"": 0-100 } }
 For a law, law_name and law_text are the ruler's own words; choose law_effects that do what those words say, within the ranges, and law_forbids when the words forbid the crown to expel clans or confiscate fiefs.");
 
-        public static void Touch() { var _ = TStatement.Key + TPlayerStatement.Key + TRealmFacts.Key; }
+        public static void Touch() { var _ = TStatement.Key + TPlayerStatement.Key + TRealmFacts.Key + TRewrite.Key; }
 
         public static bool PlayerCanDeclare => Enabled && PlayerRules(PlayerRealm);
 

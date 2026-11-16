@@ -74,5 +74,45 @@ namespace AILegacy.Dialogue
             catch (Exception ex) { Log.Error("Witnesses", ex); r.Level = 2; r.Count = 1; }      // on error, assume they were recognized
             return r;
         }
+
+        // Those who see a handover: within this many metres of the player, the nearest first, as AIInfluence does
+        private const float HandoverRadius = 12f;
+        private const int HandoverMax = 12;
+
+        /// <summary>
+        /// Something passed from hand to hand in a talk in a scene (gold, goods, soldiers, prisoners): everyone standing
+        /// close enough to see it, heroes and townsfolk alike, keeps it in their history. The two who made the deal
+        /// already have it. <paramref name="what"/> is in English, in the third person, for the AI.
+        /// </summary>
+        public static void SawHandover(Speaker other, string what)
+        {
+            try
+            {
+                var m = Mission.Current; var me = Agent.Main;
+                if (m == null || me == null || string.IsNullOrWhiteSpace(what)) return;
+                var near = new List<(Agent a, float d)>();
+                foreach (var a in m.Agents)
+                {
+                    if (a == null || a == me || !a.IsHuman || !a.IsActive() || !(a.Character is CharacterObject c) || c.Age < 7f) continue;
+                    float d = a.Position.Distance(me.Position);
+                    if (d > HandoverRadius || Math.Abs(a.Position.z - me.Position.z) > 3.5f) continue;
+                    near.Add((a, d));
+                }
+                if (near.Count == 0) return;
+                double day = CampaignTime.Now.ToDays;
+                var names = new List<string>();
+                var seen = new HashSet<string>();
+                foreach (var (a, d) in near.OrderBy(x => x.d))
+                {
+                    if (names.Count >= HandoverMax) break;
+                    Ambient.Describe(a, out var sp);
+                    if (sp?.Memory == null || (other != null && sp.Key == other.Key) || !seen.Add(sp.Key)) continue;
+                    sp.Memory.Turns.Add(new Memory.ChatTurn { Role = "player", Day = day, Text = $"[You saw it, standing a few steps away: {what}]" });
+                    names.Add($"{sp.Name} {d:0.0}m");
+                }
+                if (names.Count > 0) Log.Info($"[witnesses] handover seen by {string.Join(", ", names)} — {what}");
+            }
+            catch (Exception ex) { Log.Error("Witnesses of a handover", ex); }
+        }
     }
 }

@@ -164,9 +164,11 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>Records what was done and leaves it in their history (in English, for the model) so they don't repeat it or ask again.</summary>
-        private static void NoteDone(Speaker s, string what, int amount, string doneText)
+        private static void NoteDone(Speaker s, string what, int amount, string doneText, string seen = null)
         {
             LastDone[s.Key + "|" + what] = (amount, DateTime.UtcNow);
+            // Whoever stands close enough to see a handover in a scene remembers it too (AIInfluence 7.0.2)
+            if (seen != null) Witness.SawHandover(s, seen);
             if (string.IsNullOrEmpty(doneText)) return;
             try
             {
@@ -271,7 +273,8 @@ namespace AILegacy.Dialogue
 
         private static void NoteGold(Speaker s, string dir, int amount) =>
             NoteDone(s, "gold|" + dir, amount, dir == "take" ? $"they have handed you {amount} denars. It is paid in full — do not take or ask for it again."
-                                                             : $"you have handed them {amount} denars. It is given — do not give it again.");
+                                                             : $"you have handed them {amount} denars. It is given — do not give it again.",
+                     dir == "take" ? $"{P.Name} paid {s.Name} {amount} denars." : $"{s.Name} handed {P.Name} {amount} denars.");
 
         // --- trade with local people
         private static Settlement Market()
@@ -524,7 +527,8 @@ namespace AILegacy.Dialogue
                         if (third == null) return Nope(null, $"{toName} is not here with you: you can only hand coin to someone present");
                         if (Repeated(s, "gold|give|" + third.StringId, amount)) return null;
                         GiveGoldAction.ApplyBetweenCharacters(s.Hero, third, amount);
-                        NoteDone(s, "gold|give|" + third.StringId, amount, $"you have handed {amount} denars to {third.Name}. It is given — do not give it again.");
+                        NoteDone(s, "gold|give|" + third.StringId, amount, $"you have handed {amount} denars to {third.Name}. It is given — do not give it again.",
+                            $"{s.Name} handed {third.Name} {amount} denars.");
                         try { Bonds.TouchOther(Speaker.FromHero(third), s, 4, $"{s.Name} handed them {amount} denars in front of {P.Name}"); } catch { }
                         return L.F("AIL_c7a9d5e3", $"{s.Name} da {amount} denarios a {third.Name}.");
                     }
@@ -910,7 +914,8 @@ namespace AILegacy.Dialogue
                     GiveGoldAction.ApplyForCharacterToSettlement(P, st, cost, true);
                     st.ItemRoster.AddToCounts(item, -qty);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, qty);
-                    NoteDone(s, key, asked, $"you have sold them {qty} x {item.Name} for {cost} denars; they have paid and have the goods — do not sell it again.");
+                    NoteDone(s, key, asked, $"you have sold them {qty} x {item.Name} for {cost} denars; they have paid and have the goods — do not sell it again.",
+                        $"{s.Name} sold {P.Name} {qty} x {item.Name} for {cost} denars.");
                     return L.F("AIL_b83bfea6", $"Compras {qty} de {item.Name} por {cost} denarios.");
                 }
             },
@@ -939,7 +944,8 @@ namespace AILegacy.Dialogue
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -qty);
                     st.ItemRoster.AddToCounts(item, qty);
                     GiveGoldAction.ApplyForSettlementToCharacter(st, P, pay, true);
-                    NoteDone(s, key, asked, $"you have bought {qty} x {item.Name} from them for {pay} denars; it is paid and the goods are yours — do not buy it again.");
+                    NoteDone(s, key, asked, $"you have bought {qty} x {item.Name} from them for {pay} denars; it is paid and the goods are yours — do not buy it again.",
+                        $"{P.Name} sold {s.Name} {qty} x {item.Name} for {pay} denars.");
                     return L.F("AIL_fba371fc", $"Vendes {qty} de {item.Name} por {pay} denarios.");
                 }
             },
@@ -1311,7 +1317,8 @@ namespace AILegacy.Dialogue
                     if (n <= 0) return null;
                     int moved = MoveTroops(p.MemberRoster, MobileParty.MainParty.MemberRoster, n, false, kind);
                     if (moved <= 0) return null;
-                    NoteDone(s, key, want, $"you have handed {moved} of your soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to them. They are theirs now — do not give them again.");
+                    NoteDone(s, key, want, $"you have handed {moved} of your soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to them. They are theirs now — do not give them again.",
+                        $"{s.Name} handed {moved} of their soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to {P.Name}.");
                     return L.F("AIL_24ba54ab", $"{s.Name} te cede {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")}.");
                 }
             },
@@ -1329,7 +1336,8 @@ namespace AILegacy.Dialogue
                     if (n <= 0) return null;
                     int moved = MoveTroops(MobileParty.MainParty.MemberRoster, Led(s).MemberRoster, n, false, kind);
                     if (moved <= 0) return null;
-                    NoteDone(s, key, want, $"they have handed {moved} soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to you. They are in your party now — do not take them again.");
+                    NoteDone(s, key, want, $"they have handed {moved} soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to you. They are in your party now — do not take them again.",
+                        $"{P.Name} handed {moved} of their soldiers{(kind.Length > 0 ? " (" + kind + ")" : "")} over to {s.Name}.");
                     return L.F("AIL_bca1e090", $"Cedes {moved} soldados{(kind.Length > 0 ? " (" + kind + ")" : "")} a {s.Name}.");
                 }
             },
@@ -1350,11 +1358,13 @@ namespace AILegacy.Dialogue
                         if (SameSide(noble.HeroObject, P))
                         {
                             EndCaptivityAction.ApplyByReleasedByChoice(noble.HeroObject, s.Hero);
-                            NoteDone(s, "give_prisoners|" + noble.StringId, 1, $"you have set your prisoner {noble.Name} free and handed them back to their own side. {noble.Name} is free now.");
+                            NoteDone(s, "give_prisoners|" + noble.StringId, 1, $"you have set your prisoner {noble.Name} free and handed them back to their own side. {noble.Name} is free now.",
+                                $"{s.Name} set their prisoner {noble.Name} free, back to {P.Name}'s side.");
                             return L.F("AIL_b1e0a6d2", $"{s.Name} pone en libertad a {noble.Name}, que es de los tuyos.");
                         }
                         TransferPrisonerAction.Apply(noble, p.Party, MobileParty.MainParty.Party);
-                        NoteDone(s, "give_prisoners|" + noble.StringId, 1, $"you have handed your prisoner {noble.Name} over to them.");
+                        NoteDone(s, "give_prisoners|" + noble.StringId, 1, $"you have handed your prisoner {noble.Name} over to them.",
+                            $"{s.Name} handed their prisoner {noble.Name} over to {P.Name}.");
                         return L.F("AIL_f378719a", $"{s.Name} te entrega a su prisionero {noble.Name}.");
                     }
                     int want = ParseAmount(arg);
@@ -1363,7 +1373,8 @@ namespace AILegacy.Dialogue
                     if (n <= 0) return null;
                     int moved = MoveTroops(p.PrisonRoster, MobileParty.MainParty.PrisonRoster, n, true);
                     if (moved <= 0) return null;
-                    NoteDone(s, "give_prisoners|common", want, $"you have handed {moved} prisoners over to them — do not give them again.");
+                    NoteDone(s, "give_prisoners|common", want, $"you have handed {moved} prisoners over to them — do not give them again.",
+                        $"{s.Name} handed {moved} prisoners over to {P.Name}.");
                     return L.F("AIL_dec042f4", $"{s.Name} te entrega {moved} prisioneros.");
                 }
             },
@@ -1383,11 +1394,13 @@ namespace AILegacy.Dialogue
                         if (SameSide(noble.HeroObject, s.Hero))
                         {
                             EndCaptivityAction.ApplyByReleasedByChoice(noble.HeroObject, P);
-                            NoteDone(s, "take_prisoners|" + noble.StringId, 1, $"they have handed {noble.Name}, one of your own side, back to you. {noble.Name} is free now, not a prisoner.");
+                            NoteDone(s, "take_prisoners|" + noble.StringId, 1, $"they have handed {noble.Name}, one of your own side, back to you. {noble.Name} is free now, not a prisoner.",
+                                $"{P.Name} set their prisoner {noble.Name} free, back to {s.Name}'s side.");
                             return L.F("AIL_4c9d7e31", $"Entregas a {noble.Name} a los suyos: queda en libertad.");
                         }
                         TransferPrisonerAction.Apply(noble, main.Party, Led(s).Party);
-                        NoteDone(s, "take_prisoners|" + noble.StringId, 1, $"they have handed their prisoner {noble.Name} over to you.");
+                        NoteDone(s, "take_prisoners|" + noble.StringId, 1, $"they have handed their prisoner {noble.Name} over to you.",
+                            $"{P.Name} handed their prisoner {noble.Name} over to {s.Name}.");
                         return L.F("AIL_7ed3beae", $"Entregas a {s.Name} a tu prisionero {noble.Name}.");
                     }
                     int want = ParseAmount(arg);
@@ -1396,7 +1409,8 @@ namespace AILegacy.Dialogue
                     if (n <= 0) return null;
                     int moved = MoveTroops(main.PrisonRoster, Led(s).PrisonRoster, n, true);
                     if (moved <= 0) return null;
-                    NoteDone(s, "take_prisoners|common", want, $"they have handed {moved} prisoners over to you — do not take them again.");
+                    NoteDone(s, "take_prisoners|common", want, $"they have handed {moved} prisoners over to you — do not take them again.",
+                        $"{P.Name} handed {moved} prisoners over to {s.Name}.");
                     return L.F("AIL_2d97f1db", $"Entregas {moved} prisioneros a {s.Name}.");
                 }
             },
@@ -1425,7 +1439,8 @@ namespace AILegacy.Dialogue
                     if (n <= 0) return null;
                     src.AddToCounts(item, -n);
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, n);
-                    NoteDone(s, key, asked, $"you have handed them {n} x {item.Name}. It is given — do not give it again.");
+                    NoteDone(s, key, asked, $"you have handed them {n} x {item.Name}. It is given — do not give it again.",
+                        $"{s.Name} handed {P.Name} {n} x {item.Name}.");
                     return L.F("AIL_8fb29764", $"{s.Name} te da {n} × {item.Name}.");
                 }
             },
@@ -1447,7 +1462,8 @@ namespace AILegacy.Dialogue
                     MobileParty.MainParty.ItemRoster.AddToCounts(item, -n);
                     Led(s)?.ItemRoster.AddToCounts(item, n);
                     QuestObjectives.OnItemTaken(s, item, n);
-                    NoteDone(s, key, asked, $"they have handed you {n} x {item.Name}. You have it now — do not take or ask for it again.");
+                    NoteDone(s, key, asked, $"they have handed you {n} x {item.Name}. You have it now — do not take or ask for it again.",
+                        $"{P.Name} handed {s.Name} {n} x {item.Name}.");
                     return L.F("AIL_a3c89c8a", $"Entregas {n} × {item.Name} a {s.Name}.");
                 }
             },
@@ -1468,7 +1484,8 @@ namespace AILegacy.Dialogue
                     if (Repeated(s, key, 1)) return null;
                     Belongings.Items.RemoveAll(i => Belongings.Norm(i.Name) == Belongings.Norm(name));
                     Belongings.Items.Add(new RpItem { Name = name, Description = desc, FromId = s.Hero.StringId, FromName = s.Name, Day = CampaignTime.Now.ToDays });
-                    NoteDone(s, key, 1, $"you have handed them \"{name}\". They carry it now — do not give it again.");
+                    NoteDone(s, key, 1, $"you have handed them \"{name}\". They carry it now — do not give it again.",
+                        $"{s.Name} handed {P.Name} \"{name}\".");
                     return L.F("AIL_0fbba7b1", $"{s.Name} te entrega: {name}.");
                 }
             },
@@ -1485,7 +1502,8 @@ namespace AILegacy.Dialogue
                     if (Repeated(s, key, 1)) return null;
                     Belongings.Items.Remove(it);
                     QuestObjectives.OnDocumentTaken(s, it);
-                    NoteDone(s, key, 1, $"they have handed you \"{it.Name}\". You keep it now.");
+                    NoteDone(s, key, 1, $"they have handed you \"{it.Name}\". You keep it now.",
+                        $"{P.Name} handed {s.Name} \"{it.Name}\".");
                     return L.F("AIL_a15797e0", $"Entregas a {s.Name}: {it.Name}.");
                 }
             },
@@ -1515,6 +1533,7 @@ namespace AILegacy.Dialogue
                     string wname = ws.Name.ToString();
                     GiveGoldAction.ApplyBetweenCharacters(P, s.Hero, price);
                     ChangeOwnerOfWorkshopAction.ApplyByWar(ws, P, ws.WorkshopType);
+                    Witness.SawHandover(s, $"{s.Name} sold their workshop «{wname}» to {P.Name} for {price} denars.");
                     return L.F("AIL_c70d2ac3", $"Compras a {s.Name} el taller «{wname}» por {price} denarios.");
                 }
             },

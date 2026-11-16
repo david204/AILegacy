@@ -578,7 +578,31 @@ Answer ONLY with JSON:
   ""clan_rebellion"": ""clan name or empty"", ""disease"": { ""settlement"": ""name"", ""name"": ""name of the sickness in {language}"", ""name_en"": ""the same in English"", ""severity"": 1, ""duration_days"": 30, ""spread_rate"": 0.3, ""death_chance"": 0, ""combat_modifier"": 0.9, ""map_speed_modifier"": 0.9, ""morale_penalty"": -5, ""skill_penalty"": -6 } } ] }
 Leave out economic_effects, clan_effects, secret, clan_rebellion and disease when they do not apply.");
 
-        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key + TEventMix.Key + TCaptivesNow.Key + TReach.Key;Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); WarTolls.Touch(); }
+        public static void Touch() { var _ = TEventGen.Key + TReact.Key + TFactsBlock.Key + TEventMix.Key + TCaptivesNow.Key + TReach.Key + TRetryFacts.Key;Diplomacy.Touch(); Laws.Touch(); Facts.Touch(); WarTolls.Touch(); }
+
+        private static readonly Tpl TRetryFacts = new Tpl("dynamic_events_generator/retry_after_facts.txt",
+@"## YOUR LAST ANSWER WAS THROWN AWAY
+The world checked it, and these events contradicted it, so they were not published:
+{rejected}
+{published}
+Write {count} event(s) again. Take every place, owner, clan, person, harbour and change of hands from the data above exactly as it is written there: what the data does not say has not happened.");
+
+        /// <summary>
+        /// The kingdoms a scheduled batch is most likely to be about, so their lists are never the ones cut for length:
+        /// the player's realm and the strongest realms at war.
+        /// </summary>
+        private static HashSet<string> BatchFocus()
+        {
+            var set = new HashSet<string>();
+            try
+            {
+                if (Hero.MainHero?.MapFaction is Kingdom mine && !mine.IsEliminated) set.Add(mine.StringId);
+                foreach (var k in Kingdoms.Where(k => Kingdoms.Any(o => o != k && k.IsAtWarWith(o))).OrderByDescending(k => k.CurrentTotalStrength).Take(4))
+                    set.Add(k.StringId);
+            }
+            catch (Exception ex) { Log.Error("[world] kingdoms of the batch", ex); }
+            return set;
+        }
 
         // ---- the mix of kinds the scheduled batch is asked for (settings "Event mix")
 
@@ -830,7 +854,9 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             }
         }
 
-        public static void GenerateEvents(bool forced = false, List<Trigger> reactTo = null, string mode = null)
+        /// <param name="retryNote">A second try after events were thrown away for contradicting the world: why they were. Only one per batch.</param>
+        /// <param name="retryCount">How many events the second try asks for.</param>
+        public static void GenerateEvents(bool forced = false, List<Trigger> reactTo = null, string mode = null, string retryNote = null, int retryCount = 0)
         {
             var cfg = S.Get;
             if (!Enabled || Campaign.Current == null) return;
@@ -840,6 +866,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             if (IsReserved(reactive ? "react" : "events")) return;     // already requested, still waiting for it to arrive or apply
             // AIInfluence: one event per scheduled batch and per death, fight or fallen realm; 0 to 3 from conversations
             int count = reactive ? (mode == "dialogue" ? 3 : 1) : Math.Max(1, cfg.WorldEventsPerGeneration);
+            if (retryNote != null) count = Math.Max(1, Math.Min(count, retryCount));
             var sys = new StringBuilder();
             sys.AppendLine(TEventGen.Format("count", count, "language", Lang, "min_len", cfg.WorldEventMinLength, "max_len", cfg.WorldEventMaxLength,
                 "open", OpenStories(), "max_now", InstantFactor,
@@ -862,13 +889,17 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             // what happened may be hours old by now: who is at war with whom is read again, not taken from then
             if (reactive) foreach (var tr in reactTo) Facts.Refresh(tr);
             // the kingdoms of what happened are never the ones left out when the lists run over their budget
-            var tied = reactive ? new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)) : null;
+            // (for the scheduled batch: the player's realm and the strongest realms at war)
+            var tied = reactive ? new HashSet<string>(reactTo.SelectMany(tr => tr.Kingdoms)) : BatchFocus();
             sys.AppendLine(Facts.Roster(tied));
             { string dead = Facts.RecentDead(); if (dead.Length > 0) sys.AppendLine(dead); }
             sys.AppendLine(Facts.CalendarAndMap(tied));
             // where each realm's armies can strike, and who holds those places
             try { sys.AppendLine(ReachBlock(tied)); }
             catch (Exception ex) { Log.Error("[world] places within reach", ex); }
+            // every town and castle with its holder and harbour, the real changes of hands and the sieges: the only
+            // places, owners and falls an event may name (it is checked against them before it is published)
+            { string sheet = Facts.FiefSheet(tied); if (sheet.Length > 0) sys.AppendLine(sheet); }
             sys.AppendLine("## What really happened lately");
             sys.AppendLine(DescribeRecentNews(14));
             sys.AppendLine("## Developments already in the air (do not repeat them; you may continue one)");
@@ -916,6 +947,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 else if (mode == "dialogue") sys.AppendLine(TModeDialogue.Text.Trim());
             }
             else { sys.AppendLine(); sys.AppendLine(TModeBatch.Text.Trim()); }
+            if (retryNote != null) { sys.AppendLine(); sys.AppendLine(retryNote.Trim()); }
             Ask(reactive ? L.T("AIL_ce8115b0", "reacción a un suceso real") : "generar eventos",
                 new List<ChatMessage> { new ChatMessage("system", sys.ToString()), new ChatMessage("user", reactive ? "Write the development now." : "Write the events now.") },
                 count * 800 + 400, j =>
@@ -929,12 +961,26 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                         State.LastEventGenerationDay = d;
                         State.NextEventGenerationDay = d + Math.Max(1, S.Get.WorldEventsIntervalDays);
                     }
-                    int published = ApplyEvents(j, S.Get.FactCheckEvents ? allowed : null, count, mode, reactTo);
+                    var rejected = new List<string>();
+                    var titles = new List<string>();
+                    int published = ApplyEvents(j, S.Get.FactCheckEvents ? allowed : null, count, mode, reactTo, rejected, titles);
                     // the death or the fall that set it off is now told by the event's own card
                     if (reactive && published > 0) foreach (var t in reactTo) if (t.News != null) t.News.Told = true;
                     if (reactive) Log.Info($"[world] {mode} pass: {published} event(s) published");
+                    // Events thrown away for their facts: the chronicler is asked once more, told why. A second
+                    // answer that fails as well is dropped.
+                    if (rejected.Count > 0 && retryNote == null && Enabled && Campaign.Current != null)
+                    {
+                        Log.Info($"[world] {rejected.Count} event(s) thrown away for contradicting the world: asking the chronicler once more");
+                        string note = TRetryFacts.Format("rejected", string.Join("\n", rejected.Select(r => "- " + r)),
+                            "published", titles.Count > 0 ? "Already published from that answer (do not write them again): " + string.Join("; ", titles.Select(t => "«" + t + "»")) + "." : "",
+                            "count", Math.Max(1, Math.Min(count, rejected.Count)));
+                        GenerateEvents(true, reactTo, mode, note, rejected.Count);
+                    }
+                    else if (rejected.Count > 0 && retryNote != null)
+                        Log.Warn($"[world] the second answer also contradicted the world: {rejected.Count} event(s) dropped");
                 },
-                key: reactive ? "react" : "events", failed: reactive ? (Action)(() => RequeueTriggers(reactTo)) : null);
+                key: reactive ? "react" : "events", failed: reactive && retryNote == null ? (Action)(() => RequeueTriggers(reactTo)) : null);
         }
 
         private static List<FactClaim> ParseClaims(JToken t)
@@ -977,8 +1023,13 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         }
 
         /// <param name="allowed">For a reaction to a real event: the only kingdoms it may involve. null for the scheduled batch.</param>
+        /// <param name="rejected">Filled with each event thrown away for its facts: its title and why.</param>
+        /// <param name="titles">Filled with the titles of the events published.</param>
         /// <returns>How many events were published.</returns>
-        private static int ApplyEvents(JObject j, HashSet<string> allowed, int max, string mode, List<Trigger> reactTo)
+        /// <summary>A ready-written event (the hermit's prophecy coming true) through the chronicler's own path: names, fact checks, effects, news.</summary>
+        public static int ApplyWritten(JObject j) => ApplyEvents(j, null, 1, null, null);
+
+        private static int ApplyEvents(JObject j, HashSet<string> allowed, int max, string mode, List<Trigger> reactTo, List<string> rejected = null, List<string> titles = null)
         {
             if (!(j["events"] is JArray arr)) return 0;
             bool continued = false, engaged = false;
@@ -1014,7 +1065,18 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                     try { wrong = OwnershipContradiction(e, x, names ?? (names = BuildNames()), model ?? (model = Facts.BuildModel())) ?? OutOfReach(e, x); }
                     catch (Exception ex) { Log.Error("[world] checking owners and reach", ex); }
                 }
-                if (wrong != null) { Log.Warn($"[world] event discarded for contradicting the world: «{e.Title}» {wrong}"); continue; }
+                // A fall that never happened, a port that is no port, a person written as a place, a made-up clan or place
+                if (wrong == null && S.Get.FactCheckEvents)
+                {
+                    try { wrong = GroundingContradiction(e, x, names ?? (names = BuildNames()), model ?? (model = Facts.BuildModel())); }
+                    catch (Exception ex) { Log.Error("[world] checking places, falls and names", ex); }
+                }
+                if (wrong != null)
+                {
+                    Log.Warn($"[world] event discarded for contradicting the world: «{e.Title}» {wrong}");
+                    rejected?.Add($"«{e.Title}»: {wrong}");
+                    continue;
+                }
                 // A next chapter of an open story keeps its id (so its effects and its news stay tied to it) and its past
                 string cont = ((string)(x["continues"]?.Type == JTokenType.String ? x["continues"] : null) ?? "").Trim();
                 if (cont.Length > 0 && !continued)
@@ -1093,6 +1155,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 }
                 Publish(e);
                 published++;
+                titles?.Add(e.Title);
                 if (x["economic_effects"] is JArray fx) foreach (var f in fx.OfType<JObject>().Take(4)) AddEffect(e, f, allowed);
                 if (x["clan_effects"] is JArray cfx) foreach (var f in cfx.OfType<JObject>().Take(2)) AddClanEffect(e, f);
                 // What's behind the event, known only to a few
@@ -1115,6 +1178,16 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             public readonly Dictionary<string, string> Owners = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             /// <summary>Places under siege or being raided right now (a realm may set out to liberate its own).</summary>
             public readonly HashSet<string> Threatened = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            /// <summary>Every town, castle and village with its holder and whether it has a harbour.</summary>
+            public readonly List<PlaceFact> Places = new List<PlaceFact>();
+            /// <summary>The towns and castles that really changed hands lately.</summary>
+            public readonly List<OwnerChange> Changes = new List<OwnerChange>();
+            /// <summary>Names a word written wrong may be set to from the whole world: places, realms, cultures and clans.</summary>
+            public readonly List<string> Global = new List<string>();
+            /// <summary>Words of living lords' names that are no place, realm or clan word (lowercase).</summary>
+            public readonly HashSet<string> People = new HashSet<string>();
+            /// <summary>Whether any town or castle has a harbour (none without the naval content: then no port is checked).</summary>
+            public bool AnyPort;
         }
 
         private static WorldNames BuildNames()
@@ -1135,6 +1208,13 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 if (st == null || !(st.IsTown || st.IsCastle || st.IsVillage)) continue;
                 string name = st.Name?.ToString();
                 Add(name);
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    bool port = !st.IsVillage && Facts.HasPort(st);
+                    n.Places.Add(new PlaceFact { Name = name, Kind = st.IsTown ? "town" : st.IsCastle ? "castle" : "village", Owner = (st.MapFaction as Kingdom)?.StringId ?? "", Port = port });
+                    n.Global.Add(name);
+                    if (port) n.AnyPort = true;
+                }
                 if (!string.IsNullOrWhiteSpace(name) && st.MapFaction is Kingdom k && !n.Owners.ContainsKey(name)) n.Owners[name] = k.StringId;
                 try
                 {
@@ -1145,7 +1225,29 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             }
             foreach (var k in Kingdoms) { Add(k.Name?.ToString()); Add(k.InformalName?.ToString()); Add(k.Culture?.Name?.ToString()); }
             foreach (var c in Clan.All) if (c != null && !c.IsEliminated && !c.IsBanditFaction) Add(c.Name?.ToString());
+            try { foreach (var cu in TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObjectTypeList<CultureObject>()) if (cu != null) Add(cu.Name?.ToString()); }
+            catch (Exception ex) { Log.Error("[world] culture names", ex); }
+            // what a name written wrong may become: everything but people (too many, too short and too alike)
+            var notPeople = new HashSet<string>(n.Words);
+            foreach (var kv in n.All) if (!n.Global.Contains(kv.Key)) n.Global.Add(kv.Key);
             foreach (var h in Hero.AllAliveHeroes) if (h != null && h.IsLord) { Add(h.Name?.ToString()); Add(h.FirstName?.ToString()); }
+            foreach (var h in Hero.AllAliveHeroes)
+            {
+                if (h == null || !h.IsLord) continue;
+                foreach (var w in FactCheck.NameWords(h.Name?.ToString()).Concat(FactCheck.NameWords(h.FirstName?.ToString())))
+                {
+                    string low = w.ToLowerInvariant();
+                    if (!notPeople.Contains(low) && !FactCheck.IsCommon(low)) n.People.Add(low);
+                }
+            }
+            try
+            {
+                double now = CampaignTime.Now.ToDays;
+                foreach (var c in History.RecentChanges(Facts.FiefCheckDays))
+                    if (c.Place != null && (c.Place.IsTown || c.Place.IsCastle))
+                        n.Changes.Add(new OwnerChange { Place = c.Place.Name.ToString(), From = c.FromKingdom ?? "", To = c.ToKingdom ?? "", DaysAgo = now - c.Day });
+            }
+            catch (Exception ex) { Log.Error("[world] recent changes of hands for the checks", ex); }
             return n;
         }
 
@@ -1178,6 +1280,44 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             e.Text = FactCheck.FixNames(e.Text, facts.Concat(inSummary), names.Words, e.SummaryEn, changes);
             e.SummaryEn = FactCheck.FixNames(e.SummaryEn, facts.Concat(inText), names.Words, e.Text, changes);
             if (changes.Count > 0) Log.Info($"[world] «{before}»: names set right against the event's own: {string.Join(", ", changes)}");
+            // Then against every place, realm, culture and clan of the world: a name written wrong in all three texts
+            // alike ("Asinai" for Aserai, "Praven" for Pravend) has nothing of its own to be set right against
+            var global = new List<string>();
+            e.Title = FactCheck.FixNamesGlobal(e.Title, names.Global, names.Words, global);
+            e.Text = FactCheck.FixNamesGlobal(e.Text, names.Global, names.Words, global);
+            e.SummaryEn = FactCheck.FixNamesGlobal(e.SummaryEn, names.Global, names.Words, global);
+            if (global.Count > 0) Log.Info($"[world] «{before}»: names set right against the whole world: {string.Join(", ", global.Distinct())}");
+        }
+
+        /// <summary>
+        /// What the event says about places that the world denies: a town or castle that fell or was taken without
+        /// changing hands, a place called a port that has none, a living lord written as a place, a clan or a place
+        /// with a made-up name. Also a lord given as one of the event's settlements. null when fine.
+        /// </summary>
+        private static string GroundingContradiction(WorldEvent e, JObject x, WorldNames names, FactModel model)
+        {
+            // a person listed as a place of the event, or as the place an effect or an outbreak strikes
+            var listed = new List<string>();
+            if (x["settlements_involved"] is JArray ss) listed.AddRange(ss.Select(Str));
+            listed.Add(Str(x["target"]));
+            if (x["economic_effects"] is JArray fx) listed.AddRange(fx.OfType<JObject>().Select(f => Str(f["settlement"])));
+            if (x["disease"] is JObject dis) listed.Add(Str(dis["settlement"]));
+            foreach (var s in listed)
+            {
+                if (string.IsNullOrWhiteSpace(s) || OrderSystem.FindSettlement(s) != null) continue;
+                var words = FactCheck.NameWords(s).Select(w => w.ToLowerInvariant()).ToList();
+                if (words.Count > 0 && words.All(names.People.Contains)) return $"gives {s.Trim()} as a settlement: {s.Trim()} is a person, not a place";
+            }
+            var texts = new[] { e.Title, e.Text, e.SummaryEn };
+            foreach (var t in texts)
+            {
+                string bad = FactCheck.CheckCaptureClaims(t, names.Places, names.Changes, model, Facts.FiefCheckDays)
+                             ?? (names.AnyPort ? FactCheck.CheckPortClaims(t, names.Places) : null)
+                             ?? FactCheck.CheckHeroAsPlace(t, names.People);
+                if (bad != null) return bad;
+            }
+            // titles may be written with every word capitalised, so only the text and the summary are read for made-up names
+            return FactCheck.CheckInventedNames(e.Text, names.Words, names.People) ?? FactCheck.CheckInventedNames(e.SummaryEn, names.Words, names.People);
         }
 
         private static string Str(JToken t) => t != null && t.Type == JTokenType.String ? (string)t : "";

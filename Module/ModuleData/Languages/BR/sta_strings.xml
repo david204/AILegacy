@@ -2645,5 +2645,80 @@
     <string id="AIL_e7b1d903" text="{0} não voltará a lhe escrever até que você volte a falar ou a escrever com essa pessoa." />
     <string id="AIL_e7b1d904" text="Proíbe a coroa de expulsar clãs do reino" />
     <string id="AIL_e7b1d905" text="Proíbe a coroa de confiscar feudos" />
+    <string id="AIL_e7b1dc00" text="Moradores com rosto próprio" />
+    <string id="AIL_e7b1dc01" text="Dá a cada aldeão, morador, criança, taverneiro e mercador um rosto próprio: um tipo de rosto, alguns traços marcantes, altura e porte próprios, às vezes uma cicatriz, e mais opções de penteados e barbas da sua cultura. Senhores, companheiros e notáveis mantêm o rosto. Vale para quem aparecer depois da mudança (entre de novo no lugar)." />
+    <string id="AIL_e7b1dc02" text="Variedade de rostos" />
+    <string id="AIL_e7b1dc03" text="O quanto as pessoas se afastam do modelo: formato e traços do rosto, altura, peso e porte, cor da pele, do cabelo e dos olhos, chance de cicatriz. Baixo as mantém perto do original, alto dá traços mais marcados. As crianças sempre recebem uma versão mais suave." />
+    <string id="AIL_e7b1dc04" text="Rosto próprio também para soldados, guardas e bandidos" />
+    <string id="AIL_e7b1dc05" text="Rosto próprio também para tropas comuns, guardas, mercenários e bandidos, em batalhas e nos povoados. O penteado só muda quando nada cobre a cabeça." />
+    <string id="AIL_e7b1dc06" text="Roupas do dia a dia variadas para os moradores" />
+    <string id="AIL_e7b1dc07" text="Moradores e aldeões se vestem com as roupas do dia a dia de toda a gente comum da sua cultura (túnicas, vestidos, calças, capas, luvas) em vez das poucas roupas do seu modelo. Peças muito mais ricas que as suas ficam de fora e os chapéus continuam iguais. Vale para quem aparecer depois da mudança." />
+    <string id="AIL_e7b1dc08" text="{=!}Fazer ao eremita uma pergunta mais profunda [AI Legacy]" />
+    <string id="AIL_e7b1dc09" text="{=!}O velho abre um olho. «Fale, andarilho. A montanha ouve tudo.»" />
+    <string id="AIL_e7b1dc0a" text="(Envie sua mensagem e espere a resposta do eremita)" />
+    <string id="AIL_e7b1dc0b" text="{=!}Ver a resposta do eremita" />
+    <string id="AIL_e7b1dc0c" text="*O eremita continua perdido em pensamentos…*" />
+    <string id="AIL_e7b1dc0d" text="*O eremita espera em silêncio.*" />
+    <string id="AIL_e7b1dc0e" text="O eremita" />
+    <string id="AIL_e7b1dc0f" text="Sua pergunta para o eremita" />
+    <string id="AIL_e7b1dc10" text="*O eremita mantém os olhos fechados e não diz nada.*" />
+    <string id="AIL_e7b1dc11" text="O eremita está pronto para responder." />
+    <string id="AIL_e7b1da00" text="{0} cai diante de {1}" />
+    <string id="AIL_e7b1da01" text="{0} de {1} caiu diante de {2} após um cerco liderado por {3}{4}" />
+    <string id="AIL_e7b1da02" text="{0} nas mãos dos rebeldes" />
+    <string id="AIL_e7b1da03" text="{0} de {1} caiu nas mãos do clã {2} numa rebelião" />
+    <string id="AIL_e7b1da04" text="Notícia: {0}" />
+    <string id="AIL_e7b1da05" text="declaração de {0}, corrigida" />
+    <string id="AIL_e7b1db00" text="Religião:" />
+    <string id="AIL_e7b1db01" text="Você precisa de {0} de influência." />
+    <string id="AIL_e7b1db02" text="Você gastou {0} de influência." />
+    <string id="AIL_e7b1db03" text="Não há concubinas para libertar." />
+    <string id="AIL_e7b1db04" text="{0} concubina(s) libertada(s)." />
+    <string id="AIL_e7b1db05" text="Desativar a gravidez diária do jogo para você e seu cônjuge" />
+    <string id="AIL_e7b1db06" text="Todo dia o jogo sorteia um filho entre você e seu cônjuge, seja você o homem ou a mulher. Ligado: esse sorteio não acontece e os filhos só vêm da intimidade na conversa. Gestações já em andamento e os outros casais não mudam. Padrão: desligado." />
+    <string id="AIL_e7b1db07" text="Fora do casamento: influência para reconhecer um filho" />
+    <string id="AIL_e7b1db08" text="Quanto custa ao seu clã, em influência, reconhecer um filho adulto seu nascido fora do casamento; o dobro se você não governa um reino. Sem influência suficiente, a opção fica cinza. 0 = grátis. Padrão: 150." />
+    <string id="AIL_e7b1db09" text="Libertar todas as concubinas" />
+    <string id="AIL_e7b1db0a" text="Libertar" />
+    <string id="AIL_e7b1db0b" text="Liberta de uma vez todas as concubinas do mundo, as suas e as dos senhores. Cada uma volta à antiga casa e ao modo de vida de antes, retorna para o seu lar e fica ressentida com quem a mantinha. Não pode ser desfeito." />
+    <string id="AIL_e7b1db0c" text="Contorno verde nos doentes em batalha" />
+    <string id="AIL_e7b1db0d" text="Em batalhas campais e cercos, um herói doente e, num grupo com homens doentes, mais ou menos tantos soldados quanto os doentes mostram um contorno verde, dos dois lados. Só em batalhas, não nas cidades nem na arena." />
+    <string id="AIL_e7b1db0e" text="Ordens e gritos de batalha na memória" />
+    <string id="AIL_e7b1db0f" text="O que os líderes gritam e as ordens que você dá com suas palavras ficam na memória de todos os heróis da batalha, para que possam mencionar depois e os eventos do mundo levem isso em conta. Desligado: o que se diz na batalha fica fora da memória deles." />
+    <string id="AIL_e7b1db10" text="{=!}Treinar as tropas de um companheiro, 8 horas" />
+    <string id="AIL_e7b1db11" text="{=!}Treinar todas as suas tropas juntas, 8 horas ({AIL_TRAIN_COST_ALL}{GOLD_ICON})" />
+    <string id="AIL_e7b1db12" text="{=!}Nenhum grupo do seu clã na cidade tem soldados saudáveis para treinar agora." />
+    <string id="AIL_e7b1db13" text="{=!}“Todas juntas” só serve quando há outros grupos do seu clã na cidade. Para os seus homens sozinhos, use “Treinar suas tropas”." />
+    <string id="AIL_e7b1db14" text="{=!}Você paga. Os soldados do grupo que você escolher ganham experiência; ele fica na cidade enquanto dura o treino." />
+    <string id="AIL_e7b1db15" text="{=!}Você paga. Seus homens e os dos grupos do seu clã na cidade treinam ao mesmo tempo." />
+    <string id="AIL_e7b1db16" text="Escolha o grupo" />
+    <string id="AIL_e7b1db17" text="As tropas de quem vão treinar?" />
+    <string id="AIL_e7b1db18" text="{0}: {1} soldados, {2} denares" />
+    <string id="AIL_e7b1db19" text="As tropas de {0} treinam na arena sob os mestres de armas. Ouvem-se os golpes das espadas de madeira e os gritos dos instrutores." />
+    <string id="AIL_e7b1db1a" text="Todas as suas tropas treinam juntas na arena sob os mestres de armas. Ouvem-se os golpes das espadas de madeira e os gritos dos instrutores." />
+    <string id="AIL_e7b1db1b" text="As tropas terminam o treino: {0} ganharam experiência" />
+    <string id="AIL_e7b1db1c" text="Treina as tropas" />
+    <string id="AIL_e7b1db1d" text="Treino de tropas na arena" />
+    <string id="AIL_e7b1db20" text="+15% de rapidez para se curar de uma doença (pessoal)" />
+    <string id="AIL_e7b1db21" text="+10% de imunidade a doenças (pessoal)" />
+    <string id="AIL_e7b1db22" text="+20% de rapidez para curar doenças com o grupo parado" />
+    <string id="AIL_e7b1db23" text="Uma doença abaixo de 10% de avanço passa sozinha (5% sem a vantagem)" />
+    <string id="AIL_e7b1db24" text="-30% da lentidão no mapa causada por doenças" />
+    <string id="AIL_e7b1db25" text="Prisioneiros capturados de grupos doentes chegam com metade dos doentes" />
+    <string id="AIL_e7b1db26" text="+15% de rapidez para curar doenças com moral acima de 70" />
+    <string id="AIL_e7b1db27" text="+1 nível médico quando você é tratado num povoado" />
+    <string id="AIL_e7b1db28" text="As doenças avançam 30% mais devagar durante um cerco" />
+    <string id="AIL_e7b1db29" text="-25% de contágio dentro do grupo" />
+    <string id="AIL_e7b1db2a" text="-20% de contágio no povoado que você governa" />
+    <string id="AIL_e7b1db2b" text="-25% no preço de ervas e remédios perto do povoado que você governa" />
+    <string id="AIL_e7b1db2c" text="+3% de imunidade do grupo para cada tipo de comida que leva" />
+    <string id="AIL_e7b1db2d" text="Tropas de nível 1 e 2 não morrem de doença (exceto de uma praga)" />
+    <string id="AIL_e7b1db2e" text="Todo dia, 30% das tropas de nível 1 e 2 com uma doença grave se recuperam sozinhas" />
+    <string id="AIL_e7b1db2f" text="+1 nível médico no povoado que você governa" />
+    <string id="AIL_e7b1db30" text="Você sobrevive uma vez a uma doença que chega a 100% (ela volta a 50%)" />
+    <string id="AIL_e7b1db31" text="+10% de imunidade a doenças para os heróis do seu grupo" />
+    <string id="AIL_e7b1db32" text="+1% de rapidez para curar doenças a cada 10 homens" />
+    <string id="AIL_e7b1db33" text="Tropas que superam uma doença grave ganham 5% de imunidade para sempre" />
+    <string id="AIL_e7b1db34" text="+0,5% de imunidade e +0,3% de cura para cada ponto de Medicina acima de 250" />
   </strings>
 </base>

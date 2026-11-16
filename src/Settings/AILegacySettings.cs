@@ -529,6 +529,26 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
         public int ResidentsRemembered { get; set; } = 60;
 
+        [SettingPropertyBool("{=AIL_e7b1dc00}Townsfolk with faces of their own", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1dc01}Gives every villager, townsperson, child, tavern worker and trader a face of their own: a face type, a few marked features, their own height and build, sometimes a scar, and a wider choice of the hairstyles and beards of their culture. Lords, companions and notables keep their faces. Applies to people who appear after the change (enter the place again).")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
+        public bool ResidentFaceGeneration { get; set; } = true;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1dc02}Face variety", 0.1f, 1f, "0.00", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1dc03}How far people stray from their plain template: face shape and features, height, weight and build, skin, hair and eye colour, chance of a scar. Low keeps them close to the original, high gives sharper looks. Children always get a milder version.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
+        public float ResidentFaceVariety { get; set; } = 0.6f;
+
+        [SettingPropertyBool("{=AIL_e7b1dc04}Faces of their own also for soldiers, guards and bandits", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1dc05}Faces of their own also for ordinary troops, guards, mercenaries and bandits, in battles and in settlements. Hairstyles only change when nothing covers the head.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
+        public bool UniqueFacesForFighters { get; set; } = false;
+
+        [SettingPropertyBool("{=AIL_e7b1dc06}Varied everyday clothes for townsfolk", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1dc07}Townspeople and villagers dress from the everyday clothes of all the common folk of their culture (tunics, dresses, trousers, cloaks, gloves) instead of the few outfits of their template. Clothes far richer than their own are left out and hats stay as they are. Applies to people who appear after the change.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
+        public bool UniqueResidentClothes { get; set; } = true;
+
         [SettingPropertyBool("{=AIL_e7b1c6d2}Own music in conversations", Order = 40, RequireRestart = false,
             HintText = "{=AIL_e7b1c6d3}The mod ships no music. Put your own .ogg files in Modules\\AILegacy\\music, in the folders talk, tense, romance, sad and victory. While you talk to someone through the mod, a track from the folder that fits the moment plays (tension, romance and the mood they show decide it; an empty folder falls back to talk) and the game's music is turned down until the talk ends. It sounds at the game's voice volume.")]
         [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
@@ -867,6 +887,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public int FemaleCycleDays { get; set; } = 21;
 
+        [SettingPropertyBool("{=AIL_e7b1db05}Turn off the game's daily pregnancy for you and your spouse", Order = 24, RequireRestart = false,
+            HintText = "{=AIL_e7b1db06}The game rolls every day for a child between you and your spouse, whether you are the man or the woman. On: that roll is skipped, and children only come from intimacy in conversation. Pregnancies already under way and every other couple are not affected. Default: off.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool DisableVanillaPlayerPregnancy { get; set; } = false;
+
         [SettingPropertyBool("{=AIL_6746c998}Handing over troops and prisoners", Order = 11, RequireRestart = false,
             HintText = "{=AIL_c0668e57}An NPC with a party can give you soldiers or prisoners, or accept the ones you offer.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
@@ -1100,6 +1125,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public bool BastardLegitimizeOnMarriage { get; set; } = true;
 
+        [SettingPropertyInteger("{=AIL_e7b1db07}Out of wedlock: influence to acknowledge a child", 0, 5000, Order = 58, RequireRestart = false,
+            HintText = "{=AIL_e7b1db08}What acknowledging an adult child of yours born out of wedlock costs your clan in influence; twice as much if you do not rule a kingdom. Without enough influence the option is greyed out. 0 = free. Default: 150.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public int BastardLegitimizeInfluenceCost { get; set; } = 150;
+
         [SettingPropertyInteger("{=AIL_e7b1c882}Out of wedlock: lower worth in a marriage (denars)", 0, 100000, Order = 59, RequireRestart = false,
             HintText = "{=AIL_e7b1c883}When a marriage is negotiated between a baseborn and a legitimate child, the house asking for a baseborn's hand offers this much less, a house giving a legitimate child to a baseborn asks for this much more, and the baseborn's own house lets them go for half of it. For scale, a point of relation between the two is worth 1000. 0 = no difference. Recommended: 10000 to 30000.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
@@ -1154,6 +1184,11 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1c87f}Chance, compared with a lord, that a married noblewoman in the same situation takes a man as her concubine. 0 = never. Recommended: 0 to 30.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public int ConcubineNpcWomenPercent { get; set; } = 10;
+
+        [SettingPropertyButton("{=AIL_e7b1db09}Release all concubines", Content = "{=AIL_e7b1db0a}Release", Order = 70, RequireRestart = false,
+            HintText = "{=AIL_e7b1db0b}Releases at once every concubine in the world, yours and the lords'. Each goes back to their old house and way of life and returns home, taking it badly with whoever kept them. It cannot be undone.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public Action ReleaseAllConcubines { get; set; } = () => Later(World.Concubines.ReleaseAll);
 
         [SettingPropertyBool("{=AIL_cae619f6}Tasks (quests created by the AI)", Order = 15, RequireRestart = false,
             HintText = "{=AIL_745a654d}NPCs can give you tasks, note your progress, and mark them fulfilled (with reward) or failed. They appear in the game's quest log. Careful: a saved game with tasks needs AI Legacy to load.")]
@@ -1480,6 +1515,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_46d0d1f8}F. Battles", GroupOrder = 15)]
         public bool BattleAIShowOrders { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1db0e}Battle orders and shouts in memory", Order = 7, RequireRestart = false,
+            HintText = "{=AIL_e7b1db0f}What leaders shout and the orders you give in your own words are written into the memory of every hero in the battle, so they can bring it up afterwards and world events can take it into account. Off: battle chatter stays out of their memory.")]
+        [SettingPropertyGroup("{=AIL_46d0d1f8}F. Battles", GroupOrder = 15)]
+        public bool BattleAIToMemory { get; set; } = true;
+
         [SettingPropertyText("{=AIL_17a3df8d}Provider for battles", Order = 8, RequireRestart = false,
             HintText = "{=AIL_506e56c2}Name of the config.json provider preferred for battle orders (empty = the normal one). A fast one is best.")]
         [SettingPropertyGroup("{=AIL_a96fe2c6}1. AI/{=AIL_e7b1d101}Provider per task", GroupOrder = 2)]
@@ -1736,6 +1776,11 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1d727}While you stay in a place with disease, some of your soldiers may fall ill. They stay in the ranks but slow the march, lower morale and fight worse, and the worst cases can die.")]
         [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
         public bool DiseaseAffectsPlayerTroops { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1db0c}Green outline on the sick in battle", Order = 9, RequireRestart = false,
+            HintText = "{=AIL_e7b1db0d}In field battles and sieges, a sick hero and, in a party with sick men, about as many of its soldiers as are ill show a green outline, on both sides. Only in battles, not in towns or the arena.")]
+        [SettingPropertyGroup("{=AIL_513640bb}D. Diseases", GroupOrder = 13)]
+        public bool DiseaseSickOutline { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_b7d2f020}Quarantine closes the gates", Order = 20, RequireRestart = false,
             HintText = "{=AIL_b7d2f021}While a quarantine lasts, lords, caravans and villagers stay away, no tournament is called, and the guard stops you at the gate. Owners and enemies at war are not stopped.")]

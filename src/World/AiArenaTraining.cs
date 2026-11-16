@@ -51,10 +51,16 @@ namespace AILegacy.World
                     double price = troops.Sum(e => (double)(e.Number - e.WoundedNumber) * (8 + Math.Max(0, e.Character.Tier) * 4)) * own * cfg.ArenaTrainingCostPercent / 100.0;
                     if (double.IsNaN(price)) continue;
                     int cost = (int)Math.Ceiling(Math.Max(0.0, Math.Min(MaxCost, price)));
-                    // He keeps enough to pay his men afterwards
-                    if (h.Gold < cost + 2000) continue;
+                    // He keeps enough to pay his men afterwards. One who does not head his clan may put the rest on the
+                    // clan's account, as in AIInfluence: it is charged with the clan's next daily balance
+                    int ownShare = Math.Max(0, Math.Min(cost, h.Gold - 2000));
+                    int owed = cost - ownShare;
+                    var head = h.Clan?.Leader;
+                    bool clanPays = owed > 0 && head != null && head != h && head.IsAlive && head.Gold >= owed + 2000;
+                    if (owed > 0 && !clanPays) continue;
 
-                    if (cost > 0) GiveGoldAction.ApplyBetweenCharacters(h, null, Math.Min(cost, Math.Max(0, h.Gold)), true);
+                    if (ownShare > 0) GiveGoldAction.ApplyBetweenCharacters(h, null, ownShare, true);
+                    if (owed > 0) Patches.ArenaExpensePatch.AddDebt(h.Clan, owed);
                     foreach (var e in troops)
                     {
                         int n = e.Number - e.WoundedNumber;
@@ -69,6 +75,8 @@ namespace AILegacy.World
                     }
                     last[key] = now;
                     parties++;
+                    // "Trains troops" on the town's nameplate on the map
+                    Patches.ArenaNotice.Show(st, h);
                 }
                 if (parties > 0) Log.Info($"[arena] {parties} lord(s) training troops in the arena ({men} soldiers)");
                 // Parties that no longer exist

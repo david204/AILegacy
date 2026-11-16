@@ -201,6 +201,39 @@ namespace AILegacy.World
             return L.F("AIL_e7b1c837", $"{h.Name} deja de ser tu concubina y vuelve a su casa.");
         }
 
+        /// <summary>
+        /// The MCM button: every concubine in the world, the player's and the lords', goes back to their house and old
+        /// life at once, as if each had been dismissed (Illegitimate Children's "Release All Concubines").
+        /// </summary>
+        public static void ReleaseAll()
+        {
+            try
+            {
+                if (Campaign.Current == null || WorldSim.State?.Concubines == null) return;
+                var list = All.ToList();
+                if (list.Count == 0)
+                {
+                    InformationManager.DisplayMessage(new InformationMessage(L.T("AIL_e7b1db03", "No hay concubinas que liberar."), Colors.Gray));
+                    return;
+                }
+                int n = 0;
+                foreach (var c in list)
+                {
+                    try
+                    {
+                        var h = Hero.Find(c.HeroId);
+                        if (h == null) { WorldSim.State.Concubines.Remove(c); continue; }
+                        if (End(h, quiet: true) != null) n++;
+                    }
+                    catch (Exception ex) { Log.Error("Concubine: release all", ex); }
+                }
+                Log.Info($"[concubines] release all: {n} concubine(s) released from the settings button");
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1db04", $"Se ha liberado a {n} concubina(s)."), Colors.Yellow));
+                SaveFiles.Dirty();
+            }
+            catch (Exception ex) { Log.Error("Concubine: release all", ex); }
+        }
+
         /// <summary>Marrying one's concubine: the bond becomes a marriage, nobody goes home and nobody is wronged.</summary>
         public static void OnMarried(Hero a, Hero b, bool show)
         {

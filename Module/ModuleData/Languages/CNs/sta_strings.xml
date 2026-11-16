@@ -2645,5 +2645,80 @@
     <string id="AIL_e7b1d903" text="在你再次与{0}交谈或给其写信之前，{0}不会再给你写信。" />
     <string id="AIL_e7b1d904" text="禁止王室将家族逐出王国" />
     <string id="AIL_e7b1d905" text="禁止王室没收封地" />
+    <string id="AIL_e7b1dc00" text="居民拥有各自的面孔" />
+    <string id="AIL_e7b1dc01" text="让每个村民、市民、孩子、酒馆伙计和商人都拥有自己的面孔：一种脸型、几处鲜明的特征、各自的身高与体格，偶尔一道伤疤，以及更多本族文化的发型和胡须。领主、同伴和名流保留原来的面孔。只对更改之后出现的人生效（重新进入该地点）。" />
+    <string id="AIL_e7b1dc02" text="面孔差异程度" />
+    <string id="AIL_e7b1dc03" text="人们与原始模板相差多远：脸型与五官、身高、体重与体格、肤色、发色与瞳色、出现伤疤的几率。低值接近原样，高值特征更鲜明。孩子总是采用更温和的程度。" />
+    <string id="AIL_e7b1dc04" text="士兵、卫兵和盗匪也拥有各自的面孔" />
+    <string id="AIL_e7b1dc05" text="普通士兵、卫兵、佣兵和盗匪在战场和定居点中也拥有各自的面孔。只有在头部没有遮挡时才会更换发型。" />
+    <string id="AIL_e7b1dc06" text="居民日常服装更加多样" />
+    <string id="AIL_e7b1dc07" text="市民和村民从本族文化所有平民的日常服装（短袍、长裙、长裤、斗篷、手套）中搭配穿着，而不只是模板里的几套衣服。比自身贵重得多的衣物会被排除，帽子保持不变。只对更改之后出现的人生效。" />
+    <string id="AIL_e7b1dc08" text="{=!}向隐士提出一个更深的问题 [AI Legacy]" />
+    <string id="AIL_e7b1dc09" text="{=!}老人睁开一只眼睛。「说吧，旅人。山听得见一切。」" />
+    <string id="AIL_e7b1dc0a" text="（发送你的话，然后等待隐士的回答）" />
+    <string id="AIL_e7b1dc0b" text="{=!}查看隐士的回答" />
+    <string id="AIL_e7b1dc0c" text="*隐士仍沉浸在思绪之中……*" />
+    <string id="AIL_e7b1dc0d" text="*隐士静静地等待着。*" />
+    <string id="AIL_e7b1dc0e" text="隐士" />
+    <string id="AIL_e7b1dc0f" text="你要问隐士的问题" />
+    <string id="AIL_e7b1dc10" text="*隐士闭着双眼，一言不发。*" />
+    <string id="AIL_e7b1dc11" text="隐士已准备好回答。" />
+    <string id="AIL_e7b1da00" text="{0}落入{1}之手" />
+    <string id="AIL_e7b1da01" text="{0}{1}在{3}{4}率领的围攻之后落入{2}之手" />
+    <string id="AIL_e7b1da02" text="{0}落入叛军之手" />
+    <string id="AIL_e7b1da03" text="{0}{1}在一场叛乱中落入{2}家族之手" />
+    <string id="AIL_e7b1da04" text="消息：{0}" />
+    <string id="AIL_e7b1da05" text="{0}的声明（已修正）" />
+    <string id="AIL_e7b1db00" text="信仰：" />
+    <string id="AIL_e7b1db01" text="你需要{0}点影响力。" />
+    <string id="AIL_e7b1db02" text="你花费了{0}点影响力。" />
+    <string id="AIL_e7b1db03" text="没有可以遣散的情人。" />
+    <string id="AIL_e7b1db04" text="已遣散{0}名情人。" />
+    <string id="AIL_e7b1db05" text="关闭游戏对你和配偶的每日怀孕判定" />
+    <string id="AIL_e7b1db06" text="游戏每天都会为你和配偶掷一次生子判定，无论你是男是女。开启后：跳过这次判定，孩子只能来自对话中的亲密。已经开始的怀孕和其他夫妇不受影响。默认：关闭。" />
+    <string id="AIL_e7b1db07" text="婚外子女：认子所需影响力" />
+    <string id="AIL_e7b1db08" text="承认你一名已成年的婚外子女需要你的家族付出的影响力；如果你不是一国之君则翻倍。影响力不足时该选项显示为灰色。0 = 免费。默认：150。" />
+    <string id="AIL_e7b1db09" text="遣散所有情人" />
+    <string id="AIL_e7b1db0a" text="遣散" />
+    <string id="AIL_e7b1db0b" text="立即遣散世界上所有的情人，包括你的和领主们的。每人都会回到原来的家族和生活，返回家乡，并对收留她的人心怀怨恨。无法撤销。" />
+    <string id="AIL_e7b1db0c" text="战斗中病人显示绿色轮廓" />
+    <string id="AIL_e7b1db0d" text="在野战和攻城战中，生病的英雄，以及有病员的部队中大致与病员数量相当的士兵，会显示绿色轮廓，敌我双方都是。仅限战斗，城镇和竞技场中不显示。" />
+    <string id="AIL_e7b1db0e" text="战斗命令与呐喊写入记忆" />
+    <string id="AIL_e7b1db0f" text="指挥官的呐喊和你用自己的话下达的命令会写入战斗中每位英雄的记忆，之后他们可以提起，世界事件也会考虑这些。关闭：战斗中的话不进入他们的记忆。" />
+    <string id="AIL_e7b1db10" text="{=!}训练同伴的部队，8小时" />
+    <string id="AIL_e7b1db11" text="{=!}一起训练你所有的部队，8小时（{AIL_TRAIN_COST_ALL}{GOLD_ICON}）" />
+    <string id="AIL_e7b1db12" text="{=!}城中你家族的部队目前都没有可以训练的健康士兵。" />
+    <string id="AIL_e7b1db13" text="{=!}“全体一起”只在城中有你家族的其他部队时可用。只训练你自己的人，请用“训练你的部队”。" />
+    <string id="AIL_e7b1db14" text="{=!}由你付钱。你选择的部队的士兵获得经验，训练期间该部队留在城中。" />
+    <string id="AIL_e7b1db15" text="{=!}由你付钱。你的人和城中你家族各部队的人同时训练。" />
+    <string id="AIL_e7b1db16" text="选择部队" />
+    <string id="AIL_e7b1db17" text="要训练谁的部队？" />
+    <string id="AIL_e7b1db18" text="{0}：{1}名士兵，{2}第纳尔" />
+    <string id="AIL_e7b1db19" text="{0}的部队在竞技场里接受武术教官的训练。只听见木剑的击打声和教官的吆喝声。" />
+    <string id="AIL_e7b1db1a" text="你所有的部队一起在竞技场里接受武术教官的训练。只听见木剑的击打声和教官的吆喝声。" />
+    <string id="AIL_e7b1db1b" text="部队完成了训练：{0}人获得了经验" />
+    <string id="AIL_e7b1db1c" text="正在训练部队" />
+    <string id="AIL_e7b1db1d" text="竞技场部队训练" />
+    <string id="AIL_e7b1db20" text="疾病康复速度+15%（个人）" />
+    <string id="AIL_e7b1db21" text="疾病免疫+10%（个人）" />
+    <string id="AIL_e7b1db22" text="部队静止时疾病治愈速度+20%" />
+    <string id="AIL_e7b1db23" text="进度低于10%的疾病会自行痊愈（无此特长时为5%）" />
+    <string id="AIL_e7b1db24" text="疾病造成的地图减速-30%" />
+    <string id="AIL_e7b1db25" text="从患病部队俘获的俘虏患病人数减半" />
+    <string id="AIL_e7b1db26" text="士气高于70时疾病治愈速度+15%" />
+    <string id="AIL_e7b1db27" text="在定居点接受治疗时医疗等级+1" />
+    <string id="AIL_e7b1db28" text="攻城期间疾病进展减慢30%" />
+    <string id="AIL_e7b1db29" text="部队内部传染-25%" />
+    <string id="AIL_e7b1db2a" text="你治理的定居点传染-20%" />
+    <string id="AIL_e7b1db2b" text="你治理的定居点附近草药和药物价格-25%" />
+    <string id="AIL_e7b1db2c" text="部队每携带一种食物，免疫+3%" />
+    <string id="AIL_e7b1db2d" text="1级和2级部队不会死于疾病（瘟疫除外）" />
+    <string id="AIL_e7b1db2e" text="每天，患重病的1级和2级部队中有30%会自行康复" />
+    <string id="AIL_e7b1db2f" text="你治理的定居点医疗等级+1" />
+    <string id="AIL_e7b1db30" text="疾病进度达到100%时你能幸存一次（回落到50%）" />
+    <string id="AIL_e7b1db31" text="你部队中的英雄疾病免疫+10%" />
+    <string id="AIL_e7b1db32" text="每10人疾病治愈速度+1%" />
+    <string id="AIL_e7b1db33" text="战胜重病的部队永久获得5%免疫" />
+    <string id="AIL_e7b1db34" text="医术每超过250一点，免疫+0.5%，治愈+0.3%" />
   </strings>
 </base>

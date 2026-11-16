@@ -297,6 +297,53 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
             return done;
         }
 
+        // ============================================================ what was shouted, into memory
+
+        private static string _battleName;
+
+        /// <summary>"Field battle: X against Y", once per battle, for the memory notes.</summary>
+        private static string BattleName()
+        {
+            if (_battleName != null) return _battleName;
+            string a = null, d = null;
+            try
+            {
+                var e = MapEvent.PlayerMapEvent;
+                a = e?.AttackerSide?.LeaderParty?.Name?.ToString();
+                d = e?.DefenderSide?.LeaderParty?.Name?.ToString();
+            }
+            catch { }
+            _battleName = a != null && d != null ? $"Field battle: {a} against {d}" : "Field battle";
+            return _battleName;
+        }
+
+        /// <summary>
+        /// A leader's shout or the player's order goes into the history of every hero fighting in the battle, on both
+        /// sides, so they can bring it up later and the world events read it (AIInfluence's BattleTacticsLogToDynamicEvents).
+        /// </summary>
+        private static void ToMemory(string line)
+        {
+            try
+            {
+                if (!S.Get.BattleAIToMemory || _mission == null || string.IsNullOrWhiteSpace(line)) return;
+                string text = $"[Battle order][{BattleName()}] {line}";
+                double day = CampaignTime.Now.ToDays;
+                var done = new HashSet<string>();
+                foreach (var team in _mission.Teams)
+                {
+                    if (team == null || team.Side == BattleSideEnum.None) continue;
+                    foreach (var a in team.ActiveAgents)
+                    {
+                        var h = (a?.Character as CharacterObject)?.HeroObject;
+                        if (h == null || h == Hero.MainHero || !done.Add(h.StringId)) continue;
+                        Memory.MemoryStore.Get(h.StringId, h.Name.ToString()).Turns.Add(new Memory.ChatTurn { Role = "player", Day = day, Text = text });
+                    }
+                }
+                if (done.Count > 0) Log.Info($"[battle] noted in the memory of {done.Count} hero(es): {line}");
+            }
+            catch (Exception ex) { Log.Error("Battle orders into memory", ex); }
+        }
+
         private static void Release(Side s)
         {
             foreach (var f in s.Held) { try { if (f.CountOfUnits > 0 && !f.IsAIControlled && f.PlayerOwner == null) f.SetControlledByAI(true); } catch { } }
@@ -356,6 +403,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                             Say($"{commander}: {shout}", color);
                             try { if (general != null && general.IsActive()) Bubbles.Show(general, shout, 5f); } catch { }
                         }
+                        if (shout.Length > 1) ToMemory($"{commander}: \"{shout}\"");
                         if (cfg.BattleAIShowOrders && done > 0) Say($"[{commander}] {shown.ToString().TrimEnd(' ', ';')}", new Color(0.7f, 0.7f, 0.7f));
                         Log.Info($"[battle] {commander} ({ownMen} vs {foeMen}): {shown}— {plan}");
                     }
@@ -402,6 +450,7 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                                 string understood = ((string)j["understood"] ?? "").Trim();
                                 Say(done > 0 ? L.F("AIL_6c53dc0f", $"Tus capitanes: {(understood.Length > 2 ? understood : shown.ToString())}") : L.T("AIL_7237f719", "Tus capitanes no saben qué hacer con esa orden."), done > 0 ? new Color(0.55f, 0.9f, 0.55f) : Colors.Gray);
                                 Log.Info($"[battle] player order '{text}' -> {shown}");
+                                if (done > 0) ToMemory($"{Hero.MainHero.Name}: \"{text}\"" + (understood.Length > 2 ? $" (ack: \"{understood}\")" : ""));
                             }
                             catch (Exception ex) { Log.Error("Player order in battle", ex); }
                         });
@@ -419,12 +468,12 @@ Answer ONLY with JSON: { ""orders"": [ { ""formation"": ""<formation name>"", ""
                 var m = Mission.Current;
                 if (!(cfg.EnableBattleAI || cfg.BattleAITextOrders) || !BattleOn(m))
                 {
-                    if (_mission != null) { _mission = null; Sides.Clear(); _requests = 0; _playerWaiting = false; }
+                    if (_mission != null) { _mission = null; Sides.Clear(); _requests = 0; _playerWaiting = false; _battleName = null; }
                     return;
                 }
                 if (_mission != m)
                 {
-                    _mission = m; Sides.Clear(); _requests = 0; _playerWaiting = false;
+                    _mission = m; Sides.Clear(); _requests = 0; _playerWaiting = false; _battleName = null;
                     Log.Info(cfg.EnableBattleAI ? "[battle] field battle starts: tactics AI active" : "[battle] field battle starts: only orders in your own words");
                 }
                 float now = m.CurrentTime;

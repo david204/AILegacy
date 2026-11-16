@@ -14,6 +14,7 @@ using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
@@ -23,24 +24,78 @@ namespace AILegacy.World
 {
     /// <summary>
     /// Arena training: in a town you pay and your troops train for eight hours. They gain XP (recruits gain more), a few
-    /// get hurt, and that arena won't take you again for a few days.
+    /// get hurt, and that arena won't take you again for a few days. As in AIInfluence you can also pay for the troops
+    /// of another party of your clan staying in the town (a companion's), or for all of them and yours together; each of
+    /// those parties waits its own hours before training again.
     /// </summary>
     internal static class ArenaTraining
     {
         private const float Hours = 8f;
+        private const string PartyKey = "party:";      // a party's own wait in WorldState.ArenaLastAt (shared with AiArenaTraining)
         private static float _progress;
         private static bool _running;
+        private static int _heldHour = -1;
+        // Who is training this time: the player's own men and/or the parties of the player's clan in town (by id)
+        private static bool _withMine = true;
+        private static readonly List<string> _parties = new List<string>();
         private static Dictionary<string, double> LastAt => WorldSim.State.ArenaLastAt;      // saved with the campaign
         private static readonly Random Rng = new Random();
 
-        private static int Cost()
+        private static int CostOf(MobileParty p)
         {
             var st = Settlement.CurrentSettlement;
+            if (p == null) return 0;
             float f = st != null && st.OwnerClan == Clan.PlayerClan ? 0.6f : 1f;
-            return (int)Math.Ceiling(MobileParty.MainParty.MemberRoster.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => (e.Number - e.WoundedNumber) * (8 + e.Character.Tier * 4)) * f * S.Get.ArenaTrainingCostPercent / 100f);
+            return (int)Math.Ceiling(p.MemberRoster.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => (e.Number - e.WoundedNumber) * (8 + e.Character.Tier * 4)) * f * S.Get.ArenaTrainingCostPercent / 100f);
         }
 
-        private static int Fit() => MobileParty.MainParty.MemberRoster.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => e.Number - e.WoundedNumber);
+        private static int Cost() => CostOf(MobileParty.MainParty);
+
+        private static int FitOf(MobileParty p) => p == null ? 0 : p.MemberRoster.GetTroopRoster().Where(e => !e.Character.IsHero).Sum(e => e.Number - e.WoundedNumber);
+
+        private static int Fit() => FitOf(MobileParty.MainParty);
+
+        private static bool Waiting(string key, out double hoursLeft)
+        {
+            hoursLeft = 0;
+            if (!LastAt.TryGetValue(key, out double at)) return false;
+            hoursLeft = S.Get.ArenaTrainingCooldownHours - (CampaignTime.Now.ToHours - at);
+            return hoursLeft > 0;
+        }
+
+        /// <summary>The player's own arena wait is kept per town, as before.</summary>
+        private static bool MineWaiting(Settlement st) => st != null && Waiting(st.StringId, out _);
+
+        /// <summary>
+        /// Other parties of the player's clan staying in this town that could train now: led by a hero, healthy men,
+        /// not fighting, not in an army, not lent for an order, and past their own wait. As AIInfluence's companion parties.
+        /// </summary>
+        private static List<MobileParty> ClanPartiesHere(Settlement st)
+        {
+            if (st == null || Clan.PlayerClan == null) return new List<MobileParty>();
+            return st.Parties.Where(p => p != null && p.IsActive && !p.IsMainParty && p.ActualClan == Clan.PlayerClan && p.LeaderHero != null
+                                         && p.IsLordParty && p.MapEvent == null && p.Army == null && !OrderSystem.IsTempParty(p)
+                                         && FitOf(p) > 0 && !Waiting(PartyKey + p.StringId, out _)).ToList();
+        }
+
+        private static List<MobileParty> Training() =>
+            _parties.Select(id => MobileParty.All.FirstOrDefault(p => p.StringId == id)).Where(p => p != null && p.IsActive).ToList();
+
+        private static void TrainRoster(TroopRoster roster, ref int trained, ref int hurt)
+        {
+            var cfg = S.Get;
+            foreach (var e in roster.GetTroopRoster().Where(e => !e.Character.IsHero && e.Number - e.WoundedNumber > 0).ToList())
+            {
+                int n = e.Number - e.WoundedNumber;
+                // Low tier troops learn faster than veterans
+                int xpEach = (int)(cfg.ArenaTrainingXp * (1.5f - Math.Min(1f, e.Character.Tier / 6f)));
+                roster.AddXpToTroop(e.Character, xpEach * n);
+                trained += n;
+                int injured = 0;
+                for (int i = 0; i < n; i++) if (Rng.Next(100) < cfg.ArenaTrainingInjuryPercent) injured++;
+                if (injured > 0) { roster.WoundTroop(e.Character, injured); hurt += injured; }
+            }
+        }
 
         private static void Finish()
         {
@@ -48,28 +103,109 @@ namespace AILegacy.World
             _running = false;
             try
             {
-                var cfg = S.Get;
-                var roster = MobileParty.MainParty.MemberRoster;
-                int trained = 0, hurt = 0;
-                foreach (var e in roster.GetTroopRoster().Where(e => !e.Character.IsHero && e.Number - e.WoundedNumber > 0).ToList())
-                {
-                    int n = e.Number - e.WoundedNumber;
-                    // Low tier troops learn faster than veterans
-                    int xpEach = (int)(cfg.ArenaTrainingXp * (1.5f - Math.Min(1f, e.Character.Tier / 6f)));
-                    roster.AddXpToTroop(e.Character, xpEach * n);
-                    trained += n;
-                    int injured = 0;
-                    for (int i = 0; i < n; i++) if (Rng.Next(100) < cfg.ArenaTrainingInjuryPercent) injured++;
-                    if (injured > 0) { roster.WoundTroop(e.Character, injured); hurt += injured; }
-                }
                 var st = Settlement.CurrentSettlement;
-                if (st != null) LastAt[st.StringId] = CampaignTime.Now.ToHours;
-                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_980877af", $"Tus hombres terminan el entrenamiento: {trained} han ganado experiencia") + (hurt > 0 ? L.F("AIL_66fb1576", $", {hurt} se han lesionado.") : "."), Colors.Green));
-                Log.Info($"[arena] training finished: {trained} trained, {hurt} injured");
+                int trained = 0, hurt = 0;
+                if (_withMine)
+                {
+                    TrainRoster(MobileParty.MainParty.MemberRoster, ref trained, ref hurt);
+                    if (st != null) LastAt[st.StringId] = CampaignTime.Now.ToHours;
+                }
+                int others = 0;
+                foreach (var p in Training())
+                {
+                    // only those who stayed in town for it
+                    if (p.CurrentSettlement != st) { Log.Info($"[arena] {p.Name} left town during the training and gains nothing"); continue; }
+                    TrainRoster(p.MemberRoster, ref trained, ref hurt);
+                    LastAt[PartyKey + p.StringId] = CampaignTime.Now.ToHours;
+                    others++;
+                }
+                string head = _withMine && others == 0 ? L.F("AIL_980877af", $"Tus hombres terminan el entrenamiento: {trained} han ganado experiencia")
+                                                       : L.F("AIL_e7b1db1b", $"Las tropas terminan el entrenamiento: {trained} han ganado experiencia");
+                InformationManager.DisplayMessage(new InformationMessage(head + (hurt > 0 ? L.F("AIL_66fb1576", $", {hurt} se han lesionado.") : "."), Colors.Green));
+                Log.Info($"[arena] training finished: {trained} trained, {hurt} injured (own troops: {_withMine}, clan parties: {others})");
             }
             catch (Exception ex) { Log.Error("Training end", ex); }
+            _parties.Clear();
             try { if (PlayerEncounter.Current != null) PlayerEncounter.Current.IsPlayerWaiting = false; } catch { }
             GameMenu.SwitchToMenu("town_arena");
+        }
+
+        /// <summary>A clan party in training is told to stay in town (AIInfluence holds it the same way), once an hour.</summary>
+        private static void HoldParties()
+        {
+            int hour = (int)_progress;
+            if (hour == _heldHour) return;
+            _heldHour = hour;
+            var st = Settlement.CurrentSettlement;
+            if (st == null) return;
+            foreach (var p in Training())
+            {
+                try
+                {
+                    if (p.CurrentSettlement != st || p.Army != null || p.MapEvent != null) continue;
+                    if (p.DefaultBehavior == AiBehavior.GoToSettlement && p.TargetSettlement == st) continue;
+                    var nav = p.DesiredAiNavigationType != MobileParty.NavigationType.None ? p.DesiredAiNavigationType : MobileParty.NavigationType.All;
+                    p.SetMoveGoToSettlement(st, nav, p.IsTargetingPort);
+                    p.RecalculateShortTermBehavior();
+                }
+                catch (Exception ex) { Log.Warn($"[arena] could not keep {p.Name} in town: {ex.Message}"); }
+            }
+        }
+
+        private static string WaitText()
+        {
+            var list = Training();
+            if (!_withMine && list.Count == 1)
+                return L.F("AIL_e7b1db19", $"Las tropas de {list[0].LeaderHero?.Name} se entrenan en la arena bajo los maestros de armas. Se oyen los golpes de las espadas de madera y los gritos de los instructores.");
+            if (list.Count > 0)
+                return L.T("AIL_e7b1db1a", "Todas tus tropas se entrenan juntas en la arena bajo los maestros de armas. Se oyen los golpes de las espadas de madera y los gritos de los instructores.");
+            return L.T("AIL_76e00257", "{=!}Tus hombres se entrenan en la arena bajo los maestros de armas. Se oyen los golpes de las espadas de madera y los gritos de los instructores.").Replace("{=!}", "");
+        }
+
+        /// <summary>Pays and starts: the wait menu runs the eight hours.</summary>
+        private static void Begin(bool mine, List<MobileParty> parties, int cost)
+        {
+            var st = Settlement.CurrentSettlement;
+            if (st == null || Hero.MainHero.Gold < cost) return;
+            if (cost > 0) GiveGoldAction.ApplyForCharacterToSettlement(Hero.MainHero, st, cost);
+            _withMine = mine;
+            _parties.Clear();
+            _parties.AddRange(parties.Select(p => p.StringId));
+            _progress = 0f; _heldHour = -1; _running = true;
+            HoldParties();
+            try
+            {
+                if (mine) Patches.ArenaNotice.Show(st, Hero.MainHero);
+                foreach (var p in parties) Patches.ArenaNotice.Show(st, p.LeaderHero);
+            }
+            catch { }
+            MBTextManager.SetTextVariable("AIL_TRAIN_WAIT", WaitText());
+            Log.Info($"[arena] training starts in {st.Name}: own troops {mine}, clan parties {string.Join(", ", parties.Select(p => p.Name.ToString()))}, {cost} denars");
+            GameMenu.SwitchToMenu("ailegacy_arena_training");
+        }
+
+        /// <summary>One clan party: picked from a list when there are several.</summary>
+        private static void PickClanParty()
+        {
+            var st = Settlement.CurrentSettlement;
+            var list = ClanPartiesHere(st);
+            if (list.Count == 0) return;
+            if (list.Count == 1) { Begin(false, list, CostOf(list[0])); return; }
+            var items = list.Select(p => new InquiryElement(p.StringId, L.F("AIL_e7b1db18", $"{p.LeaderHero.Name}: {FitOf(p)} soldados, {CostOf(p)} denarios"), null,
+                                                            Hero.MainHero.Gold >= CostOf(p), "")).ToList();
+            MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
+                L.T("AIL_e7b1db16", "Elige la partida"), L.T("AIL_e7b1db17", "¿Las tropas de quién van a entrenar?"),
+                items, true, 1, 1, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e5c9b3a4", "Cancelar"),
+                sel => MainThread.Post(() =>
+                {
+                    try
+                    {
+                        string id = sel != null && sel.Count > 0 ? sel[0].Identifier as string : null;
+                        var p = ClanPartiesHere(Settlement.CurrentSettlement).FirstOrDefault(x => x.StringId == id);
+                        if (p != null) Begin(false, new List<MobileParty> { p }, CostOf(p));
+                    }
+                    catch (Exception ex) { Log.Error("Arena: pick a clan party", ex); }
+                }), null, "", false), true);
         }
 
         public static void AddMenus(CampaignGameStarter starter)
@@ -93,22 +229,65 @@ namespace AILegacy.World
                 },
                 args =>
                 {
-                    int cost = Cost();
-                    var st = Settlement.CurrentSettlement;
-                    if (Hero.MainHero.Gold < cost) return;
-                    GiveGoldAction.ApplyForCharacterToSettlement(Hero.MainHero, st, cost);
-                    _progress = 0f; _running = true;
-                    GameMenu.SwitchToMenu("ailegacy_arena_training");
+                    if (Fit() < 1) return;
+                    Begin(true, new List<MobileParty>(), Cost());
                 }, false, 2);
 
-            starter.AddWaitGameMenu("ailegacy_arena_training", L.T("AIL_76e00257", "{=!}Tus hombres se entrenan en la arena bajo los maestros de armas. Se oyen los golpes de las espadas de madera y los gritos de los instructores."),
-                args => { try { if (PlayerEncounter.Current != null) PlayerEncounter.Current.IsPlayerWaiting = true; } catch { } },
+            // The troops of another party of your clan in town (a companion's), paid by you
+            starter.AddGameMenuOption("town_arena", "ailegacy_arena_train_clan", L.T("AIL_e7b1db10", "{=!}Entrenar a las tropas de un compañero, 8 horas"),
+                args =>
+                {
+                    args.optionLeaveType = GameMenuOption.LeaveType.Wait;
+                    var st = Settlement.CurrentSettlement;
+                    if (!S.Get.EnableArenaTraining || st == null || !st.IsTown) return false;
+                    var list = ClanPartiesHere(st);
+                    if (st.Town.HasTournament) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_42b92c67", "{=!}Hay torneo: la arena está ocupada.")); }
+                    else if (list.Count == 0) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_e7b1db12", "{=!}No hay ninguna partida de tu clan en la ciudad con soldados sanos que entrenar ahora.")); }
+                    else if (Hero.MainHero.Gold < list.Min(CostOf)) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_73936b3a", "{=!}No tienes dinero para pagar a los maestros de armas.")); }
+                    else args.Tooltip = new TextObject(L.T("AIL_e7b1db14", "{=!}Pagas tú. Ganan experiencia los soldados de la partida que elijas, que se queda en la ciudad mientras dura."));
+                    return true;
+                },
+                args => PickClanParty(), false, 3);
+
+            // Yours and every clan party in town at once
+            starter.AddGameMenuOption("town_arena", "ailegacy_arena_train_all", L.T("AIL_e7b1db11", "{=!}Entrenar a todas tus tropas juntas, 8 horas ({AIL_TRAIN_COST_ALL}{GOLD_ICON})"),
+                args =>
+                {
+                    args.optionLeaveType = GameMenuOption.LeaveType.Wait;
+                    var st = Settlement.CurrentSettlement;
+                    if (!S.Get.EnableArenaTraining || st == null || !st.IsTown) return false;
+                    var list = ClanPartiesHere(st);
+                    bool mine = Fit() > 0 && !MineWaiting(st);
+                    int cost = (mine ? Cost() : 0) + list.Sum(CostOf);
+                    MBTextManager.SetTextVariable("AIL_TRAIN_COST_ALL", cost);
+                    if (st.Town.HasTournament) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_42b92c67", "{=!}Hay torneo: la arena está ocupada.")); }
+                    else if (list.Count == 0) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_e7b1db13", "{=!}«Todas juntas» solo sirve cuando hay otras partidas de tu clan en la ciudad. Para tus hombres solos, usa «Entrenar a tus tropas».")); }
+                    else if (Hero.MainHero.Gold < cost) { args.IsEnabled = false; args.Tooltip = new TextObject(L.T("AIL_73936b3a", "{=!}No tienes dinero para pagar a los maestros de armas.")); }
+                    else args.Tooltip = new TextObject(L.T("AIL_e7b1db15", "{=!}Pagas tú. Entrenan a la vez tus hombres y los de las partidas de tu clan que hay en la ciudad."));
+                    return true;
+                },
+                args =>
+                {
+                    var st = Settlement.CurrentSettlement;
+                    var list = ClanPartiesHere(st);
+                    if (list.Count == 0) return;
+                    bool mine = Fit() > 0 && !MineWaiting(st);
+                    Begin(mine, list, (mine ? Cost() : 0) + list.Sum(CostOf));
+                }, false, 4);
+
+            starter.AddWaitGameMenu("ailegacy_arena_training", "{=!}{AIL_TRAIN_WAIT}",
+                args =>
+                {
+                    try { if (PlayerEncounter.Current != null) PlayerEncounter.Current.IsPlayerWaiting = true; } catch { }
+                    MBTextManager.SetTextVariable("AIL_TRAIN_WAIT", WaitText());
+                },
                 args => { args.MenuContext.GameMenu.SetTargetedWaitingTimeAndInitialProgress(Hours, _progress / Hours); return true; },
                 args => Finish(),
                 (args, dt) =>
                 {
                     _progress += (float)dt.ToHours;
                     args.MenuContext.GameMenu.SetProgressOfWaitingInMenu(Math.Min(1f, _progress / Hours));
+                    try { HoldParties(); } catch { }
                     if (_progress >= Hours) Finish();
                 },
                 GameMenu.MenuAndOptionType.WaitMenuShowOnlyProgressOption, GameMenu.MenuOverlayType.None, Hours);
@@ -118,6 +297,7 @@ namespace AILegacy.World
                 args =>
                 {
                     _running = false;
+                    _parties.Clear();
                     try { if (PlayerEncounter.Current != null) PlayerEncounter.Current.IsPlayerWaiting = false; } catch { }
                     GameMenu.SwitchToMenu("town_arena");
                 }, true);
