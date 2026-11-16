@@ -96,6 +96,51 @@ namespace AILegacy.Dialogue
             catch { return null; }
         }
 
+        /// <summary>Talking face to face in a scene, with scene actions turned on.</summary>
+        private static bool SceneOn() => S.Get.SceneErrands && SceneAgent() != null;
+
+        /// <summary>
+        /// Carries out a scene action (SceneActions) for the character you are talking to, with the scene's other people
+        /// as possible targets. Someone who walks out of the talk because of it ends it. "" when it happened (its own
+        /// notice is already in the log), null with the reason when it did not.
+        /// </summary>
+        private static string Scene(Speaker s, string command, ActionContext ctx)
+        {
+            var a = SceneAgent();
+            if (a == null) return null;
+            if (!SceneActions.Try(a, command, SceneActions.Around(a), LastLine(s), out bool leaves))
+                return Nope(null, SceneActions.LastWhy ?? "it could not be done here and now");
+            if (leaves) ctx.EndConversation = true;
+            return "";
+        }
+
+        /// <summary>The character's last line in this talk (what they said with the action), without the JSON wrapper.</summary>
+        private static string LastLine(Speaker s)
+        {
+            try
+            {
+                var t = s.Memory.Turns.LastOrDefault(x => x.Role == "npc");
+                string text = (t?.Text ?? "").Trim();
+                if (text.StartsWith("{")) { try { text = ((string)Newtonsoft.Json.Linq.JObject.Parse(text)["reply"] ?? text).Trim(); } catch { } }
+                return text;
+            }
+            catch { return ""; }
+        }
+
+        /// <summary>What the player said last in this talk (not a note), or "".</summary>
+        private static string LastPlayerLine(Speaker s)
+        {
+            try { return (s.Memory.Turns.LastOrDefault(x => x.Role == "player" && !x.IsNote)?.Text ?? "").Trim(); }
+            catch { return ""; }
+        }
+
+        /// <summary>That action is open to the character right now.</summary>
+        private static bool Open(string name, Speaker s)
+        {
+            try { var d = All.FirstOrDefault(x => x.Name == name); return d != null && d.IsAvailable(s); }
+            catch { return false; }
+        }
+
         // Repeat guard: the AI sometimes repeats in its next reply what it already did (take payment, hand over an item,
         // give troops...). The same action on the same thing, same amount and same person won't run again within a few
         // minutes. Covers gold, items, troops, prisoners, trade and documents.
@@ -154,12 +199,19 @@ namespace AILegacy.Dialogue
             { "release", "set_free" }, { "free", "set_free" }, { "recruit", "join_party" }, { "join", "join_party" },
             { "end_conversation", "leave" }, { "goodbye", "leave" }, { "let_them_pass", "let_pass" }, { "let_them_go", "let_pass" },
             { "give_items", "give_item" }, { "take_items", "take_item" }, { "transfer_troops", "give_troops" },
+            // scene actions under the names models (and other mods) use for them
+            { "lead_to", "guide" }, { "take_to", "guide" }, { "escort_to", "guide" }, { "call", "call_over" }, { "summon", "call_over" },
+            { "go_talk", "go_talk_to" }, { "talk_to", "go_talk_to" }, { "shout_for_help", "call_help" }, { "help", "call_help" },
+            { "sit", "sit_down" }, { "stand", "stand_up" }, { "draw", "draw_weapon" }, { "sheathe", "sheathe_weapon" }, { "sheath_weapon", "sheathe_weapon" },
+            { "stay", "stay_here" }, { "arrest_other", "detain" },
         };
 
         // Only one action per group per reply: fighting, surrendering, dying and letting go can't be combined
         private static readonly string[][] Exclusive =
         {
-            new[] { "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "die", "let_pass", "call_guards", "arrest", "let_go" },
+            new[] { "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "die", "let_pass", "call_guards", "call_help", "arrest", "let_go" },
+            // one way of walking off at a time
+            new[] { "guide", "go_talk_to", "go_with", "come_along", "go_into", "stay_here" },
             new[] { "propose_marriage", "accept_marriage" },
             new[] { "set_free", "die" },
             new[] { "declare_war", "make_peace" },
@@ -359,7 +411,10 @@ namespace AILegacy.Dialogue
 
         // --- orders on the map
         // With an order running, only resume_duties is offered, so half-finished orders don't pile up
-        private static bool CanOrder(Speaker s) => s.IsHero && OrderSystem.CanTakeOrders(s.Hero) && OrderSystem.Find(s.Hero) == null;
+        // orders that move a party on the map: a second one in the same reply chains after the first
+        private static readonly HashSet<string> MapOrderNames = new HashSet<string> { "go_to", "wait_here", "patrol", "besiege", "raid", "escort", "meet_at", "attack_party", "follow_me" };
+
+        private static bool CanOrder(Speaker s) => s.IsHero && OrderSystem.CanTakeOrders(s.Hero) && (OrderSystem.Find(s.Hero) == null || OrderSystem.AcceptsChainedLeg(s.Hero));
         private static bool AtWarWithPlayer(Speaker s) => s.Faction != null && P.MapFaction != null && s.Faction != P.MapFaction && s.Faction.IsAtWarWith(P.MapFaction);
         private static bool HasWars(Speaker s) { try { return s.Faction != null && s.Faction.FactionsAtWarWith.Any(f => f != null && f.IsKingdomFaction); } catch { return false; } }
         private static bool Hostile(Speaker s, Settlement st) => st?.MapFaction != null && s.Faction != null && st.MapFaction != s.Faction && st.MapFaction.IsAtWarWith(s.Faction);
@@ -900,27 +955,148 @@ namespace AILegacy.Dialogue
                 Name = "come_along", Usage = "come_along",
                 Description = "You walk along with the other person through this place, on foot, from now on: they asked you to come with them somewhere nearby and you agree to go. " +
                               "Use it in the SAME reply in which you say you will follow them; saying it without this action means you stay where you are.",
-                IsAvailable = s => SceneAgent() != null && !SceneActions.Busy(SceneAgent()),
+                IsAvailable = s => SceneAgent() != null && !SceneActions.Following(SceneAgent()),
                 Execute = (s, arg, ctx) =>
                 {
                     var a = SceneAgent();
                     if (a == null) return null;
-                    SceneActions.Apply(a, "follow", new List<TaleWorlds.MountAndBlade.Agent>());
-                    return SceneActions.Busy(a) ? L.F("AIL_a9fce24e", $"{s.Name} te acompañará cuando termines de hablar.") : null;
+                    if (!SceneActions.Try(a, "follow", null, LastLine(s), out _)) return Nope(null, SceneActions.LastWhy ?? "you cannot walk anywhere right now");
+                    return L.F("AIL_a9fce24e", $"{s.Name} te acompañará cuando termines de hablar.");
                 }
             },
             new ActionDef
             {
                 Name = "stay_here", Usage = "stay_here",
-                Description = "You stop walking along with the other person and remain here (they told you to stay, or you will go no further).",
-                IsAvailable = s => SceneAgent() != null && SceneActions.Busy(SceneAgent()),
+                Description = "You stay where you are and wait here, even after this talk is over, until you have waited long enough: they asked you to wait for them, or you will go no further. " +
+                              "If you were walking along with them or going somewhere, you stop.",
+                IsAvailable = s => SceneAgent() != null && !SceneActions.Posted(SceneAgent()),
                 Execute = (s, arg, ctx) =>
                 {
                     var a = SceneAgent();
                     if (a == null) return null;
-                    SceneActions.Apply(a, "stay", new List<TaleWorlds.MountAndBlade.Agent>());
-                    return L.F("AIL_78680a96", $"{s.Name} se queda aquí.");
+                    if (!SceneActions.Try(a, "stay", null, LastLine(s), out _)) return Nope(null, SceneActions.LastWhy ?? "you cannot stay here now");
+                    return "";
                 }
+            },
+
+            // ----------------------------------------------------------- in a scene: what you do in this place, as in a group
+            new ActionDef
+            {
+                Name = "go_with", Usage = "go_with:<exact name of someone in this place, or STOP>",
+                Description = "You go along with that person through this place on foot: you walk at their side and stop where they stop, until go_with:STOP. " +
+                              "Use it when you go off with someone else (they asked you to, or you choose to stay at their side), in the SAME reply in which you say so; it ends this talk. " +
+                              "To walk along with the one in front of you, use come_along instead.",
+                IsAvailable = s => SceneOn() && (SceneActions.GoingWith(SceneAgent()) != null || SceneActions.Around(SceneAgent()).Count > 0),
+                Extra = s => SceneActions.DescribeAround(SceneAgent()),
+                Execute = (s, arg, ctx) => Scene(s, "go_with:" + arg, ctx)
+            },
+            new ActionDef
+            {
+                Name = "guide", Usage = "guide:<exact name of someone in this place>",
+                Description = "You lead the other person on foot to that person, walking ahead of them and waiting if they fall behind; it ends this talk. " +
+                              "Use it when they ask you to take them to someone, or you offer to, in the SAME reply in which you agree. Only to someone listed as being in this place.",
+                IsAvailable = s => SceneOn() && SceneActions.Around(SceneAgent()).Count > 0,
+                Extra = s => SceneActions.DescribeAround(SceneAgent()),
+                Execute = (s, arg, ctx) => Scene(s, "guide:" + arg, ctx)
+            },
+            new ActionDef
+            {
+                Name = "go_talk_to", Usage = "go_talk_to:<exact name of someone in this place>|<what you go to tell or ask them, in English>|<back or stay>",
+                Description = "You walk over to that person to speak with them (to deliver a message, ask them something, fetch them, find out what they know), and this talk ends. " +
+                              "With back, you come back afterwards and tell the other person what came of it; with stay, you remain there. " +
+                              "Only when what was said gives you a real reason to go and you are willing to; someone too proud to run errands may refuse or send them instead.",
+                IsAvailable = s => SceneOn() && S.Get.EnableAmbient && Settlement.CurrentSettlement != null && !Ambient.ErrandBusy && SceneActions.Around(SceneAgent()).Count > 0,
+                Extra = s => SceneActions.DescribeAround(SceneAgent()),
+                Execute = (s, arg, ctx) =>
+                {
+                    var a = SceneAgent();
+                    if (a == null) return null;
+                    var parts = (arg ?? "").Split('|');
+                    string name = parts[0].Trim().Trim('<', '>', '"', '\'').Trim();
+                    string what = parts.Length > 1 ? parts[1].Trim() : "";
+                    bool back = parts.Skip(2).Any(p => p.Trim().StartsWith("back", StringComparison.OrdinalIgnoreCase) || p.Trim().StartsWith("return", StringComparison.OrdinalIgnoreCase) || p.Trim().Equals("true", StringComparison.OrdinalIgnoreCase));
+                    if (name.Length < 2) return Nope(null, "you named nobody to go to");
+                    var all = SceneActions.Around(a);
+                    var target = all.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase))
+                                 ?? all.FirstOrDefault(x => x.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0 || name.IndexOf(x.Name, StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (target == null) return Nope(null, $"there is nobody called «{name}» in this place");
+                    if (Ambient.ErrandBusy) return Nope(null, "someone else is already on such an errand here; try again in a moment");
+                    // what they go about: what you said you go for, or else what the other person just asked of you
+                    string said = what.Length > 3 ? what : LastPlayerLine(s);
+                    Ambient.SendTo(a, target, said, back);
+                    ctx.EndConversation = true;
+                    Log.Info($"[scene] {s.Name} goes to talk to {target.Name}{(back ? " and will come back to tell it" : "")}: {said}");
+                    return L.F("AIL_e9023c1f", $"{s.Name} va a buscar a {target.Name}.");
+                }
+            },
+            new ActionDef
+            {
+                Name = "call_over", Usage = "call_over:<exact name of someone in this place>",
+                Description = "You call that person, who is elsewhere in this place, to come over to you and the one in front of you. Say it aloud in the same reply. " +
+                              "Only someone you could rightly summon: kin, a servant, a subordinate, a friend. They decide for themselves whether to come.",
+                IsAvailable = s => SceneOn() && SceneActions.Around(SceneAgent()).Count > 0,
+                Extra = s => SceneActions.DescribeAround(SceneAgent()),
+                Execute = (s, arg, ctx) => Scene(s, "call:" + arg, ctx)
+            },
+            new ActionDef
+            {
+                Name = "call_help", Usage = "call_help",
+                Description = "You shout for help: a guard on duty within earshot comes running to deal with the other person, and your own kin and friends nearby come over. " +
+                              "Someone with authority here (the lord of this place, his house, a noble of this realm) instead orders the guard to remove them. " +
+                              "Only when you truly feel threatened or wronged by them: they threaten you, lay hands on you, bare steel at you, or will not let you be. It ends this talk.",
+                IsAvailable = s => SceneOn() && Settlement.CurrentSettlement != null && S.Get.AllowJustice && Tense(s) && !Justice.Active(s) && !Open("call_guards", s),
+                Execute = (s, arg, ctx) =>
+                {
+                    var a = SceneAgent();
+                    if (a == null) return null;
+                    string line = LastLine(s);
+                    if (SceneActions.HasAuthorityHere(a) && SceneActions.Try(a, "call_guards", null, line, out _)) { ctx.EndConversation = true; return ""; }
+                    bool guard = Justice.Summon($"Moments ago {(s.IsHero ? s.Name.ToString() : "a local")} shouted for help, saying the armed person in front of you was threatening them: \"{line.Replace("\"", "'")}\".", a, true);
+                    int kin = SceneActions.CallKin(a);
+                    if (!guard && kin == 0) return Nope(L.F("AIL_e7b1d00a", $"Nadie acude a los gritos de {s.Name}."), "nobody came: no guard and none of your own people were near enough to hear you");
+                    if (guard) ctx.EndConversation = true;
+                    return L.F("AIL_e7b1d009", $"{s.Name} pide ayuda a gritos.");
+                }
+            },
+            new ActionDef
+            {
+                Name = "sit_down", Usage = "sit_down",
+                Description = "You go to the nearest free seat and sit down, or sit on the ground where you stand if there is none: you were invited to sit, or you settle in for a long talk.",
+                IsAvailable = s => SceneOn() && !SceneAgent().IsSitting() && !SceneAgent().IsUsingGameObject && SceneAgent().MountAgent == null,
+                Execute = (s, arg, ctx) => Scene(s, "sit_down", ctx)
+            },
+            new ActionDef
+            {
+                Name = "stand_up", Usage = "stand_up",
+                Description = "You rise from where you sit, or leave what you were busy with, to face the other person.",
+                IsAvailable = s => SceneOn() && (SceneAgent().IsSitting() || SceneAgent().IsUsingGameObject),
+                Execute = (s, arg, ctx) => Scene(s, "stand_up", ctx)
+            },
+            new ActionDef
+            {
+                Name = "draw_weapon", Usage = "draw_weapon",
+                Description = "You take your weapon in hand without striking, and everyone around sees it: a threat, a warning, or readiness to defend yourself. It is not an attack; it stays in your hand until sheathe_weapon.",
+                IsAvailable = s => SceneOn() && SceneActions.HasWeapon(SceneAgent()) && !SceneActions.Wielding(SceneAgent()),
+                Extra = s => $"Your weapon: a {SceneActions.WeaponOf(SceneAgent())}. Carrying it as you do now is just your usual look; nobody takes it as a threat.",
+                Execute = (s, arg, ctx) => Scene(s, "draw_weapon", ctx)
+            },
+            new ActionDef
+            {
+                Name = "sheathe_weapon", Usage = "sheathe_weapon",
+                Description = "You put your weapon away again: you are calmed, reassured, or told to.",
+                IsAvailable = s => SceneOn() && SceneActions.Wielding(SceneAgent()),
+                Extra = s => $"Right now you hold your {SceneActions.WeaponOf(SceneAgent())} drawn in your hand, and everyone around sees it.",
+                Execute = (s, arg, ctx) => Scene(s, "sheathe_weapon", ctx)
+            },
+            new ActionDef
+            {
+                Name = "detain", Usage = "detain:<exact name of someone present>",
+                Description = "You take ANOTHER person who is present (never the one in front of you) away to the cells of this place. ONLY as a guard or soldier on duty, or as the lord of this place, " +
+                              "and only with grave cause you yourself find convincing: they are accused before witnesses of blood or treason AND something visible supports it (a body, a weapon, a confession, their own guilty answers), " +
+                              "or they were caught in the act. An accusation alone, from a stranger, against a person of rank is not enough: then you question, you do not arrest. Never against the lord of this place or the ruler.",
+                IsAvailable = s => SceneOn() && S.Get.AllowNpcArrests && SceneActions.CanDetain(SceneAgent()) && !Justice.Active(s) && SceneActions.DescribePresent(SceneAgent()).Length > 0,
+                Extra = s => SceneActions.DescribePresent(SceneAgent()),
+                Execute = (s, arg, ctx) => Scene(s, "detain:" + arg, ctx)
             },
 
             new ActionDef
@@ -2287,7 +2463,8 @@ If the talk turns to one of them, say plainly and in character that it is not in
                 var name = (colon >= 0 ? cmd.Substring(0, colon) : cmd).Trim().ToLowerInvariant().Replace(' ', '_').Replace('-', '_');
                 var arg = colon >= 0 ? cmd.Substring(colon + 1).Trim() : "";
                 if (Aliases.TryGetValue(name, out var real) && All.All(a => a.Name != name)) { Log.Info($"Action «{name}» understood as «{real}»"); name = real; }
-                if (!done.Add(name)) continue;
+                // a second map order in the same reply is the next leg of a chain ("go to A, then to B"), not a repeat
+                if (!done.Add(name) && !(MapOrderNames.Contains(name) && s.IsHero && OrderSystem.AcceptsChainedLeg(s.Hero))) continue;
                 ctx.Tried.Add(name);
 
                 var def = All.FirstOrDefault(a => a.Name == name);

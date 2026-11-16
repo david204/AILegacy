@@ -25,6 +25,8 @@ namespace AILegacy.UI
         private ViewModel _vm;
         private Action _onEscape;
         public static GauntletWindow Current { get; private set; }
+        /// <summary>What the window is showing ("memories" for the memory book), so a hotkey can close the same window it opens.</summary>
+        public string Tag;
 
         public static GauntletWindow Open(string movie, ViewModel vm, Action onEscape)
         {
@@ -504,9 +506,12 @@ namespace AILegacy.UI
         /// Chapters: every page of every character's memories, newest first. Left, the list with whose page it is and
         /// how long ago; right, its illustration (if it has one), the title and the text.
         /// </summary>
-        public static void OpenChapters()
+        public static void OpenChapters() => OpenChapters(null);
+
+        /// <summary>The chapters, opened on <paramref name="focus"/> when it is given (a page just written).</summary>
+        public static void OpenChapters(MemoryPage focus)
         {
-            var vm = new BookVM { Title = L.T("AIL_18fe8281", "Libro de memorias") };
+            var vm = new BookVM { Title = L.T("AIL_18fe8281", "Libro de memorias"), HasPaging = true };
             double now = CampaignTime.Now.ToDays;
             var all = new System.Collections.Generic.List<(HeroMemory mem, MemoryPage page, string who)>();
             foreach (var m in MemoryStore.AllHeroes)
@@ -538,8 +543,8 @@ namespace AILegacy.UI
                 });
             };
             if (vm.Entries.Count == 0) vm.Select(null, L.T("AIL_0872713a", "Vacío"), L.T("AIL_e7b1c4eb", "Todavía no hay capítulos. Se escriben solos cuando una charla larga pasa a la memoria de un personaje."));
-            else ShowChapter(vm, vm.Entries[0]);
-            Open("AILegacyBook", vm);
+            else ShowChapter(vm, vm.Entries.FirstOrDefault(e => focus != null && e.Tag is ValueTuple<HeroMemory, MemoryPage, string> t && ReferenceEquals(t.Item2, focus)) ?? vm.Entries[0]);
+            Open("AILegacyBook", vm, "memories");
         }
 
         private static void ShowChapter(BookVM vm, BookEntryVM e)
@@ -579,7 +584,7 @@ namespace AILegacy.UI
             };
             if (vm.Entries.Count == 0) vm.Select(null, L.T("AIL_0872713a", "Vacío"), L.T("AIL_b93602c9", "Aún no has hablado con nadie. Cada persona con la que hables aparecerá aquí con lo que recuerda de ti."));
             else ShowHero(vm, vm.Entries[0]);
-            Open("AILegacyBook", vm);
+            Open("AILegacyBook", vm, "memories");
         }
 
         private static void ShowHero(BookVM vm, BookEntryVM e)
@@ -635,11 +640,12 @@ namespace AILegacy.UI
             catch (Exception ex) { Log.Error("Scene image", ex); }
         }
 
-        private static void Open(string movie, BookVM vm)
+        private static void Open(string movie, BookVM vm, string tag = null)
         {
             GauntletWindow w = null;
             vm.OnClose = () => w?.Close();
             w = GauntletWindow.Open(movie, vm, () => w?.Close());
+            if (w != null) w.Tag = tag;
             if (w == null)
                 InformationManager.ShowInquiry(new InquiryData(vm.Title, vm.DetailText, true, false, L.T("AIL_e8438e2a", "Cerrar"), "", null, null), true);
         }
@@ -691,6 +697,7 @@ namespace AILegacy.UI
             try
             {
                 GauntletWindow.Current?.Tick();
+                PageNotices.HotkeyTick();
                 bool want = Campaign.Current != null && S.Get.ShowMapButtons;
                 var top = ScreenManager.TopScreen;
                 bool onMap = want && top != null && top.GetType().Name.Contains("MapScreen") && GameStateManager.Current?.ActiveState is MapState;
@@ -727,6 +734,86 @@ namespace AILegacy.UI
             }
             catch { }
             _layer = null; _movie = null; _screen = null; _vm = null;
+        }
+    }
+
+    /// <summary>
+    /// The memory book's own doors: a message and a map notice when a page is written (the notice opens the book on
+    /// it), and the hotkey that opens or closes the book anywhere, also while a prisoner.
+    /// </summary>
+    internal static class PageNotices
+    {
+        /// <summary>The game's quest update chime.</summary>
+        public const string Sound = "event:/ui/notification/quest_update";
+
+        /// <summary>A page was just written in <paramref name="npc"/>'s memories.</summary>
+        public static void Notify(Hero npc, MemoryPage page)
+        {
+            try
+            {
+                if (npc == null || page == null || !S.Get.NotifyMemoryPages || Campaign.Current == null) return;
+                string text = L.F("AIL_e7b1cf08", $"{npc.Name} no lo olvidará: hay una página nueva en el libro de memorias.");
+                MBInformationManager.AddQuickInformation(new TaleWorlds.Localization.TextObject("{=!}" + Clean(text)), 0, npc.CharacterObject, null, Sound);
+                if (!Register()) return;
+                string desc = L.F("AIL_e7b1cf09", $"{npc.Name}: «{page.Title ?? ""}». Pulsa para abrir el libro por esta página.");
+                MBInformationManager.AddNotice(new MemoryPageNotice(new TaleWorlds.Localization.TextObject("{=!}" + Clean(desc)), page));
+            }
+            catch (Exception ex) { Log.Error("Memory page notification", ex); }
+        }
+
+        private static string Clean(string s) => (s ?? "").Replace("{", "(").Replace("}", ")");
+
+        /// <summary>Tells the map's notification list how to show our notice. Each map screen needs it once; doing it again is harmless.</summary>
+        private static bool Register()
+        {
+            try
+            {
+                var view = SandBox.View.Map.MapScreen.Instance?.GetMapView<SandBox.View.Map.MapNotificationView>();
+                if (view == null) return false;
+                view.RegisterMapNotificationType(typeof(MemoryPageNotice), typeof(MemoryPageNoticeItemVM));
+                return true;
+            }
+            catch (Exception ex) { Log.Error("Registering the memory page notice", ex); return false; }
+        }
+
+        /// <summary>
+        /// Whether the book may open now. Like the game's own panels: not while saving, in a battle (on the map or in a
+        /// mission that allows no panel), or over one of the map's own popups. Being a prisoner does not stop it.
+        /// </summary>
+        public static bool CanOpenBook()
+        {
+            try
+            {
+                var c = Campaign.Current;
+                if (c == null || Hero.MainHero == null || Hero.MainHero.IsDead) return false;
+                if (c.SaveHandler != null && c.SaveHandler.IsSaving) return false;
+                if (TaleWorlds.CampaignSystem.Encounters.PlayerEncounter.CurrentBattleSimulation != null) return false;
+                if (TaleWorlds.CampaignSystem.Party.MobileParty.MainParty?.MapEvent != null) return false;
+                if (ScreenManager.TopScreen is SandBox.View.Map.MapScreen ms
+                    && (ms.IsInArmyManagement || ms.IsMarriageOfferPopupActive || ms.IsHeirSelectionPopupActive || ms.IsMapIncidentActive
+                        || (ms.EncyclopediaScreenManager != null && ms.EncyclopediaScreenManager.IsEncyclopediaOpen))) return false;
+                var m = TaleWorlds.MountAndBlade.Mission.Current;
+                if (m != null && !(m.IsInventoryAccessAllowed || m.IsCharacterWindowAccessAllowed || m.IsClanWindowAccessAllowed || m.IsKingdomWindowAccessAllowed
+                                   || m.IsQuestScreenAccessAllowed || m.IsPartyWindowAccessAllowed || m.IsEncyclopediaWindowAccessAllowed)) return false;
+                return true;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>The memory book key (1. General, Keys): opens the book, or closes it when it is the window open.</summary>
+        public static void HotkeyTick()
+        {
+            try
+            {
+                if (!Hotkeys.Pressed(Hotkeys.Id.MemoryBook)) return;
+                var w = GauntletWindow.Current;
+                if (w != null && w.Tag == "memories") { w.Close(); return; }
+                // a text box or a question is waiting for the player: the key belongs to it
+                if (InformationManager.IsAnyInquiryActive() || !CanOpenBook()) return;
+                if (ScreenManager.TopScreen is SandBox.View.Map.MapScreen ms && ms.IsEscapeMenuOpened) ms.CloseEscapeMenu();
+                Books.OpenMemories();
+            }
+            catch (Exception ex) { Log.Error("Memory book key", ex); }
         }
     }
 }

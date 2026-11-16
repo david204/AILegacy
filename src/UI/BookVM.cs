@@ -9,6 +9,7 @@ namespace AILegacy.UI
     {
         private readonly Action<BookEntryVM> _onSelect;
         private string _title, _subtitle;
+        private bool _isSelected;
         public object Tag { get; }
 
         public BookEntryVM(string title, string subtitle, object tag, Action<BookEntryVM> onSelect)
@@ -20,6 +21,8 @@ namespace AILegacy.UI
 
         [DataSourceProperty] public string Title { get => _title; set { if (value != _title) { _title = value; OnPropertyChangedWithValue(value, nameof(Title)); } } }
         [DataSourceProperty] public string Subtitle { get => _subtitle; set { if (value != _subtitle) { _subtitle = value; OnPropertyChangedWithValue(value, nameof(Subtitle)); } } }
+        /// <summary>The entry shown on the right, highlighted in the list.</summary>
+        [DataSourceProperty] public bool IsSelected { get => _isSelected; set { if (value != _isSelected) { _isSelected = value; OnPropertyChangedWithValue(value, nameof(IsSelected)); } } }
     }
 
     /// <summary>"Book" window: list on the left, details on the right.</summary>
@@ -37,7 +40,10 @@ namespace AILegacy.UI
 
         public void Select(BookEntryVM e, string detailTitle, string detailText, string imagePath = null)
         {
+            if (Selected != null && Selected != e) Selected.IsSelected = false;
+            if (e != null) e.IsSelected = true;
             Selected = e;
+            RefreshCounter();
             DetailTitle = detailTitle;
             DetailText = detailText;
             DetailImage = imagePath ?? "";
@@ -46,6 +52,35 @@ namespace AILegacy.UI
 
         public void ExecuteClose() => OnClose?.Invoke();
         public void ExecuteAction() { if (Selected != null) OnAction?.Invoke(Selected); }
+
+        // ------------------------------------------------------------ turning pages
+        private bool _hasPaging;
+        private string _counterText = "";
+
+        /// <summary>Previous and next buttons, with "N / M" between them. They wrap around at both ends.</summary>
+        [DataSourceProperty] public bool HasPaging { get => _hasPaging; set { if (value != _hasPaging) { _hasPaging = value; OnPropertyChangedWithValue(value, nameof(HasPaging)); RefreshCounter(); } } }
+        [DataSourceProperty] public string CounterText { get => _counterText; set { if (value != _counterText) { _counterText = value; OnPropertyChangedWithValue(value, nameof(CounterText)); } } }
+        [DataSourceProperty] public string PreviousText => L.T("AIL_e7b1cf06", "Anterior");
+        [DataSourceProperty] public string NextText => L.T("AIL_e7b1cf07", "Siguiente");
+
+        public void ExecutePrevious() => Turn(-1);
+        public void ExecuteNext() => Turn(1);
+
+        private void Turn(int step)
+        {
+            int n = _entries.Count;
+            if (n == 0) return;
+            int i = Selected == null ? -1 : _entries.IndexOf(Selected);
+            i = i < 0 ? 0 : ((i + step) % n + n) % n;
+            _entries[i].ExecuteSelect();
+        }
+
+        private void RefreshCounter()
+        {
+            int n = _entries.Count;
+            int i = Selected == null ? -1 : _entries.IndexOf(Selected);
+            CounterText = n == 0 ? "0 / 0" : $"{(i < 0 ? 0 : i + 1)} / {n}";
+        }
 
         [DataSourceProperty] public MBBindingList<BookEntryVM> Entries { get => _entries; set { if (value != _entries) { _entries = value; OnPropertyChangedWithValue(value, nameof(Entries)); } } }
         [DataSourceProperty] public string Title { get => _title; set { if (value != _title) { _title = value; OnPropertyChangedWithValue(value, nameof(Title)); } } }
@@ -156,6 +191,38 @@ namespace AILegacy.UI
         [DataSourceProperty] public MBBindingList<NewsFilterVM> Records { get; } = new MBBindingList<NewsFilterVM>();
         /// <summary>The categories the news shown has, each with its count. None picked = all of them.</summary>
         [DataSourceProperty] public MBBindingList<NewsFilterVM> Categories { get; } = new MBBindingList<NewsFilterVM>();
+    }
+
+    /// <summary>
+    /// The map notice for a new memory book page. Only shown (MBInformationManager.AddNotice), never added to the
+    /// campaign's saved notices: an unknown type in the save would make it unloadable without the mod.
+    /// </summary>
+    public sealed class MemoryPageNotice : TaleWorlds.Core.InformationData
+    {
+        public readonly Memory.MemoryPage Page;
+        public MemoryPageNotice(TaleWorlds.Localization.TextObject description, Memory.MemoryPage page) : base(description) { Page = page; }
+        public override TaleWorlds.Localization.TextObject TitleText => new TaleWorlds.Localization.TextObject("{=!}" + L.T("AIL_18fe8281", "Libro de memorias"));
+        public override string SoundEventPath => PageNotices.Sound;
+    }
+
+    /// <summary>Clicking the notice opens the book on that page and takes the notice away.</summary>
+    public sealed class MemoryPageNoticeItemVM : TaleWorlds.CampaignSystem.ViewModelCollection.Map.MapNotificationTypes.MapNotificationItemBaseVM
+    {
+        public MemoryPageNoticeItemVM(MemoryPageNotice data) : base(data)
+        {
+            NotificationIdentifier = "education";
+            var page = data?.Page;
+            _onInspect = () =>
+            {
+                try
+                {
+                    if (!PageNotices.CanOpenBook()) return;
+                    Books.OpenChapters(page);
+                    ExecuteRemove();
+                }
+                catch (Exception ex) { Log.Error("Memory page notice", ex); }
+            };
+        }
     }
 
     public class MapButtonsVM : ViewModel

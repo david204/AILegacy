@@ -16,7 +16,7 @@ namespace AILegacy.World
     public class PartyOrder
     {
         [JsonProperty("hero")] public string HeroId;
-        /// <summary>follow | goto | meet | wait | patrol | attack | besiege | raid</summary>
+        /// <summary>follow | goto | meet | wait | patrol | attack | besiege | raid | escort | approach | return (ride back to the player, then the next leg)</summary>
         [JsonProperty("type")] public string Type;
         /// <summary>StringId of the target settlement or party.</summary>
         [JsonProperty("target")] public string TargetId;
@@ -33,6 +33,11 @@ namespace AILegacy.World
         [JsonProperty("auto", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Auto;
         /// <summary>Why an Auto order was given, when it is not a landless patrol: "care" = a sick party riding to be treated (World/DiseasesExtra.cs).</summary>
         [JsonProperty("why", DefaultValueHandling = DefaultValueHandling.Ignore)] public string Reason;
+        /// <summary>
+        /// What they agreed to do afterwards, in order ("go to A, wait two days, then go to B"). Each leg keeps its
+        /// type, target, days (StayDays), Then and WaitDays; its deadline is set when it starts.
+        /// </summary>
+        [JsonProperty("next", NullValueHandling = NullValueHandling.Ignore)] public List<PartyOrder> Next;
     }
 
     /// <summary>
@@ -73,8 +78,16 @@ namespace AILegacy.World
         /// <summary>Any order moving this hero's party, their own patrols included.</summary>
         public static PartyOrder FindAny(Hero h) => h == null ? null : Orders.FirstOrDefault(o => o.HeroId == h.StringId);
 
-        /// <summary>For the prompt: what they promised to do with their party.</summary>
+        /// <summary>For the prompt: what they promised to do with their party, and what comes after it.</summary>
         public static string Describe(Hero h)
+        {
+            string now = DescribeCurrent(h);
+            var o = FindAny(h);
+            if (now.Length == 0 || o?.Next == null || o.Next.Count == 0) return now;
+            return now + "; after that, as agreed: " + string.Join(", then ", o.Next.Select(LegEn));
+        }
+
+        private static string DescribeCurrent(Hero h)
         {
             var o = FindAny(h);
             if (o == null) return "";
@@ -93,7 +106,48 @@ namespace AILegacy.World
                 case "attack": return $"you agreed with {who} to hunt down {o.TargetName}";
                 case "besiege": return $"you agreed with {who} to besiege {o.TargetName}";
                 case "raid": return $"you agreed with {who} to raid {o.TargetName}";
+                case "return": return $"you are riding back to {who}, as agreed";
                 default: return "";
+            }
+        }
+
+        private static string LegEn(PartyOrder l)
+        {
+            string who = Hero.MainHero?.Name?.ToString() ?? "them";
+            string back = l.Then == "follow" ? $" and come back to {who}" : "";
+            switch (l.Type)
+            {
+                case "goto": return $"go to {l.TargetName}" + (l.WaitDays > 0 ? $" and stay there {l.WaitDays:0.#} day(s)" : "") + back;
+                case "meet": return $"wait for {who} at {l.TargetName}";
+                case "follow": return $"join {who}'s party and ride with them";
+                case "return": return $"ride back to {who}";
+                case "wait": return $"hold your position for {l.StayDays:0.#} day(s)";
+                case "patrol": return $"patrol around {l.TargetName} for {l.StayDays:0.#} day(s)" + back;
+                case "attack": return $"hunt down {l.TargetName}" + back;
+                case "besiege": return $"besiege {l.TargetName}" + back;
+                case "raid": return $"raid {l.TargetName}" + back;
+                case "escort": return $"escort {l.TargetName}" + back;
+                default: return l.Type + " " + l.TargetName;
+            }
+        }
+
+        /// <summary>A leg in the player's language, for the messages.</summary>
+        private static string LegText(PartyOrder l)
+        {
+            string back = l.Then == "follow" ? L.T("AIL_e7b1cf10", " y volver contigo") : "";
+            switch (l.Type)
+            {
+                case "goto": return (l.WaitDays > 0 ? L.F("AIL_e7b1cf11", $"ir a {l.TargetName} y quedarse allí {l.WaitDays:0.#} día(s)") : L.F("AIL_e7b1cf12", $"ir a {l.TargetName}")) + back;
+                case "meet": return L.F("AIL_e7b1cf13", $"esperarte en {l.TargetName}");
+                case "follow": return L.T("AIL_e7b1cf14", "unirse a tu marcha");
+                case "return": return L.T("AIL_e7b1cf15", "volver contigo");
+                case "wait": return L.F("AIL_e7b1cf16", $"esperar donde esté {l.StayDays:0.#} día(s)");
+                case "patrol": return L.F("AIL_e7b1cf17", $"patrullar en torno a {l.TargetName}") + back;
+                case "attack": return L.F("AIL_e7b1cf18", $"dar caza a {l.TargetName}") + back;
+                case "besiege": return L.F("AIL_e7b1cf19", $"asediar {l.TargetName}") + back;
+                case "raid": return L.F("AIL_e7b1cf1a", $"saquear {l.TargetName}") + back;
+                case "escort": return L.F("AIL_e7b1cf1b", $"escoltar a {l.TargetName}") + back;
+                default: return l.Type + " " + l.TargetName;
             }
         }
 
@@ -161,27 +215,74 @@ namespace AILegacy.World
             catch { return null; }
         }
 
+        /// <summary>Legs an order can carry after it, so one reply cannot queue a whole campaign.</summary>
+        private const int MaxNextLegs = 4;
+        // Orders given to the same hero in the same burst (one reply's actions run one after another in a single frame)
+        // are one chain: the later ones become the next legs instead of replacing the first.
+        private static string _chainHero;
+        private static int _chainTick;
+        private const int ChainWindowMs = 3000;
+
+        private static bool ChainOpen(Hero h) => h != null && _chainHero == h.StringId && unchecked(Environment.TickCount - _chainTick) < ChainWindowMs;
+
+        /// <summary>
+        /// True right after an order was given to this hero, while the same reply is still being carried out: another
+        /// order now is queued after it. Action availability checks can use it to let a second order through.
+        /// </summary>
+        public static bool AcceptsChainedLeg(Hero h) => ChainOpen(h) && Find(h) is PartyOrder o && o.Type != "approach" && (o.Next == null || o.Next.Count < MaxNextLegs);
+
+        /// <summary>True when the last order given to this hero was queued after another rather than started.</summary>
+        public static bool LastGiveWasChained { get; private set; }
+
         public static bool Give(Hero h, string type, string targetId, string targetName, double days, string then = null, double waitDays = 0, bool auto = false, string reason = null)
         {
+            LastGiveWasChained = false;
             if (!CanTakeOrders(h, auto)) return false;
             var cfg = S.Get;
             if (days <= 0) days = cfg.OrderDefaultDays;
             days = Math.Max(0.5, Math.Min(cfg.OrderMaxDays, days));
+            waitDays = Math.Max(0, Math.Min(cfg.OrderMaxDays, waitDays));
+            bool chainable = !auto && type != "approach";
+
+            // "Go to A and wait, then go to B": a second order in the same reply goes after the first
+            if (chainable && ChainOpen(h) && Find(h) is PartyOrder cur && cur.Type != "approach")
+            {
+                if (cur.Next == null) cur.Next = new List<PartyOrder>();
+                if (cur.Next.Count >= MaxNextLegs) { Log.Warn($"Orders: {h.Name} already has {MaxNextLegs} legs queued, {type} {targetName} ignored"); return false; }
+                var leg = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, StayDays = days, Then = then, WaitDays = waitDays };
+                cur.Next.Add(leg);
+                _chainTick = Environment.TickCount;
+                LastGiveWasChained = true;
+                Log.Info($"Order for {h.Name}, queued after {cur.Type} {cur.TargetName}: {type} {targetName} ({days:0.#} days)");
+                Say(L.F("AIL_e7b1cf1c", $"{h.Name}, después: {LegText(leg)}."));
+                return true;
+            }
+
             Cancel(h, silent: true);
-            var o = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, UntilDay = CampaignTime.Now.ToDays + days, StayDays = days, Then = then, WaitDays = Math.Max(0, Math.Min(S.Get.OrderMaxDays, waitDays)), Auto = auto, Reason = auto ? reason : null };
-            // To join you or keep a meeting they have to get there first. The real deadline starts on arrival
-            if (type == "follow") o.UntilDay = CampaignTime.Now.ToDays + Math.Max(days, cfg.OrderMaxDays);
-            if (type == "meet") o.StayDays = cfg.OrderDefaultDays;
-            Orders.Add(o);
+            var o = Start(h, type, targetId, targetName, days, then, waitDays, auto, reason, null);
+            if (chainable) { _chainHero = h.StringId; _chainTick = Environment.TickCount; }
             Log.Info(auto && reason == "care" ? $"[disease] {h.Name} ({h.Clan?.Name}) takes their party to {targetName} for treatment"
                    : auto ? $"[landless] {h.Name} ({h.Clan?.Name}) patrols on their own around {targetName} ({days:0.#} days)" : $"Order for {h.Name}: {type} {targetName} ({days:0.#} days)");
+            return o != null;
+        }
+
+        /// <summary>Puts an order (or the next leg of a chain) in force and, outside a scene, sets the party moving.</summary>
+        private static PartyOrder Start(Hero h, string type, string targetId, string targetName, double days, string then, double waitDays, bool auto, string reason, List<PartyOrder> next)
+        {
+            var cfg = S.Get;
+            var o = new PartyOrder { HeroId = h.StringId, Type = type, TargetId = targetId, TargetName = targetName, UntilDay = CampaignTime.Now.ToDays + days, StayDays = days, Then = then, WaitDays = waitDays, Auto = auto, Reason = auto ? reason : null,
+                                     Next = next != null && next.Count > 0 ? next : null };
+            // To join you or keep a meeting they have to get there first. The real deadline starts on arrival
+            if (type == "follow" || type == "return") o.UntilDay = CampaignTime.Now.ToDays + Math.Max(days, cfg.OrderMaxDays);
+            if (type == "meet") o.StayDays = cfg.OrderDefaultDays;
+            Orders.Add(o);
             // Don't move the party while inside a scene (pulling it out of the settlement while you talk breaks the scene).
             // The order starts on the first tick after you leave.
             if (TaleWorlds.MountAndBlade.Mission.Current == null)
             {
-                try { Apply(o, h, PartyLedBy(h)); } catch (Exception ex) { Log.Error("Orders: apply", ex); }
+                try { var p = PartyLedBy(h); if (p != null) Apply(o, h, p); } catch (Exception ex) { Log.Error("Orders: apply", ex); }
             }
-            return true;
+            return o;
         }
 
         public static bool Cancel(Hero h, bool silent = false)
@@ -263,7 +364,7 @@ namespace AILegacy.World
                         continue;
                     }
                     if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction != Hero.MainHero.MapFaction
-                        && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction) && (o.Type == "follow" || o.Type == "meet"))
+                        && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction) && (o.Type == "follow" || o.Type == "meet" || o.Type == "return"))
                     { Release(o, h, L.F("AIL_35617af2", $"{h.Name} ya no acude a tu llamada: ahora sois enemigos.")); continue; }
                     if (now >= o.UntilDay) { Done(o, h, EndText(o, h)); continue; }
                     if (p.MapEvent != null) continue;                                                     // in a battle
@@ -286,16 +387,36 @@ namespace AILegacy.World
             catch { }
         }
 
-        /// <summary>Normal end of an order (time's up, target reached or lost). If they agreed to come back afterwards, they do.</summary>
+        /// <summary>
+        /// Normal end of an order (time's up, target reached or lost). The next agreed leg starts, if there is one;
+        /// otherwise, if they agreed to come back afterwards, they do.
+        /// </summary>
         private static void Done(PartyOrder o, Hero h, string message)
         {
-            bool back = o.Then == "follow" && o.Type != "follow" && !o.Auto;
+            bool back = o.Then == "follow" && o.Type != "follow" && o.Type != "return" && !o.Auto;
+            var rest = o.Next != null ? new List<PartyOrder>(o.Next) : new List<PartyOrder>();
             Release(o, h, message);
             try
             {
-                if (!back || h == null || h.IsPrisoner || !h.IsAlive) return;
+                if (h == null || h.IsPrisoner || !h.IsAlive || !CanTakeOrders(h)) return;
                 var mine = Hero.MainHero.MapFaction;
-                if (h.MapFaction != null && mine != null && h.MapFaction != mine && h.MapFaction.IsAtWarWith(mine)) return;
+                bool enemies = h.MapFaction != null && mine != null && h.MapFaction != mine && h.MapFaction.IsAtWarWith(mine);
+                if (rest.Count > 0)
+                {
+                    // "...and come back" in the middle of a chain: ride back to the player first, then go on
+                    if (back && !enemies) rest.Insert(0, new PartyOrder { HeroId = h.StringId, Type = "return", TargetName = Hero.MainHero.Name.ToString(), StayDays = S.Get.OrderMaxDays });
+                    // legs that only make sense with a friend are dropped once you are enemies
+                    if (enemies) rest.RemoveAll(l => l.Type == "follow" || l.Type == "meet" || l.Type == "return");
+                    if (rest.Count == 0) return;
+                    var leg = rest[0];
+                    var after = rest.Skip(1).ToList();
+                    if (enemies) foreach (var l in after) l.Then = null;
+                    Start(h, leg.Type, leg.TargetId, leg.TargetName, leg.StayDays > 0 ? leg.StayDays : S.Get.OrderDefaultDays, enemies ? null : leg.Then, leg.WaitDays, false, null, after);
+                    Log.Info($"Order for {h.Name}, next leg: {leg.Type} {leg.TargetName}" + (after.Count > 0 ? $" ({after.Count} more after it)" : ""));
+                    Say(L.F("AIL_e7b1cf1d", $"{h.Name} sigue con lo acordado: {LegText(leg)}."));
+                    return;
+                }
+                if (!back || enemies) return;
                 if (Give(h, "follow", null, Hero.MainHero.Name.ToString(), 0)) Say(L.F("AIL_c7a9d5e1", $"{h.Name} vuelve contigo, como acordasteis."));
             }
             catch (Exception ex) { Log.Error("Orders: return", ex); }
@@ -303,8 +424,11 @@ namespace AILegacy.World
 
         private static string EndText(PartyOrder o, Hero h)
         {
+            // with more legs to go, the next one's own message says what happens
+            if (o.Next != null && o.Next.Count > 0 && !o.Auto) return null;
             switch (o.Type)
             {
+                case "return": return L.F("AIL_23bfd455", $"{h.Name} no ha conseguido alcanzarte y vuelve a sus asuntos.");
                 case "follow": return o.Arrived ? L.F("AIL_0a0689c9", $"{h.Name} deja de seguirte y vuelve a sus asuntos.") : L.F("AIL_23bfd455", $"{h.Name} no ha conseguido alcanzarte y vuelve a sus asuntos.");
                 case "meet": return o.Arrived ? L.F("AIL_b0a43892", $"{h.Name} se cansa de esperarte en {o.TargetName} y se marcha.") : L.F("AIL_5c3efc53", $"{h.Name} no ha podido llegar a {o.TargetName} y lo deja.");
                 case "wait": return L.F("AIL_645733f1", $"{h.Name} deja de esperar y vuelve a sus asuntos.");
@@ -318,7 +442,7 @@ namespace AILegacy.World
         private static void Apply(PartyOrder o, Hero h, MobileParty p)
         {
             var nav = p.IsCurrentlyAtSea ? p.NavigationCapability : MobileParty.NavigationType.Default;
-            var st = o.Type == "follow" || o.Type == "wait" || o.Type == "attack" || o.Type == "approach" || string.IsNullOrEmpty(o.TargetId) ? null : Settlement.Find(o.TargetId);
+            var st = o.Type == "follow" || o.Type == "wait" || o.Type == "attack" || o.Type == "approach" || o.Type == "return" || o.Type == "escort" || string.IsNullOrEmpty(o.TargetId) ? null : Settlement.Find(o.TargetId);
             p.Ai.SetDoNotMakeNewDecisions(true);
 
             switch (o.Type)
@@ -338,11 +462,19 @@ namespace AILegacy.World
                     if (p.DefaultBehavior != AiBehavior.Hold) p.SetMoveModeHold();
                     break;
 
+                case "return":
+                    // A leg of a chain: ride back to the player; once beside them this leg is done and the next begins
+                    if (p.DefaultBehavior != AiBehavior.EscortParty || p.TargetParty != MobileParty.MainParty)
+                        p.SetMoveEscortParty(MobileParty.MainParty, nav, false);
+                    if (p.GetPosition2D.Distance(MobileParty.MainParty.GetPosition2D) <= 4f)
+                    { Done(o, h, L.F("AIL_e7b1cf1e", $"{h.Name} ha vuelto a tu lado, como acordasteis.")); return; }
+                    break;
+
                 case "escort":
                 {
                     // Escort ANOTHER party (a caravan, villagers, a relative) by riding alongside it
                     var ward = MobileParty.All.FirstOrDefault(x => x != null && x.StringId == o.TargetId);
-                    if (ward == null || !ward.IsActive || ward.MapEvent != null && ward.MapEvent.HasWinner) { Release(o, h, L.F("AIL_49b6ffff", $"{h.Name} ya no tiene a quién escoltar y vuelve a sus asuntos.")); return; }
+                    if (ward == null || !ward.IsActive || ward.MapEvent != null && ward.MapEvent.HasWinner) { Done(o, h, o.Next != null && o.Next.Count > 0 ? null : L.F("AIL_49b6ffff", $"{h.Name} ya no tiene a quién escoltar y vuelve a sus asuntos.")); return; }
                     if (p.DefaultBehavior != AiBehavior.EscortParty || p.TargetParty != ward) p.SetMoveEscortParty(ward, nav, false);
                     break;
                 }
@@ -368,6 +500,12 @@ namespace AILegacy.World
                                 // "Go and wait N days": stays there, and the time counts from arrival
                                 o.UntilDay = CampaignTime.Now.ToDays + o.WaitDays;
                                 if (!o.Auto) Say(L.F("AIL_c7a9d5e2", $"{h.Name} ha llegado a {st.Name} y se queda allí {o.WaitDays:0.#} día(s)."));
+                            }
+                            else if (o.Next != null && o.Next.Count > 0 && !o.Auto)
+                            {
+                                // a chain: this leg is done on arrival, and the next one starts
+                                Done(o, h, L.F("AIL_518def5c", $"{h.Name} ha llegado a {st.Name}."));
+                                return;
                             }
                             else
                             {

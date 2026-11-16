@@ -2387,5 +2387,46 @@
     <string id="AIL_e7b1ce02" text="Wie viele in einem Gespräch zwischen Figuren stehen können: die zwei, die es begonnen haben, und die, die dazugekommen sind. Wer unterwegs ist, belegt schon einen Platz. Wendet sich einer von ihnen an dich, wird das Gespräch zu deinem Gruppengespräch und dessen Grenze gilt." />
     <string id="AIL_e7b1ce03" text="Gleichzeitige Gespräche zwischen Figuren" />
     <string id="AIL_e7b1ce04" text="Wie viele Gespräche zwischen Figuren gleichzeitig um dich herum laufen können, zusätzlich zu deinem eigenen Gruppengespräch. Jedes schickt eigene Anfragen an die KI, mehr bedeutet also mehr Last." />
+    <string id="AIL_e7b1d000" text="{0} geht mit {1}." />
+    <string id="AIL_e7b1d001" text="{0} begleitet {1} nicht mehr." />
+    <string id="AIL_e7b1d003" text="{0} folgt dem Ruf von {1} nicht." />
+    <string id="AIL_e7b1d004" text="{0} kommt herüber und bleibt an deiner Seite." />
+    <string id="AIL_e7b1d005" text="{0} erreicht den Platz nicht und bleibt stehen." />
+    <string id="AIL_e7b1d006" text="{0} führt dich nicht mehr." />
+    <string id="AIL_e7b1d007" text="{0} hat es satt, auf dich zu warten." />
+    <string id="AIL_e7b1d008" text="{0} kommt zurück, um dich zu holen." />
+    <string id="AIL_e7b1d009" text="{0} ruft laut um Hilfe." />
+    <string id="AIL_e7b1d00a" text="Niemand kommt auf die Rufe von {0}." />
+    <string id="AIL_e7b1d00b" text="{0} kommt herüber, um {1} zu helfen." />
+    <string id="AIL_e7b1cf00" text="Wessen Erinnerungen zu Seiten werden" />
+    <string id="AIL_e7b1cf01" text="Welche Abschnitte der Geschichte das Buch zu Seiten macht. Nur der Spieler: nur was mit dir erlebt wurde (eure Gespräche, Briefe, Gruppengespräche, bei denen du dabei warst); ein Abschnitt, in dem die Figur nur mit anderen sprach, schreibt keine Seite. Spieler und Familie: auch alles, was deine Familie ohne dich erlebt (Ehepartner, Kinder, Eltern, Geschwister, Großeltern, Enkel, Onkel und Tanten, Cousins, Neffen und angeheiratete Verwandte). Alle: jede Figur, mit oder ohne dich; bei vielen Figuren sind das viel mehr Seiten und KI-Anfragen." />
+    <string id="AIL_e7b1cf02" text="Jede neue Seite melden" />
+    <string id="AIL_e7b1cf03" text="Wenn eine Seite geschrieben wird: eine Meldung mit dem Porträt der Figur und ein Klang, dazu ein Hinweis auf der Karte, der das Buch auf dieser Seite öffnet." />
+    <string id="AIL_e7b1cf04" text="Erinnerungsbuch öffnen" />
+    <string id="AIL_e7b1cf05" text="Öffnet oder schließt das Erinnerungsbuch überall: auf der Karte, in einer Stadt oder Burg und auch als Gefangener. Leer (Standard) bedeutet keine Taste. Am besten eine F-Taste (F1 bis F12), damit Tippen es nie öffnet. Wird wie die anderen Tastenkürzel geschrieben: F9, Alt+M, Ctrl+Shift+B." />
+    <string id="AIL_e7b1cf06" text="Zurück" />
+    <string id="AIL_e7b1cf07" text="Weiter" />
+    <string id="AIL_e7b1cf08" text="{0} wird das nicht vergessen: Eine neue Seite wartet im Erinnerungsbuch." />
+    <string id="AIL_e7b1cf09" text="{0}: „{1}“. Klicke, um das Buch auf dieser Seite zu öffnen." />
+    <string id="AIL_e7b1cf0a" text="{0} berichtet: {1}" />
+    <string id="AIL_e7b1cf0b" text="{0} hat ihren Teil beigetragen" />
+    <string id="AIL_e7b1cf0c" text="{0}, der den Auftrag abschließen konnte, ist gestorben. Jetzt kann es nur noch {1}." />
+    <string id="AIL_e7b1cf0d" text="&#10;&#10;Es betrifft auch: {0} (auf der Karte markiert, bis sie ihren Teil beigetragen haben)." />
+    <string id="AIL_e7b1cf0e" text="&#10;&#10;Außer {0} kann auch {1} ihn für erfüllt oder gescheitert erklären (auf der Karte markiert)." />
+    <string id="AIL_e7b1cf10" text=" und zu dir zurückkehren" />
+    <string id="AIL_e7b1cf11" text="nach {0} gehen und {1:0.#} Tag(e) dort bleiben" />
+    <string id="AIL_e7b1cf12" text="nach {0} gehen" />
+    <string id="AIL_e7b1cf13" text="in {0} auf dich warten" />
+    <string id="AIL_e7b1cf14" text="sich deinem Zug anschließen" />
+    <string id="AIL_e7b1cf15" text="zu dir zurückkehren" />
+    <string id="AIL_e7b1cf16" text="{0:0.#} Tag(e) an Ort und Stelle warten" />
+    <string id="AIL_e7b1cf17" text="um {0} patrouillieren" />
+    <string id="AIL_e7b1cf18" text="{0} jagen" />
+    <string id="AIL_e7b1cf19" text="{0} belagern" />
+    <string id="AIL_e7b1cf1a" text="{0} plündern" />
+    <string id="AIL_e7b1cf1b" text="{0} eskortieren" />
+    <string id="AIL_e7b1cf1c" text="{0}, danach: {1}." />
+    <string id="AIL_e7b1cf1d" text="{0} macht wie vereinbart weiter: {1}." />
+    <string id="AIL_e7b1cf1e" text="{0} ist wie vereinbart wieder an deiner Seite." />
   </strings>
 </base>

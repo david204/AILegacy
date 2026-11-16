@@ -36,12 +36,16 @@ namespace AILegacy.Dialogue
             public float Left;                // seconds left of the lead
             public Vec3 Door;
             public bool HasDoor, AtDoor;
+            // the player lags behind or will not go through: stopped to wait, walking back for them, asking the AI how to react
+            public bool Paused, Back, Asking;
+            public float LagFor, DoorWait, NextReact;
+            public int Reacts;
         }
 
         private static readonly Tpl THelp = new Tpl("scene/go_into.txt",
 @" - ""go_into:<place>"": leads {player} on foot to another part of this settlement and goes in with them (they offered to show the way, or were asked to take {player} there). Only someone with a name of their own can do it, not a nameless passer-by. <place> must be one of: {places}.");
 
-        public static void Touch() { var _ = THelp.Key; }
+        public static void Touch() { var _ = THelp.Key; SceneActions.Touch(); }
 
         private static readonly List<Entry> Entries = new List<Entry>();
         private static readonly Dictionary<Agent, Hero> Promoted = new Dictionary<Agent, Hero>();
@@ -255,7 +259,7 @@ namespace AILegacy.Dialogue
         /// <summary>Sends them to the door of this scene that leads towards their destination. Without such a door they just walk with the player.</summary>
         private static void Lead(Entry e)
         {
-            e.HasDoor = false; e.AtDoor = false;
+            e.HasDoor = false; e.AtDoor = false; e.Paused = false; e.Back = false; e.LagFor = 0f; e.DoorWait = 0f;
             var a = e.Agent;
             var here = CampaignMission.Current?.Location;
             var dest = LocationComplex.Current?.GetLocationWithId(e.Dest);
@@ -315,8 +319,10 @@ namespace AILegacy.Dialogue
                     }
                     if (e.Dest == null) continue;
                     if ((e.Left -= dt) <= 0f) { EndLead(e, true); continue; }
-                    if (!e.HasDoor) continue;
-                    if (!e.AtDoor && a.Position.AsVec2.Distance(e.Door.AsVec2) <= 1.6f)
+                    if (!e.HasDoor && !e.Back) continue;
+                    WaitForPlayer(e, a, dt, m.CurrentTime);
+                    if (e.Dest == null || !e.HasDoor) continue;
+                    if (!e.AtDoor && !e.Paused && a.Position.AsVec2.Distance(e.Door.AsVec2) <= 1.6f)
                     {
                         e.AtDoor = true;
                         try { a.SetLookAgent(Agent.Main); } catch { }
@@ -324,6 +330,93 @@ namespace AILegacy.Dialogue
                 }
             }
             catch (Exception ex) { Log.Error("Scene travel", ex); Entries.Clear(); }
+        }
+
+        /// <summary>
+        /// The guide to a door keeps an eye on the player: they stop when the player falls behind and walk on when they
+        /// catch up; when the player lags, walks off or stands at the door without going in, the guide reacts in
+        /// character now and then (calls, insists, goes back for them) and after three times gives up.
+        /// </summary>
+        private static void WaitForPlayer(Entry e, Agent a, float dt, float now)
+        {
+            var me = Agent.Main;
+            float d = a.Position.Distance(me.Position);
+            if (e.Back)
+            {
+                if (d > 3.5f) return;
+                // beside the player again: back to the door, to be followed there
+                Lead(e);
+                return;
+            }
+            if (!e.AtDoor)
+            {
+                if (!e.Paused && d > 10f)
+                {
+                    e.Paused = true; e.LagFor = 0f;
+                    try { var wp = a.GetWorldPosition(); a.SetScriptedPosition(ref wp, false, Agent.AIScriptedFrameFlags.DoNotRun); a.SetLookAgent(me); } catch { }
+                    Log.Info($"[scene] {e.Name} stops: the player fell behind ({d:0.#} m)");
+                }
+                else if (e.Paused && d <= 6f)
+                {
+                    e.Paused = false; e.LagFor = 0f;
+                    try { var wp = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, e.Door, false); a.SetScriptedPosition(ref wp, false, Agent.AIScriptedFrameFlags.DoNotRun); a.SetLookAgent(null); } catch { }
+                    Log.Info($"[scene] {e.Name} walks on to the door into {e.Dest}");
+                }
+                if (e.Paused) Lag(e, a, d, dt, now, false);
+                return;
+            }
+            if (d > 10f) { e.DoorWait = 0f; Lag(e, a, d, dt, now, false); return; }
+            e.LagFor = 0f;
+            // at the door with the player close by, but they do not go in
+            e.DoorWait += dt;
+            if (e.DoorWait >= 15f) Lag(e, a, d, 0f, now, true);
+        }
+
+        private static void Lag(Entry e, Agent a, float d, float dt, float now, bool atDoor)
+        {
+            e.LagFor += dt;
+            if (e.Asking || (!atDoor && e.LagFor < 5f) || now < e.NextReact) return;
+            if (e.Reacts >= 3)
+            {
+                Log.Info($"[scene] {e.Name} gives up: the player would not follow");
+                if (e.AtDoor) EndLead(e, true);
+                else { Say(L.F("AIL_e7b1d007", $"{e.Name} se cansa de esperarte.")); EndLead(e, false); }
+                return;
+            }
+            e.Reacts++;
+            e.Asking = true;
+            var place = LocationComplex.Current?.GetLocationWithId(e.Dest);
+            string target = place?.Name?.ToString() ?? e.Dest;
+            var tpl = atDoor ? SceneActions.TLeadDoor : d >= 25f ? SceneActions.TLeadAway : SceneActions.TLeadBehind;
+            var ee = e;
+            bool asked = SceneActions.React(a, tpl, atDoor ? SceneActions.TDoorChoices.Text : SceneActions.GuideChoices, choice =>
+            {
+                ee.Asking = false;
+                if (!Entries.Contains(ee) || ee.Dest == null || ee.Agent == null || !ee.Agent.IsActive()) return;
+                float t = Mission.Current?.CurrentTime ?? 0f;
+                ee.NextReact = t + (atDoor ? 25f : 20f);
+                ee.DoorWait = 0f;
+                ee.Left = Math.Max(ee.Left, 60f);
+                if (choice == "give_up")
+                {
+                    Say(L.F("AIL_e7b1d006", $"{ee.Name} deja de guiarte."));
+                    Log.Info($"[scene] {ee.Name} gives up taking the player to {ee.Dest}");
+                    EndLead(ee, false);
+                    return;
+                }
+                if (choice == "go_back" && !ee.AtDoor && Agent.Main != null && ee.Agent.Position.Distance(Agent.Main.Position) > 5f)
+                {
+                    try { ee.Agent.DisableScriptedMovement(); } catch { }
+                    if (SceneMove.GoTo(ee.Agent, Agent.Main))
+                    {
+                        ee.Back = true; ee.HasDoor = false; ee.Paused = false;
+                        Say(L.F("AIL_e7b1d008", $"{ee.Name} vuelve a por ti."));
+                        Log.Info($"[scene] {ee.Name} goes back to the player who stopped following");
+                    }
+                    else Lead(ee);
+                }
+            }, "target", target, "dist", (int)d);
+            if (!asked) { e.Asking = false; e.NextReact = now + 20f; }
         }
 
         /// <summary>The player has just appeared in another scene of the same settlement: the game has already brought in whoever could enter.</summary>

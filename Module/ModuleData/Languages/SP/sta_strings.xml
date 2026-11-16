@@ -2387,5 +2387,46 @@
     <string id="AIL_e7b1ce02" text="Cuántos caben en una charla entre personajes: los dos que la empezaron y los que se acercaron a unirse. Quien va de camino ya ocupa un sitio. Cuando uno de ellos se dirige a ti, la charla pasa a ser tu conversación de grupo y se aplica su límite." />
     <string id="AIL_e7b1ce03" text="Charlas entre personajes a la vez" />
     <string id="AIL_e7b1ce04" text="Cuántas charlas entre personajes pueden darse a la vez a tu alrededor, aparte de tu propia conversación de grupo. Cada una hace sus propias peticiones a la IA, así que más charlas son más carga." />
+    <string id="AIL_e7b1d000" text="{0} se va con {1}." />
+    <string id="AIL_e7b1d001" text="{0} deja de ir con {1}." />
+    <string id="AIL_e7b1d003" text="{0} no acude a la llamada de {1}." />
+    <string id="AIL_e7b1d004" text="{0} llega y se queda a tu lado." />
+    <string id="AIL_e7b1d005" text="{0} no llega al asiento y se queda de pie." />
+    <string id="AIL_e7b1d006" text="{0} deja de guiarte." />
+    <string id="AIL_e7b1d007" text="{0} se cansa de esperarte." />
+    <string id="AIL_e7b1d008" text="{0} vuelve a por ti." />
+    <string id="AIL_e7b1d009" text="{0} pide ayuda a gritos." />
+    <string id="AIL_e7b1d00a" text="Nadie acude a los gritos de {0}." />
+    <string id="AIL_e7b1d00b" text="{0} se acerca a ayudar a {1}." />
+    <string id="AIL_e7b1cf00" text="De quién son los recuerdos que se escriben" />
+    <string id="AIL_e7b1cf01" text="Qué tramos de la historia pasan a ser páginas del libro. Solo el jugador: solo lo vivido contigo (vuestras charlas, cartas, conversaciones en grupo en las que estabas); un tramo en el que el personaje solo habló con otros no escribe página. Jugador y familia: también todo lo que tu familia vive sin ti (cónyuge, hijos, padres, hermanos, abuelos, nietos, tíos, primos, sobrinos y familia política). Todos: cualquier personaje, contigo o sin ti; con muchos personajes son muchas más páginas y peticiones a la IA." />
+    <string id="AIL_e7b1cf02" text="Avisar de cada página nueva" />
+    <string id="AIL_e7b1cf03" text="Cuando se escribe una página: un mensaje con el retrato del personaje y un sonido, y un aviso en el mapa que abre el libro por esa página." />
+    <string id="AIL_e7b1cf04" text="Abrir el libro de memorias" />
+    <string id="AIL_e7b1cf05" text="Abre o cierra el libro de memorias en cualquier parte: en el mapa, en una ciudad o un castillo, y también mientras estás preso. Vacío (lo normal) lo deja sin tecla. Mejor una tecla F (F1 a F12), para que escribir nunca lo abra. Se escribe como los otros atajos: F9, Alt+M, Ctrl+Shift+B." />
+    <string id="AIL_e7b1cf06" text="Anterior" />
+    <string id="AIL_e7b1cf07" text="Siguiente" />
+    <string id="AIL_e7b1cf08" text="{0} no lo olvidará: hay una página nueva en el libro de memorias." />
+    <string id="AIL_e7b1cf09" text="{0}: «{1}». Pulsa para abrir el libro por esta página." />
+    <string id="AIL_e7b1cf0a" text="{0} informa: {1}" />
+    <string id="AIL_e7b1cf0b" text="{0} ha dado su parte" />
+    <string id="AIL_e7b1cf0c" text="{0}, que podía dar el encargo por cerrado, ha muerto. Ahora solo puede hacerlo {1}." />
+    <string id="AIL_e7b1cf0d" text="&#10;&#10;También implica a: {0} (marcados en el mapa hasta que den su parte)." />
+    <string id="AIL_e7b1cf0e" text="&#10;&#10;Además de {0}, puede darlo por cumplido o fracasado: {1} (marcado en el mapa)." />
+    <string id="AIL_e7b1cf10" text=" y volver contigo" />
+    <string id="AIL_e7b1cf11" text="ir a {0} y quedarse allí {1:0.#} día(s)" />
+    <string id="AIL_e7b1cf12" text="ir a {0}" />
+    <string id="AIL_e7b1cf13" text="esperarte en {0}" />
+    <string id="AIL_e7b1cf14" text="unirse a tu marcha" />
+    <string id="AIL_e7b1cf15" text="volver contigo" />
+    <string id="AIL_e7b1cf16" text="esperar donde esté {0:0.#} día(s)" />
+    <string id="AIL_e7b1cf17" text="patrullar en torno a {0}" />
+    <string id="AIL_e7b1cf18" text="dar caza a {0}" />
+    <string id="AIL_e7b1cf19" text="asediar {0}" />
+    <string id="AIL_e7b1cf1a" text="saquear {0}" />
+    <string id="AIL_e7b1cf1b" text="escoltar a {0}" />
+    <string id="AIL_e7b1cf1c" text="{0}, después: {1}." />
+    <string id="AIL_e7b1cf1d" text="{0} sigue con lo acordado: {1}." />
+    <string id="AIL_e7b1cf1e" text="{0} ha vuelto a tu lado, como acordasteis." />
   </strings>
 </base>

@@ -111,6 +111,7 @@ Nothing romantic, sexual, cruel or violent ever passes between you and an adult,
             "\"days\": 3 to 60, \"reward_gold\": denars you will pay (0 if none), " +
             "\"objective\": { \"type\": \"bring_item\" | \"deliver_item\" | \"talk_to\" | \"visit\" | \"defeat_bandits\" | \"deliver_document\" | \"none\", \"target\": \"the real item, person or place by name\", " +
             "\"item\": \"the good (deliver_item only)\", \"amount\": number (bring_item and deliver_item) }, " +
+            "\"completer\": \"optional: name of one other real person who may also judge the task and close it in your stead\", " +
             "\"progress_target\": a number if a task with no objective is countable (else 0), \"progress_label\": \"what is counted\", " +
             "\"targets\": [names of other people it concerns], \"note\": \"for update: what changed, one sentence in {language} (it is written in their journal)\", \"set_progress\": number, " +
             "\"reason\": \"for complete/fail: why, one sentence in {language}\" } (only the fields that apply)");
@@ -361,6 +362,8 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             try { string roof = Concubines.DescribeFor(s); if (roof.Length > 0) { now.AppendLine(); now.AppendLine(roof); } } catch { }
             if (relationBudgetLeft <= 0 && s.IsHero) now.AppendLine(TRelationCapped.Text);
             try { string near = Mentions.NearbyParties(s); if (near.Length > 0) { now.AppendLine(); now.AppendLine(TNearby.Text); now.AppendLine(near); } } catch { }
+            // Face to face in a scene: what they are already doing here, and the weapons drawn in sight
+            try { string scene = SceneActions.PromptBlock(SceneAgentOf(s), playerName ?? "the stranger in front of you"); if (scene.Length > 0) { now.AppendLine(); now.AppendLine(scene); } } catch { }
             try { string named = Mentions.Describe(s); if (named.Length > 0) { now.AppendLine(); now.AppendLine(TMentioned.Text); now.AppendLine(named); } } catch { }
             AppendRecall(now, s);
             // a child is given no actions at all: nothing they say can make anything happen in the world
@@ -389,6 +392,21 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             else
                 msgs.Add(new ChatMessage("user", now.ToString().TrimEnd()));
             return msgs;
+        }
+
+        /// <summary>The body of the character being talked to in the current scene, or null (on the map, by letter, someone else).</summary>
+        private static TaleWorlds.MountAndBlade.Agent SceneAgentOf(Speaker s)
+        {
+            try
+            {
+                if (TaleWorlds.MountAndBlade.Mission.Current == null) return null;
+                var a = TaleWorlds.CampaignSystem.Campaign.Current?.ConversationManager?.OneToOneConversationAgent as TaleWorlds.MountAndBlade.Agent;
+                if (a == null || !a.IsActive() || !a.IsHuman) return null;
+                var h = (a.Character as TaleWorlds.CampaignSystem.CharacterObject)?.HeroObject;
+                if (s.IsHero && h != s.Hero) return null;
+                return a;
+            }
+            catch { return null; }
         }
 
         /// <summary>What the NPC said in a stored turn, without the JSON wrapper if it was stored raw.</summary>

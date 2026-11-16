@@ -80,12 +80,31 @@ namespace AILegacy.World
                 var gq = new AILegacyQuest("ailegacy_" + q.Id + "_" + (int)(q.CreatedDay * 100), giver, CampaignTime.DaysFromNow((float)daysLeft), q.RewardGold, q.Name, q.Id);
                 gq.StartQuest();
                 string goal = QuestObjectives.GoalEs(q);
-                gq.Note(q.Description + (goal.Length > 0 ? "\n\n" + goal : "") + (q.RewardGold > 0 ? L.F("AIL_41b3740a", $"\n\nRecompensa prometida: {q.RewardGold} denarios.") : ""));
-                foreach (var obj in QuestObjectives.Trackables(q)) { try { gq.AddTrackedObject(obj); } catch { } }
+                gq.Note(q.Description + (goal.Length > 0 ? "\n\n" + goal : "") + People(q) + (q.RewardGold > 0 ? L.F("AIL_41b3740a", $"\n\nRecompensa prometida: {q.RewardGold} denarios.") : ""));
+                Retrack(q, gq);
                 if (q.ProgressTarget > 0) gq.SetProgress(q.ProgressLabel, q.Progress, q.ProgressTarget);
                 Log.Info($"Quest added to journal: {q.Name} [{q.Id}]");
             }
             catch (Exception ex) { Log.Error("Could not create the quest in the journal", ex); }
+        }
+
+        /// <summary>Who else the task involves, and who besides the giver may close it, for the journal.</summary>
+        private static string People(AiQuest q)
+        {
+            string s = "";
+            var names = q.Targets.Where(id => id != q.ObjTargetId).Select(id => Hero.Find(id)?.Name?.ToString()).Where(n => n != null).ToList();
+            if (names.Count > 0) s += L.F("AIL_e7b1cf0d", $"\n\nTambién implica a: {string.Join(", ", names)} (marcados en el mapa hasta que den su parte).");
+            if (!string.IsNullOrEmpty(q.CompleterId)) s += L.F("AIL_e7b1cf0e", $"\n\nAdemás de {q.GiverName}, puede darlo por cumplido o fracasado: {q.CompleterName} (marcado en el mapa).");
+            return s;
+        }
+
+        /// <summary>Marks on the map everything the quest still points at (Trackables), and nothing twice.</summary>
+        private static void Retrack(AiQuest q, AILegacyQuest gq)
+        {
+            foreach (var obj in QuestObjectives.Trackables(q))
+            {
+                try { if (!gq.IsTracked(obj)) gq.AddTrackedObject(obj); } catch { }
+            }
         }
 
         public static void Update(AiQuest q, string note)
@@ -139,7 +158,11 @@ namespace AILegacy.World
                 // Close quests whose giver or target died first, so nothing gets created in the journal for a dead hero
                 QuestSystem.CloseDeadOnLoad();
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active).ToList())
-                    if (Find(q.Id) == null) Create(q);
+                {
+                    var gq = Find(q.Id);
+                    if (gq == null) Create(q);
+                    else Retrack(q, gq);      // quests from older saves only marked their objective: their people get marked too
+                }
                 foreach (var gq in Campaign.Current.QuestManager.Quests.OfType<AILegacyQuest>().Where(x => x.IsOngoing).ToList())
                     if (!QuestSystem.Quests.Any(x => x.Active && x.Id == gq.AiQuestId))
                         gq.CompleteQuestWithCancel(new TextObject(L.T("AIL_175eb081", "{=!}Este encargo ya no está en pie.")));

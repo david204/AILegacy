@@ -2387,5 +2387,46 @@
     <string id="AIL_e7b1ce02" text="Quanti possono stare in una chiacchierata tra personaggi: i due che l'hanno iniziata e chi si è avvicinato per unirsi. Chi è in arrivo occupa già un posto. Quando uno di loro si rivolge a te, la chiacchierata diventa la tua conversazione di gruppo e vale il suo limite." />
     <string id="AIL_e7b1ce03" text="Chiacchierate tra personaggi contemporaneamente" />
     <string id="AIL_e7b1ce04" text="Quante chiacchierate tra personaggi possono svolgersi insieme intorno a te, oltre alla tua conversazione di gruppo. Ognuna fa le sue richieste all'IA, quindi più chiacchierate significano più carico." />
+    <string id="AIL_e7b1d000" text="{0} se ne va con {1}." />
+    <string id="AIL_e7b1d001" text="{0} smette di accompagnare {1}." />
+    <string id="AIL_e7b1d003" text="{0} non risponde al richiamo di {1}." />
+    <string id="AIL_e7b1d004" text="{0} arriva e resta al tuo fianco." />
+    <string id="AIL_e7b1d005" text="{0} non raggiunge il posto e resta in piedi." />
+    <string id="AIL_e7b1d006" text="{0} smette di guidarti." />
+    <string id="AIL_e7b1d007" text="{0} si stanca di aspettarti." />
+    <string id="AIL_e7b1d008" text="{0} torna a prenderti." />
+    <string id="AIL_e7b1d009" text="{0} grida aiuto." />
+    <string id="AIL_e7b1d00a" text="Nessuno accorre alle grida di {0}." />
+    <string id="AIL_e7b1d00b" text="{0} si avvicina per aiutare {1}." />
+    <string id="AIL_e7b1cf00" text="Di chi sono i ricordi che diventano pagine" />
+    <string id="AIL_e7b1cf01" text="Quali tratti della storia il libro trasforma in pagine. Solo il giocatore: solo ciò che è stato vissuto con te (i vostri dialoghi, le lettere, le conversazioni di gruppo in cui c’eri); un tratto in cui il personaggio ha parlato solo con altri non scrive pagine. Giocatore e famiglia: anche tutto ciò che la tua famiglia vive senza di te (coniuge, figli, genitori, fratelli, nonni, nipoti, zii, cugini e parenti acquisiti). Tutti: ogni personaggio, con o senza di te; con molti personaggi significa molte più pagine e richieste all’IA." />
+    <string id="AIL_e7b1cf02" text="Avvisa a ogni nuova pagina" />
+    <string id="AIL_e7b1cf03" text="Quando viene scritta una pagina: un messaggio con il ritratto del personaggio e un suono, e un avviso sulla mappa che apre il libro su quella pagina." />
+    <string id="AIL_e7b1cf04" text="Apri il libro dei ricordi" />
+    <string id="AIL_e7b1cf05" text="Apre o chiude il libro dei ricordi ovunque: sulla mappa, in una città o in un castello, e anche quando sei prigioniero. Vuoto (predefinito) lo lascia senza tasto. Meglio un tasto F (da F1 a F12), così scrivere non lo apre mai. Si scrive come le altre scorciatoie: F9, Alt+M, Ctrl+Shift+B." />
+    <string id="AIL_e7b1cf06" text="Precedente" />
+    <string id="AIL_e7b1cf07" text="Successiva" />
+    <string id="AIL_e7b1cf08" text="{0} non lo dimenticherà: c’è una pagina nuova nel libro dei ricordi." />
+    <string id="AIL_e7b1cf09" text="{0}: «{1}». Clicca per aprire il libro su questa pagina." />
+    <string id="AIL_e7b1cf0a" text="{0} riferisce: {1}" />
+    <string id="AIL_e7b1cf0b" text="{0} ha fatto la sua parte" />
+    <string id="AIL_e7b1cf0c" text="{0}, che poteva chiudere l’incarico, è morto. Ora può farlo solo {1}." />
+    <string id="AIL_e7b1cf0d" text="&#10;&#10;Riguarda anche: {0} (segnati sulla mappa finché non fanno la loro parte)." />
+    <string id="AIL_e7b1cf0e" text="&#10;&#10;Oltre a {0}, anche {1} può dichiararlo compiuto o fallito (segnato sulla mappa)." />
+    <string id="AIL_e7b1cf10" text=" e tornare da te" />
+    <string id="AIL_e7b1cf11" text="andare a {0} e restarci {1:0.#} giorno/i" />
+    <string id="AIL_e7b1cf12" text="andare a {0}" />
+    <string id="AIL_e7b1cf13" text="aspettarti a {0}" />
+    <string id="AIL_e7b1cf14" text="unirsi alla tua marcia" />
+    <string id="AIL_e7b1cf15" text="tornare da te" />
+    <string id="AIL_e7b1cf16" text="aspettare dove si trova per {0:0.#} giorno/i" />
+    <string id="AIL_e7b1cf17" text="pattugliare intorno a {0}" />
+    <string id="AIL_e7b1cf18" text="dare la caccia a {0}" />
+    <string id="AIL_e7b1cf19" text="assediare {0}" />
+    <string id="AIL_e7b1cf1a" text="saccheggiare {0}" />
+    <string id="AIL_e7b1cf1b" text="scortare {0}" />
+    <string id="AIL_e7b1cf1c" text="{0}, dopo: {1}." />
+    <string id="AIL_e7b1cf1d" text="{0} prosegue come concordato: {1}." />
+    <string id="AIL_e7b1cf1e" text="{0} è tornato al tuo fianco, come concordato." />
   </strings>
 </base>

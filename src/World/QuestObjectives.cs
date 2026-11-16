@@ -412,6 +412,10 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Quests: cleanup", ex); }
         }
 
+        /// <summary>
+        /// What the quest marks on the map: its objective, every person it involves who has not given their part yet,
+        /// and the third person who may close it.
+        /// </summary>
         public static IEnumerable<ITrackableCampaignObject> Trackables(AiQuest q)
         {
             var list = new List<ITrackableCampaignObject>();
@@ -422,11 +426,18 @@ namespace AILegacy.World
                     case "talk_to":
                     case "deliver_document":
                     case "deliver_item":
-                        var h = Hero.Find(q.ObjTargetId); if (h != null) list.Add(h); break;
+                        var h = Hero.Find(q.ObjTargetId); if (h != null && h.IsAlive && !q.Reported.Contains(h.StringId)) list.Add(h); break;
                     case "visit":
                         var st = Settlement.Find(q.ObjTargetId); if (st != null) list.Add(st); break;
                     case "defeat_bandits":
                         var b = BandOf(q); if (b != null) list.Add(b); break;
+                }
+                var people = q.Targets.Where(id => !q.Reported.Contains(id)).ToList();
+                if (!string.IsNullOrEmpty(q.CompleterId)) people.Add(q.CompleterId);
+                foreach (var id in people.Distinct())
+                {
+                    var t = Hero.Find(id);
+                    if (t != null && t.IsAlive && t != P && t.StringId != q.GiverId && !list.Contains(t)) list.Add(t);
                 }
             }
             catch { }

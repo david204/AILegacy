@@ -1211,6 +1211,8 @@ namespace AILegacy.Dialogue
         {
             "leave", "brawl", "duel", "duel_to_death", "attack", "surrender", "accept_surrender", "let_pass", "call_guards", "arrest", "die",
             "join_party", "join_with_band", "join_their_company", "come_along", "go_into",
+            // scene actions that take them out of the talk or bring trouble on: after the last word, like leaving
+            "guide", "go_talk_to", "go_with", "call_help", "detain",
         };
 
         // the names models also use for those
@@ -1218,6 +1220,8 @@ namespace AILegacy.Dialogue
         {
             { "end_conversation", "leave" }, { "goodbye", "leave" }, { "fight", "brawl" }, { "fist_fight", "brawl" },
             { "let_them_pass", "let_pass" }, { "let_them_go", "let_pass" }, { "recruit", "join_party" }, { "join", "join_party" },
+            { "lead_to", "guide" }, { "take_to", "guide" }, { "escort_to", "guide" }, { "go_talk", "go_talk_to" }, { "talk_to", "go_talk_to" },
+            { "shout_for_help", "call_help" }, { "help", "call_help" }, { "arrest_other", "detain" },
         };
 
         private static string HeldName(string command)

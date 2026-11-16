@@ -2387,5 +2387,46 @@
     <string id="AIL_e7b1ce02" text="Combien de personnes peuvent se tenir dans une conversation entre personnages : les deux qui l'ont commencée et ceux qui se sont approchés pour s'y joindre. Celui qui est en chemin prend déjà une place. Quand l'un d'eux se tourne vers vous, la conversation devient votre conversation de groupe et sa limite s'applique." />
     <string id="AIL_e7b1ce03" text="Conversations entre personnages en même temps" />
     <string id="AIL_e7b1ce04" text="Combien de conversations entre personnages peuvent avoir lieu en même temps autour de vous, en plus de votre propre conversation de groupe. Chacune envoie ses propres requêtes à l'IA : plus il y en a, plus la charge augmente." />
+    <string id="AIL_e7b1d000" text="{0} part avec {1}." />
+    <string id="AIL_e7b1d001" text="{0} cesse d’accompagner {1}." />
+    <string id="AIL_e7b1d003" text="{0} ne répond pas à l’appel de {1}." />
+    <string id="AIL_e7b1d004" text="{0} arrive et reste à vos côtés." />
+    <string id="AIL_e7b1d005" text="{0} n’atteint pas le siège et reste debout." />
+    <string id="AIL_e7b1d006" text="{0} cesse de vous guider." />
+    <string id="AIL_e7b1d007" text="{0} se lasse de vous attendre." />
+    <string id="AIL_e7b1d008" text="{0} revient vous chercher." />
+    <string id="AIL_e7b1d009" text="{0} appelle à l’aide." />
+    <string id="AIL_e7b1d00a" text="Personne ne répond aux cris de {0}." />
+    <string id="AIL_e7b1d00b" text="{0} s’approche pour aider {1}." />
+    <string id="AIL_e7b1cf00" text="Les souvenirs de qui deviennent des pages" />
+    <string id="AIL_e7b1cf01" text="Quels passages de l’histoire le livre transforme en pages. Joueur seul : seulement ce qui a été vécu avec vous (vos conversations, lettres, discussions de groupe où vous étiez) ; un passage où le personnage n’a parlé qu’avec d’autres n’écrit aucune page. Joueur et famille : aussi tout ce que votre famille vit sans vous (conjoint, enfants, parents, frères et sœurs, grands-parents, petits-enfants, oncles et tantes, cousins, neveux et belle-famille). Tout le monde : chaque personnage, avec ou sans vous ; avec beaucoup de personnages, cela fait beaucoup plus de pages et de requêtes à l’IA." />
+    <string id="AIL_e7b1cf02" text="Signaler chaque nouvelle page" />
+    <string id="AIL_e7b1cf03" text="Quand une page est écrite : un message avec le portrait du personnage et un son, et un avis sur la carte qui ouvre le livre à cette page." />
+    <string id="AIL_e7b1cf04" text="Ouvrir le livre des souvenirs" />
+    <string id="AIL_e7b1cf05" text="Ouvre ou ferme le livre des souvenirs n’importe où : sur la carte, dans une ville ou un château, et aussi quand vous êtes prisonnier. Vide (par défaut), il n’a pas de touche. Une touche F (F1 à F12) est préférable, pour qu’écrire ne l’ouvre jamais. S’écrit comme les autres raccourcis : F9, Alt+M, Ctrl+Shift+B." />
+    <string id="AIL_e7b1cf06" text="Précédente" />
+    <string id="AIL_e7b1cf07" text="Suivante" />
+    <string id="AIL_e7b1cf08" text="{0} ne l’oubliera pas : une nouvelle page attend dans le livre des souvenirs." />
+    <string id="AIL_e7b1cf09" text="{0} : « {1} ». Cliquez pour ouvrir le livre à cette page." />
+    <string id="AIL_e7b1cf0a" text="{0} rapporte : {1}" />
+    <string id="AIL_e7b1cf0b" text="{0} a fait sa part" />
+    <string id="AIL_e7b1cf0c" text="{0}, qui pouvait clore cette tâche, est mort. Désormais, seul {1} le peut." />
+    <string id="AIL_e7b1cf0d" text="&#10;&#10;Cela concerne aussi : {0} (marqués sur la carte jusqu’à ce qu’ils aient fait leur part)." />
+    <string id="AIL_e7b1cf0e" text="&#10;&#10;Outre {0}, {1} peut aussi la déclarer accomplie ou échouée (marqué sur la carte)." />
+    <string id="AIL_e7b1cf10" text=" et revenir auprès de vous" />
+    <string id="AIL_e7b1cf11" text="aller à {0} et y rester {1:0.#} jour(s)" />
+    <string id="AIL_e7b1cf12" text="aller à {0}" />
+    <string id="AIL_e7b1cf13" text="vous attendre à {0}" />
+    <string id="AIL_e7b1cf14" text="rejoindre votre marche" />
+    <string id="AIL_e7b1cf15" text="revenir auprès de vous" />
+    <string id="AIL_e7b1cf16" text="attendre sur place {0:0.#} jour(s)" />
+    <string id="AIL_e7b1cf17" text="patrouiller autour de {0}" />
+    <string id="AIL_e7b1cf18" text="traquer {0}" />
+    <string id="AIL_e7b1cf19" text="assiéger {0}" />
+    <string id="AIL_e7b1cf1a" text="piller {0}" />
+    <string id="AIL_e7b1cf1b" text="escorter {0}" />
+    <string id="AIL_e7b1cf1c" text="{0}, ensuite : {1}." />
+    <string id="AIL_e7b1cf1d" text="{0} poursuit comme convenu : {1}." />
+    <string id="AIL_e7b1cf1e" text="{0} est de retour à vos côtés, comme convenu." />
   </strings>
 </base>

@@ -1213,6 +1213,24 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_370ba9dd}4. Memory", GroupOrder = 4)]
         public int MaxMemoryPages { get; set; } = 30;
 
+        public static readonly string[] MemoryBookScopeNames = { "Player only", "Player and family", "Everyone" };
+
+        [SettingPropertyDropdown("{=AIL_e7b1cf00}Whose memories become pages", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1cf01}Which stretches of history the book turns into pages. Player only: only what was lived with you (your talks, letters, group talks you were in); a stretch that was only the character talking with others writes no page. Player and family: also everything your family lives without you (spouse, children, parents, siblings, grandparents, grandchildren, uncles and aunts, cousins, nephews and in-laws). Everyone: every character, with or without you; with many characters this means many more pages and AI requests.")]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memory", GroupOrder = 4)]
+        public MCM.Common.Dropdown<string> MemoryBookScope { get; set; } = new MCM.Common.Dropdown<string>(MemoryBookScopeNames, 0);
+
+        /// <summary>0 = player only, 1 = player and family, 2 = everyone.</summary>
+        public int MemoryBookScopeMode()
+        {
+            try { int i = MemoryBookScope?.SelectedIndex ?? 0; return i < 0 || i > 2 ? 0 : i; } catch { return 0; }
+        }
+
+        [SettingPropertyBool("{=AIL_e7b1cf02}Notify each new page", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1cf03}When a page is written: a message with the character's portrait and a sound, and a notice on the map that opens the book on that page.")]
+        [SettingPropertyGroup("{=AIL_370ba9dd}4. Memory", GroupOrder = 4)]
+        public bool NotifyMemoryPages { get; set; } = true;
+
         [SettingPropertyBool("{=AIL_5c31ae7f}Personality archetypes", Order = 6, RequireRestart = false,
             HintText = "{=AIL_96004d45}Each character is born from a mold (world_data\\archetypes.json) that sets their morals, how they speak and how much they believe. Editable.")]
         [SettingPropertyGroup("{=AIL_370ba9dd}4. Memory", GroupOrder = 4)]
@@ -2556,6 +2574,11 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1c654}Write the shortcut as text: Alt+T, Ctrl+Shift+F5, F9. Modifiers: Alt, Ctrl, Shift. Keys: a letter, a digit, F1 to F12, Space, Tab, Insert, Home, PageUp, Numpad0... Empty turns the shortcut off; text that can't be read counts as the default. Menu texts elsewhere still name the default keys.")]
         [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
         public string KeySummonAll { get; set; } = "Ctrl+Alt+X";
+
+        [SettingPropertyText("{=AIL_e7b1cf04}Open the memory book", Order = 7, RequireRestart = false,
+            HintText = "{=AIL_e7b1cf05}Opens or closes the memory book anywhere: on the map, in a town or a castle, and also while you are a prisoner. Empty (the default) leaves it without a key. An F key (F1 to F12) is best, so typing never opens it. Written like the other shortcuts: F9, Alt+M, Ctrl+Shift+B.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}1. General/{=AIL_e7b1c652}Keys", GroupOrder = 1)]
+        public string KeyMemoryBook { get; set; } = "";
 
         // ------------------------------------------------------------ Editor
         [SettingPropertyButton("{=AIL_1cb10851}Open the AI Legacy editor", Content = "{=AIL_5a216c13}Open", Order = 0, RequireRestart = false,

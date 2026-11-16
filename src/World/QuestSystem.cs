@@ -34,8 +34,13 @@ namespace AILegacy.World
         [JsonProperty("state")] public string State = "active";
         [JsonProperty("ended")] public double EndDay = -1;
         [JsonProperty("reason")] public string Reason = "";
-        /// <summary>Other heroes involved (target, witness...). They know about the task too.</summary>
+        /// <summary>Other heroes involved (target, witness...). They know about the task too, and each is marked on the map until they report.</summary>
         [JsonProperty("targets")] public List<string> Targets = new List<string>();
+        /// <summary>Targets who already gave their part (a quest "update"): their map marker is gone.</summary>
+        [JsonProperty("reported")] public List<string> Reported = new List<string>();
+        /// <summary>A third hero who may also close the task (complete or fail), besides the giver.</summary>
+        [JsonProperty("completer", NullValueHandling = NullValueHandling.Ignore)] public string CompleterId;
+        [JsonProperty("completer_name", NullValueHandling = NullValueHandling.Ignore)] public string CompleterName;
 
         // Objective checked by the game (see QuestObjectives)
         [JsonProperty("obj_type")] public string ObjType = "none";
@@ -61,6 +66,8 @@ namespace AILegacy.World
         public string Name = "", Description = "", Brief = "", Note = "", Reason = "", ProgressLabel = "";
         public int Days, Reward, ProgressTarget, SetProgress = -1;
         public List<string> Targets = new List<string>();
+        /// <summary>Name or id of the third hero who may close the task.</summary>
+        public string Completer = "";
         public string ObjType = "", ObjTarget = "", ObjItem = "";
         public int ObjAmount;
 
@@ -77,6 +84,9 @@ namespace AILegacy.World
                 SetProgress = j["set_progress"] == null ? -1 : I("set_progress", -1),
             };
             if (j["targets"] is JArray arr) r.Targets = arr.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+            else if (j["targets"] is JValue one && one.Type == JTokenType.String && !string.IsNullOrWhiteSpace((string)one)) r.Targets = ((string)one).Split(',').Select(x => x.Trim()).Where(x => x.Length > 0).ToList();
+            r.Completer = S("completer");
+            if (r.Completer.Length == 0) r.Completer = S("completer_npc_id");
             if (j["objective"] is JObject o)
             {
                 r.ObjType = (o["type"]?.ToString() ?? "").Trim();
@@ -95,7 +105,9 @@ namespace AILegacy.World
         private static Hero P => Hero.MainHero;
 
         public static AiQuest ActiveFrom(string giverId) => Quests.FirstOrDefault(q => q.Active && q.GiverId == giverId);
-        public static IEnumerable<AiQuest> ActiveKnownTo(string heroId) => Quests.Where(q => q.Active && (q.GiverId == heroId || q.Targets.Contains(heroId)));
+        public static IEnumerable<AiQuest> ActiveKnownTo(string heroId) => Quests.Where(q => q.Active && (q.GiverId == heroId || q.Targets.Contains(heroId) || q.CompleterId == heroId));
+        private static bool IsCompleter(AiQuest q, string heroId) => !string.IsNullOrEmpty(q.CompleterId) && q.CompleterId == heroId;
+        private static string NameOf(string heroId) => Hero.Find(heroId)?.Name?.ToString() ?? heroId;
         public static IEnumerable<AiQuest> PastWith(string giverId) => Quests.Where(q => !q.Active && q.GiverId == giverId).OrderByDescending(q => q.EndDay);
 
         private static void Say(string msg, Color c) => InformationManager.DisplayMessage(new InformationMessage(msg, c));
@@ -110,11 +122,24 @@ namespace AILegacy.World
             var sb = new StringBuilder();
             foreach (var q in ActiveKnownTo(s.Hero.StringId))
             {
-                bool mine = q.GiverId == s.Hero.StringId;
+                string me = s.Hero.StringId;
+                bool mine = q.GiverId == me, closer = IsCompleter(q, me);
                 int left = (int)Math.Ceiling(q.DueDay - now);
                 sb.Append(mine ? "- A task YOU gave them" : $"- A task {q.GiverName} gave them, which concerns you")
                   .Append($" [quest_id {q.Id}]: {(string.IsNullOrWhiteSpace(q.Brief) ? q.Description : q.Brief)}")
                   .Append($" Given {(int)(now - q.CreatedDay)} day(s) ago; {(left > 0 ? left + " day(s) left" : "the deadline is today")}.");
+                var others = q.Targets.Where(t => t != me).ToList();
+                if (others.Count > 0)
+                    sb.Append(" People it involves: " + string.Join(", ", others.Select(t => NameOf(t) + (q.Reported.Contains(t) ? " (has already given their part)" : ""))) + ".");
+                if (mine) sb.Append(string.IsNullOrEmpty(q.CompleterId) ? " Completer: YOU." : $" Completer: {q.CompleterName ?? NameOf(q.CompleterId)}, who may also judge it and close it in your stead; you still may too.");
+                else if (closer)
+                    sb.Append($" [Your role: {q.GiverName} named you to judge this task. You may record progress (\"update\"), declare it \"complete\" when you are truly convinced it is done (the reward {q.GiverName} promised is paid by them), or \"fail\" it.]");
+                else
+                {
+                    sb.Append(q.Reported.Contains(me) ? " [Your role: one of the people it involves. You have already given your part.]"
+                        : $" [Your role: one of the people it involves. React to their coming as your character would. When you have done your part, or told them what they came to learn, record it with \"quest\" action \"update\" and a short note: that takes you off their map so {q.GiverName} can send them on.]");
+                    sb.Append($" You cannot declare it complete or failed: only {q.GiverName}" + (string.IsNullOrEmpty(q.CompleterId) ? "" : $" or {q.CompleterName ?? NameOf(q.CompleterId)}") + " can.");
+                }
                 if (q.RewardGold > 0) sb.Append($" Promised reward: {q.RewardGold} denars.");
                 if (q.ProgressTarget > 0 && q.ObjType != "bring_item" && q.ObjType != "deliver_item") sb.Append($" Progress: {q.Progress}/{q.ProgressTarget} {q.ProgressLabel}.");
                 sb.Append(QuestObjectives.StatusLine(q));
@@ -161,10 +186,16 @@ namespace AILegacy.World
                         var th = Hero.Find(t) ?? Hero.AllAliveHeroes.FirstOrDefault(x => string.Equals(x.Name.ToString(), t, StringComparison.OrdinalIgnoreCase));
                         if (th != null && th != h && th != P) q.Targets.Add(th.StringId);
                     }
+                    if (r.Completer.Length > 0)
+                    {
+                        var ch = Hero.Find(r.Completer) ?? Hero.AllAliveHeroes.FirstOrDefault(x => string.Equals(x.Name.ToString(), r.Completer, StringComparison.OrdinalIgnoreCase));
+                        if (ch != null && ch.IsAlive && ch != h && ch != P) { q.CompleterId = ch.StringId; q.CompleterName = ch.Name.ToString(); }
+                        else Log.Warn($"Quest completer '{r.Completer}' not found or not valid: only {s.Name} can close it");
+                    }
                     if (r.Note.Length > 0) q.Log.Add(Clip(r.Note, 200));
                     QuestObjectives.Resolve(q, r, s);
                     Quests.Add(q);
-                    Log.Info($"Quest created by {s.Name}: {q.Name} ({days} days, {reward} denars) [{q.Id}]");
+                    Log.Info($"Quest created by {s.Name}: {q.Name} ({days} days, {reward} denars) [{q.Id}]" + (q.Targets.Count > 0 ? ", targets: " + string.Join(", ", q.Targets.Select(NameOf)) : "") + (q.CompleterId != null ? ", completer: " + q.CompleterName : ""));
                     GameJournal.Create(q);
                     shown.Add(L.F("AIL_2bd6ef00", $"Nuevo encargo: «{q.Name}» ({days} días") + (reward > 0 ? L.F("AIL_de098566", $", {reward} denarios") : "") + ")");
                     break;
@@ -174,19 +205,20 @@ namespace AILegacy.World
                 {
                     var q = Find(h, r.QuestId, allowTarget: true);
                     if (q == null) break;
-                    if (r.Note.Length > 0) q.Log.Add(Clip(r.Note, 200));
-                    if (r.SetProgress >= 0 && q.ProgressTarget > 0 && !QuestObjectives.HasObjective(q)) q.Progress = Math.Min(q.ProgressTarget, r.SetProgress);
-                    while (q.Log.Count > 8) q.Log.RemoveAt(0);
-                    GameJournal.Update(q, r.Note);
-                    Log.Info($"Quest {q.Id} updated by {s.Name}: {r.Note} {(q.ProgressTarget > 0 ? q.Progress + "/" + q.ProgressTarget : "")}");
-                    shown.Add(L.F("AIL_0681e274", $"Encargo «{q.Name}»: ") + (q.ProgressTarget > 0 ? $"{q.Progress}/{q.ProgressTarget} {q.ProgressLabel}" : "anotado"));
+                    Update(q, s, r.Note, r.SetProgress, shown);
                     break;
                 }
 
                 case "complete":
                 {
-                    var q = Find(h, r.QuestId, allowTarget: false);
-                    if (q == null) break;
+                    var q = Find(h, r.QuestId, allowTarget: false, quiet: true);
+                    if (q == null)
+                    {
+                        // Someone the task involves, but who may not close it: what they said counts as their report
+                        var involved = Find(h, r.QuestId, allowTarget: true);
+                        if (involved != null) { Log.Info($"{s.Name} may not close quest {involved.Id}: taken as an update"); Update(involved, s, r.Reason.Length > 0 ? r.Reason : r.Note, r.SetProgress, shown); }
+                        break;
+                    }
                     if (!QuestObjectives.Met(q))
                     {
                         // The NPC says it's done but the game says no, so no completion and no reward
@@ -197,10 +229,13 @@ namespace AILegacy.World
                     var handed = QuestObjectives.OnCompleted(q, s);
                     if (handed != null) shown.Add(handed);
                     End(q, "completed", r.Reason);
-                    int paid = Math.Min(q.RewardGold, Math.Max(0, h.Gold));
-                    if (paid > 0) GiveGoldAction.ApplyBetweenCharacters(h, P, paid);
-                    if (cfg.QuestRelationReward > 0) ChangeRelationAction.ApplyPlayerRelation(h, cfg.QuestRelationReward, affectRelatives: false, showQuickNotification: true);
+                    // The giver pays and is grateful, also when the third person named for it is the one who closes it
+                    var giver = q.GiverId == h.StringId ? h : Hero.Find(q.GiverId);
+                    int paid = giver != null && giver.IsAlive ? Math.Min(q.RewardGold, Math.Max(0, giver.Gold)) : 0;
+                    if (paid > 0) GiveGoldAction.ApplyBetweenCharacters(giver, P, paid);
+                    if (cfg.QuestRelationReward > 0 && giver != null && giver.IsAlive) ChangeRelationAction.ApplyPlayerRelation(giver, cfg.QuestRelationReward, affectRelatives: false, showQuickNotification: true);
                     Bonds.ChangeTrust(s, 10);
+                    if (giver != null && giver != h && giver.IsAlive) Bonds.ChangeTrust(Speaker.FromHero(giver), 5);
                     GameJournal.Close(q, "completed", string.IsNullOrWhiteSpace(r.Reason) ? L.F("AIL_01ad2df2", $"{s.Name} da el encargo por cumplido.") : r.Reason);
                     shown.Add(L.F("AIL_89bc1b1d", $"Encargo cumplido: «{q.Name}»") + (paid > 0 ? L.F("AIL_795b98cd", $", recibes {paid} denarios") : ""));
                     News(q, s, true);
@@ -209,8 +244,13 @@ namespace AILegacy.World
 
                 case "fail":
                 {
-                    var q = Find(h, r.QuestId, allowTarget: false);
-                    if (q == null) break;
+                    var q = Find(h, r.QuestId, allowTarget: false, quiet: true);
+                    if (q == null)
+                    {
+                        var involved = Find(h, r.QuestId, allowTarget: true);
+                        if (involved != null) { Log.Info($"{s.Name} may not fail quest {involved.Id}: taken as an update"); Update(involved, s, r.Reason.Length > 0 ? r.Reason : r.Note, -1, shown); }
+                        break;
+                    }
                     Fail(q, s, "failed", r.Reason);
                     shown.Add(L.F("AIL_a0af06ce", $"Encargo fracasado: «{q.Name}»"));
                     break;
@@ -233,12 +273,43 @@ namespace AILegacy.World
             return "q" + DateTime.UtcNow.Ticks.ToString("x") + Quests.Count;
         }
 
-        private static AiQuest Find(Hero h, string id, bool allowTarget)
+        /// <summary>
+        /// The task this hero means. The giver and the completer may close it; with <paramref name="allowTarget"/> the
+        /// people it involves count too (they may only record their part).
+        /// </summary>
+        private static AiQuest Find(Hero h, string id, bool allowTarget, bool quiet = false)
         {
-            var mine = Quests.Where(q => q.Active && (q.GiverId == h.StringId || (allowTarget && q.Targets.Contains(h.StringId)))).ToList();
-            var q2 = mine.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase)) ?? (mine.Count == 1 ? mine[0] : null);
-            if (q2 == null) Log.Warn($"Quest not found for {h.Name}: '{id}'");
+            string me = h.StringId;
+            var mine = Quests.Where(q => q.Active && (q.GiverId == me || IsCompleter(q, me) || (allowTarget && q.Targets.Contains(me)))).ToList();
+            var q2 = mine.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase));
+            // A wrong or missing id falls back to their only task, but never when the id names another real task
+            // (giver of one and involved in another: closing "the other one" must not close theirs)
+            if (q2 == null && mine.Count == 1 && !Quests.Any(q => q.Active && string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase))) q2 = mine[0];
+            if (q2 == null && !quiet) Log.Warn($"Quest not found for {h.Name}: '{id}'");
             return q2;
+        }
+
+        /// <summary>
+        /// A note on the task. When it comes from one of the people it involves, that is their report: their marker
+        /// leaves the map so the giver can send the player on to the next step.
+        /// </summary>
+        private static void Update(AiQuest q, Speaker s, string note, int setProgress, List<string> shown)
+        {
+            string who = s.Hero.StringId;
+            bool fromGiver = q.GiverId == who;
+            note = note ?? "";
+            if (note.Length > 0) q.Log.Add(Clip(fromGiver ? note : s.Name + ": " + note, 200));
+            if (setProgress >= 0 && q.ProgressTarget > 0 && !QuestObjectives.HasObjective(q)) q.Progress = Math.Min(q.ProgressTarget, setProgress);
+            while (q.Log.Count > 8) q.Log.RemoveAt(0);
+            GameJournal.Update(q, note.Length == 0 ? null : fromGiver ? note : L.F("AIL_e7b1cf0a", $"{s.Name} informa: {note}"));
+            bool reported = false;
+            if (!fromGiver && q.Targets.Contains(who) && !IsCompleter(q, who))
+            {
+                if (!q.Reported.Contains(who)) { q.Reported.Add(who); reported = true; }
+                GameJournal.Untrack(q, who);
+            }
+            Log.Info($"Quest {q.Id} updated by {s.Name}: {note} {(q.ProgressTarget > 0 ? q.Progress + "/" + q.ProgressTarget : "")}" + (reported ? " (their part is given: map marker removed)" : ""));
+            shown.Add(L.F("AIL_0681e274", $"Encargo «{q.Name}»: ") + (q.ProgressTarget > 0 ? $"{q.Progress}/{q.ProgressTarget} {q.ProgressLabel}" : reported ? L.F("AIL_e7b1cf0b", $"{s.Name} ha dado su parte") : "anotado"));
         }
 
         private static void End(AiQuest q, string state, string reason)
@@ -257,7 +328,7 @@ namespace AILegacy.World
             if (h != null && h.IsAlive)
             {
                 ChangeRelationAction.ApplyPlayerRelation(h, -Math.Max(1, S.Get.QuestRelationReward / 2), affectRelatives: false, showQuickNotification: true);
-                Bonds.ChangeTrust(s ?? Speaker.FromHero(h), -8);
+                Bonds.ChangeTrust(s != null && s.IsHero && s.Hero == h ? s : Speaker.FromHero(h), -8);
             }
             GameJournal.Close(q, state, state == "expired" ? L.T("AIL_f991b6e7", "Se acabó el plazo.") : string.IsNullOrWhiteSpace(reason) ? L.T("AIL_c53c096c", "El encargo ha fracasado.") : reason);
         }
@@ -343,6 +414,15 @@ namespace AILegacy.World
                     GameJournal.Close(q, "cancelled", L.F("AIL_cb1eb4c2", $"{q.ObjTargetName} ha muerto."));
                     continue;
                 }
+                // The third person who could close it died: only the giver can now
+                if (IsCompleter(q, heroId))
+                {
+                    string name = q.CompleterName ?? NameOf(heroId);
+                    GameJournal.Untrack(q, heroId);
+                    q.CompleterId = null; q.CompleterName = null;
+                    GameJournal.Update(q, L.F("AIL_e7b1cf0c", $"{name}, que podía dar el encargo por cerrado, ha muerto. Ahora solo puede hacerlo {q.GiverName}."));
+                    Log.Info($"Quest {q.Id}: the completer {name} died, only the giver can close it now");
+                }
                 // Still open (objective already met, or they were just involved), so only stop tracking them on the map
                 if (objective || q.Targets.Contains(heroId)) GameJournal.Untrack(q, heroId);
             }
@@ -362,6 +442,11 @@ namespace AILegacy.World
                     {
                         var t = Hero.Find(q.ObjTargetId);
                         if (t == null || t.IsDead) CloseForDeath(q.ObjTargetId);
+                    }
+                    if (q.Active && !string.IsNullOrEmpty(q.CompleterId))
+                    {
+                        var c = Hero.Find(q.CompleterId);
+                        if (c == null || c.IsDead) CloseForDeath(q.CompleterId);
                     }
                 }
             }
@@ -395,6 +480,8 @@ namespace AILegacy.World
                 foreach (var x in old) Quests.Remove(x);
             }
             catch (Exception ex) { Log.Error("Quests: daily tick", ex); }
+            // Rides on this daily tick: memory book pages for histories lived without the player (MCM "whose memories")
+            MemorySummarizer.OnDailyTick();
         }
     }
 

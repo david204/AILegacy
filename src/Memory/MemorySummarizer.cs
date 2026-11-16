@@ -136,7 +136,7 @@ namespace AILegacy.Memory
                     mem.Summary = Compose(mem);
                     Log.Info($"Memory of {s.Name}: new segment ({n} turns, {mem.Summaries.Count} segments in total): {summary}");
 
-                    if (cfg.EnableMemoryPages && s.IsHero && page.Length > 20)
+                    if (cfg.EnableMemoryPages && s.IsHero && page.Length > 20 && PageInScope(s, folded))
                     {
                         mem.Pages.Add(new MemoryPage
                         {
@@ -145,14 +145,105 @@ namespace AILegacy.Memory
                             Day = CampaignTime.Now.ToDays,
                         });
                         while (mem.Pages.Count > cfg.MaxMemoryPages) mem.Pages.RemoveAt(0);
-                        if (cfg.ImageAuto && World.SceneImages.Enabled) World.SceneImages.Request(mem, mem.Pages[mem.Pages.Count - 1]);
+                        var added = mem.Pages[mem.Pages.Count - 1];
+                        if (cfg.ImageAuto && World.SceneImages.Enabled) World.SceneImages.Request(mem, added);
                         Log.Info($"New page in the memory book of {s.Name}: {title}");
+                        UI.PageNotices.Notify(s.Hero, added);
                     }
+                    else if (cfg.EnableMemoryPages && s.IsHero && page.Length > 20)
+                        Log.Info($"Memory book: no page for {s.Name}, that stretch is outside \"whose memories\" ({S.Get.MemoryBookScope?.SelectedValue})");
                     SaveFiles.Flush();
                 });
             });
         }
 
         private static string Clip(string t, int max) => t.Length <= max ? t : t.Substring(0, max) + "…";
+
+        // ============================================================ whose memories (MCM 4. Memory)
+
+        /// <summary>
+        /// Whether a stretch of history becomes a book page. Player only: the player took part in it. Player and
+        /// family: that, or the character is family of the player. Everyone: always.
+        /// </summary>
+        private static bool PageInScope(Speaker s, List<ChatTurn> stretch)
+        {
+            int mode = S.Get.MemoryBookScopeMode();
+            if (mode >= 2) return true;
+            if (PlayerTookPart(stretch)) return true;
+            return mode == 1 && s.IsHero && IsPlayerFamily(s.Hero);
+        }
+
+        /// <summary>
+        /// Anything said to or by the player, a letter, a group talk with them, a deed or an order of theirs counts. Only
+        /// the notes of scene talks between characters (Ambient) are lived without the player.
+        /// </summary>
+        public static bool PlayerTookPart(IEnumerable<ChatTurn> stretch)
+        {
+            foreach (var t in stretch ?? Enumerable.Empty<ChatTurn>())
+            {
+                string x = t?.Text ?? "";
+                if (x.Length == 0) continue;
+                if (x.StartsWith("[In a group: you were talking with ", StringComparison.Ordinal) || x.StartsWith("[In a group: as they walked past", StringComparison.Ordinal)) continue;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>The player's family, wide: spouse, parents, grandparents, children, grandchildren, siblings, nephews and nieces, uncles and aunts, cousins and in-laws.</summary>
+        public static bool IsPlayerFamily(Hero h)
+        {
+            var p = Hero.MainHero;
+            if (h == null || p == null || h == p) return false;
+            try { return FamilyOf(p).Contains(h); }
+            catch { return false; }
+        }
+
+        private static HashSet<Hero> FamilyOf(Hero p)
+        {
+            var set = new HashSet<Hero>();
+            void A(Hero x) { if (x != null && x != p) set.Add(x); }
+            IEnumerable<Hero> Kids(Hero x) => x?.Children ?? Enumerable.Empty<Hero>();
+            IEnumerable<Hero> Sibs(Hero x) => x?.Siblings ?? Enumerable.Empty<Hero>();
+            IEnumerable<Hero> Parents(Hero x) => x == null ? Enumerable.Empty<Hero>() : new[] { x.Father, x.Mother }.Where(y => y != null);
+
+            A(p.Spouse);
+            foreach (var x in p.ExSpouses ?? Enumerable.Empty<Hero>()) A(x);
+            foreach (var par in Parents(p)) { A(par); foreach (var g in Parents(par)) A(g); foreach (var u in Sibs(par)) { A(u); foreach (var c in Kids(u)) A(c); } }
+            foreach (var c in Kids(p)) { A(c); A(c.Spouse); foreach (var g in Kids(c)) A(g); }
+            foreach (var b in Sibs(p)) { A(b); A(b.Spouse); foreach (var n in Kids(b)) A(n); }
+            if (p.Spouse != null) { foreach (var x in Parents(p.Spouse)) A(x); foreach (var x in Sibs(p.Spouse)) A(x); }
+            return set;
+        }
+
+        /// <summary>
+        /// Once a day, with "whose memories" on family or everyone: characters whose history grew long without the
+        /// player (scene talks with others) get it summarized too, which writes their page. A few per day, so the AI
+        /// is not flooded; the rest wait for the next days.
+        /// </summary>
+        public static void OnDailyTick()
+        {
+            try
+            {
+                var cfg = S.Get;
+                int mode = cfg.MemoryBookScopeMode();
+                if (mode == 0 || !cfg.EnableMemoryPages || Campaign.Current == null) return;
+                Hero talking = null;
+                try { talking = ChatSession.Active?.Who?.Hero; } catch { }
+                var family = mode == 1 && Hero.MainHero != null ? FamilyOf(Hero.MainHero) : null;
+                int started = 0;
+                foreach (var m in MemoryStore.AllHeroes.Where(x => x != null && !x.SummarizeInFlight && x.Turns.Count > cfg.SummarizeAfterTurns + 6).ToList())
+                {
+                    if (started >= 2) break;
+                    var h = Hero.Find(m.HeroId);
+                    if (h == null || !h.IsAlive || h == Hero.MainHero || h == talking) continue;
+                    if (family != null && !family.Contains(h)) continue;
+                    var sp = Speaker.FromHero(h);
+                    if (sp == null || !ReferenceEquals(sp.Memory, m)) continue;
+                    MaybeSummarize(sp);
+                    if (m.SummarizeInFlight) { started++; Log.Info($"Memory book ({cfg.MemoryBookScope?.SelectedValue}): summarizing the history of {h.Name} lived without you"); }
+                }
+            }
+            catch (Exception ex) { Log.Error("Memory book: daily pass", ex); }
+        }
     }
 }

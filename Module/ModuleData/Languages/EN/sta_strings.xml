@@ -2387,5 +2387,46 @@
     <string id="AIL_e7b1ce02" text="How many can stand in one chat between characters: the two who started it and those who walked over to join. Someone on the way already takes a place. When one of them turns to you, the chat becomes your group conversation and its limit applies." />
     <string id="AIL_e7b1ce03" text="Chats between characters at the same time" />
     <string id="AIL_e7b1ce04" text="How many chats between characters can go on at once around you, besides your own group conversation. Each one sends its own requests to the AI, so more means more load." />
+    <string id="AIL_e7b1d000" text="{0} goes off with {1}." />
+    <string id="AIL_e7b1d001" text="{0} stops going along with {1}." />
+    <string id="AIL_e7b1d003" text="{0} does not answer {1}'s call." />
+    <string id="AIL_e7b1d004" text="{0} comes over and stays by your side." />
+    <string id="AIL_e7b1d005" text="{0} cannot reach the seat and stays on their feet." />
+    <string id="AIL_e7b1d006" text="{0} stops guiding you." />
+    <string id="AIL_e7b1d007" text="{0} grows tired of waiting for you." />
+    <string id="AIL_e7b1d008" text="{0} comes back for you." />
+    <string id="AIL_e7b1d009" text="{0} shouts for help." />
+    <string id="AIL_e7b1d00a" text="Nobody answers {0}'s shouts." />
+    <string id="AIL_e7b1d00b" text="{0} comes over to help {1}." />
+    <string id="AIL_e7b1cf00" text="Whose memories become pages" />
+    <string id="AIL_e7b1cf01" text="Which stretches of history the book turns into pages. Player only: only what was lived with you (your talks, letters, group talks you were in); a stretch that was only the character talking with others writes no page. Player and family: also everything your family lives without you (spouse, children, parents, siblings, grandparents, grandchildren, uncles and aunts, cousins, nephews and in-laws). Everyone: every character, with or without you; with many characters this means many more pages and AI requests." />
+    <string id="AIL_e7b1cf02" text="Notify each new page" />
+    <string id="AIL_e7b1cf03" text="When a page is written: a message with the character's portrait and a sound, and a notice on the map that opens the book on that page." />
+    <string id="AIL_e7b1cf04" text="Open the memory book" />
+    <string id="AIL_e7b1cf05" text="Opens or closes the memory book anywhere: on the map, in a town or a castle, and also while you are a prisoner. Empty (the default) leaves it without a key. An F key (F1 to F12) is best, so typing never opens it. Written like the other shortcuts: F9, Alt+M, Ctrl+Shift+B." />
+    <string id="AIL_e7b1cf06" text="Previous" />
+    <string id="AIL_e7b1cf07" text="Next" />
+    <string id="AIL_e7b1cf08" text="{0} will not forget this: a new page waits in the memory book." />
+    <string id="AIL_e7b1cf09" text="{0}: «{1}». Click to open the book on this page." />
+    <string id="AIL_e7b1cf0a" text="{0} reports: {1}" />
+    <string id="AIL_e7b1cf0b" text="{0} has given their part" />
+    <string id="AIL_e7b1cf0c" text="{0}, who could close this task, has died. Now only {1} can." />
+    <string id="AIL_e7b1cf0d" text="&#10;&#10;It also involves: {0} (marked on the map until they give their part)." />
+    <string id="AIL_e7b1cf0e" text="&#10;&#10;Besides {0}, {1} can also declare it done or failed (marked on the map)." />
+    <string id="AIL_e7b1cf10" text=" and come back to you" />
+    <string id="AIL_e7b1cf11" text="go to {0} and stay there {1:0.#} day(s)" />
+    <string id="AIL_e7b1cf12" text="go to {0}" />
+    <string id="AIL_e7b1cf13" text="wait for you at {0}" />
+    <string id="AIL_e7b1cf14" text="join your march" />
+    <string id="AIL_e7b1cf15" text="come back to you" />
+    <string id="AIL_e7b1cf16" text="wait where they are for {0:0.#} day(s)" />
+    <string id="AIL_e7b1cf17" text="patrol around {0}" />
+    <string id="AIL_e7b1cf18" text="hunt down {0}" />
+    <string id="AIL_e7b1cf19" text="besiege {0}" />
+    <string id="AIL_e7b1cf1a" text="raid {0}" />
+    <string id="AIL_e7b1cf1b" text="escort {0}" />
+    <string id="AIL_e7b1cf1c" text="{0}, afterwards: {1}." />
+    <string id="AIL_e7b1cf1d" text="{0} goes on as agreed: {1}." />
+    <string id="AIL_e7b1cf1e" text="{0} is back at your side, as agreed." />
   </strings>
 </base>

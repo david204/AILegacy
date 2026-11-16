@@ -12,9 +12,10 @@ namespace AILegacy.Core
     /// </summary>
     internal static class Hotkeys
     {
-        public enum Id { GroupTalk, GroupEnd, BattleOrders, Yield, Truce, SummonTen, SummonAll, Herbs }
+        public enum Id { GroupTalk, GroupEnd, BattleOrders, Yield, Truce, SummonTen, SummonAll, Herbs, MemoryBook }
 
-        private static readonly string[] Defaults = { "Alt+T", "Alt+G", "Alt+B", "Alt+Y", "Alt+P", "Ctrl+X", "Ctrl+Alt+X", "Alt+H" };
+        // MemoryBook has no key until one is set in MCM (same as AIInfluence, whose book key starts unbound)
+        private static readonly string[] Defaults = { "Alt+T", "Alt+G", "Alt+B", "Alt+Y", "Alt+P", "Ctrl+X", "Ctrl+Alt+X", "Alt+H", "" };
         private static readonly int Count = Defaults.Length;
 
         private class Combo
@@ -45,6 +46,7 @@ namespace AILegacy.Core
                 case Id.Truce: return c.KeyTruce;
                 case Id.SummonTen: return c.KeySummonTen;
                 case Id.Herbs: return "";      // retired: herbs are used in the hospital now, not carried (kept so the ids keep their order)
+                case Id.MemoryBook: return c.KeyMemoryBook;
                 default: return c.KeySummonAll;
             }
         }

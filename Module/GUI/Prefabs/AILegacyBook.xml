@@ -25,6 +25,7 @@
                                     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="8" MarginRight="4" MarginTop="6" Command.Click="ExecuteSelect">
                                       <Children>
                                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.18" />
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="#E0B060FF" AlphaFactor="0.32" IsVisible="@IsSelected" />
                                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="10" MarginRight="8" MarginTop="6" MarginBottom="6" StackLayout.LayoutMethod="VerticalTopToBottom">
                                           <Children>
                                             <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.TextHorizontalAlignment="Left" Text="@Title" />
@@ -87,6 +88,21 @@
 
                 <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginTop="14" HorizontalAlignment="Center" StackLayout.LayoutMethod="HorizontalLeftToRight">
                   <Children>
+                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="36" StackLayout.LayoutMethod="HorizontalLeftToRight" IsVisible="@HasPaging">
+                      <Children>
+                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="64" Brush="Popup.Done.Button" Command.Click="ExecutePrevious">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@PreviousText" />
+                          </Children>
+                        </ButtonWidget>
+                        <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="130" SuggestedHeight="64" Brush="Popup.Title.Text" Brush.FontSize="22" Text="@CounterText" />
+                        <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="170" SuggestedHeight="64" Brush="Popup.Done.Button" Command.Click="ExecuteNext">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@NextText" />
+                          </Children>
+                        </ButtonWidget>
+                      </Children>
+                    </ListPanel>
                     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="251" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteAction" IsVisible="@HasAction">
                       <Children>
                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@ActionText" />
