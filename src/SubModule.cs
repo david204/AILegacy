@@ -20,6 +20,7 @@ namespace AILegacy
             base.OnSubModuleLoad();
             Log.Info("AI Legacy loaded from " + Paths.ModuleDir);
             var cfg = LegacyConfig.Current; // first read, so it shows up in the log
+            CrashTrace.Install();
             try { new HarmonyLib.Harmony("com.ailegacy").PatchAll(typeof(SubModule).Assembly); Log.Info("Harmony patches applied"); }
             catch (Exception ex) { Log.Error("Harmony", ex); }
             // Additions to vanilla screens (bars next to the name, history in conversations)
