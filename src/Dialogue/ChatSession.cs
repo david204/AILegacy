@@ -1753,6 +1753,7 @@ namespace AILegacy.Dialogue
             {
                 Mem.ConversationCount++;
                 Mem.LastConversationDay = CampaignTime.Now.ToDays;
+                Mem.InitiativeDeclines = 0;      // they were heard: asking again carries no grudge
                 if (_s.IsHero) QuestObjectives.OnTalked(_s.Hero);
                 Bonds.Touch(Mem);
                 // Familiarity: a real talk (not two lines) with no trust lost adds one point, up to a modest cap.

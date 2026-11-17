@@ -150,6 +150,8 @@ namespace AILegacy.Prompt
                 if (st.IsVillage && st.Village?.Bound != null) sb.Append($" bound to {st.Village.Bound.Name}");
                 if (st.MapFaction != null) sb.Append($", of {st.MapFaction.Name}");
                 if (st.OwnerClan != null) sb.Append($", held by clan {st.OwnerClan.Name}" + (st.OwnerClan.Leader != null ? $" ({st.OwnerClan.Leader.Name})" : ""));
+                // just taken: the ruler holds it only while the council votes who receives it (the game's rule, not a choice)
+                if (World.Facts.AwaitingAward(st)) sb.Append(", newly taken: the ruler holds it only until the council votes which clan receives it");
                 if (st.Town != null)
                 {
                     sb.Append(st.Town.Prosperity < 2000 ? "; poor" : st.Town.Prosperity > 6000 ? "; rich" : "; of middling wealth");

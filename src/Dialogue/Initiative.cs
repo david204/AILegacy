@@ -46,6 +46,9 @@ namespace AILegacy.Dialogue
             public double ReadyHour = -1; // map: campaign hour the opening line was ready (give-up timer)
             public bool Received;         // map: the player said yes while they were still riding over; the talk opens when they arrive
             public double ReceivedHour = -1;
+            public bool HeldMain;         // map: the player's party was stopped to wait for them
+            public TaleWorlds.CampaignSystem.Settlements.Settlement ResumeTo;   // map: where the player's party was heading, to go on there if the talk never happens
+            public bool KeptClose;        // map: their party was held at the player's side by KeepClose (handed back at the end)
         }
 
         private static Approach _p;
@@ -109,6 +112,17 @@ namespace AILegacy.Dialogue
         {
             if (h == null) return;
             double now = CampaignTime.Now.ToDays;
+            try
+            {
+                var mem = AILegacy.Memory.MemoryStore.Find(h.StringId);
+                if (mem != null)
+                {
+                    mem.InitiativeDeclines++;
+                    double gap = Math.Min(60, Math.Max(0, S.Get.MapInitiativeDaysPerNpc) * Math.Pow(2, Math.Min(6, mem.InitiativeDeclines)));
+                    Log.Info($"Initiative: {h.Name} was turned away {mem.InitiativeDeclines} time(s) in a row; next approach in {gap:0.#} days at the earliest");
+                }
+            }
+            catch (Exception ex) { Log.Error("Initiative: count a refusal", ex); }
             if (!Declined.TryGetValue(h.StringId, out var days)) Declined[h.StringId] = days = new List<double>();
             days.RemoveAll(d => now - d > 7);
             days.Add(now);
@@ -198,6 +212,25 @@ namespace AILegacy.Dialogue
             if (_p == p) _p = null;
             if (why != null) Log.Info($"Initiative: {p.Who?.Name} {why}");
             ReleaseParty(p);
+            ResumePlayer(p);
+        }
+
+        /// <summary>The talk never happened: the player's party, stopped to wait for them, goes on to where it was heading.</summary>
+        private static void ResumePlayer(Approach p)
+        {
+            if (p == null || !p.HeldMain) return;
+            p.HeldMain = false;
+            try
+            {
+                var main = MobileParty.MainParty;
+                if (main == null || main.DefaultBehavior != AiBehavior.Hold || main.MapEvent != null || main.CurrentSettlement != null) return;
+                if (p.ResumeTo != null && p.ResumeTo.IsActive)
+                {
+                    main.SetMoveGoToSettlement(p.ResumeTo, main.IsCurrentlyAtSea ? main.NavigationCapability : MobileParty.NavigationType.Default, false);
+                    Log.Info($"Initiative: the player's party goes on to {p.ResumeTo.Name}");
+                }
+            }
+            catch (Exception ex) { Log.Error("Initiative: resume the player's party", ex); }
         }
 
         /// <summary>Ends the "approach" order that kept their party at the player's side, if it is still there.</summary>
@@ -208,12 +241,20 @@ namespace AILegacy.Dialogue
             {
                 var o = World.OrderSystem.FindAny(p.Hero);
                 if (o != null && o.Type == "approach") World.OrderSystem.Cancel(p.Hero, silent: true);
+                // KeepClose held a party that rode over with no order of ours: hand it back to the game too (any other
+                // order that came up since owns the party and lets it go itself when it ends)
+                else if (o == null && p.KeptClose)
+                {
+                    var party = p.Hero.PartyBelongedTo;
+                    if (party != null && !party.IsMainParty && party.LeaderHero == p.Hero && party.Ai.DoNotMakeNewDecisions)
+                        party.Ai.SetDoNotMakeNewDecisions(false);
+                }
             }
             catch (Exception ex) { Log.Error("Initiative: release the party", ex); }
         }
 
         /// <summary>New, loaded or imported game: nobody from the previous one is still on their way to talk.</summary>
-        public static void ResetSession() { _p = null; }
+        public static void ResetSession() { _p = null; _swept = false; }
 
         /// <summary>Dialog line condition: is the conversation that just opened this approach?</summary>
         public static bool Matches()
@@ -253,8 +294,32 @@ namespace AILegacy.Dialogue
         /// <summary>The line was shown, so the approach is done.</summary>
         public static void Done() { var p = _p; _p = null; ReleaseParty(p); }
 
+        // A save made while someone was riding over to talk keeps their party held at the player's side, with nobody left
+        // to let it go. Swept once per session, on the first tick (by then the orders of the save are loaded).
+        private static bool _swept;
+
+        private static void SweepHeldParties()
+        {
+            _swept = true;
+            try
+            {
+                var main = MobileParty.MainParty;
+                if (main == null) return;
+                foreach (var party in MobileParty.All)
+                {
+                    if (party == null || party.IsMainParty || !party.IsActive || !party.IsLordParty || party.LeaderHero == null) continue;
+                    if (!party.Ai.DoNotMakeNewDecisions || party.DefaultBehavior != AiBehavior.EscortParty || party.TargetParty != main) continue;
+                    if (party.Army != null || World.OrderSystem.FindAny(party.LeaderHero) != null) continue;
+                    party.Ai.SetDoNotMakeNewDecisions(false);
+                    Log.Info($"Initiative: {party.LeaderHero.Name} was still held at the player's side from before the load; let go");
+                }
+            }
+            catch (Exception ex) { Log.Error("Initiative: let go of parties held before the load", ex); }
+        }
+
         public static void Tick(float dt)
         {
+            if (!_swept && Campaign.Current != null && MobileParty.MainParty != null) SweepHeldParties();
             var p = _p;
             if (p == null) return;
             try
@@ -336,12 +401,13 @@ namespace AILegacy.Dialogue
                 {
                     // Received while still on the way: they ride the rest (at the player's side, under their order)
                     // and the talk opens as soon as they are next to the player's party
-                    if (p.Escorted)
-                    {
-                        var o = World.OrderSystem.FindAny(h);
-                        if (o == null || o.Type != "approach") { End(p, "stopped riding over after being received"); return; }
-                        KeepClose(party);
-                    }
+                    var o = World.OrderSystem.FindAny(h);
+                    if (p.Escorted && (o == null || o.Type != "approach")) { End(p, "stopped riding over after being received"); return; }
+                    // given some other order on the way (by the player or the AI): that order rules their party now
+                    if (!p.Escorted && o != null) { End(p, $"was given another order ({o.Type}) on the way, the approach is dropped"); return; }
+                    // received: they keep riding to the player whatever brought them, so the game AI can't send them off
+                    KeepClose(party);
+                    p.KeptClose = true;
                     if (CampaignTime.Now.ToHours - p.ReceivedHour > CatchUpHours) { End(p, "never reached the player's party after being received, gave up"); return; }
                     if (!WorldSim.OnMap() || !Letters.LetterSystem.PlayerFreeOnMap()) return;
                     if (party.GetPosition2D.Distance(main.GetPosition2D) > AskDistance) return;
@@ -405,6 +471,9 @@ namespace AILegacy.Dialogue
                 var talkParty = h.PartyBelongedTo ?? party;
                 // Their party goes back to its own business after the talk, unless they agree to something in it
                 ReleaseParty(p);
+                p.KeptClose = false;
+                // the talk happens: the player's party stays where it stopped, as after any talk on the map
+                p.HeldMain = false;
                 // With the scene opening by itself, they come and speak to you on foot (their opening line is ready)
                 var mode = Scenes.MapTalk.ModeFor(h);
                 if (S.Get.MapTalkAutomatic && !p.Hostile && (mode == Scenes.MapTalkMode.Lord || mode == Scenes.MapTalkMode.Companion))
@@ -458,7 +527,25 @@ namespace AILegacy.Dialogue
                         {
                             p.Received = true;
                             p.ReceivedHour = CampaignTime.Now.ToHours;
+                            // The player's party stops where it is (it may have been on its way somewhere) and they ride
+                            // straight to it: if the player kept moving they could never catch up and the talk was lost.
+                            // Not inside someone else's army, a settlement or a battle: there the game moves the party.
+                            try
+                            {
+                                var main = MobileParty.MainParty;
+                                bool own = main.CurrentSettlement == null && main.MapEvent == null && (main.Army == null || main.Army.LeaderParty == main);
+                                if (own && main.DefaultBehavior != AiBehavior.Hold)
+                                {
+                                    p.ResumeTo = main.DefaultBehavior == AiBehavior.GoToSettlement ? main.TargetSettlement : null;
+                                    main.SetMoveModeHold();
+                                    p.HeldMain = true;
+                                }
+                            }
+                            catch { }
+                            KeepClose(talkParty);
+                            p.KeptClose = true;
                             InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1d826", $"{h.Name} se acerca para hablar contigo."), Colors.Yellow));
+                            Log.Info($"Initiative: {h.Name} was received while still riding over; the player's party waits for them");
                             return;
                         }
                         Open(p, h, talkParty);

@@ -775,7 +775,9 @@ Answer ONLY with JSON: { ""meeting"": ""..."", ""answer"": """", ""decision"": "
         private static bool Rested(HeroMemory mem, double now, AILegacySettings cfg)
         {
             if (mem == null) return true;
-            if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < cfg.MapInitiativeDaysPerNpc) return false;
+            // each time in a row the player would not receive them doubles the wait (at most 60 days)
+            double gap = Math.Min(60, Math.Max(0, cfg.MapInitiativeDaysPerNpc) * Math.Pow(2, Math.Min(6, Math.Max(0, mem.InitiativeDeclines))));
+            if (mem.LastInitiativeDay >= 0 && now - mem.LastInitiativeDay < gap) return false;
             if (mem.LastConversationDay >= 0 && now - mem.LastConversationDay < 1) return false;
             return true;
         }

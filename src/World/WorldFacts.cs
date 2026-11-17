@@ -564,6 +564,20 @@ How to use these lists:
         private static readonly Tpl TPortRule = new Tpl("dynamic_events_generator/fact_sheet_ports.txt",
             "- Only the places marked (port) lie on the sea and have a harbour, docks or ships. Never call any other place a port, a harbour or a naval base, nor give it a fleet.");
 
+        /// <summary>
+        /// A town or castle just taken, waiting for the realm's council to vote who receives it. Until then the game puts it
+        /// in the ruler's clan: without saying so, the AI reads it as the ruler keeping it for himself.
+        /// </summary>
+        public static bool AwaitingAward(Settlement s)
+        {
+            try
+            {
+                return s != null && s.MapFaction is Kingdom k
+                       && k.UnresolvedDecisions.Any(d => d is TaleWorlds.CampaignSystem.Election.SettlementClaimantDecision sc && sc.Settlement == s);
+            }
+            catch { return false; }
+        }
+
         /// <summary>Whether this town or castle has a harbour (Settlement.HasPort, set from its port position; false without the naval content).</summary>
         public static bool HasPort(Settlement s)
         {
@@ -591,7 +605,8 @@ How to use these lists:
             try
             {
                 bool ports = Settlement.All.Any(s => s != null && (s.IsTown || s.IsCastle) && HasPort(s));
-                string Item(Settlement s) => s.Name + (ports && HasPort(s) ? " (port; " : " (") + (s.OwnerClan?.Name?.ToString() ?? "no clan") + ")";
+                string Item(Settlement s) => s.Name + (ports && HasPort(s) ? " (port; " : " (") + (s.OwnerClan?.Name?.ToString() ?? "no clan")
+                    + (AwaitingAward(s) ? ", only until the council votes who receives it" : "") + ")";
                 var lines = new List<KeyValuePair<string, string>>();
                 foreach (var k in WorldSim.Kingdoms.OrderByDescending(x => x.CurrentTotalStrength))
                 {

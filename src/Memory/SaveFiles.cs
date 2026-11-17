@@ -699,7 +699,7 @@ namespace AILegacy.Memory
                 if (m.Profile != null) { T(m.Profile.Drives); T(m.Profile.Values); T(m.Profile.SocialBehavior); T(m.Profile.CognitiveStyle); A((long)(m.Profile.Naivety * 1000)); A(m.Profile.SampleLines?.Count ?? 0); }
                 T(m.MoodShown); T(m.ArchetypeText);
                 if (m.Pages.Count > 0) { var pg = m.Pages[m.Pages.Count - 1]; T(pg.Title); T(pg.Image); }
-                A(m.LettersSent); A(m.OwesReplyToPlayer ? 1 : 0); A((long)(m.LastLetterDay * 100)); A((long)(m.LastInitiativeDay * 100)); A((long)(m.LastRomanceDay * 100)); A((long)(m.LastIntimacyDay * 100));
+                A(m.LettersSent); A(m.OwesReplyToPlayer ? 1 : 0); A((long)(m.LastLetterDay * 100)); A((long)(m.LastInitiativeDay * 100)); A(m.InitiativeDeclines); A((long)(m.LastRomanceDay * 100)); A((long)(m.LastIntimacyDay * 100));
                 A((long)(m.TensionDay * 100)); A((long)(m.LastDevelopmentDay * 100)); T(m.Archetype); T(m.Morality); T(m.Profanity); T(m.Piety); T(m.InitiativeReason); T(m.ImportedFrom); A(m.Seeded ? 1 : 0);
                 T(m.LastAiResponse);
                 return h;

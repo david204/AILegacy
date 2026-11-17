@@ -185,6 +185,8 @@ namespace AILegacy.Memory
         /// <summary>Last time they came up to the player on the map on their own, and why.</summary>
         [JsonProperty("initiative_day")] public double LastInitiativeDay = -1;
         [JsonProperty("initiative_reason")] public string InitiativeReason;
+        /// <summary>Times in a row the player would not receive them; each one doubles the wait before they ask again. Talking clears it.</summary>
+        [JsonProperty("initiative_declines")] public int InitiativeDeclines;
 
         // Character archetype (world_data\archetypes.json), assigned once
         [JsonProperty("archetype")] public string Archetype;
