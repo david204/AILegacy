@@ -2840,5 +2840,51 @@
     <string id="AIL_e7b1dde4" text="队伍所在位置没有海上场景。" />
     <string id="AIL_e7b1dde5" text="在甲板上。按 F 交谈，Alt+T 对身边的人说话，Tab 返回地图。" />
     <string id="AIL_e7b1dde7" text="无法打开甲板；请查看 ailegacy.log。" />
+    <string id="AIL_e7b1de00" text="婚外：独立的怀孕规则" />
+    <string id="AIL_e7b1de01" text="开启：婚外怀孕的时长介于下方两个时长之间，而非游戏自带时间，并适用下方的死胎和难产死亡几率（从不作用于玩家）。关闭：一切使用游戏自带的怀孕；姓氏、监护和后果照旧。默认：关闭。" />
+    <string id="AIL_e7b1de02" text="独立规则：最短（年）" />
+    <string id="AIL_e7b1de03" text="开启独立规则时：婚外怀孕最短持续的年数（一年为 84 天）。默认：0.70。" />
+    <string id="AIL_e7b1de04" text="独立规则：最长（年）" />
+    <string id="AIL_e7b1de05" text="开启独立规则时：婚外怀孕最长持续的年数。默认：0.82。" />
+    <string id="AIL_e7b1de06" text="独立规则：死胎（%）" />
+    <string id="AIL_e7b1de07" text="开启独立规则时：婚外孩子为死胎的几率。默认：10。" />
+    <string id="AIL_e7b1de08" text="独立规则：难产死亡（%）" />
+    <string id="AIL_e7b1de09" text="开启独立规则时：母亲在婚外分娩中死亡的几率。从不作用于玩家。默认：15。" />
+    <string id="AIL_e7b1de0a" text="婚外：你孩子的文化" />
+    <string id="AIL_e7b1de0b" text="你的婚外子女所取的文化：你家族的、母亲的，或随机其一。默认：你家族的。" />
+    <string id="AIL_e7b1de0c" text="婚外：私生子姓氏" />
+    <string id="AIL_e7b1de0d" text="婚外出生的孩子会取母亲文化中的私生子姓氏，被承认合法后恢复原名。关闭：保留游戏给的名字。默认：开启。" />
+    <string id="AIL_e7b1de0e" text="婚外：百科中的标签" />
+    <string id="AIL_e7b1de0f" text="百科和家族列表会显示“私生子”“情妇”和“情人”，情妇和与其同住的人会出现在对方的家族中。关闭：使用游戏自带的称谓和列表。默认：开启。" />
+    <string id="AIL_e7b1de10" text="婚外：怀孕与出生通知" />
+    <string id="AIL_e7b1de11" text="当你的婚外孩子受孕时，以及有孩子出生在你家中时，在消息记录中显示一行。默认：关闭。" />
+    <string id="AIL_e7b1de12" text="婚外：成为家族首领即合法" />
+    <string id="AIL_e7b1de13" text="成为家族首领的私生子会被承认为合法。默认：开启。" />
+    <string id="AIL_e7b1de14" text="婚外：父母结婚即合法" />
+    <string id="AIL_e7b1de15" text="当父母双方彼此结婚时，他们的婚外子女会被承认合法并加入他们的家族。默认：开启。" />
+    <string id="AIL_e7b1de16" text="婚外：婚姻中的价值降低（%）" />
+    <string id="AIL_e7b1de17" text="谈婚事时，被求婚的是私生子则交易价值减少此比例，求婚的是私生子则增加此比例。0 = 无差别。默认：75。" />
+    <string id="AIL_e7b1de18" text="检查怀孕" />
+    <string id="AIL_e7b1de19" text="立即检查" />
+    <string id="AIL_e7b1de1a" text="在消息记录中列出每个正在追踪的婚外怀孕及预产期，并将未分娩而结束的（母亲死亡、不再怀孕或重复记录）标记为流产。" />
+    <string id="AIL_e7b1de20" text="{=!}跟我走吧。离开你现在的关系。" />
+    <string id="AIL_e7b1de21" text="{=!}我的心只为你跳动。我跟你走。" />
+    <string id="AIL_e7b1de22" text="{0} 离开了情人，来到你身边。" />
+    <string id="AIL_e7b1de23" text="{=!}我想我们该分开了。" />
+    <string id="AIL_e7b1de24" text="{=!}既然你坚持。再见。" />
+    <string id="AIL_e7b1de25" text="{=!}我想让我们的关系名正言顺。你愿意嫁给我吗？" />
+    <string id="AIL_e7b1de26" text="{=!}那我们就准备吧！" />
+    <string id="AIL_e7b1de27" text="{0} 怀孕了！" />
+    <string id="AIL_e7b1de28" text="{0} 产下了死胎。" />
+    <string id="AIL_e7b1de29" text="{0} 生下了 {1}，孩子加入了你的家中。" />
+    <string id="AIL_e7b1de2a" text="你生下了 {0}，{1} 的孩子，孩子加入了你的家中。" />
+    <string id="AIL_e7b1de2b" text="没有正在追踪的怀孕。" />
+    <string id="AIL_e7b1de2c" text="怀孕：{0} 个进行中，{1} 个标记为流产。" />
+    <string id="AIL_e7b1de2d" text="{0}，与 {1}：{2} 天后出生。" />
+    <string id="AIL_e7b1de2e" text="{0}，与 {1}：进行中。" />
+    <string id="AIL_e7b1de2f" text="母亲已去世" />
+    <string id="AIL_e7b1de30" text="母亲已不再怀孕" />
+    <string id="AIL_e7b1de31" text="重复记录" />
+    <string id="AIL_e7b1de32" text="{0}，与 {1}：标记为流产（{2}）。" />
   </strings>
 </base>

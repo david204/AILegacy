@@ -2840,5 +2840,51 @@
     <string id="AIL_e7b1dde4" text="Aucune scène marine à la position du groupe." />
     <string id="AIL_e7b1dde5" text="Sur le pont. F pour parler, Alt+T pour parler à ceux qui vous entourent, Tab pour revenir à la carte." />
     <string id="AIL_e7b1dde7" text="Impossible d'ouvrir le pont ; voir ailegacy.log." />
+    <string id="AIL_e7b1de00" text="Hors mariage : règles de grossesse propres" />
+    <string id="AIL_e7b1de01" text="Activé : une grossesse hors mariage dure entre les deux durées ci-dessous au lieu du temps du jeu, et les chances de mort-né et de mort en couches ci-dessous s'appliquent (jamais à la joueuse). Désactivé : la grossesse du jeu pour tout ; noms, tutelle et conséquences restent. Par défaut : désactivé." />
+    <string id="AIL_e7b1de02" text="Règles propres : durée minimale (années)" />
+    <string id="AIL_e7b1de03" text="Avec les règles propres : la durée minimale d'une grossesse hors mariage, en années (une année fait 84 jours). Par défaut : 0,70." />
+    <string id="AIL_e7b1de04" text="Règles propres : durée maximale (années)" />
+    <string id="AIL_e7b1de05" text="Avec les règles propres : la durée maximale d'une grossesse hors mariage, en années. Par défaut : 0,82." />
+    <string id="AIL_e7b1de06" text="Règles propres : mort-né (%)" />
+    <string id="AIL_e7b1de07" text="Avec les règles propres : chance qu'un enfant hors mariage soit mort-né. Par défaut : 10." />
+    <string id="AIL_e7b1de08" text="Règles propres : mort en couches (%)" />
+    <string id="AIL_e7b1de09" text="Avec les règles propres : chance qu'une mère meure en accouchant hors mariage. Jamais la joueuse. Par défaut : 15." />
+    <string id="AIL_e7b1de0a" text="Hors mariage : culture de vos enfants" />
+    <string id="AIL_e7b1de0b" text="La culture que prend un enfant de vous né hors mariage : celle de votre clan, celle de la mère, ou l'une des deux au hasard. Par défaut : celle de votre clan." />
+    <string id="AIL_e7b1de0c" text="Hors mariage : noms de bâtard" />
+    <string id="AIL_e7b1de0d" text="Un enfant né hors mariage prend un nom de bâtard de la culture de sa mère et retrouve son nom une fois légitimé. Désactivé : il garde le nom donné par le jeu. Par défaut : activé." />
+    <string id="AIL_e7b1de0e" text="Hors mariage : mentions dans l'encyclopédie" />
+    <string id="AIL_e7b1de0f" text="L'encyclopédie et les listes de famille disent « fils bâtard », « concubine » et « amant », et une concubine et celui avec qui elle vit apparaissent dans la famille de l'autre. Désactivé : les mots et listes du jeu. Par défaut : activé." />
+    <string id="AIL_e7b1de10" text="Hors mariage : avis de grossesse et de naissance" />
+    <string id="AIL_e7b1de11" text="Une ligne dans le journal quand un enfant de vous hors mariage est conçu, et quand l'un naît dans votre maison. Par défaut : désactivé." />
+    <string id="AIL_e7b1de12" text="Hors mariage : diriger une maison légitime" />
+    <string id="AIL_e7b1de13" text="Un enfant bâtard qui devient chef de sa maison est légitimé. Par défaut : activé." />
+    <string id="AIL_e7b1de14" text="Hors mariage : le mariage des parents légitime" />
+    <string id="AIL_e7b1de15" text="Quand les deux parents se marient, leurs enfants nés hors mariage sont légitimés et rejoignent leur maison. Par défaut : activé." />
+    <string id="AIL_e7b1de16" text="Hors mariage : moindre valeur dans un mariage (%)" />
+    <string id="AIL_e7b1de17" text="Dans une négociation de mariage, demander la main d'un bâtard vaut cette part de moins, et qu'un bâtard la demande vaut cette part de plus. 0 = aucune différence. Par défaut : 75." />
+    <string id="AIL_e7b1de18" text="Vérifier les grossesses" />
+    <string id="AIL_e7b1de19" text="Vérifier" />
+    <string id="AIL_e7b1de1a" text="Affiche dans le journal chaque grossesse hors mariage suivie et sa date prévue, et clôt comme perdues celles qui ont fini sans naissance (mère morte ou plus enceinte, ou fiche en double)." />
+    <string id="AIL_e7b1de20" text="{=!}Viens avec moi. Quitte ton arrangement actuel." />
+    <string id="AIL_e7b1de21" text="{=!}Mon cœur ne bat que pour toi. Je viens." />
+    <string id="AIL_e7b1de22" text="{0} a quitté son amant pour être avec vous." />
+    <string id="AIL_e7b1de23" text="{=!}Je crois qu'il est temps de nous séparer." />
+    <string id="AIL_e7b1de24" text="{=!}Si tu insistes. Adieu." />
+    <string id="AIL_e7b1de25" text="{=!}Je veux rendre notre lien officiel. M'épouseras-tu ?" />
+    <string id="AIL_e7b1de26" text="{=!}Préparons-nous, alors !" />
+    <string id="AIL_e7b1de27" text="{0} est enceinte !" />
+    <string id="AIL_e7b1de28" text="{0} a accouché d'un enfant mort-né." />
+    <string id="AIL_e7b1de29" text="{0} a donné naissance à {1}, qui rejoint votre maison." />
+    <string id="AIL_e7b1de2a" text="Vous avez donné naissance à {0}, l'enfant de {1}, qui rejoint votre maison." />
+    <string id="AIL_e7b1de2b" text="Aucune grossesse suivie." />
+    <string id="AIL_e7b1de2c" text="Grossesses : {0} en cours, {1} closes comme perdues." />
+    <string id="AIL_e7b1de2d" text="{0}, de {1} : naissance dans {2} jours." />
+    <string id="AIL_e7b1de2e" text="{0}, de {1} : en cours." />
+    <string id="AIL_e7b1de2f" text="la mère est morte" />
+    <string id="AIL_e7b1de30" text="la mère n'est plus enceinte" />
+    <string id="AIL_e7b1de31" text="fiche en double" />
+    <string id="AIL_e7b1de32" text="{0}, de {1} : close comme perdue ({2})." />
   </strings>
 </base>

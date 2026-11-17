@@ -90,6 +90,133 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         private static FieldInfo _queueField;
         private static ConstructorInfo _pregnancyCtor;
 
+        /// <summary>Every record kept, for the console commands.</summary>
+        internal static List<Bastard> Records => All;
+
+        /// <summary>The game's own pregnancy queue (its entries have Mother, Father and DueDate), or null.</summary>
+        private static IList GameQueue()
+        {
+            try
+            {
+                var behavior = Campaign.Current?.GetCampaignBehavior<TaleWorlds.CampaignSystem.CampaignBehaviors.PregnancyCampaignBehavior>();
+                if (behavior == null) return null;
+                if (_queueField == null) _queueField = HarmonyLib.AccessTools.Field(behavior.GetType(), "_heroPregnancies");
+                return _queueField?.GetValue(behavior) as IList;
+            }
+            catch { return null; }
+        }
+
+        private static Hero MotherOf(object entry) => entry?.GetType().GetField("Mother")?.GetValue(entry) as Hero;
+        private static Hero FatherOf(object entry) => entry?.GetType().GetField("Father")?.GetValue(entry) as Hero;
+
+        /// <summary>Console: the child is due now (the game delivers it on its next daily look at the mother).</summary>
+        internal static bool DueNow(Bastard b)
+        {
+            var q = GameQueue();
+            var mother = Hero.Find(b.MotherId);
+            if (q == null || mother == null) return false;
+            foreach (var e in q)
+            {
+                if (MotherOf(e) != mother) continue;
+                // the entry's date cannot be changed: it is replaced by the same pregnancy, due now
+                var father = FatherOf(e);
+                if (_pregnancyCtor == null)
+                    _pregnancyCtor = e.GetType().GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Hero), typeof(Hero), typeof(CampaignTime) }, null);
+                if (_pregnancyCtor == null || father == null) return false;
+                int i = q.IndexOf(e);
+                q[i] = _pregnancyCtor.Invoke(new object[] { mother, father, CampaignTime.Now });
+                Log.Info($"[bastards] console: {mother.Name}'s child is due now");
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>Console: the pregnancy ends without a birth, out of the game's queue too.</summary>
+        internal static void EndPregnancy(Bastard b)
+        {
+            var mother = Hero.Find(b.MotherId);
+            var q = GameQueue();
+            if (q != null && mother != null) for (int i = q.Count - 1; i >= 0; i--) if (MotherOf(q[i]) == mother) q.RemoveAt(i);
+            if (mother != null) mother.IsPregnant = false;
+            b.Lost = true;
+            Log.Info($"[bastards] console: {mother?.Name?.ToString() ?? b.MotherId}'s pregnancy is ended");
+            SaveFiles.Dirty();
+        }
+
+        /// <summary>The pregnancies kept, as text: each with when it is due, and those ended without a birth (closed as lost when <paramref name="apply"/>).</summary>
+        internal static string CheckText(bool apply)
+        {
+            var open = All.Where(x => !x.Born && !x.Lost).ToList();
+            if (open.Count == 0) return "No tracked pregnancies.";
+            var due = new Dictionary<Hero, CampaignTime>();
+            var q = GameQueue();
+            if (q != null) foreach (var e in q) { var m = MotherOf(e); if (m != null && e.GetType().GetField("DueDate")?.GetValue(e) is CampaignTime t) due[m] = t; }
+            var sb = new System.Text.StringBuilder();
+            var seen = new HashSet<string>();
+            foreach (var b in open)
+            {
+                var mother = Hero.Find(b.MotherId); var father = Hero.Find(b.FatherId);
+                string why = mother == null || !mother.IsAlive ? "the mother is dead" : !mother.IsPregnant ? "the mother is no longer pregnant" : !seen.Add(b.MotherId) ? "a repeated record" : null;
+                if (why == null)
+                {
+                    string when = due.TryGetValue(mother, out var t) ? $"due in {Math.Max(0, (int)Math.Ceiling(t.ToDays - CampaignTime.Now.ToDays))} day(s)" : "not in the game's queue";
+                    sb.AppendLine($"  OK    {mother.Name} by {father?.Name}{(Concubines.Is(mother) || Concubines.Is(father) ? " (concubine)" : "")}, {when}");
+                }
+                else
+                {
+                    sb.AppendLine($"  {(apply ? "LOST " : "WOULD")} {mother?.Name?.ToString() ?? b.MotherId} by {father?.Name?.ToString() ?? b.FatherId}: {why}");
+                    if (apply) b.Lost = true;
+                }
+            }
+            if (apply) SaveFiles.Dirty();
+            return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>Console: what a woman's daily chance of an affair is right now, and with whom.</summary>
+        internal static string AffairOdds(Hero w)
+        {
+            var cfg = S.Get;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"{w.Name}: yearly chance setting {cfg.BastardNpcYearlyPercent}%");
+            if (!MayBeMother(w)) { sb.Append("  cannot be a mother now (age, pregnant, notable, no house, a baby under a year, a concubine or keeping one, or your clan protected)."); return sb.ToString(); }
+            float dw = Disposition(w) * Fertility(w);
+            sb.AppendLine($"  disposition {Disposition(w):0.00}, fertility {Fertility(w):0.00}");
+            double year = CampaignTime.DaysInYear;
+            double Daily(float yearly) => 1.0 - Math.Pow(1.0 - Math.Max(0f, Math.Min(0.95f, yearly)), 1.0 / year);
+            var lovers = NearbyMen(w).Where(m => MayBeLover(w, m)).Select(m => (h: m, wt: Disposition(m) * (1f + w.GetRelation(m) / 100f))).Where(x => x.wt > 0f).ToList();
+            if (lovers.Count == 0) { sb.Append("  nobody suitable near her now."); return sb.ToString(); }
+            float best = lovers.Max(x => x.wt);
+            double total = lovers.Sum(x => x.wt);
+            sb.AppendLine($"  today: {Daily(cfg.BastardNpcYearlyPercent / 100f * Math.Min(3f, dw * best)) * 100:0.000}% (yearly {cfg.BastardNpcYearlyPercent * Math.Min(3f, dw * best):0.0}%)");
+            foreach (var (h, wt) in lovers.OrderByDescending(x => x.wt)) sb.AppendLine($"    {h.Name}: weight {wt:0.00} ({wt / total * 100:0}% of the pick)");
+            return sb.ToString().TrimEnd();
+        }
+
+        /// <summary>
+        /// Console (Illegitimate Children's «fix vanilla pregnancies»): entries in the game's queue with no mother or father,
+        /// a dead mother, or the same mother twice, which would break a birth. Removed when <paramref name="apply"/>.
+        /// </summary>
+        internal static string CleanGameQueue(bool apply)
+        {
+            var q = GameQueue();
+            if (q == null) return "The game's pregnancy list was not found.";
+            var sb = new System.Text.StringBuilder();
+            var seen = new HashSet<Hero>();
+            var bad = new List<object>();
+            foreach (var e in q)
+            {
+                var m = MotherOf(e); var f = FatherOf(e);
+                string why = m?.CharacterObject == null || f?.CharacterObject == null ? "no mother or no father" : !m.IsAlive ? "the mother is dead" : !seen.Add(m) ? "the same mother twice" : null;
+                if (why == null) { sb.AppendLine($"  OK    {m.Name} by {f.Name}"); continue; }
+                bad.Add(e);
+                sb.AppendLine($"  {(apply ? "FIXED" : "BAD  ")} {m?.Name?.ToString() ?? "?"} by {f?.Name?.ToString() ?? "?"}: {why}");
+            }
+            if (apply) foreach (var e in bad) q.Remove(e);
+            if (bad.Count == 0) sb.AppendLine("Nothing to fix.");
+            else if (!apply) sb.AppendLine("Run ailegacy.fix_vanilla_pregnancies without arguments to remove them.");
+            return sb.ToString().TrimEnd();
+        }
+
         /// <summary>
         /// Puts a pregnancy with this father in the game's own queue. Every step is checked: if the game changed and any of it
         /// is missing, nothing happens rather than half a pregnancy.
@@ -116,6 +243,12 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                     if (m == mother) return false;
                 }
                 var due = CampaignTime.DaysFromNow(Campaign.Current.Models.PregnancyModel.PregnancyDurationInDays);
+                if (S.Get.BastardCustomPregnancy)
+                {
+                    float lo = Math.Max(0.05f, Math.Min(S.Get.BastardBirthMinYears, S.Get.BastardBirthMaxYears));
+                    float hi = Math.Max(lo, Math.Max(S.Get.BastardBirthMinYears, S.Get.BastardBirthMaxYears));
+                    due = CampaignTime.YearsFromNow(lo + (hi - lo) * (float)Rng.NextDouble());
+                }
                 list.Add(_pregnancyCtor.Invoke(new object[] { mother, father, due }));
                 mother.IsPregnant = true;
                 return true;
@@ -141,6 +274,8 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             WorldSim.State.Bastards.Add(b);
             // without MakePregnantAction there is no conception event: tell the mood system by hand
             try { Mood.OnChildConceived(mother); } catch { }
+            if (S.Get.BastardNotifications && (mother == P || father == P))
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1de27", $"¡{mother.Name} se ha quedado embarazada!"), Color.FromUint(0xFFFF99CC)));
             Log.Info($"[bastards] {mother.Name} is expecting a child by {father.Name}{(b.HusbandId != null ? " (not her husband)" : "")}");
             SaveFiles.Dirty();
             return true;
@@ -155,7 +290,11 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 var mother = other.IsFemale ? other : P; var father = other.IsFemale ? P : other;
                 if (mother.IsPregnant || mother.Age < 18 || mother.Age >= 46) return;
                 float chance = S.Get.BastardChancePercent * 10f * Mood.FertilityFactor(mother);
-                if (Rng.Next(1000) < Math.Min(1000f, chance)) Conceive(mother, father, met: true);
+                if (Rng.Next(1000) < Math.Min(1000f, chance) && Conceive(mother, father, met: true))
+                {
+                    var mem = MemoryStore.Find(other.StringId);
+                    if (mem != null && mem.Romance < S.Get.RomanceForMarriage) { mem.Romance = S.Get.RomanceForMarriage; Log.Info($"[bastards] {other.Name}'s romance rises to {mem.Romance} with the child on the way"); }
+                }
             }
             catch (Exception ex) { Log.Error("[bastards] intimacy with the player", ex); }
         }
@@ -191,11 +330,12 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
 
         private static bool MayBeMother(Hero w) =>
             w != null && w.IsFemale && w != P && w.IsAlive && !w.IsChild && !w.IsNotable && w.Clan != null && !w.IsPregnant && Fertility(w) > 0
+            && !Concubines.Is(w) && !Concubines.Keeps(w)
             && !(S.Get.BastardProtectPlayerClan && w.Clan == Clan.PlayerClan) && !w.Children.Any(c => c.IsAlive && c.Age < 1);
 
         private static bool MayBeLover(Hero w, Hero m) =>
             m != null && !m.IsFemale && m != P && m.IsAlive && m.Age >= 18 && !m.IsNotable && m.Clan != null && m != w.Spouse && m.Clan != w.Clan
-            && !Kin(w, m) && w.GetRelation(m) >= 0;
+            && !Kin(w, m) && w.GetRelation(m) >= 0 && !Concubines.Is(m) && !Concubines.Keeps(m);
 
         internal static bool Kin(Hero a, Hero b)
         {
@@ -244,6 +384,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 if (!Enabled || mother == null) return;
                 // a record marked lost the same day still gets its child: the newest one for this mother wins
                 var b = All.Where(x => !x.Born && x.MotherId == mother.StringId).OrderByDescending(x => x.ConceivedDay).FirstOrDefault();
+                if (b == null) b = Unrecorded(mother, children);
                 if (b == null) return;
                 b.Born = true; b.Lost = false;
                 var father = Hero.Find(b.FatherId);
@@ -252,15 +393,40 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 if (b.Met == null) b.Met = HaveMet(mother, father);
                 b.Version = 2;
                 var kids = children.Where(c => c != null).ToList();
+                if (S.Get.BastardCustomPregnancy && Rng.Next(100) < S.Get.BastardStillbirthPercent && mother.Spouse != father)
+                {
+                    Log.Info($"[bastards] {mother.Name}'s child by {father.Name} is stillborn (own pregnancy rules)");
+                    WorldSim.Say(L.F("AIL_e7b1de28", $"{mother.Name} ha dado a luz un niño muerto."), Colors.Red);
+                    foreach (var c in kids) Erase(b, c);
+                    SaveFiles.Dirty();
+                    return;
+                }
                 foreach (var c in kids) { b.Children.Add(c.StringId); b.BirthNames[c.StringId] = c.FirstName?.ToString() ?? c.Name.ToString(); }
                 Log.Info($"[bastards] {mother.Name} gives birth to {kids.Count} child(ren) by {father.Name}");
+                if (mother == P || father == P) foreach (var c in kids) PlayerChildCulture(c, mother);
+                if (S.Get.BastardCustomPregnancy && mother != P && mother.Spouse != father && Rng.Next(100) < S.Get.BastardLaborDeathPercent)
+                {
+                    int session = WorldSim.Session;
+                    MainThread.Post(() => { try { if (session == WorldSim.Session && mother.IsAlive) { Log.Info($"[bastards] {mother.Name} dies in labour"); KillCharacterAction.ApplyInLabor(mother, true); } } catch (Exception ex) { Log.Error("[bastards] death in labour", ex); } });
+                }
                 // married to each other by now: nothing to hide or name
                 if (mother.Spouse == father) { foreach (var c in kids) Legitimize(b, c, quiet: true); SaveFiles.Dirty(); return; }
                 if (mother == P || father == P)
                 {
                     var other = mother == P ? father : mother;
                     // the other parent lives in the player's clan: the child stays there, nothing to ask
-                    if (other.Clan == Clan.PlayerClan) { foreach (var c in kids) ToPlayerClan(b, c); SaveFiles.Dirty(); return; }
+                    if (other.Clan == Clan.PlayerClan)
+                    {
+                        foreach (var c in kids) ToPlayerClan(b, c);
+                        if (S.Get.BastardNotifications)
+                        {
+                            string names = string.Join(", ", kids.Select(c => c.FirstName?.ToString() ?? c.Name.ToString()));
+                            InformationManager.DisplayMessage(new InformationMessage(mother == P
+                                ? L.F("AIL_e7b1de2a", $"Has dado a luz a {names}, hijo de {father.Name}, que entra en tu casa.")
+                                : L.F("AIL_e7b1de29", $"{mother.Name} ha dado a luz a {names}, que entra en tu casa."), Color.FromUint(0xFFFFC896)));
+                        }
+                        SaveFiles.Dirty(); return;
+                    }
                     AskGuardian(b, kids, mother, father, other);
                     return;
                 }
@@ -268,6 +434,46 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 SaveFiles.Dirty();
             }
             catch (Exception ex) { Log.Error("[bastards] birth", ex); }
+        }
+
+        /// <summary>
+        /// A child the game delivered whose father is not the mother's husband and that has no record (the pregnancy came from
+        /// the game or another mod, or the marriage ended while she carried it): it is one born out of wedlock all the same.
+        /// A widow's child by her late husband is not.
+        /// </summary>
+        private static Bastard Unrecorded(Hero mother, List<Hero> children)
+        {
+            try
+            {
+                var child = children?.FirstOrDefault(c => c != null);
+                var father = child?.Father;
+                if (child == null || father == null || father == mother || father.IsFemale || mother.Spouse == father || !father.IsAlive) return null;
+                if (All.Any(x => x.Children.Contains(child.StringId))) return null;
+                var b = new Bastard
+                {
+                    Id = WorldSim.NewId("bst"), MotherId = mother.StringId, FatherId = father.StringId, ConceivedDay = CampaignTime.Now.ToDays,
+                    HusbandId = mother.Spouse != null && mother.Spouse.IsAlive ? mother.Spouse.StringId : null, Version = 2, Met = HaveMet(mother, father),
+                };
+                WorldSim.State.Bastards.Add(b);
+                Log.Info($"[bastards] {child.Name} was born to {mother.Name} by {father.Name}, who is not her husband, without a record: handled as born out of wedlock");
+                return b;
+            }
+            catch (Exception ex) { Log.Error("[bastards] unrecorded birth", ex); return null; }
+        }
+
+        /// <summary>A child of the player's out of wedlock takes the culture the setting says: the player's house, the mother's, or either.</summary>
+        private static void PlayerChildCulture(Hero child, Hero mother)
+        {
+            try
+            {
+                var mine = Clan.PlayerClan?.Culture ?? P.Culture;
+                var hers = mother?.Culture;
+                int pick = 0;
+                try { pick = S.Get.PlayerBastardCulture.SelectedIndex; } catch { }
+                var c = pick == 1 ? hers : pick == 2 ? (Rng.Next(2) == 0 ? mine : hers) : mine;
+                if (c != null && child.Culture != c) child.Culture = c;
+            }
+            catch (Exception ex) { Log.Warn("[bastards] culture of the player's child: " + ex.Message); }
         }
 
         /// <summary>Raised by the player, in the player's clan, as a lord. Still baseborn until acknowledged.</summary>
@@ -333,9 +539,16 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 if (b.Secret) return;
             }
             else foreach (var c in kids) Name(b, c);
-            if (!knows) { LocalTalk(b, kids, mother, mother.Spouse != null && mother.Spouse.IsAlive && mother.Spouse != father); Log.Info($"[bastards] {mother.Name} does not know who the father is"); return; }
+            bool player = mother == P || father == P || culprit == P;
+            if (!knows)
+            {
+                if (player) LocalTalk(b, kids, mother, mother.Spouse != null && mother.Spouse.IsAlive && mother.Spouse != father);
+                else TellFamily(guardian, mother, null, kids);
+                Log.Info($"[bastards] {mother.Name} does not know who the father is"); return;
+            }
             Scandal(b, guardian, culprit);
-            PublicTalk(b, kids, mother, father);
+            if (player) PublicTalk(b, kids, mother, father);
+            else TellFamily(guardian, mother, father, kids);
         }
 
         /// <summary>
@@ -417,6 +630,21 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 Log.Info($"[bastards] scandal: {culprit.Name} pays for the child raised by {guardian.Name}");
             }
             catch (Exception ex) { Log.Error("[bastards] scandal", ex); }
+        }
+
+        /// <summary>Between other characters: no rumour, only the guardian's spouse and head of house learn of it (Illegitimate Children).</summary>
+        private static void TellFamily(Hero guardian, Hero mother, Hero father, List<Hero> kids)
+        {
+            try
+            {
+                string names = string.Join(", ", kids.Select(c => c.Name.ToString()));
+                string by = father != null ? $"by {father.Name}" : "by a man she cannot name";
+                string text = $"[You learned: {mother.Name} bore {names}, a child out of wedlock {by}. It is raised in {guardian.Clan?.Name}.]";
+                foreach (var h in new[] { guardian.Spouse, guardian.Clan?.Leader }.Where(x => x != null && x.IsAlive && x != guardian && x != P).Distinct())
+                    MemoryStore.Get(h.StringId, h.Name.ToString()).Turns.Add(new ChatTurn { Role = "player", Text = text, Day = CampaignTime.Now.ToDays });
+                Log.Info($"[bastards] the birth stays within the family of {guardian.Name}");
+            }
+            catch (Exception ex) { Log.Error("[bastards] telling the family", ex); }
         }
 
         /// <summary>Talk that names the father: a rumour, never "everyone knows".</summary>
@@ -546,6 +774,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 if (names.Count == 0) return;
                 string first = child.FirstName?.ToString() ?? child.Name.ToString();
                 if (!b.BirthNames.ContainsKey(child.StringId)) b.BirthNames[child.StringId] = first;
+                if (!S.Get.BastardSurnames) return;
                 string full = first + " " + names[Rng.Next(names.Count)];
                 child.SetName(new TextObject("{=!}" + full), new TextObject("{=!}" + first));
             }
@@ -591,8 +820,19 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
             try
             {
                 if (!Enabled || a == null || b == null) return;
-                foreach (var r in All.Where(x => x.Born && ((x.MotherId == a.StringId && x.FatherId == b.StringId) || (x.MotherId == b.StringId && x.FatherId == a.StringId))).ToList())
-                    foreach (var id in r.Children.ToList()) { var c = Hero.Find(id); if (c != null && c.IsAlive) Legitimize(r, c, move: true); }
+                var woman = a.IsFemale && !b.IsFemale ? a : b.IsFemale && !a.IsFemale ? b : null;
+                if (woman?.Clan != null)
+                {
+                    Clan after = null;
+                    try { after = Campaign.Current.Models.MarriageModel.GetClanAfterMarriage(a, b); } catch { }
+                    if (after != null && after != woman.Clan)
+                        foreach (var c in woman.Children.ToList())
+                            if (c != null && c.IsAlive && RecordOf(c) != null && c.Clan == woman.Clan && c.Clan?.Leader != c && c.Spouse == null)
+                            { c.Clan = after; Log.Info($"[bastards] {c.Name} follows their mother {woman.Name} to {after.Name}"); }
+                }
+                if (S.Get.BastardLegitimizeParentsMarry)
+                    foreach (var r in All.Where(x => x.Born && ((x.MotherId == a.StringId && x.FatherId == b.StringId) || (x.MotherId == b.StringId && x.FatherId == a.StringId))).ToList())
+                        foreach (var id in r.Children.ToList()) { var c = Hero.Find(id); if (c != null && c.IsAlive) Legitimize(r, c, move: true); }
                 if (S.Get.BastardLegitimizeOnMarriage)
                     foreach (var h in new[] { a, b }) if (IsBaseborn(h)) Legitimize(RecordOf(h), h);
             }
@@ -602,7 +842,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         /// <summary>Heading a house makes one legitimate.</summary>
         public static void OnClanLeaderChanged(Hero oldLeader, Hero newLeader)
         {
-            try { if (Enabled && newLeader != null && IsBaseborn(newLeader)) Legitimize(RecordOf(newLeader), newLeader); }
+            try { if (Enabled && S.Get.BastardLegitimizeHeirs && newLeader != null && IsBaseborn(newLeader)) Legitimize(RecordOf(newLeader), newLeader); }
             catch (Exception ex) { Log.Error("[bastards] clan leader", ex); }
         }
 
@@ -683,6 +923,49 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
                 WorldSim.State.Bastards.RemoveAll(x => x.Lost && now - x.ConceivedDay > 400);
             }
             catch (Exception ex) { Log.Error("[bastards] day", ex); }
+        }
+
+        /// <summary>
+        /// The MCM button (Illegitimate Children's «Check pregnancies»): each pregnancy out of wedlock being kept, with when it
+        /// is due, and those that ended without a birth closed as lost (the mother died or is no longer carrying, or a repeat).
+        /// </summary>
+        public static void CheckPregnancies()
+        {
+            try
+            {
+                if (Campaign.Current == null || WorldSim.State?.Bastards == null) return;
+                var open = All.Where(x => !x.Born && !x.Lost).ToList();
+                if (open.Count == 0) { InformationManager.DisplayMessage(new InformationMessage(L.T("AIL_e7b1de2b", "No hay embarazos registrados."), Colors.Gray)); return; }
+                var due = new Dictionary<Hero, CampaignTime>();
+                var q = GameQueue();
+                if (q != null) foreach (var e in q) { var m = MotherOf(e); if (m != null && e.GetType().GetField("DueDate")?.GetValue(e) is CampaignTime t) due[m] = t; }
+                var seen = new HashSet<string>();
+                int ok = 0, lost = 0;
+                foreach (var b in open)
+                {
+                    var mother = Hero.Find(b.MotherId); var father = Hero.Find(b.FatherId);
+                    string mn = mother?.Name?.ToString() ?? b.MotherId, fn = father?.Name?.ToString() ?? b.FatherId;
+                    string why = mother == null || !mother.IsAlive ? L.T("AIL_e7b1de2f", "la madre ha muerto")
+                               : !mother.IsPregnant ? L.T("AIL_e7b1de30", "la madre ya no está embarazada")
+                               : !seen.Add(b.MotherId) ? L.T("AIL_e7b1de31", "registro repetido") : null;
+                    if (why == null)
+                    {
+                        ok++;
+                        int days = due.TryGetValue(mother, out var t) ? Math.Max(0, (int)Math.Ceiling(t.ToDays - CampaignTime.Now.ToDays)) : -1;
+                        InformationManager.DisplayMessage(new InformationMessage(days >= 0 ? L.F("AIL_e7b1de2d", $"{mn}, de {fn}: nace en {days} días.") : L.F("AIL_e7b1de2e", $"{mn}, de {fn}: en curso."), Colors.White));
+                    }
+                    else
+                    {
+                        lost++;
+                        b.Lost = true;
+                        InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1de32", $"{mn}, de {fn}: se da por perdido ({why})."), Colors.Gray));
+                    }
+                }
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1de2c", $"Embarazos: {ok} en curso, {lost} cerrados por perdidos."), Colors.Yellow));
+                Log.Info($"[bastards] check: {ok} pregnancies going on, {lost} closed as lost");
+                if (lost > 0) SaveFiles.Dirty();
+            }
+            catch (Exception ex) { Log.Error("[bastards] check pregnancies", ex); }
         }
 
         public static void OnHeroKilled(Hero victim, Hero killer, KillCharacterAction.KillCharacterActionDetail detail, bool show)

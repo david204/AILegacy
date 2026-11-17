@@ -36,6 +36,55 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Warn("Could not match the occupation of " + h?.Name + ": " + ex.Message); }
         }
 
+        /// <summary>
+        /// Every living lord whose hidden occupation lags behind, matched at once (Illegitimate Children does it on loading and
+        /// each day). How many were matched.
+        /// </summary>
+        public static int SyncAll()
+        {
+            int n = 0;
+            try
+            {
+                foreach (var h in Hero.AllAliveHeroes)
+                {
+                    var co = h?.CharacterObject;
+                    if (co == null || h.Occupation != Occupation.Lord || co.GetDefaultOccupation() == Occupation.Lord) continue;
+                    SyncOccupation(h); n++;
+                }
+                if (n > 0) Log.Info($"[occupations] matched the hidden occupation of {n} lord(s)");
+            }
+            catch (Exception ex) { Log.Warn("Matching occupations: " + ex.Message); }
+            return n;
+        }
+
+        /// <summary>
+        /// A child born a lord to a parent whose hidden occupation was not, would be named as a commoner by the game: named
+        /// as a lord is ("Name", or "Name of the {clan}" in a band, a nomad house, a sect or mercenaries) and matched.
+        /// </summary>
+        public static void OnHeroCreated(Hero h, bool bornNaturally)
+        {
+            try
+            {
+                var co = h?.CharacterObject;
+                if (!bornNaturally || co == null || h.Occupation != Occupation.Lord || co.GetDefaultOccupation() == Occupation.Lord) return;
+                var first = h.FirstName;
+                if (first != null)
+                {
+                    var clan = h.Clan;
+                    TextObject full = first;
+                    if (clan != null && (clan.IsMafia || clan.IsNomad || clan.IsUnderMercenaryService || clan.IsSect))
+                    {
+                        full = new TextObject("{=4z1t75be}{FIRSTNAME} of the {CLAN_NAME}");
+                        full.SetTextVariable("CLAN_NAME", clan.InformalName);
+                        full.SetTextVariable("FIRSTNAME", first);
+                    }
+                    h.SetName(full, first);
+                }
+                SyncOccupation(h);
+            }
+            catch (Exception ex) { Log.Warn("Naming a newborn lord: " + ex.Message); }
+        }
+
         public static Hero Promote(Speaker s, Agent agent, bool companion, out string error)
         {
             error = null;

@@ -153,6 +153,19 @@ Answer ONLY with JSON: { ""secrets"": [ { ""text"": ""..."", ""text_local"": "".
             catch (Exception ex) { Log.Error("Save event secret", ex); return null; }
         }
 
+        /// <summary>These people learn the secret too; it stays a secret. -1 if it is no longer kept, else how many learned it.</summary>
+        public static int Tell(string id, IEnumerable<Hero> who)
+        {
+            var s = All.FirstOrDefault(x => x.Id == id);
+            if (s == null) return -1;
+            int n = 0;
+            foreach (var h in who ?? Enumerable.Empty<Hero>()) if (h != null && h != Hero.MainHero && !s.KnownBy.Contains(h.StringId)) { s.KnownBy.Add(h.StringId); n++; }
+            return n;
+        }
+
+        /// <summary>The secret is forgotten by everyone.</summary>
+        public static bool Remove(string id) => All.RemoveAll(x => x.Id == id) > 0;
+
         /// <summary>The secret has come out: everyone it names may now speak of it, and these people know it too.</summary>
         public static void Reveal(string id, IEnumerable<Hero> nowKnownBy)
         {

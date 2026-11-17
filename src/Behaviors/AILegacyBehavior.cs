@@ -60,6 +60,8 @@ namespace AILegacy.Behaviors
             CampaignEvents.BeforeHeroesMarried.AddNonSerializedListener(this, Concubines.OnMarried);
             CampaignEvents.BeforeHeroKilledEvent.AddNonSerializedListener(this, Concubines.OnHeroKilled);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Concubines.OnDailyTick);
+            CampaignEvents.HeroCreated.AddNonSerializedListener(this, World.People.OnHeroCreated);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, () => World.People.SyncAll());
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             // Political history: rulers and fief owners
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.History.OnRulingClanChanged);
@@ -282,6 +284,7 @@ namespace AILegacy.Behaviors
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
+            try { World.People.SyncAll(); World.PartyRepair.Request(3f); } catch (Exception ex) { Log.Warn("Repairs after loading: " + ex.Message); }
             SubModule.PatchForCampaign();
             World.QuestJournalGuards.Apply();
             LoadCampaignData();
@@ -465,6 +468,22 @@ namespace AILegacy.Behaviors
                 () => Bastards.Acknowledge(Hero.OneToOneConversationHero), priority: 101,
                 clickableConditionDelegate: (out TextObject why) => Bastards.CanPayLegitimize(out why));
             starter.AddDialogLine("ailegacy_acknowledge_reply", "ailegacy_acknowledge_reply", "lord_pretalk", L.T("AIL_e7b1c824", "{=!}*se te queda mirando un largo momento* Toda la vida esperando oír eso."),
+                null, null, priority: 100);
+            // Concubines (Illegitimate Children's lines): part ways, make it a marriage, or take one away from another
+            starter.AddPlayerLine("ailegacy_concubine_part", "hero_main_options", "ailegacy_concubine_part_reply", L.T("AIL_e7b1de23", "{=!}Creo que ha llegado el momento de separarnos."),
+                () => Concubines.IsWithPlayer(Hero.OneToOneConversationHero),
+                () => { var h = Hero.OneToOneConversationHero; var msg = Concubines.End(h); if (!string.IsNullOrEmpty(msg)) WorldSim.Say(msg, TaleWorlds.Library.Colors.Yellow); }, priority: 500);
+            starter.AddDialogLine("ailegacy_concubine_part_reply", "ailegacy_concubine_part_reply", "lord_pretalk", L.T("AIL_e7b1de24", "{=!}Si insistes. Adiós."),
+                null, null, priority: 100);
+            starter.AddPlayerLine("ailegacy_concubine_marry", "hero_main_options", "ailegacy_concubine_marry_reply", L.T("AIL_e7b1de25", "{=!}Quiero hacer oficial lo nuestro. ¿Te casarás conmigo?"),
+                () => Concubines.IsWithPlayer(Hero.OneToOneConversationHero) && Hero.MainHero.Spouse == null,
+                () => { var h = Hero.OneToOneConversationHero; Campaign.Current.ConversationManager.ConversationEndOneShot += () => NpcActions.WedConcubine(h); }, priority: 600);
+            starter.AddDialogLine("ailegacy_concubine_marry_reply", "ailegacy_concubine_marry_reply", "close_window", L.T("AIL_e7b1de26", "{=!}¡Preparémoslo, entonces!"),
+                null, null, priority: 100);
+            starter.AddPlayerLine("ailegacy_concubine_steal", "hero_main_options", "ailegacy_concubine_steal_reply", L.T("AIL_e7b1de20", "{=!}Vente conmigo. Deja lo que tienes con tu amante."),
+                () => Concubines.CanSteal(Hero.OneToOneConversationHero),
+                () => Concubines.Steal(Hero.OneToOneConversationHero), priority: 700);
+            starter.AddDialogLine("ailegacy_concubine_steal_reply", "ailegacy_concubine_steal_reply", "lord_pretalk", L.T("AIL_e7b1de21", "{=!}Mi corazón solo late por ti. Iré contigo."),
                 null, null, priority: 100);            // On the map: dismount and talk face to face in a terrain scene
             starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),

@@ -2737,6 +2737,18 @@ leave: renounced your ruler");
 
         private static void Say(string msg) => TaleWorlds.Library.InformationManager.DisplayMessage(new TaleWorlds.Library.InformationMessage(msg, TaleWorlds.Library.Colors.Yellow));
 
+        /// <summary>«Let's make it official»: the player marries their concubine from the fixed dialogue line.</summary>
+        internal static void WedConcubine(Hero h)
+        {
+            try
+            {
+                if (h == null) return;
+                var msg = FinishWedding(Speaker.FromHero(h));
+                if (!string.IsNullOrEmpty(msg)) Say(msg);
+            }
+            catch (Exception ex) { Log.Error("Marrying the concubine", ex); }
+        }
+
         /// <summary>The wedding, once the character has said yes. Returns what the player is shown, or null.</summary>
         private static string FinishWedding(Speaker s)
         {

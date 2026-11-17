@@ -2840,5 +2840,51 @@
     <string id="AIL_e7b1dde4" text="Keine Meeresszene an der Position der Gruppe." />
     <string id="AIL_e7b1dde5" text="An Deck. F zum Reden, Alt+T, um zu denen in deiner Nähe zu sprechen, Tab zurück zur Karte." />
     <string id="AIL_e7b1dde7" text="Das Deck konnte nicht geöffnet werden; siehe ailegacy.log." />
+    <string id="AIL_e7b1de00" text="Unehelich: eigene Schwangerschaftsregeln" />
+    <string id="AIL_e7b1de01" text="An: Eine uneheliche Schwangerschaft dauert zwischen den beiden Längen unten statt der Spielzeit, und die Chancen auf Totgeburt und Tod im Kindbett unten gelten (nie für die Spielerin). Aus: die Schwangerschaft des Spiels für alles; Nachnamen, Vormundschaft und Folgen bleiben. Standard: aus." />
+    <string id="AIL_e7b1de02" text="Eigene Regeln: kürzeste Dauer (Jahre)" />
+    <string id="AIL_e7b1de03" text="Mit eigenen Regeln: die kürzeste Dauer einer unehelichen Schwangerschaft in Jahren (ein Jahr hat 84 Tage). Standard: 0,70." />
+    <string id="AIL_e7b1de04" text="Eigene Regeln: längste Dauer (Jahre)" />
+    <string id="AIL_e7b1de05" text="Mit eigenen Regeln: die längste Dauer einer unehelichen Schwangerschaft in Jahren. Standard: 0,82." />
+    <string id="AIL_e7b1de06" text="Eigene Regeln: Totgeburt (%)" />
+    <string id="AIL_e7b1de07" text="Mit eigenen Regeln: Chance, dass ein uneheliches Kind tot geboren wird. Standard: 10." />
+    <string id="AIL_e7b1de08" text="Eigene Regeln: Tod im Kindbett (%)" />
+    <string id="AIL_e7b1de09" text="Mit eigenen Regeln: Chance, dass eine Mutter bei einer unehelichen Geburt stirbt. Nie die Spielerin. Standard: 15." />
+    <string id="AIL_e7b1de0a" text="Unehelich: Kultur deiner Kinder" />
+    <string id="AIL_e7b1de0b" text="Die Kultur, die ein uneheliches Kind von dir annimmt: die deines Clans, die der Mutter oder zufällig eine davon. Standard: die deines Clans." />
+    <string id="AIL_e7b1de0c" text="Unehelich: Bastardnamen" />
+    <string id="AIL_e7b1de0d" text="Ein uneheliches Kind trägt einen Bastardnamen aus der Kultur seiner Mutter und bekommt seinen Namen zurück, wenn es legitimiert wird. Aus: Es behält den Namen, den das Spiel vergibt. Standard: an." />
+    <string id="AIL_e7b1de0e" text="Unehelich: Angaben in der Enzyklopädie" />
+    <string id="AIL_e7b1de0f" text="Enzyklopädie und Familienlisten sagen «Bastardsohn», «Konkubine» und «Liebhaber», und eine Konkubine und wer mit ihr lebt erscheinen in der Familie des anderen. Aus: die Wörter und Listen des Spiels. Standard: an." />
+    <string id="AIL_e7b1de10" text="Unehelich: Meldungen zu Schwangerschaft und Geburt" />
+    <string id="AIL_e7b1de11" text="Eine Zeile im Nachrichtenprotokoll, wenn ein uneheliches Kind von dir gezeugt wird und wenn eines in deinem Haus geboren wird. Standard: aus." />
+    <string id="AIL_e7b1de12" text="Unehelich: ein Haus anzuführen legitimiert" />
+    <string id="AIL_e7b1de13" text="Ein uneheliches Kind, das Oberhaupt seines Hauses wird, wird legitimiert. Standard: an." />
+    <string id="AIL_e7b1de14" text="Unehelich: Heirat der Eltern legitimiert" />
+    <string id="AIL_e7b1de15" text="Wenn die beiden Eltern einander heiraten, werden ihre unehelichen Kinder legitimiert und kommen in ihr Haus. Standard: an." />
+    <string id="AIL_e7b1de16" text="Unehelich: geringerer Wert bei einer Heirat (%)" />
+    <string id="AIL_e7b1de17" text="Bei einer Heiratsverhandlung ist die Hand eines Bastards um diesen Anteil weniger wert, und wenn ein Bastard fragt, um diesen Anteil mehr. 0 = kein Unterschied. Standard: 75." />
+    <string id="AIL_e7b1de18" text="Schwangerschaften prüfen" />
+    <string id="AIL_e7b1de19" text="Jetzt prüfen" />
+    <string id="AIL_e7b1de1a" text="Listet im Nachrichtenprotokoll jede verfolgte uneheliche Schwangerschaft mit ihrem Termin und schließt als verloren, die ohne Geburt endeten (Mutter tot oder nicht mehr schwanger, oder doppelter Eintrag)." />
+    <string id="AIL_e7b1de20" text="{=!}Komm mit mir. Verlass deine jetzige Abmachung." />
+    <string id="AIL_e7b1de21" text="{=!}Mein Herz schlägt nur für dich. Ich komme." />
+    <string id="AIL_e7b1de22" text="{0} hat den Liebhaber verlassen, um bei dir zu sein." />
+    <string id="AIL_e7b1de23" text="{=!}Ich glaube, es ist Zeit, dass wir getrennte Wege gehen." />
+    <string id="AIL_e7b1de24" text="{=!}Wenn du darauf bestehst. Leb wohl." />
+    <string id="AIL_e7b1de25" text="{=!}Ich möchte unsere Bindung offiziell machen. Heiratest du mich?" />
+    <string id="AIL_e7b1de26" text="{=!}Dann lass uns alles vorbereiten!" />
+    <string id="AIL_e7b1de27" text="{0} ist schwanger geworden!" />
+    <string id="AIL_e7b1de28" text="{0} hat ein totes Kind zur Welt gebracht." />
+    <string id="AIL_e7b1de29" text="{0} hat {1} zur Welt gebracht, das in dein Haus kommt." />
+    <string id="AIL_e7b1de2a" text="Du hast {0} zur Welt gebracht, das Kind von {1}, das in dein Haus kommt." />
+    <string id="AIL_e7b1de2b" text="Keine verfolgten Schwangerschaften." />
+    <string id="AIL_e7b1de2c" text="Schwangerschaften: {0} laufend, {1} als verloren geschlossen." />
+    <string id="AIL_e7b1de2d" text="{0}, von {1}: Geburt in {2} Tagen." />
+    <string id="AIL_e7b1de2e" text="{0}, von {1}: läuft." />
+    <string id="AIL_e7b1de2f" text="die Mutter ist tot" />
+    <string id="AIL_e7b1de30" text="die Mutter ist nicht mehr schwanger" />
+    <string id="AIL_e7b1de31" text="doppelter Eintrag" />
+    <string id="AIL_e7b1de32" text="{0}, von {1}: als verloren geschlossen ({2})." />
   </strings>
 </base>

@@ -72,6 +72,63 @@ namespace AILegacy.World
 
         private static int CountOf(Hero partner) => partner == null ? 0 : All.Count(c => c.PartnerId == partner.StringId);
 
+        /// <summary>Keeps a concubine of their own (a lord of the AI).</summary>
+        public static bool Keeps(Hero h) => CountOf(h) > 0;
+
+        /// <summary>Those who live with this one as concubines (the player's when it is the player).</summary>
+        public static List<Hero> KeptBy(Hero h)
+        {
+            if (h == null) return new List<Hero>();
+            return All.Where(c => h == P ? WithPlayer(c) : c.PartnerId == h.StringId).Select(c => Hero.Find(c.HeroId)).Where(x => x != null).ToList();
+        }
+
+        /// <summary>
+        /// «Come away with me»: someone who lives as another's concubine may leave them for the player (Illegitimate Children).
+        /// Of the other sex it takes some romance (25); of the same sex, with that allowed, a good relation (50, theirs or
+        /// their head of house's). Never kin.
+        /// </summary>
+        public static bool CanSteal(Hero h)
+        {
+            try
+            {
+                if (!Enabled || h == null || P == null || h == P || !h.IsAlive || h.IsPrisoner) return false;
+                var partner = PartnerOf(h);
+                if (partner == null || partner == P || IsWithPlayer(h)) return false;
+                if (h.Age < 18 || P.Age < 18 || Bastards.Kin(h, P) || Bonds.IsCloseFamily(h)) return false;
+                if (h.IsFemale != P.IsFemale)
+                {
+                    var mem = MemoryStore.Find(h.StringId);
+                    return mem != null && mem.Romance >= 25;
+                }
+                if (!S.Get.RomanceSameSex) return false;
+                int rel = (int)h.GetRelationWithPlayer();
+                var head = h.Clan?.Leader;
+                if (head != null && head != h) rel = Math.Max(rel, (int)head.GetRelationWithPlayer());
+                return rel >= 50;
+            }
+            catch { return false; }
+        }
+
+        /// <summary>They leave the one who kept them, for the player: free again, and the one left behind takes it badly (worse if honourable).</summary>
+        public static void Steal(Hero h)
+        {
+            try
+            {
+                var partner = PartnerOf(h);
+                if (partner == null || partner == P) return;
+                End(h, quiet: true, keepRelation: true);
+                int loss = 30;
+                try { if (partner.GetTraitLevel(DefaultTraits.Honor) >= 1) loss += 15; } catch { }
+                if (partner.IsAlive) ChangeRelationAction.ApplyPlayerRelation(partner, -loss, false, true);
+                Note(h, $"[Done: you left {partner.Name}, who kept you as a concubine, to be with {P.Name}. You are free now to marry or to live with someone again.]");
+                Note(partner, $"[Done: {h.Name} left your household and went to {P.Name}. You take it badly.]");
+                Log.Info($"[concubines] {h.Name} leaves {partner.Name} for the player");
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1de22", $"{h.Name} ha dejado a su amante para estar contigo."), Colors.Green));
+                SaveFiles.Dirty();
+            }
+            catch (Exception ex) { Log.Error("Concubine: leaving their partner for the player", ex); }
+        }
+
         /// <summary>
         /// Why they cannot become the player's concubine right now, or null if they can. Saying yes to a marriage with
         /// a player who is already married skips the romance needed (Illegitimate Children does not ask it there) and
@@ -164,7 +221,7 @@ namespace AILegacy.World
         }
 
         /// <summary>It ends: back to their house and their old life, with a hard word between them. Null if they were not one.</summary>
-        public static string End(Hero h, bool quiet = false)
+        public static string End(Hero h, bool quiet = false, bool keepRelation = false)
         {
             var c = All.FirstOrDefault(x => x.HeroId == h?.StringId);
             if (c == null) return null;
@@ -189,7 +246,8 @@ namespace AILegacy.World
                     }
                     var home = h.HomeSettlement ?? origin?.HomeSettlement ?? Settlement.All.FirstOrDefault(s => s.IsTown);
                     if (home != null && h.PartyBelongedTo == null) try { TeleportHeroAction.ApplyImmediateTeleportToSettlement(h, home); } catch { }
-                    if (player) ChangeRelationAction.ApplyPlayerRelation(h, -25, false, !quiet);
+                    if (keepRelation) { }
+                    else if (player) ChangeRelationAction.ApplyPlayerRelation(h, -25, false, !quiet);
                     else if (partner != null && partner.IsAlive) ChangeRelationAction.ApplyRelationChangeBetweenHeroes(h, partner, -25, false);
                     Note(h, $"[Done: you are no longer {partner?.Name}'s concubine and went back to your own house.]");
                 }
@@ -277,10 +335,13 @@ namespace AILegacy.World
                     if (partner == null || !partner.IsAlive) { if (!WithPlayer(c)) End(h, true); continue; }
                     if (h.IsFemale == partner.IsFemale) continue;
                     var mother = h.IsFemale ? h : partner; var father = h.IsFemale ? partner : h;
-                    if (mother.IsPregnant || mother.Age < 18 || mother.Age > 45) continue;
+                    if (mother.IsPregnant || mother.Age < 18 || mother.Age > 45 || mother.Clan == null) continue;
                     if (!Together(h, partner)) continue;
-                    int kids = mother.Children.Count(k => k.Father == father);
-                    double p = (1.2 - (mother.Age - 18) * 0.04) / ((kids + 1) * (kids + 1)) * 0.12 * S.Get.ConcubinePregnancyPercent / 100.0;
+                    int kids = mother.Children.Count + 1;
+                    float room = 4f + 4f * mother.Clan.Tier;
+                    double house = mother == P ? 1.0 : Math.Max(0.0, Math.Min(1.0, (2f * room - mother.Clan.AliveLords.Count) / room));
+                    double p = (1.2 - (mother.Age - 18) * 0.04) / (kids * kids) * 0.12 * house * S.Get.ConcubinePregnancyPercent / 100.0;
+                    try { if (mother.GetPerkValue(DefaultPerks.Charm.Virile) || father.GetPerkValue(DefaultPerks.Charm.Virile)) p *= 1.0 + DefaultPerks.Charm.Virile.PrimaryBonus; } catch { }
                     try { p *= Mood.FertilityFactor(mother); } catch { }
                     if (Rng.NextDouble() < p) Bastards.Conceive(mother, father);
                 }
@@ -289,9 +350,18 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("[concubines] day", ex); }
         }
 
-        private static bool Together(Hero a, Hero b) =>
-            a.PartyBelongedTo != null && a.PartyBelongedTo == b.PartyBelongedTo
-            || (a.CurrentSettlement != null && a.CurrentSettlement == b.CurrentSettlement);
+        /// <summary>
+        /// Under one roof: the same place or the same company (an army counts as one). Away from the player's house nobody
+        /// tracks them that closely: a fifth of the days they count as together anyway (Illegitimate Children).
+        /// </summary>
+        private static bool Together(Hero a, Hero b)
+        {
+            if (a.Clan != Clan.PlayerClan && Rng.NextDouble() < 0.2) return true;
+            MobileParty Top(Hero x) { var p = x.PartyBelongedTo; return p?.AttachedTo ?? p; }
+            Settlement Where(Hero x) => x.CurrentSettlement ?? x.PartyBelongedTo?.CurrentSettlement;
+            var pa = Top(a); var sa = Where(a);
+            return (pa != null && pa == Top(b)) || (sa != null && sa == Where(b));
+        }
 
         // ============================================================ between other characters
 
@@ -396,18 +466,6 @@ namespace AILegacy.World
             Note(lord, $"[Done: you took {x.Name} of {oldClan?.Name} into your household as your concubine.]");
             if (spouse != null) Note(spouse, $"[Done: your spouse {lord.Name} took {x.Name} into the household as a concubine. It hurt you.]");
             if (head != null && head != x && head != lord) Note(head, $"[Done: {x.Name} left your house to live with {lord.Name} as their concubine.]");
-            try
-            {
-                NewsStore.Add(new NewsItem
-                {
-                    Type = "rumor", Importance = 2, Text = $"{lord.Name} has taken {x.Name} of {oldClan?.Name} as a concubine.",
-                    TitleEs = L.F("AIL_e7b1c880", $"{lord.Name} toma una concubina"),
-                    TextEs = L.F("AIL_e7b1c881", $"{x.Name}, de la casa {oldClan?.Name}, vive ahora con {lord.Name} como concubina."),
-                    Kingdoms = new[] { lord.MapFaction, oldClan?.MapFaction }.Where(f => f != null).Select(f => f.StringId).Distinct().ToList(),
-                    Heroes = new List<string> { lord.StringId, x.StringId },
-                });
-            }
-            catch { }
             Log.Info($"[concubines] {lord.Name} takes {x.Name} of {oldClan?.Name} as a concubine");
             SaveFiles.Dirty();
         }

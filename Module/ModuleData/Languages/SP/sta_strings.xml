@@ -2840,5 +2840,51 @@
     <string id="AIL_e7b1dde4" text="No hay escena de mar en la posición del grupo." />
     <string id="AIL_e7b1dde5" text="En cubierta. F para hablar, Alt+T para hablar a los que tengas cerca, Tab para volver al mapa." />
     <string id="AIL_e7b1dde7" text="No se pudo abrir la cubierta; mira ailegacy.log." />
+    <string id="AIL_e7b1de00" text="Fuera del matrimonio: reglas de embarazo propias" />
+    <string id="AIL_e7b1de01" text="Encendido: un embarazo fuera del matrimonio dura entre las dos duraciones de abajo en vez del tiempo del juego, y se aplican las probabilidades de nacer muerto y de morir en el parto de abajo (nunca a la jugadora). Apagado: el embarazo del juego para todo; apellidos, tutela y consecuencias siguen igual. Por defecto: apagado." />
+    <string id="AIL_e7b1de02" text="Reglas propias: duración mínima (años)" />
+    <string id="AIL_e7b1de03" text="Con las reglas propias encendidas: lo menos que dura un embarazo fuera del matrimonio, en años (un año son 84 días). Por defecto: 0,70." />
+    <string id="AIL_e7b1de04" text="Reglas propias: duración máxima (años)" />
+    <string id="AIL_e7b1de05" text="Con las reglas propias encendidas: lo más que dura un embarazo fuera del matrimonio, en años. Por defecto: 0,82." />
+    <string id="AIL_e7b1de06" text="Reglas propias: nacer muerto (%)" />
+    <string id="AIL_e7b1de07" text="Con las reglas propias encendidas: probabilidad de que un hijo fuera del matrimonio nazca muerto. Por defecto: 10." />
+    <string id="AIL_e7b1de08" text="Reglas propias: morir en el parto (%)" />
+    <string id="AIL_e7b1de09" text="Con las reglas propias encendidas: probabilidad de que una madre muera al dar a luz fuera del matrimonio. Nunca la jugadora. Por defecto: 15." />
+    <string id="AIL_e7b1de0a" text="Fuera del matrimonio: cultura de tus hijos" />
+    <string id="AIL_e7b1de0b" text="La cultura que toma un hijo tuyo nacido fuera del matrimonio: la de tu clan, la de la madre, o una de las dos al azar. Por defecto: la de tu clan." />
+    <string id="AIL_e7b1de0c" text="Fuera del matrimonio: apellidos de bastardo" />
+    <string id="AIL_e7b1de0d" text="Un hijo nacido fuera del matrimonio lleva un apellido de bastardo de la cultura de su madre y recupera su nombre al legitimarlo. Apagado: conserva el nombre que le da el juego. Por defecto: encendido." />
+    <string id="AIL_e7b1de0e" text="Fuera del matrimonio: etiquetas en la enciclopedia" />
+    <string id="AIL_e7b1de0f" text="La enciclopedia y las listas de familia dicen «hijo bastardo», «concubina» y «amante», y una concubina y quien vive con ella aparecen en la familia del otro. Apagado: las palabras y listas del juego. Por defecto: encendido." />
+    <string id="AIL_e7b1de10" text="Fuera del matrimonio: avisos de embarazo y nacimiento" />
+    <string id="AIL_e7b1de11" text="Una línea en el registro de mensajes cuando se concibe un hijo tuyo fuera del matrimonio y cuando uno nace en tu casa. Por defecto: apagado." />
+    <string id="AIL_e7b1de12" text="Fuera del matrimonio: encabezar una casa legitima" />
+    <string id="AIL_e7b1de13" text="Un hijo bastardo que llega a cabeza de su casa pasa a ser legítimo. Por defecto: encendido." />
+    <string id="AIL_e7b1de14" text="Fuera del matrimonio: la boda de los padres legitima" />
+    <string id="AIL_e7b1de15" text="Cuando los dos padres se casan entre sí, sus hijos nacidos fuera del matrimonio pasan a ser legítimos y van a su casa. Por defecto: encendido." />
+    <string id="AIL_e7b1de16" text="Fuera del matrimonio: menos valor en una boda (%)" />
+    <string id="AIL_e7b1de17" text="Al negociar una boda, pedir la mano de un bastardo vale esta parte menos, y que la pida un bastardo vale esta parte más. 0 = sin diferencia. Por defecto: 75." />
+    <string id="AIL_e7b1de18" text="Revisar embarazos" />
+    <string id="AIL_e7b1de19" text="Revisar ahora" />
+    <string id="AIL_e7b1de1a" text="Muestra en el registro de mensajes cada embarazo fuera del matrimonio que se está siguiendo y cuándo nace, y cierra como perdidos los que acabaron sin parto (la madre murió o ya no está embarazada, o un registro repetido)." />
+    <string id="AIL_e7b1de20" text="{=!}Vente conmigo. Deja lo que tienes con tu amante." />
+    <string id="AIL_e7b1de21" text="{=!}Mi corazón solo late por ti. Iré contigo." />
+    <string id="AIL_e7b1de22" text="{0} ha dejado a su amante para estar contigo." />
+    <string id="AIL_e7b1de23" text="{=!}Creo que ha llegado el momento de separarnos." />
+    <string id="AIL_e7b1de24" text="{=!}Si insistes. Adiós." />
+    <string id="AIL_e7b1de25" text="{=!}Quiero hacer oficial lo nuestro. ¿Te casarás conmigo?" />
+    <string id="AIL_e7b1de26" text="{=!}¡Preparémoslo, entonces!" />
+    <string id="AIL_e7b1de27" text="¡{0} se ha quedado embarazada!" />
+    <string id="AIL_e7b1de28" text="{0} ha dado a luz un niño muerto." />
+    <string id="AIL_e7b1de29" text="{0} ha dado a luz a {1}, que entra en tu casa." />
+    <string id="AIL_e7b1de2a" text="Has dado a luz a {0}, hijo de {1}, que entra en tu casa." />
+    <string id="AIL_e7b1de2b" text="No hay embarazos registrados." />
+    <string id="AIL_e7b1de2c" text="Embarazos: {0} en curso, {1} cerrados por perdidos." />
+    <string id="AIL_e7b1de2d" text="{0}, de {1}: nace en {2} días." />
+    <string id="AIL_e7b1de2e" text="{0}, de {1}: en curso." />
+    <string id="AIL_e7b1de2f" text="la madre ha muerto" />
+    <string id="AIL_e7b1de30" text="la madre ya no está embarazada" />
+    <string id="AIL_e7b1de31" text="registro repetido" />
+    <string id="AIL_e7b1de32" text="{0}, de {1}: se da por perdido ({2})." />
   </strings>
 </base>

@@ -369,6 +369,7 @@ namespace AILegacy.World
             try { Dialogue.NpcActions.ResetSession(); } catch { }
             try { Scenes.MapTalk.ResetSession(); } catch { }
             try { Scenes.DeckTalk.ResetSession(); } catch { }
+            try { PartyRepair.ResetSession(); } catch { }
             try { Letters.LetterSystem.ResetSession(); } catch { }
             try { Dialogue.Verdict.ResetSession(); } catch { }
             try { Dialogue.Initiative.ResetSession(); } catch { }

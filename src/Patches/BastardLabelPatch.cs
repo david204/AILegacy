@@ -14,7 +14,7 @@ namespace AILegacy.Patches
         {
             try
             {
-                if (queriedHero == null || baseHero == null) return;
+                if (queriedHero == null || baseHero == null || !AILegacy.Settings.S.Get.BastardEncyclopediaTags) return;
                 // a concubine seen from the one they live with (and the other way round)
                 if (Concubines.Enabled && (Concubines.PartnerOf(queriedHero) == baseHero || Concubines.PartnerOf(baseHero) == queriedHero))
                 {

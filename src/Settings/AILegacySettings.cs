@@ -1205,10 +1205,10 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public int BastardLegitimizeInfluenceCost { get; set; } = 150;
 
-        [SettingPropertyInteger("{=AIL_e7b1c882}Out of wedlock: lower worth in a marriage (denars)", 0, 100000, Order = 59, RequireRestart = false,
-            HintText = "{=AIL_e7b1c883}When a marriage is negotiated between a baseborn and a legitimate child, the house asking for a baseborn's hand offers this much less, a house giving a legitimate child to a baseborn asks for this much more, and the baseborn's own house lets them go for half of it. For scale, a point of relation between the two is worth 1000. 0 = no difference. Recommended: 10000 to 30000.")]
+        [SettingPropertyInteger("{=AIL_e7b1de16}Out of wedlock: lower worth in a marriage (%)", 0, 100, Order = 59, RequireRestart = false,
+            HintText = "{=AIL_e7b1de17}When a marriage is negotiated, a baseborn child asked for makes the deal worth this share less, and a baseborn child asking makes it worth this share more. 0 = no difference. Default: 75.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public int BastardMarriagePenalty { get; set; } = 20000;
+        public int BastardMarriageValuePercent { get; set; } = 75;
 
         // Concubines
         [SettingPropertyBool("{=AIL_e7b1c838}Concubines", Order = 60, RequireRestart = false,
@@ -1264,6 +1264,66 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1db0b}Releases at once every concubine in the world, yours and the lords'. Each goes back to their old house and way of life and returns home, taking it badly with whoever kept them. It cannot be undone.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public Action ReleaseAllConcubines { get; set; } = () => Later(World.Concubines.ReleaseAll);
+
+        [SettingPropertyBool("{=AIL_e7b1de00}Out of wedlock: own pregnancy rules", Order = 71, RequireRestart = false,
+            HintText = "{=AIL_e7b1de01}On: a pregnancy out of wedlock lasts between the two lengths below instead of the game's own time, and the stillbirth and death-in-labour chances below apply (never to the player). Off: the game's own pregnancy for everything; surnames, guardians and consequences still apply. Default: off.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool BastardCustomPregnancy { get; set; } = false;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1de02}Own pregnancy rules: shortest (years)", 0.05f, 1f, "0.00", Order = 72, RequireRestart = false,
+            HintText = "{=AIL_e7b1de03}With own pregnancy rules on: the shortest a pregnancy out of wedlock lasts, in years (a year is 84 days). Default: 0.70.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public float BastardBirthMinYears { get; set; } = 0.70f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1de04}Own pregnancy rules: longest (years)", 0.05f, 1f, "0.00", Order = 73, RequireRestart = false,
+            HintText = "{=AIL_e7b1de05}With own pregnancy rules on: the longest a pregnancy out of wedlock lasts, in years. Default: 0.82.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public float BastardBirthMaxYears { get; set; } = 0.82f;
+
+        [SettingPropertyInteger("{=AIL_e7b1de06}Own pregnancy rules: stillbirth (%)", 0, 100, Order = 74, RequireRestart = false,
+            HintText = "{=AIL_e7b1de07}With own pregnancy rules on: chance that a child born out of wedlock is stillborn. Default: 10.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public int BastardStillbirthPercent { get; set; } = 10;
+
+        [SettingPropertyInteger("{=AIL_e7b1de08}Own pregnancy rules: death in labour (%)", 0, 100, Order = 75, RequireRestart = false,
+            HintText = "{=AIL_e7b1de09}With own pregnancy rules on: chance that a mother dies giving birth out of wedlock. Never the player. Default: 15.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public int BastardLaborDeathPercent { get; set; } = 15;
+
+        [SettingPropertyDropdown("{=AIL_e7b1de0a}Out of wedlock: culture of your children", Order = 76, RequireRestart = false,
+            HintText = "{=AIL_e7b1de0b}The culture a child of yours born out of wedlock takes: your clan's, the mother's, or either at random. Default: your clan's.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public MCM.Common.Dropdown<string> PlayerBastardCulture { get; set; } = new MCM.Common.Dropdown<string>(new[] { "Player Clan", "Mother", "50/50%" }, 0);
+
+        [SettingPropertyBool("{=AIL_e7b1de0c}Out of wedlock: baseborn surnames", Order = 77, RequireRestart = false,
+            HintText = "{=AIL_e7b1de0d}A child born out of wedlock takes a baseborn surname of its mother's culture, and gets its own name back when made legitimate. Off: it keeps the name the game gives it. Default: on.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool BastardSurnames { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1de0e}Out of wedlock: tags in the encyclopedia", Order = 78, RequireRestart = false,
+            HintText = "{=AIL_e7b1de0f}The encyclopedia and the family lists say «bastard son», «concubine» and «paramour», and a concubine and the one they live with appear in each other's family. Off: the game's own words and lists. Default: on.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool BastardEncyclopediaTags { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1de10}Out of wedlock: conception and birth notices", Order = 79, RequireRestart = false,
+            HintText = "{=AIL_e7b1de11}A line in the message log when a child of yours out of wedlock is conceived, and when one is born into your household. Default: off.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool BastardNotifications { get; set; } = false;
+
+        [SettingPropertyBool("{=AIL_e7b1de12}Out of wedlock: heading a house makes legitimate", Order = 80, RequireRestart = false,
+            HintText = "{=AIL_e7b1de13}A baseborn child who becomes the head of their house is made legitimate. Default: on.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool BastardLegitimizeHeirs { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1de14}Out of wedlock: parents marrying makes legitimate", Order = 81, RequireRestart = false,
+            HintText = "{=AIL_e7b1de15}When the two parents marry each other, their children born out of wedlock are made legitimate and go to their house. Default: on.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public bool BastardLegitimizeParentsMarry { get; set; } = true;
+
+        [SettingPropertyButton("{=AIL_e7b1de18}Check pregnancies", Content = "{=AIL_e7b1de19}Check now", Order = 82, RequireRestart = false,
+            HintText = "{=AIL_e7b1de1a}Lists in the message log every pregnancy out of wedlock being kept and when it is due, and closes as lost those that ended without a birth (the mother died or is no longer carrying, or a repeated record).")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public Action CheckPregnancies { get; set; } = () => Later(World.Bastards.CheckPregnancies);
 
         [SettingPropertyBool("{=AIL_cae619f6}Tasks (quests created by the AI)", Order = 15, RequireRestart = false,
             HintText = "{=AIL_745a654d}NPCs can give you tasks, note your progress, and mark them fulfilled (with reward) or failed. They appear in the game's quest log. Careful: a saved game with tasks needs AI Legacy to load.")]

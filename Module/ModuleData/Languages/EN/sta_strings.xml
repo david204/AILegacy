@@ -2841,5 +2841,51 @@
     <string id="AIL_e7b1dde4" text="No sea scene at the party's position." />
     <string id="AIL_e7b1dde5" text="On deck. F to talk, Alt+T to talk to those near you, Tab to go back to the map." />
     <string id="AIL_e7b1dde7" text="The deck could not be opened; see ailegacy.log." />
+    <string id="AIL_e7b1de00" text="Out of wedlock: own pregnancy rules" />
+    <string id="AIL_e7b1de01" text="On: a pregnancy out of wedlock lasts between the two lengths below instead of the game's own time, and the stillbirth and death-in-labour chances below apply (never to the player). Off: the game's own pregnancy for everything; surnames, guardians and consequences still apply. Default: off." />
+    <string id="AIL_e7b1de02" text="Own pregnancy rules: shortest (years)" />
+    <string id="AIL_e7b1de03" text="With own pregnancy rules on: the shortest a pregnancy out of wedlock lasts, in years (a year is 84 days). Default: 0.70." />
+    <string id="AIL_e7b1de04" text="Own pregnancy rules: longest (years)" />
+    <string id="AIL_e7b1de05" text="With own pregnancy rules on: the longest a pregnancy out of wedlock lasts, in years. Default: 0.82." />
+    <string id="AIL_e7b1de06" text="Own pregnancy rules: stillbirth (%)" />
+    <string id="AIL_e7b1de07" text="With own pregnancy rules on: chance that a child born out of wedlock is stillborn. Default: 10." />
+    <string id="AIL_e7b1de08" text="Own pregnancy rules: death in labour (%)" />
+    <string id="AIL_e7b1de09" text="With own pregnancy rules on: chance that a mother dies giving birth out of wedlock. Never the player. Default: 15." />
+    <string id="AIL_e7b1de0a" text="Out of wedlock: culture of your children" />
+    <string id="AIL_e7b1de0b" text="The culture a child of yours born out of wedlock takes: your clan's, the mother's, or either at random. Default: your clan's." />
+    <string id="AIL_e7b1de0c" text="Out of wedlock: baseborn surnames" />
+    <string id="AIL_e7b1de0d" text="A child born out of wedlock takes a baseborn surname of its mother's culture, and gets its own name back when made legitimate. Off: it keeps the name the game gives it. Default: on." />
+    <string id="AIL_e7b1de0e" text="Out of wedlock: tags in the encyclopedia" />
+    <string id="AIL_e7b1de0f" text="The encyclopedia and the family lists say «bastard son», «concubine» and «paramour», and a concubine and the one they live with appear in each other's family. Off: the game's own words and lists. Default: on." />
+    <string id="AIL_e7b1de10" text="Out of wedlock: conception and birth notices" />
+    <string id="AIL_e7b1de11" text="A line in the message log when a child of yours out of wedlock is conceived, and when one is born into your household. Default: off." />
+    <string id="AIL_e7b1de12" text="Out of wedlock: heading a house makes legitimate" />
+    <string id="AIL_e7b1de13" text="A baseborn child who becomes the head of their house is made legitimate. Default: on." />
+    <string id="AIL_e7b1de14" text="Out of wedlock: parents marrying makes legitimate" />
+    <string id="AIL_e7b1de15" text="When the two parents marry each other, their children born out of wedlock are made legitimate and go to their house. Default: on." />
+    <string id="AIL_e7b1de16" text="Out of wedlock: lower worth in a marriage (%)" />
+    <string id="AIL_e7b1de17" text="When a marriage is negotiated, a baseborn child asked for makes the deal worth this share less, and a baseborn child asking makes it worth this share more. 0 = no difference. Default: 75." />
+    <string id="AIL_e7b1de18" text="Check pregnancies" />
+    <string id="AIL_e7b1de19" text="Check now" />
+    <string id="AIL_e7b1de1a" text="Lists in the message log every pregnancy out of wedlock being kept and when it is due, and closes as lost those that ended without a birth (the mother died or is no longer carrying, or a repeated record)." />
+    <string id="AIL_e7b1de20" text="{=!}Come away with me. Leave your current arrangement." />
+    <string id="AIL_e7b1de21" text="{=!}My heart beats only for you. I will come." />
+    <string id="AIL_e7b1de22" text="{0} has left their paramour to be with you." />
+    <string id="AIL_e7b1de23" text="{=!}I think it is time for us to part ways." />
+    <string id="AIL_e7b1de24" text="{=!}If you insist. Farewell." />
+    <string id="AIL_e7b1de25" text="{=!}I wish to make our bond official. Will you marry me?" />
+    <string id="AIL_e7b1de26" text="{=!}Let us prepare then!" />
+    <string id="AIL_e7b1de27" text="{0} has gotten pregnant!" />
+    <string id="AIL_e7b1de28" text="{0} has delivered stillborn." />
+    <string id="AIL_e7b1de29" text="{0} has given birth to {1}, who joins your household." />
+    <string id="AIL_e7b1de2a" text="You have given birth to {0}, {1}'s child, who joins your household." />
+    <string id="AIL_e7b1de2b" text="No tracked pregnancies." />
+    <string id="AIL_e7b1de2c" text="Pregnancies: {0} going on, {1} closed as lost." />
+    <string id="AIL_e7b1de2d" text="{0}, by {1}: due in {2} days." />
+    <string id="AIL_e7b1de2e" text="{0}, by {1}: going on." />
+    <string id="AIL_e7b1de2f" text="the mother is dead" />
+    <string id="AIL_e7b1de30" text="the mother is no longer pregnant" />
+    <string id="AIL_e7b1de31" text="a repeated record" />
+    <string id="AIL_e7b1de32" text="{0}, by {1}: closed as lost ({2})." />
   </strings>
 </base>
