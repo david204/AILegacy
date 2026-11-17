@@ -2463,6 +2463,9 @@
     <string id="AIL_e7b1d105" text="Mensaje de bienvenida al empezar o cargar una partida" />
     <string id="AIL_e7b1d106" text="Una vez por carga, en el registro de mensajes: sin ningún proveedor de IA, dónde ponerlo; con proveedores, las reglas de la partida que hayas cambiado y una prueba de conexión de cada proveedor activo, igual que el botón Probar." />
     <string id="AIL_e7b1d107" text="{0} no acepta el esfuerzo de razonamiento; sigue sin él (detalles en el log)." />
+    <string id="AIL_e7b1d1a1" text="{0} no acepta el esfuerzo «{1}». Acepta: {2}. Uso «{3}» en esta sesión; elige uno de esos en sus ajustes." />
+    <string id="AIL_e7b1d1a2" text="{0}: esfuerzos de razonamiento que acepta: {1}." />
+    <string id="AIL_e7b1d1a3" text="{0} no dice qué esfuerzos de razonamiento acepta (detalles en el log)." />
     <string id="AIL_e7b1d108" text="¡Bienvenido a AI Legacy! Para que los personajes hablen, pon un proveedor de IA en Mod Options › AI Legacy › 0. Claves de IA. Las reglas de la partida están en 2. Reglas de la partida: como ya son ajustes, tu texto del mundo puede ser solo ambientación." />
     <string id="AIL_e7b1d109" text="¡Bienvenido a AI Legacy!" />
     <string id="AIL_e7b1d10a" text="¡Bienvenido a AI Legacy! Reglas de la partida que has cambiado: {0}." />

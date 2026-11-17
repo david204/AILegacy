@@ -2464,6 +2464,9 @@
     <string id="AIL_e7b1d105" text="Welcome message when a campaign starts or loads" />
     <string id="AIL_e7b1d106" text="Once per load, in the message log: with no AI provider set up, where to set one up; with providers, the campaign rules you changed and a connection test of each active provider, the same as the Test button." />
     <string id="AIL_e7b1d107" text="{0} does not accept the reasoning effort; it goes on without it (details in the log)." />
+    <string id="AIL_e7b1d1a1" text="{0} does not accept the effort '{1}'. It accepts: {2}. Using '{3}' this session; pick one of those in its settings." />
+    <string id="AIL_e7b1d1a2" text="{0}: reasoning efforts it accepts: {1}." />
+    <string id="AIL_e7b1d1a3" text="{0} doesn't say which reasoning efforts it accepts (details in the log)." />
     <string id="AIL_e7b1d108" text="Welcome to AI Legacy! To make characters talk, add an AI provider in Mod Options › AI Legacy › 0. AI Keys. Campaign rules are in 2. Campaign rules: since they are settings, your world text can be pure flavour." />
     <string id="AIL_e7b1d109" text="Welcome to AI Legacy!" />
     <string id="AIL_e7b1d10a" text="Welcome to AI Legacy! Campaign rules you changed: {0}." />

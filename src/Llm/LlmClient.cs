@@ -343,6 +343,8 @@ namespace AILegacy.Llm
                     var r = t.IsFaulted ? new LlmResult { Ok = false, Error = t.Exception?.GetBaseException().Message } : t.Result;
                     Core.MainThread.Post(() => Show(r.Ok ? L.F("AIL_263bf6a9", $"{prov.Name}/{prov.Model}: OK en {r.Seconds:0.0}s") : $"{prov.Name}/{prov.Model}: ERROR {r.Error}",
                         r.Ok ? TaleWorlds.Library.Colors.Green : TaleWorlds.Library.Colors.Red));
+                    // From the button only (not the welcome check on load): ask it which reasoning efforts it takes
+                    if (r.Ok && !onlyActive) _ = ProbeEfforts(prov, msgs, opts);
                 });
             }
         }
@@ -450,8 +452,8 @@ namespace AILegacy.Llm
                         // The reasoning field is the first suspect when the error names it: same level again, without it
                         UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
                         lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
-                        DropReasoning(p, key, status, err ?? text);
-                        reasoning = false;
+                        // If the error lists the values it takes, retry with the closest one; otherwise without the field
+                        if (!SwapReasoning(p, key, err ?? text)) { DropReasoning(p, key, status, err ?? text); reasoning = false; }
                         level--;
                         continue;
                     }
@@ -482,8 +484,8 @@ namespace AILegacy.Llm
                     {
                         UsageMeter.Record(p.Name, opts.Task, false, 0, 0, 0, secs, 0, 0);
                         lastError = $"HTTP {status}: {Trim(err ?? text, 300)}";
-                        DropReasoning(p, key, status, err ?? text);
-                        reasoning = false;
+                        // If the error lists the values it takes, retry with the closest one; otherwise without the field
+                        if (!SwapReasoning(p, key, err ?? text)) { DropReasoning(p, key, status, err ?? text); reasoning = false; }
                         level--;
                         continue;
                     }
@@ -581,6 +583,9 @@ namespace AILegacy.Llm
             // Reasoning effort (off unless chosen). The minimal level of the ladder never carries it
             string effort = reasoning && level < 3 ? ReasoningLevel(p) : null;
             var style = effort == null ? ReasoningStyle.None : StyleOf(p);
+            // A value this provider told us it accepts, after refusing the chosen one: sent as it gave it
+            string swapped = effort != null && style != ReasoningStyle.Anthropic ? SwappedEffort(p) : null;
+            if (swapped != null) effort = swapped;
             // Thinking tokens come out of the same budget as the reply, so they get room of their own on top
             int room = style == ReasoningStyle.Anthropic ? ThinkingBudget(effort) : style != ReasoningStyle.None ? ReasoningRoom(effort) : 0;
             // Ladder: 0 = everything, 1 = no "extra" (JSON mode kept), 2 = no JSON mode, 3 = minimal
@@ -597,11 +602,11 @@ namespace AILegacy.Llm
             {
                 case ReasoningStyle.OpenAI:
                     // OpenAI, Gemini (OpenAI-compatible), Groq, Ollama, DeepSeek...: low / medium / high; there is nothing above high
-                    body["reasoning_effort"] = effort == "max" ? "high" : effort;
+                    body["reasoning_effort"] = effort == "max" && swapped == null ? "high" : effort;
                     break;
                 case ReasoningStyle.OpenRouter:
                     body.Remove("reasoning_effort");
-                    body["reasoning"] = new JObject { ["effort"] = effort == "max" ? "high" : effort };
+                    body["reasoning"] = new JObject { ["effort"] = effort == "max" && swapped == null ? "high" : effort };
                     break;
                 case ReasoningStyle.Anthropic:
                     body.Remove("reasoning_effort");
@@ -688,7 +693,8 @@ namespace AILegacy.Llm
         }
 
         /// <summary>Extra output tokens left for the model's thinking, so it doesn't eat the reply.</summary>
-        private static int ReasoningRoom(string effort) => effort == "low" ? 1024 : effort == "medium" ? 2048 : effort == "high" ? 4096 : 8192;
+        private static int ReasoningRoom(string effort) =>
+            effort == "none" ? 0 : effort == "minimal" ? 512 : effort == "low" ? 1024 : effort == "medium" ? 2048 : effort == "high" ? 4096 : 8192;
 
         /// <summary>Anthropic's thinking budget (at least 1024 tokens).</summary>
         private static int ThinkingBudget(string effort) => effort == "low" ? 1024 : effort == "medium" ? 4096 : effort == "high" ? 8192 : 16000;
@@ -710,9 +716,119 @@ namespace AILegacy.Llm
         {
             if (IsFlagged(NoReasoning, key)) return;
             Flag(NoReasoning, key);
-            Log.Warn($"{p.Name}/{p.Model}: rejected the reasoning effort \"{(string.IsNullOrEmpty(p.ReasoningEffort) ? "off (thinking disabled)" : p.ReasoningEffort)}\" (HTTP {status}: {Trim(text, 300)}). Retrying without it; it won't be sent to this provider again this session.");
+            Log.Warn($"{p.Name}/{p.Model}: rejected the reasoning effort \"{(string.IsNullOrEmpty(p.ReasoningEffort) ? "off (thinking disabled)" : SentEffort(p) ?? p.ReasoningEffort)}\" (HTTP {status}: {Trim(text, 1000)}). Retrying without it; it won't be sent to this provider again this session.");
             string who = p.Name + "/" + p.Model;
             Core.MainThread.Post(() => Show(L.F("AIL_e7b1d107", $"{who} no acepta el esfuerzo de razonamiento; sigue sin él (detalles en el log)."), TaleWorlds.Library.Colors.Yellow));
+        }
+
+        // Effort values a provider listed as the ones it takes, after refusing ours (key = name|model), for this session
+        // Kept with the value it replaced: if the player picks another effort, the swap no longer applies
+        private static readonly Dictionary<string, (string from, string to)> Swapped = new Dictionary<string, (string, string)>(StringComparer.OrdinalIgnoreCase);
+        private static readonly string[] EffortScale = { "none", "minimal", "low", "medium", "high", "xhigh", "max" };
+
+        private static string SwappedEffort(ProviderConfig p)
+        {
+            string e = ReasoningLevel(p);
+            if (e == null) return null;
+            lock (Swapped) return Swapped.TryGetValue(p.Name + "|" + p.Model, out var v) && v.from == e ? v.to : null;
+        }
+
+        /// <summary>The effort value that goes in the request for this provider, or null when none does.</summary>
+        private static string SentEffort(ProviderConfig p)
+        {
+            string e = ReasoningLevel(p);
+            if (e == null || StyleOf(p) == ReasoningStyle.Anthropic) return e;
+            return SwappedEffort(p) ?? (e == "max" ? "high" : e);
+        }
+
+        /// <summary>
+        /// The effort values a provider's error says it accepts, in the order it gave them. Read only from the part after
+        /// "one of", "supported values" and the like, so the value it refused is not picked up. Empty when it lists none.
+        /// Mistral: "Must be one of (&lt;ReasoningEffort.none: 'none'&gt;, ...)"; OpenAI: "Supported values are: 'low', 'medium', and 'high'."
+        /// </summary>
+        internal static List<string> AcceptedEfforts(string text)
+        {
+            var list = new List<string>();
+            if (string.IsNullOrEmpty(text)) return list;
+            var cue = System.Text.RegularExpressions.Regex.Match(text,
+                @"one of|supported values|valid values|allowed values|accepted values|possible values|supported options|valid options|expected",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (!cue.Success) return list;
+            string tail = text.Substring(cue.Index);
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(tail,
+                         @"\\?['""`](none|minimal|low|medium|high|xhigh|max)\\?['""`]", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                string v = m.Groups[1].Value.ToLowerInvariant();
+                if (!list.Contains(v)) list.Add(v);
+            }
+            return list;
+        }
+
+        /// <summary>Of the accepted values, the nearest to the one chosen; on a tie the lighter one (faster and cheaper).</summary>
+        private static string Closest(string wanted, List<string> accepted)
+        {
+            int w = Array.IndexOf(EffortScale, wanted);
+            if (w < 0) return null;
+            return accepted.Where(a => a != wanted && Array.IndexOf(EffortScale, a) >= 0)
+                .OrderBy(a => Math.Abs(Array.IndexOf(EffortScale, a) - w)).ThenBy(a => Array.IndexOf(EffortScale, a)).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// The provider refused our effort value and its error lists the ones it takes: use the closest for the rest of
+        /// the session and say so, with the full list, in the log and on screen. False = nothing usable in the error
+        /// (or we already switched once), and the caller drops the field as before.
+        /// </summary>
+        private static bool SwapReasoning(ProviderConfig p, string key, string text)
+        {
+            try
+            {
+                string sent = SentEffort(p), chosen = ReasoningLevel(p);
+                if (sent == null || StyleOf(p) == ReasoningStyle.Anthropic) return false;
+                // Already switched for this choice and refused again: give up on the field
+                if (SwappedEffort(p) != null) return false;
+                var ok = AcceptedEfforts(text);
+                string pick = Closest(sent, ok);
+                if (pick == null) return false;
+                lock (Swapped) Swapped[key] = (chosen, pick);
+                string who = p.Name + "/" + p.Model, list = string.Join(", ", ok);
+                Log.Warn($"{who}: rejected the reasoning effort \"{sent}\". It accepts: {list}. Using \"{pick}\" for the rest of this session; choose one of those in its settings to make it stick. Provider message: {Trim(text, 1000)}");
+                Core.MainThread.Post(() => Show(L.F("AIL_e7b1d1a1", $"{who} no acepta el esfuerzo «{sent}». Acepta: {list}. Uso «{pick}» en esta sesión; elige uno de esos en sus ajustes."), TaleWorlds.Library.Colors.Yellow));
+                return true;
+            }
+            catch (Exception ex) { Log.Error("Reasoning effort switch", ex); return false; }
+        }
+
+        /// <summary>
+        /// Test button only: sends a made-up effort value so the provider answers with the list of the ones it takes,
+        /// and shows that list. Providers that refuse without a list, or ignore the field, are reported as such.
+        /// </summary>
+        private static async Task ProbeEfforts(ProviderConfig p, List<ChatMessage> msgs, CallOptions opts)
+        {
+            string who = p.Name + "/" + p.Model;
+            try
+            {
+                var style = StyleOf(p);
+                if (style == ReasoningStyle.Anthropic) return;     // thinking budgets, not named levels
+                var body = JObject.Parse(BuildBody(p, opts, msgs, false, 1, 16));
+                body.Remove("reasoning_effort"); body.Remove("reasoning"); body.Remove("thinking");
+                const string probe = "ailegacy_probe";
+                if (style == ReasoningStyle.OpenRouter) body["reasoning"] = new JObject { ["effort"] = probe };
+                else body["reasoning_effort"] = probe;
+                NoteSent(p);
+                var (status, text, err, _, _) = await Send(p, body.ToString(Formatting.None), opts).ConfigureAwait(false);
+                string reply = err ?? text;
+                var ok = status == 400 || status == 422 ? AcceptedEfforts(reply) : new List<string>();
+                if (ok.Count > 0)
+                {
+                    string list = string.Join(", ", ok);
+                    Log.Info($"{who}: reasoning effort values it accepts: {list}");
+                    Core.MainThread.Post(() => Show(L.F("AIL_e7b1d1a2", $"{who}: esfuerzos de razonamiento que acepta: {list}."), TaleWorlds.Library.Colors.Green));
+                    return;
+                }
+                Log.Info($"{who}: did not list the reasoning effort values it accepts (HTTP {status}: {Trim(reply, 1000)})");
+                Core.MainThread.Post(() => Show(L.F("AIL_e7b1d1a3", $"{who} no dice qué esfuerzos de razonamiento acepta (detalles en el log)."), TaleWorlds.Library.Colors.Gray));
+            }
+            catch (Exception ex) { Log.Error("Reasoning effort probe for " + who, ex); }
         }
 
         // ============================================================ sending

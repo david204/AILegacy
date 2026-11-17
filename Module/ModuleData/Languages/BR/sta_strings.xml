@@ -2463,6 +2463,9 @@
     <string id="AIL_e7b1d105" text="Mensagem de boas-vindas ao iniciar ou carregar uma campanha" />
     <string id="AIL_e7b1d106" text="Uma vez por carregamento, no registro de mensagens: sem provedor de IA, onde configurar um; com provedores, as regras da campanha que você mudou e um teste de conexão de cada provedor ativo, igual ao botão Testar." />
     <string id="AIL_e7b1d107" text="{0} não aceita o esforço de raciocínio; segue sem ele (detalhes no log)." />
+    <string id="AIL_e7b1d1a1" text="{0} não aceita o esforço &quot;{1}&quot;. Aceita: {2}. Uso &quot;{3}&quot; nesta sessão; escolha um desses nas configurações dele." />
+    <string id="AIL_e7b1d1a2" text="{0}: esforços de raciocínio que aceita: {1}." />
+    <string id="AIL_e7b1d1a3" text="{0} não diz quais esforços de raciocínio aceita (detalhes no log)." />
     <string id="AIL_e7b1d108" text="Bem-vindo ao AI Legacy! Para os personagens falarem, adicione um provedor de IA em Mod Options › AI Legacy › 0. Chaves de IA. As regras ficam em 2. Regras da campanha: como já são ajustes, seu texto do mundo pode ser só ambientação." />
     <string id="AIL_e7b1d109" text="Bem-vindo ao AI Legacy!" />
     <string id="AIL_e7b1d10a" text="Bem-vindo ao AI Legacy! Regras da campanha alteradas: {0}." />

@@ -2463,6 +2463,9 @@
     <string id="AIL_e7b1d105" text="Willkommensnachricht beim Start oder Laden einer Kampagne" />
     <string id="AIL_e7b1d106" text="Einmal pro Laden, im Nachrichtenprotokoll: ohne KI-Anbieter, wo du einen einrichtest; mit Anbietern die Kampagnenregeln, die du geändert hast, und ein Verbindungstest jedes aktiven Anbieters, wie beim Knopf Testen." />
     <string id="AIL_e7b1d107" text="{0} akzeptiert den Denkaufwand nicht; es geht ohne weiter (Details im Log)." />
+    <string id="AIL_e7b1d1a1" text="{0} akzeptiert den Aufwand „{1}“ nicht. Er akzeptiert: {2}. Diese Sitzung nutze ich „{3}“; wähle einen davon in seinen Einstellungen." />
+    <string id="AIL_e7b1d1a2" text="{0}: akzeptierte Denkaufwände: {1}." />
+    <string id="AIL_e7b1d1a3" text="{0} sagt nicht, welche Denkaufwände er akzeptiert (Details im Log)." />
     <string id="AIL_e7b1d108" text="Willkommen bei AI Legacy! Damit die Figuren sprechen, richte einen KI-Anbieter unter Mod Options › AI Legacy › 0. KI-Schlüssel ein. Die Regeln stehen unter 2. Kampagnenregeln: Da sie Einstellungen sind, kann dein Welttext reine Atmosphäre sein." />
     <string id="AIL_e7b1d109" text="Willkommen bei AI Legacy!" />
     <string id="AIL_e7b1d10a" text="Willkommen bei AI Legacy! Geänderte Kampagnenregeln: {0}." />

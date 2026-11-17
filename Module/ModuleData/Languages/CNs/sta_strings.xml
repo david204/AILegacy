@@ -2463,6 +2463,9 @@
     <string id="AIL_e7b1d105" text="开始或读取战役时显示欢迎消息" />
     <string id="AIL_e7b1d106" text="每次读取时在消息日志中显示一次：没有设置 AI 服务商时，提示在哪里设置；已设置时，列出你改动过的战役规则，并像“测试”按钮一样测试每个启用的服务商的连接。" />
     <string id="AIL_e7b1d107" text="{0} 不接受推理强度设置；将不带此项继续（详见日志）。" />
+    <string id="AIL_e7b1d1a1" text="{0} 不接受推理强度“{1}”。可接受：{2}。本次会话改用“{3}”；请在其设置中选择其中之一。" />
+    <string id="AIL_e7b1d1a2" text="{0}：可接受的推理强度：{1}。" />
+    <string id="AIL_e7b1d1a3" text="{0} 未说明可接受哪些推理强度（详见日志）。" />
     <string id="AIL_e7b1d108" text="欢迎使用 AI Legacy！要让角色开口说话，请在 Mod Options › AI Legacy › 0. AI密钥 中添加 AI 服务商。战役规则在“2. 战役规则”中：规则已是设置项，你的世界文本可以只写氛围。" />
     <string id="AIL_e7b1d109" text="欢迎使用 AI Legacy！" />
     <string id="AIL_e7b1d10a" text="欢迎使用 AI Legacy！你改动过的战役规则：{0}。" />
