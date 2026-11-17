@@ -1408,6 +1408,39 @@ namespace AILegacy.World
             return null;
         }
 
+        // Capitalised in English without being a name: what a chronicle swears by, bynames, ranks of the cultures
+        private static readonly HashSet<string> StrayOk = new HashSet<string>
+        {
+            "heaven", "heavens", "fortune", "providence", "gods", "goddess", "spirits", "ancestors", "elder", "younger", "cruel", "fearless",
+            "khagan", "konung", "sultana", "emira", "basileus", "archon", "strategos", "voivode", "clansmen", "highlanders", "lowlanders",
+            "steppe", "desert", "mountain", "forest", "looters", "raiders", "pirates", "corsairs",
+        };
+
+        /// <summary>
+        /// Any other made-up name in an ENGLISH text: a capitalised word of five letters or more, not opening a
+        /// sentence, that is no real name of the world, no lord's name, no other hero, clan or troop name
+        /// (<paramref name="others"/>) and no common word: "Nord raiders burned Varmonath farms", "Beres Valant".
+        /// Words in capitals alone are left be. null when fine.
+        /// </summary>
+        public static string CheckStrayNames(string text, ICollection<string> known, ICollection<string> people, ICollection<string> others)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            bool Plain(string w) => IsCommon(w) || StrayOk.Contains(w);
+            var t = Tokens(text);
+            for (int i = 0; i < t.Count; i++)
+            {
+                var tok = t[i];
+                // a sentence opener is read only when a name goes on after it ("Beres Valant of Vlandia...")
+                bool opensName = tok.First && i + 1 < t.Count && t[i + 1].Cap && !t[i + 1].First;
+                if (!tok.Cap || (tok.First && !opensName) || tok.Text.Length < 5 || tok.Text.ToUpperInvariant() == tok.Text) continue;
+                string w = tok.Low;
+                if (Plain(w) || (w.EndsWith("s") && Plain(w.Substring(0, w.Length - 1)))) continue;
+                if (KnownWord(w, known) || (people != null && people.Contains(w)) || (others != null && (others.Contains(w) || KnownWord(w, others)))) continue;
+                return $"names «{tok.Text}», which is no place, realm, clan or person of this world";
+            }
+            return null;
+        }
+
         // ---- people written as places
 
         private static readonly HashSet<string> FiefNouns = new HashSet<string>

@@ -2429,7 +2429,7 @@
     <string id="AIL_e7b1cf1d" text="{0} prosegue come concordato: {1}." />
     <string id="AIL_e7b1cf1e" text="{0} è tornato al tuo fianco, come concordato." />
     <string id="AIL_e7b1d200" text="Mix di eventi: militari (%)" />
-    <string id="AIL_e7b1d201" text="Quota degli eventi di sfondo dedicati alla guerra: battaglie, saccheggi, assedi, eserciti che si radunano, marciano o si sciolgono, provocazioni al confine, bestiame razziato. Le cinque quote si confrontano tra loro e non devono per forza sommare 100 (tutte a 0 = nessuna preferenza)." />
+    <string id="AIL_e7b1d201" text="Quota degli eventi di sfondo dedicati alla guerra: battaglie, saccheggi, assedi, eserciti che si radunano, marciano o si sciolgono, provocazioni al confine, bestiame razziato. Le cinque quote si confrontano tra loro e non devono per forza sommare 100 (tutte a 0 = nessuna preferenza). Militare a 50 con le altre quattro a 20 dà 50 su 130, circa il 38%; per averne la metà, abbassa le altre." />
     <string id="AIL_e7b1d202" text="Mix di eventi: diplomatici (%)" />
     <string id="AIL_e7b1d203" text="Quota degli eventi di sfondo sui rapporti tra corone: ambascerie, offese, matrimoni di Stato, patti cercati o incrinati, liti per confini e prigionieri." />
     <string id="AIL_e7b1d204" text="Mix di eventi: economici (%)" />

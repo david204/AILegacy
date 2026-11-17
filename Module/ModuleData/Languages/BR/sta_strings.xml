@@ -2429,7 +2429,7 @@
     <string id="AIL_e7b1cf1d" text="{0} segue com o combinado: {1}." />
     <string id="AIL_e7b1cf1e" text="{0} voltou para o seu lado, como combinado." />
     <string id="AIL_e7b1d200" text="Mistura de eventos: militares (%)" />
-    <string id="AIL_e7b1d201" text="Parcela dos eventos de fundo sobre a guerra: batalhas, saques, cercos, exércitos que se reúnem, marcham ou se dispersam, provocações na fronteira, gado tomado. As cinco parcelas são comparadas entre si e não precisam somar 100 (todas em 0 = sem preferência)." />
+    <string id="AIL_e7b1d201" text="Parcela dos eventos de fundo sobre a guerra: batalhas, saques, cercos, exércitos que se reúnem, marcham ou se dispersam, provocações na fronteira, gado tomado. As cinco parcelas são comparadas entre si e não precisam somar 100 (todas em 0 = sem preferência). Militar em 50 com as outras quatro em 20 dá 50 de 130, cerca de 38%; para ter metade dos eventos, baixe as outras." />
     <string id="AIL_e7b1d202" text="Mistura de eventos: diplomáticos (%)" />
     <string id="AIL_e7b1d203" text="Parcela dos eventos de fundo sobre as relações entre coroas: embaixadas, ofensas, casamentos de Estado, pactos buscados ou abalados, disputas por fronteiras e prisioneiros." />
     <string id="AIL_e7b1d204" text="Mistura de eventos: econômicos (%)" />

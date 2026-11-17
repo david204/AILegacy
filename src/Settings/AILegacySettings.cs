@@ -2818,7 +2818,7 @@ namespace AILegacy.Settings
         public int WorldEventsPerGeneration { get; set; } = 1;
 
         [SettingPropertyInteger("{=AIL_e7b1d200}Event mix: military (%)", 0, 100, Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1d201}Share of the background events about war: battles, raids, sieges, armies gathering, marching or breaking up, border provocations, cattle seized. The five shares are weighed against each other, they need not add up to 100 (all at 0 = no preference).")]
+            HintText = "{=AIL_e7b1d201}Share of the background events about war: battles, raids, sieges, armies gathering, marching or breaking up, border provocations, cattle seized. The five shares are weighed against each other, they need not add up to 100 (all at 0 = no preference). Military at 50 with the other four at 20 gives 50 of 130, about 38%; for half the events, set the others lower.")]
         [SettingPropertyGroup("{=AIL_f2caa92d}B. World and diplomacy/{=AIL_f0a1011d}Kinds of events", GroupOrder = 2)]
         public int EventMixMilitary { get; set; } = 20;
 

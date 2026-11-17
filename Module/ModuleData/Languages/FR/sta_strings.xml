@@ -2429,7 +2429,7 @@
     <string id="AIL_e7b1cf1d" text="{0} poursuit comme convenu : {1}." />
     <string id="AIL_e7b1cf1e" text="{0} est de retour à vos côtés, comme convenu." />
     <string id="AIL_e7b1d200" text="Répartition des événements : militaires (%)" />
-    <string id="AIL_e7b1d201" text="Part des événements de fond consacrés à la guerre : batailles, pillages, sièges, armées qui se rassemblent, marchent ou se dispersent, provocations à la frontière, bétail saisi. Les cinq parts se comparent entre elles et n’ont pas besoin de faire 100 (toutes à 0 = aucune préférence)." />
+    <string id="AIL_e7b1d201" text="Part des événements de fond consacrés à la guerre : batailles, pillages, sièges, armées qui se rassemblent, marchent ou se dispersent, provocations à la frontière, bétail saisi. Les cinq parts se comparent entre elles et n’ont pas besoin de faire 100 (toutes à 0 = aucune préférence). Militaire à 50 avec les quatre autres à 20 donne 50 sur 130, environ 38 % ; pour la moitié des événements, baissez les autres." />
     <string id="AIL_e7b1d202" text="Répartition des événements : diplomatiques (%)" />
     <string id="AIL_e7b1d203" text="Part des événements de fond sur les relations entre couronnes : ambassades, offenses, mariages d’État, pactes recherchés ou mis à mal, querelles de frontières et de prisonniers." />
     <string id="AIL_e7b1d204" text="Répartition des événements : économiques (%)" />

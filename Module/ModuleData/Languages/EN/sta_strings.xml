@@ -2429,7 +2429,7 @@
     <string id="AIL_e7b1cf1d" text="{0} goes on as agreed: {1}." />
     <string id="AIL_e7b1cf1e" text="{0} is back at your side, as agreed." />
     <string id="AIL_e7b1d200" text="Event mix: military (%)" />
-    <string id="AIL_e7b1d201" text="Share of the background events about war: battles, raids, sieges, armies gathering, marching or breaking up, border provocations, cattle seized. The five shares are weighed against each other, they need not add up to 100 (all at 0 = no preference)." />
+    <string id="AIL_e7b1d201" text="Share of the background events about war: battles, raids, sieges, armies gathering, marching or breaking up, border provocations, cattle seized. The five shares are weighed against each other, they need not add up to 100 (all at 0 = no preference). Military at 50 with the other four at 20 gives 50 of 130, about 38%; for half the events, set the others lower." />
     <string id="AIL_e7b1d202" text="Event mix: diplomatic (%)" />
     <string id="AIL_e7b1d203" text="Share of the background events about relations between crowns: envoys, insults, marriages of state, pacts courted or strained, quarrels over borders and prisoners." />
     <string id="AIL_e7b1d204" text="Event mix: economic (%)" />

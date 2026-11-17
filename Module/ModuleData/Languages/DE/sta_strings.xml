@@ -2429,7 +2429,7 @@
     <string id="AIL_e7b1cf1d" text="{0} macht wie vereinbart weiter: {1}." />
     <string id="AIL_e7b1cf1e" text="{0} ist wie vereinbart wieder an deiner Seite." />
     <string id="AIL_e7b1d200" text="Ereignismischung: militärisch (%)" />
-    <string id="AIL_e7b1d201" text="Anteil der Hintergrundereignisse über den Krieg: Schlachten, Plünderungen, Belagerungen, Heere, die sich sammeln, marschieren oder auflösen, Grenzprovokationen, geraubtes Vieh. Die fünf Anteile werden gegeneinander gewichtet und müssen nicht 100 ergeben (alle auf 0 = keine Vorliebe)." />
+    <string id="AIL_e7b1d201" text="Anteil der Hintergrundereignisse über den Krieg: Schlachten, Plünderungen, Belagerungen, Heere, die sich sammeln, marschieren oder auflösen, Grenzprovokationen, geraubtes Vieh. Die fünf Anteile werden gegeneinander gewichtet und müssen nicht 100 ergeben (alle auf 0 = keine Vorliebe). Militär auf 50 und die anderen vier auf 20 ergibt 50 von 130, etwa 38 %; für die Hälfte der Ereignisse die anderen senken." />
     <string id="AIL_e7b1d202" text="Ereignismischung: diplomatisch (%)" />
     <string id="AIL_e7b1d203" text="Anteil der Hintergrundereignisse über die Beziehungen zwischen Kronen: Gesandtschaften, Beleidigungen, Staatsehen, umworbene oder gespannte Bündnisse, Streit um Grenzen und Gefangene." />
     <string id="AIL_e7b1d204" text="Ereignismischung: wirtschaftlich (%)" />
