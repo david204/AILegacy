@@ -381,8 +381,12 @@ namespace AILegacy.Voice
                         }
                     }
 
-                    using (var ms = new MemoryStream(wav))
-                    using (var player = new System.Media.SoundPlayer(ms))
+                    // Played from a file, never from memory: an async SoundPlayer on a stream hands Windows a managed array
+                    // it keeps reading after the call returns, and when the garbage collector moves that array the game
+                    // dies in native code (access violation, no module named). Seen in map talks whose voice came late.
+                    if (file == null) file = WriteTemp(wav);
+                    if (file == null) continue;
+                    using (var player = new System.Media.SoundPlayer(file))
                     {
                         player.Load();
                         // started under the same lock Stop takes, so a Stop can never slip in between the check and the start
