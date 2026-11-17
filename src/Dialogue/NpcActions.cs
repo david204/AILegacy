@@ -1874,7 +1874,13 @@ namespace AILegacy.Dialogue
                 IsAvailable = s => Combat.EnemyOnMap(s),
                 Extra = s => $"Your party: {Combat.Men(Combat.MapFoeParty(s))} fighting men. Theirs: {Combat.Men(MobileParty.MainParty)}.",
                 // The battle starts on its own when the chat closes (with lords and with lordless parties)
-                Execute = (s, arg, ctx) => { Combat.QueueMapAttack(s); ctx.EndConversation = true; return L.F("AIL_53ea433d", $"{s.Name} da la charla por terminada y se lanza al ataque."); }
+                Execute = (s, arg, ctx) =>
+                {
+                    // in the scene on foot the battle opens on this same ground once the scene closes
+                    if (Scenes.MapTalk.IsOpen) Scenes.MapTalk.EndForBattle(s); else Combat.QueueMapAttack(s);
+                    ctx.EndConversation = true;
+                    return L.F("AIL_53ea433d", $"{s.Name} da la charla por terminada y se lanza al ataque.");
+                }
             },
             new ActionDef
             {
@@ -1882,7 +1888,7 @@ namespace AILegacy.Dialogue
                 Description = "You yield: you and all your men lay down arms and become their prisoners, without a battle. Only when the fight is clearly hopeless or they gave you terms you accept; " +
                               "proud or brave characters would rather fight.",
                 IsAvailable = s => Combat.EnemyOnMap(s) && Combat.Men(Combat.MapFoeParty(s)) * 2 <= Combat.Men(MobileParty.MainParty),
-                Execute = (s, arg, ctx) => { ctx.EndConversation = true; return Combat.QueueSurrender(s); }
+                Execute = (s, arg, ctx) => { ctx.EndConversation = true; if (Scenes.MapTalk.IsOpen) Scenes.MapTalk.LeaveSoon(); return Combat.QueueSurrender(s); }
             },
             new ActionDef
             {
@@ -1894,6 +1900,7 @@ namespace AILegacy.Dialogue
                 {
                     ctx.LetPass = true; ctx.EndConversation = true;
                     Combat.KeepEncounter = false;
+                    if (Scenes.MapTalk.IsOpen) Scenes.MapTalk.Settle();
                     // Their word is given: for one day nobody (theirs or anyone else) goes after the player
                     try { if (s.IsHero) MobileParty.MainParty.IgnoreByOtherPartiesTill(CampaignTime.HoursFromNow(24)); } catch { }
                     return L.F("AIL_7a3f52c8", $"{s.Name} aparta a los suyos y os deja pasar.");
@@ -1915,6 +1922,7 @@ namespace AILegacy.Dialogue
                     Memory.SaveFiles.Flush();
                     Combat.QueuePlayerSurrender();
                     ctx.EndConversation = true;
+                    if (Scenes.MapTalk.IsOpen) Scenes.MapTalk.LeaveSoon();
                     int session = WorldSim.Session;
                     MainThread.Post(() => { if (session == WorldSim.Session) ChatSession.EndFromOutside(); });
                     return L.F("AIL_e7b1d606", $"Te has rendido a {s.Name}.");

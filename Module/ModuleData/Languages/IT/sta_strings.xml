@@ -201,7 +201,7 @@
     <string id="AIL_291705dd" text="Salva" />
     <string id="AIL_292485a4" text="Eventi di fondo (senza che sia successo nulla)" />
     <string id="AIL_2924e794" text="Per non consumare quota quando avanzi velocemente nel tempo." />
-    <string id="AIL_297f659a" text="Quanti di ogni compagnia compaiono dietro al loro capo (prima i suoi eroi, poi le sue truppe migliori)." />
+    <string id="AIL_297f659a" text="Quanti di ogni schieramento si dispongono in file dietro il loro capo (prima gli eroi, poi le truppe migliori). 0 = tutti quelli che ci stanno, fino a 260 persone in tutta la scena. Abbassalo se la scena va lenta." />
     <string id="AIL_298b35b9" text="Risse a pugni e duelli nelle scene, attacco e resa dei nemici sulla mappa e chiamata della guardia." />
     <string id="AIL_298da7f9" text="Lo sanno:" />
     <string id="AIL_29902717" text="frasi recenti" />
@@ -311,7 +311,7 @@
     <string id="AIL_3f4f693a" text="La guardia ti lascia andare." />
     <string id="AIL_3fbb045d" text="Ore di viaggio per unità di distanza (x10)" />
     <string id="AIL_3ff4d651" text="Uso: /note &lt;istruzione&gt;   Es.: /note È mia moglie ed è incinta; non mi fa mai la predica sul pericolo." />
-    <string id="AIL_401f90b1" text="Scena della mappa: accompagnatori per schieramento" />
+    <string id="AIL_401f90b1" text="Scena della mappa: persone per schieramento" />
     <string id="AIL_4073a6cc" text="Nessuna IA ha risposto. Premi Dire per riprovare.&#10;" />
     <string id="AIL_40a03089" text="&#10;(Sei coinvolto)" />
     <string id="AIL_4114935f" text="{=!}Revoca la quarantena" />
@@ -2218,8 +2218,8 @@
     <string id="AIL_e7b1c86e" text="Quando suona l’allarme accorrono la guarnigione e i signori presenti" />
     <string id="AIL_e7b1c86f" text="Con l’allarme dato e nessuna guardia in strada, arrivano a ondate soldati della vera guarnigione del luogo e dei signori del suo regno dentro le mura (solo all’aperto, fino al massimo sopra). Dopo, i morti vengono tolti dai loro elenchi e i caduti vi restano feriti." />
     <string id="AIL_e7b1c870" text="{=!}*smonta e ti fa cenno di fare lo stesso*" />
-    <string id="AIL_e7b1c871" text="Parla nella scena: sempre, quando incontri un signore" />
-    <string id="AIL_e7b1c872" text="Attivato: incontrare sulla mappa un signore con cui non sei in guerra porta subito alla scena a piedi, senza la conversazione sulla mappa prima. Disattivato: scegli «Smontiamo e parliamo faccia a faccia» quando vuoi." />
+    <string id="AIL_e7b1c871" text="Parlare nella scena: aprirla da sola quando incontri un signore" />
+    <string id="AIL_e7b1c872" text="Acceso: incontrando un signore sulla mappa, che tu vada da lui o che un nemico ti raggiunga, si apre subito la scena a piedi, e chi viene a chiederti udienza ti parla lì. Con un nemico tutto si decide nella scena: una battaglia, una resa o essere lasciati andare; andarsene senza nulla di questo riporta il solito incontro sulla mappa. Spento: scegli «Scendiamo da cavallo e parliamo faccia a faccia» quando vuoi. Predefinito: acceso." />
     <string id="AIL_e7b1c873" text="Concubine: anche tra altri personaggi" />
     <string id="AIL_e7b1c874" text="I signori sposati dell'IA infelici in casa possono prendere una concubina di un'altra casata quando passano del tempo insieme (stessa città, esercito o gruppo): lei entra nel suo clan, il capo della sua casata la prende male, il coniuge anche, e possono nascere figli. Finisce quando uno dei due muore. Richiede «Concubine» attivo." />
     <string id="AIL_e7b1c875" text="Concubine tra altri: probabilità (% all'anno)" />
@@ -2792,5 +2792,12 @@
     <string id="AIL_e7b1dd94" text="{0} è già venuto più volte. Gli dici di non chiederti più udienza? Potrà rifarlo appena sarai tu a parlargli." />
     <string id="AIL_e7b1dd95" text="Che non torni" />
     <string id="AIL_e7b1dd96" text="Che continui a venire" />
+    <string id="AIL_e7b1dda0" text="Sei di fronte a {0}. F per parlare, Alt+T per parlare a chi hai vicino, F12 per dare ordini alla tua gente, Tab per andartene." />
+    <string id="AIL_e7b1dda1" text="Ordini: attivi (F1-F7). F12 per il riposo." />
+    <string id="AIL_e7b1dda2" text="Riposo. F12 per dare ordini." />
+    <string id="AIL_e7b1dda3" text="{0} valuta se unirsi alla battaglia…" />
+    <string id="AIL_e7b1dda4" text="{0}: «{1}»" />
+    <string id="AIL_e7b1dda5" text="{0} porta via i suoi dal campo." />
+    <string id="AIL_e7b1dda6" text="{0} si schiera dalla tua parte." />
   </strings>
 </base>

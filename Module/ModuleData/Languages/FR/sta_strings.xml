@@ -201,7 +201,7 @@
     <string id="AIL_291705dd" text="Enregistrer" />
     <string id="AIL_292485a4" text="Événements de fond (sans qu'il se soit rien passé)" />
     <string id="AIL_2924e794" text="Pour ne pas consommer de quota quand tu fais avancer le temps rapidement." />
-    <string id="AIL_297f659a" text="Combien de chaque groupe apparaissent derrière leur chef (d'abord ses héros, puis ses meilleures troupes)." />
+    <string id="AIL_297f659a" text="Combien de chaque camp se rangent derrière leur chef (d'abord leurs héros, puis leurs meilleures troupes). 0 = tous ceux qui tiennent, jusqu'à 260 personnes dans toute la scène. Baissez-le si la scène rame." />
     <string id="AIL_298b35b9" text="Bagarres à mains nues et duels dans les scènes, attaque et reddition des ennemis sur la carte, et appel à la garde." />
     <string id="AIL_298da7f9" text="Le savent :" />
     <string id="AIL_29902717" text="phrases récentes" />
@@ -311,7 +311,7 @@
     <string id="AIL_3f4f693a" text="Le garde te laisse partir." />
     <string id="AIL_3fbb045d" text="Heures de voyage par unité de distance (x10)" />
     <string id="AIL_3ff4d651" text="Usage : /note &lt;instruction&gt;   Ex. : /note C'est ma femme et elle est enceinte ; elle ne me fait jamais la morale sur le danger." />
-    <string id="AIL_401f90b1" text="Scène de la carte : accompagnateurs par camp" />
+    <string id="AIL_401f90b1" text="Scène de carte : personnes par camp" />
     <string id="AIL_4073a6cc" text="Aucune IA n'a répondu. Appuie sur Dire pour réessayer.&#10;" />
     <string id="AIL_40a03089" text="&#10;(Tu es impliqué)" />
     <string id="AIL_4114935f" text="{=!}Lever la quarantaine" />
@@ -2218,8 +2218,8 @@
     <string id="AIL_e7b1c86e" text="Quand l’alarme sonne, la garnison et les seigneurs présents accourent" />
     <string id="AIL_e7b1c86f" text="L’alarme donnée et sans garde dans la rue, des soldats de la vraie garnison du lieu et des seigneurs de son royaume présents dans les murs arrivent par vagues (en extérieur seulement, jusqu’au maximum ci-dessus). Ensuite, les morts sont retirés de leurs effectifs et les blessés y restent blessés." />
     <string id="AIL_e7b1c870" text="{=!}*met pied à terre et vous fait signe d’en faire autant*" />
-    <string id="AIL_e7b1c871" text="Parler dans la scène : toujours, quand vous rencontrez un seigneur" />
-    <string id="AIL_e7b1c872" text="Activé : rencontrer sur la carte un seigneur avec qui vous n’êtes pas en guerre mène directement à la scène à pied, sans la conversation de carte d’abord. Désactivé : vous choisissez « Mettons pied à terre et parlons face à face » quand vous le voulez." />
+    <string id="AIL_e7b1c871" text="Parler dans la scène : l'ouvrir d'elle-même quand vous croisez un seigneur" />
+    <string id="AIL_e7b1c872" text="Activé : croiser un seigneur sur la carte, que vous alliez vers lui ou qu'un ennemi vous rattrape, ouvre aussitôt la scène à pied, et celui qui vient vous demander audience vous y parle aussi. Avec un ennemi tout se règle dans la scène : une bataille, une reddition ou être laissé partir ; partir sans rien de cela ramène la rencontre habituelle sur la carte. Désactivé : vous choisissez « Descendons de cheval et parlons face à face » quand vous voulez. Par défaut : activé." />
     <string id="AIL_e7b1c873" text="Concubines : aussi entre d'autres personnages" />
     <string id="AIL_e7b1c874" text="Les seigneurs mariés de l'IA malheureux en ménage peuvent prendre une concubine d'une autre maison quand ils passent du temps ensemble (même ville, armée ou groupe) : elle rejoint son clan, le chef de sa maison le prend mal, son épouse aussi, et des enfants peuvent naître. Cela prend fin à la mort de l'un des deux. Nécessite « Concubines » activé." />
     <string id="AIL_e7b1c875" text="Concubines entre autres : probabilité (% par an)" />
@@ -2792,5 +2792,12 @@
     <string id="AIL_e7b1dd94" text="{0} est déjà venu plusieurs fois. Lui dire de ne plus vous demander audience ? Cela pourra recommencer dès que vous lui parlerez vous-même." />
     <string id="AIL_e7b1dd95" text="Qu'il ne revienne pas" />
     <string id="AIL_e7b1dd96" text="Qu'il continue à venir" />
+    <string id="AIL_e7b1dda0" text="Vous êtes face à {0}. F pour parler, Alt+T pour parler à ceux qui sont près de vous, F12 pour donner des ordres à vos gens, Tab pour partir." />
+    <string id="AIL_e7b1dda1" text="Ordres : activés (F1-F7). F12 pour repos." />
+    <string id="AIL_e7b1dda2" text="Repos. F12 pour donner des ordres." />
+    <string id="AIL_e7b1dda3" text="{0} se demande s'il rejoint la bataille…" />
+    <string id="AIL_e7b1dda4" text="{0} : « {1} »" />
+    <string id="AIL_e7b1dda5" text="{0} emmène ses hommes hors du champ de bataille." />
+    <string id="AIL_e7b1dda6" text="{0} se range à vos côtés." />
   </strings>
 </base>

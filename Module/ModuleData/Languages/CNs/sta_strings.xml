@@ -201,7 +201,7 @@
     <string id="AIL_291705dd" text="保存" />
     <string id="AIL_292485a4" text="背景事件（没有发生任何事时）" />
     <string id="AIL_2924e794" text="为了在你快速推进时间时不浪费额度。" />
-    <string id="AIL_297f659a" text="每方有多少人出现在其首领身后（先是英雄，再是最精锐的部队）。" />
+    <string id="AIL_297f659a" text="每方在首领身后列队的人数（先是英雄，再是最好的部队）。0 = 能容纳的全部，整个场景最多 260 人。场景卡顿时请调低。" />
     <string id="AIL_298b35b9" text="场景中的拳斗和决斗、地图上敌人的攻击与投降，以及呼叫守卫。" />
     <string id="AIL_298da7f9" text="知情者：" />
     <string id="AIL_29902717" text="最近的句子" />
@@ -311,7 +311,7 @@
     <string id="AIL_3f4f693a" text="守卫放你走了。" />
     <string id="AIL_3fbb045d" text="每单位距离的旅行小时数（x10）" />
     <string id="AIL_3ff4d651" text="用法：/note &lt;指令&gt;   例：/note 她是我的妻子，正怀着身孕；她从不对我唠叨危险的事。" />
-    <string id="AIL_401f90b1" text="地图场景：每方随从" />
+    <string id="AIL_401f90b1" text="地图场景：每方人数" />
     <string id="AIL_4073a6cc" text="没有收到任何AI的回应。点击“说话”重试。&#10;" />
     <string id="AIL_40a03089" text="&#10;（你牵涉其中）" />
     <string id="AIL_4114935f" text="{=!}解除隔离" />
@@ -2218,8 +2218,8 @@
     <string id="AIL_e7b1c86e" text="警报响起时，守军和城中领主前来" />
     <string id="AIL_e7b1c86f" text="警报已响而街上没有守卫时，此地真正守军以及城内本国领主的士兵会成批赶来（仅限户外，不超过上方上限）。事后，阵亡者从其名册中移除，倒下者以伤员身份留在名册中。" />
     <string id="AIL_e7b1c870" text="{=!}*下马，示意你也这样做*" />
-    <string id="AIL_e7b1c871" text="场景对话：遇到领主时总是进入" />
-    <string id="AIL_e7b1c872" text="开启：在地图上遇到未与你交战的领主时直接进入步行场景，不先进行地图对话。关闭：需要时你自己选择“下马当面谈谈”。" />
+    <string id="AIL_e7b1c871" text="场景对话：遇到领主时自动打开" />
+    <string id="AIL_e7b1c872" text="开启：在地图上遇到领主时，无论是你迎上去还是敌人追上你，都会立刻打开步行场景，来求见你的人也会在那里与你交谈。遇到敌人时一切都在场景中解决：战斗、投降或被放行；什么都没发生就离开，会回到地图上的普通遭遇。关闭：你想要时再选择“我们下马当面谈谈”。默认：开启。" />
     <string id="AIL_e7b1c873" text="情妇：也发生在其他角色之间" />
     <string id="AIL_e7b1c874" text="婚姻不幸福的已婚AI领主，在与他人相处时（同一城镇、军队或队伍）可以从别的家族纳一位情妇：她加入他的家族，她的族长和他的配偶都会不满，并且可能会有孩子。任何一方去世时结束。需要开启“情妇”。" />
     <string id="AIL_e7b1c875" text="他人之间的情妇：几率（每年%）" />
@@ -2792,5 +2792,12 @@
     <string id="AIL_e7b1dd94" text="{0}已经来过好几次了。要告诉对方不要再来求见吗？只要你主动与其交谈，对方就可以再来。" />
     <string id="AIL_e7b1dd95" text="别再来了" />
     <string id="AIL_e7b1dd96" text="让对方继续来" />
+    <string id="AIL_e7b1dda0" text="你站在{0}面前。按 F 交谈，Alt+T 对身边的人说话，F12 给你的人下令，Tab 离开。" />
+    <string id="AIL_e7b1dda1" text="命令：开启（F1-F7）。按 F12 稍息。" />
+    <string id="AIL_e7b1dda2" text="稍息。按 F12 下令。" />
+    <string id="AIL_e7b1dda3" text="{0}正在考虑是否加入战斗……" />
+    <string id="AIL_e7b1dda4" text="{0}：“{1}”" />
+    <string id="AIL_e7b1dda5" text="{0}带着自己的人离开了战场。" />
+    <string id="AIL_e7b1dda6" text="{0}站到了你这一边。" />
   </strings>
 </base>

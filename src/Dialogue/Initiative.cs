@@ -37,6 +37,8 @@ namespace AILegacy.Dialogue
             public bool Asked;            // map: player was already asked whether to receive them
             public bool Hostile;          // map: an enemy caught up and blocks your way, no asking
             public bool InParty;          // map: in the player's own party
+            public bool InScene;          // map: the talk opens in the scene on foot (it waits for the scene)
+            public float SceneAge;
             public bool Captor;           // map: holds the player prisoner and comes to see them
             public float Age;
             public Action OnUnanswered;   // player left or the conversation couldn't open
@@ -259,6 +261,13 @@ namespace AILegacy.Dialogue
             {
                 if (Campaign.Current == null) { _p = null; p.OnUnanswered?.Invoke(); return; }
                 if (p.Failed) { End(p, "has no opening line, the approach is dropped"); return; }
+                // Waiting for the scene on foot: the talk there takes the opening line; if it never comes, it is dropped
+                if (p.InScene)
+                {
+                    if (Scenes.MapTalk.IsOpen || Scenes.MapTalk.IsPending) { p.SceneAge = 0f; return; }
+                    if ((p.SceneAge += dt) > 10f) End(p, "the scene closed without the talk");
+                    return;
+                }
                 // The player reading the "wants to talk" window does not count against the time limit
                 if (!(p.Asked && InquiryUp())) p.Age += dt;
                 if (p.Hero != null) TickMap(p); else TickScene(p);
@@ -396,6 +405,15 @@ namespace AILegacy.Dialogue
                 var talkParty = h.PartyBelongedTo ?? party;
                 // Their party goes back to its own business after the talk, unless they agree to something in it
                 ReleaseParty(p);
+                // With the scene opening by itself, they come and speak to you on foot (their opening line is ready)
+                var mode = Scenes.MapTalk.ModeFor(h);
+                if (S.Get.MapTalkAutomatic && !p.Hostile && (mode == Scenes.MapTalkMode.Lord || mode == Scenes.MapTalkMode.Companion))
+                {
+                    p.InScene = true; p.SceneAge = 0f;
+                    Scenes.MapTalk.Queue(h);
+                    Log.Info($"[map scene] NPC initiative opens the scene: {mode} {h.Name}");
+                    return;
+                }
                 CampaignMapConversation.OpenConversation(
                     new ConversationCharacterData(CharacterObject.PlayerCharacter, PartyBase.MainParty),
                     new ConversationCharacterData(h.CharacterObject, talkParty.Party));

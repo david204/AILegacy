@@ -382,8 +382,8 @@ namespace AILegacy.Behaviors
                         if (!S.Get.MapTalkAutomatic || h == null || !h.IsLord || h.IsPrisoner || h.Clan == Clan.PlayerClan || h.PartyBelongedTo?.LeaderHero != h) return false;
                         if (h.PartyBelongedTo.Army != null && h.PartyBelongedTo.Army == TaleWorlds.CampaignSystem.Party.MobileParty.MainParty.Army) return false;
                         if (Campaign.Current.CurrentConversationContext != ConversationContext.PartyEncounter || Initiative.Matches()) return false;
-                        if (h.MapFaction != null && Hero.MainHero.MapFaction != null && h.MapFaction.IsAtWarWith(Hero.MainHero.MapFaction)) return false;
-                        return Scenes.MapTalk.CanOffer(h);
+                        // enemies too: the battle, a surrender or being let go is settled in the scene (MapTalk.ModeFor checks the setting for enemies)
+                        return Scenes.MapTalk.AutoFor(h);
                     }
                     catch { return false; }
                 },

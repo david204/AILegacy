@@ -201,7 +201,7 @@
     <string id="AIL_291705dd" text="Speichern" />
     <string id="AIL_292485a4" text="Hintergrundereignisse (ohne dass etwas geschehen ist)" />
     <string id="AIL_2924e794" text="Damit kein Kontingent verbraucht wird, wenn du die Zeit schnell vorspulst." />
-    <string id="AIL_297f659a" text="Wie viele aus jeder Gruppe hinter ihrem Anführer erscheinen (zuerst seine Helden, dann seine besten Truppen)." />
+    <string id="AIL_297f659a" text="Wie viele jeder Seite in Reihen hinter ihrem Anführer stehen (zuerst die Helden, dann die besten Truppen). 0 = alle, die passen, bis zu 260 Leute in der ganzen Szene. Senke es, wenn die Szene ruckelt." />
     <string id="AIL_298b35b9" text="Faustkämpfe und Duelle in den Szenen, Angriff und Kapitulation von Feinden auf der Karte und das Rufen der Wache." />
     <string id="AIL_298da7f9" text="Wissen davon:" />
     <string id="AIL_29902717" text="aktuelle Sätze" />
@@ -311,7 +311,7 @@
     <string id="AIL_3f4f693a" text="Der Wachmann lässt dich gehen." />
     <string id="AIL_3fbb045d" text="Reisestunden pro Entfernungseinheit (x10)" />
     <string id="AIL_3ff4d651" text="Verwendung: /note &lt;Anweisung&gt;   Bsp.: /note Sie ist meine Frau und schwanger; sie hält mir nie Vorträge über die Gefahr." />
-    <string id="AIL_401f90b1" text="Kartenszene: Begleiter pro Seite" />
+    <string id="AIL_401f90b1" text="Kartenszene: Leute pro Seite" />
     <string id="AIL_4073a6cc" text="Von keiner KI ist eine Antwort eingetroffen. Klicke auf Sagen, um es erneut zu versuchen.&#10;" />
     <string id="AIL_40a03089" text="&#10;(Du bist beteiligt)" />
     <string id="AIL_4114935f" text="{=!}Quarantäne aufheben" />
@@ -2218,8 +2218,8 @@
     <string id="AIL_e7b1c86e" text="Bei Alarm kommen die Garnison und die Herren in der Stadt" />
     <string id="AIL_e7b1c86f" text="Ist Alarm geschlagen und keine Wache mehr auf der Straße, laufen in Wellen Soldaten der echten Garnison des Ortes und der Herren seines Reiches innerhalb der Mauern herbei (nur im Freien, bis zum Höchstwert oben). Danach werden die Toten aus ihren Listen gestrichen, die Gefallenen bleiben dort verwundet." />
     <string id="AIL_e7b1c870" text="{=!}*steigt ab und bedeutet dir, es ihm gleichzutun*" />
-    <string id="AIL_e7b1c871" text="In der Szene sprechen: immer, wenn du einen Herrn triffst" />
-    <string id="AIL_e7b1c872" text="An: Triffst du auf der Karte einen Herrn, mit dem du nicht im Krieg bist, geht es direkt in die Szene zu Fuß, ohne Kartengespräch davor. Aus: Du wählst «Lass uns absteigen und von Angesicht zu Angesicht reden», wann du willst." />
+    <string id="AIL_e7b1c871" text="Gespräch in der Szene: von selbst öffnen, wenn du einem Fürsten begegnest" />
+    <string id="AIL_e7b1c872" text="An: Triffst du auf der Karte einen Fürsten, ob du zu ihm reitest oder ein Feind dich einholt, öffnet sich sofort die Szene zu Fuß, und wer dich um ein Gespräch bittet, spricht dort mit dir. Mit einem Feind wird alles in der Szene entschieden: eine Schlacht, eine Kapitulation oder dass man dich ziehen lässt; gehst du ohne eines davon, kehrt die übliche Begegnung auf der Karte zurück. Aus: Du wählst „Steigen wir ab und reden von Angesicht zu Angesicht“, wann du willst. Standard: an." />
     <string id="AIL_e7b1c873" text="Konkubinen: auch zwischen anderen Figuren" />
     <string id="AIL_e7b1c874" text="Verheiratete KI-Fürsten, die zu Hause unglücklich sind, können eine Konkubine aus einem anderen Haus nehmen, wenn sie Zeit miteinander verbringen (gleiche Stadt, Armee oder Gruppe): Sie tritt seinem Clan bei, ihr Hausoberhaupt nimmt es übel, sein Ehepartner auch, und es können Kinder kommen. Es endet, wenn einer von beiden stirbt. Benötigt «Konkubinen» aktiv." />
     <string id="AIL_e7b1c875" text="Konkubinen zwischen anderen: Chance (% pro Jahr)" />
@@ -2792,5 +2792,12 @@
     <string id="AIL_e7b1dd94" text="{0} war schon mehrmals da. Soll er oder sie nicht mehr um ein Gespräch bitten? Das geht wieder, sobald du selbst mit ihm oder ihr sprichst." />
     <string id="AIL_e7b1dd95" text="Nicht mehr kommen" />
     <string id="AIL_e7b1dd96" text="Darf weiter kommen" />
+    <string id="AIL_e7b1dda0" text="Du stehst vor {0}. F zum Reden, Alt+T, um zu denen in deiner Nähe zu sprechen, F12, um deinen Leuten Befehle zu geben, Tab zum Gehen." />
+    <string id="AIL_e7b1dda1" text="Befehle: an (F1-F7). F12 zum Rühren." />
+    <string id="AIL_e7b1dda2" text="Rührt euch. F12 für Befehle." />
+    <string id="AIL_e7b1dda3" text="{0} überlegt, ob er sich der Schlacht anschließt…" />
+    <string id="AIL_e7b1dda4" text="{0}: „{1}“" />
+    <string id="AIL_e7b1dda5" text="{0} führt seine Leute vom Feld." />
+    <string id="AIL_e7b1dda6" text="{0} stellt sich an deine Seite." />
   </strings>
 </base>

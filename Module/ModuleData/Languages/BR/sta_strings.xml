@@ -201,7 +201,7 @@
     <string id="AIL_291705dd" text="Salvar" />
     <string id="AIL_292485a4" text="Eventos de fundo (sem que tenha acontecido nada)" />
     <string id="AIL_2924e794" text="Para não gastar cota quando você avança o tempo depressa." />
-    <string id="AIL_297f659a" text="Quantos de cada tropa aparecem atrás do seu chefe (primeiro seus heróis, depois suas melhores tropas)." />
+    <string id="AIL_297f659a" text="Quantos de cada lado formam fileiras atrás do líder (primeiro os heróis, depois as melhores tropas). 0 = todos que couberem, até 260 pessoas na cena inteira. Diminua se a cena ficar lenta." />
     <string id="AIL_298b35b9" text="Brigas de socos e duelos nas cenas, ataque e rendição de inimigos no mapa, e chamar a guarda." />
     <string id="AIL_298da7f9" text="Sabem disso:" />
     <string id="AIL_29902717" text="frases recentes" />
@@ -311,7 +311,7 @@
     <string id="AIL_3f4f693a" text="O guarda deixa você ir." />
     <string id="AIL_3fbb045d" text="Horas de viagem por unidade de distância (x10)" />
     <string id="AIL_3ff4d651" text="Uso: /note &lt;instrução&gt;   Ex.: /note É minha esposa e está grávida; nunca me dá sermão sobre o perigo." />
-    <string id="AIL_401f90b1" text="Cena do mapa: acompanhantes por lado" />
+    <string id="AIL_401f90b1" text="Cena do mapa: pessoas por lado" />
     <string id="AIL_4073a6cc" text="Nenhuma IA respondeu. Clique em Dizer para tentar de novo.&#10;" />
     <string id="AIL_40a03089" text="&#10;(Você está envolvido)" />
     <string id="AIL_4114935f" text="{=!}Suspender a quarentena" />
@@ -2218,8 +2218,8 @@
     <string id="AIL_e7b1c86e" text="Quando soa o alarme, a guarnição e os senhores lá dentro acorrem" />
     <string id="AIL_e7b1c86f" text="Com o alarme dado e nenhum guarda na rua, chegam em ondas soldados da guarnição real do lugar e dos senhores do seu reino que estão dentro das muralhas (só ao ar livre, até o máximo acima). Depois, os mortos saem das listas e os caídos ficam feridos nelas." />
     <string id="AIL_e7b1c870" text="{=!}*desmonta e faz um gesto para você fazer o mesmo*" />
-    <string id="AIL_e7b1c871" text="Falar na cena: sempre, ao encontrar um senhor" />
-    <string id="AIL_e7b1c872" text="Ativado: encontrar no mapa um senhor com quem você não está em guerra leva direto à cena a pé, sem a conversa do mapa antes. Desativado: você escolhe «Vamos desmontar e falar frente a frente» quando quiser." />
+    <string id="AIL_e7b1c871" text="Falar na cena: abri-la sozinha ao encontrar um senhor" />
+    <string id="AIL_e7b1c872" text="Ligado: ao encontrar um senhor no mapa, seja você indo até ele ou um inimigo te alcançando, a cena a pé se abre na hora, e quem vem pedir uma palavra também fala com você ali. Com um inimigo tudo se resolve na cena: uma batalha, uma rendição ou ser deixado ir; sair sem nada disso traz de volta o encontro de sempre no mapa. Desligado: você escolhe «Vamos desmontar e conversar cara a cara» quando quiser. Padrão: ligado." />
     <string id="AIL_e7b1c873" text="Concubinas: também entre outros personagens" />
     <string id="AIL_e7b1c874" text="Senhores casados da IA infelizes em casa podem tomar uma concubina de outra casa quando passam tempo juntos (mesma cidade, exército ou grupo): ela entra no clã dele, o chefe da casa dela não gosta, o cônjuge dele também, e podem vir filhos. Termina quando um dos dois morre. Precisa de «Concubinas» ativado." />
     <string id="AIL_e7b1c875" text="Concubinas entre outros: chance (% por ano)" />
@@ -2792,5 +2792,12 @@
     <string id="AIL_e7b1dd94" text="{0} já veio várias vezes. Dizer para não pedir mais audiência? Poderá voltar a fazê-lo assim que você mesmo falar com essa pessoa." />
     <string id="AIL_e7b1dd95" text="Que não volte" />
     <string id="AIL_e7b1dd96" text="Que continue vindo" />
+    <string id="AIL_e7b1dda0" text="Você está diante de {0}. F para falar, Alt+T para falar com quem está perto, F12 para dar ordens à sua gente, Tab para sair." />
+    <string id="AIL_e7b1dda1" text="Ordens: ativadas (F1-F7). F12 para descansar." />
+    <string id="AIL_e7b1dda2" text="Descansar. F12 para dar ordens." />
+    <string id="AIL_e7b1dda3" text="{0} pesa se entra na batalha…" />
+    <string id="AIL_e7b1dda4" text="{0}: «{1}»" />
+    <string id="AIL_e7b1dda5" text="{0} leva os seus para fora do campo." />
+    <string id="AIL_e7b1dda6" text="{0} fica do seu lado." />
   </strings>
 </base>

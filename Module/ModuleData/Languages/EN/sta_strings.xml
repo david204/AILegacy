@@ -201,7 +201,7 @@
     <string id="AIL_291705dd" text="Save" />
     <string id="AIL_292485a4" text="Background events (when nothing has happened)" />
     <string id="AIL_2924e794" text="So as not to spend quota when you advance time quickly." />
-    <string id="AIL_297f659a" text="How many from each party appear behind their leader (first their heroes, then their best troops)." />
+    <string id="AIL_297f659a" text="How many from each side stand in ranks behind their leader (first their heroes, then their best troops). 0 = everyone who fits, up to 260 people in the whole scene. Lower it if the scene runs slowly." />
     <string id="AIL_298b35b9" text="Fistfights and duels in scenes, enemies attacking and surrendering on the map, and calling the guard." />
     <string id="AIL_298da7f9" text="Known by:" />
     <string id="AIL_29902717" text="recent sentences" />
@@ -311,7 +311,7 @@
     <string id="AIL_3f4f693a" text="The guard lets you go." />
     <string id="AIL_3fbb045d" text="Travel hours per distance unit (x10)" />
     <string id="AIL_3ff4d651" text="Usage: /note &lt;instruction&gt;   E.g.: /note She is my wife and is pregnant; she never lectures me about danger." />
-    <string id="AIL_401f90b1" text="Map scene: companions per side" />
+    <string id="AIL_401f90b1" text="Map scene: people per side" />
     <string id="AIL_4073a6cc" text="No reply arrived from any AI. Press Say to try again.&#10;" />
     <string id="AIL_40a03089" text="&#10;(You are involved)" />
     <string id="AIL_4114935f" text="{=!}Lift the quarantine" />
@@ -2218,8 +2218,8 @@
     <string id="AIL_e7b1c86e" text="When the alarm sounds, the garrison and the lords inside come" />
     <string id="AIL_e7b1c86f" text="With the alarm raised and no guard left in the street, soldiers of the place's real garrison, and of the lords of its realm who are inside the walls, run up in waves (outdoors only, up to the maximum above). The dead are taken off their rosters afterwards and the fallen stay wounded there." />
     <string id="AIL_e7b1c870" text="{=!}*dismounts and gestures for you to do the same*" />
-    <string id="AIL_e7b1c871" text="Talk in the scene: always, when you meet a lord" />
-    <string id="AIL_e7b1c872" text="On: meeting a lord on the map you are not at war with goes straight to the scene on foot, without the map conversation first. Off: you choose «Let's dismount and talk face to face» when you want it." />
+    <string id="AIL_e7b1c871" text="Talk in the scene: open it by itself when you meet a lord" />
+    <string id="AIL_e7b1c872" text="On: meeting a lord on the map, whether you ride up to him or an enemy catches you, opens the scene on foot at once, and someone who comes to ask you for a word talks to you there too. With an enemy everything is settled in the scene: a battle, a surrender or being let go; leaving without one of them brings back the usual map encounter. Off: you choose «Let's dismount and talk face to face» when you want it. Default: on." />
     <string id="AIL_e7b1c873" text="Concubines: also between other characters" />
     <string id="AIL_e7b1c874" text="Married lords of the AI who are not happy at home can take a concubine of another house when they spend time together (same town, army or party): she joins his clan, her head of house takes it badly, his spouse too, and children may come. It ends when either dies. Needs «Concubines» on." />
     <string id="AIL_e7b1c875" text="Concubines between others: chance (% a year)" />
@@ -2793,5 +2793,12 @@
     <string id="AIL_e7b1dd94" text="{0} has come several times already. Tell them not to ask you for a word again? They may do it again as soon as you talk to them yourself." />
     <string id="AIL_e7b1dd95" text="Tell them not to" />
     <string id="AIL_e7b1dd96" text="Let them keep coming" />
+    <string id="AIL_e7b1dda0" text="You stand before {0}. F to talk, Alt+T to speak to those near you, F12 to give your people orders, Tab to leave." />
+    <string id="AIL_e7b1dda1" text="Orders: on (F1-F7). F12 to stand at ease." />
+    <string id="AIL_e7b1dda2" text="At ease. F12 to give orders." />
+    <string id="AIL_e7b1dda3" text="{0} weighs whether to join the battle…" />
+    <string id="AIL_e7b1dda4" text="{0}: «{1}»" />
+    <string id="AIL_e7b1dda5" text="{0} leads his men off the field." />
+    <string id="AIL_e7b1dda6" text="{0} takes your side." />
   </strings>
 </base>

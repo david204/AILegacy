@@ -1524,15 +1524,15 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_3a41f7a5}E. Scenes", GroupOrder = 14)]
         public bool EnableMapTalk { get; set; } = true;
 
-        [SettingPropertyBool("{=AIL_e7b1c871}Talk in the scene: always, when you meet a lord", Order = 21, RequireRestart = false,
-            HintText = "{=AIL_e7b1c872}On: meeting a lord on the map you are not at war with goes straight to the scene on foot, without the map conversation first. Off: you choose «Let's dismount and talk face to face» when you want it.")]
+        [SettingPropertyBool("{=AIL_e7b1c871}Talk in the scene: open it by itself when you meet a lord", Order = 21, RequireRestart = false,
+            HintText = "{=AIL_e7b1c872}On: meeting a lord on the map, whether you ride up to him or an enemy catches you, opens the scene on foot at once, and someone who comes to ask you for a word talks to you there too. With an enemy everything is settled in the scene: a battle, a surrender or being let go; leaving without one of them brings back the usual map encounter. Off: you choose «Let's dismount and talk face to face» when you want it. Default: on.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}E. Scenes", GroupOrder = 14)]
-        public bool MapTalkAutomatic { get; set; } = false;
+        public bool MapTalkAutomatic { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_401f90b1}Map scene: companions per side", 0, 30, Order = 21, RequireRestart = false,
-            HintText = "{=AIL_297f659a}How many from each party appear behind their leader (first their heroes, then their best troops).")]
+        [SettingPropertyInteger("{=AIL_401f90b1}Map scene: people per side", 0, 130, Order = 21, RequireRestart = false,
+            HintText = "{=AIL_297f659a}How many from each side stand in ranks behind their leader (first their heroes, then their best troops). 0 = everyone who fits, up to 260 people in the whole scene. Lower it if the scene runs slowly.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}E. Scenes", GroupOrder = 14)]
-        public int MapTalkEscort { get; set; } = 8;
+        public int MapTalkEscort { get; set; } = 0;
 
         // ------------------------------------------------------------ Battles
         [SettingPropertyBool("{=AIL_3bdc9ea5}Battle tactics AI in field battles", Order = 0, RequireRestart = false,

@@ -1496,7 +1496,9 @@ namespace AILegacy.Dialogue
         {
             try
             {
-                if (!S.Get.AllowCombat || Mission.Current != null || PlayerEncounter.Current == null || PlayerEncounter.InsideSettlement || P.MapFaction == null) return false;
+                // On the map, or in the scene on foot with that very lord (everything with an enemy is settled there)
+                bool inScene = Mission.Current != null && Scenes.MapTalk.IsOpen && s != null && s.IsHero && Scenes.MapTalk.Current == s.Hero && Scenes.MapTalk.CurrentMode == Scenes.MapTalkMode.Lord;
+                if (!S.Get.AllowCombat || (Mission.Current != null && !inScene) || PlayerEncounter.Current == null || PlayerEncounter.InsideSettlement || P.MapFaction == null) return false;
                 var p = MapFoeParty(s);
                 if (p == null) return false;
                 var fac = s.IsHero ? s.Faction : p.MapFaction;
