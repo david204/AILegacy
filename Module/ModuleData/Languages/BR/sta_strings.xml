@@ -2785,5 +2785,12 @@
     <string id="AIL_e7b1dd8c" text="Escreva o que a pessoa faz ao falar." />
     <string id="AIL_e7b1dd8d" text="Hábito de fala" />
     <string id="AIL_e7b1dd8e" text="(ao acaso)" />
+    <string id="AIL_e7b1dd90" text="Ocultar busca" />
+    <string id="AIL_e7b1dd91" text="Buscar" />
+    <string id="AIL_e7b1dd92" text="{0} não virá mais falar com você até que você fale com essa pessoa." />
+    <string id="AIL_e7b1dd93" text="{0} quer falar com você" />
+    <string id="AIL_e7b1dd94" text="{0} já veio várias vezes. Dizer para não pedir mais audiência? Poderá voltar a fazê-lo assim que você mesmo falar com essa pessoa." />
+    <string id="AIL_e7b1dd95" text="Que não volte" />
+    <string id="AIL_e7b1dd96" text="Que continue vindo" />
   </strings>
 </base>

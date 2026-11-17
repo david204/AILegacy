@@ -2785,5 +2785,12 @@
     <string id="AIL_e7b1dd8c" text="Напишите, что он делает, когда говорит." />
     <string id="AIL_e7b1dd8d" text="Речевая привычка" />
     <string id="AIL_e7b1dd8e" text="(наугад)" />
+    <string id="AIL_e7b1dd90" text="Скрыть поиск" />
+    <string id="AIL_e7b1dd91" text="Поиск" />
+    <string id="AIL_e7b1dd92" text="{0} больше не придёт к вам поговорить, пока вы сами с ним не заговорите." />
+    <string id="AIL_e7b1dd93" text="{0} хочет поговорить с вами" />
+    <string id="AIL_e7b1dd94" text="{0} приходит уже не в первый раз. Сказать, чтобы больше не просил о разговоре? Это снова станет возможно, как только вы сами с ним заговорите." />
+    <string id="AIL_e7b1dd95" text="Пусть не приходит" />
+    <string id="AIL_e7b1dd96" text="Пусть приходит" />
   </strings>
 </base>

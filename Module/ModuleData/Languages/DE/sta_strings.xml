@@ -2785,5 +2785,12 @@
     <string id="AIL_e7b1dd8c" text="Schreib, was die Person beim Sprechen tut." />
     <string id="AIL_e7b1dd8d" text="Sprechgewohnheit" />
     <string id="AIL_e7b1dd8e" text="(zufällig)" />
+    <string id="AIL_e7b1dd90" text="Suche ausblenden" />
+    <string id="AIL_e7b1dd91" text="Suchen" />
+    <string id="AIL_e7b1dd92" text="{0} kommt nicht mehr zum Reden zu dir, bis du selbst mit ihm oder ihr sprichst." />
+    <string id="AIL_e7b1dd93" text="{0} möchte mit dir sprechen" />
+    <string id="AIL_e7b1dd94" text="{0} war schon mehrmals da. Soll er oder sie nicht mehr um ein Gespräch bitten? Das geht wieder, sobald du selbst mit ihm oder ihr sprichst." />
+    <string id="AIL_e7b1dd95" text="Nicht mehr kommen" />
+    <string id="AIL_e7b1dd96" text="Darf weiter kommen" />
   </strings>
 </base>

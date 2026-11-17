@@ -12,19 +12,19 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" MarginBottom="8" Sprite="BlankWhiteSquare_9" Color="#A37434FF" AlphaFactor="0.6" />
 
                 <!-- search box and the kind of record (all, events, statements) with their counts -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="46">
+                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="46" StackLayout.LayoutMethod="HorizontalLeftToRight">
                   <Children>
-                    <BrushWidget UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="400" SuggestedHeight="46" HorizontalAlignment="Left" VerticalAlignment="Center" Brush="SaveLoad.Search.Button">
+                    <BrushWidget UpdateChildrenStates="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="400" SuggestedHeight="46" HorizontalAlignment="Left" VerticalAlignment="Center" MarginRight="8" IsVisible="@IsSearchOpen" Brush="SaveLoad.Search.Button">
                       <Children>
                         <EditableTextWidget UpdateChildrenStates="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginTop="8" MarginBottom="8" MarginLeft="10" MarginRight="10" Brush="SaveLoad.Search.InputText" DefaultSearchText="@SearchPlaceholder" Text="@SearchText" />
                       </Children>
                     </BrushWidget>
                     <!-- each button keeps the width of its own text; the selected one only changes colour (a StretchToParent child inside a CoverChildren button made it fill the row) -->
-                    <ListPanel DataSource="{Records}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" MarginLeft="404" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                    <ListPanel DataSource="{Records}" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" StackLayout.LayoutMethod="HorizontalLeftToRight">
                       <ItemTemplate>
                         <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="38" MarginRight="8" HorizontalAlignment="Left" VerticalAlignment="Center" Command.Click="ExecuteSelect">
                           <Children>
-                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@Color">
+                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@Color" AlphaFactor="0.55">
                               <Children>
                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#FFFFFFFF" Text="@Text" />
                               </Children>
@@ -34,7 +34,7 @@
                       </ItemTemplate>
                     </ListPanel>
                   </Children>
-                </Widget>
+                </ListPanel>
 
                 <!-- categories present, with their counts; click one to see only it, click it again to see all -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginTop="8" ClipContents="true">
@@ -43,7 +43,7 @@
                       <ItemTemplate>
                         <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="6" HorizontalAlignment="Left" Command.Click="ExecuteSelect">
                           <Children>
-                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@Color">
+                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@Color" AlphaFactor="0.55">
                               <Children>
                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#FFFFFFFF" Text="@Text" />
                               </Children>
@@ -79,7 +79,7 @@
                                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="30" Brush.FontColor="#D8B98AFF" Brush.TextHorizontalAlignment="Center" Text="@Title" />
                                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="4" Brush="Popup.Title.Text" Brush.FontSize="17" Brush.FontColor="#E8963CFF" Brush.TextHorizontalAlignment="Center" Text="@Chapter" IsVisible="@HasChapter" />
                                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="8" Brush="Popup.Title.Text" Brush.FontSize="20" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Text="@Participants" IsVisible="@HasParticipants" />
-                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="4" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#C9B48AFF" Brush.TextHorizontalAlignment="Center" Text="@Place" IsVisible="@HasPlace" />
+                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="4" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#B9A781FF" Brush.TextHorizontalAlignment="Center" Text="@Place" IsVisible="@HasPlace" />
                                         <!-- the event's picture, in a gold frame -->
                                         <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="648" SuggestedHeight="328" HorizontalAlignment="Center" MarginTop="12" Sprite="BlankWhiteSquare_9" Color="#A37434FF" IsVisible="@HasImage">
                                           <Children>
@@ -96,7 +96,7 @@
                                               <ItemTemplate>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="60" MarginRight="60" MarginTop="6">
                                                   <Children>
-                                                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="130" SuggestedHeight="28" HorizontalAlignment="Left" VerticalAlignment="Top" Sprite="BlankWhiteSquare_9" Color="@Color">
+                                                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="130" SuggestedHeight="28" HorizontalAlignment="Left" VerticalAlignment="Top" Sprite="BlankWhiteSquare_9" Color="@Color" AlphaFactor="0.55">
                                                       <Children>
                                                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Text="@Label" />
                                                       </Children>
@@ -112,14 +112,14 @@
                                         <!-- an event's consequences: where they fall, then the bad (red) and the good (green) -->
                                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="14" StackLayout.LayoutMethod="VerticalTopToBottom" IsVisible="@HasEffects">
                                           <Children>
-                                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="19" Brush.FontColor="#D8B98AFF" Brush.TextHorizontalAlignment="Center" Text="@EffectsTitle" />
+                                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="17" Brush.FontColor="#C9B48AFF" Brush.TextHorizontalAlignment="Center" Text="@EffectsTitle" />
                                             <ListPanel DataSource="{EffectLines}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom">
                                               <ItemTemplate>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginLeft="24" MarginRight="24" MarginTop="4">
                                                   <Children>
-                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="6" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#C9B48AFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" IsVisible="@IsPlace" />
-                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#8FD18BFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" IsVisible="@IsGood" />
-                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#E5806FFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" IsVisible="@IsBad" />
+                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="6" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#B9A781FF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" IsVisible="@IsPlace" />
+                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#A8C49CFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" IsVisible="@IsGood" />
+                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#D09A8CFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" IsVisible="@IsBad" />
                                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Brush="Popup.Title.Text" Brush.FontSize="18" Brush.FontColor="#FFFFFFFF" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Text" IsVisible="@IsPlain" />
                                                   </Children>
                                                 </Widget>
@@ -138,14 +138,14 @@
 
                                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="30" MarginTop="14" IsVisible="@HasTags">
                                           <Children>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="@TagColor">
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Left" Sprite="BlankWhiteSquare_9" Color="@TagColor" AlphaFactor="0.5">
                                               <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="17" Brush.FontColor="#FFFFFFFF" Text="@Tag" />
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="15" Brush.FontColor="#E8E0D0FF" Text="@Tag" />
                                               </Children>
                                             </Widget>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Sprite="BlankWhiteSquare_9" Color="#3B3A4AFF">
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" HorizontalAlignment="Right" Sprite="BlankWhiteSquare_9" Color="#3B3A4AFF" AlphaFactor="0.5">
                                               <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="16" Brush.FontColor="#FFFFFFFF" Text="@When" />
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="10" MarginRight="10" Brush="Popup.Title.Text" Brush.FontSize="15" Brush.FontColor="#E8E0D0FF" Text="@When" />
                                               </Children>
                                             </Widget>
                                           </Children>
@@ -179,6 +179,11 @@
                     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="290" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteAction" IsVisible="@HasAction">
                       <Children>
                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@ActionText" />
+                      </Children>
+                    </ButtonWidget>
+                    <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="220" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteSearchToggle">
+                      <Children>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Button.Text" Text="@SearchToggleText" />
                       </Children>
                     </ButtonWidget>
                     <ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="290" SuggestedHeight="64" MarginRight="24" Brush="Popup.Done.Button" Command.Click="ExecuteToggle">

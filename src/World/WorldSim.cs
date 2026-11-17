@@ -278,6 +278,8 @@ namespace AILegacy.World
         [JsonProperty("captive_watch")] public List<CaptiveWatch> CaptiveWatch = new List<CaptiveWatch>();
         /// <summary>Characters the player asked to stop writing (hero id -> day): no letters from them until the player talks to them or writes first (Letters/LetterSystem.cs).</summary>
         [JsonProperty("letters_muted")] public Dictionary<string, double> LettersMuted = new Dictionary<string, double>();
+        /// <summary>Characters told not to come and ask for a word, by hero id, with the day. Lifted when the player talks to them.</summary>
+        [JsonProperty("approach_muted")] public Dictionary<string, double> ApproachMuted = new Dictionary<string, double>();
         /// <summary>Characters whose answer to a letter of the player is on its way. That answer still arrives if they were muted meanwhile.</summary>
         [JsonProperty("letters_replying")] public List<string> LettersReplying = new List<string>();
     }
@@ -562,6 +564,7 @@ Rules:
 - Ground every event in the data below: a real kingdom, real towns, a real war, a real recent event. Structure: cause (from the data) → what is happening → what it threatens or promises. Continue existing stories when it makes sense.
 - NEVER state as done anything only the world itself can do: a war declared, a peace signed, a town changing hands, a ruler or lord dead, a clan expelled, a law or tax enacted. You may write pressure, rumours, accusations, demands, unrest, shortages, omens, plots: the real outcome, if any, will come later from the rulers.
 - Do not overreact to the ordinary business of war. Lords taken prisoner, villages raided, sieges, battles won and lost, feuds between nobles: in this world they happen every season and are not outrages. People answer them by working towards something real: a ransom, an exchange of captives, envoys and bargaining, revenge sought in the field, a raid in return. Never the modern kind of demand that the winning side give everything back at once. A side that has just lost its army or its lords is shaken and on the defensive: it mourns, rallies, bargains or begs for time; it does not threaten as if it were winning.
+- Between realms that are not at war there are no sieges, siege lines, battles or raids: only threats, demands, patrols, border posts and watchtowers, troops gathering, spies and skirmishes of words. A siege is only written where the data shows a war, or a place under siege.
 - Do not involve the person named as ""the realm of ..."" personally unless the data does.
 - Mind the dates in the data. A kingdom marked NEWLY FOUNDED is young and growing: holding little land is its beginning, so never write it as collapsing, dying or fallen. Each war says how long it has lasted and each recent peace when it was made: a war of a few days is new, one of years is old and wearing, and where a peace was made lately the war before it is over.
 - Use readable names in title and text, never ids. Never put a double-quote character inside a text value; use «» if you must quote.
@@ -1326,11 +1329,44 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                              ?? FactCheck.CheckHeroAsPlace(t, names.People);
                 if (bad != null) return bad;
             }
+            string siege = SiegeContradiction(e);
+            if (siege != null) return siege;
             // titles may be written with every word capitalised, so only the text and the summary are read for made-up names
             return FactCheck.CheckInventedNames(e.Text, names.Words, names.People) ?? FactCheck.CheckInventedNames(e.SummaryEn, names.Words, names.People);
         }
 
         private static string Str(JToken t) => t != null && t.Type == JTokenType.String ? (string)t : "";
+
+        // A siege going on, in the languages of the game (enough to catch it in the text or the English summary)
+        private static readonly System.Text.RegularExpressions.Regex SiegeWords = new System.Text.RegularExpressions.Regex(
+            @"\b(siege|sieges|besieg\w*|beleaguer\w*|asedi\w*|sitiad\w*|si[eè]ge|assi[eé]g\w*|assedi\w*|belager\w*)\b|осад\w*|围城|攻城",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        // Next to it, these make it a threat, a plan, a fear or a preparation, which is fine at peace
+        private static readonly System.Text.RegularExpressions.Regex SiegeHedges = new System.Text.RegularExpressions.Regex(
+            @"\b(threat\w*|prepar\w*|plan\w*|fear\w*|would|could|might|may|if|ready|readies|engines?|equipment|rumou?r\w*|talk of|warn\w*|amenaz\w*|prepar\w*|plane\w*|teme\w*|temor|miedo|podr\w*|si|listos?|m[aá]quinas|rumor\w*|advierte\w*|ingenios)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+        /// <summary>
+        /// A siege written as going on when none of the event's realms is at war and none of its places is under siege:
+        /// "Vlandia's siege lines" between realms at peace. A siege threatened, feared or prepared is fine. null when fine.
+        /// </summary>
+        private static string SiegeContradiction(WorldEvent e)
+        {
+            var realms = e.Kingdoms.Select(FindKingdom).Where(k => k != null).ToList();
+            if (realms.Count == 0) return null;
+            if (realms.Any(k => Kingdoms.Any(o => o != k && k.IsAtWarWith(o)))) return null;
+            if (e.Settlements.Select(Settlement.Find).Any(st => st != null && st.IsUnderSiege)) return null;
+            foreach (var t in new[] { e.Title, e.Text, e.SummaryEn })
+            {
+                if (string.IsNullOrWhiteSpace(t)) continue;
+                foreach (var sentence in System.Text.RegularExpressions.Regex.Split(t, @"(?<=[.!?;])\s+"))
+                {
+                    if (!SiegeWords.IsMatch(sentence) || SiegeHedges.IsMatch(sentence)) continue;
+                    return $"writes of a siege going on («{(sentence.Length > 90 ? sentence.Substring(0, 90) + "…" : sentence.Trim())}»), but {string.Join(", ", realms.Select(k => k.Name.ToString()))} {(realms.Count == 1 ? "is" : "are")} at war with nobody and no place of the event is under siege: at peace there are threats, patrols and border posts, never sieges";
+                }
+            }
+            return null;
+        }
 
         /// <summary>A realm the summary, the text or a reason sets out to recover a place it already holds, or a place said to be held by the wrong realm.</summary>
         private static string OwnershipContradiction(WorldEvent e, JObject x, WorldNames names, FactModel model)

@@ -195,6 +195,16 @@ namespace AILegacy.UI
         public void ExecuteClose() => OnClose?.Invoke();
         public void ExecuteAction() => OnAction?.Invoke();
         public void ExecuteToggle() => OnToggle?.Invoke();
+
+        // The search bar stays hidden until asked for, so the chronicle is what you see first
+        private bool _searchOpen;
+        [DataSourceProperty] public bool IsSearchOpen { get => _searchOpen; set { if (value != _searchOpen) { _searchOpen = value; OnPropertyChangedWithValue(value, nameof(IsSearchOpen)); OnPropertyChanged(nameof(SearchToggleText)); } } }
+        [DataSourceProperty] public string SearchToggleText => _searchOpen ? L.T("AIL_e7b1dd90", "Ocultar búsqueda") : L.T("AIL_e7b1dd91", "Buscar");
+        public void ExecuteSearchToggle()
+        {
+            IsSearchOpen = !IsSearchOpen;
+            if (!IsSearchOpen && SearchText.Length > 0) SearchText = "";
+        }
         private string _toggleText = "", _searchText = "";
         [DataSourceProperty] public string ToggleText { get => _toggleText; set { if (value != _toggleText) { _toggleText = value; OnPropertyChangedWithValue(value, nameof(ToggleText)); } } }
         /// <summary>What the player typed in the search box. Every change filters the cards again.</summary>

@@ -2786,5 +2786,12 @@
     <string id="AIL_e7b1dd8c" text="Write what they do when they talk." />
     <string id="AIL_e7b1dd8d" text="Speech habit" />
     <string id="AIL_e7b1dd8e" text="(at random)" />
+    <string id="AIL_e7b1dd90" text="Hide search" />
+    <string id="AIL_e7b1dd91" text="Search" />
+    <string id="AIL_e7b1dd92" text="{0} will not come to talk to you again until you talk to them yourself." />
+    <string id="AIL_e7b1dd93" text="{0} wants to talk to you" />
+    <string id="AIL_e7b1dd94" text="{0} has come several times already. Tell them not to ask you for a word again? They may do it again as soon as you talk to them yourself." />
+    <string id="AIL_e7b1dd95" text="Tell them not to" />
+    <string id="AIL_e7b1dd96" text="Let them keep coming" />
   </strings>
 </base>

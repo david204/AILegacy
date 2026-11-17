@@ -2785,5 +2785,12 @@
     <string id="AIL_e7b1dd8c" text="Écrivez ce qu'il fait en parlant." />
     <string id="AIL_e7b1dd8d" text="Habitude de parole" />
     <string id="AIL_e7b1dd8e" text="(au hasard)" />
+    <string id="AIL_e7b1dd90" text="Masquer la recherche" />
+    <string id="AIL_e7b1dd91" text="Rechercher" />
+    <string id="AIL_e7b1dd92" text="{0} ne reviendra plus vous parler tant que vous ne lui parlerez pas vous-même." />
+    <string id="AIL_e7b1dd93" text="{0} veut vous parler" />
+    <string id="AIL_e7b1dd94" text="{0} est déjà venu plusieurs fois. Lui dire de ne plus vous demander audience ? Cela pourra recommencer dès que vous lui parlerez vous-même." />
+    <string id="AIL_e7b1dd95" text="Qu'il ne revienne pas" />
+    <string id="AIL_e7b1dd96" text="Qu'il continue à venir" />
   </strings>
 </base>

@@ -2785,5 +2785,12 @@
     <string id="AIL_e7b1dd8c" text="写下此人说话时的习惯。" />
     <string id="AIL_e7b1dd8d" text="说话习惯" />
     <string id="AIL_e7b1dd8e" text="（随机）" />
+    <string id="AIL_e7b1dd90" text="隐藏搜索" />
+    <string id="AIL_e7b1dd91" text="搜索" />
+    <string id="AIL_e7b1dd92" text="在你主动与{0}交谈之前，{0}不会再来找你说话。" />
+    <string id="AIL_e7b1dd93" text="{0}想和你谈谈" />
+    <string id="AIL_e7b1dd94" text="{0}已经来过好几次了。要告诉对方不要再来求见吗？只要你主动与其交谈，对方就可以再来。" />
+    <string id="AIL_e7b1dd95" text="别再来了" />
+    <string id="AIL_e7b1dd96" text="让对方继续来" />
   </strings>
 </base>

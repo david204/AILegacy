@@ -63,10 +63,67 @@ namespace AILegacy.Dialogue
             return p != null && h != null && p.Hero == h && !p.Captor && !p.InParty;
         }
 
+        /// <summary>
+        /// The player told them not to come and ask for a word. Lasts until the player starts a talk with them (a conversation
+        /// after the day it was set). Kept per campaign in the world file. Enemies who bar the way are never held back by it.
+        /// </summary>
+        public static bool IsMuted(Hero h)
+        {
+            try
+            {
+                var map = World.WorldSim.State?.ApproachMuted;
+                if (h == null || map == null || !map.TryGetValue(h.StringId, out double day)) return false;
+                var mem = Memory.MemoryStore.Find(h.StringId);
+                if (mem != null && mem.LastConversationDay > day)
+                {
+                    map.Remove(h.StringId);
+                    Log.Info($"Initiative: {h.Name} may come to talk again, the player has talked to them");
+                    return false;
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        private static void Mute(Hero h)
+        {
+            try
+            {
+                var st = World.WorldSim.State;
+                if (h == null || st == null) return;
+                if (st.ApproachMuted == null) st.ApproachMuted = new Dictionary<string, double>();
+                st.ApproachMuted[h.StringId] = CampaignTime.Now.ToDays;
+                Log.Info($"Initiative: {h.Name} will not come to talk until the player talks to them");
+                InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1dd92", $"{h.Name} no volverá a venir a hablarte hasta que le hables tú."), Colors.Yellow));
+                AILegacy.Memory.SaveFiles.Flush();
+            }
+            catch (Exception ex) { Log.Error("Initiative: no more approaches", ex); }
+        }
+
+        // Times each character was sent away lately (this session): the second time in a few days they may be told to stop
+        private static readonly Dictionary<string, List<double>> Declined = new Dictionary<string, List<double>>();
+
+        private static void AfterDecline(Hero h)
+        {
+            if (h == null) return;
+            double now = CampaignTime.Now.ToDays;
+            if (!Declined.TryGetValue(h.StringId, out var days)) Declined[h.StringId] = days = new List<double>();
+            days.RemoveAll(d => now - d > 7);
+            days.Add(now);
+            if (days.Count < 2) return;
+            days.Clear();
+            int session = World.WorldSim.Session;
+            InformationManager.ShowInquiry(new InquiryData(L.F("AIL_e7b1dd93", $"{h.Name} quiere hablar contigo"),
+                L.F("AIL_e7b1dd94", $"{h.Name} ya ha venido varias veces. ¿Le dices que no vuelva a pedirte audiencia? Podrá volver a hacerlo en cuanto hables tú con él o con ella."),
+                true, true, L.T("AIL_e7b1dd95", "Que no vuelva"), L.T("AIL_e7b1dd96", "Que siga viniendo"),
+                () => { if (session == World.WorldSim.Session && Campaign.Current != null) Mute(h); }, null), true);
+        }
+
         /// <summary>In a scene: the NPC (Situation already set) prepares an opening line and walks up to talk.</summary>
         public static bool Start(Agent agent, Speaker s, string openingInstruction, Action onUnanswered = null)
         {
             if (_p != null || agent == null || s == null) return false;
+            if (s.IsHero && IsMuted(s.Hero)) { Log.Info($"Initiative: {s.Name} would come to talk, but was told not to"); return false; }
             return Begin(new Approach { Who = s, Agent = agent, OnUnanswered = onUnanswered }, openingInstruction);
         }
 
@@ -74,6 +131,7 @@ namespace AILegacy.Dialogue
         public static bool StartMap(Hero hero, string openingInstruction, bool hostile = false)
         {
             if (_p != null || hero == null || Hero.MainHero == null || Hero.MainHero.IsPrisoner) return false;
+            if (!hostile && IsMuted(hero)) { Log.Info($"Initiative: {hero.Name} would ride over to talk, but was told not to"); return false; }
             var s = Speaker.FromHero(hero);
             s.SituationKind = "initiative";
             s.Situation = openingInstruction;
@@ -394,6 +452,7 @@ namespace AILegacy.Dialogue
                     End(p, "was not received");
                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1ca00", $"{h.Name} no oculta su decepción, pero asiente."), Colors.Gray));
                     ChatSession.AddNote(p.Who.Memory, "I rode over to speak with them and they would not receive me.", S.Get.MaxNotesPerHero, p.Who.Name);
+                    MainThread.Post(() => AfterDecline(h));
                 }), true);
         }
     }

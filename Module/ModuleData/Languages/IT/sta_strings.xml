@@ -2785,5 +2785,12 @@
     <string id="AIL_e7b1dd8c" text="Scrivi cosa fa quando parla." />
     <string id="AIL_e7b1dd8d" text="Abitudine di parola" />
     <string id="AIL_e7b1dd8e" text="(a caso)" />
+    <string id="AIL_e7b1dd90" text="Nascondi ricerca" />
+    <string id="AIL_e7b1dd91" text="Cerca" />
+    <string id="AIL_e7b1dd92" text="{0} non verrà più a parlarti finché non sarai tu a parlargli." />
+    <string id="AIL_e7b1dd93" text="{0} vuole parlarti" />
+    <string id="AIL_e7b1dd94" text="{0} è già venuto più volte. Gli dici di non chiederti più udienza? Potrà rifarlo appena sarai tu a parlargli." />
+    <string id="AIL_e7b1dd95" text="Che non torni" />
+    <string id="AIL_e7b1dd96" text="Che continui a venire" />
   </strings>
 </base>
