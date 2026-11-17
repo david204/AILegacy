@@ -2985,5 +2985,16 @@
     <string id="AIL_e7b1debf" text="The face editor is open in the game." />
     <string id="AIL_e7b1dec0" text="{0} is already married: they cannot marry {1}." />
     <string id="AIL_e7b1dec1" text="{0} cannot have two spouses." />
+    <string id="AIL_e7b1dec2" text="Hospital" />
+    <string id="AIL_e7b1dec3" text="Physicians, beds and a herb garden. Sets the town's medical level and the herbs it makes each day." />
+    <string id="AIL_e7b1dec4" text="Infirmary" />
+    <string id="AIL_e7b1dec5" text="A barber-surgeon and a few cots. Sets the castle's medical level and the herbs it makes each day." />
+    <string id="AIL_e7b1dec6" text="(in a capital only)" />
+    <string id="AIL_e7b1dec7" text="Medical level {0} (a capital, one more). Herbs a day: {1}." />
+    <string id="AIL_e7b1dec8" text="{0} left." />
+    <string id="AIL_e7b1dec9" text="Used up, and not made here." />
+    <string id="AIL_e7b1deca" text="Used up: the next bundle comes in {0} days." />
+    <string id="AIL_e7b1decb" text="Not enough {0} left, and none are made here." />
+    <string id="AIL_e7b1decc" text="Not enough {0} left: the next bundle comes in {1} days." />
   </strings>
 </base>

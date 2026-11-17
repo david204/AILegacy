@@ -295,7 +295,23 @@ namespace AILegacy.World
 
         // ============================================================ ways of treatment
 
-        private static int BestHerb(Settlement st) => st == null ? 0 : st.IsVillage ? 1 : TierBestHerb[MedicalTier(st)];
+        private static int BestHerb(Settlement st)
+        {
+            if (st == null) return 0;
+            if (!BuildingsOn) return st.IsVillage ? 1 : TierBestHerb[MedicalTier(st)];
+            for (int i = 5; i >= 1; i--) if (StockOf(st, i) >= 0.2f) return i;
+            return 0;
+        }
+
+        /// <summary>The stock line of a herb in the hospital window: how much is left, or when the next bundle comes.</summary>
+        private static string StockLine(Settlement st, int strength)
+        {
+            if (!BuildingsOn) return "";
+            float have = StockOf(st, strength);
+            if (have >= 1f) return " " + L.F("AIL_e7b1dec8", $"Quedan {Num(have)}.");
+            int d = DaysToNext(st, strength, 1f);
+            return " " + (d < 0 ? L.T("AIL_e7b1dec9", "Agotadas, y aquí no se hacen.") : L.F("AIL_e7b1deca", $"Agotadas: el próximo lote llega en {d} días."));
+        }
 
         internal static List<HospitalMethod> HospitalMethods(Settlement st, out bool betterElsewhere)
         {
@@ -322,7 +338,7 @@ namespace AILegacy.World
                 {
                     Herb = i, Quality = q,
                     Name = L.F("AIL_e7b1c930", $"{name} y cuidados del lugar"),
-                    Detail = L.F("AIL_e7b1c931", $"Fuerza ×{power}. {price} denarios por dosis, además de los cuidados."),
+                    Detail = L.F("AIL_e7b1c931", $"Fuerza ×{power}. {price} denarios por dosis, además de los cuidados.") + StockLine(st, h.Strength),
                 });
             }
             return list;
@@ -335,9 +351,20 @@ namespace AILegacy.World
             var open = cases.Where(HospitalCanTreat).Distinct().ToList();
             if (open.Count == 0) return false;
             int cost = open.Sum(s => HospitalCost(s, m, st));
+            float bundles = open.Sum(Bundles);
+            int strength = m.Herb >= 0 && m.Herb < Herbs.Length ? Herbs[m.Herb].Strength : 1;
+            if (m.Herb >= 0 && StockOf(st, strength) + 0.001f < bundles)
+            {
+                int d = DaysToNext(st, strength, bundles);
+                WorldSim.Say(d < 0 ? L.F("AIL_e7b1decb", $"No quedan bastantes {HerbName(Herbs[m.Herb])} y aquí no se hacen.") : L.F("AIL_e7b1decc", $"No quedan bastantes {HerbName(Herbs[m.Herb])}: el próximo lote llega en {d} días."), Colors.Yellow);
+                return false;
+            }
             if (!PayOrOwe(cost)) return false;
+            float quality = m.Quality;
+            if (m.Herb >= 0) UseStock(st, strength, bundles);
+            else if (!UseStock(st, 1, bundles)) quality = OwnCareWithoutHerbs(st, quality);
             // a hero's own Good Lodgings and the governor's Clean Infrastructure count a level more (DiseasesPerks.cs)
-            foreach (var s in open) StartTreatment(s, m.Quality * LodgingBonus(st, s.Kind == Sickness.Hero ? FindHero(s.TargetId) : null));
+            foreach (var s in open) StartTreatment(s, quality * LodgingBonus(st, s.Kind == Sickness.Hero ? FindHero(s.TargetId) : null));
             int n = open.Count;
             WorldSim.Say(L.F("AIL_e7b1c944", $"Los médicos empiezan el tratamiento de {n} enfermo(s) por {cost} denarios."), Colors.Green);
             Log.Info($"[disease] hospital of {st?.Name}: {n} case(s) put under treatment for {cost} denars (strength {m.Quality:0.##})");
@@ -428,7 +455,14 @@ namespace AILegacy.World
             }
             if (!HerbsOn || p.Herb >= Herbs.Length || Herbs[p.Herb].Strength > BestHerb(st)) return false;
             var h = Herbs[p.Herb];
+            if (StockOf(st, h.Strength) + 0.001f < GuardUnits())
+            {
+                int d = DaysToNext(st, h.Strength, GuardUnits());
+                WorldSim.Say(d < 0 ? L.F("AIL_e7b1decb", $"No quedan bastantes {HerbName(h)} y aquí no se hacen.") : L.F("AIL_e7b1decc", $"No quedan bastantes {HerbName(h)}: el próximo lote llega en {d} días."), Colors.Yellow);
+                return false;
+            }
             if (!Pay(HerbPrice(h) * GuardUnits())) return false;
+            UseStock(st, h.Strength, GuardUnits());
             DrinkHerb(h);
             return true;
         }

@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.69.0</Version>
+    <Version>0.70.0</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -50,6 +50,7 @@
     <Reference Include="TaleWorlds.InputSystem"><HintPath>$(GameBin)\TaleWorlds.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.ScreenSystem"><HintPath>$(GameBin)\TaleWorlds.ScreenSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.GauntletUI"><HintPath>$(GameBin)\TaleWorlds.GauntletUI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.GauntletUI.Widgets"><HintPath>$(GameBin)\TaleWorlds.MountAndBlade.GauntletUI.Widgets.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Engine.GauntletUI"><HintPath>$(GameBin)\TaleWorlds.Engine.GauntletUI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.TwoDimension"><HintPath>$(GameBin)\TaleWorlds.TwoDimension.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="System.Numerics.Vectors"><HintPath>$(GameBin)\System.Numerics.Vectors.dll</HintPath><Private>false</Private></Reference>

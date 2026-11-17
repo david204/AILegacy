@@ -2984,5 +2984,16 @@
     <string id="AIL_e7b1debf" text="面容编辑器已在游戏中打开。" />
     <string id="AIL_e7b1dec0" text="{0} 已婚：不能与 {1} 结婚。" />
     <string id="AIL_e7b1dec1" text="{0} 不能有两个配偶。" />
+    <string id="AIL_e7b1dec2" text="医院" />
+    <string id="AIL_e7b1dec3" text="医生、床位和一座草药园。决定城镇的医疗等级和每天制作的草药。" />
+    <string id="AIL_e7b1dec4" text="医务室" />
+    <string id="AIL_e7b1dec5" text="一名理发外科医生和几张行军床。决定城堡的医疗等级和每天制作的草药。" />
+    <string id="AIL_e7b1dec6" text="（仅限都城）" />
+    <string id="AIL_e7b1dec7" text="医疗等级 {0}（都城再加一级）。每日草药：{1}。" />
+    <string id="AIL_e7b1dec8" text="剩余 {0}。" />
+    <string id="AIL_e7b1dec9" text="已用完，且此地不制作。" />
+    <string id="AIL_e7b1deca" text="已用完：下一批将在 {0} 天后到来。" />
+    <string id="AIL_e7b1decb" text="{0} 不够了，且此地不制作。" />
+    <string id="AIL_e7b1decc" text="{0} 不够了：下一批将在 {1} 天后到来。" />
   </strings>
 </base>

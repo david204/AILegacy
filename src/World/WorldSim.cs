@@ -286,6 +286,8 @@ namespace AILegacy.World
         [JsonProperty("letters_replying")] public List<string> LettersReplying = new List<string>();
         /// <summary>Those whose messenger could not find the player in captivity: they do not write again until the player is free.</summary>
         [JsonProperty("letters_lost")] public List<string> LettersLost = new List<string>();
+        /// <summary>Hospitals and infirmaries by settlement id: level, building progress, place in the lists and herbs (DiseasesStock.cs).</summary>
+        [JsonProperty("hospitals")] public Dictionary<string, HospitalRecord> Hospitals = new Dictionary<string, HospitalRecord>();
     }
 
     // ===================================================================== engine

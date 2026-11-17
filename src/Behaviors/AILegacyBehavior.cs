@@ -62,6 +62,11 @@ namespace AILegacy.Behaviors
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, Concubines.OnDailyTick);
             CampaignEvents.HeroCreated.AddNonSerializedListener(this, World.People.OnHeroCreated);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, () => World.People.SyncAll());
+            // hospitals: made each day, out of the towns before a save and back after it
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, () => { World.Diseases.EnsureHospitals(); World.Diseases.HospitalDay(); });
+            CampaignEvents.OnSaveStartedEvent.AddNonSerializedListener(this, World.Diseases.OnSaveStarted);
+            CampaignEvents.OnBeforeSaveEvent.AddNonSerializedListener(this, World.Diseases.OnSaveStarted);
+            CampaignEvents.OnSaveOverEvent.AddNonSerializedListener(this, World.Diseases.OnSaveOver);
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             // Political history: rulers and fief owners
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.History.OnRulingClanChanged);
@@ -285,6 +290,7 @@ namespace AILegacy.Behaviors
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             try { World.People.SyncAll(); World.PartyRepair.Request(3f); } catch (Exception ex) { Log.Warn("Repairs after loading: " + ex.Message); }
+            try { World.Diseases.RegisterHospitals(); World.Diseases.EnsureHospitals(); } catch (Exception ex) { Log.Warn("Hospitals after loading: " + ex.Message); }
             SubModule.PatchForCampaign();
             World.QuestJournalGuards.Apply();
             LoadCampaignData();

@@ -2984,5 +2984,16 @@
     <string id="AIL_e7b1debf" text="L'éditeur de visage est ouvert dans le jeu." />
     <string id="AIL_e7b1dec0" text="{0} est déjà marié : il ne peut pas épouser {1}." />
     <string id="AIL_e7b1dec1" text="{0} ne peut pas avoir deux conjoints." />
+    <string id="AIL_e7b1dec2" text="Hôpital" />
+    <string id="AIL_e7b1dec3" text="Médecins, lits et un jardin d'herbes. Fixe le niveau médical de la ville et les herbes qu'elle produit chaque jour." />
+    <string id="AIL_e7b1dec4" text="Infirmerie" />
+    <string id="AIL_e7b1dec5" text="Un barbier-chirurgien et quelques lits de camp. Fixe le niveau médical du château et les herbes qu'il produit chaque jour." />
+    <string id="AIL_e7b1dec6" text="(seulement dans une capitale)" />
+    <string id="AIL_e7b1dec7" text="Niveau médical {0} (une capitale, un de plus). Herbes par jour : {1}." />
+    <string id="AIL_e7b1dec8" text="Il en reste {0}." />
+    <string id="AIL_e7b1dec9" text="Épuisées, et on n'en fait pas ici." />
+    <string id="AIL_e7b1deca" text="Épuisées : le prochain lot arrive dans {0} jours." />
+    <string id="AIL_e7b1decb" text="Il ne reste pas assez de {0}, et on n'en fait pas ici." />
+    <string id="AIL_e7b1decc" text="Il ne reste pas assez de {0} : le prochain lot arrive dans {1} jours." />
   </strings>
 </base>

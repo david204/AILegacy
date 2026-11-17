@@ -2984,5 +2984,16 @@
     <string id="AIL_e7b1debf" text="Der Gesichtseditor ist im Spiel geöffnet." />
     <string id="AIL_e7b1dec0" text="{0} ist schon verheiratet: kann {1} nicht heiraten." />
     <string id="AIL_e7b1dec1" text="{0} kann keine zwei Ehepartner haben." />
+    <string id="AIL_e7b1dec2" text="Hospital" />
+    <string id="AIL_e7b1dec3" text="Ärzte, Betten und ein Kräutergarten. Bestimmt die medizinische Stufe der Stadt und die Kräuter, die sie täglich macht." />
+    <string id="AIL_e7b1dec4" text="Krankenstube" />
+    <string id="AIL_e7b1dec5" text="Ein Bader und ein paar Pritschen. Bestimmt die medizinische Stufe der Burg und die Kräuter, die sie täglich macht." />
+    <string id="AIL_e7b1dec6" text="(nur in einer Hauptstadt)" />
+    <string id="AIL_e7b1dec7" text="Medizinische Stufe {0} (eine Hauptstadt eine mehr). Kräuter pro Tag: {1}." />
+    <string id="AIL_e7b1dec8" text="Noch {0} übrig." />
+    <string id="AIL_e7b1dec9" text="Aufgebraucht, und hier werden keine gemacht." />
+    <string id="AIL_e7b1deca" text="Aufgebraucht: das nächste Bündel kommt in {0} Tagen." />
+    <string id="AIL_e7b1decb" text="Nicht genug {0} übrig, und hier werden keine gemacht." />
+    <string id="AIL_e7b1decc" text="Nicht genug {0} übrig: das nächste Bündel kommt in {1} Tagen." />
   </strings>
 </base>

@@ -803,6 +803,13 @@ namespace AILegacy.World
             if (!hostile && (st.IsTown || st.IsCastle || st.IsVillage)) SeekCare(party, st, lead, troops);
         }
 
+        /// <summary>The hospital's own care with no common herbs left: a level lower.</summary>
+        private static float OwnCareWithoutHerbs(Settlement st, float quality)
+        {
+            int tier = Math.Max(1, Math.Min(4, MedicalTier(st)));
+            return tier <= 1 ? quality : quality / TierCare[tier] * TierCare[tier - 1];
+        }
+
         /// <summary>Strength of a course of treatment from the physicians of a place: by its medical level, lowest with a village healer.</summary>
         private static float CareQuality(Settlement st)
         {
@@ -823,7 +830,25 @@ namespace AILegacy.World
             {
                 int cost = s.Kind == Sickness.Hero ? HeroCareCost(s, st) : BandCareCost(s, st);
                 if (payer != null && !PayCare(payer, cost, st)) continue;
-                StartTreatment(s, q * LodgingBonus(st, s.Kind == Sickness.Hero ? party.LeaderHero : null));
+                // a serious case: the strongest herb in stock that costs at most two and a half times the care;
+                // otherwise the place's own care, which uses its common herbs (a level lower without them)
+                float quality = q;
+                bool herb = false;
+                if (HerbsOn && payer != null && (Sev(s.Severity) >= 3 || s.Progress >= 50f))
+                    for (int i = Herbs.Length - 1; i >= 0; i--)
+                    {
+                        var h = Herbs[i];
+                        int price = HerbPrice(h) * HerbUnits(s);
+                        if (StockOf(st, h.Strength) + 0.001f < Bundles(s) || price > cost * 2.5f || payer.Gold < price) continue;
+                        if (!PayCare(payer, price, st)) break;
+                        UseStock(st, h.Strength, Bundles(s));
+                        quality = Math.Min(4f, quality * h.Quality);
+                        herb = true;
+                        Log.Info($"[disease] {payer.Name} buys {h.ItemId} in {st.Name} for {price}");
+                        break;
+                    }
+                if (!herb && !UseStock(st, 1, Bundles(s))) quality = OwnCareWithoutHerbs(st, q);
+                StartTreatment(s, quality * LodgingBonus(st, s.Kind == Sickness.Hero ? party.LeaderHero : null));
             }
         }
 

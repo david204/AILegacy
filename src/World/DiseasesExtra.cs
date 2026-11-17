@@ -70,6 +70,7 @@ namespace AILegacy.World
         private static int MedicalTier(Settlement st)
         {
             if (st == null || st.IsVillage || st.Town == null) return 1;
+            if (BuildingsOn) return Math.Min(4, HospitalLevel(st) + (IsCapital(st) ? 1 : 0));
             float p = st.Town.Prosperity;
             if (st.IsCastle) return p >= 1500f ? 2 : 1;
             int tier = p >= 7000f ? 4 : p >= 4000f ? 3 : p >= 2000f ? 2 : 1;
@@ -131,7 +132,7 @@ namespace AILegacy.World
         }
 
         private static string HerbName(Herb h) => L.T(h.NameId, h.NameEs);
-        private static int HerbPrice(Herb h) => Math.Max(1, (int)(h.Cost * S.Get.DiseasePreventionHerbCostMultiplier * (1f - HerbDiscount(Settlement.CurrentSettlement))));
+        private static int HerbPrice(Herb h) => Math.Max(1, (int)(h.Cost * S.Get.DiseasePreventionHerbCostMultiplier * (1f - HerbDiscount(Settlement.CurrentSettlement)) * StockPrice(Settlement.CurrentSettlement, h.Strength)));
 
         /// <summary>Doses one case takes: more for a worse disease, and for a band by the root of its size like the hospital's bill.</summary>
         private static int HerbUnits(Sickness s)
