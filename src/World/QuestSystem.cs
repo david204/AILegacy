@@ -50,6 +50,8 @@ namespace AILegacy.World
         [JsonProperty("obj_met")] public bool ObjMet;
         [JsonProperty("party_id")] public string PartyId;        // band spawned for this task
         [JsonProperty("band_by_player")] public bool BandByPlayer;
+        /// <summary>The band was reported beaten by someone else and came back once, so the player can still do the task.</summary>
+        [JsonProperty("band_regrouped")] public bool BandRegrouped;
         [JsonProperty("doc_name")] public string DocName;        // document to deliver
         [JsonProperty("obj_item")] public string ObjItemId;      // deliver_item: which item
         [JsonProperty("obj_item_name")] public string ObjItemName;

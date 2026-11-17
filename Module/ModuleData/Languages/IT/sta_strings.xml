@@ -3246,5 +3246,7 @@
     <string id="AIL_f0a10325" text="↳ Rissa: chiama dieci dei tuoi uomini (tenendo premuto)" />
     <string id="AIL_f0a10326" text="↳ Rissa: chiama tutti gli uomini che ci stanno (tenendo premuto)" />
     <string id="AIL_f0a10327" text="↳ Apri il libro dei ricordi (tenendo premuto)" />
+    <string id="AIL_f0a10403" text="La banda si è radunata di nuovo vicino a {0} (segnata sulla mappa)." />
+    <string id="AIL_f0a10404" text="Niente, continua pure." />
   </strings>
 </base>

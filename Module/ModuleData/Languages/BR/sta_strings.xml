@@ -3246,5 +3246,7 @@
     <string id="AIL_f0a10325" text="↳ Luta: chamar dez dos seus homens (segurando junto)" />
     <string id="AIL_f0a10326" text="↳ Luta: chamar todos os homens que couberem (segurando junto)" />
     <string id="AIL_f0a10327" text="↳ Abrir o livro de memórias (segurando junto)" />
+    <string id="AIL_f0a10403" text="O bando se reagrupou perto de {0} (marcado no mapa)." />
+    <string id="AIL_f0a10404" text="Não é nada, pode continuar." />
   </strings>
 </base>

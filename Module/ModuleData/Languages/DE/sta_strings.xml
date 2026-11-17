@@ -3246,5 +3246,7 @@
     <string id="AIL_f0a10325" text="↳ Kampf: zehn deiner Männer rufen (zusammen mit)" />
     <string id="AIL_f0a10326" text="↳ Kampf: alle Männer rufen, die Platz haben (zusammen mit)" />
     <string id="AIL_f0a10327" text="↳ Erinnerungsbuch öffnen (zusammen mit)" />
+    <string id="AIL_f0a10403" text="Die Bande hat sich bei {0} neu formiert (auf der Karte markiert)." />
+    <string id="AIL_f0a10404" text="Nichts, mach weiter." />
   </strings>
 </base>

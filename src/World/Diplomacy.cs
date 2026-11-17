@@ -2675,16 +2675,16 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
             // The game's own policies, through the same calls its votes end in, so they show in Kingdom > Policies
             string EnactPolicy(PolicyObject policy)
             {
-                if (!Laws.PoliciesEnabled) return Bad("políticas del juego desactivadas");
-                if (k.HasPolicy(policy)) return Bad("esa política ya está en vigor");
+                if (!Laws.PoliciesEnabled) return Bad("the game's policies are switched off");
+                if (k.HasPolicy(policy)) return Bad("that policy is already in force");
                 k.AddPolicy(policy);
                 Log.Info($"[laws] {kn} adopts policy {policy.StringId}");
                 return L.F("AIL_e7b1c5e8", $"{kn} adopta la política «{policy.Name}».");
             }
             string RepealPolicy(PolicyObject policy)
             {
-                if (!Laws.PoliciesEnabled) return Bad("políticas del juego desactivadas");
-                if (!k.HasPolicy(policy)) return Bad("esa política no está en vigor");
+                if (!Laws.PoliciesEnabled) return Bad("the game's policies are switched off");
+                if (!k.HasPolicy(policy)) return Bad("that policy is not in force");
                 k.RemovePolicy(policy);
                 Log.Info($"[laws] {kn} repeals policy {policy.StringId}");
                 return L.F("AIL_e7b1c5e9", $"{kn} deroga la política «{policy.Name}».");
@@ -2699,7 +2699,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                     if (PlayerRules(o) && !cfg.AllowAiWarOnPlayer) return Bad(L.T("AIL_b809052a", "guerra contra el jugador desactivada"));
                     { string no = WarBlocked(k, o); if (no != null) return Bad(no); }
                     DeclareWar(k, o);
-                    if (!k.IsAtWarWith(o)) return Bad("el juego no ha aplicado la declaración de guerra");
+                    if (!k.IsAtWarWith(o)) return Bad("the game did not carry out the declaration of war");
                     WorldSim.ChangeStance(o.StringId, k.StringId, -30);
                     return L.F("AIL_75b4abfe", $"{kn} declara la guerra a {o.Name}.");
 
@@ -2762,13 +2762,13 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 {
                     if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("peace", o, k);
-                    if (p == null) return Bad("no hay propuesta de paz de ese reino");
+                    if (p == null) return Bad("no peace proposal from that kingdom");
                     if (!k.IsAtWarWith(o)) { St.Proposals.Remove(p); return Bad(L.T("AIL_e904786b", "ya no están en guerra")); }
                     // The peace signed is p, whole, as its proposer wrote it. SignPeace first checks that both sides
                     // can still keep it: every payment in full, every settlement still its giver's to hand over.
                     string signed = SignPeace(k, o, p, out Why broken);
                     if (broken != null) return DropBrokenPeace(p, k, o, broken);
-                    if (signed == null) return Bad("el juego no ha aplicado la paz");
+                    if (signed == null) return Bad("the game did not carry out the peace");
                     // an AI ruler took the peace the player had proposed: he is told so, with what was signed
                     if (PlayerRules(o)) WorldSim.Say(L.F("AIL_e7b1c780", $"{kn} acepta la paz que tú habías propuesto. {signed}"), Colors.Green);
                     return signed;
@@ -2778,7 +2778,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
 
                 // ---------------------------------------------------- alliances
                 case "propose_alliance":
-                    if (o == null || o == k || k.IsAtWarWith(o) || Allied(k, o)) return Bad("alianza no posible");
+                    if (o == null || o == k || k.IsAtWarWith(o) || Allied(k, o)) return Bad("alliance not possible");
                     { string no = PactOfferBlocked(k, o) ?? ProposalBlocked("alliance", k, o) ?? AllianceBlocked(k, o); if (no != null) return Bad(no); }
                     AddProposal("alliance", k, o);
                     return L.F("AIL_f1ae2294", $"{kn} propone una alianza a {o.Name}.");
@@ -2786,7 +2786,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 {
                     if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("alliance", o, k);
-                    if (p == null) return Bad("no hay propuesta de alianza");
+                    if (p == null) return Bad("no alliance proposal");
                     St.Proposals.Remove(p);
                     if (k.IsAtWarWith(o) || Alli == null) return Bad(L.T("AIL_1d0a19e2", "alianza imposible ahora"));
                     { string no = AllianceBlocked(k, o); if (no != null) return Bad(no); }
@@ -2794,7 +2794,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                     // alliance replaces the old one", does a kingdom left over its limit end its oldest other one.
                     try { Ours(() => Alli.StartAlliance(o, k)); }
                     catch (Exception ex) { Log.Error($"[diplomacy] sealing the alliance between {kn} and {o.Name}", ex); }
-                    if (!Allied(k, o)) return Bad("el juego no ha sellado la alianza: no se rompe ninguna otra");
+                    if (!Allied(k, o)) return Bad("the game did not seal the alliance: no other one is broken");
                     {
                         // normally set by the game's own event (OnAllianceStarted)
                         string pair = FactCheck.Pair(k.StringId, o.StringId);
@@ -2809,7 +2809,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 case "reject_alliance":
                     return Reject("alliance", k, o, L.F("AIL_ba80efa7", $"{kn} rechaza la alianza que proponía {o?.Name}."));
                 case "break_alliance":
-                    if (o == null || !Allied(k, o)) return Bad("no son aliados");
+                    if (o == null || !Allied(k, o)) return Bad("they are not allies");
                     EndAlliance(k, o);
                     WorldSim.ChangeStance(o.StringId, k.StringId, -20);
                     return L.F("AIL_9701c185", $"{kn} rompe su alianza con {o.Name}.");
@@ -2817,7 +2817,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 // ---------------------------------------------------- trade
                 case "propose_trade":
                 {
-                    if (o == null || o == k || k.IsAtWarWith(o) || HasTrade(k, o)) return Bad("acuerdo comercial no posible");
+                    if (o == null || o == k || k.IsAtWarWith(o) || HasTrade(k, o)) return Bad("trade agreement not possible");
                     { string no = PactOfferBlocked(k, o) ?? ProposalBlocked("trade", k, o) ?? TradeBlocked(k, o); if (no != null) return Bad(no); }
                     var p = AddProposal("trade", k, o);
                     p.TradeYears = I(a, "trade_years", 1, 5);
@@ -2827,7 +2827,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 {
                     if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("trade", o, k);
-                    if (p == null) return Bad("no hay propuesta comercial");
+                    if (p == null) return Bad("no trade proposal");
                     St.Proposals.Remove(p);
                     if (k.IsAtWarWith(o) || Trade == null) return Bad(L.T("AIL_6ee119bd", "comercio imposible ahora"));
                     { string no = TradeBlocked(k, o); if (no != null) return Bad(no); }
@@ -2839,7 +2839,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 case "reject_trade":
                     return Reject("trade", k, o, L.F("AIL_dace2712", $"{kn} rechaza el acuerdo comercial de {o?.Name}."));
                 case "end_trade":
-                    if (o == null || !HasTrade(k, o)) return Bad("no hay acuerdo comercial");
+                    if (o == null || !HasTrade(k, o)) return Bad("there is no trade agreement");
                     EndTrade(k, o);
                     return L.F("AIL_270778c1", $"{kn} da por terminado su acuerdo comercial con {o.Name}.");
 
@@ -2847,7 +2847,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 case "demand_tribute":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
-                    if (CarriesOffer(a)) return Bad("los campos offer_ solo valen en propose_peace: una exigencia no ofrece nada");
+                    if (CarriesOffer(a)) return Bad("the offer_ fields only count in propose_peace: a demand offers nothing");
                     var p = AddProposal("tribute", k, o);
                     p.DailyTribute = I(a, "daily_tribute", 10, cfg.MaxDailyTribute); p.TributeDays = TributeLength(a);
                     return L.F("AIL_c61b5727", $"{kn} exige a {o.Name} un tributo de {p.DailyTribute} denarios al día durante {p.TributeDays} días.");
@@ -2856,7 +2856,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 {
                     if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("tribute", o, k);
-                    if (p == null) return Bad("no hay exigencia de tributo");
+                    if (p == null) return Bad("no tribute demand");
                     St.Proposals.Remove(p);
                     St.Tributes.RemoveAll(t => t.Payer == k.StringId && t.Receiver == o.StringId);
                     St.Tributes.Add(new Tribute { Payer = k.StringId, Receiver = o.StringId, Daily = p.DailyTribute, UntilDay = CampaignTime.Now.ToDays + p.TributeDays });
@@ -2865,14 +2865,14 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 case "reject_tribute":
                     return Reject("tribute", k, o, L.F("AIL_6458f7e4", $"{kn} se niega a pagar tributo a {o?.Name}."));
                 case "end_tribute":
-                    if (o == null || St.Tributes.RemoveAll(t => (t.Payer == k.StringId && t.Receiver == o.StringId) || (t.Payer == o.StringId && t.Receiver == k.StringId)) == 0) return Bad("no hay tributo");
+                    if (o == null || St.Tributes.RemoveAll(t => (t.Payer == k.StringId && t.Receiver == o.StringId) || (t.Payer == o.StringId && t.Receiver == k.StringId)) == 0) return Bad("there is no tribute between them");
                     return L.F("AIL_a7a5c567", $"Se acaba el tributo entre {kn} y {o.Name}.");
 
                 // ---------------------------------------------------- reparations
                 case "demand_reparations":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
-                    if (CarriesOffer(a)) return Bad("los campos offer_ solo valen en propose_peace: una exigencia no ofrece nada");
+                    if (CarriesOffer(a)) return Bad("the offer_ fields only count in propose_peace: a demand offers nothing");
                     var p = AddProposal("reparations", k, o);
                     p.Reparations = I(a, "reparations", 100, cfg.MaxReparations, "amount");
                     return L.F("AIL_cb234369", $"{kn} exige a {o.Name} {p.Reparations} denarios en reparaciones.");
@@ -2881,7 +2881,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 {
                     if (o == null) return Bad(L.T("AIL_52a68aba", "sin reino"));
                     var p = Pending("reparations", o, k);
-                    if (p == null) return Bad("no hay exigencia de reparaciones");
+                    if (p == null) return Bad("no reparations demand");
                     St.Proposals.Remove(p);
                     int paid = Pay(k, o, p.Reparations);
                     return L.F("AIL_f12fa594", $"{kn} paga a {o.Name} {paid} denarios en reparaciones.");
@@ -2976,7 +2976,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 case "demand_territory":
                 {
                     if (o == null || o == k) return Bad(L.T("AIL_52a68aba", "sin reino"));
-                    if (CarriesOffer(a)) return Bad("los campos offer_ solo valen en propose_peace: una exigencia no ofrece nada");
+                    if (CarriesOffer(a)) return Bad("the offer_ fields only count in propose_peace: a demand offers nothing");
                     var st = OrderSystem.FindSettlement((string)a["settlement"], x => (x.IsTown || x.IsCastle) && x.MapFaction == o);
                     if (st == null) return Bad(L.T("AIL_9b65eab4", "asentamiento no válido"));
                     if (!WithinReach(st, k)) return Bad(WhyFar(st, k).Es);
@@ -3041,7 +3041,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 }
                 case "enact_law":
                 {
-                    if (!cfg.EnableKingdomLaws) return Bad("leyes desactivadas");
+                    if (!cfg.EnableKingdomLaws) return Bad("laws are switched off");
                     string name = WorldSim.Clean((string)a["law_name"], 60), text = WorldSim.Clean((string)a["law_text"], 500);
                     if (name.Length < 3) return Bad(L.T("AIL_f48c59a0", "ley sin nombre"));
                     // A ruler who names an old policy of the realm as a law wants that policy
@@ -3073,7 +3073,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                     if (law == null)
                     {
                         var old = Laws.FindPolicy((string)a["law_name"] ?? (string)a["policy"]);
-                        return old != null ? RepealPolicy(old) : Bad("ley no encontrada");
+                        return old != null ? RepealPolicy(old) : Bad("law not found");
                     }
                     St.Laws.Remove(law);
                     Laws.Invalidate();
@@ -3082,12 +3082,12 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                 case "enact_policy":
                 {
                     var policy = Laws.FindPolicy((string)a["policy"] ?? (string)a["law_name"]);
-                    return policy == null ? Bad("política no encontrada") : EnactPolicy(policy);
+                    return policy == null ? Bad("policy not found") : EnactPolicy(policy);
                 }
                 case "repeal_policy":
                 {
                     var policy = Laws.FindPolicy((string)a["policy"] ?? (string)a["law_name"]);
-                    return policy == null ? Bad("política no encontrada") : RepealPolicy(policy);
+                    return policy == null ? Bad("policy not found") : RepealPolicy(policy);
                 }
                 case "declare_war_on_clan":
                 case "make_peace_with_clan":
@@ -3096,7 +3096,7 @@ Answer ONLY with JSON: { ""statement"": ""the new statement in {language}"", ""s
                     if (n.Length < 2) return Bad(L.T("AIL_ef08b937", "sin clan"));
                     var clan = Clan.All.FirstOrDefault(c => c != null && !c.IsEliminated && c.Kingdom == null && !c.IsBanditFaction && c.Leader != null
                                                              && (WorldSim.Norm(c.Name.ToString()) == n || WorldSim.Norm(c.Name.ToString()).Contains(n) || n.Contains(WorldSim.Norm(c.Name.ToString()))));
-                    if (clan == null) return Bad("clan independiente no encontrado");
+                    if (clan == null) return Bad("independent clan not found");
                     if (clan == Clan.PlayerClan && !cfg.AllowAiWarOnPlayer) return Bad(L.T("AIL_b809052a", "guerra contra el jugador desactivada"));
                     if (type == "declare_war_on_clan")
                     {

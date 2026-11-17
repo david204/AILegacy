@@ -162,6 +162,38 @@ namespace AILegacy.World
             return party;
         }
 
+        /// <summary>
+        /// On load: an open "defeat the band" quest whose band is gone without having been beaten (lost along with the
+        /// journal entries the game used to cancel on load), or that was reported beaten by someone else (a dead end: the
+        /// giver can only call it a failure), gets a band at the same place again. The second case happens once per quest.
+        /// Returns a line for the journal, or null.
+        /// </summary>
+        public static string RestoreBand(AiQuest q)
+        {
+            try
+            {
+                if (q == null || !q.Active || q.ObjType != "defeat_bandits") return null;
+                bool byOthers = q.ObjMet && !q.BandByPlayer;
+                if (q.ObjMet && !byOthers) return null;            // the player's victory stands
+                if (!q.ObjMet && BandOf(q) != null) return null;     // still out there
+                if (byOthers && q.BandRegrouped) return null;        // it came back once already
+                var st = Settlement.Find(q.ObjTargetId);
+                if (st == null) return null;
+                var party = SpawnBand(q, st);
+                if (party == null) return null;
+                q.PartyId = party.StringId;
+                if (byOthers)
+                {
+                    q.ObjMet = false;
+                    q.BandRegrouped = true;
+                    if (q.ProgressTarget > 0) q.Progress = 0;
+                }
+                Log.Info($"Quest {q.Id}: {(byOthers ? "the band had been reported beaten by someone else; it regroups" : "its band was gone without being beaten; a new one waits")} near {st.Name}");
+                return L.F("AIL_f0a10403", $"La banda se ha reagrupado cerca de {st.Name} (marcada en el mapa).");
+            }
+            catch (Exception ex) { Log.Error("Quests: restore a band", ex); return null; }
+        }
+
         public static MobileParty BandOf(AiQuest q) =>
             string.IsNullOrEmpty(q.PartyId) ? null : MobileParty.All.FirstOrDefault(p => p != null && p.StringId == q.PartyId && p.IsActive);
 

@@ -154,7 +154,7 @@ Answer ONLY with JSON: { ""guard"": [{n_guard} remarks by guards or soldiers on 
                 Agent pick = null; string kind = null; float best = cfg.PassByDistance;
                 foreach (var a in m.Agents)
                 {
-                    if (a == null || a == Agent.Main || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || Spoke.Contains(a) || GroupTalk.Has(a) || SceneActions.Busy(a) || Combat.FoughtHere(a)) continue;
+                    if (a == null || a == Agent.Main || !a.IsHuman || !a.IsActive() || !a.IsAIControlled || Spoke.Contains(a) || GroupTalk.Has(a) || Ambient.InCircle(a) || SceneActions.Busy(a) || Combat.FoughtHere(a)) continue;
                     float d = a.Position.Distance(me);
                     if (d > best || Math.Abs(a.Position.z - me.z) > 2f) continue;
                     string k = Kind(a);

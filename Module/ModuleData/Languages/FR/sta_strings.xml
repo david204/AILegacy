@@ -3246,5 +3246,7 @@
     <string id="AIL_f0a10325" text="↳ Combat : appeler dix de vos hommes (en maintenant)" />
     <string id="AIL_f0a10326" text="↳ Combat : appeler tous les hommes possibles (en maintenant)" />
     <string id="AIL_f0a10327" text="↳ Ouvrir le livre des souvenirs (en maintenant)" />
+    <string id="AIL_f0a10403" text="La bande s'est regroupée près de {0} (marquée sur la carte)." />
+    <string id="AIL_f0a10404" text="Ce n'est rien, continuez." />
   </strings>
 </base>

@@ -2272,6 +2272,9 @@ namespace AILegacy.Dialogue
 
         private static bool SafeSuitable(Hero h)
         {
+            // Without a clan the game's model says no at once. Asking it anyway runs other mods' patches on that model,
+            // and some of them read the clan without checking it and throw an error window at every tavern talk.
+            if (h == null || P == null || h.Clan == null || P.Clan == null) return false;
             try { return Campaign.Current.Models.MarriageModel.IsCoupleSuitableForMarriage(P, h); }
             catch { return false; }
         }

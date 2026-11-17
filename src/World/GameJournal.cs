@@ -40,6 +40,11 @@ namespace AILegacy.World
         public override TextObject Title => T(_title);
         public override bool IsRemainingTimeHidden => false;
 
+        // On load the game cancels every quest that is neither tied to one of its issues nor "special" ("There is not
+        // active issue for quest ... Quest will be canceled"). Ours have no issue: without this every load cancelled them
+        // and Reconcile made a new copy, so the journal filled with cancelled duplicates.
+        public override string SpecialQuestType => "AILegacy";
+
         protected override void SetDialogs() { }
         protected override void InitializeQuestOnGameLoad() { SetDialogs(); }
 
@@ -159,9 +164,11 @@ namespace AILegacy.World
                 QuestSystem.CloseDeadOnLoad();
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active).ToList())
                 {
+                    string regrouped = QuestObjectives.RestoreBand(q);
                     var gq = Find(q.Id);
                     if (gq == null) Create(q);
                     else Retrack(q, gq);      // quests from older saves only marked their objective: their people get marked too
+                    if (regrouped != null) Update(q, regrouped);
                 }
                 foreach (var gq in Campaign.Current.QuestManager.Quests.OfType<AILegacyQuest>().Where(x => x.IsOngoing).ToList())
                     if (!QuestSystem.Quests.Any(x => x.Active && x.Id == gq.AiQuestId))

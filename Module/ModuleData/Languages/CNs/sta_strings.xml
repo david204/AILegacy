@@ -3246,5 +3246,7 @@
     <string id="AIL_f0a10325" text="↳ 打斗：召来十名部下（同时按住）" />
     <string id="AIL_f0a10326" text="↳ 打斗：召来所有容得下的部下（同时按住）" />
     <string id="AIL_f0a10327" text="↳ 打开回忆之书（同时按住）" />
+    <string id="AIL_f0a10403" text="这伙强盗在{0}附近重新集结了（已在地图上标出）。" />
+    <string id="AIL_f0a10404" text="没什么，你忙吧。" />
   </strings>
 </base>

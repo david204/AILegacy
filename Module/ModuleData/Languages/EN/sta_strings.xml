@@ -3247,5 +3247,7 @@
     <string id="AIL_f0a10325" text="↳ Fight: call ten of your men (held down with)" />
     <string id="AIL_f0a10326" text="↳ Fight: call all the men that fit (held down with)" />
     <string id="AIL_f0a10327" text="↳ Open the memory book (held down with)" />
+    <string id="AIL_f0a10403" text="The band has regrouped near {0} (marked on the map)." />
+    <string id="AIL_f0a10404" text="It's nothing, carry on." />
   </strings>
 </base>

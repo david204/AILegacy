@@ -3246,5 +3246,7 @@
     <string id="AIL_f0a10325" text="↳ Pelea: llamar a diez de tus hombres (pulsando a la vez)" />
     <string id="AIL_f0a10326" text="↳ Pelea: llamar a todos los hombres que quepan (pulsando a la vez)" />
     <string id="AIL_f0a10327" text="↳ Abrir el libro de memorias (pulsando a la vez)" />
+    <string id="AIL_f0a10403" text="La banda se ha reagrupado cerca de {0} (marcada en el mapa)." />
+    <string id="AIL_f0a10404" text="No es nada, sigue con lo tuyo." />
   </strings>
 </base>

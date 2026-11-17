@@ -329,6 +329,13 @@ namespace AILegacy.Behaviors
                 priority: 110);
             starter.AddDialogLine("ailegacy_npc_listen_p", "ailegacy_npc_listen_p", PrisonerOptions, L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
 
+            // --- A soldier standing guard in a town or castle: the game has him say his line ("Can't talk right now...") and
+            // closes the talk, so nothing of ours could be offered. Same line, then the player gets to choose.
+            starter.AddDialogLine("ailegacy_guard_start", "start", "ailegacy_guard_opts", "{=!}{GUARD_COMMENT}",
+                () => CanTalkResident(false) && GuardOnDutyLine(), null, priority: 101);
+            starter.AddPlayerLine("ailegacy_guard_leave", "ailegacy_guard_opts", "close_window", L.T("AIL_f0a10404", "{=!}No es nada, sigue con lo tuyo."),
+                null, null, priority: 1);
+
             // --- Common people in towns and villages, in every branch of the game's where one is met (tavern, arena,
             // shops, guards, alleys, children...), chat window style. Each returns to its own branch.
             foreach (var b in ResidentBranches)
@@ -735,6 +742,7 @@ namespace AILegacy.Behaviors
             new Branch("town_or_village_children_player_no_rhyme", "a child of this place, on the way back to their parents", true),
             new Branch("town_or_village_escorting", "a local who is walking the stranger to the person they asked for"),
             new Branch("prison_guard_talk", "guard of the prison here, who keeps the keys and the prisoners"),
+            new Branch("ailegacy_guard_opts", "guard on duty here, keeping an eye on the streets"),
             new Branch("castle_guard_talk", "guard at the door of the lord's hall, who decides who goes in"),
             new Branch("tavernkeeper_talk", "keeper of this tavern: you pour, cook, rent rooms and hear every rumour"),
             new Branch("tavernmaid_talk", "serving maid in this tavern"),
@@ -898,6 +906,31 @@ How it ends is decided by what is said, with your actions: take their money (tak
             var cm = Campaign.Current?.ConversationManager;
             var c = cm?.OneToOneConversationCharacter;
             return c != null && !c.IsHero && cm.OneToOneConversationAgent != null && (childBranch || c.Age >= 16);
+        }
+
+        private static System.Reflection.MethodInfo _guardLine;
+        private static bool _guardLineMissing;
+
+        /// <summary>
+        /// The game's own check for a soldier on guard duty in a settlement (SandBox GuardsCampaignBehavior), which also
+        /// sets {GUARD_COMMENT} to the line he would say. Asked through the game so his words and his conditions stay the
+        /// game's; false when that behaviour or method is not there (another game version).
+        /// </summary>
+        private static bool GuardOnDutyLine()
+        {
+            try
+            {
+                if (_guardLineMissing) return false;
+                var beh = Campaign.Current?.GetCampaignBehavior<SandBox.CampaignBehaviors.GuardsCampaignBehavior>();
+                if (beh == null) return false;
+                if (_guardLine == null)
+                {
+                    _guardLine = HarmonyLib.AccessTools.Method(typeof(SandBox.CampaignBehaviors.GuardsCampaignBehavior), "conversation_guard_start_on_condition");
+                    if (_guardLine == null) { _guardLineMissing = true; Log.Warn("Guards: the game's guard line was not found; guards on duty keep the game's own talk"); return false; }
+                }
+                return (bool)_guardLine.Invoke(beh, null);
+            }
+            catch (Exception ex) { Log.Error("Guards: the game's guard line", ex); _guardLineMissing = true; return false; }
         }
     }
 }
