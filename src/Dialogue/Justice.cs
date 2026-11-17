@@ -27,6 +27,15 @@ namespace AILegacy.Dialogue
         private static Settlement _jailIn;    // jail the player once they leave the scene
         private static string _case, _jailStanding, _jailCrime;      // what happened, for the lord's trial
         private static Speaker _jailGuard;
+
+        /// <summary>Beaten down alone in a fight with the guard: to the dungeon once the scene closes, then the lord's trial.</summary>
+        internal static void JailAfterFight(Settlement st, string whatHappenedEn)
+        {
+            if (st == null) return;
+            _case = whatHappenedEn; _jailGuard = null;
+            try { _jailStanding = Standing(st); _jailCrime = Crime(st); } catch { }
+            _jailIn = st;
+        }
         private static Agent _guardAgent;
         private static Settlement _arrestIn;  // told they're under arrest, waiting on the player's choice
         private static bool _asking;          // choice popup is open

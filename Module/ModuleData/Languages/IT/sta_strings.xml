@@ -2799,5 +2799,39 @@
     <string id="AIL_e7b1dda4" text="{0}: «{1}»" />
     <string id="AIL_e7b1dda5" text="{0} porta via i suoi dal campo." />
     <string id="AIL_e7b1dda6" text="{0} si schiera dalla tua parte." />
+    <string id="AIL_e7b1ddb0" text="Suggerimento: Backspace apre il menu degli ordini come in battaglia; 1-8 scelgono le formazioni (0, tutte) e F1-F8 danno gli ordini." />
+    <string id="AIL_e7b1ddb1" text="Puoi chiamare le tue truppe:" />
+    <string id="AIL_e7b1ddb2" text="CTRL + X: 10 soldati" />
+    <string id="AIL_e7b1ddb3" text="CTRL + ALT + X: tutte le truppe (arrivano dai dintorni)" />
+    <string id="AIL_e7b1ddb4" text="Non c'è ancora posto per altri rinforzi. {0} aspettano ancora di riserva." />
+    <string id="AIL_e7b1ddb5" text="«Tutte le forze, con me!» ({0} si uniscono, {1} di riserva)" />
+    <string id="AIL_e7b1ddb6" text="«Guerrieri, alle armi! Vittoria o morte!»" />
+    <string id="AIL_e7b1ddb7" text="«In battaglia! Con me!»" />
+    <string id="AIL_e7b1ddb8" text="Fatto: {0} formazioni pronte a ricevere ordini." />
+    <string id="AIL_e7b1ddb9" text="{0} ha sentito l'allarme e cavalca verso {1}." />
+    <string id="AIL_e7b1ddba" text="{0} e i suoi uomini si uniscono alla lotta!" />
+    <string id="AIL_e7b1ddbb" text="I tuoi uomini ti portano fuori da {0}." />
+    <string id="AIL_e7b1ddbc" text="Cadi davanti alla guardia di {0}: ti portano in prigione." />
+    <string id="AIL_e7b1ddbd" text="Scappi da {0} con la guardia alle calcagna." />
+    <string id="AIL_e7b1ddbe" text="Saccheggiarlo" />
+    <string id="AIL_e7b1ddbf" text="Prendete ciò che ha valore. Un crimine, e l'inimicizia del signore e della gente." />
+    <string id="AIL_e7b1ddc0" text="Bruciarlo" />
+    <string id="AIL_e7b1ddc1" text="Fuoco alle case: il villaggio è devastato. Un crimine grave e forte inimicizia." />
+    <string id="AIL_e7b1ddc2" text="Lasciarlo stare" />
+    <string id="AIL_e7b1ddc3" text="{0} è alla tua mercé" />
+    <string id="AIL_e7b1ddc4" text="I suoi difensori sono a terra. Cosa fai del villaggio?" />
+    <string id="AIL_e7b1ddc5" text="{0} brucia. Prendete {1} denari tra le ceneri." />
+    <string id="AIL_e7b1ddc6" text="Saccheggiate {0}: {1} denari." />
+    <string id="AIL_e7b1ddc7" text="{0}, bruciato" />
+    <string id="AIL_e7b1ddc8" text="{0}, saccheggiato" />
+    <string id="AIL_e7b1ddd0" text="Guardie nella prima ondata; ogni ondata successiva ne porta la metà in più. Predefinito: 8 (poi 12)." />
+    <string id="AIL_e7b1ddd1" text="I tuoi soldati al chiuso (sala del signore)" />
+    <string id="AIL_e7b1ddd2" text="Quanti dei tuoi soldati entrano nella sala del signore durante uno scontro. Non entrano mai in taverna, arena, prigione o segrete. Predefinito: 5." />
+    <string id="AIL_e7b1ddd3" text="Scontro armato: quanto tarda la guardia" />
+    <string id="AIL_e7b1ddd4" text="Moltiplica la prima attesa: 20 s in strada, 30 in taverna, 5 nella sala del signore, 10 nel cortile di un castello, 15 in un villaggio, un po' meno dove la sicurezza è alta. 1 = come in AIInfluence; più basso, la guardia arriva prima." />
+    <string id="AIL_e7b1ddd5" text="Quando suona l'allarme, i signori vicini sulla mappa possono accorrere" />
+    <string id="AIL_e7b1ddd6" text="I quattro signori del regno del luogo più vicini sulla mappa decidono, ognuno a modo suo, se accorrere; chi viene arriva alla porta con i suoi uomini un minuto dopo, più un po' per ogni lega di distanza. Predefinito: acceso." />
+    <string id="AIL_e7b1ddd7" text="Signori dalla mappa: a che distanza (unità della mappa)" />
+    <string id="AIL_e7b1ddd8" text="I tuoi soldati all'aperto contemporaneamente (strada, villaggio). Chi non ci sta aspetta di riserva ed entra man mano che si liberano posti. Predefinito: 75." />
   </strings>
 </base>

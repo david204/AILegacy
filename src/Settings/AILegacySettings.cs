@@ -989,17 +989,18 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
         public bool StreetGuardWaves { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_45d4f33e}Guards per wave", 1, 10, Order = 14, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_45d4f33e}Guards per wave", 1, 20, Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1ddd0}Guards in the first wave; each wave after it brings half as many again. Default: 8 (then 12).")]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
-        public int StreetGuardWaveSize { get; set; } = 3;
+        public int StreetGuardWaveSize { get; set; } = 8;
 
         [SettingPropertyInteger("{=AIL_5689cbfa}Seconds between waves", 3, 60, Order = 14, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
         public int StreetGuardWaveSeconds { get; set; } = 10;
 
-        [SettingPropertyInteger("{=AIL_eb1b8e7a}Maximum guards and defenders in a fight", 2, 60, Order = 14, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_eb1b8e7a}Maximum guards and defenders in a fight", 2, 150, Order = 14, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
-        public int StreetMaxGuards { get; set; } = 20;
+        public int StreetMaxGuards { get; set; } = 40;
 
         [SettingPropertyBool("{=AIL_e7b1c86e}When the alarm sounds, the garrison and the lords inside come", Order = 15, RequireRestart = false,
             HintText = "{=AIL_e7b1c86f}With the alarm raised and no guard left in the street, soldiers of the place's real garrison, and of the lords of its realm who are inside the walls, run up in waves (outdoors only, up to the maximum above). The dead are taken off their rosters afterwards and the fallen stay wounded there.")]
@@ -1011,9 +1012,29 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
         public bool StreetSummonTroops { get; set; } = true;
 
-        [SettingPropertyInteger("{=AIL_164cfae0}Maximum of your soldiers in a street fight", 5, 100, Order = 14, RequireRestart = false)]
+        [SettingPropertyInteger("{=AIL_164cfae0}Maximum of your soldiers in a street fight", 5, 100, Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1ddd8}Your soldiers outdoors at once (street, village). Those who do not fit wait in reserve and come in as places free. Default: 75.")]
         [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
-        public int StreetMaxOwnTroops { get; set; } = 30;
+        public int StreetMaxOwnTroops { get; set; } = 75;
+
+        [SettingPropertyInteger("{=AIL_e7b1ddd1}Your soldiers indoors (a lord's hall)", 2, 10, Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1ddd2}How many of your soldiers fit in a lord's hall during a fight. They never come into a tavern, the arena, the prison or the dungeon. Default: 5.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public int StreetIndoorTroops { get; set; } = 5;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1ddd3}Armed fight: how long the guard takes to come", 0.25f, 3f, "0.00", Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1ddd4}Times the first wait: 20 s in a street, 30 in a tavern, 5 in a lord's hall, 10 in a castle courtyard, 15 in a village, a little less where security is high. 1 = as in AIInfluence; lower, the guard comes sooner.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public float StreetGuardDelayScale { get; set; } = 1f;
+
+        [SettingPropertyBool("{=AIL_e7b1ddd5}When the alarm sounds, lords on the map nearby may ride in", Order = 15, RequireRestart = false,
+            HintText = "{=AIL_e7b1ddd6}The four lords of the place's realm nearest to it on the map decide, each in his own way, whether to come; those who do arrive at the gate with their men a minute later, plus a little for each league away. Default: on.")]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public bool StreetLordsFromMap { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1ddd7}Lords from the map: how far (map units)", 2, 30, Order = 15, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e4f26c59}5. Actions", GroupOrder = 5)]
+        public int StreetMapLordRadius { get; set; } = 12;
 
         [SettingPropertyBool("{=AIL_f264e0b3}Real trade with the people of the place", Order = 14, RequireRestart = false,
             HintText = "{=AIL_4a37fd4a}Merchants, craftsmen, innkeepers and villagers can sell to you and buy from you goods in a chat, against the real stock and prices of that place's market: goods and money really change hands.")]

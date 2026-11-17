@@ -2799,5 +2799,39 @@
     <string id="AIL_e7b1dda4" text="{0}: «{1}»" />
     <string id="AIL_e7b1dda5" text="{0} leva os seus para fora do campo." />
     <string id="AIL_e7b1dda6" text="{0} fica do seu lado." />
+    <string id="AIL_e7b1ddb0" text="Dica: Backspace abre o menu de ordens como numa batalha; 1-8 escolhem formações (0, todas) e F1-F8 dão as ordens." />
+    <string id="AIL_e7b1ddb1" text="Você pode chamar suas tropas:" />
+    <string id="AIL_e7b1ddb2" text="CTRL + X: 10 soldados" />
+    <string id="AIL_e7b1ddb3" text="CTRL + ALT + X: todas as tropas (chegam dos arredores)" />
+    <string id="AIL_e7b1ddb4" text="Ainda não cabem mais reforços. {0} ainda esperam na reserva." />
+    <string id="AIL_e7b1ddb5" text="«Todas as forças, comigo!» ({0} se juntam, {1} na reserva)" />
+    <string id="AIL_e7b1ddb6" text="«Guerreiros, às armas! Vitória ou morte!»" />
+    <string id="AIL_e7b1ddb7" text="«À batalha! Comigo!»" />
+    <string id="AIL_e7b1ddb8" text="Feito: {0} formações prontas para receber ordens." />
+    <string id="AIL_e7b1ddb9" text="{0} ouviu o alarme e cavalga para {1}." />
+    <string id="AIL_e7b1ddba" text="{0} e seus homens entram na luta!" />
+    <string id="AIL_e7b1ddbb" text="Seus homens te carregam para fora de {0}." />
+    <string id="AIL_e7b1ddbc" text="Você cai diante da guarda de {0}: te levam à masmorra." />
+    <string id="AIL_e7b1ddbd" text="Você escapa de {0} com a guarda nos seus calcanhares." />
+    <string id="AIL_e7b1ddbe" text="Saqueá-la" />
+    <string id="AIL_e7b1ddbf" text="Vocês levam o que tem valor. Crime e inimizade do senhor e do povo." />
+    <string id="AIL_e7b1ddc0" text="Queimá-la" />
+    <string id="AIL_e7b1ddc1" text="Fogo nas casas: a aldeia fica arrasada. Crime grave e forte inimizade." />
+    <string id="AIL_e7b1ddc2" text="Deixá-la em paz" />
+    <string id="AIL_e7b1ddc3" text="{0} está à sua mercê" />
+    <string id="AIL_e7b1ddc4" text="Seus defensores estão no chão. O que você faz com a aldeia?" />
+    <string id="AIL_e7b1ddc5" text="{0} arde. Vocês levam {1} denários das cinzas." />
+    <string id="AIL_e7b1ddc6" text="Vocês saqueiam {0}: {1} denários." />
+    <string id="AIL_e7b1ddc7" text="{0}, queimada" />
+    <string id="AIL_e7b1ddc8" text="{0}, saqueada" />
+    <string id="AIL_e7b1ddd0" text="Guardas na primeira onda; cada onda seguinte traz metade a mais. Padrão: 8 (depois 12)." />
+    <string id="AIL_e7b1ddd1" text="Seus soldados em interiores (salão do senhor)" />
+    <string id="AIL_e7b1ddd2" text="Quantos dos seus soldados cabem no salão do senhor durante uma luta. Nunca entram numa taverna, na arena, na prisão nem na masmorra. Padrão: 5." />
+    <string id="AIL_e7b1ddd3" text="Luta armada: quanto a guarda demora a chegar" />
+    <string id="AIL_e7b1ddd4" text="Multiplica a primeira espera: 20 s numa rua, 30 numa taverna, 5 no salão do senhor, 10 no pátio de um castelo, 15 numa aldeia, um pouco menos onde a segurança é alta. 1 = como no AIInfluence; mais baixo, a guarda chega antes." />
+    <string id="AIL_e7b1ddd5" text="Quando o alarme soa, senhores próximos no mapa podem acudir" />
+    <string id="AIL_e7b1ddd6" text="Os quatro senhores do reino do lugar mais próximos no mapa decidem, cada um a seu modo, se vêm; os que vêm chegam ao portão com seus homens um minuto depois, mais um pouco por légua de distância. Padrão: ligado." />
+    <string id="AIL_e7b1ddd7" text="Senhores do mapa: a que distância (unidades do mapa)" />
+    <string id="AIL_e7b1ddd8" text="Seus soldados ao ar livre ao mesmo tempo (rua, aldeia). Os que não cabem esperam na reserva e entram conforme vagam lugares. Padrão: 75." />
   </strings>
 </base>

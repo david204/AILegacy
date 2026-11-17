@@ -76,6 +76,18 @@ namespace AILegacy.Patches
             catch (Exception ex) { Log.Error("First blow: hit", ex); }
         }
 
+        public override void OnAgentRemoved(Agent affectedAgent, Agent affectorAgent, AgentState agentState, KillingBlow blow)
+        {
+            try { if (affectedAgent != null && affectedAgent == Agent.Main) Combat.OnMainDown(); }
+            catch (Exception ex) { Log.Error("Player down", ex); }
+        }
+
+        protected override void OnEndMission()
+        {
+            try { Combat.OnSceneEnded(); } catch (Exception ex) { Log.Error("Fight scene end", ex); }
+            base.OnEndMission();
+        }
+
         public AgentState GetAgentState(Agent affectedAgent, float deathProbability, out bool usedSurgery)
         {
             usedSurgery = false;

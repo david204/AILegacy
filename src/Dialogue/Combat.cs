@@ -22,7 +22,7 @@ namespace AILegacy.Dialogue
     /// Violence that comes out of a chat: fist fights and duels in the scene (through the game's fight handler),
     /// attack and surrender on the map, and calling the guards. It all starts after the dialogue has closed.
     /// </summary>
-    internal static class Combat
+    internal static partial class Combat
     {
         private class PendingFight
         {
@@ -140,7 +140,7 @@ namespace AILegacy.Dialogue
                 // Fist fight or friendly duel: nobody dies. The player (and both sides of a duel) yield at half health;
                 // the other side of a fist fight is knocked out cold
                 if (IsFriendly(f)) Guard(f, new List<Agent> { Agent.Main }.Concat(foes));
-                _active = f; _activeIn = m; _wave = 6f; _waves = 0; _alarm = false;
+                _active = f; _activeIn = m; _waves = 0; _alarm = false; _wave = FirstGuardDelay();
                 ActiveFoes.Clear(); ActiveFoes.AddRange(foes); _unleash = 0f;
                 Unleash();
                 if (f.Tavern) CalmPatrons(f);
@@ -271,6 +271,7 @@ namespace AILegacy.Dialogue
         {
             try
             {
+                if (a != null && SparedHeroes.Contains(a)) return AgentState.Unconscious;      // a lord who rode in is beaten, never killed
                 if (a == null || _friendly == null || GuardedAgents.Count == 0) return AgentState.None;
                 return GuardedAgents.Any(g => g.Agent == a) ? AgentState.Unconscious : AgentState.None;
             }
@@ -488,7 +489,8 @@ namespace AILegacy.Dialogue
             try { StopBells(); } catch { _bells = null; }
             try { Unguard(); } catch { GuardedAgents.Clear(); _friendly = null; _yield = 0; }
             _bandJoin = null;
-            ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear(); Withdrawn.Clear(); TeamBefore.Clear();
+            ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear(); SummonedFrom.Clear(); Withdrawn.Clear(); TeamBefore.Clear();
+            Coming.Clear(); SparedHeroes.Clear(); _reserve = 0; _ordersOn = false; _ordersIn = null; _summonHinted = false; _mapLordsAsked = false; _carried = false; _captured = false;
         }
 
         /// <summary>Fight that starts by itself when a scene opens (a duel agreed on the map).</summary>
@@ -1033,14 +1035,17 @@ namespace AILegacy.Dialogue
             // (nobody is spared any more) and the betrayal is remembered, as in AIInfluence
             if (cfg.StreetSummonTroops && f.Kind != "brawl")
             {
+                HintSummon();
                 bool all = Hotkeys.Pressed(Hotkeys.Id.SummonAll);
                 if (all || Hotkeys.Pressed(Hotkeys.Id.SummonTen))
                 {
                     int before = Summoned.Count;
-                    SummonTroops(fh, all ? cfg.StreetMaxOwnTroops : 10);
+                    SummonTroops(fh, 10, all);
                     if (Summoned.Count > before && !f.Unprovoked && !f.Betrayed) BetrayDuel(f);
                 }
+                TickReserve(fh);
             }
+            TickComing(fh, f);
 
             if (!f.Unprovoked || f.Kind == "brawl" || !cfg.StreetGuardWaves) return;
             if ((_wave -= dt) > 0f) return;
@@ -1051,15 +1056,16 @@ namespace AILegacy.Dialogue
             var here = Agent.Main.Position;
             var come = m.Agents.Where(a => a != null && a.IsHuman && a.IsActive() && a.IsAIControlled && a != f.Opponent && !f.Helpers.Contains(a) && !Summoned.Contains(a) && !Withdrawn.Contains(a) && IsGuard(a)
                                            && a.Position.Distance(here) <= (_alarm ? 150f : 45f))
-                               .OrderBy(a => a.Position.Distance(here)).Take(_alarm ? cfg.StreetGuardWaveSize * 2 : cfg.StreetGuardWaveSize).ToList();
+                               .OrderBy(a => a.Position.Distance(here)).Take(WaveSize()).ToList();
             if (!_alarm && (down >= 3 || (down >= 1 && _waves >= 2)))
             {
                 _alarm = true;
                 RingAlarm(L.F("AIL_2f7a736d", $"¡Suena la campana de alarma en {Settlement.CurrentSettlement?.Name}: acude toda la guardia!"));
                 VisitNews.AlarmRung();
+                CallMapLords();
             }
             // No guard left in the street: the alarm brings men from the real garrison and from the lords inside the walls
-            if (come.Count == 0) { if (_alarm && cfg.StreetGarrisonReinforcements) SpawnDefenders(fh, f, Math.Min(cfg.StreetGuardWaveSize * 2, cfg.StreetMaxGuards - f.Helpers.Count)); return; }
+            if (come.Count == 0) { if (_alarm && cfg.StreetGarrisonReinforcements) SpawnDefenders(fh, f, Math.Min(WaveSize(), cfg.StreetMaxGuards - f.Helpers.Count)); return; }
             int joined = 0;
             foreach (var a in come)
             {
@@ -1075,6 +1081,9 @@ namespace AILegacy.Dialogue
                 Unleash();
             }
         }
+
+        /// <summary>Guards per wave: the first as set (8), the next half as many again (12), within the cap.</summary>
+        private static int WaveSize() { int n = S.Get.StreetGuardWaveSize; return _waves == 0 ? n : (int)Math.Ceiling(n * 1.5); }
 
         // Soldiers brought in from a garrison or a lord's party, with the roster they came from, to settle the count afterwards
         private static readonly List<(Agent agent, MobileParty from)> Defenders = new List<(Agent, MobileParty)>();
@@ -1096,7 +1105,8 @@ namespace AILegacy.Dialogue
                 var sources = new List<MobileParty>();
                 if (st.Town?.GarrisonParty != null) sources.Add(st.Town.GarrisonParty);
                 if (st.MapFaction != null)
-                    sources.AddRange(st.Parties.Where(p => p != null && p.IsActive && p.IsLordParty && p != MobileParty.MainParty && p.MapFaction == st.MapFaction && p.MapEvent == null));
+                    sources.AddRange(st.Parties.Where(p => p != null && p.IsActive && p.IsLordParty && p != MobileParty.MainParty && p.MapFaction == st.MapFaction && p.MapEvent == null
+                                                           && !SummonedFrom.Values.Contains(p)));
                 var team = f.Opponent?.Team ?? m.PlayerEnemyTeam;
                 if (team == null) return;
                 var ahead = me.LookDirection.AsVec2;
@@ -1163,52 +1173,6 @@ namespace AILegacy.Dialogue
             Defenders.Clear();
         }
 
-        /// <summary>Your troops join the fight, spawning behind you. Streets and villages only, never indoors.</summary>
-        private static void SummonTroops(MissionFightHandler fh, int want)
-        {
-            try
-            {
-                var cfg = S.Get;
-                var m = Mission.Current;
-                string loc = "";
-                try { loc = CampaignMission.Current?.Location?.StringId ?? ""; } catch { }
-                if (loc != "center" && loc != "village_center") { Say(L.T("AIL_5affe75c", "Aquí dentro no pueden entrar tus hombres: solo en la calle."), Colors.Gray); return; }
-                int room = cfg.StreetMaxOwnTroops - Summoned.Count(a => a != null && a.IsActive());
-                want = Math.Min(want, room);
-                if (want <= 0) { Say(L.T("AIL_a9628091", "Ya tienes dentro a todos los hombres que caben."), Colors.Gray); return; }
-                var me = Agent.Main;
-                var back = -me.LookDirection.AsVec2;
-                if (back.Length < 0.01f) back = new Vec2(0f, -1f);
-                back = back.Normalized();
-                var side = new Vec2(-back.y, back.x);
-                int done = 0;
-                foreach (var e in MobileParty.MainParty.MemberRoster.GetTroopRoster().Where(e => !e.Character.IsHero && e.Number - e.WoundedNumber > 0).OrderByDescending(e => e.Character.Tier).ToList())
-                {
-                    int already = Summoned.Count(a => a != null && a.Character == e.Character);
-                    for (int i = already; i < e.Number - e.WoundedNumber && done < want; i++)
-                    {
-                        int k = Summoned.Count;
-                        var off = back * (4f + (k / 5) * 1.5f) + side * ((k % 5 - 2) * 1.4f);
-                        var pos = me.Position + new Vec3(off.x, off.y);
-                        try { pos.z = m.Scene.GetGroundHeightAtPosition(pos); } catch { }
-                        var dir = -back;
-                        var data = new AgentBuildData(e.Character).TroopOrigin(new TaleWorlds.CampaignSystem.AgentOrigins.PartyAgentOrigin(PartyBase.MainParty, e.Character)).Team(m.PlayerTeam)
-                            .InitialPosition(in pos).InitialDirection(in dir).NoHorses(true);
-                        var a = m.SpawnAgent(data);
-                        if (a == null) continue;
-                        a.WieldInitialWeapons();
-                        Summoned.Add(a);
-                        fh.AddAgentToSide(a, true);
-                        done++;
-                    }
-                    if (done >= want) break;
-                }
-                Say(done > 0 ? L.F("AIL_5a62c49f", $"{done} de tus hombres entran en la pelea.") : L.T("AIL_f71c6f6e", "No te quedan hombres sanos a los que llamar."), done > 0 ? Colors.Green : Colors.Gray);
-                if (done > 0) Log.Info($"[scene] the player puts {done} soldiers into the fight");
-            }
-            catch (Exception ex) { Log.Error("Call your troops", ex); }
-        }
-
         /// <summary>After the fight your men leave the scene (those knocked down stay wounded in your party).</summary>
         private static void DismissSummoned()
         {
@@ -1218,15 +1182,21 @@ namespace AILegacy.Dialogue
                 {
                     if (a == null) continue;
                     if (a.IsActive()) a.FadeOut(false, true);
-                    else if (a.Character is CharacterObject c && MobileParty.MainParty.MemberRoster.GetTroopCount(c) > 0)
+                    else if (a.Character is CharacterObject c)
                     {
-                        if (a.State == AgentState.Killed) MobileParty.MainParty.MemberRoster.AddToCounts(c, -1);
-                        else MobileParty.MainParty.MemberRoster.AddToCounts(c, 0, false, 1);      // wounded
+                        // back to the party they came from: yours, or a lord's who rides with you
+                        var from = SummonedFrom.TryGetValue(a, out var p) && p != null ? p : MobileParty.MainParty;
+                        if (from.MemberRoster.GetTroopCount(c) > 0)
+                        {
+                            if (a.State == AgentState.Killed) from.MemberRoster.AddToCounts(c, -1);
+                            else from.MemberRoster.AddToCounts(c, 0, false, 1);      // wounded
+                        }
                     }
                 }
                 catch { }
             }
             Summoned.Clear();
+            SummonedFrom.Clear();
         }
 
         // Agents fighting you: clear their walk mode and whatever they were doing so they run at you

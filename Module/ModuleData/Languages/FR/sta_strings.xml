@@ -2799,5 +2799,39 @@
     <string id="AIL_e7b1dda4" text="{0} : « {1} »" />
     <string id="AIL_e7b1dda5" text="{0} emmène ses hommes hors du champ de bataille." />
     <string id="AIL_e7b1dda6" text="{0} se range à vos côtés." />
+    <string id="AIL_e7b1ddb0" text="Astuce : Retour arrière ouvre le menu des ordres comme en bataille ; 1-8 choisissent les formations (0, toutes) et F1-F8 donnent les ordres." />
+    <string id="AIL_e7b1ddb1" text="Vous pouvez appeler vos troupes :" />
+    <string id="AIL_e7b1ddb2" text="CTRL + X : 10 soldats" />
+    <string id="AIL_e7b1ddb3" text="CTRL + ALT + X : toutes vos troupes (elles arrivent des abords)" />
+    <string id="AIL_e7b1ddb4" text="Pas encore de place pour d'autres renforts. {0} attendent encore en réserve." />
+    <string id="AIL_e7b1ddb5" text="« Toutes les forces, à moi ! » ({0} rejoignent, {1} en réserve)" />
+    <string id="AIL_e7b1ddb6" text="« Guerriers, aux armes ! La victoire ou la mort ! »" />
+    <string id="AIL_e7b1ddb7" text="« Au combat ! Avec moi ! »" />
+    <string id="AIL_e7b1ddb8" text="Fait : {0} formations prêtes à recevoir des ordres." />
+    <string id="AIL_e7b1ddb9" text="{0} a entendu l'alarme et galope vers {1}." />
+    <string id="AIL_e7b1ddba" text="{0} et ses hommes se joignent au combat !" />
+    <string id="AIL_e7b1ddbb" text="Vos hommes vous emportent hors de {0}." />
+    <string id="AIL_e7b1ddbc" text="Vous tombez devant la garde de {0} : on vous jette au cachot." />
+    <string id="AIL_e7b1ddbd" text="Vous vous échappez de {0}, la garde sur les talons." />
+    <string id="AIL_e7b1ddbe" text="La piller" />
+    <string id="AIL_e7b1ddbf" text="Vous emportez ce qui a de la valeur. Un crime, et l'inimitié du seigneur et des gens." />
+    <string id="AIL_e7b1ddc0" text="La brûler" />
+    <string id="AIL_e7b1ddc1" text="Le feu aux maisons : le village est ravagé. Un crime grave et une forte inimitié." />
+    <string id="AIL_e7b1ddc2" text="Le laisser tranquille" />
+    <string id="AIL_e7b1ddc3" text="{0} est à votre merci" />
+    <string id="AIL_e7b1ddc4" text="Ses défenseurs sont à terre. Que faites-vous du village ?" />
+    <string id="AIL_e7b1ddc5" text="{0} brûle. Vous emportez {1} deniers dans les cendres." />
+    <string id="AIL_e7b1ddc6" text="Vous pillez {0} : {1} deniers." />
+    <string id="AIL_e7b1ddc7" text="{0}, brûlé" />
+    <string id="AIL_e7b1ddc8" text="{0}, pillé" />
+    <string id="AIL_e7b1ddd0" text="Gardes dans la première vague ; chaque vague suivante en amène moitié plus. Par défaut : 8 (puis 12)." />
+    <string id="AIL_e7b1ddd1" text="Vos soldats à l'intérieur (salle du seigneur)" />
+    <string id="AIL_e7b1ddd2" text="Combien de vos soldats tiennent dans la salle du seigneur pendant un combat. Ils n'entrent jamais dans une taverne, l'arène, la prison ni le cachot. Par défaut : 5." />
+    <string id="AIL_e7b1ddd3" text="Combat armé : délai d'arrivée de la garde" />
+    <string id="AIL_e7b1ddd4" text="Multiplie la première attente : 20 s dans une rue, 30 dans une taverne, 5 dans la salle du seigneur, 10 dans la cour d'un château, 15 dans un village, un peu moins là où la sécurité est haute. 1 = comme AIInfluence ; plus bas, la garde arrive plus tôt." />
+    <string id="AIL_e7b1ddd5" text="Quand l'alarme sonne, les seigneurs proches sur la carte peuvent accourir" />
+    <string id="AIL_e7b1ddd6" text="Les quatre seigneurs du royaume du lieu les plus proches sur la carte décident, chacun à sa façon, s'ils viennent ; ceux qui viennent arrivent à la porte avec leurs hommes une minute plus tard, plus un peu par lieue. Par défaut : activé." />
+    <string id="AIL_e7b1ddd7" text="Seigneurs de la carte : à quelle distance (unités de carte)" />
+    <string id="AIL_e7b1ddd8" text="Vos soldats en même temps en extérieur (rue, village). Ceux qui ne tiennent pas attendent en réserve et entrent à mesure que des places se libèrent. Par défaut : 75." />
   </strings>
 </base>

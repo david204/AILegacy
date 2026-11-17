@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.62.0</Version>
+    <Version>0.63.0</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -57,6 +57,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="0Harmony"><HintPath>$(GameDir)\Modules\Bannerlord.Harmony\bin\Win64_Shipping_Client\0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="SandBox"><HintPath>$(GameDir)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.GauntletUI"><HintPath>$(GameDir)\Modules\Native\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.GauntletUI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.MountAndBlade.View"><HintPath>$(GameDir)\Modules\Native\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.View.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="SandBox.View"><HintPath>$(GameDir)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.MountAndBlade.ViewModelCollection"><HintPath>$(GameBin)\TaleWorlds.MountAndBlade.ViewModelCollection.dll</HintPath><Private>false</Private></Reference>

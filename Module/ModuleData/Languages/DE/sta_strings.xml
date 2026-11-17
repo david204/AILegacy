@@ -2799,5 +2799,39 @@
     <string id="AIL_e7b1dda4" text="{0}: „{1}“" />
     <string id="AIL_e7b1dda5" text="{0} führt seine Leute vom Feld." />
     <string id="AIL_e7b1dda6" text="{0} stellt sich an deine Seite." />
+    <string id="AIL_e7b1ddb0" text="Tipp: Rücktaste öffnet das Befehlsmenü wie in einer Schlacht; 1-8 wählen Formationen (0 = alle), F1-F8 geben die Befehle." />
+    <string id="AIL_e7b1ddb1" text="Du kannst deine Truppen rufen:" />
+    <string id="AIL_e7b1ddb2" text="STRG + X: 10 Soldaten" />
+    <string id="AIL_e7b1ddb3" text="STRG + ALT + X: alle Truppen (sie kommen von außerhalb)" />
+    <string id="AIL_e7b1ddb4" text="Noch kein Platz für weitere Verstärkung. {0} warten noch in Reserve." />
+    <string id="AIL_e7b1ddb5" text="„Alle Kräfte zu mir!“ ({0} kommen, {1} in Reserve)" />
+    <string id="AIL_e7b1ddb6" text="„Krieger, zu den Waffen! Sieg oder Tod!“" />
+    <string id="AIL_e7b1ddb7" text="„In den Kampf! Mit mir!“" />
+    <string id="AIL_e7b1ddb8" text="Fertig: {0} Formationen bereit für Befehle." />
+    <string id="AIL_e7b1ddb9" text="{0} hat den Alarm gehört und reitet nach {1}." />
+    <string id="AIL_e7b1ddba" text="{0} und seine Männer greifen in den Kampf ein!" />
+    <string id="AIL_e7b1ddbb" text="Deine Männer tragen dich aus {0} hinaus." />
+    <string id="AIL_e7b1ddbc" text="Du fällst vor der Wache von {0}: Man bringt dich in den Kerker." />
+    <string id="AIL_e7b1ddbd" text="Du entkommst aus {0}, die Wache dicht auf den Fersen." />
+    <string id="AIL_e7b1ddbe" text="Plündern" />
+    <string id="AIL_e7b1ddbf" text="Ihr nehmt, was Wert hat. Ein Verbrechen und die Feindschaft des Herrn und der Leute." />
+    <string id="AIL_e7b1ddc0" text="Niederbrennen" />
+    <string id="AIL_e7b1ddc1" text="Feuer an die Häuser: Das Dorf wird verwüstet. Ein schweres Verbrechen und tiefe Feindschaft." />
+    <string id="AIL_e7b1ddc2" text="In Ruhe lassen" />
+    <string id="AIL_e7b1ddc3" text="{0} ist dir ausgeliefert" />
+    <string id="AIL_e7b1ddc4" text="Seine Verteidiger liegen am Boden. Was tust du mit dem Dorf?" />
+    <string id="AIL_e7b1ddc5" text="{0} brennt. Ihr holt {1} Denare aus der Asche." />
+    <string id="AIL_e7b1ddc6" text="Ihr plündert {0}: {1} Denare." />
+    <string id="AIL_e7b1ddc7" text="{0}, niedergebrannt" />
+    <string id="AIL_e7b1ddc8" text="{0}, geplündert" />
+    <string id="AIL_e7b1ddd0" text="Wachen in der ersten Welle; jede weitere Welle bringt die Hälfte mehr. Standard: 8 (dann 12)." />
+    <string id="AIL_e7b1ddd1" text="Deine Soldaten drinnen (Halle des Herrn)" />
+    <string id="AIL_e7b1ddd2" text="Wie viele deiner Soldaten bei einem Kampf in die Halle des Herrn passen. In Taverne, Arena, Gefängnis oder Kerker kommen sie nie. Standard: 5." />
+    <string id="AIL_e7b1ddd3" text="Bewaffneter Kampf: wie lange die Wache braucht" />
+    <string id="AIL_e7b1ddd4" text="Mal die erste Wartezeit: 20 s auf der Straße, 30 in der Taverne, 5 in der Halle des Herrn, 10 im Burghof, 15 im Dorf, etwas weniger bei hoher Sicherheit. 1 = wie in AIInfluence; niedriger, die Wache kommt früher." />
+    <string id="AIL_e7b1ddd5" text="Bei Alarm können Fürsten in der Nähe auf der Karte herbeireiten" />
+    <string id="AIL_e7b1ddd6" text="Die vier Fürsten des Reichs, die dem Ort auf der Karte am nächsten sind, entscheiden jeder auf seine Art, ob sie kommen; wer kommt, erreicht mit seinen Männern eine Minute später das Tor, plus etwas je Meile Entfernung. Standard: an." />
+    <string id="AIL_e7b1ddd7" text="Fürsten von der Karte: wie weit (Karteneinheiten)" />
+    <string id="AIL_e7b1ddd8" text="Deine Soldaten gleichzeitig im Freien (Straße, Dorf). Wer nicht passt, wartet in Reserve und kommt nach, wenn Plätze frei werden. Standard: 75." />
   </strings>
 </base>

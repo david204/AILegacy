@@ -2799,5 +2799,39 @@
     <string id="AIL_e7b1dda4" text="{0}：“{1}”" />
     <string id="AIL_e7b1dda5" text="{0}带着自己的人离开了战场。" />
     <string id="AIL_e7b1dda6" text="{0}站到了你这一边。" />
+    <string id="AIL_e7b1ddb0" text="提示：退格键像在战斗中一样打开命令菜单；1-8 选择编队（0 为全部），F1-F8 下达命令。" />
+    <string id="AIL_e7b1ddb1" text="你可以召唤你的部队：" />
+    <string id="AIL_e7b1ddb2" text="CTRL + X：10 名士兵" />
+    <string id="AIL_e7b1ddb3" text="CTRL + ALT + X：全部部队（从城外赶来）" />
+    <string id="AIL_e7b1ddb4" text="还容不下更多援兵。仍有 {0} 人在后备等候。" />
+    <string id="AIL_e7b1ddb5" text="“全军向我靠拢！”（{0} 人加入，{1} 人后备）" />
+    <string id="AIL_e7b1ddb6" text="“战士们，拿起武器！不胜则亡！”" />
+    <string id="AIL_e7b1ddb7" text="“随我上阵！”" />
+    <string id="AIL_e7b1ddb8" text="完成：{0} 个编队可以接受命令。" />
+    <string id="AIL_e7b1ddb9" text="{0}听到了警报，正策马赶往{1}。" />
+    <string id="AIL_e7b1ddba" text="{0}和他的人加入了战斗！" />
+    <string id="AIL_e7b1ddbb" text="你的手下把你抬出了{0}。" />
+    <string id="AIL_e7b1ddbc" text="你倒在{0}的卫兵面前：他们把你押进了地牢。" />
+    <string id="AIL_e7b1ddbd" text="你逃出了{0}，卫兵紧追在后。" />
+    <string id="AIL_e7b1ddbe" text="洗劫" />
+    <string id="AIL_e7b1ddbf" text="你们拿走值钱的东西。这是罪行，会招来领主和百姓的敌意。" />
+    <string id="AIL_e7b1ddc0" text="焚毁" />
+    <string id="AIL_e7b1ddc1" text="纵火烧屋：村庄化为废墟。重罪，结下深仇。" />
+    <string id="AIL_e7b1ddc2" text="放过它" />
+    <string id="AIL_e7b1ddc3" text="{0}任你处置" />
+    <string id="AIL_e7b1ddc4" text="守卫者都倒在地上。你要怎么处置这个村庄？" />
+    <string id="AIL_e7b1ddc5" text="{0}燃起大火。你们从灰烬中拿走了 {1} 第纳尔。" />
+    <string id="AIL_e7b1ddc6" text="你们洗劫了{0}：{1} 第纳尔。" />
+    <string id="AIL_e7b1ddc7" text="{0}被焚毁" />
+    <string id="AIL_e7b1ddc8" text="{0}遭洗劫" />
+    <string id="AIL_e7b1ddd0" text="第一波卫兵人数；之后每一波再多一半。默认：8（之后 12）。" />
+    <string id="AIL_e7b1ddd1" text="室内的士兵（领主大厅）" />
+    <string id="AIL_e7b1ddd2" text="战斗时领主大厅里能容纳多少你的士兵。他们从不进入酒馆、竞技场、监狱或地牢。默认：5。" />
+    <string id="AIL_e7b1ddd3" text="持械打斗：卫兵多久赶到" />
+    <string id="AIL_e7b1ddd4" text="首次等待时间的倍数：街道 20 秒，酒馆 30 秒，领主大厅 5 秒，城堡庭院 10 秒，村庄 15 秒，治安高的地方稍短。1 = 与 AIInfluence 相同；越低卫兵来得越快。" />
+    <string id="AIL_e7b1ddd5" text="警报响起时，地图上附近的领主可能赶来" />
+    <string id="AIL_e7b1ddd6" text="地图上离此地最近的四位该国领主各自决定是否赶来；来的人会在一分钟后带着部下抵达城门，距离越远时间稍长。默认：开启。" />
+    <string id="AIL_e7b1ddd7" text="地图领主：距离范围（地图单位）" />
+    <string id="AIL_e7b1ddd8" text="户外同时在场的士兵数（街道、村庄）。放不下的在后备等候，有空位时再进入。默认：75。" />
   </strings>
 </base>

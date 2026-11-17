@@ -2800,5 +2800,39 @@
     <string id="AIL_e7b1dda4" text="{0}: «{1}»" />
     <string id="AIL_e7b1dda5" text="{0} leads his men off the field." />
     <string id="AIL_e7b1dda6" text="{0} takes your side." />
+    <string id="AIL_e7b1ddb0" text="Hint: Backspace opens the order menu as in a battle; 1-8 pick formations (0, all) and F1-F8 give the orders." />
+    <string id="AIL_e7b1ddb1" text="You can call your troops:" />
+    <string id="AIL_e7b1ddb2" text="CTRL + X: 10 soldiers" />
+    <string id="AIL_e7b1ddb3" text="CTRL + ALT + X: all your troops (they come from the outskirts)" />
+    <string id="AIL_e7b1ddb4" text="No room for more reinforcements yet. {0} still waiting in reserve." />
+    <string id="AIL_e7b1ddb5" text="«All forces, to me!» ({0} join, {1} in reserve)" />
+    <string id="AIL_e7b1ddb6" text="«Warriors, to arms! Victory or death!»" />
+    <string id="AIL_e7b1ddb7" text="«To battle! With me!»" />
+    <string id="AIL_e7b1ddb8" text="Done: {0} formations ready for orders." />
+    <string id="AIL_e7b1ddb9" text="{0} has heard the alarm and rides for {1}." />
+    <string id="AIL_e7b1ddba" text="{0} and his men join the fight!" />
+    <string id="AIL_e7b1ddbb" text="Your men carry you out of {0}." />
+    <string id="AIL_e7b1ddbc" text="You fall before the guard of {0}: they take you to the dungeon." />
+    <string id="AIL_e7b1ddbd" text="You get away from {0} with the guard on your heels." />
+    <string id="AIL_e7b1ddbe" text="Loot it" />
+    <string id="AIL_e7b1ddbf" text="You take what is worth taking. A crime, and the enmity of the lord and the people." />
+    <string id="AIL_e7b1ddc0" text="Burn it" />
+    <string id="AIL_e7b1ddc1" text="Fire to the houses: the village is laid waste. A grave crime and deep enmity." />
+    <string id="AIL_e7b1ddc2" text="Leave it be" />
+    <string id="AIL_e7b1ddc3" text="{0} is at your mercy" />
+    <string id="AIL_e7b1ddc4" text="Its defenders are on the ground. What do you do with the village?" />
+    <string id="AIL_e7b1ddc5" text="{0} burns. You take {1} denars from the ashes." />
+    <string id="AIL_e7b1ddc6" text="You loot {0}: {1} denars." />
+    <string id="AIL_e7b1ddc7" text="{0}, burned" />
+    <string id="AIL_e7b1ddc8" text="{0}, looted" />
+    <string id="AIL_e7b1ddd0" text="Guards in the first wave; each wave after it brings half as many again. Default: 8 (then 12)." />
+    <string id="AIL_e7b1ddd1" text="Your soldiers indoors (a lord's hall)" />
+    <string id="AIL_e7b1ddd2" text="How many of your soldiers fit in a lord's hall during a fight. They never come into a tavern, the arena, the prison or the dungeon. Default: 5." />
+    <string id="AIL_e7b1ddd3" text="Armed fight: how long the guard takes to come" />
+    <string id="AIL_e7b1ddd4" text="Times the first wait: 20 s in a street, 30 in a tavern, 5 in a lord's hall, 10 in a castle courtyard, 15 in a village, a little less where security is high. 1 = as in AIInfluence; lower, the guard comes sooner." />
+    <string id="AIL_e7b1ddd5" text="When the alarm sounds, lords on the map nearby may ride in" />
+    <string id="AIL_e7b1ddd6" text="The four lords of the place's realm nearest to it on the map decide, each in his own way, whether to come; those who do arrive at the gate with their men a minute later, plus a little for each league away. Default: on." />
+    <string id="AIL_e7b1ddd7" text="Lords from the map: how far (map units)" />
+    <string id="AIL_e7b1ddd8" text="Your soldiers outdoors at once (street, village). Those who do not fit wait in reserve and come in as places free. Default: 75." />
   </strings>
 </base>
