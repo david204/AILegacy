@@ -867,7 +867,9 @@ namespace AILegacy.Dialogue
         }
 
         /// <summary>In a talk with video whose clip says the lines, the mod's own voice stays quiet.</summary>
-        private bool VideoSpeaks => WithVideo && World.SceneVideos.CarriesSpeech;
+        private bool VideoSpeaks => _clipThisReply;
+        // this reply gets a clip that says the line (the modes themselves last one message)
+        private bool _clipThisReply;
 
         /// <summary>The last lines of the talk, the reply last, as the picture should show them.</summary>
         private string RecentLines()
@@ -892,6 +894,9 @@ namespace AILegacy.Dialogue
                 bool video = WithVideo && World.SceneVideos.Enabled;
                 if (video && World.SceneVideos.Busy) { Log.Info("Talk video: the previous clip is still being made; this reply gets none"); video = false; }
                 bool picture = (WithPictures || video) && World.SceneImages.TalkEnabled;
+                // a picture or a clip is for the message it was asked with: the next one is plain unless asked again
+                _clipThisReply = video && World.SceneVideos.CarriesSpeech;
+                WithPictures = false; WithVideo = false;
                 var self = this;
                 // with video: the picture first (with the characters as they are), then the clip from it
                 void Clip(string path) { if (!video || self._closed) return; self._video = null; self.MakeVideo(path); }

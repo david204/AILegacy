@@ -267,6 +267,13 @@ Answer with the prompt only, nothing else.");
                 });
         }
 
+        /// <summary>Only scheme, host and path of an address, for messages: no user, password or query (a key may hide there).</summary>
+        private static string SafeUrl(string url)
+        {
+            try { var u = new Uri(url); return u.Scheme + "://" + u.Host + (u.IsDefaultPort ? "" : ":" + u.Port) + u.AbsolutePath; }
+            catch { return "(address)"; }
+        }
+
         private static async Task<byte[]> Send(HttpMethod method, string url, string key, string json, int seconds)
         {
             using (var req = new HttpRequestMessage(method, url))
@@ -277,7 +284,7 @@ Answer with the prompt only, nothing else.");
                 using (var resp = await LlmClient.HttpShared.SendAsync(req, cts.Token).ConfigureAwait(false))
                 {
                     var bytes = await resp.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-                    if (!resp.IsSuccessStatusCode) throw new Exception($"HTTP {(int)resp.StatusCode} {Encoding.UTF8.GetString(bytes, 0, Math.Min(200, bytes.Length))}");
+                    if (!resp.IsSuccessStatusCode) throw new Exception($"HTTP {(int)resp.StatusCode} ({method} {SafeUrl(url)}) {Encoding.UTF8.GetString(bytes, 0, Math.Min(200, bytes.Length))}");
                     return bytes;
                 }
             }
@@ -307,7 +314,7 @@ Answer with the prompt only, nothing else.");
                     using (var resp = await LlmClient.HttpShared.SendAsync(req, cts.Token).ConfigureAwait(false))
                     {
                         string text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        if (!resp.IsSuccessStatusCode) throw new Exception($"HTTP {(int)resp.StatusCode} {(text.Length > 200 ? text.Substring(0, 200) : text)}");
+                        if (!resp.IsSuccessStatusCode) throw new Exception($"HTTP {(int)resp.StatusCode} (POST {SafeUrl(root + "/videos")}, model {model}, size {size}, {seconds} s) {(text.Length > 200 ? text.Substring(0, 200) : text)}");
                         job = JObject.Parse(text);
                     }
                 }

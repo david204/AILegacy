@@ -125,7 +125,12 @@ namespace AILegacy.World
                     faceNo = refs.Count;
                 }
                 if (p.Figure != null)
-                    refs.Add(new Reference { Jpeg = CharacterCapture.Jpeg(p.Figure), Line = $"{t.look.Name} [id: {t.look.Id}] — WHOLE BODY: the truth about their build, clothing, armour and gear" + (faceNo > 0 ? $"; the same person as image {faceNo}." : ".") });
+                    refs.Add(new Reference
+                    {
+                        Jpeg = CharacterCapture.Jpeg(p.Figure),
+                        Line = $"{t.look.Name} [id: {t.look.Id}] — WHOLE BODY: the truth about their build, clothing, armour, headwear and gear" + (faceNo > 0 ? $"; the same person as image {faceNo}." : ".")
+                             + (string.IsNullOrEmpty(t.look.Headwear) ? " Bare-headed: no helmet or hat." : $" In this scene they WEAR their {t.look.Headwear} on the head, exactly as in this image: draw it on them (it was taken off in the face image only so the face could be seen)."),
+                    });
             }
             return refs;
         }
@@ -140,7 +145,7 @@ namespace AILegacy.World
             int n = 0;
             foreach (var r in refs) sb.AppendLine($"Image {++n} = {r.Line}");
             if (previousLine != null) sb.AppendLine($"Image {++n} = {previousLine}");
-            sb.Append("Every person shown who has reference images must be recognisably that person: their own face, apparent age, hairstyle, facial hair, skin tone and the outfit they wear in their whole-body image. Copy what you see; do not invent other faces, clothes or gear for them, and do not swap features between people. Match each image only to its id and name: two people may share a name and still be different. Never write ids, names or labels in the picture.");
+            sb.Append("Every person shown who has reference images must be recognisably that person: their own face, apparent age, hairstyle, facial hair, skin tone and the outfit they wear in their whole-body image, helmet or headwear included when they have one on. Copy what you see; do not invent other faces, clothes or gear for them, and do not swap features between people. Match each image only to its id and name: two people may share a name and still be different. Never write ids, names or labels in the picture.");
             return sb.ToString();
         }
 

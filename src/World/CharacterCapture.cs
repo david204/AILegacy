@@ -31,6 +31,8 @@ namespace AILegacy.World
         internal sealed class Look
         {
             public string Id, Name, Body, Equipment, FaceEquipment, Banner;
+            /// <summary>What they wear on the head right now (helmet, hood, hat…), or null: the face sheet is drawn without it.</summary>
+            public string Headwear;
             public bool Female;
             public int Race;
             public uint Color1, Color2;
@@ -106,6 +108,7 @@ namespace AILegacy.World
                 {
                     Id = h.StringId, Name = h.Name?.ToString() ?? h.StringId, Body = body, Equipment = eq.CalculateEquipmentCode(), FaceEquipment = face.CalculateEquipmentCode(),
                     Banner = h.ClanBanner?.Serialize() ?? "", Female = h.IsFemale, Race = h.CharacterObject.Race, Color1 = c1, Color2 = c2,
+                    Headwear = eq[EquipmentIndex.Head].Item?.Name?.ToString(),
                 };
             }
             catch (Exception ex) { Log.Warn($"[capture] look of {h?.Name}: {ex.Message}"); return null; }
@@ -125,6 +128,7 @@ namespace AILegacy.World
                 {
                     Id = id ?? c.StringId, Name = name ?? c.Name?.ToString(), Body = a.BodyPropertiesValue.ToString(), Equipment = eq.CalculateEquipmentCode(), FaceEquipment = face.CalculateEquipmentCode(),
                     Banner = "", Female = a.IsFemale, Race = c.Race, Color1 = a.ClothingColor1, Color2 = a.ClothingColor2,
+                    Headwear = eq[EquipmentIndex.Head].Item?.Name?.ToString(),
                 };
             }
             catch (Exception ex) { Log.Warn($"[capture] look of {name}: {ex.Message}"); return null; }

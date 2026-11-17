@@ -592,7 +592,13 @@ namespace AILegacy.Behaviors
             bool Open(ChatSession c) => c != null && !c.Holding;
             starter.AddPlayerLine("ailegacy_d_say", "ailegacy_d_opts", "ailegacy_d_wait", L.T("AIL_92eb34bb", "{=!}Decir algo más"),
                 () => { var c = Cur(); return Open(c) && !c.Ended; },
-                () => { var c = Cur(); if (c != null) MainThread.Post(c.AskInput); }, priority: 125);
+                () => { var c = Cur(); if (c != null) { c.WithPictures = false; c.WithVideo = false; MainThread.Post(c.AskInput); } }, priority: 125);
+            starter.AddPlayerLine("ailegacy_d_say_pic", "ailegacy_d_opts", "ailegacy_d_wait", L.T("AIL_e7b1df82", "{=!}Decir algo más con imagen de la escena"),
+                () => { var c = Cur(); return Open(c) && !c.Ended && World.SceneImages.TalkEnabled; },
+                () => { var c = Cur(); if (c != null) { c.WithPictures = true; c.WithVideo = false; MainThread.Post(c.AskInput); } }, priority: 124);
+            starter.AddPlayerLine("ailegacy_d_say_vid", "ailegacy_d_opts", "ailegacy_d_wait", L.T("AIL_e7b1df83", "{=!}Decir algo más con vídeo de la escena"),
+                () => { var c = Cur(); return Open(c) && !c.Ended && World.SceneVideos.Enabled && !World.SceneVideos.Busy; },
+                () => { var c = Cur(); if (c != null) { c.WithVideo = true; c.WithPictures = false; MainThread.Post(c.AskInput); } }, priority: 124);
             // Whole conversation in a scrollable window
             starter.AddPlayerLine("ailegacy_d_log", "ailegacy_d_opts", "ailegacy_d_show", L.T("AIL_cdf7046b", "{=!}Repasar lo hablado"),
                 () => { var c = Cur(); return Open(c) && c.Who != null && c.Who.Memory.Turns.Count > 2; },

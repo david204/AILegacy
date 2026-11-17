@@ -3132,5 +3132,7 @@
     <string id="AIL_e7b1df7f" text="Solo se vuoi un modello che non è nell’elenco: il suo nome esatto, e si usa al posto di quello dell’elenco. Vuoto = il modello scelto nell’elenco." />
     <string id="AIL_e7b1df80" text="Video: altro modello" />
     <string id="AIL_e7b1df81" text="Nome di un fornitore di 0. AI Keys la cui chiave fa i video (OpenAI o Google). Vuoto = il primo fornitore di quel servizio presente." />
+    <string id="AIL_e7b1df82" text="{=!}Dire qualcos’altro con un’immagine della scena" />
+    <string id="AIL_e7b1df83" text="{=!}Dire qualcos’altro con un video della scena" />
   </strings>
 </base>

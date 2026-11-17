@@ -3132,5 +3132,7 @@
     <string id="AIL_e7b1df7f" text="Nur wenn du ein Modell willst, das nicht in der Liste steht: sein genauer Name, und es ersetzt das der Liste. Leer = das in der Liste gewählte Modell." />
     <string id="AIL_e7b1df80" text="Videos: anderes Modell" />
     <string id="AIL_e7b1df81" text="Name eines Anbieters aus 0. AI Keys, dessen Schlüssel die Clips erstellt (OpenAI oder Google). Leer = der erste Anbieter dieses Dienstes dort." />
+    <string id="AIL_e7b1df82" text="{=!}Noch etwas sagen, mit Bild der Szene" />
+    <string id="AIL_e7b1df83" text="{=!}Noch etwas sagen, mit Video der Szene" />
   </strings>
 </base>

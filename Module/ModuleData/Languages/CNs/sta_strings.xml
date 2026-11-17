@@ -3132,5 +3132,7 @@
     <string id="AIL_e7b1df7f" text="仅当你想用列表中没有的模型时填写：写出其准确名称，它会替代列表中的选择。留空 = 使用列表中选择的模型。" />
     <string id="AIL_e7b1df80" text="视频：其他模型" />
     <string id="AIL_e7b1df81" text="“0. AI Keys”中用来生成短片的提供商名称（OpenAI 或 Google）。留空 = 使用其中该服务的第一个提供商。" />
+    <string id="AIL_e7b1df82" text="{=!}再说些什么，并生成场景图片" />
+    <string id="AIL_e7b1df83" text="{=!}再说些什么，并生成场景视频" />
   </strings>
 </base>

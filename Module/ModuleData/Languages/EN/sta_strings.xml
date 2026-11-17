@@ -3133,5 +3133,7 @@
     <string id="AIL_e7b1df7f" text="Only if you want a model the list does not have: its exact name, and it is used instead of the list's. Empty = the model chosen in the list." />
     <string id="AIL_e7b1df80" text="Videos: another model" />
     <string id="AIL_e7b1df81" text="Name of a provider of 0. AI Keys whose key makes the clips (OpenAI or Google). Empty = the first provider of that service there." />
+    <string id="AIL_e7b1df82" text="{=!}Say something more with a picture of the scene" />
+    <string id="AIL_e7b1df83" text="{=!}Say something more with a video of the scene" />
   </strings>
 </base>

@@ -3132,5 +3132,7 @@
     <string id="AIL_e7b1df7f" text="Só se você quiser um modelo que não está na lista: o nome exato, e ele é usado no lugar do da lista. Vazio = o modelo escolhido na lista." />
     <string id="AIL_e7b1df80" text="Vídeos: outro modelo" />
     <string id="AIL_e7b1df81" text="Nome de um provedor de 0. AI Keys cuja chave faz os vídeos (OpenAI ou Google). Vazio = o primeiro provedor desse serviço que houver." />
+    <string id="AIL_e7b1df82" text="{=!}Dizer algo mais com imagem da cena" />
+    <string id="AIL_e7b1df83" text="{=!}Dizer algo mais com vídeo da cena" />
   </strings>
 </base>
