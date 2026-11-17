@@ -2834,5 +2834,12 @@
     <string id="AIL_e7b1ddd6" text="The four lords of the place's realm nearest to it on the map decide, each in his own way, whether to come; those who do arrive at the gate with their men a minute later, plus a little for each league away. Default: on." />
     <string id="AIL_e7b1ddd7" text="Lords from the map: how far (map units)" />
     <string id="AIL_e7b1ddd8" text="Your soldiers outdoors at once (street, village). Those who do not fit wait in reserve and come in as places free. Default: 75." />
+    <string id="AIL_e7b1dde0" text="Walk on deck: key on the map" />
+    <string id="AIL_e7b1dde1" text="At sea, this key takes you on foot onto the deck of your own ships (needs War Sails), anchored where your fleet is, with the weather and the hour of the map. Your companions, the lords you hold captive, some of the crew and a few prisoners are there to talk to. «Talk» on the party screen at sea takes you there too, to that person. None turns the key off. Default: F10." />
+    <string id="AIL_e7b1dde2" text="Walking on deck needs the War Sails expansion." />
+    <string id="AIL_e7b1dde3" text="You can walk on deck only at sea, on your own ships." />
+    <string id="AIL_e7b1dde4" text="No sea scene at the party's position." />
+    <string id="AIL_e7b1dde5" text="On deck. F to talk, Alt+T to talk to those near you, Tab to go back to the map." />
+    <string id="AIL_e7b1dde7" text="The deck could not be opened; see ailegacy.log." />
   </strings>
 </base>

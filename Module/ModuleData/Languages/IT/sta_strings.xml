@@ -2833,5 +2833,12 @@
     <string id="AIL_e7b1ddd6" text="I quattro signori del regno del luogo più vicini sulla mappa decidono, ognuno a modo suo, se accorrere; chi viene arriva alla porta con i suoi uomini un minuto dopo, più un po' per ogni lega di distanza. Predefinito: acceso." />
     <string id="AIL_e7b1ddd7" text="Signori dalla mappa: a che distanza (unità della mappa)" />
     <string id="AIL_e7b1ddd8" text="I tuoi soldati all'aperto contemporaneamente (strada, villaggio). Chi non ci sta aspetta di riserva ed entra man mano che si liberano posti. Predefinito: 75." />
+    <string id="AIL_e7b1dde0" text="Camminare sul ponte: tasto sulla mappa" />
+    <string id="AIL_e7b1dde1" text="In mare, questo tasto ti porta a piedi sul ponte delle tue navi (serve War Sails), all'ancora dove si trova la tua flotta, con il tempo e l'ora della mappa. Lì ci sono i tuoi compagni, i signori che tieni prigionieri, parte dell'equipaggio e alcuni prigionieri con cui parlare. «Parla» nella schermata del gruppo, in mare, ti porta lì anche, da quella persona. None disattiva il tasto. Predefinito: F10." />
+    <string id="AIL_e7b1dde2" text="Camminare sul ponte richiede l'espansione War Sails." />
+    <string id="AIL_e7b1dde3" text="Puoi camminare sul ponte solo in mare, sulle tue navi." />
+    <string id="AIL_e7b1dde4" text="Nessuna scena di mare nella posizione del gruppo." />
+    <string id="AIL_e7b1dde5" text="Sul ponte. F per parlare, Alt+T per parlare a chi hai vicino, Tab per tornare alla mappa." />
+    <string id="AIL_e7b1dde7" text="Impossibile aprire il ponte; vedi ailegacy.log." />
   </strings>
 </base>

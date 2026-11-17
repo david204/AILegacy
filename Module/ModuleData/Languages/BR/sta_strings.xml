@@ -2833,5 +2833,12 @@
     <string id="AIL_e7b1ddd6" text="Os quatro senhores do reino do lugar mais próximos no mapa decidem, cada um a seu modo, se vêm; os que vêm chegam ao portão com seus homens um minuto depois, mais um pouco por légua de distância. Padrão: ligado." />
     <string id="AIL_e7b1ddd7" text="Senhores do mapa: a que distância (unidades do mapa)" />
     <string id="AIL_e7b1ddd8" text="Seus soldados ao ar livre ao mesmo tempo (rua, aldeia). Os que não cabem esperam na reserva e entram conforme vagam lugares. Padrão: 75." />
+    <string id="AIL_e7b1dde0" text="Andar no convés: tecla no mapa" />
+    <string id="AIL_e7b1dde1" text="No mar, esta tecla leva você a pé ao convés dos seus próprios navios (precisa de War Sails), ancorados onde está a sua frota, com o clima e a hora do mapa. Seus companheiros, os senhores que você mantém cativos, parte da tripulação e alguns prisioneiros estão lá para conversar. «Conversar» na tela do grupo, no mar, também leva você lá, até essa pessoa. None desliga a tecla. Padrão: F10." />
+    <string id="AIL_e7b1dde2" text="Andar no convés precisa da expansão War Sails." />
+    <string id="AIL_e7b1dde3" text="Você só pode andar no convés no mar, nos seus próprios navios." />
+    <string id="AIL_e7b1dde4" text="Não há cena de mar na posição do grupo." />
+    <string id="AIL_e7b1dde5" text="No convés. F para conversar, Alt+T para falar com quem está perto, Tab para voltar ao mapa." />
+    <string id="AIL_e7b1dde7" text="Não foi possível abrir o convés; veja ailegacy.log." />
   </strings>
 </base>

@@ -2833,5 +2833,12 @@
     <string id="AIL_e7b1ddd6" text="Los cuatro señores del reino del lugar más cercanos en el mapa deciden, cada uno a su manera, si acuden; los que vienen llegan a la puerta con sus hombres un minuto después, más un poco por cada legua de distancia. Por defecto: encendido." />
     <string id="AIL_e7b1ddd7" text="Señores del mapa: a qué distancia (unidades del mapa)" />
     <string id="AIL_e7b1ddd8" text="Tus soldados a la vez al aire libre (calle, aldea). Los que no caben esperan en reserva y entran según quedan huecos. Por defecto: 75." />
+    <string id="AIL_e7b1dde0" text="Caminar por cubierta: tecla en el mapa" />
+    <string id="AIL_e7b1dde1" text="En el mar, esta tecla te lleva a pie a la cubierta de tus propios barcos (necesita War Sails), anclados donde está tu flota, con el tiempo y la hora del mapa. Allí están tus compañeros, los señores que tienes cautivos, parte de la tripulación y algunos prisioneros para hablar con ellos. «Hablar» en la pantalla del grupo, en el mar, también te lleva allí, con esa persona. None apaga la tecla. Por defecto: F10." />
+    <string id="AIL_e7b1dde2" text="Caminar por cubierta necesita la expansión War Sails." />
+    <string id="AIL_e7b1dde3" text="Solo puedes caminar por cubierta en el mar, en tus propios barcos." />
+    <string id="AIL_e7b1dde4" text="No hay escena de mar en la posición del grupo." />
+    <string id="AIL_e7b1dde5" text="En cubierta. F para hablar, Alt+T para hablar a los que tengas cerca, Tab para volver al mapa." />
+    <string id="AIL_e7b1dde7" text="No se pudo abrir la cubierta; mira ailegacy.log." />
   </strings>
 </base>

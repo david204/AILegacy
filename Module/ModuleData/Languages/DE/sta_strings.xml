@@ -2833,5 +2833,12 @@
     <string id="AIL_e7b1ddd6" text="Die vier Fürsten des Reichs, die dem Ort auf der Karte am nächsten sind, entscheiden jeder auf seine Art, ob sie kommen; wer kommt, erreicht mit seinen Männern eine Minute später das Tor, plus etwas je Meile Entfernung. Standard: an." />
     <string id="AIL_e7b1ddd7" text="Fürsten von der Karte: wie weit (Karteneinheiten)" />
     <string id="AIL_e7b1ddd8" text="Deine Soldaten gleichzeitig im Freien (Straße, Dorf). Wer nicht passt, wartet in Reserve und kommt nach, wenn Plätze frei werden. Standard: 75." />
+    <string id="AIL_e7b1dde0" text="Über Deck gehen: Taste auf der Karte" />
+    <string id="AIL_e7b1dde1" text="Auf See bringt dich diese Taste zu Fuß an Deck deiner eigenen Schiffe (braucht War Sails), vor Anker dort, wo deine Flotte ist, mit dem Wetter und der Uhrzeit der Karte. Deine Gefährten, die Lords, die du gefangen hältst, ein Teil der Mannschaft und ein paar Gefangene sind zum Reden da. «Reden» im Gruppenbildschirm bringt dich auf See ebenfalls dorthin, zu dieser Person. None schaltet die Taste ab. Standard: F10." />
+    <string id="AIL_e7b1dde2" text="Über Deck gehen braucht die Erweiterung War Sails." />
+    <string id="AIL_e7b1dde3" text="Über Deck gehen kannst du nur auf See, auf deinen eigenen Schiffen." />
+    <string id="AIL_e7b1dde4" text="Keine Meeresszene an der Position der Gruppe." />
+    <string id="AIL_e7b1dde5" text="An Deck. F zum Reden, Alt+T, um zu denen in deiner Nähe zu sprechen, Tab zurück zur Karte." />
+    <string id="AIL_e7b1dde7" text="Das Deck konnte nicht geöffnet werden; siehe ailegacy.log." />
   </strings>
 </base>

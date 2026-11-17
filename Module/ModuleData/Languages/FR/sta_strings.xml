@@ -2833,5 +2833,12 @@
     <string id="AIL_e7b1ddd6" text="Les quatre seigneurs du royaume du lieu les plus proches sur la carte décident, chacun à sa façon, s'ils viennent ; ceux qui viennent arrivent à la porte avec leurs hommes une minute plus tard, plus un peu par lieue. Par défaut : activé." />
     <string id="AIL_e7b1ddd7" text="Seigneurs de la carte : à quelle distance (unités de carte)" />
     <string id="AIL_e7b1ddd8" text="Vos soldats en même temps en extérieur (rue, village). Ceux qui ne tiennent pas attendent en réserve et entrent à mesure que des places se libèrent. Par défaut : 75." />
+    <string id="AIL_e7b1dde0" text="Marcher sur le pont : touche sur la carte" />
+    <string id="AIL_e7b1dde1" text="En mer, cette touche vous emmène à pied sur le pont de vos propres navires (nécessite War Sails), ancrés là où se trouve votre flotte, avec la météo et l'heure de la carte. Vos compagnons, les seigneurs que vous retenez captifs, une partie de l'équipage et quelques prisonniers y sont pour parler. « Parler » sur l'écran du groupe, en mer, vous y emmène aussi, auprès de cette personne. None désactive la touche. Par défaut : F10." />
+    <string id="AIL_e7b1dde2" text="Marcher sur le pont nécessite l'extension War Sails." />
+    <string id="AIL_e7b1dde3" text="Vous ne pouvez marcher sur le pont qu'en mer, sur vos propres navires." />
+    <string id="AIL_e7b1dde4" text="Aucune scène marine à la position du groupe." />
+    <string id="AIL_e7b1dde5" text="Sur le pont. F pour parler, Alt+T pour parler à ceux qui vous entourent, Tab pour revenir à la carte." />
+    <string id="AIL_e7b1dde7" text="Impossible d'ouvrir le pont ; voir ailegacy.log." />
   </strings>
 </base>

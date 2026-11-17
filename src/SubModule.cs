@@ -109,6 +109,7 @@ namespace AILegacy
             t = Perf.Begin(); AILegacy.Voice.Speech.Tick(); AILegacy.Voice.Listen.Tick(); Perf.End("tick:Voice", t);
             t = Perf.Begin(); Battle.BattleAI.Tick(dt); Perf.End("tick:BattleAI", t);
             t = Perf.Begin(); Scenes.MapTalk.Tick(dt); Perf.End("tick:MapTalk", t);
+            t = Perf.Begin(); Scenes.DeckTalk.Tick(dt); Perf.End("tick:DeckTalk", t);
             t = Perf.Begin(); Dialogue.Ambient.Tick(dt); Perf.End("tick:Ambient", t);
             t = Perf.Begin(); Dialogue.PassBy.Tick(dt); Perf.End("tick:PassBy", t);
             t = Perf.Begin(); World.Diseases.MissionTick(dt); Perf.End("tick:Diseases.MissionTick", t);

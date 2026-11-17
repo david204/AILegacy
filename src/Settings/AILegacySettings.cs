@@ -1555,6 +1555,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_3a41f7a5}E. Scenes", GroupOrder = 14)]
         public int MapTalkEscort { get; set; } = 0;
 
+        [SettingPropertyDropdown("{=AIL_e7b1dde0}Walk on deck: key on the map", Order = 22, RequireRestart = false,
+            HintText = "{=AIL_e7b1dde1}At sea, this key takes you on foot onto the deck of your own ships (needs War Sails), anchored where your fleet is, with the weather and the hour of the map. Your companions, the lords you hold captive, some of the crew and a few prisoners are there to talk to. «Talk» on the party screen at sea takes you there too, to that person. None turns the key off. Default: F10.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}E. Scenes", GroupOrder = 14)]
+        public MCM.Common.Dropdown<string> MapTalkDeckKey { get; set; } = new MCM.Common.Dropdown<string>(AILegacy.Scenes.DeckTalk.KeyNames, 0);
+
         // ------------------------------------------------------------ Battles
         [SettingPropertyBool("{=AIL_3bdc9ea5}Battle tactics AI in field battles", Order = 0, RequireRestart = false,
             HintText = "{=AIL_39a19577}The leader of each side you don't command periodically receives the state of the battle and gives real orders to their formations, according to their personality and skill. While they decide, or if the AI fails, the game's own tactics continue. It doesn't act in sieges.")]

@@ -27,6 +27,14 @@ namespace AILegacy.Patches
                 if (c?.Character == null || !c.Character.IsHero || c.Character == CharacterObject.PlayerCharacter) return true;
                 if (c.Side != PartyScreenLogic.PartyRosterSide.Right || LocationComplex.Current != null) return true;
                 var h = c.Character.HeroObject;
+                // at sea: on deck, with that companion or prisoner
+                if (MobileParty.MainParty != null && MobileParty.MainParty.IsCurrentlyAtSea && DeckTalk.CanOpen(h))
+                {
+                    DeckTalk.Queue(h);
+                    Log.Info($"[deck] party screen talk with {h.Name} opens the deck");
+                    PartyScreenHelper.CloseScreen(true);
+                    return false;
+                }
                 var mode = MapTalk.ModeFor(h);
                 if (mode != MapTalkMode.Companion && mode != MapTalkMode.Prisoner) return true;
                 MapTalk.Queue(h);

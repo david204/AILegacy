@@ -660,22 +660,28 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
 
         private static Equipment _rags;
 
+        /// <summary>What a captive wears: ragged robes, armwraps and boots, nothing in hand.</summary>
+        internal static Equipment Rags()
+        {
+            if (_rags == null)
+            {
+                _rags = new Equipment(Equipment.EquipmentType.Civilian);
+                foreach (var (slot, id) in new[] { (EquipmentIndex.Body, "ragged_robes"), (EquipmentIndex.Gloves, "ragged_armwraps"), (EquipmentIndex.Leg, "ragged_boots") })
+                {
+                    var item = TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<ItemObject>(id);
+                    if (item != null) _rags[slot] = new EquipmentElement(item);
+                }
+            }
+            return _rags.Clone(false);
+        }
+
         /// <summary>A captive: in rags, empty-handed, standing where they are put.</summary>
         private Agent SpawnCaptive(CharacterObject c, PartyBase captor, Vec3 pos, Vec2 dir)
         {
             try
             {
-                if (_rags == null)
-                {
-                    _rags = new Equipment(Equipment.EquipmentType.Civilian);
-                    foreach (var (slot, id) in new[] { (EquipmentIndex.Body, "ragged_robes"), (EquipmentIndex.Gloves, "ragged_armwraps"), (EquipmentIndex.Leg, "ragged_boots") })
-                    {
-                        var item = TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<ItemObject>(id);
-                        if (item != null) _rags[slot] = new EquipmentElement(item);
-                    }
-                }
                 var data = new AgentBuildData(c).TroopOrigin(new SimpleAgentOrigin(c)).Team(Mission.PlayerTeam)
-                    .InitialPosition(in pos).InitialDirection(in dir).NoHorses(true).Equipment(_rags.Clone(false)).CivilianEquipment(true);
+                    .InitialPosition(in pos).InitialDirection(in dir).NoHorses(true).Equipment(Rags()).CivilianEquipment(true);
                 var agent = Mission.SpawnAgent(data);
                 if (agent != null) { try { agent.SetLookAgent(null); } catch { } }
                 return agent;

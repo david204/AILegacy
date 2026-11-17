@@ -2833,5 +2833,12 @@
     <string id="AIL_e7b1ddd6" text="地图上离此地最近的四位该国领主各自决定是否赶来；来的人会在一分钟后带着部下抵达城门，距离越远时间稍长。默认：开启。" />
     <string id="AIL_e7b1ddd7" text="地图领主：距离范围（地图单位）" />
     <string id="AIL_e7b1ddd8" text="户外同时在场的士兵数（街道、村庄）。放不下的在后备等候，有空位时再进入。默认：75。" />
+    <string id="AIL_e7b1dde0" text="在甲板上行走：地图上的按键" />
+    <string id="AIL_e7b1dde1" text="在海上，此键会让你步行登上自己船只的甲板（需要 War Sails），船只停泊在你的舰队所在之处，天气和时间与地图一致。你的同伴、你俘虏的领主、部分船员和几名囚犯都在那里，可以与他们交谈。在海上于队伍界面点击“交谈”也会把你带到那里，去见那个人。None 关闭此键。默认：F10。" />
+    <string id="AIL_e7b1dde2" text="在甲板上行走需要 War Sails 扩展包。" />
+    <string id="AIL_e7b1dde3" text="只有在海上、在你自己的船上，才能在甲板上行走。" />
+    <string id="AIL_e7b1dde4" text="队伍所在位置没有海上场景。" />
+    <string id="AIL_e7b1dde5" text="在甲板上。按 F 交谈，Alt+T 对身边的人说话，Tab 返回地图。" />
+    <string id="AIL_e7b1dde7" text="无法打开甲板；请查看 ailegacy.log。" />
   </strings>
 </base>
