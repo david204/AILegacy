@@ -55,6 +55,11 @@ namespace AILegacy.Memory
         public bool IsEmpty => string.IsNullOrWhiteSpace(Personality) && string.IsNullOrWhiteSpace(Backstory)
                                && string.IsNullOrWhiteSpace(SpeechStyle);
 
+        /// <summary>Anything written at all (a reply may bring only the fields that were missing).</summary>
+        [JsonIgnore]
+        public bool HasAny => !IsEmpty || new[] { Goals, Secret, Drives, Values, SocialBehavior, CognitiveStyle, Reputation, GivenName }.Any(v => !string.IsNullOrWhiteSpace(v))
+                              || (SampleLines != null && SampleLines.Count > 0) || Naivety >= 0;
+
         /// <summary>Has the basics but is missing several parts (old or imported profiles). They get filled in on the next talk.</summary>
         [JsonIgnore]
         public bool IsIncomplete
@@ -79,9 +84,19 @@ namespace AILegacy.Memory
             Personality = F(Personality, o.Personality); Backstory = F(Backstory, o.Backstory); SpeechStyle = F(SpeechStyle, o.SpeechStyle); Goals = F(Goals, o.Goals);
             Secret = F(Secret, o.Secret); Drives = F(Drives, o.Drives); Values = F(Values, o.Values); SocialBehavior = F(SocialBehavior, o.SocialBehavior);
             CognitiveStyle = F(CognitiveStyle, o.CognitiveStyle); Religion = F(Religion, o.Religion); Reputation = F(Reputation, o.Reputation);
-            if ((SampleLines == null || SampleLines.Count == 0) && o.SampleLines != null && o.SampleLines.Count > 0) { SampleLines = o.SampleLines; n++; }
+            if ((SampleLines == null || SampleLines.Count < 3) && o.SampleLines != null && o.SampleLines.Count >= 3) { SampleLines = o.SampleLines; n++; }
+            if (Naivety < 0 && o.Naivety >= 0) { Naivety = o.Naivety; n++; }
+            if (string.IsNullOrWhiteSpace(GivenName) && !string.IsNullOrWhiteSpace(o.GivenName)) { GivenName = o.GivenName; n++; }
             return n;
         }
+    }
+
+    public class DevelopmentRecord
+    {
+        [JsonProperty("day")] public double Day;
+        [JsonProperty("event")] public string Event;
+        [JsonProperty("changed")] public List<string> Changed = new List<string>();
+        [JsonProperty("before")] public Dictionary<string, string> Before = new Dictionary<string, string>();
     }
 
     /// <summary>What a character keeps about another character: how much they trust them and what last happened between them.</summary>
@@ -177,6 +192,13 @@ namespace AILegacy.Memory
         [JsonProperty("morality")] public string Morality;
         [JsonProperty("profanity")] public string Profanity;
         [JsonProperty("piety")] public string Piety;
+        /// <summary>The archetypes given by the new picker (ids in archetypes.json); the second one is weaker and may be empty.</summary>
+        [JsonProperty("archetype_id", NullValueHandling = NullValueHandling.Ignore)] public string ArchetypeId;
+        [JsonProperty("archetype2_id", NullValueHandling = NullValueHandling.Ignore)] public string Archetype2Id;
+        /// <summary>Their faith (id in world_dataaiths.json), given once: mostly their family's.</summary>
+        [JsonProperty("faith", NullValueHandling = NullValueHandling.Ignore)] public string Faith;
+        /// <summary>How their character changed over time: what happened and what each changed field said before.</summary>
+        [JsonProperty("development_log", NullValueHandling = NullValueHandling.Ignore)] public List<DevelopmentRecord> DevelopmentLog;
         /// <summary>The way of speaking they are known for (id in world_data\voices.json), given once.</summary>
         [JsonProperty("speech_habit", NullValueHandling = NullValueHandling.Ignore)] public string SpeechHabit;
         // Character development

@@ -3077,5 +3077,20 @@
     <string id="AIL_e7b1df34" text="Scène de carte : la bataille se livre sur place" />
     <string id="AIL_e7b1df35" text="Quand une discussion à pied avec un ennemi tourne au combat, la bataille commence sur-le-champ, dans la même scène : chaque soldat présent compte dans la bataille de la carte, les autres arrivent en renfort et la rencontre sur la carte règle l’issue comme d’habitude. Désactivé : la scène se ferme et la bataille du jeu s’ouvre sur le même terrain." />
     <string id="AIL_e7b1df40" text="{=!}Parler (avec une vidéo de la scène) [AI Legacy]" />
+    <string id="AIL_e7b1df50" text="Images dans les conversations : service" />
+    <string id="AIL_e7b1df51" text="Avec « Parler (avec une image de la scène) », chaque réponse a une image du moment. Google Gemini et OpenAI reçoivent des images des deux personnages dessinées par le jeu (le visage sous trois angles et le corps entier, habillés comme maintenant) et les copient, si bien que les gens leur ressemblent ; la dernière image avec ce personnage part aussi, pour la continuité. Ils utilisent le fournisseur Gemini ou OpenAI configuré dans 0. Clés IA. Gratuit et Local ne reçoivent qu’une description. Désactivé = pas d’option." />
+    <string id="AIL_e7b1df52" text="Images des événements du monde : service" />
+    <string id="AIL_e7b1df53" text="Qui dessine l’image panoramique de chaque nouvel événement du monde (si l’option est active). Gemini et OpenAI reçoivent aussi les dessins du jeu des souverains et seigneurs nommés." />
+    <string id="AIL_e7b1df54" text="Images : si Gemini ou OpenAI échoue, essayer l’autre" />
+    <string id="AIL_e7b1df55" text="Quand celui des deux qui est choisi échoue (pas de clé, quota, refus), l’image est demandée à l’autre, s’il est configuré." />
+    <string id="AIL_e7b1df56" text="Modèle d’image Gemini" />
+    <string id="AIL_e7b1df57" text="Le modèle Google qui dessine à partir d’images de référence. Par défaut : gemini-2.5-flash-image." />
+    <string id="AIL_e7b1df58" text="Images du livre de souvenirs : service" />
+    <string id="AIL_e7b1df59" text="Vidéos : modèle Gemini" />
+    <string id="AIL_e7b1df5a" text="Le modèle Veo de Google qui transforme l’image de la scène en clip. Par défaut : veo-3.1-fast-generate-preview." />
+    <string id="AIL_e7b1df5b" text="Vidéos : les personnages parlent dans le clip" />
+    <string id="AIL_e7b1df5c" text="Le clip a du son et les deux disent leurs répliques, donc la voix du mod n’est pas jouée pour cette réponse. Désactivé : un clip sans voix et la voix habituelle." />
+    <string id="AIL_e7b1df60" text="Aucun fournisseur Google Gemini avec clé dans 0. Clés IA." />
+    <string id="AIL_e7b1df61" text="Environ {0} $ de votre compte Google ({1} s)." />
   </strings>
 </base>

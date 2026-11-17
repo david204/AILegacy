@@ -1,0 +1,159 @@
+[
+ {
+  "id": "imperial_civic_rites",
+  "name": "Imperial Civic Rites",
+  "description": "The Empire honours Heaven and the gods of the city as a public duty. Its priests are magistrates as much as holy men: they keep the calendar, read omens before battles and audit temple treasuries. Grain, wine and oxen are offered at festivals, victories and town founding days. The household hearth, boundary stones and the memory of the founders are sacred. Breaking an oath sworn at an altar, or refusing the rites, is treated as disloyalty.",
+  "speech": "Imperials greet with formal wishes of health and good fortune. They swear by Heaven, by the emperor or by their family's honour, and bless a friend by hoping the gods keep his house prosperous. Their worst curses wish a lineage ruined or a name forgotten by the city. Educated speakers quote old proverbs about order and duty.",
+  "cultures": [
+   "empire"
+  ],
+  "weight": 1.0
+ },
+ {
+  "id": "mysteries_of_the_unconquered_sun",
+  "name": "Mysteries of the Sun",
+  "description": "A secret brotherhood popular among legionaries and frontier officers. Initiates pass through seven grades in underground chapels lit by a single lamp, sharing bread and watered wine after vigils in the dark. They hold that the Sun is never defeated, only hidden, and that a soldier who keeps faith with his comrades rises with it. Revealing the rites to outsiders is the gravest betrayal. Women are excluded, and cowardice in battle means expulsion.",
+  "speech": "Brothers greet each other with a soldier's grip and a quiet word about the dawn, and they recognise one another by small signs rather than open declarations. They swear by the light that returns, bless a comrade before battle by wishing him to stand in the sun again, and curse traitors to a darkness with no morning.",
+  "cultures": [
+   "empire"
+  ],
+  "weight": 0.15
+ },
+ {
+  "id": "pillar_ascetics",
+  "name": "Brethren of the Pillar",
+  "description": "Hermits who leave cities to live on rocks, ruined towers and the edges of the desert, fasting and praying for years. They hold that the world is a test and that hunger and silence clear the soul. Pilgrims climb to them for blessings, judgements in disputes and prophecies about harvests and wars. They own nothing, refuse meat and wine, and see the pride of nobles as the root of every misfortune. Some bishops admire them; others fear their influence.",
+  "speech": "Followers speak softly and briefly, greeting with a wish for peace of heart. They avoid oaths, saying a plain word should be enough, and when pressed they swear by the hermit who taught them. Blessings ask for patience and a light burden; curses are rare and grim, warning that pride will be stripped away by hunger and time.",
+  "cultures": [
+   "empire",
+   "aserai"
+  ],
+  "weight": 0.15
+ },
+ {
+  "id": "fallen_emperor_doctrine",
+  "name": "Broken Crown Doctrine",
+  "description": "A heresy that spread after the death of Emperor Arenicos and the splitting of the Empire. Its preachers teach that Heaven withdrew its favour because the emperors grew greedy and murderous, and that the civil war is a punishment that will end only when a humble ruler is chosen by sign rather than birth. Followers refuse to sacrifice for claimants they think unworthy. The established priesthood calls them traitors, and some have been flogged or exiled for preaching in markets.",
+  "speech": "Believers greet each other with a sigh about the times and a hope for the true ruler. They swear by Heaven's judgement rather than by any emperor, bless people by wishing them to see the crown made whole, and curse the powerful by saying the gods have already weighed them and found them wanting.",
+  "cultures": [
+   "empire"
+  ],
+  "weight": 0.15
+ },
+ {
+  "id": "sturgian_old_gods",
+  "name": "Old Gods of Sturgia",
+  "description": "Sturgians honour a thunder god of oaths and war, a mother of damp earth, and countless spirits of rivers, birch woods and the home. Wise men and women keep the carved idols on hilltops, read omens in smoke and bird flight, and lead the winter fires and spring sowing feasts. Bread and salt are sacred gifts, and the house spirit must be fed. Cutting a sacred grove, bloodshed at a feast or breaking guest-right brings disaster.",
+  "speech": "Sturgians greet a guest with bread and salt and wish him health. They swear on thunder, on their mother's earth or on their sword, and curse by calling lightning on a liar or the cold to take his house. Blessings ask for a warm hearth and full granaries, and old folk spit or knock wood to turn away misfortune.",
+  "cultures": [
+   "sturgia"
+  ],
+  "weight": 1.0
+ },
+ {
+  "id": "nord_sea_fathers",
+  "name": "Sea Fathers' Faith",
+  "description": "The Nords honour gods of storm, sea and battle, and the ancestors who first crossed the cold waters. Chieftains act as priests at the great seasonal sacrifices, while seeresses speak with the dead and the fates. Ships, oath-rings and the high-seat pillars of a hall are holy. A man's fame after death is all that endures, so cowardice, oath-breaking and killing a man in his sleep are shameful beyond forgiveness. Drowned sailors are thought to feast beneath the waves.",
+  "speech": "Nords greet with a hand on the arm and a question about sea and kin. They swear on the oath-ring, on their ship or on their fathers' graves, and bless a friend with fair winds and a long-remembered name. Curses wish a man to die in his bed unsung, or be swallowed by the grey sea.",
+  "cultures": [
+   "nord",
+   "sturgia"
+  ],
+  "weight": 1.0
+ },
+ {
+  "id": "wolfskin_brotherhood",
+  "name": "Wolfskin Brotherhood",
+  "description": "A warrior cult of young men who dedicate themselves to the god of fury. Initiates spend a winter living wild in the forest, then return wearing wolf or bear skins and fight in the front rank without fear. Their rites involve fasting, drumming and drinking bitter brews before battle. Chieftains value them in war and distrust them in peace. Shame comes from retreating or showing pity in battle, and their victims are sometimes left as offerings to the god.",
+  "speech": "Brothers greet each other with growls, howls and rough jokes about blood and hunger. They swear by the god of fury and by their pack, bless a comrade by wishing him a red feast for his blade, and curse enemies as prey and carrion. Outsiders find their talk boastful and unsettling.",
+  "cultures": [
+   "nord",
+   "sturgia"
+  ],
+  "weight": 0.15
+ },
+ {
+  "id": "aserai_way_of_the_ancestors",
+  "name": "Way of the Banu",
+  "description": "The Aserai revere the god of the open sky and the desert, and above all their founding ancestor Asera and the lineages descended from him. Elders and learned reciters keep the genealogies, the law of hospitality and the poems of the forefathers. Wells, oases and the guest's tent are sacred ground. Turning away a guest, poisoning water, breaking a sworn truce or shaming one's clan before strangers are grave crimes. Feasts mark births, marriages and ended blood feuds.",
+  "speech": "Aserai greet at length, asking after family, flocks and health, and wish peace upon the house. They swear by their fathers, by the god of the sky or by the water they have shared, and bless with wishes for sons and sweet wells. Curses wish a man's line to end or his wells to dry.",
+  "cultures": [
+   "aserai"
+  ],
+  "weight": 1.0
+ },
+ {
+  "id": "cult_of_the_scales",
+  "name": "Cult of the Scales",
+  "description": "A god of trade, roads and fair weights, honoured in market towns and caravan routes. Merchants pay small tithes to shrines whose keepers witness contracts, store valuables and settle disputes between guilds. The cult's festivals open the trading seasons, and its sealed weights are trusted across borders. Cheating with false measures, robbing travellers and refusing to honour a debt are sins against the god. Nobles mock its followers as moneylenders, but rarely refuse their loans.",
+  "speech": "Followers greet by wishing each other good roads and honest scales. They swear on the god's seal or on their ledgers, close a bargain with a handshake over a coin, and bless with a profitable season. Their curses wish a cheat to lose his purse, his name and his credit in every market.",
+  "cultures": [
+   "aserai",
+   "empire",
+   "vlandia"
+  ],
+  "weight": 0.15
+ },
+ {
+  "id": "vlandian_covenant_church",
+  "name": "The Covenant Church",
+  "description": "The Vlandians keep faith with a single just God who made a covenant with their forefathers when they crossed the sea. Priests in parish churches say daily prayers, hear confession and bless fields, weddings and graves, while abbots and bishops hold lands like lords. Saints' relics, holy days and consecrated ground are sacred. Knights swear to protect churches and the weak, though many fall short. Blasphemy, perjury on relics and violence in sanctuary are punished harshly.",
+  "speech": "Vlandians greet with God's good day and part with a wish that God keep someone. They swear by God, by a favoured saint or on relics, and cross themselves against ill luck. Blessings ask for God's grace on a house or a journey, while curses damn a man's soul or wish the saint's wrath upon him.",
+  "cultures": [
+   "vlandia"
+  ],
+  "weight": 1.0
+ },
+ {
+  "id": "poor_brethren_heresy",
+  "name": "The Poor Brethren",
+  "description": "Wandering preachers who say the Covenant Church has grown fat on tithes and land. They teach that God hears the prayer of a peasant as clearly as a bishop's, read scripture in the common tongue and refuse to pay for blessings. They share food, walk barefoot and condemn usury and the hoarding of wealth. Bishops brand them heretics and some lords hang them, yet townsfolk and poor villagers often shelter them. Their own sins are greed and lying.",
+  "speech": "Brethren greet as brother and sister regardless of rank, and wish others a clean heart. They refuse to swear on relics, swearing only by their plain word before God, and bless with a share of bread. Their curses fall on rich priests and greedy lords, warning that the fat will be judged first.",
+  "cultures": [
+   "vlandia",
+   "empire"
+  ],
+  "weight": 0.15
+ },
+ {
+  "id": "khuzait_eternal_sky",
+  "name": "The Eternal Sky",
+  "description": "The Khuzaits honour the Eternal Blue Sky as the father of all, and the Earth as mother. The khan rules by the Sky's mandate, and shamans keep the rites, drum and read shoulder bones for omens. Mares' milk is sprinkled to the four directions before journeys and battles. Fire, running water and the threshold of a yurt are sacred. Spilling milk carelessly, urinating in rivers, stepping on a threshold and spilling noble blood on the ground are forbidden.",
+  "speech": "Khuzaits greet by asking about horses, herds and the road, and wish a guest a peaceful sky. They swear by the Sky above and the Earth below, sometimes offering a drop of milk or liquor first. Blessings wish wide pastures and fast horses, and curses ask the Sky to turn away from a man.",
+  "cultures": [
+   "khuzait"
+  ],
+  "weight": 1.0
+ },
+ {
+  "id": "spirit_drum_shamans",
+  "name": "Spirit Drum Shamans",
+  "description": "Independent shamans who claim to travel to the realms of spirits through drumming, dancing and trance. They do not serve the khan's priesthood, but wander between camps healing the sick, guiding the dead and appeasing angry ancestors. Families keep felt figures of their dead and feed them at feasts. A shaman's drum, mirrors and robe are holy objects. Insulting the ancestors, burying the dead without proper rites and mocking a shaman are believed to bring illness and bad luck.",
+  "speech": "People who follow the shamans speak carefully of spirits, never naming the dead lightly. They greet the ancestors aloud on entering a camp, swear by their grandfathers' spirits, and bless with wishes that the ancestors watch over a child. Curses threaten that restless spirits will follow a man and sicken his herds.",
+  "cultures": [
+   "khuzait"
+  ],
+  "weight": 0.15
+ },
+ {
+  "id": "battanian_old_ways",
+  "name": "The Old Ways",
+  "description": "Battanians keep faith with the gods of hill, river and forest and with the spirits living in standing stones and ancient trees. Bards and keepers of lore remember the genealogies, laws and songs, and lead the great fires that mark the turning seasons. Wells, groves, the heads of honoured foes and the hearth are sacred. Cutting a holy tree, harming a bard, breaking hospitality or betraying one's clan are crimes that no blood price can fully mend.",
+  "speech": "Battanians greet with a wish for luck on the road and the hearth, and often ask about kin first. They swear by the stones, by their ancestors or by the hills of their clan, bless with long life and many songs, and curse a foe to be forgotten by the bards and lost in the mists.",
+  "cultures": [
+   "battania"
+  ],
+  "weight": 1.0
+ },
+ {
+  "id": "keepers_of_the_barrows",
+  "name": "Keepers of the Barrows",
+  "description": "An ancestor cult centred on the great burial mounds scattered through the northern forests and hills. Keepers tend the mounds, pour ale and honey on them at the turning of the year and sleep on them to receive dreams from the dead. They believe ancestors guard the land and judge the living. Opening a barrow, stealing grave goods or letting a family grave fall into ruin are terrible crimes. Many rulers quietly seek the keepers' approval before claiming land.",
+  "speech": "Followers greet the dead before the living when passing old mounds, and speak of ancestors as if they still listen. They swear by the bones of their forefathers, bless a newborn by naming him to the dead, and curse grave robbers and traitors to wander homeless without a mound to rest in.",
+  "cultures": [
+   "battania",
+   "sturgia"
+  ],
+  "weight": 0.15
+ }
+]

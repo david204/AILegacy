@@ -29,6 +29,27 @@ namespace AILegacy.World
         [JsonProperty("profanity")] public string Profanity = "mild";
         /// <summary>devout | observant | indifferent | skeptic</summary>
         [JsonProperty("piety")] public string Piety = "observant";
+
+        // ---- the full archetype (older files have only the fields above)
+        /// <summary>The core of the person in one sentence; pushed to the extreme in play.</summary>
+        [JsonProperty("hook", NullValueHandling = NullValueHandling.Ignore)] public string Hook;
+        [JsonProperty("seen_by_others", NullValueHandling = NullValueHandling.Ignore)] public string SeenByOthers;
+        [JsonProperty("habits", NullValueHandling = NullValueHandling.Ignore)] public string Habits;
+        [JsonProperty("secrets", NullValueHandling = NullValueHandling.Ignore)] public List<string> Secrets;
+        [JsonProperty("lines", NullValueHandling = NullValueHandling.Ignore)] public List<string> Lines;
+        /// <summary>Game traits that make it likelier (same sign) or unlikelier (opposite sign): Honor, Mercy, Valor, Generosity, Calculating, -2..2.</summary>
+        [JsonProperty("traits", NullValueHandling = NullValueHandling.Ignore)] public Dictionary<string, int> Traits;
+        [JsonProperty("conflicts", NullValueHandling = NullValueHandling.Ignore)] public List<string> Conflicts;
+        [JsonProperty("cultures", NullValueHandling = NullValueHandling.Ignore)] public List<string> Cultures;
+        [JsonProperty("min_age", NullValueHandling = NullValueHandling.Ignore)] public int? MinAge;
+        [JsonProperty("max_age", NullValueHandling = NullValueHandling.Ignore)] public int? MaxAge;
+        /// <summary>male | female, or none.</summary>
+        [JsonProperty("gender", NullValueHandling = NullValueHandling.Ignore)] public string Gender;
+        [JsonProperty("weight")] public float Weight = 1f;
+        /// <summary>Whether it may be someone's weaker, second archetype.</summary>
+        [JsonProperty("secondary")] public bool Secondary = true;
+
+        [JsonIgnore] public string Core => !string.IsNullOrWhiteSpace(Hook) ? Hook : Description ?? "";
     }
 
     /// <summary>A way of speaking someone is known for (world_data\voices.json). The AI never sees the name, only the prompt.</summary>
@@ -49,7 +70,7 @@ namespace AILegacy.World
     /// Missing files are created with the defaults, and edits are picked up without a restart.
     /// A campaign's own copy (see WorldFiles) wins over the module's.
     /// </summary>
-    internal static class Lore
+    internal static partial class Lore
     {
         private static string Dir => Path.Combine(Paths.ModuleDir, "world_data");
 
@@ -97,7 +118,10 @@ namespace AILegacy.World
         private static Archetype A(string id, string name, string desc, string roles, string morality, string profanity, string piety) =>
             new Archetype { Id = id, Name = name, Description = desc, Roles = roles.Split(',').Select(x => x.Trim()).ToList(), Morality = morality, Profanity = profanity, Piety = piety };
 
-        private static List<Archetype> DefaultArchetypes() => new List<Archetype>
+        /// <summary>The built-in library (Data/archetypes.json inside the mod), or the old short list if it cannot be read.</summary>
+        private static List<Archetype> DefaultArchetypes() => Embedded<List<Archetype>>("archetypes.json") ?? OldDefaultArchetypes();
+
+        private static List<Archetype> OldDefaultArchetypes() => new List<Archetype>
         {
             A("iron_sovereign", "The Iron Sovereign", "Rules by will and fear of disorder; sees mercy as a debt the realm cannot afford and counts every slight.", "ruler,lord", "ruthless", "mild", "observant"),
             A("weary_crown", "The Weary Crown", "Carries the throne like a wound; longs for quiet, distrusts glory, and is slow to anger but slower to forgive.", "ruler", "principled", "none", "devout"),
@@ -199,7 +223,11 @@ namespace AILegacy.World
             return true;
         }
 
-        public static void EnsureArchetype(Speaker s)
+        /// <summary>The character's core (archetypes, nature, swearing, piety, faith): see EnsureCore.</summary>
+        public static void EnsureArchetype(Speaker s) => EnsureCore(s);
+
+        /// <summary>The old pick (a stable hash over the old short list), kept for files written before the new library.</summary>
+        private static void EnsureArchetypeOld(Speaker s)
         {
             var mem = s.Memory;
             if (!S.Get.EnableArchetypes || !string.IsNullOrEmpty(mem.Archetype)) return;
@@ -241,22 +269,11 @@ namespace AILegacy.World
             var mem = s.Memory;
             try
             {
-                if (cfg.EnableArchetypes)
-                {
-                    EnsureArchetype(s);
-                    if (!string.IsNullOrEmpty(mem.Archetype))
-                    {
-                        sys.AppendLine($"The mould you were cast in: {mem.Archetype} — {mem.ArchetypeText}");
-                        sys.AppendLine("Moral compass: " + (mem.Morality == "principled" ? "principled — you have lines you will not cross, even at a cost."
-                                       : mem.Morality == "ruthless" ? "ruthless — ends justify means; scruples are for people who can afford them." : "pragmatic — you do what works and keep your conscience quiet.") +
-                                       " Speech: " + (mem.Profanity == "heavy" ? "you curse freely and coarsely." : mem.Profanity == "none" ? "you never swear; coarse talk offends you." : "you swear now and then, when provoked."));
-                        string habit = HabitForTalk(s);
-                        if (habit.Length > 0) sys.AppendLine(habit);
-                    }
-                }
+                EnsureCore(s);
+                if (cfg.EnableArchetypes || !string.IsNullOrEmpty(mem.Faith)) sys.AppendLine(CoreForTalk(s));
                 if (cfg.EnableReligion)
                 {
-                    string faith = ForCulture(ReligionFile.Value, s);
+                    string faith = string.IsNullOrEmpty(mem.Faith) ? ForCulture(ReligionFile.Value, s) : "";
                     if (faith.Length > 0)
                         sys.AppendLine("Faith of your people: " + faith + " You yourself are " +
                                        (mem.Piety == "devout" ? "devout: the gods are in your mouth and your decisions." : mem.Piety == "skeptic" ? "a skeptic: you keep the forms and believe little."
@@ -473,11 +490,13 @@ namespace AILegacy.World
 
 Their character now (JSON): {profile}
 
-Decide how this event changes them, as a novelist would: people change slowly and in keeping with who they already are. Most events deepen one trait, harden or soften one attitude, add a goal or a fear.
-- Change at most {max_fields} of these fields, and only if the event truly touches them: personality, goals, drives, values, social_behavior, cognitive_style, religion, reputation, speech_style. Rewrite a changed field in full (English, one or two sentences), keeping what still holds.
-- backstory_addition: ONE sentence recording what happened, to be appended to their past. Always give it.
-- Never change their name, family, rank or the facts of the world.
-Answer ONLY with JSON containing backstory_addition and just the fields you changed.");
+Decide how this event changes them, as a novelist would: people change slowly and in keeping with who they already are, and most of the time they do not change at all.
+- If nothing truly changes, answer with changed false: [[ ""changed"": false ]].
+- Otherwise change at most {max_fields} fields, each at its own pace: drives and goals change most readily; social_behavior fairly readily; cognitive_style little by little; personality slowly; values and religion only for a grave cause; reputation when people would talk; secret only if it came out or a new one was born. Rewrite a changed field in full, in {language}, keeping what still holds and its length.
+- naivety (a number from 0.0 to 1.0, now {naivety}) may move by 0.1 or 0.2 if they were fooled or learned to trust.
+- traits: the game traits (Honor, Mercy, Valor, Generosity, Calculating) may move by 1 at most, only for a real reason, as [[ ""Honor"": -1 ]].
+- Never touch their backstory, their way of speaking or their sample lines, their name, family or rank, nor the facts of the world. Their core never fades: {core}
+Answer ONLY with JSON: changed true and just the fields you changed (and traits, if any).");
 
         public static void Touch() { var _ = TDevelopment.Key + THabitCreate.Key + THabitTalk.Key + THabitOfficial.Key; }
 
@@ -492,7 +511,9 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
             mem.DevelopmentInFlight = true;
             mem.LastDevelopmentDay = now;
             int session = WorldSim.Session;
-            string prompt = TDevelopment.Format("npc_name", s.Name, "event", whatHappened, "profile", JsonConvert.SerializeObject(mem.Profile), "max_fields", cfg.DevelopmentMaxFields);
+            string prompt = TDevelopment.Format("npc_name", s.Name, "event", whatHappened, "profile", JsonConvert.SerializeObject(mem.Profile), "max_fields", cfg.DevelopmentMaxFields,
+                "language", cfg.Language, "naivety", mem.Profile.Naivety >= 0 ? mem.Profile.Naivety.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) : "0.5",
+                "core", CoreForTalk(s)).Replace("[[", "{").Replace("]]", "}");
             Log.Info($"Character evolution of {s.Name}: {whatHappened}");
             LlmClient.CompleteAsync(new List<ChatMessage> { new ChatMessage("user", prompt) }, wantJson: true, task: "lore", maxTokensOverride: 700, preferredProvider: cfg.ProviderSummaries).ContinueWith(t =>
             {
@@ -509,25 +530,46 @@ Answer ONLY with JSON containing backstory_addition and just the fields you chan
                         if (a < 0 || b <= a) return;
                         var j = JObject.Parse(res.Text.Substring(a, b - a + 1));
                         var p = mem.Profile;
+                        if (j["changed"] != null && j["changed"].Type == JTokenType.Boolean && !(bool)j["changed"]) { Log.Info($"Evolution of {s.Name}: no change"); return; }
                         int changed = 0;
+                        var rec = new DevelopmentRecord { Day = CampaignTime.Now.ToDays, Event = whatHappened };
                         string Take(string key, string old)
                         {
                             var v = ((string)j[key] ?? "").Trim();
                             if (v.Length < 8 || v == old || changed >= cfg.DevelopmentMaxFields) return old;
+                            // a rewrite far outside the field's length is refused
+                            var f = Fields.FirstOrDefault(x => x.key == key);
+                            if (f.key != null && (v.Length < f.min / 2 || v.Length > f.max * 2)) { Log.Info($"Evolution of {s.Name}: {key} rejected ({v.Length} characters, limit {f.min}-{f.max})"); return old; }
                             changed++;
-                            return v.Length > 500 ? v.Substring(0, 500) : v;
+                            rec.Changed.Add(key); rec.Before[key] = old ?? "";
+                            return v.Length > 700 ? v.Substring(0, 700) : v;
                         }
                         p.Personality = Take("personality", p.Personality); p.Goals = Take("goals", p.Goals); p.Drives = Take("drives", p.Drives);
                         p.Values = Take("values", p.Values); p.SocialBehavior = Take("social_behavior", p.SocialBehavior); p.CognitiveStyle = Take("cognitive_style", p.CognitiveStyle);
-                        p.Religion = Take("religion", p.Religion); p.Reputation = Take("reputation", p.Reputation); p.SpeechStyle = Take("speech_style", p.SpeechStyle);
-                        var add = ((string)j["backstory_addition"] ?? "").Trim();
-                        if (add.Length > 8)
+                        p.Religion = Take("religion", p.Religion); p.Reputation = Take("reputation", p.Reputation); p.Secret = Take("secret", p.Secret);
+                        if (j["naivety"] != null && double.TryParse(j["naivety"].ToString().Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var nv))
                         {
-                            p.Backstory = ((p.Backstory ?? "") + " " + (add.Length > 300 ? add.Substring(0, 300) : add)).Trim();
-                            if (p.Backstory.Length > 1800) p.Backstory = p.Backstory.Substring(p.Backstory.Length - 1800);
+                            double old = p.Naivety >= 0 ? p.Naivety : 0.5;
+                            nv = Math.Max(old - 0.2, Math.Min(old + 0.2, Math.Max(0, Math.Min(1, nv))));
+                            if (Math.Abs(nv - old) >= 0.05) { rec.Changed.Add("naivety"); rec.Before["naivety"] = old.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture); p.Naivety = nv; changed++; }
                         }
+                        if (j["traits"] is JObject tr && s.IsHero)
+                            foreach (var kv in tr)
+                            {
+                                var t = kv.Key == "Honor" ? DefaultTraits.Honor : kv.Key == "Mercy" ? DefaultTraits.Mercy : kv.Key == "Valor" ? DefaultTraits.Valor
+                                      : kv.Key == "Generosity" ? DefaultTraits.Generosity : kv.Key == "Calculating" ? DefaultTraits.Calculating : null;
+                                if (t == null || !int.TryParse(kv.Value?.ToString(), out int d) || d == 0) continue;
+                                d = Math.Sign(d);
+                                int now2 = s.Hero.GetTraitLevel(t), next = Math.Max(-2, Math.Min(2, now2 + d));
+                                if (next == now2) continue;
+                                try { s.Hero.SetTraitLevel(t, next); rec.Changed.Add("trait " + kv.Key); rec.Before["trait " + kv.Key] = now2.ToString(); } catch { }
+                            }
+                        if (rec.Changed.Count == 0) { Log.Info($"Evolution of {s.Name}: nothing usable"); return; }
+                        if (mem.DevelopmentLog == null) mem.DevelopmentLog = new List<DevelopmentRecord>();
+                        mem.DevelopmentLog.Add(rec);
+                        while (mem.DevelopmentLog.Count > 30) mem.DevelopmentLog.RemoveAt(0);
                         mem.ProfileRevision++;
-                        Log.Info($"Character of {s.Name} updated (revision {mem.ProfileRevision}, {changed} field(s)): {add}");
+                        Log.Info($"Character of {s.Name} updated (revision {mem.ProfileRevision}): {string.Join(", ", rec.Changed)} after: {whatHappened}");
                         SaveFiles.Flush();
                     }
                     catch (Exception ex) { Log.Error("Character evolution", ex); }

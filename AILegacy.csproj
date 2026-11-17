@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.74.0</Version>
+    <Version>0.75.0</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <Compile Remove="Module\**;libs\**" />
+    <EmbeddedResource Include="Data/archetypes.json" LogicalName="AILegacy.Data.archetypes.json" />
+    <EmbeddedResource Include="Data/faiths.json" LogicalName="AILegacy.Data.faiths.json" />
     <None Remove="Module\**" />
   </ItemGroup>
 

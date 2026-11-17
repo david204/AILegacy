@@ -3077,5 +3077,20 @@
     <string id="AIL_e7b1df34" text="地图场景：战斗就地展开" />
     <string id="AIL_e7b1df35" text="与敌人徒步交谈演变成战斗时，战斗会在同一场景中当场开始：在场的每名士兵都计入地图战斗，其余部队作为援军到来，结果照常由地图遭遇战决定。关闭：场景关闭，并在同一地形上打开游戏自带的战斗。" />
     <string id="AIL_e7b1df40" text="{=!}交谈（附场景视频）[AI Legacy]" />
+    <string id="AIL_e7b1df50" text="对话图片：服务" />
+    <string id="AIL_e7b1df51" text="使用“交谈（附场景图片）”时，每次回复都会配一张当时的图片。Google Gemini 和 OpenAI 会收到游戏绘制的双方角色图像（三个角度的脸和全身，穿着当前的服装）并照此绘制，所以人物长得像他们自己；为了连贯，还会附上与该角色的上一张图片。它们使用你在“0. AI 密钥”中设置的 Gemini 或 OpenAI 提供商。免费和本地只收到文字描述。关闭 = 没有此选项。" />
+    <string id="AIL_e7b1df52" text="世界事件图片：服务" />
+    <string id="AIL_e7b1df53" text="由谁绘制每个新世界事件的宽幅图片（该选项开启时）。Gemini 和 OpenAI 还会收到游戏绘制的其中提到的统治者和领主图像。" />
+    <string id="AIL_e7b1df54" text="图片：Gemini 或 OpenAI 失败时尝试另一个" />
+    <string id="AIL_e7b1df55" text="所选的那一个失败时（没有密钥、额度不足、被拒绝），如果你配置了另一个，就向另一个请求图片。" />
+    <string id="AIL_e7b1df56" text="Gemini 图片模型" />
+    <string id="AIL_e7b1df57" text="根据参考图像作画的 Google 模型。默认：gemini-2.5-flash-image。" />
+    <string id="AIL_e7b1df58" text="回忆录图片：服务" />
+    <string id="AIL_e7b1df59" text="视频：Gemini 模型" />
+    <string id="AIL_e7b1df5a" text="把场景图片变成短片的 Google Veo 模型。默认：veo-3.1-fast-generate-preview。" />
+    <string id="AIL_e7b1df5b" text="视频：角色在短片中说话" />
+    <string id="AIL_e7b1df5c" text="短片有声音，两人会在其中说出各自的台词，因此这次回复不播放本模组的配音。关闭：无人声的短片，配音照旧。" />
+    <string id="AIL_e7b1df60" text="“0. AI 密钥”中没有带密钥的 Google Gemini 提供商。" />
+    <string id="AIL_e7b1df61" text="约 {0} 美元，从你的 Google 账户扣除（{1} 秒）。" />
   </strings>
 </base>

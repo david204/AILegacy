@@ -57,6 +57,9 @@ namespace AILegacy.Dialogue
 
         public IFaction Faction => IsHero ? Hero.MapFaction : (ResidentSettlement?.MapFaction ?? Band?.MapFaction);
 
+        /// <summary>The resident's body in the scene, if they were met in one (for pictures drawn from it).</summary>
+        public TaleWorlds.MountAndBlade.Agent Agent { get; private set; }
+
         public static Speaker FromHero(Hero h)
         {
             return new Speaker { Hero = h, Character = h.CharacterObject, Key = h.StringId, Memory = MemoryStore.Get(h.StringId, h.Name.ToString()) };
@@ -74,6 +77,7 @@ namespace AILegacy.Dialogue
                 Key = key,
                 ResidentSettlement = settlement,
                 Memory = mem,
+                Agent = agent as TaleWorlds.MountAndBlade.Agent,
             };
         }
 

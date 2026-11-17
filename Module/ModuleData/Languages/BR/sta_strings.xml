@@ -3077,5 +3077,20 @@
     <string id="AIL_e7b1df34" text="Cena do mapa: a batalha é travada ali mesmo" />
     <string id="AIL_e7b1df35" text="Quando uma conversa a pé com um inimigo termina em luta, a batalha começa ali mesmo, na mesma cena: cada soldado presente conta na batalha do mapa, o resto chega como reforço e o encontro no mapa decide o resultado como sempre. Desligado: a cena fecha e a batalha do jogo abre no mesmo terreno." />
     <string id="AIL_e7b1df40" text="{=!}Falar (com vídeo da cena) [AI Legacy]" />
+    <string id="AIL_e7b1df50" text="Imagens nas conversas: serviço" />
+    <string id="AIL_e7b1df51" text="Com «Falar (com imagem da cena)», cada resposta tem uma imagem do momento. Google Gemini e OpenAI recebem imagens dos dois personagens desenhadas pelo jogo (o rosto de três lados e o corpo inteiro, vestidos como agora) e as copiam, então as pessoas saem como são; a última imagem com esse personagem também vai, para a continuidade. Usam o provedor Gemini ou OpenAI configurado em 0. Chaves de IA. Grátis e Local só recebem uma descrição. Desligado = sem essa opção." />
+    <string id="AIL_e7b1df52" text="Imagens dos eventos do mundo: serviço" />
+    <string id="AIL_e7b1df53" text="Quem desenha a imagem panorâmica de cada novo evento do mundo (se a opção estiver ligada). Gemini e OpenAI também recebem os desenhos do jogo dos governantes e senhores citados." />
+    <string id="AIL_e7b1df54" text="Imagens: se o Gemini ou a OpenAI falhar, tentar o outro" />
+    <string id="AIL_e7b1df55" text="Quando o escolhido dos dois falha (sem chave, sem cota, recusa), a imagem é pedida ao outro, se estiver configurado." />
+    <string id="AIL_e7b1df56" text="Modelo de imagem do Gemini" />
+    <string id="AIL_e7b1df57" text="O modelo do Google que desenha a partir de imagens de referência. Padrão: gemini-2.5-flash-image." />
+    <string id="AIL_e7b1df58" text="Imagens do livro de memórias: serviço" />
+    <string id="AIL_e7b1df59" text="Vídeos: modelo do Gemini" />
+    <string id="AIL_e7b1df5a" text="O modelo Veo do Google que transforma a imagem da cena em um vídeo. Padrão: veo-3.1-fast-generate-preview." />
+    <string id="AIL_e7b1df5b" text="Vídeos: os personagens falam no vídeo" />
+    <string id="AIL_e7b1df5c" text="O vídeo tem som e os dois dizem suas falas nele, então a voz do mod não toca nessa resposta. Desligado: vídeo sem vozes e a voz de sempre." />
+    <string id="AIL_e7b1df60" text="Não há nenhum provedor do Google Gemini com chave em 0. Chaves de IA." />
+    <string id="AIL_e7b1df61" text="Cerca de {0} $ da sua conta Google ({1} s)." />
   </strings>
 </base>

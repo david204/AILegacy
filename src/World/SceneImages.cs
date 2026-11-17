@@ -26,10 +26,10 @@ namespace AILegacy.World
     /// request), then an image service draws it. Files live in save_data\[campaign]\images as PNG.
     /// Sources: a free public service that needs no key, OpenAI with the player's own key, or a local Stable Diffusion.
     /// </summary>
-    internal static class SceneImages
+    internal static partial class SceneImages
     {
         public const int Off = 0, Free = 1, OpenAi = 2, Local = 3;
-        public static readonly string[] SourceNames = { "Off", "Free (Pollinations, no key)", "OpenAI (your key)", "Local Stable Diffusion" };
+        public static readonly string[] SourceNames = { "Off", "Free (Pollinations, no key)", "OpenAI (your key)", "Local Stable Diffusion", "Google Gemini (your key)" };
 
         private static readonly Tpl TPrompt = new Tpl("images/scene_prompt.txt",
 @"Turn this page from a character's memories into ONE prompt in English for an illustration of its key moment. 40 to 70 words.
@@ -69,17 +69,18 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
         // For world events: wide, like a photograph
         private const string EventStyle = "Photorealistic wide shot, like a photograph, natural light, worn metal, leather, wool, wood and stone, historically grounded medieval setting.";
 
-        private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done, Tpl tpl, string people, bool wide)> Pending = new Queue<(HeroMemory, MemoryPage, Action, Tpl, string, bool)>();
+        private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done, Tpl tpl, string people, bool wide, int source, List<Hero> heroes)> Pending
+            = new Queue<(HeroMemory, MemoryPage, Action, Tpl, string, bool, int, List<Hero>)>();
 
         /// <summary>
         /// A wide picture of a new world event, for its news card. Queued behind any other picture. <paramref name="done"/>
         /// gets the file name on the main thread, or null if it could not be made.
         /// </summary>
-        public static bool RequestEvent(string title, string text, string people, Action<string> done)
+        public static bool RequestEvent(string title, string text, string people, Action<string> done, List<Hero> heroes = null)
         {
-            if (!Enabled || Dir == null || string.IsNullOrWhiteSpace(text)) return false;
+            if (!EnabledFor(Kind.Event) || Dir == null || string.IsNullOrWhiteSpace(text)) return false;
             var page = new MemoryPage { Title = title ?? "", Text = text, Day = CampaignTime.Now.ToDays };
-            Pending.Enqueue((null, page, () => done?.Invoke(page.Image), TEvent, people, true));
+            Pending.Enqueue((null, page, () => done?.Invoke(page.Image), TEvent, people, true, SourceOf(Kind.Event), heroes));
             Next();
             return true;
         }
@@ -88,9 +89,12 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
         /// Who an event picture may show: the rulers and heads of house of its realms that the text names, and the player
         /// if named, up to four, each as an image model needs them.
         /// </summary>
-        internal static string EventPeople(string text, List<Kingdom> realms)
+        internal static string EventPeople(string text, List<Kingdom> realms) => EventPeople(text, realms, out _);
+
+        internal static string EventPeople(string text, List<Kingdom> realms, out List<Hero> heroes)
         {
             var found = new List<Hero>();
+            heroes = found;
             try
             {
                 string t = text ?? "";
@@ -115,10 +119,10 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
         /// </summary>
         public static bool RequestMoment(HeroMemory mem, string where, string exchange, Action<string> shown)
         {
-            if (!Enabled || mem == null || Dir == null || string.IsNullOrWhiteSpace(exchange)) return false;
+            if (!TalkEnabled || mem == null || Dir == null || string.IsNullOrWhiteSpace(exchange)) return false;
             if (IsBusy) { Log.Info("Conversation image: another is already in progress, this reply gets no image"); return false; }
             var page = new MemoryPage { Title = where ?? "", Text = exchange, Day = CampaignTime.Now.ToDays };
-            Pending.Enqueue((mem, page, () => { string path = PathOf(page); if (path != null) shown?.Invoke(path); }, TMoment, null, false));
+            Pending.Enqueue((mem, page, () => { string path = PathOf(page); if (path != null) shown?.Invoke(path); }, TMoment, null, false, SourceOf(Kind.Talk), null));
             Next();
             return true;
         }
@@ -129,11 +133,12 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
         private static int _gen;
         private static MemoryPage _active;
 
-        public static bool Enabled => Source != Off;
-        public static int Source { get { try { return Math.Max(0, Math.Min(3, S.Get.ImageSource.SelectedIndex)); } catch { return Off; } } }
+        /// <summary>The memory book's pictures (each kind has its own service: see SourceOf).</summary>
+        public static bool Enabled => EnabledFor(Kind.Book);
+        public static int Source => SourceOf(Kind.Book);
         public static bool IsBusy => _busy || Pending.Count > 0;
 
-        public static void ResetSession() { _gen++; Pending.Clear(); _busy = false; _active = null; _failures = 0; }
+        public static void ResetSession() { _gen++; Pending.Clear(); _busy = false; _active = null; _failures = 0; ResetRefs(); }
 
         internal static string Dir
         {
@@ -162,7 +167,11 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
         {
             if (!Enabled || mem == null || page == null || Dir == null) { done?.Invoke(); return; }
             if (_active == page || Pending.Any(x => x.page == page)) return;
-            Pending.Enqueue((mem, page, done, null, null, false));
+            var heroes = new List<Hero>();
+            var who = Hero.Find(mem.HeroId);
+            if (who != null) heroes.Add(who);
+            if (Hero.MainHero != null && who != Hero.MainHero) heroes.Add(Hero.MainHero);
+            Pending.Enqueue((mem, page, done, null, null, false, SourceOf(Kind.Book), heroes));
             Next();
         }
 
@@ -177,7 +186,9 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
             int gen = _gen;
             int session = WorldSim.Session;
             string dir = Dir;
-            int source = Source;
+            int source = job.source;
+            // the people in it, as the game draws them, for a service that takes reference pictures
+            var looks = TakesReferences(source) && job.heroes != null ? job.heroes.Take(4).Select(CharacterCapture.LookOf).Where(l => l != null).ToList() : new List<CharacterCapture.Look>();
             string style = (S.Get.ImageStyle ?? "").Trim();
             string localUrl = (S.Get.ImageLocalUrl ?? "").Trim().TrimEnd('/');
             string openAiModel = (S.Get.ImageOpenAiModel ?? "").Trim();
@@ -243,9 +254,16 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
                     if (job.wide) full = prompt.TrimEnd('.', ' ') + ". " + EventStyle;
                     else if (job.tpl != null) full = NoSnowWords(prompt, Snowy(job.page.Title)).TrimEnd('.', ' ') + ". Setting: " + (job.page.Title ?? "") + ". " + MomentStyle;
                     else full = style.Length > 0 ? prompt.TrimEnd('.', ' ') + ". " + style : prompt;
-                    byte[] raw = source == Free ? await FromPollinations(full, SeedFor(job.mem), job.wide).ConfigureAwait(false)
-                               : source == OpenAi ? await FromOpenAi(full, openAi, openAiModel).ConfigureAwait(false)
-                               : await FromLocal(full, localUrl, job.wide, job.wide || job.tpl == null || Snowy(job.page.Title)).ConfigureAwait(false);
+                    byte[] raw;
+                    if (TakesReferences(source))
+                    {
+                        var refs = looks.Count > 0 ? await ReferencesOf(looks).ConfigureAwait(false) : new List<Reference>();
+                        if (refs.Count > 0) full = full + "\n\n" + Manifest(refs);
+                        raw = await Draw(source, full, refs.Select(r => r.Jpeg).ToList(), job.wide, !(job.wide || job.tpl == null || Snowy(job.page.Title))).ConfigureAwait(false);
+                    }
+                    else
+                        raw = source == Free ? await FromPollinations(full, SeedFor(job.mem), job.wide).ConfigureAwait(false)
+                            : await FromLocal(full, localUrl, job.wide, job.wide || job.tpl == null || Snowy(job.page.Title)).ConfigureAwait(false);
                     if (raw == null || raw.Length < 2000) { Finish(false, null, prompt, "el servicio no devolvió una imagen"); return; }
                     Directory.CreateDirectory(dir);
                     string file = (job.wide ? "e_" : job.tpl == null ? "p_" : "t_") + Guid.NewGuid().ToString("N").Substring(0, 12) + ".png";

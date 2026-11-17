@@ -602,6 +602,8 @@ namespace AILegacy.Dialogue
         {
             // In the dialogue box the voice is made first and the reply is told ready when both can start together.
             // A voice that fails, or is not ready in 30 s, leaves the reply silent.
+            // the clip of this talk says the lines itself: no voice here
+            if (VideoSpeaks) { ShowNpc(text, voiced: true); return; }
             if (_dialogMode)
             {
                 int gen = ++_prepGen;
@@ -830,19 +832,50 @@ namespace AILegacy.Dialogue
         public bool CanMakeVideo => World.SceneVideos.Enabled && !World.SceneVideos.Busy && !string.IsNullOrEmpty(_pairNpc) && !_waiting && !_closed;
         public bool HasVideo => _video != null && System.IO.File.Exists(_video);
 
-        public void MakeVideo()
+        public void MakeVideo() => MakeVideo(HasPicture ? _picture : null);
+
+        /// <summary>
+        /// The clip of the last moment. With the scene picture it is the clip's first frame and both say their lines in it;
+        /// without one, the clip is made from a description of the moment.
+        /// </summary>
+        private void MakeVideo(string picture)
         {
             if (!CanMakeVideo) return;
             string player = Hero.MainHero?.Name?.ToString() ?? "";
             string where = World.SceneImages.Setting();
             string exchange = $"{player}: {_pairPlayer}\n{_s.Name}: {_pairNpc}";
+            World.SceneVideos.Scene scene = null;
+            if (!string.IsNullOrEmpty(picture) && System.IO.File.Exists(picture))
+            {
+                string LookOf(Hero h) => h == null ? "" : $"{(h.IsFemale ? "a woman" : "a man")}, about {(int)h.Age} years old";
+                int hour = CampaignTime.Now.GetHourOfDay;
+                scene = new World.SceneVideos.Scene
+                {
+                    Image = picture, NpcName = _s.Name, PlayerName = player, NpcLine = _pairNpc, PlayerLine = _pairPlayer,
+                    NpcLook = _s.IsHero ? LookOf(_s.Hero) : (_s.IsFemale ? "a woman" : "a man"), PlayerLook = LookOf(Hero.MainHero), Where = where,
+                    Season = World.SceneImages.SeasonNow, Time = hour < 5 ? "night" : hour < 11 ? "morning" : hour < 17 ? "daytime" : hour < 21 ? "evening" : "night",
+                };
+            }
             var self = this;
             World.SceneVideos.Offer(World.SceneImages.People(Mem), where, exchange, path =>
             {
                 self._video = path;
                 if (self.UseWindow && !self._closed) self.ShowVideo();
                 else Notify(L.T("AIL_e7b1c85e", "El vídeo de la escena está listo: elige «Ver el vídeo»."), Colors.Gray);
-            }, !WithVideo || !_videoAgreed, () => _videoAgreed = true);
+            }, !WithVideo || !_videoAgreed, () => _videoAgreed = true, scene);
+        }
+
+        /// <summary>In a talk with video whose clip says the lines, the mod's own voice stays quiet.</summary>
+        private bool VideoSpeaks => WithVideo && World.SceneVideos.CarriesSpeech;
+
+        /// <summary>The last lines of the talk, the reply last, as the picture should show them.</summary>
+        private string RecentLines()
+        {
+            string player = Hero.MainHero?.Name?.ToString() ?? "You";
+            var lines = Mem.Turns.Where(t => t != null && !string.IsNullOrWhiteSpace(t.Text) && !t.Text.TrimStart().StartsWith("["))
+                .Reverse().Take(5).Reverse()
+                .Select(t => "- " + (t.Role == "npc" ? _s.Name : player) + ": " + t.Text.Replace("\n", " ").Trim());
+            return string.Join("\n", lines);
         }
 
         public void ShowVideo()
@@ -855,23 +888,28 @@ namespace AILegacy.Dialogue
             _pairPlayer = playerText; _pairNpc = npcText;
             try
             {
-                if (WithVideo && World.SceneVideos.Enabled)
-                {
-                    if (World.SceneVideos.Busy) Log.Info("Talk video: the previous clip is still being made; this reply gets none");
-                    else { _video = null; MakeVideo(); }
-                }
-                if (!WithPictures || !World.SceneImages.Enabled) return;
+                bool video = WithVideo && World.SceneVideos.Enabled;
+                if (video && World.SceneVideos.Busy) { Log.Info("Talk video: the previous clip is still being made; this reply gets none"); video = false; }
+                bool picture = (WithPictures || video) && World.SceneImages.TalkEnabled;
+                var self = this;
+                // with video: the picture first (with the characters as they are), then the clip from it
+                void Clip(string path) { if (!video || self._closed) return; self._video = null; self.MakeVideo(path); }
+                if (!picture) { Clip(null); return; }
                 string player = Hero.MainHero?.Name?.ToString() ?? "";
                 string where = World.SceneImages.Setting();
                 string exchange = $"{player}: {playerText}\n{_s.Name}: {npcText}";
                 string shown = $"{L.T("AIL_63ea9af4", "Tú: ")}{playerText}\n\n{_s.Name}: {npcText}";
-                var self = this;
-                World.SceneImages.RequestMoment(Mem, where, exchange, path =>
+                void Got(string path)
                 {
                     self._picture = path; self._pictureText = shown;
-                    if (self.UseWindow && !self._closed) self.ShowPicture();
-                    else Notify(L.T("AIL_e7b1c7cf", "La imagen de la escena está lista: elige «Ver la escena»."), Colors.Gray);
-                });
+                    UI.ConversationMixin.ShowScenePicture(path);
+                    if (self.UseWindow && !self._closed && !video) self.ShowPicture();
+                    Clip(path);
+                }
+                bool refs = World.SceneImages.TakesReferences(World.SceneImages.SourceOf(World.SceneImages.Kind.Talk));
+                bool started = refs ? World.SceneImages.RequestTalk(_s.IsHero ? _s.Hero : null, _s.Name, RecentLines(), Got, () => Clip(null), _s.IsHero ? null : World.CharacterCapture.LookOfAgent(_s.Agent, _s.Key, _s.Name))
+                                    : World.SceneImages.RequestMoment(Mem, where, exchange, Got);
+                if (!started) Clip(null);
             }
             catch (Exception ex) { Log.Error("Talk image", ex); }
         }
@@ -989,15 +1027,16 @@ namespace AILegacy.Dialogue
             if (_s.IsHero) Mem.Snapshot = ContextBuilder.Snapshot(_s.Hero);
             if (string.IsNullOrWhiteSpace(reply.Reply)) reply.Reply = L.T("AIL_da6122fe", "*te mira en silencio*");
 
-            if (reply.Profile != null && Mem.Profile != null && !Mem.Profile.IsEmpty && Mem.Profile.IsIncomplete)
+            if (reply.Profile != null && Mem.Profile != null && !Mem.Profile.IsEmpty)
             {
                 int filled = Mem.Profile.FillMissingFrom(reply.Profile);
                 if (filled > 0) { Mem.ProfileRevision++; Log.Info($"Profile of {_s.Name} completed: {filled} missing part(s)"); }
             }
             if (reply.Profile != null && (Mem.Profile == null || Mem.Profile.IsEmpty))
             {
-                Mem.Profile = reply.Profile;
-                Log.Info($"Personality created for {_s.Name}: {reply.Profile.Personality} | Secret: {reply.Profile.Secret}");
+                if (Mem.Profile == null) Mem.Profile = reply.Profile; else Mem.Profile.FillMissingFrom(reply.Profile);
+                World.Lore.EnsureCore(_s);      // the faith goes into the profile's religion
+                Log.Info($"Personality created for {_s.Name}: {Mem.Profile.Personality} | Secret: {Mem.Profile.Secret}");
             }
 
             // Nearly the same line as a moment ago: don't show it, ask for another one (once per turn)

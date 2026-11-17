@@ -263,9 +263,13 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             var cfg = S.Get;
             var mem = s.Memory;
             string playerName = ContextBuilder.PlayerNameFor(s);
-            // Empty profile: create it whole. Partial profile (old or imported): ask to fill in what's missing.
-            bool completing = mem.Profile != null && !mem.Profile.IsEmpty && mem.Profile.IsIncomplete && cfg.CompleteProfiles;
-            bool needsProfile = mem.Profile == null || mem.Profile.IsEmpty || completing;
+            // Each field the profile still lacks is asked for in this reply, until all are there (an old or imported
+            // profile only gets what it lacks; with completion off, only an empty one is made)
+            Lore.EnsureCore(s);
+            var missing = Lore.MissingFields(s);
+            bool empty = mem.Profile == null || mem.Profile.IsEmpty;
+            bool needsProfile = missing.Count > 0 && (empty || cfg.CompleteProfiles);
+            bool completing = needsProfile && !empty;
 
             var sys = new StringBuilder();
             // ---------- 1a. shared by everyone
@@ -318,7 +322,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             if (quests) fields.Add(TJsonQuest.Format("language", cfg.Language));
             if (cfg.EnableCharacterDevelopment && s.IsHero && !needsProfile) fields.Add(TJsonSignificant.Text);
             if (cfg.EnableRumors) fields.Add(TJsonRumor.Format("language", cfg.Language));
-            if (needsProfile) fields.Add(TJsonProfile.Format("given_name_field", s.IsHero ? "" : "\"given_name\": \"your first name\", "));
+            if (needsProfile) fields.Add(Lore.ProfileSkeleton(s, missing));
             fields.Add(TJsonEnd.Text);
 
             sys.AppendLine();
@@ -329,11 +333,12 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             sys.AppendLine("}");
             if (needsProfile)
             {
-                sys.AppendLine(TProfileNote.Format("language", cfg.Language));
-                string habit = Lore.HabitForCreation(s);
-                if (habit.Length > 0) sys.AppendLine(habit);
+                sys.AppendLine();
+                sys.AppendLine(Lore.CoreForCreation(s));
+                string facts = Lore.CreationFacts(s);
+                if (facts.Length > 0) sys.AppendLine(facts);
+                sys.AppendLine(Lore.FieldRules(s));
             }
-            if (completing) sys.AppendLine(TProfileComplete.Text);
 
             // ---------- 2. history
             var msgs = new List<ChatMessage> { new ChatMessage("system", sys.ToString().TrimEnd()) };
@@ -594,7 +599,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
 
         // ======================================================== sections
 
-        private static void AppendWorld(StringBuilder sys)
+        internal static void AppendWorld(StringBuilder sys)
         {
             var lore = WorldLore.Text;
             if (string.IsNullOrWhiteSpace(lore)) return;
@@ -615,16 +620,16 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
                 sys.AppendLine("## Your inner character (stay consistent with it)");
                 if (!string.IsNullOrWhiteSpace(p.Personality)) sys.AppendLine("Personality: " + p.Personality);
                 if (!string.IsNullOrWhiteSpace(p.Backstory)) sys.AppendLine("Backstory: " + p.Backstory);
-                if (!string.IsNullOrWhiteSpace(p.SpeechStyle)) sys.AppendLine("How you speak: " + p.SpeechStyle);
+                if (!string.IsNullOrWhiteSpace(p.SpeechStyle)) sys.AppendLine("How you speak (show it roughly once every 3 to 5 of your messages, not in every line; swearing follows your mood and the company; greetings of your people only at the start): " + p.SpeechStyle);
                 if (!string.IsNullOrWhiteSpace(p.Goals)) sys.AppendLine("What you want: " + p.Goals);
-                if (!string.IsNullOrWhiteSpace(p.Drives) && p.Drives != p.Goals) sys.AppendLine("What drives you and what you fear: " + p.Drives);
-                if (!string.IsNullOrWhiteSpace(p.Values)) sys.AppendLine("What you respect and what you despise: " + p.Values);
-                if (!string.IsNullOrWhiteSpace(p.SocialBehavior)) sys.AppendLine("How you treat people: " + p.SocialBehavior);
-                if (!string.IsNullOrWhiteSpace(p.CognitiveStyle)) sys.AppendLine("How your mind works (humour, honesty, how you decide): " + p.CognitiveStyle);
+                if (!string.IsNullOrWhiteSpace(p.Drives) && p.Drives != p.Goals) sys.AppendLine("What drives you and what you fear (the main basis of your own decisions and initiatives): " + p.Drives);
+                if (!string.IsNullOrWhiteSpace(p.Values)) sys.AppendLine("What you respect and what you despise (act within it unless something truly shakes you): " + p.Values);
+                if (!string.IsNullOrWhiteSpace(p.SocialBehavior)) sys.AppendLine("How you treat people, depending on who they are to you: " + p.SocialBehavior);
+                if (!string.IsNullOrWhiteSpace(p.CognitiveStyle)) sys.AppendLine("How your mind works (rely on it when you judge what you are told and whether it is a lie): " + p.CognitiveStyle);
                 if (!string.IsNullOrWhiteSpace(p.Religion)) sys.AppendLine("Faith: " + p.Religion);
-                if (!string.IsNullOrWhiteSpace(p.Reputation)) sys.AppendLine("What people say about you: " + p.Reputation);
+                if (!string.IsNullOrWhiteSpace(p.Reputation)) sys.AppendLine("What people say about you (others may treat you by it, and you know what is said): " + p.Reputation);
                 if (p.SampleLines != null && p.SampleLines.Count > 0)
-                    sys.AppendLine("Lines that sound like you (for the voice only, never repeat them word for word): " + string.Join(" / ", p.SampleLines.Select(x => "\"" + x + "\"")));
+                    sys.AppendLine("Lines that sound like you (they only show the voice: never reuse their words, images, names or jokes): " + string.Join(" / ", p.SampleLines.Select(x => "\"" + x + "\"")));
                 if (!string.IsNullOrWhiteSpace(p.Secret)) sys.AppendLine("Your personal secret (never reveal it lightly; only to someone you trust deeply — see your trust in them below — or under great pressure): " + p.Secret);
             }
             Lore.AppendTo(sys, s);

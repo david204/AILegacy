@@ -3077,5 +3077,20 @@
     <string id="AIL_e7b1df34" text="Kartenszene: Die Schlacht wird gleich dort geschlagen" />
     <string id="AIL_e7b1df35" text="Endet ein Gespräch zu Fuß mit einem Feind im Kampf, beginnt die Schlacht sofort in derselben Szene: Jeder anwesende Soldat zählt in der Kartenschlacht, der Rest kommt als Verstärkung, und die Begegnung auf der Karte entscheidet den Ausgang wie gewohnt. Aus: Die Szene schließt sich und die Schlacht des Spiels öffnet sich auf demselben Gelände." />
     <string id="AIL_e7b1df40" text="{=!}Sprechen (mit Video der Szene) [AI Legacy]" />
+    <string id="AIL_e7b1df50" text="Bilder in Gesprächen: Dienst" />
+    <string id="AIL_e7b1df51" text="Mit «Sprechen (mit Bild der Szene)» bekommt jede Antwort ein Bild des Moments. Google Gemini und OpenAI erhalten vom Spiel gezeichnete Bilder beider Figuren (das Gesicht von drei Seiten und den ganzen Körper, so gekleidet wie jetzt) und übernehmen sie, sodass die Leute wie sie selbst aussehen; das letzte Bild mit dieser Figur geht für die Kontinuität mit. Sie nutzen den Gemini- oder OpenAI-Anbieter aus 0. KI-Schlüssel. Kostenlos und Lokal erhalten nur eine Beschreibung. Aus = keine solche Option." />
+    <string id="AIL_e7b1df52" text="Bilder von Weltereignissen: Dienst" />
+    <string id="AIL_e7b1df53" text="Wer das breite Bild jedes neuen Weltereignisses zeichnet (wenn die Option an ist). Gemini und OpenAI bekommen zusätzlich die Zeichnungen des Spiels von den genannten Herrschern und Lords." />
+    <string id="AIL_e7b1df54" text="Bilder: Wenn Gemini oder OpenAI scheitert, den anderen versuchen" />
+    <string id="AIL_e7b1df55" text="Wenn der gewählte der beiden scheitert (kein Schlüssel, Kontingent, Ablehnung), wird das Bild beim anderen angefragt, falls eingerichtet." />
+    <string id="AIL_e7b1df56" text="Gemini-Bildmodell" />
+    <string id="AIL_e7b1df57" text="Das Google-Modell, das aus Referenzbildern zeichnet. Standard: gemini-2.5-flash-image." />
+    <string id="AIL_e7b1df58" text="Bilder des Erinnerungsbuchs: Dienst" />
+    <string id="AIL_e7b1df59" text="Videos: Gemini-Modell" />
+    <string id="AIL_e7b1df5a" text="Das Veo-Modell von Google, das das Szenenbild in einen Clip verwandelt. Standard: veo-3.1-fast-generate-preview." />
+    <string id="AIL_e7b1df5b" text="Videos: Die Figuren sprechen im Clip" />
+    <string id="AIL_e7b1df5c" text="Der Clip hat Ton und beide sprechen darin ihre Sätze, deshalb wird die Stimme der Mod für diese Antwort nicht abgespielt. Aus: ein stummer Clip und die übliche Stimme." />
+    <string id="AIL_e7b1df60" text="Kein Google-Gemini-Anbieter mit Schlüssel in 0. KI-Schlüssel." />
+    <string id="AIL_e7b1df61" text="Etwa {0} $ von deinem Google-Konto ({1} s)." />
   </strings>
 </base>

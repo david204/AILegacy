@@ -454,7 +454,7 @@ namespace AILegacy.Behaviors
                 }, priority: 120);
             // The same, with a picture of each moment (only with an image service set up)
             starter.AddPlayerLine("ailegacy_d_start_hi", "hero_main_options", "ailegacy_d_wait", L.T("AIL_e7b1c7d0", "{=!}Hablar (con imagen de escena) [AI Legacy]"),
-                () => S.Get.UseDialogStyle && World.SceneImages.Enabled && CanTalkHero(),
+                () => S.Get.UseDialogStyle && World.SceneImages.TalkEnabled && CanTalkHero(),
                 () =>
                 {
                     ResetReturn();
@@ -462,7 +462,7 @@ namespace AILegacy.Behaviors
                     if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
                 }, priority: 119);
             starter.AddPlayerLine("ailegacy_d_start_ri", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_e7b1c7d0", "{=!}Hablar (con imagen de escena) [AI Legacy]"),
-                () => S.Get.UseDialogStyle && World.SceneImages.Enabled && CanTalkResident(false),
+                () => S.Get.UseDialogStyle && World.SceneImages.TalkEnabled && CanTalkResident(false),
                 () =>
                 {
                     ResetReturn();

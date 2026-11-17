@@ -85,6 +85,7 @@ namespace AILegacy
                 t = Perf.Begin(); Dialogue.ChatSession.TickUI(); Perf.End("tick:ChatSession.TickUI", t);
                 t = Perf.Begin(); UI.MapHud.Tick(); Perf.End("tick:MapHud", t);
                 t = Perf.Begin(); UI.ConversationMixin.Tick(dt); Perf.End("tick:ConversationMixin", t);
+                t = Perf.Begin(); World.CharacterCapture.Tick(dt); Perf.End("tick:CharacterCapture", t);
             }
 
             _letterCheck += dt;

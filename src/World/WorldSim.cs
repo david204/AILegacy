@@ -373,6 +373,7 @@ namespace AILegacy.World
             lock (Queue) { Queue.Clear(); Reserved.Clear(); }
             try { Dialogue.Combat.ResetSession(); } catch { }
             try { Annals.ResetSession(); } catch { }
+            try { CharacterCapture.ResetSession(); } catch { }
             try { Dialogue.SceneActions.ResetSession(); } catch { }
             try { Dialogue.SceneMatters.ResetSession(); } catch { }
             try { AILegacy.Voice.Speech.ResetSession(); } catch { }
@@ -1635,7 +1636,7 @@ Look up who holds a place before writing that a realm must recover, retake, recl
         {
             try
             {
-                if (!SceneImages.Enabled) return;
+                if (!SceneImages.EnabledFor(SceneImages.Kind.Event)) return;
                 var realms = e.Kingdoms.Select(FindKingdom).Where(k => k != null).ToList();
                 string Hex(uint c) => $"#{(c >> 16) & 0xFF:X2}{(c >> 8) & 0xFF:X2}{c & 0xFF:X2}";
                 string colours = realms.Count == 0 ? "none named" : string.Join("; ", realms.Select(k => $"{k.Name} ({k.Culture?.Name}): {Hex(k.Color)} and {Hex(k.Color2)}"));
@@ -1645,7 +1646,7 @@ Look up who holds a place before writing that a realm must recover, retake, recl
                 if (desc.Length > 1200) desc = desc.Substring(0, 1200);
                 string body = $"Type: {e.Type}\nRealms and their banner colours: {colours}\n" + (place.Length > 0 ? $"Where: {place}\n" : "") + "Event:\n" + desc
                               + (string.IsNullOrWhiteSpace(e.SummaryEn) ? "" : "\nIn short: " + e.SummaryEn);
-                string people = SceneImages.EventPeople(e.Title + " " + e.Text, realms);
+                string people = SceneImages.EventPeople(e.Title + " " + e.Text, realms, out var eventHeroes);
                 int session = Session;
                 string id = e.Id;
                 SceneImages.RequestEvent(e.Title, body, people, file =>
@@ -1656,7 +1657,7 @@ Look up who holds a place before writing that a realm must recover, retake, recl
                     if (n == null) return;
                     n.Image = file;
                     AILegacy.Memory.SaveFiles.Dirty();
-                });
+                }, eventHeroes);
             }
             catch (Exception ex) { Log.Error("[world] event picture", ex); }
         }

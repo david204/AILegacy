@@ -25,9 +25,35 @@ namespace AILegacy.World
     /// </summary>
     internal static class SceneVideos
     {
-        public const int Off = 0, OpenAi = 1, Endpoint = 2;
-        public static readonly string[] SourceNames = { "Off", "OpenAI (your key, paid)", "OpenAI-compatible server" };
-        public static int Source { get { try { return Math.Max(0, Math.Min(2, S.Get.VideoSource.SelectedIndex)); } catch { return Off; } } }
+        public const int Off = 0, OpenAi = 1, Endpoint = 2, Gemini = 3;
+        public static readonly string[] SourceNames = { "Off", "OpenAI (your key, paid)", "OpenAI-compatible server", "Google Gemini · Veo (your key)" };
+        public static int Source { get { try { return Math.Max(0, Math.Min(3, S.Get.VideoSource.SelectedIndex)); } catch { return Off; } } }
+
+        /// <summary>The clip made from the scene picture: who says what, so they speak it in the clip.</summary>
+        public sealed class Scene
+        {
+            public string Image, NpcName, PlayerName, NpcLine, PlayerLine, NpcLook, PlayerLook, Where, Season, Time;
+        }
+
+        private static readonly Tpl TSpeak = new Tpl("videos/from_picture.txt",
+@"The attached image is the first frame of this clip. Keep the same two people all through it: the same faces, hair, age, build, clothes and gear, in the same place and light. Do not restyle anything and do not add anyone.
+
+WHERE: {where}. Season: {season}. Time of day: {time}.
+
+WHO IS WHO
+- {player_name}: {player_look}.
+- {npc_name}: {npc_look}.
+
+WHAT HAPPENS ({seconds} seconds)
+1. {player_name} says: ""{player_line}""
+2. {npc_name} answers: ""{npc_line}""
+{acting}
+
+VOICES: {voices}
+ACTING: small, natural gestures that fit the words; they keep facing each other as people in a conversation.
+CAMERA: steady, at most a slow push in; no cuts.
+REALISM: photorealistic, like a historical film; bodies, cloth and objects move in a physically possible way.
+NOT ALLOWED: subtitles, captions or any writing, a change of style, new people, modern objects.");
         public static bool Enabled => Source != Off;
         public static bool Busy { get; private set; }
 
@@ -46,7 +72,52 @@ What was just said:
 {text}
 Answer with the prompt only, nothing else.");
 
-        public static void Touch() { var _ = TPrompt.Key; }
+        public static void Touch() { var _ = TPrompt.Key + TSpeak.Key; }
+
+        /// <summary>A line as it is said: what is acted (*between asterisks*) set apart, no double quotes.</summary>
+        private static (string said, string acted) Split(string line)
+        {
+            line = (line ?? "").Trim();
+            var acted = new List<string>();
+            string said = System.Text.RegularExpressions.Regex.Replace(line, @"\*([^*]+)\*", m => { acted.Add(m.Groups[1].Value.Trim()); return " "; });
+            said = System.Text.RegularExpressions.Regex.Replace(said.Replace("\"", "'").Replace("«", "'").Replace("»", "'"), @"\s{2,}", " ").Trim();
+            return (said.Length == 0 ? "(says nothing)" : said, string.Join("; ", acted));
+        }
+
+        private static string SpeakPrompt(Scene s, int seconds)
+        {
+            var p = Split(s.PlayerLine); var n = Split(s.NpcLine);
+            var acting = new List<string>();
+            if (p.acted.Length > 0) acting.Add($"({s.PlayerName}, acted, not spoken: {p.acted})");
+            if (n.acted.Length > 0) acting.Add($"({s.NpcName}, acted, not spoken: {n.acted})");
+            string voices = S.Get.VideoVoices
+                ? "each speaks with a natural voice of their own that fits their age and sex; only the one speaking moves their lips; no narrator and no music over the words."
+                : "nobody's voice is heard: only the sounds of the place; their lips may move as people talking.";
+            return TSpeak.Format("where", s.Where ?? "", "season", s.Season ?? "", "time", s.Time ?? "", "player_name", s.PlayerName ?? "the traveller", "player_look", s.PlayerLook ?? "",
+                "npc_name", s.NpcName ?? "the other", "npc_look", s.NpcLook ?? "", "seconds", seconds, "player_line", p.said, "npc_line", n.said,
+                "acting", string.Join("\n", acting), "voices", voices);
+        }
+
+        /// <summary>Whether a clip carries the characters' voices (then the mod's own voice is not played for that reply).</summary>
+        public static bool CarriesSpeech => Enabled && S.Get.VideoVoices;
+
+        /// <summary>The first frame at the size of the clip, cropped to fill it, as JPEG.</summary>
+        private static byte[] Frame(string path, int w, int h)
+        {
+            using (var src = System.Drawing.Image.FromFile(path))
+            using (var bmp = new System.Drawing.Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format24bppRgb))
+            {
+                float k = Math.Max(w / (float)src.Width, h / (float)src.Height);
+                int sw = (int)(w / k), sh = (int)(h / k);
+                var cut = new System.Drawing.Rectangle((src.Width - sw) / 2, (src.Height - sh) / 2, sw, sh);
+                using (var g = System.Drawing.Graphics.FromImage(bmp))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    g.DrawImage(src, new System.Drawing.Rectangle(0, 0, w, h), cut, System.Drawing.GraphicsUnit.Pixel);
+                }
+                using (var ms = new MemoryStream()) { bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg); return ms.ToArray(); }
+            }
+        }
 
         public static void ResetSession() { _gen++; Busy = false; }
 
@@ -60,23 +131,25 @@ Answer with the prompt only, nothing else.");
         /// <summary>
         /// Ask the player first (with the cost), then make the clip. <paramref name="done"/> gets the file on the main thread.
         /// </summary>
-        public static void Offer(string people, string where, string exchange, Action<string> done, bool ask = true, Action accepted = null)
+        public static void Offer(string people, string where, string exchange, Action<string> done, bool ask = true, Action accepted = null, Scene scene = null)
         {
             var cfg = S.Get;
             if (!Enabled || Busy || string.IsNullOrWhiteSpace(exchange)) return;
             if (!UnderCap()) { WorldSim.Say(L.F("AIL_e7b1c855", $"Ya has hecho los {cfg.VideoPerDay} vídeos de hoy (tope de los ajustes)."), Colors.Yellow); return; }
             // a talk with video asks once, with the cost of each clip; after that every reply gets its clip
-            if (!ask) { Make(people, where, exchange, done); return; }
+            if (!ask) { Make(people, where, exchange, done, scene); return; }
             int secs = Math.Max(4, Math.Min(12, cfg.VideoSeconds));
             double cost = secs * Math.Max(0, cfg.VideoCentsPerSecond) / 100.0;
-            string costText = Source == OpenAi ? L.F("AIL_e7b1c856", $"Unos {cost:0.00} $ de tu cuenta de OpenAI ({secs} s).") : L.F("AIL_e7b1c857", $"Lo hace tu servidor de vídeo ({secs} s).");
+            string costText = Source == OpenAi ? L.F("AIL_e7b1c856", $"Unos {cost:0.00} $ de tu cuenta de OpenAI ({secs} s).")
+                            : Source == Gemini ? L.F("AIL_e7b1df61", $"Unos {cost:0.00} $ de tu cuenta de Google ({secs} s).")
+                            : L.F("AIL_e7b1c857", $"Lo hace tu servidor de vídeo ({secs} s).");
             InformationManager.ShowInquiry(new InquiryData(L.T("AIL_e7b1c858", "Vídeo de la escena"),
                 L.F("AIL_e7b1c859", $"{costText} Tarda unos minutos; puedes seguir jugando y te aviso cuando esté.\n\n¿Lo hago?"),
                 true, true, L.T("AIL_e7b1c85a", "Hacerlo"), L.T("AIL_e5c9b3a4", "Cancelar"),
-                () => { accepted?.Invoke(); Make(people, where, exchange, done); }, null), true);
+                () => { accepted?.Invoke(); Make(people, where, exchange, done, scene); }, null), true);
         }
 
-        private static void Make(string people, string where, string exchange, Action<string> done)
+        private static void Make(string people, string where, string exchange, Action<string> done, Scene scene = null)
         {
             var cfg = S.Get;
             if (Busy) return;
@@ -88,7 +161,14 @@ Answer with the prompt only, nothing else.");
             string model = (cfg.VideoModel ?? "").Trim(), size = (cfg.VideoSize ?? "").Trim();
             int secs = Math.Max(4, Math.Min(12, cfg.VideoSeconds));
             string baseUrl = null, key = null;
-            if (source == OpenAi)
+            if (source == Gemini)
+            {
+                var g = SceneImages.GeminiProvider;
+                if (g == null) { Busy = false; WorldSim.Say(L.T("AIL_e7b1df60", "No hay ningún proveedor de Google Gemini con clave en 0. Claves de IA."), Colors.Red); return; }
+                key = g.ApiKey;
+                model = (cfg.VideoGeminiModel ?? "").Trim();
+            }
+            else if (source == OpenAi)
             {
                 ProviderConfig p = null;
                 try { p = LegacyConfig.Current.Providers.FirstOrDefault(x => x.IsUsable && (x.BaseUrl ?? "").IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0); } catch { }
@@ -111,6 +191,34 @@ Answer with the prompt only, nothing else.");
                 });
             }
 
+            // From the scene picture: it is the first frame, and they say their lines in it
+            if (scene != null && !string.IsNullOrEmpty(scene.Image) && File.Exists(scene.Image))
+            {
+                if (source == Gemini) secs = secs <= 4 ? 4 : secs <= 6 ? 6 : 8;
+                string speak = SpeakPrompt(scene, secs);
+                string vsize = size.Length > 0 ? size : "1280x720";
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        int fw = 1280, fh = 720;
+                        var dims = vsize.Split('x');
+                        if (dims.Length == 2 && int.TryParse(dims[0], out var a) && int.TryParse(dims[1], out var b2) && a > 0 && b2 > 0) { fw = a; fh = b2; }
+                        byte[] first = Frame(scene.Image, fw, fh);
+                        byte[] mp4 = source == Gemini ? await FromVeo(key, model.Length > 0 ? model : "veo-3.1-fast-generate-preview", speak, first, secs).ConfigureAwait(false)
+                                                      : await Generate(baseUrl, key, model.Length > 0 ? model : "sora-2", vsize, secs, speak, first).ConfigureAwait(false);
+                        if (mp4 == null || mp4.Length < 10000) { Finish(null, "el servicio no devolvió un vídeo"); return; }
+                        if (dir == null) { Finish(null, "sin campaña"); return; }
+                        Directory.CreateDirectory(dir);
+                        string file = Path.Combine(dir, "v_" + Guid.NewGuid().ToString("N").Substring(0, 12) + ".mp4");
+                        File.WriteAllBytes(file, mp4);
+                        Finish(file, null);
+                    }
+                    catch (Exception ex) { Finish(null, ex.GetBaseException().Message); }
+                });
+                return;
+            }
+
             string ask;
             try { ask = TPrompt.Format("people", people ?? "", "where", where ?? "", "text", exchange.Length > 1500 ? exchange.Substring(0, 1500) : exchange); }
             catch (Exception ex) { Busy = false; Log.Error("Video: description", ex); return; }
@@ -123,7 +231,8 @@ Answer with the prompt only, nothing else.");
                     if (prompt.Length > 900) prompt = prompt.Substring(0, 900);
                     try
                     {
-                        byte[] mp4 = await Generate(baseUrl, key, model.Length > 0 ? model : "sora-2", size.Length > 0 ? size : "1280x720", secs, prompt).ConfigureAwait(false);
+                        byte[] mp4 = source == Gemini ? await FromVeo(key, model.Length > 0 ? model : "veo-3.1-fast-generate-preview", prompt, null, secs <= 4 ? 4 : secs <= 6 ? 6 : 8).ConfigureAwait(false)
+                                                      : await Generate(baseUrl, key, model.Length > 0 ? model : "sora-2", size.Length > 0 ? size : "1280x720", secs, prompt).ConfigureAwait(false);
                         if (mp4 == null || mp4.Length < 10000) { Finish(null, "el servicio no devolvió un vídeo"); return; }
                         if (dir == null) { Finish(null, "sin campaña"); return; }
                         Directory.CreateDirectory(dir);
@@ -152,12 +261,39 @@ Answer with the prompt only, nothing else.");
         }
 
         /// <summary>The video API: create the job, wait until it is done (ten minutes at most), then fetch the clip.</summary>
-        private static async Task<byte[]> Generate(string baseUrl, string key, string model, string size, int seconds, string prompt)
+        private static async Task<byte[]> Generate(string baseUrl, string key, string model, string size, int seconds, string prompt, byte[] firstFrame = null)
         {
             if (string.IsNullOrWhiteSpace(baseUrl)) throw new Exception("falta la dirección del servicio de vídeo");
             string root = baseUrl.TrimEnd('/');
-            var body = new JObject { ["model"] = model, ["prompt"] = prompt, ["seconds"] = seconds.ToString(), ["size"] = size };
-            var job = JObject.Parse(Encoding.UTF8.GetString(await Send(HttpMethod.Post, root + "/videos", key, body.ToString(), 60).ConfigureAwait(false)));
+            JObject job;
+            if (firstFrame != null)
+            {
+                // the scene picture as the first frame (input_reference, the same size as the clip)
+                var form = new MultipartFormDataContent();
+                form.Add(new StringContent(model), "model");
+                form.Add(new StringContent(prompt), "prompt");
+                form.Add(new StringContent(seconds.ToString()), "seconds");
+                form.Add(new StringContent(size), "size");
+                var img = new ByteArrayContent(firstFrame);
+                img.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+                form.Add(img, "input_reference", "first_frame.jpg");
+                using (var req = new HttpRequestMessage(HttpMethod.Post, root + "/videos") { Content = form })
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90)))
+                {
+                    if (!string.IsNullOrWhiteSpace(key)) req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + key.Trim());
+                    using (var resp = await LlmClient.HttpShared.SendAsync(req, cts.Token).ConfigureAwait(false))
+                    {
+                        string text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        if (!resp.IsSuccessStatusCode) throw new Exception($"HTTP {(int)resp.StatusCode} {(text.Length > 200 ? text.Substring(0, 200) : text)}");
+                        job = JObject.Parse(text);
+                    }
+                }
+            }
+            else
+            {
+                var body = new JObject { ["model"] = model, ["prompt"] = prompt, ["seconds"] = seconds.ToString(), ["size"] = size };
+                job = JObject.Parse(Encoding.UTF8.GetString(await Send(HttpMethod.Post, root + "/videos", key, body.ToString(), 60).ConfigureAwait(false)));
+            }
             string id = (string)job["id"];
             if (string.IsNullOrEmpty(id)) throw new Exception("el servicio no dio un identificador de vídeo");
             var until = DateTime.UtcNow.AddMinutes(10);
@@ -171,6 +307,70 @@ Answer with the prompt only, nothing else.");
                     throw new Exception((string)st["error"]?["message"] ?? status);
             }
             throw new Exception("el vídeo tardaba demasiado (más de diez minutos)");
+        }
+
+        /// <summary>
+        /// Google Veo through the Gemini API: a long-running job from the prompt (and the first frame, if any), polled until
+        /// it is done, then the clip is fetched with the same key.
+        /// </summary>
+        private static async Task<byte[]> FromVeo(string key, string model, string prompt, byte[] firstFrame, int seconds)
+        {
+            const string root = "https://generativelanguage.googleapis.com/v1beta/";
+            var instance = new JObject { ["prompt"] = prompt };
+            if (firstFrame != null) instance["image"] = new JObject { ["bytesBase64Encoded"] = Convert.ToBase64String(firstFrame), ["mimeType"] = "image/jpeg" };
+            var body = new JObject
+            {
+                ["instances"] = new JArray { instance },
+                ["parameters"] = new JObject { ["aspectRatio"] = "16:9", ["durationSeconds"] = seconds, ["personGeneration"] = firstFrame != null ? "allow_adult" : "allow_all" },
+            };
+            string op;
+            using (var req = new HttpRequestMessage(HttpMethod.Post, root + "models/" + Uri.EscapeDataString(model) + ":predictLongRunning"))
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90)))
+            {
+                req.Headers.TryAddWithoutValidation("x-goog-api-key", key.Trim());
+                req.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+                using (var resp = await LlmClient.HttpShared.SendAsync(req, cts.Token).ConfigureAwait(false))
+                {
+                    string text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    if (!resp.IsSuccessStatusCode) throw new Exception($"Veo: HTTP {(int)resp.StatusCode} {(text.Length > 200 ? text.Substring(0, 200) : text)}");
+                    op = (string)JObject.Parse(text)["name"];
+                }
+            }
+            if (string.IsNullOrEmpty(op)) throw new Exception("Veo: no job name");
+            var until = DateTime.UtcNow.AddMinutes(12);
+            while (DateTime.UtcNow < until)
+            {
+                await Task.Delay(8000).ConfigureAwait(false);
+                JObject st;
+                using (var req = new HttpRequestMessage(HttpMethod.Get, root + op))
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+                {
+                    req.Headers.TryAddWithoutValidation("x-goog-api-key", key.Trim());
+                    using (var resp = await LlmClient.HttpShared.SendAsync(req, cts.Token).ConfigureAwait(false))
+                        st = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
+                }
+                if (st["error"] != null) throw new Exception("Veo: " + ((string)st["error"]["message"] ?? "error"));
+                if (st["done"]?.Value<bool>() != true) continue;
+                var resp2 = st["response"];
+                string uri = (string)(resp2?["generateVideoResponse"]?["generatedSamples"]?[0]?["video"]?["uri"] ?? resp2?["generatedVideos"]?[0]?["video"]?["uri"]);
+                if (string.IsNullOrEmpty(uri))
+                {
+                    string why = (string)resp2?["generateVideoResponse"]?["raiMediaFilteredReasons"]?[0] ?? "no clip in the answer";
+                    throw new Exception("Veo: " + why);
+                }
+                using (var req = new HttpRequestMessage(HttpMethod.Get, uri))
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180)))
+                {
+                    req.Headers.TryAddWithoutValidation("x-goog-api-key", key.Trim());
+                    using (var resp = await LlmClient.HttpShared.SendAsync(req, cts.Token).ConfigureAwait(false))
+                    {
+                        var bytes = await resp.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                        if (!resp.IsSuccessStatusCode) throw new Exception($"Veo download: HTTP {(int)resp.StatusCode}");
+                        return bytes;
+                    }
+                }
+            }
+            throw new Exception("el vídeo tardaba demasiado (más de doce minutos)");
         }
 
         /// <summary>Plays a clip in the in-game panel: a page next to it with the video and nothing else.</summary>

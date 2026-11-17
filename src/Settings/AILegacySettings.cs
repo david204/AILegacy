@@ -373,7 +373,27 @@ namespace AILegacy.Settings
                 ReasoningCode(P1Reasoning), ReasoningCode(P2Reasoning), ReasoningCode(P3Reasoning), ReasoningCode(P4Reasoning), ReasoningCode(P5Reasoning), ReasoningCode(P6Reasoning));
 
         // ------------------------------------------------------------ Images
-        [SettingPropertyDropdown("{=AIL_e7b1c4f0}Where pictures come from", Order = 0, RequireRestart = false,
+        [SettingPropertyDropdown("{=AIL_e7b1df50}Pictures in conversations: service", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df51}With «Talk (with a picture of the scene)», each reply gets a picture of the moment. Google Gemini and OpenAI receive pictures of both characters drawn by the game (face from three sides and whole body, as they are dressed now) and copy them, so the people look like themselves; the last picture with that character goes too, for continuity. They use the Gemini or OpenAI provider you set up in 0. AI Keys. Free and Local only get a description. Off = no such option.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public MCM.Common.Dropdown<string> TalkImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Gemini);
+
+        [SettingPropertyDropdown("{=AIL_e7b1df52}Pictures of world events: service", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df53}Who draws the wide picture of each new world event (when that option is on). Gemini and OpenAI also get the game's drawings of the rulers and lords named in it.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public MCM.Common.Dropdown<string> EventImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Gemini);
+
+        [SettingPropertyBool("{=AIL_e7b1df54}Pictures: if Gemini or OpenAI fails, try the other", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df55}When the chosen one of the two fails (no key, quota, refusal), the picture is asked of the other, if you have it set up.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public bool ImageTryOtherService { get; set; } = true;
+
+        [SettingPropertyText("{=AIL_e7b1df56}Gemini image model", Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1df57}The Google model that draws pictures from reference images. Default: gemini-2.5-flash-image.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string ImageGeminiModel { get; set; } = "gemini-2.5-flash-image";
+
+        [SettingPropertyDropdown("{=AIL_e7b1df58}Memory book pictures: service", Order = 0, RequireRestart = false,
             HintText = "{=AIL_e7b1c4f1}Each chapter of the memory book can have a picture. Free uses a public service that needs no key: only a description of the scene is sent to it. OpenAI uses the OpenAI provider you set up in 0. AI Keys and costs money per picture. Local needs Stable Diffusion running on your PC with its API on. Off = no pictures.")]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public MCM.Common.Dropdown<string> ImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Free);
@@ -410,6 +430,16 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1c862}In a conversation, «Record this scene on video» makes a clip of a few seconds of the last moment. You are always asked first, with what it will cost. OpenAI uses the OpenAI provider in 0. AI Keys and charges per second of video (Sora: roughly 10 cents a second). An OpenAI-compatible server is any program with the same /videos API. Off = no videos.")]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public MCM.Common.Dropdown<string> VideoSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneVideos.SourceNames, World.SceneVideos.Off);
+
+        [SettingPropertyText("{=AIL_e7b1df59}Videos: Gemini model", Order = 14, RequireRestart = false,
+            HintText = "{=AIL_e7b1df5a}The Google Veo model that turns the scene picture into a clip. Default: veo-3.1-fast-generate-preview.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string VideoGeminiModel { get; set; } = "veo-3.1-fast-generate-preview";
+
+        [SettingPropertyBool("{=AIL_e7b1df5b}Videos: the characters speak in the clip", Order = 13, RequireRestart = false,
+            HintText = "{=AIL_e7b1df5c}The clip has sound and the two say their lines in it, so the voice of the mod is not played for that reply. Off: a silent clip and the usual voice.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public bool VideoVoices { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_e7b1c863}Videos: seconds", 4, 12, Order = 11, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]

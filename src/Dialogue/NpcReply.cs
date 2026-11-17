@@ -152,8 +152,10 @@ namespace AILegacy.Dialogue
                                                                     System.Globalization.CultureInfo.InvariantCulture, out double nv))
                             r.Profile.Naivety = Math.Max(0.0, Math.Min(1.0, nv));
                         if (p["sample_lines"] is JArray lines)
-                            r.Profile.SampleLines = lines.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).Take(5).ToList();
-                        if (r.Profile.IsEmpty) r.Profile = null;
+                            r.Profile.SampleLines = lines.Select(x => x?.ToString()).Where(x => !string.IsNullOrWhiteSpace(x)).Take(8).ToList();
+                        // a reply may bring only the fields that were missing: kept unless it brings nothing at all
+                        if (!r.Profile.HasAny) r.Profile = null;
+                        else World.Lore.Tidy(r.Profile);
                     }
 
                     if (j["rumor"] is JObject rumor)

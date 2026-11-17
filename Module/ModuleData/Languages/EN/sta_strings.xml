@@ -3078,5 +3078,20 @@
     <string id="AIL_e7b1df34" text="Map scene: the battle is fought right there" />
     <string id="AIL_e7b1df35" text="When a talk on foot with an enemy ends in a fight, the battle starts there and then, in the same scene: every soldier standing counts in the map battle, the rest come as reinforcements, and the map encounter settles the outcome as usual. Off: the scene closes and the game's battle opens on the same ground." />
     <string id="AIL_e7b1df40" text="{=!}Talk (with a video of the scene) [AI Legacy]" />
+    <string id="AIL_e7b1df50" text="Pictures in conversations: service" />
+    <string id="AIL_e7b1df51" text="With «Talk (with a picture of the scene)», each reply gets a picture of the moment. Google Gemini and OpenAI receive pictures of both characters drawn by the game (face from three sides and whole body, as they are dressed now) and copy them, so the people look like themselves; the last picture with that character goes too, for continuity. They use the Gemini or OpenAI provider you set up in 0. AI Keys. Free and Local only get a description. Off = no such option." />
+    <string id="AIL_e7b1df52" text="Pictures of world events: service" />
+    <string id="AIL_e7b1df53" text="Who draws the wide picture of each new world event (when that option is on). Gemini and OpenAI also get the game's drawings of the rulers and lords named in it." />
+    <string id="AIL_e7b1df54" text="Pictures: if Gemini or OpenAI fails, try the other" />
+    <string id="AIL_e7b1df55" text="When the chosen one of the two fails (no key, quota, refusal), the picture is asked of the other, if you have it set up." />
+    <string id="AIL_e7b1df56" text="Gemini image model" />
+    <string id="AIL_e7b1df57" text="The Google model that draws pictures from reference images. Default: gemini-2.5-flash-image." />
+    <string id="AIL_e7b1df58" text="Memory book pictures: service" />
+    <string id="AIL_e7b1df59" text="Videos: Gemini model" />
+    <string id="AIL_e7b1df5a" text="The Google Veo model that turns the scene picture into a clip. Default: veo-3.1-fast-generate-preview." />
+    <string id="AIL_e7b1df5b" text="Videos: the characters speak in the clip" />
+    <string id="AIL_e7b1df5c" text="The clip has sound and the two say their lines in it, so the voice of the mod is not played for that reply. Off: a silent clip and the usual voice." />
+    <string id="AIL_e7b1df60" text="There is no Google Gemini provider with a key in 0. AI Keys." />
+    <string id="AIL_e7b1df61" text="About {0} $ from your Google account ({1} s)." />
   </strings>
 </base>

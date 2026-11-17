@@ -304,6 +304,24 @@ namespace AILegacy.UI
             return L.T("AIL_e7b1de51", "Vínculo íntimo");
         }
 
+        // ---- the picture of the scene, in a frame at the top right (talks with pictures)
+        private string _scenePicture = "";
+        private bool _scenePictureVisible;
+        [DataSourceProperty] public string AilScenePicture { get => _scenePicture; set { if (value != _scenePicture) { _scenePicture = value; OnPropertyChangedWithValue(value, nameof(AilScenePicture)); } } }
+        [DataSourceProperty] public bool AilScenePictureVisible { get => _scenePictureVisible; set { if (value != _scenePictureVisible) { _scenePictureVisible = value; OnPropertyChangedWithValue(value, nameof(AilScenePictureVisible)); } } }
+
+        /// <summary>Shows the scene picture in the conversation screen's frame (a new conversation screen starts without one).</summary>
+        public static void ShowScenePicture(string path)
+        {
+            try
+            {
+                if (_current == null || !_current.TryGetTarget(out var m) || string.IsNullOrEmpty(path) || !System.IO.File.Exists(path)) return;
+                m.AilScenePicture = path;
+                m.AilScenePictureVisible = true;
+            }
+            catch (Exception ex) { Log.Error("Conversation: scene picture", ex); }
+        }
+
         private string _signalText = "";
         private bool _signalVisible;
         [DataSourceProperty] public string AilSignalText { get => _signalText; set { if (value != _signalText) { _signalText = value; OnPropertyChangedWithValue(value, nameof(AilSignalText)); } } }
@@ -459,6 +477,23 @@ namespace AILegacy.UI
             "</Widget>" +
             "</Children>" +
             "</DimensionSyncWidget>";
+    }
+
+    /// <summary>The scene picture of a talk with pictures: a gold-edged frame at the top right of the conversation screen.</summary>
+    [PrefabExtension("SPConversation", "descendant::ConversationScreenButtonWidget/Children")]
+    internal sealed class ConversationScenePicturePrefab : PrefabExtensionInsertPatch
+    {
+        public override InsertType Type => InsertType.Child;
+
+        [PrefabExtensionText]
+        public string Xml =>
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"574\" SuggestedHeight=\"344\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Top\" MarginRight=\"40\" MarginTop=\"90\" IsVisible=\"@AilScenePictureVisible\" DoNotAcceptEvents=\"true\">" +
+            "<Children>" +
+            "<Widget WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" Sprite=\"BlankWhiteSquare_9\" Color=\"#A37434FF\" DoNotAcceptEvents=\"true\" />" +
+            "<Widget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"566\" SuggestedHeight=\"336\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" Sprite=\"BlankWhiteSquare_9\" Color=\"#000000EE\" DoNotAcceptEvents=\"true\" />" +
+            "<AILegacyImageWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"550\" SuggestedHeight=\"320\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\" ImagePath=\"@AilScenePicture\" DoNotAcceptEvents=\"true\" />" +
+            "</Children>" +
+            "</Widget>";
     }
 
     /// <summary>Scrollable chat history panel above the name strip. Moves with the dialogue box.</summary>

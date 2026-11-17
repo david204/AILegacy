@@ -1743,6 +1743,7 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 if (!string.IsNullOrWhiteSpace(p.Goals)) sb.AppendLine("Wants: " + p.Goals);
                 if (!string.IsNullOrWhiteSpace(p.SpeechStyle)) sb.AppendLine("Speaks: " + p.SpeechStyle);
             }
+            try { string core = Lore.CoreForOfficial(Dialogue.Speaker.FromHero(ruler)); if (core.Length > 0) sb.AppendLine(core); } catch { }
             try { string habit = Lore.HabitForOfficial(Dialogue.Speaker.FromHero(ruler)); if (habit.Length > 0) sb.AppendLine(habit); } catch { }
             // Recent dealings with the player count
             if (mem != null && mem.LastConversationDay >= 0 && CampaignTime.Now.ToDays - mem.LastConversationDay <= 15)

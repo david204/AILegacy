@@ -879,25 +879,27 @@ namespace AILegacy.Web
             hint = hint ?? "";
             if (Generating.Contains(id)) return false;
             var sp = Dialogue.Speaker.FromHero(hero);
-            World.Lore.EnsureArchetype(sp);
+            World.Lore.EnsureCore(sp);
             var m = sp.Memory;
-            var facts = new StringBuilder();
-            string habitLine = World.Lore.HabitForCreation(sp);
-            facts.AppendLine($"{hero.Name}, {(hero.IsFemale ? "woman" : "man")}, {(int)hero.Age} years old, of {hero.Culture?.Name} culture.");
-            facts.AppendLine(hero.IsLord ? $"A noble of clan {hero.Clan?.Name}{(hero.Clan?.Leader == hero ? " (its head)" : "")}; the clan is a {World.Facts.ClanKind(hero.Clan)}{(hero.MapFaction is Kingdom kk && kk.Leader == hero ? " — and this is its ruler" : "")}."
-                           : hero.IsNotable ? $"A notable ({hero.Occupation}) of {hero.CurrentSettlement?.Name ?? hero.HomeSettlement?.Name}." : hero.IsWanderer ? "A wanderer who sells their sword or wits." : "A person of some name.");
-            if (hero.Spouse != null) facts.AppendLine($"Married to {hero.Spouse.Name}.");
-            if (hero.Father != null || hero.Mother != null) facts.AppendLine($"Child of {hero.Father?.Name}{(hero.Father != null && hero.Mother != null ? " and " : "")}{hero.Mother?.Name}.");
-            if (hero.Children.Count > 0) facts.AppendLine($"Children: {string.Join(", ", hero.Children.Take(5).Select(c => c.Name.ToString()))}.");
-            if (hero.Clan != null && hero.Clan.Fiefs.Count > 0) facts.AppendLine($"The clan holds: {string.Join(", ", hero.Clan.Fiefs.Take(5).Select(f => f.Name.ToString()))}.");
-            facts.AppendLine($"Traits (each -2 to 2): honor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor)}, mercy {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Mercy)}, valor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Valor)}, generosity {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Generosity)}, calculating {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)}.");
-            if (!string.IsNullOrEmpty(m.Archetype)) facts.AppendLine($"Mould of character: {m.Archetype} — {m.ArchetypeText}");
-            try { var enc = hero.EncyclopediaText?.ToString(); if (!string.IsNullOrWhiteSpace(enc)) facts.AppendLine("What is commonly said of them: " + enc); } catch { }
-            if (habitLine.Length > 0) facts.AppendLine(habitLine);
-            string prompt = TGenerate.Format("facts", facts.ToString().TrimEnd(), "hint", hint.Length > 0 ? "The author of this world asks for this in particular: " + hint : "", "language", Settings.S.Get.Language);
+            // the same as a first conversation gives: who they are, what they know, their core, plus the world itself
+            var world = new StringBuilder();
+            try { Prompt.PromptBuilder.AppendWorld(world); } catch { }
+            string who = "";
+            try { who = Prompt.ContextBuilder.DescribeNpc(sp); } catch { }
+            string facts = World.Lore.CreationFacts(sp);
+            facts += (facts.Length > 0 ? "\n" : "") + $"Traits (each -2 to 2): honor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor)}, mercy {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Mercy)}, valor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Valor)}, generosity {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Generosity)}, calculating {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)}. They are a seed, not a finished portrait.";
+            try { var enc = hero.EncyclopediaText?.ToString(); if (!string.IsNullOrWhiteSpace(enc)) facts += "\nWhat is commonly said of them: " + (enc.Length > 700 ? enc.Substring(0, 700) : enc); } catch { }
+            var known = new List<string>();
+            try { World.Knowledge.EnsureRolled(sp); known.AddRange(World.Knowledge.InfoFor(sp)); known.AddRange(World.Knowledge.SecretsFor(sp)); } catch { }
+            var existing = m.Profile == null ? new List<string>() : World.Lore.Fields.Select(f => (f.key, v: World.Lore.FieldOf(m.Profile, f.key))).Where(x => !string.IsNullOrWhiteSpace(x.v)).Select(x => $"{x.key}: {x.v}").ToList();
+            string prompt = TGenerate.Format("world", world.ToString().Trim(), "who", who, "facts", facts,
+                "knowledge", known.Count > 0 ? string.Join("\n", known.Select(k => "- " + k)) : "(nothing in particular)",
+                "core", World.Lore.CoreForCreation(sp), "rules", World.Lore.FieldRules(sp),
+                "hint", hint.Length > 0 ? "The author of this world asks for this in particular: " + hint : "",
+                "existing", "", "language", Settings.S.Get.Language);
             Generating.Add(id);
             int session = WorldSim.Session;
-            Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "editor", maxTokensOverride: 1200, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
+            Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "editor", maxTokensOverride: 2600, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
             {
                 var res = t.IsFaulted ? null : t.Result;
                 MainThread.Post(() =>
@@ -913,7 +915,9 @@ namespace AILegacy.Web
                         var p = JObject.Parse(res.Text.Substring(a, b - a + 1)).ToObject<CharacterProfile>();
                         if (p == null || p.IsEmpty) { GenerateError[id] = L.T("AIL_e514530a", "respuesta vacía"); return; }
                         if (m.Profile != null && !string.IsNullOrWhiteSpace(m.Profile.GivenName)) p.GivenName = m.Profile.GivenName;
+                        World.Lore.Tidy(p);
                         m.Profile = p; m.ProfileRevision++;
+                        World.Lore.EnsureCore(sp);      // their faith goes into the profile's religion
                         GenerateError.Remove(id);
                         SaveFiles.Flush();
                         Log.Info("Editor: personality generated for " + m.HeroName);
@@ -927,25 +931,24 @@ namespace AILegacy.Web
         private static readonly HashSet<string> Generating = new HashSet<string>();
         private static readonly Dictionary<string, string> GenerateError = new Dictionary<string, string>();
 
-        private static readonly Prompt.Tpl TGenerate = new Prompt.Tpl("character_creation/standalone_profile.txt",
-@"Write the character sheet of a person of Calradia, the medieval world of Mount & Blade II: Bannerlord, from the facts below. Make them a distinct, believable individual with contradictions, not a type: the facts and the mould of character are the skeleton, you add the flesh. Nothing that contradicts the facts; no modern ideas; no magic.
-FACTS
+        private static readonly Prompt.Tpl TGenerate = new Prompt.Tpl("character_creation/standalone_profile_v2.txt",
+@"You create a person of Calradia, the medieval world of Mount & Blade II: Bannerlord, for a roleplay game: from what is known of them, a recognisable individual with an essence, an inner conflict and at least one surprising contradiction. No magic, nothing modern, nothing that goes against the facts.
+
+THE WORLD
+{world}
+
+WHO THEY ARE
+{who}
 {facts}
+
+WHAT THEY KNOW (facts of their own life: every field respects them; their secret field stays a small secret of their own, not copied from here)
+{knowledge}
+
+{core}
 {hint}
-Write every field in {language}, each 1 to 3 sentences, concrete (habits, a fear, a grudge, a pleasure, how they treat a servant), never vague praise:
-- personality: temperament and the contradictions in it.
-- backstory: what made them who they are (events, not adjectives).
-- speech_style: how they talk — length of sentences, favourite turns, what they never say, formality.
-- goals: what they want this year and what they want of life.
-- secret: something true they hide and would be hurt by.
-- drives: what moves them and what they fear.
-- values: what they respect and what they despise.
-- social_behavior: how they treat superiors, equals, inferiors and strangers.
-- cognitive_style: their humour, how readily they lie, how they decide, how easily they trust.
-- religion: what they believe and how seriously.
-- reputation: what is said of them behind their back.
-- sample_lines: 3 short things they would typically say, in their voice.
-Answer ONLY with JSON: { ""personality"": """", ""backstory"": """", ""speech_style"": """", ""goals"": """", ""secret"": """", ""drives"": """", ""values"": """", ""social_behavior"": """", ""cognitive_style"": """", ""religion"": """", ""reputation"": """", ""sample_lines"": ["""", """", """"] }");
+
+{rules}
+Answer ONLY with a JSON object holding every field: { ""personality"": """", ""backstory"": """", ""speech_style"": """", ""goals"": """", ""drives"": """", ""values"": """", ""social_behavior"": """", ""cognitive_style"": """", ""reputation"": """", ""secret"": """", ""naivety"": 0.5, ""sample_lines"": ["""", """", """", """", """", """"] }");
 
         private static readonly string[] Moralities = { "principled", "pragmatic", "ruthless" };
         private static readonly string[] Profanities = { "none", "mild", "heavy" };
