@@ -3092,5 +3092,16 @@
     <string id="AIL_e7b1df5c" text="Der Clip hat Ton und beide sprechen darin ihre Sätze, deshalb wird die Stimme der Mod für diese Antwort nicht abgespielt. Aus: ein stummer Clip und die übliche Stimme." />
     <string id="AIL_e7b1df60" text="Kein Google-Gemini-Anbieter mit Schlüssel in 0. KI-Schlüssel." />
     <string id="AIL_e7b1df61" text="Etwa {0} $ von deinem Google-Konto ({1} s)." />
+    <string id="AIL_e7b1df41" text="{=!}Sprechen" />
+    <string id="AIL_e7b1df42" text="{=!}Sprechen mit Bild der Szene" />
+    <string id="AIL_e7b1df43" text="{=!}Sprechen mit Video der Szene" />
+    <string id="AIL_e7b1df44" text="{=!}Lass uns absitzen und von Angesicht zu Angesicht reden." />
+    <string id="AIL_e7b1df45" text="Das Bild der Szene konnte nicht erstellt werden: {0}" />
+    <string id="AIL_e7b1df46" text="Videos: vorher nach den Kosten fragen" />
+    <string id="AIL_e7b1df47" text="Bevor ein Clip erstellt wird, nennt ein Fenster die ungefähren Kosten und fragt nach. In einem Gespräch mit Video wird einmal für das ganze Gespräch gefragt. Aus: Clips werden ohne Nachfrage erstellt (das Tageslimit gilt weiter)." />
+    <string id="AIL_e7b1df48" text="kein Kontingent auf deinem Konto: Dieses Modell ist nicht kostenlos oder das Limit ist erreicht" />
+    <string id="AIL_e7b1df49" text="das Modell gibt es auf deinem Konto nicht" />
+    <string id="AIL_e7b1df4a" text="der Schlüssel ist ungültig oder hat dafür keine Berechtigung" />
+    <string id="AIL_e7b1df4b" text="der Dienst ist überlastet; versuch es später noch einmal" />
   </strings>
 </base>

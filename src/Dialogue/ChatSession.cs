@@ -404,7 +404,8 @@ namespace AILegacy.Dialogue
         public static ChatSession StartDialog(Speaker s)
         {
             if (s == null) return null;
-            if (IsBusy && Active._dialogMode && Active._s.Key == s.Key) return Active;
+            // the same talk again (back in the menu): it starts plain; the option chosen marks picture or video afresh
+            if (IsBusy && Active._dialogMode && Active._s.Key == s.Key) { Active.WithPictures = false; Active.WithVideo = false; return Active; }
             if (IsBusy) Active.Close(false);
 
             if (!LegacyConfig.Current.Providers.Any(p => p.IsUsable))
@@ -907,7 +908,8 @@ namespace AILegacy.Dialogue
                     Clip(path);
                 }
                 bool refs = World.SceneImages.TakesReferences(World.SceneImages.SourceOf(World.SceneImages.Kind.Talk));
-                bool started = refs ? World.SceneImages.RequestTalk(_s.IsHero ? _s.Hero : null, _s.Name, RecentLines(), Got, () => Clip(null), _s.IsHero ? null : World.CharacterCapture.LookOfAgent(_s.Agent, _s.Key, _s.Name))
+                bool started = refs ? World.SceneImages.RequestTalk(_s.IsHero ? _s.Hero : null, _s.Name, RecentLines(), Got,
+                                        err => { Notify(L.F("AIL_e7b1df45", $"La imagen de la escena no se ha podido hacer: {err}"), Colors.Red); Clip(null); }, _s.IsHero ? null : World.CharacterCapture.LookOfAgent(_s.Agent, _s.Key, _s.Name))
                                     : World.SceneImages.RequestMoment(Mem, where, exchange, Got);
                 if (!started) Clip(null);
             }

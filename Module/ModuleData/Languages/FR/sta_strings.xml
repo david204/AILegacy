@@ -3092,5 +3092,16 @@
     <string id="AIL_e7b1df5c" text="Le clip a du son et les deux disent leurs répliques, donc la voix du mod n’est pas jouée pour cette réponse. Désactivé : un clip sans voix et la voix habituelle." />
     <string id="AIL_e7b1df60" text="Aucun fournisseur Google Gemini avec clé dans 0. Clés IA." />
     <string id="AIL_e7b1df61" text="Environ {0} $ de votre compte Google ({1} s)." />
+    <string id="AIL_e7b1df41" text="{=!}Parler" />
+    <string id="AIL_e7b1df42" text="{=!}Parler avec une image de la scène" />
+    <string id="AIL_e7b1df43" text="{=!}Parler avec une vidéo de la scène" />
+    <string id="AIL_e7b1df44" text="{=!}Mettons pied à terre et parlons face à face." />
+    <string id="AIL_e7b1df45" text="L’image de la scène n’a pas pu être faite : {0}" />
+    <string id="AIL_e7b1df46" text="Vidéos : demander le coût avant" />
+    <string id="AIL_e7b1df47" text="Avant de faire un clip, une fenêtre indique son coût approximatif et demande. Dans une conversation avec vidéo, elle demande une fois pour toute la conversation. Désactivé : les clips se font sans demander (la limite quotidienne reste)." />
+    <string id="AIL_e7b1df48" text="pas de quota sur votre compte : ce modèle n’est pas gratuit ou vous avez atteint la limite" />
+    <string id="AIL_e7b1df49" text="le modèle n’existe pas sur votre compte" />
+    <string id="AIL_e7b1df4a" text="la clé n’est pas valide ou n’a pas la permission" />
+    <string id="AIL_e7b1df4b" text="le service est saturé ; réessayez dans un moment" />
   </strings>
 </base>

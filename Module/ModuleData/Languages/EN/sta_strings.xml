@@ -3093,5 +3093,16 @@
     <string id="AIL_e7b1df5c" text="The clip has sound and the two say their lines in it, so the voice of the mod is not played for that reply. Off: a silent clip and the usual voice." />
     <string id="AIL_e7b1df60" text="There is no Google Gemini provider with a key in 0. AI Keys." />
     <string id="AIL_e7b1df61" text="About {0} $ from your Google account ({1} s)." />
+    <string id="AIL_e7b1df41" text="{=!}Talk" />
+    <string id="AIL_e7b1df42" text="{=!}Talk with a picture of the scene" />
+    <string id="AIL_e7b1df43" text="{=!}Talk with a video of the scene" />
+    <string id="AIL_e7b1df44" text="{=!}Let us dismount and talk face to face." />
+    <string id="AIL_e7b1df45" text="The picture of the scene could not be made: {0}" />
+    <string id="AIL_e7b1df46" text="Videos: ask the cost first" />
+    <string id="AIL_e7b1df47" text="Before a clip is made, a window says what it will roughly cost and asks. In a talk with video it asks once for the whole talk. Off: clips are made without asking (the daily cap still holds)." />
+    <string id="AIL_e7b1df48" text="no quota on your account: this model is not free, or you reached the limit" />
+    <string id="AIL_e7b1df49" text="the model does not exist on your account" />
+    <string id="AIL_e7b1df4a" text="the key is not valid or has no permission for this" />
+    <string id="AIL_e7b1df4b" text="the service is overloaded; try again in a while" />
   </strings>
 </base>

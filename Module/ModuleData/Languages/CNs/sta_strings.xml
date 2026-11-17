@@ -3092,5 +3092,16 @@
     <string id="AIL_e7b1df5c" text="短片有声音，两人会在其中说出各自的台词，因此这次回复不播放本模组的配音。关闭：无人声的短片，配音照旧。" />
     <string id="AIL_e7b1df60" text="“0. AI 密钥”中没有带密钥的 Google Gemini 提供商。" />
     <string id="AIL_e7b1df61" text="约 {0} 美元，从你的 Google 账户扣除（{1} 秒）。" />
+    <string id="AIL_e7b1df41" text="{=!}交谈" />
+    <string id="AIL_e7b1df42" text="{=!}交谈并生成场景图片" />
+    <string id="AIL_e7b1df43" text="{=!}交谈并生成场景视频" />
+    <string id="AIL_e7b1df44" text="{=!}我们下马，面对面谈谈吧。" />
+    <string id="AIL_e7b1df45" text="无法生成场景图片：{0}" />
+    <string id="AIL_e7b1df46" text="视频：先询问费用" />
+    <string id="AIL_e7b1df47" text="生成短片前，会弹出窗口说明大致费用并询问。附视频的对话中整段对话只问一次。关闭：不询问直接生成（每日上限仍然有效）。" />
+    <string id="AIL_e7b1df48" text="你的账户没有额度：此模型不免费，或已达到上限" />
+    <string id="AIL_e7b1df49" text="你的账户中没有这个模型" />
+    <string id="AIL_e7b1df4a" text="密钥无效或没有此权限" />
+    <string id="AIL_e7b1df4b" text="服务繁忙，请稍后再试" />
   </strings>
 </base>

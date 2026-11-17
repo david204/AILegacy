@@ -141,7 +141,7 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
         /// the chosen service takes them) and the last picture with this character for continuity. <paramref name="lines"/>
         /// are the last lines of the talk, the reply last. False if no picture was started.
         /// </summary>
-        public static bool RequestTalk(Hero npc, string npcName, string lines, Action<string> shown, Action failed = null, CharacterCapture.Look npcLook = null)
+        public static bool RequestTalk(Hero npc, string npcName, string lines, Action<string> shown, Action<string> failed = null, CharacterCapture.Look npcLook = null)
         {
             int source = SourceOf(Kind.Talk);
             if (source == Off || Dir == null || string.IsNullOrWhiteSpace(lines)) return false;
@@ -199,7 +199,7 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
                     if (gen != _talkGen) return;
                     _talkBusy = false;
                     if (session != WorldSim.Session) return;
-                    if (file == null) { Log.Warn("Conversation image: failed (" + error + ")"); failed?.Invoke(); return; }
+                    if (file == null) { Log.Warn("Conversation image: failed (" + error + ")"); failed?.Invoke(ShortError(error)); return; }
                     LastWith[key] = (file, CampaignTime.Now.ToHours);
                     Log.Info($"Conversation image with {npcName}: {Path.GetFileName(file)}");
                     try { shown?.Invoke(file); } catch (Exception ex) { Log.Error("Conversation image: shown", ex); }
@@ -229,6 +229,74 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
         }
 
         private static bool NoSnowFor(string setting) => !Snowy(setting);
+
+        // ============================================================ models that exist in the player's account
+
+        private static readonly Dictionary<string, string> FoundModel = new Dictionary<string, string>();
+
+        /// <summary>The service said the model does not exist (or is not offered for this kind of request).</summary>
+        internal static bool ModelMissing(Exception ex)
+        {
+            string m = ex?.GetBaseException().Message ?? "";
+            return m.IndexOf("does not exist", StringComparison.OrdinalIgnoreCase) >= 0 || m.IndexOf("not found", StringComparison.OrdinalIgnoreCase) >= 0
+                   || m.IndexOf("HTTP 404", StringComparison.OrdinalIgnoreCase) >= 0 || m.IndexOf("model_not_found", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>
+        /// The models this Google key can use for pictures (generateContent with "image" in the name) or for video (Veo,
+        /// predictLongRunning), the cheaper "flash"/"fast" ones first, the newest next. Null if none.
+        /// </summary>
+        internal static async Task<string> GeminiModelFor(string key, bool video)
+        {
+            string tag = video ? "gemini-video" : "gemini-image";
+            if (FoundModel.TryGetValue(tag, out var have)) return have;
+            var req = new HttpRequestMessage(HttpMethod.Get, "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000");
+            req.Headers.TryAddWithoutValidation("x-goog-api-key", key.Trim());
+            var j = JObject.Parse(Encoding.UTF8.GetString(await Get(req, 30).ConfigureAwait(false)));
+            var names = new List<string>();
+            foreach (var m in (j["models"] as JArray) ?? new JArray())
+            {
+                if (!(m is JObject)) continue;
+                string name = ((string)m["name"] ?? "").Replace("models/", "");
+                var methods = ((m["supportedGenerationMethods"] as JArray) ?? new JArray()).Select(x => (string)x).ToList();
+                if (video ? name.Contains("veo") && methods.Contains("predictLongRunning") : name.Contains("image") && !name.StartsWith("imagen") && methods.Contains("generateContent"))
+                    names.Add(name);
+            }
+            string pick = names.OrderByDescending(n => n.Contains(video ? "fast" : "flash")).ThenByDescending(n => n, StringComparer.Ordinal).FirstOrDefault();
+            if (pick != null) FoundModel[tag] = pick;
+            Log.Info($"Google models for {(video ? "video" : "pictures")} on this key: {(names.Count == 0 ? "none" : string.Join(", ", names))}; using {pick ?? "none"}");
+            return pick;
+        }
+
+        /// <summary>The image models this OpenAI key can use (gpt-image…), the newest first, the full one before "mini". Null if none.</summary>
+        internal static async Task<string> OpenAiImageModel(ProviderConfig p)
+        {
+            if (FoundModel.TryGetValue("openai-image", out var have)) return have;
+            var req = new HttpRequestMessage(HttpMethod.Get, p.BaseUrl.TrimEnd('/') + "/models");
+            req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + p.ApiKey.Trim());
+            var j = JObject.Parse(Encoding.UTF8.GetString(await Get(req, 30).ConfigureAwait(false)));
+            var ids = ((j["data"] as JArray) ?? new JArray()).Select(x => x is JObject o ? (string)o["id"] ?? "" : "").Where(x => x.StartsWith("gpt-image", StringComparison.OrdinalIgnoreCase)).ToList();
+            string pick = ids.OrderBy(x => x.Contains("mini")).ThenByDescending(x => x, StringComparer.Ordinal).FirstOrDefault();
+            if (pick != null) FoundModel["openai-image"] = pick;
+            Log.Info($"OpenAI image models on this key: {(ids.Count == 0 ? "none" : string.Join(", ", ids))}; using {pick ?? "none"}");
+            return pick;
+        }
+
+        /// <summary>A service's error in one short line for the screen (the whole answer stays in the log).</summary>
+        internal static string ShortError(string raw)
+        {
+            raw = raw ?? "";
+            if (raw.Contains("429") && (raw.IndexOf("quota", StringComparison.OrdinalIgnoreCase) >= 0 || raw.Contains("RESOURCE_EXHAUSTED")))
+                return L.T("AIL_e7b1df48", "sin cupo en tu cuenta: este modelo no es gratuito o has llegado al límite");
+            if (raw.IndexOf("does not exist", StringComparison.OrdinalIgnoreCase) >= 0 || raw.IndexOf("not found", StringComparison.OrdinalIgnoreCase) >= 0)
+                return L.T("AIL_e7b1df49", "el modelo no existe en tu cuenta");
+            if (raw.Contains("HTTP 401") || raw.Contains("HTTP 403")) return L.T("AIL_e7b1df4a", "la clave no es válida o no tiene permiso para esto");
+            if (raw.Contains("HTTP 503") || raw.IndexOf("high demand", StringComparison.OrdinalIgnoreCase) >= 0) return L.T("AIL_e7b1df4b", "el servicio está saturado; prueba otra vez en un rato");
+            var m = System.Text.RegularExpressions.Regex.Match(raw, "\"message\"\\s*:\\s*\"([^\"]+)");
+            string t = m.Success ? m.Groups[1].Value : raw;
+            t = System.Text.RegularExpressions.Regex.Replace(t, "\\s+", " ").Trim();
+            return t.Length > 120 ? t.Substring(0, 120) + "…" : t;
+        }
 
         // ============================================================ the services
 
@@ -266,8 +334,20 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
         {
             var p = GeminiProvider;
             if (p == null) throw new Exception("there is no Google Gemini provider with a key in 0. AI Keys");
-            string model = (S.Get.ImageGeminiModel ?? "").Trim();
+            string model = FoundModel.TryGetValue("gemini-image", out var found) ? found : (S.Get.ImageGeminiModel ?? "").Trim();
             if (model.Length == 0) model = "gemini-2.5-flash-image";
+            try { return await GeminiDraw(p, model, prompt, refs, wide).ConfigureAwait(false); }
+            catch (Exception ex) when (ModelMissing(ex))
+            {
+                string other = await GeminiModelFor(p.ApiKey, false).ConfigureAwait(false);
+                if (other == null || other == model) throw;
+                Log.Warn($"Gemini: the model {model} is not in this account; using {other}");
+                return await GeminiDraw(p, other, prompt, refs, wide).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task<byte[]> GeminiDraw(ProviderConfig p, string model, string prompt, List<byte[]> refs, bool wide)
+        {
             var parts = new JArray { new JObject { ["text"] = prompt } };
             for (int i = 0; i < refs.Count; i++)
             {
@@ -302,8 +382,20 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
         {
             var p = OpenAiProvider;
             if (p == null) throw new Exception("there is no OpenAI provider with a key in 0. AI Keys");
-            string model = (S.Get.ImageOpenAiModel ?? "").Trim();
+            string model = FoundModel.TryGetValue("openai-image", out var found) ? found : (S.Get.ImageOpenAiModel ?? "").Trim();
             if (model.Length == 0) model = "gpt-image-1";
+            try { return await OpenAiEditWith(p, model, prompt, refs).ConfigureAwait(false); }
+            catch (Exception ex) when (ModelMissing(ex) || (ex.GetBaseException().Message ?? "").Contains("invalid_value"))
+            {
+                string other = await OpenAiImageModel(p).ConfigureAwait(false);
+                if (other == null || other == model) throw;
+                Log.Warn($"OpenAI: the model {model} is not in this account; using {other}");
+                return await OpenAiEditWith(p, other, prompt, refs).ConfigureAwait(false);
+            }
+        }
+
+        private static async Task<byte[]> OpenAiEditWith(ProviderConfig p, string model, string prompt, List<byte[]> refs)
+        {
             var form = new MultipartFormDataContent();
             form.Add(new StringContent(model), "model");
             form.Add(new StringContent(prompt.Length > 30000 ? prompt.Substring(0, 30000) : prompt), "prompt");

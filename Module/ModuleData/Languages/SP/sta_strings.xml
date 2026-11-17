@@ -3092,5 +3092,16 @@
     <string id="AIL_e7b1df5c" text="El vídeo lleva sonido y los dos dicen sus frases en él, así que la voz del mod no suena en esa respuesta. Apagado: vídeo sin voces y la voz de siempre." />
     <string id="AIL_e7b1df60" text="No hay ningún proveedor de Google Gemini con clave en 0. Claves de IA." />
     <string id="AIL_e7b1df61" text="Unos {0} $ de tu cuenta de Google ({1} s)." />
+    <string id="AIL_e7b1df41" text="{=!}Hablar" />
+    <string id="AIL_e7b1df42" text="{=!}Hablar con imagen de la escena" />
+    <string id="AIL_e7b1df43" text="{=!}Hablar con vídeo de la escena" />
+    <string id="AIL_e7b1df44" text="{=!}Desmontemos y hablemos cara a cara." />
+    <string id="AIL_e7b1df45" text="La imagen de la escena no se ha podido hacer: {0}" />
+    <string id="AIL_e7b1df46" text="Vídeos: preguntar el coste antes" />
+    <string id="AIL_e7b1df47" text="Antes de hacer un vídeo, una ventana dice lo que costará más o menos y pregunta. En una charla con vídeo pregunta una vez para toda la charla. Apagado: los vídeos se hacen sin preguntar (el tope diario sigue valiendo)." />
+    <string id="AIL_e7b1df48" text="sin cupo en tu cuenta: este modelo no es gratuito o has llegado al límite" />
+    <string id="AIL_e7b1df49" text="el modelo no existe en tu cuenta" />
+    <string id="AIL_e7b1df4a" text="la clave no es válida o no tiene permiso para esto" />
+    <string id="AIL_e7b1df4b" text="el servicio está saturado; prueba otra vez en un rato" />
   </strings>
 </base>

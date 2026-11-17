@@ -441,6 +441,11 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public bool VideoVoices { get; set; } = true;
 
+        [SettingPropertyBool("{=AIL_e7b1df46}Videos: ask the cost first", Order = 13, RequireRestart = false,
+            HintText = "{=AIL_e7b1df47}Before a clip is made, a window says what it will roughly cost and asks. In a talk with video it asks once for the whole talk. Off: clips are made without asking (the daily cap still holds).")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public bool VideoAskCost { get; set; } = true;
+
         [SettingPropertyInteger("{=AIL_e7b1c863}Videos: seconds", 4, 12, Order = 11, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public int VideoSeconds { get; set; } = 4;

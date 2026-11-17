@@ -3092,5 +3092,16 @@
     <string id="AIL_e7b1df5c" text="Il video ha l’audio e i due dicono le loro battute, quindi la voce della mod non si sente per quella risposta. Disattivato: video senza voci e la voce di sempre." />
     <string id="AIL_e7b1df60" text="Nessun fornitore Google Gemini con chiave in 0. Chiavi IA." />
     <string id="AIL_e7b1df61" text="Circa {0} $ dal tuo account Google ({1} s)." />
+    <string id="AIL_e7b1df41" text="{=!}Parla" />
+    <string id="AIL_e7b1df42" text="{=!}Parla con un’immagine della scena" />
+    <string id="AIL_e7b1df43" text="{=!}Parla con un video della scena" />
+    <string id="AIL_e7b1df44" text="{=!}Smontiamo e parliamo faccia a faccia." />
+    <string id="AIL_e7b1df45" text="Non è stato possibile fare l’immagine della scena: {0}" />
+    <string id="AIL_e7b1df46" text="Video: chiedere prima il costo" />
+    <string id="AIL_e7b1df47" text="Prima di fare un video, una finestra dice quanto costerà più o meno e chiede. In una conversazione con video chiede una volta per tutta la conversazione. Disattivato: i video si fanno senza chiedere (il limite giornaliero resta)." />
+    <string id="AIL_e7b1df48" text="nessuna quota sul tuo account: questo modello non è gratuito o hai raggiunto il limite" />
+    <string id="AIL_e7b1df49" text="il modello non esiste sul tuo account" />
+    <string id="AIL_e7b1df4a" text="la chiave non è valida o non ha il permesso" />
+    <string id="AIL_e7b1df4b" text="il servizio è sovraccarico; riprova tra un po’" />
   </strings>
 </base>

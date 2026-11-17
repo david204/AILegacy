@@ -276,12 +276,13 @@ namespace AILegacy.World
                 if (cfg.EnableReligion && string.IsNullOrEmpty(mem.Faith)) mem.Faith = PickFaith(s);
                 if (mem.Profile != null && !string.IsNullOrEmpty(mem.Faith) && string.IsNullOrWhiteSpace(mem.Profile.Religion))
                     mem.Profile.Religion = FaithById(mem.Faith)?.Name ?? "";
-                if (!string.IsNullOrEmpty(mem.ArchetypeId))
+                if (!string.IsNullOrEmpty(mem.ArchetypeId) && _logged.Add(s.Key))
                     Log.Info($"[ARCHETYPES] {s.Name}: {mem.ArchetypeId}{(string.IsNullOrEmpty(mem.Archetype2Id) ? "" : " + " + mem.Archetype2Id)} (roles: {string.Join(",", roles)}), nature {mem.Morality}, swearing {mem.Profanity}, piety {mem.Piety}, faith {mem.Faith ?? "-"}");
             }
             catch (Exception ex) { Log.Error("Character core", ex); }
         }
 
+        private static readonly HashSet<string> _logged = new HashSet<string>();
         private static bool HasOwn(string v) => !string.IsNullOrWhiteSpace(v);
         private static bool MoralsAgree(string a, string b) => string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b) || a == b || (a != "principled" || b != "ruthless") && (a != "ruthless" || b != "principled");
 

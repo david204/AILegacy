@@ -422,14 +422,21 @@ namespace AILegacy.Behaviors
                     catch (Exception ex) { Log.Error("Bandits who speak first", ex); return false; }
                 }, null, priority: 9000);
 
-            // Entry points from heroes and from townsfolk
-            starter.AddPlayerLine("ailegacy_d_start_h", "hero_main_options", "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
-                () => S.Get.UseDialogStyle && CanTalkHero(),
+            // Entry points from heroes and from townsfolk. With a hero, one line opens AI Legacy's own menu (plain talk,
+            // with a picture, with a video, the scene on foot, the romance mark) instead of filling the game's list.
+            starter.AddPlayerLine("ailegacy_menu_h", "hero_main_options", "ailegacy_menu", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                () => S.Get.UseDialogStyle && Hero.OneToOneConversationHero != null
+                      && (CanTalkHero() || Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero) || Bonds.CanForceRomance(Hero.OneToOneConversationHero) || Bonds.RomanceForced(Hero.OneToOneConversationHero)),
+                () => ResetReturn(), priority: 120);
+            starter.AddDialogLine("ailegacy_menu_listen", "ailegacy_menu", "ailegacy_menu_opts", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
+            starter.AddPlayerLine("ailegacy_menu_back", "ailegacy_menu_opts", "lord_pretalk", L.T("AIL_1df7d173", "{=!}Volver"), null, () => ResetReturn(), priority: 1);
+            starter.AddPlayerLine("ailegacy_d_start_h", "ailegacy_menu_opts", "ailegacy_d_wait", L.T("AIL_e7b1df41", "{=!}Hablar"),
+                () => CanTalkHero(),
                 () =>
                 {
                     ResetReturn();
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
-                    if (s != null) MainThread.Post(s.AskInput);
+                    if (s != null) { s.WithPictures = false; s.WithVideo = false; MainThread.Post(s.AskInput); }
                 }, priority: 120);
             // A lord who caught you and demands your surrender: the game goes straight to this branch and never
             // shows hero_main_options, so Talk needs its own entry here. "Back" returns to the demand.
@@ -440,7 +447,7 @@ namespace AILegacy.Behaviors
                     ResetReturn();
                     _fromSurrenderDemand = true;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
-                    if (s != null) MainThread.Post(s.AskInput);
+                    if (s != null) { s.WithPictures = false; s.WithVideo = false; MainThread.Post(s.AskInput); }
                 }, priority: 120);
             // Same from your party's prisoner branch. "Back" returns to that branch (ailegacy_d_ret_p)
             starter.AddPlayerLine("ailegacy_d_start_p", PrisonerOptions, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
@@ -450,41 +457,43 @@ namespace AILegacy.Behaviors
                     ResetReturn();
                     _fromPrisonerBranch = true;
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
-                    if (s != null) MainThread.Post(s.AskInput);
+                    if (s != null) { s.WithPictures = false; s.WithVideo = false; MainThread.Post(s.AskInput); }
                 }, priority: 120);
             // The same, with a picture of each moment (only with an image service set up)
-            starter.AddPlayerLine("ailegacy_d_start_hi", "hero_main_options", "ailegacy_d_wait", L.T("AIL_e7b1c7d0", "{=!}Hablar (con imagen de escena) [AI Legacy]"),
-                () => S.Get.UseDialogStyle && World.SceneImages.TalkEnabled && CanTalkHero(),
+            starter.AddPlayerLine("ailegacy_d_start_hi", "ailegacy_menu_opts", "ailegacy_d_wait", L.T("AIL_e7b1df42", "{=!}Hablar con imagen de la escena"),
+                () => World.SceneImages.TalkEnabled && CanTalkHero(),
                 () =>
                 {
                     ResetReturn();
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
-                    if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
+                    if (s != null) { s.WithPictures = true; s.WithVideo = false; MainThread.Post(s.AskInput); }
                 }, priority: 119);
-            starter.AddPlayerLine("ailegacy_d_start_ri", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_e7b1c7d0", "{=!}Hablar (con imagen de escena) [AI Legacy]"),
-                () => S.Get.UseDialogStyle && World.SceneImages.TalkEnabled && CanTalkResident(false),
+            starter.AddPlayerLine("ailegacy_d_start_ri", "ailegacy_rmenu_opts", "ailegacy_d_wait", L.T("AIL_e7b1df42", "{=!}Hablar con imagen de la escena"),
+                () => World.SceneImages.TalkEnabled && CanTalkResident(false),
                 () =>
                 {
                     ResetReturn();
+                    _bandReturn = "town_or_village_player";
                     var s = ChatSession.StartDialog(ResidentSpeaker(null, false));
-                    if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
+                    if (s != null) { s.WithPictures = true; s.WithVideo = false; MainThread.Post(s.AskInput); }
                 }, priority: 119);
             // The same, with a video of each moment (only with a video service set up)
-            starter.AddPlayerLine("ailegacy_d_start_hv", "hero_main_options", "ailegacy_d_wait", L.T("AIL_e7b1df40", "{=!}Hablar (con vídeo de escena) [AI Legacy]"),
-                () => S.Get.UseDialogStyle && World.SceneVideos.Enabled && CanTalkHero(),
+            starter.AddPlayerLine("ailegacy_d_start_hv", "ailegacy_menu_opts", "ailegacy_d_wait", L.T("AIL_e7b1df43", "{=!}Hablar con vídeo de la escena"),
+                () => World.SceneVideos.Enabled && CanTalkHero(),
                 () =>
                 {
                     ResetReturn();
                     var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
-                    if (s != null) { s.WithVideo = true; MainThread.Post(s.AskInput); }
+                    if (s != null) { s.WithVideo = true; s.WithPictures = false; MainThread.Post(s.AskInput); }
                 }, priority: 118);
-            starter.AddPlayerLine("ailegacy_d_start_rv", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_e7b1df40", "{=!}Hablar (con vídeo de escena) [AI Legacy]"),
-                () => S.Get.UseDialogStyle && World.SceneVideos.Enabled && CanTalkResident(false),
+            starter.AddPlayerLine("ailegacy_d_start_rv", "ailegacy_rmenu_opts", "ailegacy_d_wait", L.T("AIL_e7b1df43", "{=!}Hablar con vídeo de la escena"),
+                () => World.SceneVideos.Enabled && CanTalkResident(false),
                 () =>
                 {
                     ResetReturn();
+                    _bandReturn = "town_or_village_player";
                     var s = ChatSession.StartDialog(ResidentSpeaker(null, false));
-                    if (s != null) { s.WithVideo = true; MainThread.Post(s.AskInput); }
+                    if (s != null) { s.WithVideo = true; s.WithPictures = false; MainThread.Post(s.AskInput); }
                 }, priority: 118);
             // An adult child of yours born out of wedlock: you acknowledge them before everyone
             starter.AddPlayerLine("ailegacy_acknowledge", "hero_main_options", "ailegacy_acknowledge_reply", L.T("AIL_e7b1c823", "{=!}Te reconozco como hijo mío. Desde hoy eres de verdad parte de nuestra familia."),
@@ -505,12 +514,12 @@ namespace AILegacy.Behaviors
             starter.AddDialogLine("ailegacy_concubine_marry_reply", "ailegacy_concubine_marry_reply", "close_window", L.T("AIL_e7b1de26", "{=!}¡Preparémoslo, entonces!"),
                 null, null, priority: 100);
             // Romance with someone kinship or sex would keep out, as Illegitimate Children lets the player mark them
-            starter.AddPlayerLine("ailegacy_romance_force_on", "hero_main_options", "ailegacy_romance_force_on_reply", L.T("AIL_e7b1de40", "{=!}(Forzar que este personaje pueda tener romance.)"),
+            starter.AddPlayerLine("ailegacy_romance_force_on", "ailegacy_menu_opts", "ailegacy_romance_force_on_reply", L.T("AIL_e7b1de40", "{=!}(Forzar que este personaje pueda tener romance.)"),
                 () => Bonds.CanForceRomance(Hero.OneToOneConversationHero),
                 () => Bonds.SetRomanceForced(Hero.OneToOneConversationHero, true), priority: 10);
             starter.AddDialogLine("ailegacy_romance_force_on_reply", "ailegacy_romance_force_on_reply", "lord_pretalk", L.T("AIL_e7b1de41", "{=!}(Ahora este personaje puede tener romance contigo.)"),
                 null, null, priority: 100);
-            starter.AddPlayerLine("ailegacy_romance_force_off", "hero_main_options", "ailegacy_romance_force_off_reply", L.T("AIL_e7b1de42", "{=!}(Quitar el romance forzado de este personaje.)"),
+            starter.AddPlayerLine("ailegacy_romance_force_off", "ailegacy_menu_opts", "ailegacy_romance_force_off_reply", L.T("AIL_e7b1de42", "{=!}(Quitar el romance forzado de este personaje.)"),
                 () => Bonds.RomanceForced(Hero.OneToOneConversationHero),
                 () => Bonds.SetRomanceForced(Hero.OneToOneConversationHero, false), priority: 10);
             starter.AddDialogLine("ailegacy_romance_force_off_reply", "ailegacy_romance_force_off_reply", "lord_pretalk", L.T("AIL_e7b1de43", "{=!}(Ya no se fuerza el romance con este personaje.)"),
@@ -520,7 +529,7 @@ namespace AILegacy.Behaviors
                 () => Concubines.Steal(Hero.OneToOneConversationHero), priority: 700);
             starter.AddDialogLine("ailegacy_concubine_steal_reply", "ailegacy_concubine_steal_reply", "lord_pretalk", L.T("AIL_e7b1de21", "{=!}Mi corazón solo late por ti. Iré contigo."),
                 null, null, priority: 100);            // On the map: dismount and talk face to face in a terrain scene
-            starter.AddPlayerLine("ailegacy_maptalk", "hero_main_options", "close_window", L.T("AIL_29a99738", "{=!}Desmontemos y hablemos cara a cara. [AI Legacy: escena]"),
+            starter.AddPlayerLine("ailegacy_maptalk", "ailegacy_menu_opts", "close_window", L.T("AIL_e7b1df44", "{=!}Desmontemos y hablemos cara a cara."),
                 () => Scenes.MapTalk.CanOffer(Hero.OneToOneConversationHero),
                 () => Scenes.MapTalk.Queue(Hero.OneToOneConversationHero), priority: 119);
             // Townsfolk in every branch of the game's where one is met: the tavern, the arena, the shops, the guards, the
@@ -529,14 +538,22 @@ namespace AILegacy.Behaviors
             {
                 string back = b.Token, role = b.Role;
                 bool child = b.Child;
-                starter.AddPlayerLine("ailegacy_d_start_res_" + back, back, "ailegacy_d_wait", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
-                    () => S.Get.UseDialogStyle && CanTalkResident(child),
+                bool menu = back == "town_or_village_player";
+                if (menu)
+                {
+                    starter.AddPlayerLine("ailegacy_rmenu", back, "ailegacy_rmenu", L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                        () => S.Get.UseDialogStyle && CanTalkResident(child), () => { ResetReturn(); _bandReturn = back; }, priority: 120);
+                    starter.AddDialogLine("ailegacy_rmenu_listen", "ailegacy_rmenu", "ailegacy_rmenu_opts", L.T("AIL_a5da1c9c", "{=!}*te escucha*"), null, null, priority: 110);
+                    starter.AddPlayerLine("ailegacy_rmenu_back", "ailegacy_rmenu_opts", "ailegacy_d_ret", L.T("AIL_1df7d173", "{=!}Volver"), null, () => { _bandReturn = back; }, priority: 1);
+                }
+                starter.AddPlayerLine("ailegacy_d_start_res_" + back, menu ? "ailegacy_rmenu_opts" : back, "ailegacy_d_wait", menu ? L.T("AIL_e7b1df41", "{=!}Hablar") : L.T("AIL_9a8d90d8", "{=!}Hablar [AI Legacy]"),
+                    () => (menu || S.Get.UseDialogStyle) && CanTalkResident(child),
                     () =>
                     {
                         ResetReturn();
                         _bandReturn = back;
                         var s = ChatSession.StartDialog(ResidentSpeaker(role, child));
-                        if (s != null) MainThread.Post(s.AskInput);
+                        if (s != null) { s.WithPictures = false; s.WithVideo = false; MainThread.Post(s.AskInput); }
                     }, priority: 120);
                 starter.AddDialogLine("ailegacy_d_ret_res_" + back, "ailegacy_d_ret", back, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                     () => _bandReturn == back && Hero.OneToOneConversationHero == null && TaleWorlds.MountAndBlade.Mission.Current != null, null, priority: 126);
@@ -555,7 +572,7 @@ namespace AILegacy.Behaviors
                         ResetReturn();
                         _bandReturn = back;
                         var s = ChatSession.StartDialog(PartySpeaker(role));
-                        if (s != null) MainThread.Post(s.AskInput);
+                        if (s != null) { s.WithPictures = false; s.WithVideo = false; MainThread.Post(s.AskInput); }
                     }, priority: 120);
                 starter.AddDialogLine("ailegacy_d_ret_" + back, "ailegacy_d_ret", back, L.T("AIL_fb96809a", "{=!}¿Algo más?"),
                     () => _bandReturn == back && TaleWorlds.MountAndBlade.Mission.Current == null, null, priority: 126);

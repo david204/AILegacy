@@ -136,8 +136,8 @@ Answer with the prompt only, nothing else.");
             var cfg = S.Get;
             if (!Enabled || Busy || string.IsNullOrWhiteSpace(exchange)) return;
             if (!UnderCap()) { WorldSim.Say(L.F("AIL_e7b1c855", $"Ya has hecho los {cfg.VideoPerDay} vídeos de hoy (tope de los ajustes)."), Colors.Yellow); return; }
-            // a talk with video asks once, with the cost of each clip; after that every reply gets its clip
-            if (!ask) { Make(people, where, exchange, done, scene); return; }
+            // a talk with video asks once, with the cost of each clip; after that every reply gets its clip (or never, by setting)
+            if (!ask || !cfg.VideoAskCost) { accepted?.Invoke(); Make(people, where, exchange, done, scene); return; }
             int secs = Math.Max(4, Math.Min(12, cfg.VideoSeconds));
             double cost = secs * Math.Max(0, cfg.VideoCentsPerSecond) / 100.0;
             string costText = Source == OpenAi ? L.F("AIL_e7b1c856", $"Unos {cost:0.00} $ de tu cuenta de OpenAI ({secs} s).")
@@ -154,7 +154,6 @@ Answer with the prompt only, nothing else.");
             var cfg = S.Get;
             if (Busy) return;
             Busy = true;
-            _today++;
             int gen = _gen, session = WorldSim.Session;
             string dir = SceneImages.Dir;
             int source = Source;
@@ -185,7 +184,8 @@ Answer with the prompt only, nothing else.");
                     if (gen != _gen) return;
                     Busy = false;
                     if (session != WorldSim.Session) return;
-                    if (file == null) { Log.Warn("Scene video: " + error); WorldSim.Say(L.F("AIL_e7b1c85d", $"El vídeo no se ha podido hacer: {error}"), Colors.Red); return; }
+                    if (file == null) { Log.Warn("Scene video: " + error); WorldSim.Say(L.F("AIL_e7b1c85d", $"El vídeo no se ha podido hacer: {SceneImages.ShortError(error)}"), Colors.Red); return; }
+                    _today++;      // only the clips that were made count toward the daily cap
                     Log.Info("Scene video: " + file);
                     try { done?.Invoke(file); } catch (Exception ex) { Log.Error("Video: end callback", ex); }
                 });
@@ -205,7 +205,7 @@ Answer with the prompt only, nothing else.");
                         var dims = vsize.Split('x');
                         if (dims.Length == 2 && int.TryParse(dims[0], out var a) && int.TryParse(dims[1], out var b2) && a > 0 && b2 > 0) { fw = a; fh = b2; }
                         byte[] first = Frame(scene.Image, fw, fh);
-                        byte[] mp4 = source == Gemini ? await FromVeo(key, model.Length > 0 ? model : "veo-3.1-fast-generate-preview", speak, first, secs).ConfigureAwait(false)
+                        byte[] mp4 = source == Gemini ? await VeoAny(key, model.Length > 0 ? model : "veo-3.1-fast-generate-preview", speak, first, secs).ConfigureAwait(false)
                                                       : await Generate(baseUrl, key, model.Length > 0 ? model : "sora-2", vsize, secs, speak, first).ConfigureAwait(false);
                         if (mp4 == null || mp4.Length < 10000) { Finish(null, "el servicio no devolvió un vídeo"); return; }
                         if (dir == null) { Finish(null, "sin campaña"); return; }
@@ -231,7 +231,7 @@ Answer with the prompt only, nothing else.");
                     if (prompt.Length > 900) prompt = prompt.Substring(0, 900);
                     try
                     {
-                        byte[] mp4 = source == Gemini ? await FromVeo(key, model.Length > 0 ? model : "veo-3.1-fast-generate-preview", prompt, null, secs <= 4 ? 4 : secs <= 6 ? 6 : 8).ConfigureAwait(false)
+                        byte[] mp4 = source == Gemini ? await VeoAny(key, model.Length > 0 ? model : "veo-3.1-fast-generate-preview", prompt, null, secs <= 4 ? 4 : secs <= 6 ? 6 : 8).ConfigureAwait(false)
                                                       : await Generate(baseUrl, key, model.Length > 0 ? model : "sora-2", size.Length > 0 ? size : "1280x720", secs, prompt).ConfigureAwait(false);
                         if (mp4 == null || mp4.Length < 10000) { Finish(null, "el servicio no devolvió un vídeo"); return; }
                         if (dir == null) { Finish(null, "sin campaña"); return; }
@@ -313,6 +313,23 @@ Answer with the prompt only, nothing else.");
         /// Google Veo through the Gemini API: a long-running job from the prompt (and the first frame, if any), polled until
         /// it is done, then the clip is fetched with the same key.
         /// </summary>
+        private static string _veoFound;
+
+        /// <summary>Veo with the chosen model; if this key does not have it, with one it has.</summary>
+        private static async Task<byte[]> VeoAny(string key, string model, string prompt, byte[] firstFrame, int seconds)
+        {
+            if (_veoFound != null) model = _veoFound;
+            try { return await FromVeo(key, model, prompt, firstFrame, seconds).ConfigureAwait(false); }
+            catch (Exception ex) when (SceneImages.ModelMissing(ex))
+            {
+                string other = await SceneImages.GeminiModelFor(key, true).ConfigureAwait(false);
+                if (other == null || other == model) throw;
+                Log.Warn($"Veo: the model {model} is not in this account; using {other}");
+                _veoFound = other;
+                return await FromVeo(key, other, prompt, firstFrame, seconds).ConfigureAwait(false);
+            }
+        }
+
         private static async Task<byte[]> FromVeo(string key, string model, string prompt, byte[] firstFrame, int seconds)
         {
             const string root = "https://generativelanguage.googleapis.com/v1beta/";
