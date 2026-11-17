@@ -29,16 +29,34 @@ namespace AILegacy.World
         public const int Gemini = 4, Compatible = 5;
         public enum Kind { Book, Talk, Event }
 
-        public static int SourceOf(Kind k)
+        /// <summary>What each picture setting offers: a service and its model in one choice, as the player sees it.</summary>
+        internal static readonly (string label, int source, string model)[] PictureOptions =
+        {
+            ("Off", Off, ""),
+            ("OpenAI · gpt-image-2 (your key)", OpenAi, "gpt-image-2"),
+            ("Google · Nano Banana · gemini-2.5-flash-image (your key)", Gemini, "gemini-2.5-flash-image"),
+            ("Google · Nano Banana 2 · gemini-3.1-flash-image-preview (your key)", Gemini, "gemini-3.1-flash-image-preview"),
+            ("Google · Nano Banana 2 Lite · gemini-3.1-flash-lite-image-preview (your key)", Gemini, "gemini-3.1-flash-lite-image-preview"),
+            ("Google · Nano Banana Pro · gemini-3-pro-image-preview (your key)", Gemini, "gemini-3-pro-image-preview"),
+            ("OpenAI-compatible · provider and model in Advanced", Compatible, ""),
+            ("Free · Pollinations (no key; does not copy the characters)", Free, ""),
+            ("Local Stable Diffusion (does not copy the characters)", Local, ""),
+        };
+
+        public static string[] PictureLabels => PictureOptions.Select(o => o.label).ToArray();
+
+        private static int ChoiceOf(Kind k)
         {
             try
             {
                 var cfg = S.Get;
-                var d = k == Kind.Talk ? cfg.TalkImageSource : k == Kind.Event ? cfg.EventImageSource : cfg.ImageSource;
-                return Math.Max(0, Math.Min(Compatible, d.SelectedIndex));
+                var d = k == Kind.Talk ? cfg.TalkPicture : k == Kind.Event ? cfg.EventPicture : cfg.BookPicture;
+                return Math.Max(0, Math.Min(PictureOptions.Length - 1, d.SelectedIndex));
             }
-            catch { return Off; }
+            catch { return 0; }
         }
+
+        public static int SourceOf(Kind k) => PictureOptions[ChoiceOf(k)].source;
 
         public static bool EnabledFor(Kind k) => SourceOf(k) != Off;
         public static bool TalkEnabled => EnabledFor(Kind.Talk);
@@ -64,13 +82,17 @@ namespace AILegacy.World
             return source == Gemini ? GeminiProvider : source == OpenAi ? OpenAiProvider : null;
         }
 
-        /// <summary>The model chosen for this kind of picture, or the service's own setting.</summary>
+        /// <summary>The model of a service when nothing else says which: the first of its list.</summary>
+        internal static string DefaultModel(int source) => source == Gemini ? "gemini-2.5-flash-image" : "gpt-image-2";
+
+        /// <summary>The model chosen for this kind of picture: the one written in Advanced, or the one of the list.</summary>
         internal static string ModelFor(Kind k, int source)
         {
             var cfg = S.Get;
             string m = ((k == Kind.Talk ? cfg.TalkImageModel : k == Kind.Event ? cfg.EventImageModel : cfg.BookImageModel) ?? "").Trim();
             if (m.Length > 0) return m;
-            return source == Gemini ? (cfg.ImageGeminiModel ?? "").Trim() : (cfg.ImageOpenAiModel ?? "").Trim();
+            string listed = PictureOptions[ChoiceOf(k)].model;
+            return listed.Length > 0 ? listed : DefaultModel(source);
         }
 
         internal static ProviderConfig ProviderFor(string host)
@@ -359,7 +381,7 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
             refs = refs ?? new List<byte[]>();
             // the provider and model chosen for this kind (none when it is the fallback service: its first provider, its setting)
             var provider = kind.HasValue ? ProviderFor(kind.Value, source) : source == Gemini ? GeminiProvider : source == OpenAi ? OpenAiProvider : null;
-            string model = kind.HasValue ? ModelFor(kind.Value, source) : source == Gemini ? (S.Get.ImageGeminiModel ?? "").Trim() : (S.Get.ImageOpenAiModel ?? "").Trim();
+            string model = kind.HasValue ? ModelFor(kind.Value, source) : DefaultModel(source);
             switch (source)
             {
                 case Gemini: return await FromGemini(prompt, refs, wide, provider, model).ConfigureAwait(false);

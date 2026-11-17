@@ -27,7 +27,31 @@ namespace AILegacy.World
     {
         public const int Off = 0, OpenAi = 1, Endpoint = 2, Gemini = 3;
         public static readonly string[] SourceNames = { "Off", "OpenAI (your key, paid)", "OpenAI-compatible server", "Google Gemini · Veo (your key)" };
-        public static int Source { get { try { return Math.Max(0, Math.Min(3, S.Get.VideoSource.SelectedIndex)); } catch { return Off; } } }
+        /// <summary>What the video setting offers: a service and its model in one choice.</summary>
+        internal static readonly (string label, int source, string model)[] VideoOptions =
+        {
+            ("Off", Off, ""),
+            ("OpenAI · sora-2 (your key)", OpenAi, "sora-2"),
+            ("OpenAI · sora-2-pro (your key)", OpenAi, "sora-2-pro"),
+            ("Google · Veo 3.1 fast · veo-3.1-fast-generate-preview (your key)", Gemini, "veo-3.1-fast-generate-preview"),
+            ("Google · Veo 3.1 · veo-3.1-generate-preview (your key)", Gemini, "veo-3.1-generate-preview"),
+            ("OpenAI-compatible server · address and key in Advanced", Endpoint, ""),
+        };
+
+        public static string[] VideoLabels => VideoOptions.Select(o => o.label).ToArray();
+
+        private static int Choice { get { try { return Math.Max(0, Math.Min(VideoOptions.Length - 1, S.Get.VideoService.SelectedIndex)); } catch { return 0; } } }
+        public static int Source => VideoOptions[Choice].source;
+
+        /// <summary>The model: the one written in Advanced, or the one of the list.</summary>
+        private static string ChosenModel
+        {
+            get
+            {
+                string m = (S.Get.VideoCustomModel ?? "").Trim();
+                return m.Length > 0 ? m : VideoOptions[Choice].model;
+            }
+        }
 
         /// <summary>The clip made from the scene picture: who says what, so they speak it in the clip.</summary>
         public sealed class Scene
@@ -157,7 +181,7 @@ Answer with the prompt only, nothing else.");
             int gen = _gen, session = WorldSim.Session;
             string dir = SceneImages.Dir;
             int source = Source;
-            string model = (cfg.VideoModel ?? "").Trim(), size = (cfg.VideoSize ?? "").Trim();
+            string model = ChosenModel, size = (cfg.VideoSize ?? "").Trim();
             int secs = Math.Max(4, Math.Min(12, cfg.VideoSeconds));
             string baseUrl = null, key = null;
             if (source == Gemini)
@@ -165,7 +189,6 @@ Answer with the prompt only, nothing else.");
                 var g = Named(cfg.VideoProvider) ?? SceneImages.GeminiProvider;
                 if (g == null) { Busy = false; WorldSim.Say(L.T("AIL_e7b1df60", "No hay ningún proveedor de Google Gemini con clave en 0. Claves de IA."), Colors.Red); return; }
                 key = g.ApiKey;
-                model = (cfg.VideoGeminiModel ?? "").Trim();
             }
             else if (source == OpenAi)
             {

@@ -192,7 +192,6 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
             var looks = TakesReferences(source) && job.heroes != null ? job.heroes.Take(4).Select(CharacterCapture.LookOf).Where(l => l != null).ToList() : new List<CharacterCapture.Look>();
             string style = (S.Get.ImageStyle ?? "").Trim();
             string localUrl = (S.Get.ImageLocalUrl ?? "").Trim().TrimEnd('/');
-            string openAiModel = (S.Get.ImageOpenAiModel ?? "").Trim();
             ProviderConfig openAi = null;
             try { openAi = LegacyConfig.Current.Providers.FirstOrDefault(p => p.IsUsable && (p.BaseUrl ?? "").IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0); } catch { }
 

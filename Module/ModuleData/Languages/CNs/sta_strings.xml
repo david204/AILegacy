@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="章节" />
     <string id="AIL_e7b1c4f0" text="图片来源" />
     <string id="AIL_e7b1c4f1" text="回忆录的每一章都可以配一张图。免费：使用无需密钥的公共服务，只会发送场景描述。OpenAI：使用你在“0. AI 密钥”中设置的 OpenAI 服务商，每张图都要花钱。本地：需要在你的电脑上运行并开启 API 的 Stable Diffusion。Off = 不生成图片。" />
-    <string id="AIL_e7b1c4f2" text="G. 图片" />
+    <string id="AIL_e7b1c4f2" text="G. 图片与视频" />
     <string id="AIL_e7b1c4f3" text="自动为每个新章节绘图" />
     <string id="AIL_e7b1c4f4" text="新章节写成后，图片会在后台生成。关闭：只有在书中按下按钮时才生成。每张图需要一次简短的 AI 请求来生成描述。" />
     <string id="AIL_e7b1c4f5" text="图片风格" />
@@ -3115,5 +3115,22 @@
     <string id="AIL_e7b1df69" text="回忆录图片：模型" />
     <string id="AIL_e7b1df6a" text="视频：提供商" />
     <string id="AIL_e7b1df6b" text="“0. AI Keys”中用来生成短片的提供商名称（OpenAI 或 Gemini）。留空 = 使用其中该服务的第一个提供商。模型在“Videos: model”（OpenAI，例如 sora-2 或 sora-2-pro）或“Videos: Gemini model”中设置。" />
+    <string id="AIL_e7b1df71" text="1. 视频" />
+    <string id="AIL_e7b1df72" text="2. 风格与免费服务" />
+    <string id="AIL_e7b1df73" text="3. 高级" />
+    <string id="AIL_e7b1df74" text="对话图片" />
+    <string id="AIL_e7b1df75" text="使用“交谈并生成场景图片”时由谁绘制每个时刻的图片。OpenAI 和 Google 会收到游戏绘制的双方角色图像并照着画出他们的脸和衣服；它们使用你在“0. AI Keys”中的密钥，按张收费（免费的 Google 密钥没有图片额度）。Pollinations 和 Stable Diffusion 只收到文字描述。关闭 = 没有此选项。" />
+    <string id="AIL_e7b1df76" text="世界事件图片" />
+    <string id="AIL_e7b1df77" text="由谁绘制每个新世界事件的宽幅图片（上面的选项开启时）。OpenAI 和 Google 还会收到游戏绘制的其中提到的统治者和领主图像。" />
+    <string id="AIL_e7b1df78" text="回忆录图片" />
+    <string id="AIL_e7b1df79" text="由谁绘制回忆录每一章的图片。OpenAI 和 Google 还会收到游戏绘制的该角色和你的图像。" />
+    <string id="AIL_e7b1df7a" text="场景视频" />
+    <string id="AIL_e7b1df7b" text="使用“交谈并生成场景视频”或“把这一幕录成视频”时由谁生成短片：场景图片作为第一帧，两人说出各自的台词。OpenAI（Sora）和 Google（Veo）使用你自己的密钥，按秒收费；免费的 Google 密钥没有 Veo。关闭 = 不生成视频。" />
+    <string id="AIL_e7b1df7c" text="对话图片：其他模型" />
+    <string id="AIL_e7b1df7d" text="世界事件图片：其他模型" />
+    <string id="AIL_e7b1df7e" text="回忆录图片：其他模型" />
+    <string id="AIL_e7b1df7f" text="仅当你想用列表中没有的模型时填写：写出其准确名称，它会替代列表中的选择。留空 = 使用列表中选择的模型。" />
+    <string id="AIL_e7b1df80" text="视频：其他模型" />
+    <string id="AIL_e7b1df81" text="“0. AI Keys”中用来生成短片的提供商名称（OpenAI 或 Google）。留空 = 使用其中该服务的第一个提供商。" />
   </strings>
 </base>

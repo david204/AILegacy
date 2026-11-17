@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="Chapters" />
     <string id="AIL_e7b1c4f0" text="Where pictures come from" />
     <string id="AIL_e7b1c4f1" text="Each chapter of the memory book can have a picture. Free uses a public service that needs no key: only a description of the scene is sent to it. OpenAI uses the OpenAI provider you set up in 0. AI Keys and costs money per picture. Local needs Stable Diffusion running on your PC with its API on. Off = no pictures." />
-    <string id="AIL_e7b1c4f2" text="G. Pictures" />
+    <string id="AIL_e7b1c4f2" text="G. Pictures and video" />
     <string id="AIL_e7b1c4f3" text="Draw each new chapter by itself" />
     <string id="AIL_e7b1c4f4" text="When a new chapter is written, its picture is made in the background. Off: only when you press the button in the book. Each picture takes one short AI request for the description." />
     <string id="AIL_e7b1c4f5" text="Style of the pictures" />
@@ -3116,5 +3116,22 @@
     <string id="AIL_e7b1df69" text="Memory book pictures: model" />
     <string id="AIL_e7b1df6a" text="Videos: provider" />
     <string id="AIL_e7b1df6b" text="Name of a provider of 0. AI Keys whose key makes the clips (OpenAI or Gemini). Empty = the first provider of that service there. The model is set in «Videos: model» (OpenAI, for example sora-2 or sora-2-pro) or «Videos: Gemini model»." />
+    <string id="AIL_e7b1df71" text="1. Videos" />
+    <string id="AIL_e7b1df72" text="2. Style and free services" />
+    <string id="AIL_e7b1df73" text="3. Advanced" />
+    <string id="AIL_e7b1df74" text="Pictures in conversations" />
+    <string id="AIL_e7b1df75" text="Who draws the picture of each moment with «Talk with a picture of the scene». OpenAI and Google get pictures of both characters drawn by the game and copy their faces and clothes; they use your own key from 0. AI Keys and charge per picture (a free Google key has no quota for pictures). Pollinations and Stable Diffusion only get a description. Off = no such option." />
+    <string id="AIL_e7b1df76" text="Pictures of world events" />
+    <string id="AIL_e7b1df77" text="Who draws the wide picture of each new world event (when the option above is on). OpenAI and Google also get the game's drawings of the rulers and lords it names." />
+    <string id="AIL_e7b1df78" text="Pictures of the memory book" />
+    <string id="AIL_e7b1df79" text="Who draws the picture of each chapter of the memory book. OpenAI and Google also get the game's drawings of the character and of you." />
+    <string id="AIL_e7b1df7a" text="Videos of a scene" />
+    <string id="AIL_e7b1df7b" text="Who makes the clip with «Talk with a video of the scene» or «Record this scene on video»: the scene picture becomes its first frame and the two say their lines. OpenAI (Sora) and Google (Veo) use your own key and charge per second; a free Google key has no Veo. Off = no videos." />
+    <string id="AIL_e7b1df7c" text="Pictures in conversations: another model" />
+    <string id="AIL_e7b1df7d" text="Pictures of world events: another model" />
+    <string id="AIL_e7b1df7e" text="Memory book pictures: another model" />
+    <string id="AIL_e7b1df7f" text="Only if you want a model the list does not have: its exact name, and it is used instead of the list's. Empty = the model chosen in the list." />
+    <string id="AIL_e7b1df80" text="Videos: another model" />
+    <string id="AIL_e7b1df81" text="Name of a provider of 0. AI Keys whose key makes the clips (OpenAI or Google). Empty = the first provider of that service there." />
   </strings>
 </base>

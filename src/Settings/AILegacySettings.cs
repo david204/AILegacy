@@ -372,144 +372,136 @@ namespace AILegacy.Settings
                 P5Enabled, P5Service, P5Key, P5Model, P5Url, P5PriceIn, P5PriceOut, P5Embed, P6Enabled, P6Service, P6Key, P6Model, P6Url, P6PriceIn, P6PriceOut, P6Embed,
                 ReasoningCode(P1Reasoning), ReasoningCode(P2Reasoning), ReasoningCode(P3Reasoning), ReasoningCode(P4Reasoning), ReasoningCode(P5Reasoning), ReasoningCode(P6Reasoning));
 
-        // ------------------------------------------------------------ Images
-        [SettingPropertyDropdown("{=AIL_e7b1df50}Pictures in conversations: service", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df51}With «Talk (with a picture of the scene)», each reply gets a picture of the moment. Google Gemini and OpenAI receive pictures of both characters drawn by the game (face from three sides and whole body, as they are dressed now) and copy them, so the people look like themselves; the last picture with that character goes too, for continuity. They use the Gemini or OpenAI provider you set up in 0. AI Keys. Free and Local only get a description. Off = no such option.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public MCM.Common.Dropdown<string> TalkImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Gemini);
-
-        [SettingPropertyText("{=AIL_e7b1df62}Pictures in conversations: provider", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string TalkImageProvider { get; set; } = "";
-
-        [SettingPropertyText("{=AIL_e7b1df64}Pictures in conversations: model", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df65}The model that draws them (for example gpt-image-2, or a Gemini image model). Empty = the model of that service set below. If your account does not have it, one it has is used.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string TalkImageModel { get; set; } = "";
-
-        [SettingPropertyDropdown("{=AIL_e7b1df52}Pictures of world events: service", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df53}Who draws the wide picture of each new world event (when that option is on). Gemini and OpenAI also get the game's drawings of the rulers and lords named in it.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public MCM.Common.Dropdown<string> EventImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Gemini);
-
-        [SettingPropertyText("{=AIL_e7b1df66}Pictures of world events: provider", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string EventImageProvider { get; set; } = "";
-
-        [SettingPropertyText("{=AIL_e7b1df67}Pictures of world events: model", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df65}The model that draws them (for example gpt-image-2, or a Gemini image model). Empty = the model of that service set below. If your account does not have it, one it has is used.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string EventImageModel { get; set; } = "";
-
-        [SettingPropertyBool("{=AIL_e7b1df54}Pictures: if Gemini or OpenAI fails, try the other", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df55}When the chosen one of the two fails (no key, quota, refusal), the picture is asked of the other, if you have it set up.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public bool ImageTryOtherService { get; set; } = true;
-
-        [SettingPropertyText("{=AIL_e7b1df56}Gemini image model", Order = 4, RequireRestart = false,
-            HintText = "{=AIL_e7b1df57}The Google model that draws pictures from reference images. Default: gemini-2.5-flash-image.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string ImageGeminiModel { get; set; } = "gemini-2.5-flash-image";
-
-        [SettingPropertyDropdown("{=AIL_e7b1df58}Memory book pictures: service", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1c4f1}Each chapter of the memory book can have a picture. Free uses a public service that needs no key: only a description of the scene is sent to it. OpenAI uses the OpenAI provider you set up in 0. AI Keys and costs money per picture. Local needs Stable Diffusion running on your PC with its API on. Off = no pictures.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public MCM.Common.Dropdown<string> ImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Free);
-
-        [SettingPropertyText("{=AIL_e7b1df68}Memory book pictures: provider", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string BookImageProvider { get; set; } = "";
-
-        [SettingPropertyText("{=AIL_e7b1df69}Memory book pictures: model", Order = 0, RequireRestart = false,
-            HintText = "{=AIL_e7b1df65}The model that draws them (for example gpt-image-2, or a Gemini image model). Empty = the model of that service set below. If your account does not have it, one it has is used.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string BookImageModel { get; set; } = "";
+        // ------------------------------------------------------------ Pictures and video
+        // The four choices first, each a service and its model in one list; then videos, style and free services, and
+        // what only a few will touch (Advanced). The first properties stay un-nested so the group keeps its GroupOrder.
+        [SettingPropertyDropdown("{=AIL_e7b1df74}Pictures in conversations", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df75}Who draws the picture of each moment with «Talk with a picture of the scene». OpenAI and Google get pictures of both characters drawn by the game and copy their faces and clothes; they use your own key from 0. AI Keys and charge per picture (a free Google key has no quota for pictures). Pollinations and Stable Diffusion only get a description. Off = no such option.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video", GroupOrder = 16)]
+        public MCM.Common.Dropdown<string> TalkPicture { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.PictureLabels, 2);
 
         [SettingPropertyBool("{=AIL_e7b1dd30}Pictures: one for each new world event", Order = 1, RequireRestart = false,
             HintText = "{=AIL_e7b1dd31}Each new event of the world gets a wide picture on its card in the news window, drawn by the source above (a later chapter of the same story keeps the first one's). It costs one AI request for the description and, with OpenAI, the price of a picture each time. If it fails, the card just has no picture. Default: off.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video", GroupOrder = 16)]
         public bool EventImages { get; set; } = false;
 
-        [SettingPropertyBool("{=AIL_e7b1c4f3}Draw each new chapter by itself", Order = 1, RequireRestart = false,
+        [SettingPropertyDropdown("{=AIL_e7b1df76}Pictures of world events", Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1df77}Who draws the wide picture of each new world event (when the option above is on). OpenAI and Google also get the game's drawings of the rulers and lords it names.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video", GroupOrder = 16)]
+        public MCM.Common.Dropdown<string> EventPicture { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.PictureLabels, 2);
+
+        [SettingPropertyDropdown("{=AIL_e7b1df78}Pictures of the memory book", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1df79}Who draws the picture of each chapter of the memory book. OpenAI and Google also get the game's drawings of the character and of you.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video", GroupOrder = 16)]
+        public MCM.Common.Dropdown<string> BookPicture { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.PictureLabels, 7);
+
+        [SettingPropertyBool("{=AIL_e7b1c4f3}Draw each new chapter by itself", Order = 4, RequireRestart = false,
             HintText = "{=AIL_e7b1c4f4}When a new chapter is written, its picture is made in the background. Off: only when you press the button in the book. Each picture takes one short AI request for the description.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video", GroupOrder = 16)]
         public bool ImageAuto { get; set; } = true;
 
-        [SettingPropertyText("{=AIL_e7b1c4f5}Style of the pictures", Order = 2, RequireRestart = false,
-            HintText = "{=AIL_e7b1c4f6}Added to every picture description, in English.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string ImageStyle { get; set; } = "Painterly medieval illustration, oil on canvas, muted earthy colours, soft natural light, detailed, no text, no watermark";
+        [SettingPropertyDropdown("{=AIL_e7b1df7a}Videos of a scene", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1df7b}Who makes the clip with «Talk with a video of the scene» or «Record this scene on video»: the scene picture becomes its first frame and the two say their lines. OpenAI (Sora) and Google (Veo) use your own key and charge per second; a free Google key has no Veo. Off = no videos.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video", GroupOrder = 16)]
+        public MCM.Common.Dropdown<string> VideoService { get; set; } = new MCM.Common.Dropdown<string>(World.SceneVideos.VideoLabels, 0);
 
-        [SettingPropertyText("{=AIL_e7b1c8a0}Pollinations token (optional, free)", Order = 2, RequireRestart = false,
-            HintText = "{=AIL_e7b1c8a1}With «Free (Pollinations)», pictures come with its watermark and a slower queue. With a free account at auth.pollinations.ai you get a token: paste it here and the watermark goes. Only used for Pollinations.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string ImagePollinationsToken { get; set; } = "";
-
-        [SettingPropertyText("{=AIL_e7b1c4f7}Local Stable Diffusion address", Order = 3, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string ImageLocalUrl { get; set; } = "http://127.0.0.1:7860";
-
-        [SettingPropertyText("{=AIL_e7b1c4f8}OpenAI image model", Order = 4, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string ImageOpenAiModel { get; set; } = "gpt-image-2";
-
-        [SettingPropertyDropdown("{=AIL_e7b1c861}Videos of a scene", Order = 10, RequireRestart = false,
-            HintText = "{=AIL_e7b1c862}In a conversation, «Record this scene on video» makes a clip of a few seconds of the last moment. You are always asked first, with what it will cost. OpenAI uses the OpenAI provider in 0. AI Keys and charges per second of video (Sora: roughly 10 cents a second). An OpenAI-compatible server is any program with the same /videos API. Off = no videos.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public MCM.Common.Dropdown<string> VideoSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneVideos.SourceNames, World.SceneVideos.Off);
-
-        [SettingPropertyText("{=AIL_e7b1df6a}Videos: provider", Order = 10, RequireRestart = false,
-            HintText = "{=AIL_e7b1df6b}Name of a provider of 0. AI Keys whose key makes the clips (OpenAI or Gemini). Empty = the first provider of that service there. The model is set in «Videos: model» (OpenAI, for example sora-2 or sora-2-pro) or «Videos: Gemini model».")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string VideoProvider { get; set; } = "";
-
-        [SettingPropertyText("{=AIL_e7b1df59}Videos: Gemini model", Order = 14, RequireRestart = false,
-            HintText = "{=AIL_e7b1df5a}The Google Veo model that turns the scene picture into a clip. Default: veo-3.1-fast-generate-preview.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string VideoGeminiModel { get; set; } = "veo-3.1-fast-generate-preview";
-
-        [SettingPropertyBool("{=AIL_e7b1df5b}Videos: the characters speak in the clip", Order = 13, RequireRestart = false,
-            HintText = "{=AIL_e7b1df5c}The clip has sound and the two say their lines in it, so the voice of the mod is not played for that reply. Off: a silent clip and the usual voice.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public bool VideoVoices { get; set; } = true;
-
-        [SettingPropertyBool("{=AIL_e7b1df46}Videos: ask the cost first", Order = 13, RequireRestart = false,
-            HintText = "{=AIL_e7b1df47}Before a clip is made, a window says what it will roughly cost and asks. In a talk with video it asks once for the whole talk. Off: clips are made without asking (the daily cap still holds).")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public bool VideoAskCost { get; set; } = true;
-
-        [SettingPropertyInteger("{=AIL_e7b1c863}Videos: seconds", 4, 12, Order = 11, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        // ---- videos
+        [SettingPropertyInteger("{=AIL_e7b1c863}Videos: seconds", 4, 12, Order = 0, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df71}1. Videos", GroupOrder = 16)]
         public int VideoSeconds { get; set; } = 4;
 
-        [SettingPropertyInteger("{=AIL_e7b1c864}Videos: most a day", 0, 50, Order = 12, RequireRestart = false,
+        [SettingPropertyInteger("{=AIL_e7b1c864}Videos: most a day", 0, 50, Order = 1, RequireRestart = false,
             HintText = "{=AIL_e7b1c865}A cap on spending: no more videos than this in a real day. 0 = no cap. Recommended: 2 to 5.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df71}1. Videos", GroupOrder = 16)]
         public int VideoPerDay { get; set; } = 3;
 
-        [SettingPropertyInteger("{=AIL_e7b1c866}Videos: price per second (cents, for the warning)", 0, 100, Order = 13, RequireRestart = false,
+        [SettingPropertyBool("{=AIL_e7b1df5b}Videos: the characters speak in the clip", Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1df5c}The clip has sound and the two say their lines in it, so the voice of the mod is not played for that reply. Off: a silent clip and the usual voice.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df71}1. Videos", GroupOrder = 16)]
+        public bool VideoVoices { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1df46}Videos: ask the cost first", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1df47}Before a clip is made, a window says what it will roughly cost and asks. In a talk with video it asks once for the whole talk. Off: clips are made without asking (the daily cap still holds).")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df71}1. Videos", GroupOrder = 16)]
+        public bool VideoAskCost { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1c866}Videos: price per second (cents, for the warning)", 0, 100, Order = 4, RequireRestart = false,
             HintText = "{=AIL_e7b1c867}Only to tell you what a video will cost before you accept. Check your provider's current price.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df71}1. Videos", GroupOrder = 16)]
         public int VideoCentsPerSecond { get; set; } = 10;
 
-        [SettingPropertyText("{=AIL_e7b1c868}Videos: model", Order = 14, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string VideoModel { get; set; } = "sora-2";
-
-        [SettingPropertyText("{=AIL_e7b1c869}Videos: size", Order = 15, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        [SettingPropertyText("{=AIL_e7b1c869}Videos: size", Order = 5, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df71}1. Videos", GroupOrder = 16)]
         public string VideoSize { get; set; } = "1280x720";
 
-        [SettingPropertyText("{=AIL_e7b1c86a}Videos: compatible server address", Order = 16, RequireRestart = false,
+        // ---- style and the free services
+        [SettingPropertyText("{=AIL_e7b1c4f5}Style of the pictures", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1c4f6}Added to every picture description, in English.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df72}2. Style and free services", GroupOrder = 16)]
+        public string ImageStyle { get; set; } = "Painterly medieval illustration, oil on canvas, muted earthy colours, soft natural light, detailed, no text, no watermark";
+
+        [SettingPropertyText("{=AIL_e7b1c8a0}Pollinations token (optional, free)", Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1c8a1}With «Free (Pollinations)», pictures come with its watermark and a slower queue. With a free account at auth.pollinations.ai you get a token: paste it here and the watermark goes. Only used for Pollinations.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df72}2. Style and free services", GroupOrder = 16)]
+        public string ImagePollinationsToken { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1c4f7}Local Stable Diffusion address", Order = 2, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df72}2. Style and free services", GroupOrder = 16)]
+        public string ImageLocalUrl { get; set; } = "http://127.0.0.1:7860";
+
+        // ---- advanced: your own provider or a model the lists do not have
+        [SettingPropertyBool("{=AIL_e7b1df54}Pictures: if Gemini or OpenAI fails, try the other", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df55}When the chosen one of the two fails (no key, quota, refusal), the picture is asked of the other, if you have it set up.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public bool ImageTryOtherService { get; set; } = true;
+
+        [SettingPropertyText("{=AIL_e7b1df62}Pictures in conversations: provider", Order = 1, RequireRestart = false,
+            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string TalkImageProvider { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df7c}Pictures in conversations: another model", Order = 2, RequireRestart = false,
+            HintText = "{=AIL_e7b1df7f}Only if you want a model the list does not have: its exact name, and it is used instead of the list's. Empty = the model chosen in the list.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string TalkImageModel { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df66}Pictures of world events: provider", Order = 3, RequireRestart = false,
+            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string EventImageProvider { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df7d}Pictures of world events: another model", Order = 4, RequireRestart = false,
+            HintText = "{=AIL_e7b1df7f}Only if you want a model the list does not have: its exact name, and it is used instead of the list's. Empty = the model chosen in the list.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string EventImageModel { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df68}Memory book pictures: provider", Order = 5, RequireRestart = false,
+            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string BookImageProvider { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df7e}Memory book pictures: another model", Order = 6, RequireRestart = false,
+            HintText = "{=AIL_e7b1df7f}Only if you want a model the list does not have: its exact name, and it is used instead of the list's. Empty = the model chosen in the list.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string BookImageModel { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df6a}Videos: provider", Order = 7, RequireRestart = false,
+            HintText = "{=AIL_e7b1df81}Name of a provider of 0. AI Keys whose key makes the clips (OpenAI or Google). Empty = the first provider of that service there.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string VideoProvider { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df80}Videos: another model", Order = 8, RequireRestart = false,
+            HintText = "{=AIL_e7b1df7f}Only if you want a model the list does not have: its exact name, and it is used instead of the list's. Empty = the model chosen in the list.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
+        public string VideoCustomModel { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1c86a}Videos: compatible server address", Order = 9, RequireRestart = false,
             HintText = "{=AIL_e7b1c86b}The part of the address before /videos.")]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
         public string VideoEndpointUrl { get; set; } = "";
 
-        [SettingPropertyText("{=AIL_e7b1c86c}Videos: compatible server key", Order = 17, RequireRestart = false)]
-        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        [SettingPropertyText("{=AIL_e7b1c86c}Videos: compatible server key", Order = 10, RequireRestart = false)]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures and video/{=AIL_e7b1df73}3. Advanced", GroupOrder = 16)]
         public string VideoEndpointKey { get; set; } = "";
 
         // ------------------------------------------------------------ Voice

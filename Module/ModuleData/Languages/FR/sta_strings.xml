@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="Chapitres" />
     <string id="AIL_e7b1c4f0" text="Origine des images" />
     <string id="AIL_e7b1c4f1" text="Chaque chapitre du livre de mémoires peut avoir une image. Gratuit utilise un service public sans clé : seule une description de la scène lui est envoyée. OpenAI utilise le fournisseur OpenAI défini dans 0. Clés IA et coûte de l’argent par image. Local demande Stable Diffusion sur votre PC avec son API activée. Off = pas d’images." />
-    <string id="AIL_e7b1c4f2" text="G. Images" />
+    <string id="AIL_e7b1c4f2" text="G. Images et vidéo" />
     <string id="AIL_e7b1c4f3" text="Dessiner chaque nouveau chapitre automatiquement" />
     <string id="AIL_e7b1c4f4" text="Quand un chapitre est écrit, son image est créée en arrière-plan. Désactivé : seulement quand vous appuyez sur le bouton du livre. Chaque image demande une courte requête IA pour la description." />
     <string id="AIL_e7b1c4f5" text="Style des images" />
@@ -3115,5 +3115,22 @@
     <string id="AIL_e7b1df69" text="Images du livre de souvenirs : modèle" />
     <string id="AIL_e7b1df6a" text="Vidéos : fournisseur" />
     <string id="AIL_e7b1df6b" text="Nom d’un fournisseur de 0. AI Keys dont la clé fait les clips (OpenAI ou Gemini). Vide = le premier fournisseur de ce service présent. Le modèle se règle dans « Videos: model » (OpenAI, par exemple sora-2 ou sora-2-pro) ou « Videos: Gemini model »." />
+    <string id="AIL_e7b1df71" text="1. Vidéos" />
+    <string id="AIL_e7b1df72" text="2. Style et services gratuits" />
+    <string id="AIL_e7b1df73" text="3. Avancé" />
+    <string id="AIL_e7b1df74" text="Images dans les conversations" />
+    <string id="AIL_e7b1df75" text="Qui dessine l’image de chaque moment avec « Parler avec une image de la scène ». OpenAI et Google reçoivent des images des deux personnages dessinées par le jeu et copient leur visage et leurs vêtements ; ils utilisent votre propre clé de 0. AI Keys et facturent chaque image (une clé Google gratuite n’a pas de quota pour les images). Pollinations et Stable Diffusion ne reçoivent qu’une description. Désactivé = pas d’option." />
+    <string id="AIL_e7b1df76" text="Images des événements du monde" />
+    <string id="AIL_e7b1df77" text="Qui dessine l’image panoramique de chaque nouvel événement du monde (si l’option ci-dessus est active). OpenAI et Google reçoivent aussi les dessins du jeu des souverains et seigneurs nommés." />
+    <string id="AIL_e7b1df78" text="Images du livre de souvenirs" />
+    <string id="AIL_e7b1df79" text="Qui dessine l’image de chaque chapitre du livre de souvenirs. OpenAI et Google reçoivent aussi les dessins du jeu du personnage et de vous." />
+    <string id="AIL_e7b1df7a" text="Vidéos d’une scène" />
+    <string id="AIL_e7b1df7b" text="Qui fait le clip avec « Parler avec une vidéo de la scène » ou « Filmer cette scène » : l’image de la scène en est la première image et les deux disent leurs répliques. OpenAI (Sora) et Google (Veo) utilisent votre propre clé et facturent à la seconde ; une clé Google gratuite n’a pas Veo. Désactivé = pas de vidéos." />
+    <string id="AIL_e7b1df7c" text="Images dans les conversations : autre modèle" />
+    <string id="AIL_e7b1df7d" text="Images des événements du monde : autre modèle" />
+    <string id="AIL_e7b1df7e" text="Images du livre de souvenirs : autre modèle" />
+    <string id="AIL_e7b1df7f" text="Seulement si vous voulez un modèle absent de la liste : son nom exact, et il remplace celui de la liste. Vide = le modèle choisi dans la liste." />
+    <string id="AIL_e7b1df80" text="Vidéos : autre modèle" />
+    <string id="AIL_e7b1df81" text="Nom d’un fournisseur de 0. AI Keys dont la clé fait les clips (OpenAI ou Google). Vide = le premier fournisseur de ce service présent." />
   </strings>
 </base>

@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="Kapitel" />
     <string id="AIL_e7b1c4f0" text="Woher die Bilder kommen" />
     <string id="AIL_e7b1c4f1" text="Jedes Kapitel des Erinnerungsbuchs kann ein Bild bekommen. Kostenlos nutzt einen öffentlichen Dienst ohne Schlüssel: Es wird nur eine Beschreibung der Szene gesendet. OpenAI nutzt den OpenAI-Anbieter aus 0. KI-Schlüssel und kostet Geld pro Bild. Lokal braucht Stable Diffusion auf deinem PC mit aktivierter API. Off = keine Bilder." />
-    <string id="AIL_e7b1c4f2" text="G. Bilder" />
+    <string id="AIL_e7b1c4f2" text="G. Bilder und Video" />
     <string id="AIL_e7b1c4f3" text="Jedes neue Kapitel von selbst zeichnen" />
     <string id="AIL_e7b1c4f4" text="Wenn ein neues Kapitel geschrieben wird, entsteht sein Bild im Hintergrund. Aus: nur wenn du im Buch den Knopf drückst. Jedes Bild braucht eine kurze KI-Anfrage für die Beschreibung." />
     <string id="AIL_e7b1c4f5" text="Stil der Bilder" />
@@ -3115,5 +3115,22 @@
     <string id="AIL_e7b1df69" text="Bilder des Erinnerungsbuchs: Modell" />
     <string id="AIL_e7b1df6a" text="Videos: Anbieter" />
     <string id="AIL_e7b1df6b" text="Name eines Anbieters aus 0. AI Keys, dessen Schlüssel die Clips erstellt (OpenAI oder Gemini). Leer = der erste Anbieter dieses Dienstes dort. Das Modell steht unter «Videos: model» (OpenAI, zum Beispiel sora-2 oder sora-2-pro) oder «Videos: Gemini model»." />
+    <string id="AIL_e7b1df71" text="1. Videos" />
+    <string id="AIL_e7b1df72" text="2. Stil und kostenlose Dienste" />
+    <string id="AIL_e7b1df73" text="3. Erweitert" />
+    <string id="AIL_e7b1df74" text="Bilder in Gesprächen" />
+    <string id="AIL_e7b1df75" text="Wer das Bild jedes Moments bei «Sprechen mit Bild der Szene» zeichnet. OpenAI und Google erhalten vom Spiel gezeichnete Bilder beider Figuren und übernehmen Gesicht und Kleidung; sie nutzen deinen eigenen Schlüssel aus 0. AI Keys und berechnen jedes Bild (ein kostenloser Google-Schlüssel hat kein Kontingent für Bilder). Pollinations und Stable Diffusion erhalten nur eine Beschreibung. Aus = keine solche Option." />
+    <string id="AIL_e7b1df76" text="Bilder von Weltereignissen" />
+    <string id="AIL_e7b1df77" text="Wer das breite Bild jedes neuen Weltereignisses zeichnet (wenn die Option oben an ist). OpenAI und Google bekommen zusätzlich die Zeichnungen des Spiels von den genannten Herrschern und Lords." />
+    <string id="AIL_e7b1df78" text="Bilder des Erinnerungsbuchs" />
+    <string id="AIL_e7b1df79" text="Wer das Bild jedes Kapitels des Erinnerungsbuchs zeichnet. OpenAI und Google bekommen zusätzlich die Zeichnungen des Spiels von der Figur und von dir." />
+    <string id="AIL_e7b1df7a" text="Videos einer Szene" />
+    <string id="AIL_e7b1df7b" text="Wer den Clip bei «Sprechen mit Video der Szene» oder «Diese Szene als Video aufnehmen» macht: Das Szenenbild ist das erste Bild und beide sprechen ihre Sätze. OpenAI (Sora) und Google (Veo) nutzen deinen eigenen Schlüssel und rechnen pro Sekunde ab; ein kostenloser Google-Schlüssel hat kein Veo. Aus = keine Videos." />
+    <string id="AIL_e7b1df7c" text="Bilder in Gesprächen: anderes Modell" />
+    <string id="AIL_e7b1df7d" text="Bilder von Weltereignissen: anderes Modell" />
+    <string id="AIL_e7b1df7e" text="Bilder des Erinnerungsbuchs: anderes Modell" />
+    <string id="AIL_e7b1df7f" text="Nur wenn du ein Modell willst, das nicht in der Liste steht: sein genauer Name, und es ersetzt das der Liste. Leer = das in der Liste gewählte Modell." />
+    <string id="AIL_e7b1df80" text="Videos: anderes Modell" />
+    <string id="AIL_e7b1df81" text="Name eines Anbieters aus 0. AI Keys, dessen Schlüssel die Clips erstellt (OpenAI oder Google). Leer = der erste Anbieter dieses Dienstes dort." />
   </strings>
 </base>

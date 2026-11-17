@@ -1343,7 +1343,7 @@
     <string id="AIL_e7b1c4ee" text="Capítulos" />
     <string id="AIL_e7b1c4f0" text="De dónde salen las imágenes" />
     <string id="AIL_e7b1c4f1" text="Cada capítulo del libro de memorias puede llevar una imagen. Gratis usa un servicio público que no pide clave: solo se le manda una descripción de la escena. OpenAI usa el proveedor de OpenAI que tengas en 0. Claves de IA y cuesta dinero por imagen. Local necesita Stable Diffusion en tu PC con su API encendida. Off = sin imágenes." />
-    <string id="AIL_e7b1c4f2" text="G. Imágenes" />
+    <string id="AIL_e7b1c4f2" text="G. Imágenes y vídeo" />
     <string id="AIL_e7b1c4f3" text="Dibujar cada capítulo nuevo solo" />
     <string id="AIL_e7b1c4f4" text="Cuando se escribe un capítulo nuevo, su imagen se hace en segundo plano. Apagado: solo cuando pulses el botón en el libro. Cada imagen gasta una petición corta a la IA para la descripción." />
     <string id="AIL_e7b1c4f5" text="Estilo de las imágenes" />
@@ -3115,5 +3115,22 @@
     <string id="AIL_e7b1df69" text="Imágenes del libro de memorias: modelo" />
     <string id="AIL_e7b1df6a" text="Vídeos: proveedor" />
     <string id="AIL_e7b1df6b" text="Nombre de un proveedor de 0. AI Keys cuya clave hace los vídeos (OpenAI o Gemini). Vacío = el primer proveedor de ese servicio que haya. El modelo se pone en «Videos: model» (OpenAI, por ejemplo sora-2 o sora-2-pro) o en «Videos: Gemini model»." />
+    <string id="AIL_e7b1df71" text="1. Vídeos" />
+    <string id="AIL_e7b1df72" text="2. Estilo y servicios gratis" />
+    <string id="AIL_e7b1df73" text="3. Avanzado" />
+    <string id="AIL_e7b1df74" text="Imágenes en las conversaciones" />
+    <string id="AIL_e7b1df75" text="Quién dibuja la imagen de cada momento con «Hablar con imagen de la escena». OpenAI y Google reciben imágenes de los dos personajes dibujadas por el juego y copian su cara y su ropa; usan tu propia clave de 0. AI Keys y cobran por imagen (una clave gratuita de Google no tiene cupo para imágenes). Pollinations y Stable Diffusion solo reciben una descripción. Apagado = no sale esa opción." />
+    <string id="AIL_e7b1df76" text="Imágenes de los sucesos del mundo" />
+    <string id="AIL_e7b1df77" text="Quién dibuja la imagen panorámica de cada suceso nuevo del mundo (si la opción de arriba está encendida). OpenAI y Google reciben además los dibujos del juego de los gobernantes y señores que nombra." />
+    <string id="AIL_e7b1df78" text="Imágenes del libro de memorias" />
+    <string id="AIL_e7b1df79" text="Quién dibuja la imagen de cada capítulo del libro de memorias. OpenAI y Google reciben además los dibujos del juego del personaje y de ti." />
+    <string id="AIL_e7b1df7a" text="Vídeos de una escena" />
+    <string id="AIL_e7b1df7b" text="Quién hace el vídeo con «Hablar con vídeo de la escena» o «Grabar esta escena en vídeo»: la imagen de la escena es su primer fotograma y los dos dicen sus frases. OpenAI (Sora) y Google (Veo) usan tu propia clave y cobran por segundo; una clave gratuita de Google no tiene Veo. Apagado = sin vídeos." />
+    <string id="AIL_e7b1df7c" text="Imágenes en las conversaciones: otro modelo" />
+    <string id="AIL_e7b1df7d" text="Imágenes de los sucesos del mundo: otro modelo" />
+    <string id="AIL_e7b1df7e" text="Imágenes del libro de memorias: otro modelo" />
+    <string id="AIL_e7b1df7f" text="Solo si quieres un modelo que no está en la lista: su nombre exacto, y se usa en lugar del de la lista. Vacío = el modelo elegido en la lista." />
+    <string id="AIL_e7b1df80" text="Vídeos: otro modelo" />
+    <string id="AIL_e7b1df81" text="Nombre de un proveedor de 0. AI Keys cuya clave hace los vídeos (OpenAI o Google). Vacío = el primer proveedor de ese servicio que haya." />
   </strings>
 </base>
