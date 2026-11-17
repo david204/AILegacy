@@ -26,7 +26,7 @@ namespace AILegacy.World
     /// </summary>
     internal static partial class SceneImages
     {
-        public const int Gemini = 4;
+        public const int Gemini = 4, Compatible = 5;
         public enum Kind { Book, Talk, Event }
 
         public static int SourceOf(Kind k)
@@ -35,7 +35,7 @@ namespace AILegacy.World
             {
                 var cfg = S.Get;
                 var d = k == Kind.Talk ? cfg.TalkImageSource : k == Kind.Event ? cfg.EventImageSource : cfg.ImageSource;
-                return Math.Max(0, Math.Min(Gemini, d.SelectedIndex));
+                return Math.Max(0, Math.Min(Compatible, d.SelectedIndex));
             }
             catch { return Off; }
         }
@@ -44,7 +44,34 @@ namespace AILegacy.World
         public static bool TalkEnabled => EnabledFor(Kind.Talk);
 
         /// <summary>Services that take reference pictures of the characters.</summary>
-        internal static bool TakesReferences(int source) => source == Gemini || source == OpenAi;
+        internal static bool TakesReferences(int source) => source == Gemini || source == OpenAi || source == Compatible;
+
+        /// <summary>The provider of 0. AI Keys named for this kind of picture, or the first that fits the service.</summary>
+        internal static ProviderConfig ProviderFor(Kind k, int source)
+        {
+            var cfg = S.Get;
+            string name = ((k == Kind.Talk ? cfg.TalkImageProvider : k == Kind.Event ? cfg.EventImageProvider : cfg.BookImageProvider) ?? "").Trim();
+            if (name.Length > 0)
+            {
+                try
+                {
+                    var named = LegacyConfig.Current.Providers.FirstOrDefault(p => p.IsUsable && string.Equals((p.Name ?? "").Trim(), name, StringComparison.OrdinalIgnoreCase));
+                    if (named != null) return named;
+                    Log.Warn($"Pictures: no usable provider named '{name}' in 0. AI Keys; using the first one that fits");
+                }
+                catch { }
+            }
+            return source == Gemini ? GeminiProvider : source == OpenAi ? OpenAiProvider : null;
+        }
+
+        /// <summary>The model chosen for this kind of picture, or the service's own setting.</summary>
+        internal static string ModelFor(Kind k, int source)
+        {
+            var cfg = S.Get;
+            string m = ((k == Kind.Talk ? cfg.TalkImageModel : k == Kind.Event ? cfg.EventImageModel : cfg.BookImageModel) ?? "").Trim();
+            if (m.Length > 0) return m;
+            return source == Gemini ? (cfg.ImageGeminiModel ?? "").Trim() : (cfg.ImageOpenAiModel ?? "").Trim();
+        }
 
         internal static ProviderConfig ProviderFor(string host)
         {
@@ -182,7 +209,7 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
                         "npc_name", npcName ?? "the other person", "npc_age", AgeOf(npc), "player_name", playerName, "player_age", AgeOf(player),
                         "player_alias", "", "lines", lines.Trim(),
                         "child_rule", child ? " Someone in the scene is a child: the picture stays wholly innocent, nothing violent, cruel or sexual near them." : "");
-                    byte[] raw = await Draw(source, prompt, refs.Select(r => r.Jpeg).ToList(), false, NoSnowFor(setting)).ConfigureAwait(false);
+                    byte[] raw = await Draw(Kind.Talk, source, prompt, refs.Select(r => r.Jpeg).ToList(), false, NoSnowFor(setting)).ConfigureAwait(false);
                     if (raw == null || raw.Length < 2000) error = "the service returned no picture";
                     else
                     {
@@ -276,7 +303,8 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
             req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + p.ApiKey.Trim());
             var j = JObject.Parse(Encoding.UTF8.GetString(await Get(req, 30).ConfigureAwait(false)));
             var ids = ((j["data"] as JArray) ?? new JArray()).Select(x => x is JObject o ? (string)o["id"] ?? "" : "").Where(x => x.StartsWith("gpt-image", StringComparison.OrdinalIgnoreCase)).ToList();
-            string pick = ids.OrderBy(x => x.Contains("mini")).ThenByDescending(x => x, StringComparer.Ordinal).FirstOrDefault();
+            // gpt-image-2 edits pictures (the variants of later families may only generate them): it goes first
+            string pick = ids.OrderBy(x => x == "gpt-image-2" ? 0 : x.StartsWith("gpt-image-2") ? 1 : 2).ThenBy(x => x.Contains("mini")).ThenByDescending(x => x, StringComparer.Ordinal).FirstOrDefault();
             if (pick != null) FoundModel["openai-image"] = pick;
             Log.Info($"OpenAI image models on this key: {(ids.Count == 0 ? "none" : string.Join(", ", ids))}; using {pick ?? "none"}");
             return pick;
@@ -286,6 +314,9 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
         internal static string ShortError(string raw)
         {
             raw = raw ?? "";
+            if (raw.StartsWith("§")) return raw.Substring(1);
+            if (raw.Contains("NO_VEO")) return L.T("AIL_e7b1df4c", "tu cuenta de Google no tiene ningún modelo de vídeo (Veo): hace falta activar la facturación en Google AI Studio, o elige otro servicio en «Videos of a scene»");
+            if (raw.Contains("NO_PROVIDER")) return L.T("AIL_e7b1df4d", "no hay ningún proveedor con clave para ese servicio en 0. AI Keys");
             if (raw.Contains("429") && (raw.IndexOf("quota", StringComparison.OrdinalIgnoreCase) >= 0 || raw.Contains("RESOURCE_EXHAUSTED")))
                 return L.T("AIL_e7b1df48", "sin cupo en tu cuenta: este modelo no es gratuito o has llegado al límite");
             if (raw.IndexOf("does not exist", StringComparison.OrdinalIgnoreCase) >= 0 || raw.IndexOf("not found", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -300,29 +331,43 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
 
         // ============================================================ the services
 
-        /// <summary>Draws with the chosen service; if Gemini or OpenAI fails and the other is set up, tries it (setting).</summary>
-        internal static async Task<byte[]> Draw(int source, string prompt, List<byte[]> refs, bool wide, bool noSnow)
+        /// <summary>
+        /// Draws with the chosen service, provider and model of this kind of picture. If Gemini or OpenAI fails and the
+        /// other is set up, tries it (setting); if both fail, the message gives each one's reason.
+        /// </summary>
+        internal static async Task<byte[]> Draw(Kind kind, int source, string prompt, List<byte[]> refs, bool wide, bool noSnow)
         {
-            try { return await DrawWith(source, prompt, refs, wide, noSnow).ConfigureAwait(false); }
+            try { return await DrawWith(kind, source, prompt, refs, wide, noSnow).ConfigureAwait(false); }
             catch (Exception ex)
             {
                 int other = source == Gemini ? OpenAi : source == OpenAi ? Gemini : -1;
                 bool can = other == Gemini ? GeminiProvider != null : other == OpenAi && OpenAiProvider != null;
                 if (other < 0 || !can || !S.Get.ImageTryOtherService) throw;
                 Log.Warn($"Image: {SourceNames[source]} failed ({ex.GetBaseException().Message}); trying {SourceNames[other]}");
-                return await DrawWith(other, prompt, refs, wide, noSnow).ConfigureAwait(false);
+                try { return await DrawWith(null, other, prompt, refs, wide, noSnow).ConfigureAwait(false); }
+                catch (Exception ex2)
+                {
+                    Log.Warn($"Image: {SourceNames[other]} failed too ({ex2.GetBaseException().Message})");
+                    throw new Exception("§" + (source == Gemini ? "Gemini" : "OpenAI") + ": " + ShortError(ex.GetBaseException().Message)
+                                        + " · " + (other == Gemini ? "Gemini" : "OpenAI") + ": " + ShortError(ex2.GetBaseException().Message));
+                }
             }
         }
 
-        private static async Task<byte[]> DrawWith(int source, string prompt, List<byte[]> refs, bool wide, bool noSnow)
+        private static async Task<byte[]> DrawWith(Kind? kind, int source, string prompt, List<byte[]> refs, bool wide, bool noSnow)
         {
             refs = refs ?? new List<byte[]>();
+            // the provider and model chosen for this kind (none when it is the fallback service: its first provider, its setting)
+            var provider = kind.HasValue ? ProviderFor(kind.Value, source) : source == Gemini ? GeminiProvider : source == OpenAi ? OpenAiProvider : null;
+            string model = kind.HasValue ? ModelFor(kind.Value, source) : source == Gemini ? (S.Get.ImageGeminiModel ?? "").Trim() : (S.Get.ImageOpenAiModel ?? "").Trim();
             switch (source)
             {
-                case Gemini: return await FromGemini(prompt, refs, wide).ConfigureAwait(false);
+                case Gemini: return await FromGemini(prompt, refs, wide, provider, model).ConfigureAwait(false);
                 case OpenAi:
-                    return refs.Count > 0 ? await FromOpenAiEdit(prompt, refs).ConfigureAwait(false)
-                                          : await FromOpenAi(prompt, OpenAiProvider, (S.Get.ImageOpenAiModel ?? "").Trim()).ConfigureAwait(false);
+                case Compatible:
+                    if (provider == null) throw new Exception("NO_PROVIDER");
+                    return refs.Count > 0 ? await FromOpenAiEdit(prompt, refs, provider, model, source == OpenAi).ConfigureAwait(false)
+                                          : await FromOpenAi(prompt, provider, model).ConfigureAwait(false);
                 case Free: return await FromPollinations(prompt, 1 + Math.Abs(prompt.GetHashCode() % 99991), wide).ConfigureAwait(false);
                 case Local: return await FromLocal(prompt, (S.Get.ImageLocalUrl ?? "").Trim().TrimEnd('/'), wide, !noSnow).ConfigureAwait(false);
                 default: throw new Exception("no picture service");
@@ -330,11 +375,11 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
         }
 
         /// <summary>Google Gemini image model: the prompt, then each reference after its number, an image back.</summary>
-        private static async Task<byte[]> FromGemini(string prompt, List<byte[]> refs, bool wide)
+        private static async Task<byte[]> FromGemini(string prompt, List<byte[]> refs, bool wide, ProviderConfig p, string model)
         {
-            var p = GeminiProvider;
-            if (p == null) throw new Exception("there is no Google Gemini provider with a key in 0. AI Keys");
-            string model = FoundModel.TryGetValue("gemini-image", out var found) ? found : (S.Get.ImageGeminiModel ?? "").Trim();
+            if (p == null) throw new Exception("NO_PROVIDER");
+            if (FoundModel.TryGetValue("gemini-image", out var found)) model = found;
+            model = (model ?? "").Trim();
             if (model.Length == 0) model = "gemini-2.5-flash-image";
             try { return await GeminiDraw(p, model, prompt, refs, wide).ConfigureAwait(false); }
             catch (Exception ex) when (ModelMissing(ex))
@@ -378,14 +423,14 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
         }
 
         /// <summary>OpenAI image edits: the references as images, the prompt, faces kept with high fidelity.</summary>
-        private static async Task<byte[]> FromOpenAiEdit(string prompt, List<byte[]> refs)
+        private static async Task<byte[]> FromOpenAiEdit(string prompt, List<byte[]> refs, ProviderConfig p, string model, bool discover)
         {
-            var p = OpenAiProvider;
-            if (p == null) throw new Exception("there is no OpenAI provider with a key in 0. AI Keys");
-            string model = FoundModel.TryGetValue("openai-image", out var found) ? found : (S.Get.ImageOpenAiModel ?? "").Trim();
-            if (model.Length == 0) model = "gpt-image-1";
+            if (p == null) throw new Exception("NO_PROVIDER");
+            if (discover && FoundModel.TryGetValue("openai-image", out var found)) model = found;
+            model = (model ?? "").Trim();
+            if (model.Length == 0) model = "gpt-image-2";
             try { return await OpenAiEditWith(p, model, prompt, refs).ConfigureAwait(false); }
-            catch (Exception ex) when (ModelMissing(ex) || (ex.GetBaseException().Message ?? "").Contains("invalid_value"))
+            catch (Exception ex) when (discover && (ModelMissing(ex) || (ex.GetBaseException().Message ?? "").Contains("invalid_value")) && !Unsupported(ex, out _))
             {
                 string other = await OpenAiImageModel(p).ConfigureAwait(false);
                 if (other == null || other == model) throw;
@@ -394,14 +439,37 @@ Cinematic and photorealistic, a frame of a historical film: real skin, worn clot
             }
         }
 
+        /// <summary>The service refused one of the parameters ("does not support the 'x' parameter"): which.</summary>
+        private static bool Unsupported(Exception ex, out string param)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(ex?.GetBaseException().Message ?? "", "not support the '([a-z_]+)' parameter");
+            param = m.Success ? m.Groups[1].Value : null;
+            return m.Success;
+        }
+
+        /// <summary>The edit, with input_fidelity only where the model takes it; a parameter the model refuses is dropped and it is tried again.</summary>
         private static async Task<byte[]> OpenAiEditWith(ProviderConfig p, string model, string prompt, List<byte[]> refs)
+        {
+            var skip = new HashSet<string>();
+            if (!model.StartsWith("gpt-image-1", StringComparison.OrdinalIgnoreCase)) skip.Add("input_fidelity");
+            for (int attempt = 0; ; attempt++)
+            {
+                try { return await OpenAiEditOnce(p, model, prompt, refs, skip).ConfigureAwait(false); }
+                catch (Exception ex) when (attempt < 2 && Unsupported(ex, out var param) && skip.Add(param))
+                {
+                    Log.Warn($"OpenAI: {model} does not take '{param}'; trying without it");
+                }
+            }
+        }
+
+        private static async Task<byte[]> OpenAiEditOnce(ProviderConfig p, string model, string prompt, List<byte[]> refs, HashSet<string> skip)
         {
             var form = new MultipartFormDataContent();
             form.Add(new StringContent(model), "model");
             form.Add(new StringContent(prompt.Length > 30000 ? prompt.Substring(0, 30000) : prompt), "prompt");
-            form.Add(new StringContent("1536x1024"), "size");
-            form.Add(new StringContent("1"), "n");
-            if (model.StartsWith("gpt-image", StringComparison.OrdinalIgnoreCase)) form.Add(new StringContent("high"), "input_fidelity");
+            if (!skip.Contains("size")) form.Add(new StringContent("1536x1024"), "size");
+            if (!skip.Contains("n")) form.Add(new StringContent("1"), "n");
+            if (!skip.Contains("input_fidelity")) form.Add(new StringContent("high"), "input_fidelity");
             for (int i = 0; i < refs.Count && i < 16; i++)
             {
                 var c = new ByteArrayContent(refs[i]);

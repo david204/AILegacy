@@ -3103,5 +3103,17 @@
     <string id="AIL_e7b1df49" text="你的账户中没有这个模型" />
     <string id="AIL_e7b1df4a" text="密钥无效或没有此权限" />
     <string id="AIL_e7b1df4b" text="服务繁忙，请稍后再试" />
+    <string id="AIL_e7b1df4c" text="你的 Google 账户没有任何视频模型（Veo）：需要在 Google AI Studio 开通结算，或在“Videos of a scene”中选择其他服务" />
+    <string id="AIL_e7b1df4d" text="“0. AI Keys”中没有该服务的带密钥提供商" />
+    <string id="AIL_e7b1df62" text="对话图片：提供商" />
+    <string id="AIL_e7b1df63" text="“0. AI Keys”中用来绘制这些图片的提供商名称（“OpenAI-compatible”必须填写）。留空 = 使用其中第一个 Gemini 或 OpenAI 提供商。" />
+    <string id="AIL_e7b1df64" text="对话图片：模型" />
+    <string id="AIL_e7b1df65" text="绘制这些图片的模型（例如 gpt-image-2，或某个 Gemini 图片模型）。留空 = 使用下方为该服务设置的模型。如果你的账户没有这个模型，会改用账户里有的。" />
+    <string id="AIL_e7b1df66" text="世界事件图片：提供商" />
+    <string id="AIL_e7b1df67" text="世界事件图片：模型" />
+    <string id="AIL_e7b1df68" text="回忆录图片：提供商" />
+    <string id="AIL_e7b1df69" text="回忆录图片：模型" />
+    <string id="AIL_e7b1df6a" text="视频：提供商" />
+    <string id="AIL_e7b1df6b" text="“0. AI Keys”中用来生成短片的提供商名称（OpenAI 或 Gemini）。留空 = 使用其中该服务的第一个提供商。模型在“Videos: model”（OpenAI，例如 sora-2 或 sora-2-pro）或“Videos: Gemini model”中设置。" />
   </strings>
 </base>

@@ -29,7 +29,7 @@ namespace AILegacy.World
     internal static partial class SceneImages
     {
         public const int Off = 0, Free = 1, OpenAi = 2, Local = 3;
-        public static readonly string[] SourceNames = { "Off", "Free (Pollinations, no key)", "OpenAI (your key)", "Local Stable Diffusion", "Google Gemini (your key)" };
+        public static readonly string[] SourceNames = { "Off", "Free (Pollinations, no key)", "OpenAI (your key)", "Local Stable Diffusion", "Google Gemini (your key)", "OpenAI-compatible (a provider of yours, by name)" };
 
         private static readonly Tpl TPrompt = new Tpl("images/scene_prompt.txt",
 @"Turn this page from a character's memories into ONE prompt in English for an illustration of its key moment. 40 to 70 words.
@@ -187,6 +187,7 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
             int session = WorldSim.Session;
             string dir = Dir;
             int source = job.source;
+            var kind = job.wide ? Kind.Event : job.tpl != null ? Kind.Talk : Kind.Book;
             // the people in it, as the game draws them, for a service that takes reference pictures
             var looks = TakesReferences(source) && job.heroes != null ? job.heroes.Take(4).Select(CharacterCapture.LookOf).Where(l => l != null).ToList() : new List<CharacterCapture.Look>();
             string style = (S.Get.ImageStyle ?? "").Trim();
@@ -259,7 +260,7 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
                     {
                         var refs = looks.Count > 0 ? await ReferencesOf(looks).ConfigureAwait(false) : new List<Reference>();
                         if (refs.Count > 0) full = full + "\n\n" + Manifest(refs);
-                        raw = await Draw(source, full, refs.Select(r => r.Jpeg).ToList(), job.wide, !(job.wide || job.tpl == null || Snowy(job.page.Title))).ConfigureAwait(false);
+                        raw = await Draw(kind, source, full, refs.Select(r => r.Jpeg).ToList(), job.wide, !(job.wide || job.tpl == null || Snowy(job.page.Title))).ConfigureAwait(false);
                     }
                     else
                         raw = source == Free ? await FromPollinations(full, SeedFor(job.mem), job.wide).ConfigureAwait(false)
@@ -473,7 +474,7 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
         private static async Task<byte[]> FromOpenAi(string prompt, ProviderConfig p, string model)
         {
             if (p == null) throw new Exception("no hay ningún proveedor de OpenAI con clave en 0. AI Keys");
-            var body = new JObject { ["model"] = model.Length > 0 ? model : "gpt-image-1", ["prompt"] = prompt, ["size"] = "1536x1024", ["n"] = 1 };
+            var body = new JObject { ["model"] = model.Length > 0 ? model : "gpt-image-2", ["prompt"] = prompt, ["size"] = "1536x1024", ["n"] = 1 };
             var req = new HttpRequestMessage(HttpMethod.Post, p.BaseUrl.TrimEnd('/') + "/images/generations");
             req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + p.ApiKey.Trim());
             req.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");

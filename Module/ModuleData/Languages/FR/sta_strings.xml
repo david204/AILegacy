@@ -3103,5 +3103,17 @@
     <string id="AIL_e7b1df49" text="le modèle n’existe pas sur votre compte" />
     <string id="AIL_e7b1df4a" text="la clé n’est pas valide ou n’a pas la permission" />
     <string id="AIL_e7b1df4b" text="le service est saturé ; réessayez dans un moment" />
+    <string id="AIL_e7b1df4c" text="votre compte Google n’a aucun modèle vidéo (Veo) : il faut activer la facturation dans Google AI Studio, ou choisir un autre service dans « Videos of a scene »" />
+    <string id="AIL_e7b1df4d" text="aucun fournisseur avec clé pour ce service dans 0. AI Keys" />
+    <string id="AIL_e7b1df62" text="Images dans les conversations : fournisseur" />
+    <string id="AIL_e7b1df63" text="Nom d’un fournisseur de 0. AI Keys dont la clé dessine ces images (nécessaire pour « OpenAI-compatible »). Vide = le premier fournisseur Gemini ou OpenAI présent." />
+    <string id="AIL_e7b1df64" text="Images dans les conversations : modèle" />
+    <string id="AIL_e7b1df65" text="Le modèle qui les dessine (par exemple gpt-image-2, ou un modèle d’image Gemini). Vide = le modèle de ce service réglé plus bas. Si votre compte ne l’a pas, un modèle qu’il a est utilisé." />
+    <string id="AIL_e7b1df66" text="Images des événements du monde : fournisseur" />
+    <string id="AIL_e7b1df67" text="Images des événements du monde : modèle" />
+    <string id="AIL_e7b1df68" text="Images du livre de souvenirs : fournisseur" />
+    <string id="AIL_e7b1df69" text="Images du livre de souvenirs : modèle" />
+    <string id="AIL_e7b1df6a" text="Vidéos : fournisseur" />
+    <string id="AIL_e7b1df6b" text="Nom d’un fournisseur de 0. AI Keys dont la clé fait les clips (OpenAI ou Gemini). Vide = le premier fournisseur de ce service présent. Le modèle se règle dans « Videos: model » (OpenAI, par exemple sora-2 ou sora-2-pro) ou « Videos: Gemini model »." />
   </strings>
 </base>

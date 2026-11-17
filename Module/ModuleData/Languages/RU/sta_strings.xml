@@ -3103,5 +3103,17 @@
     <string id="AIL_e7b1df49" text="такой модели нет на вашем аккаунте" />
     <string id="AIL_e7b1df4a" text="ключ недействителен или не имеет на это прав" />
     <string id="AIL_e7b1df4b" text="сервис перегружен; попробуйте позже" />
+    <string id="AIL_e7b1df4c" text="в вашем аккаунте Google нет видеомодели (Veo): нужно включить оплату в Google AI Studio или выбрать другой сервис в «Videos of a scene»" />
+    <string id="AIL_e7b1df4d" text="в «0. AI Keys» нет поставщика с ключом для этого сервиса" />
+    <string id="AIL_e7b1df62" text="Изображения в разговорах: поставщик" />
+    <string id="AIL_e7b1df63" text="Имя поставщика из «0. AI Keys», чей ключ рисует эти изображения (нужно для «OpenAI-compatible»). Пусто = первый поставщик Gemini или OpenAI." />
+    <string id="AIL_e7b1df64" text="Изображения в разговорах: модель" />
+    <string id="AIL_e7b1df65" text="Модель, которая их рисует (например gpt-image-2 или модель изображений Gemini). Пусто = модель этого сервиса, заданная ниже. Если в аккаунте её нет, берётся доступная." />
+    <string id="AIL_e7b1df66" text="Изображения мировых событий: поставщик" />
+    <string id="AIL_e7b1df67" text="Изображения мировых событий: модель" />
+    <string id="AIL_e7b1df68" text="Изображения книги воспоминаний: поставщик" />
+    <string id="AIL_e7b1df69" text="Изображения книги воспоминаний: модель" />
+    <string id="AIL_e7b1df6a" text="Видео: поставщик" />
+    <string id="AIL_e7b1df6b" text="Имя поставщика из «0. AI Keys», чей ключ делает ролики (OpenAI или Gemini). Пусто = первый поставщик этого сервиса. Модель задаётся в «Videos: model» (OpenAI, например sora-2 или sora-2-pro) или «Videos: Gemini model»." />
   </strings>
 </base>

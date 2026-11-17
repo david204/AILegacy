@@ -162,15 +162,15 @@ Answer with the prompt only, nothing else.");
             string baseUrl = null, key = null;
             if (source == Gemini)
             {
-                var g = SceneImages.GeminiProvider;
+                var g = Named(cfg.VideoProvider) ?? SceneImages.GeminiProvider;
                 if (g == null) { Busy = false; WorldSim.Say(L.T("AIL_e7b1df60", "No hay ningún proveedor de Google Gemini con clave en 0. Claves de IA."), Colors.Red); return; }
                 key = g.ApiKey;
                 model = (cfg.VideoGeminiModel ?? "").Trim();
             }
             else if (source == OpenAi)
             {
-                ProviderConfig p = null;
-                try { p = LegacyConfig.Current.Providers.FirstOrDefault(x => x.IsUsable && (x.BaseUrl ?? "").IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0); } catch { }
+                ProviderConfig p = Named(cfg.VideoProvider);
+                try { if (p == null) p = LegacyConfig.Current.Providers.FirstOrDefault(x => x.IsUsable && (x.BaseUrl ?? "").IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0); } catch { }
                 if (p == null) { Busy = false; WorldSim.Say(L.T("AIL_e7b1c85b", "No hay ningún proveedor de OpenAI con clave en 0. Claves de IA."), Colors.Red); return; }
                 baseUrl = p.BaseUrl; key = p.ApiKey;
             }
@@ -315,6 +315,15 @@ Answer with the prompt only, nothing else.");
         /// </summary>
         private static string _veoFound;
 
+        /// <summary>The provider of 0. AI Keys named in the video setting, or null.</summary>
+        private static ProviderConfig Named(string name)
+        {
+            name = (name ?? "").Trim();
+            if (name.Length == 0) return null;
+            try { return LegacyConfig.Current.Providers.FirstOrDefault(p => p.IsUsable && string.Equals((p.Name ?? "").Trim(), name, StringComparison.OrdinalIgnoreCase)); }
+            catch { return null; }
+        }
+
         /// <summary>Veo with the chosen model; if this key does not have it, with one it has.</summary>
         private static async Task<byte[]> VeoAny(string key, string model, string prompt, byte[] firstFrame, int seconds)
         {
@@ -323,7 +332,8 @@ Answer with the prompt only, nothing else.");
             catch (Exception ex) when (SceneImages.ModelMissing(ex))
             {
                 string other = await SceneImages.GeminiModelFor(key, true).ConfigureAwait(false);
-                if (other == null || other == model) throw;
+                if (other == null) throw new Exception("NO_VEO");
+                if (other == model) throw;
                 Log.Warn($"Veo: the model {model} is not in this account; using {other}");
                 _veoFound = other;
                 return await FromVeo(key, other, prompt, firstFrame, seconds).ConfigureAwait(false);

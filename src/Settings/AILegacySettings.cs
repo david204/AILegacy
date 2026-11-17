@@ -378,10 +378,30 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public MCM.Common.Dropdown<string> TalkImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Gemini);
 
+        [SettingPropertyText("{=AIL_e7b1df62}Pictures in conversations: provider", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string TalkImageProvider { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df64}Pictures in conversations: model", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df65}The model that draws them (for example gpt-image-2, or a Gemini image model). Empty = the model of that service set below. If your account does not have it, one it has is used.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string TalkImageModel { get; set; } = "";
+
         [SettingPropertyDropdown("{=AIL_e7b1df52}Pictures of world events: service", Order = 0, RequireRestart = false,
             HintText = "{=AIL_e7b1df53}Who draws the wide picture of each new world event (when that option is on). Gemini and OpenAI also get the game's drawings of the rulers and lords named in it.")]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public MCM.Common.Dropdown<string> EventImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Gemini);
+
+        [SettingPropertyText("{=AIL_e7b1df66}Pictures of world events: provider", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string EventImageProvider { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df67}Pictures of world events: model", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df65}The model that draws them (for example gpt-image-2, or a Gemini image model). Empty = the model of that service set below. If your account does not have it, one it has is used.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string EventImageModel { get; set; } = "";
 
         [SettingPropertyBool("{=AIL_e7b1df54}Pictures: if Gemini or OpenAI fails, try the other", Order = 0, RequireRestart = false,
             HintText = "{=AIL_e7b1df55}When the chosen one of the two fails (no key, quota, refusal), the picture is asked of the other, if you have it set up.")]
@@ -397,6 +417,16 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1c4f1}Each chapter of the memory book can have a picture. Free uses a public service that needs no key: only a description of the scene is sent to it. OpenAI uses the OpenAI provider you set up in 0. AI Keys and costs money per picture. Local needs Stable Diffusion running on your PC with its API on. Off = no pictures.")]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public MCM.Common.Dropdown<string> ImageSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneImages.SourceNames, World.SceneImages.Free);
+
+        [SettingPropertyText("{=AIL_e7b1df68}Memory book pictures: provider", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df63}Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string BookImageProvider { get; set; } = "";
+
+        [SettingPropertyText("{=AIL_e7b1df69}Memory book pictures: model", Order = 0, RequireRestart = false,
+            HintText = "{=AIL_e7b1df65}The model that draws them (for example gpt-image-2, or a Gemini image model). Empty = the model of that service set below. If your account does not have it, one it has is used.")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string BookImageModel { get; set; } = "";
 
         [SettingPropertyBool("{=AIL_e7b1dd30}Pictures: one for each new world event", Order = 1, RequireRestart = false,
             HintText = "{=AIL_e7b1dd31}Each new event of the world gets a wide picture on its card in the news window, drawn by the source above (a later chapter of the same story keeps the first one's). It costs one AI request for the description and, with OpenAI, the price of a picture each time. If it fails, the card just has no picture. Default: off.")]
@@ -424,12 +454,17 @@ namespace AILegacy.Settings
 
         [SettingPropertyText("{=AIL_e7b1c4f8}OpenAI image model", Order = 4, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
-        public string ImageOpenAiModel { get; set; } = "gpt-image-1";
+        public string ImageOpenAiModel { get; set; } = "gpt-image-2";
 
         [SettingPropertyDropdown("{=AIL_e7b1c861}Videos of a scene", Order = 10, RequireRestart = false,
             HintText = "{=AIL_e7b1c862}In a conversation, «Record this scene on video» makes a clip of a few seconds of the last moment. You are always asked first, with what it will cost. OpenAI uses the OpenAI provider in 0. AI Keys and charges per second of video (Sora: roughly 10 cents a second). An OpenAI-compatible server is any program with the same /videos API. Off = no videos.")]
         [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
         public MCM.Common.Dropdown<string> VideoSource { get; set; } = new MCM.Common.Dropdown<string>(World.SceneVideos.SourceNames, World.SceneVideos.Off);
+
+        [SettingPropertyText("{=AIL_e7b1df6a}Videos: provider", Order = 10, RequireRestart = false,
+            HintText = "{=AIL_e7b1df6b}Name of a provider of 0. AI Keys whose key makes the clips (OpenAI or Gemini). Empty = the first provider of that service there. The model is set in «Videos: model» (OpenAI, for example sora-2 or sora-2-pro) or «Videos: Gemini model».")]
+        [SettingPropertyGroup("{=AIL_e7b1c4f2}G. Pictures", GroupOrder = 16)]
+        public string VideoProvider { get; set; } = "";
 
         [SettingPropertyText("{=AIL_e7b1df59}Videos: Gemini model", Order = 14, RequireRestart = false,
             HintText = "{=AIL_e7b1df5a}The Google Veo model that turns the scene picture into a clip. Default: veo-3.1-fast-generate-preview.")]

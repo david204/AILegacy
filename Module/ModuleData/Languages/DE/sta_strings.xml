@@ -3103,5 +3103,17 @@
     <string id="AIL_e7b1df49" text="das Modell gibt es auf deinem Konto nicht" />
     <string id="AIL_e7b1df4a" text="der Schlüssel ist ungültig oder hat dafür keine Berechtigung" />
     <string id="AIL_e7b1df4b" text="der Dienst ist überlastet; versuch es später noch einmal" />
+    <string id="AIL_e7b1df4c" text="dein Google-Konto hat kein Videomodell (Veo): Die Abrechnung muss in Google AI Studio aktiviert werden, oder wähle einen anderen Dienst unter «Videos of a scene»" />
+    <string id="AIL_e7b1df4d" text="kein Anbieter mit Schlüssel für diesen Dienst in 0. AI Keys" />
+    <string id="AIL_e7b1df62" text="Bilder in Gesprächen: Anbieter" />
+    <string id="AIL_e7b1df63" text="Name eines Anbieters aus 0. AI Keys, dessen Schlüssel diese Bilder zeichnet (nötig für «OpenAI-compatible»). Leer = der erste Gemini- oder OpenAI-Anbieter dort." />
+    <string id="AIL_e7b1df64" text="Bilder in Gesprächen: Modell" />
+    <string id="AIL_e7b1df65" text="Das Modell, das sie zeichnet (zum Beispiel gpt-image-2 oder ein Gemini-Bildmodell). Leer = das weiter unten eingestellte Modell dieses Dienstes. Hat dein Konto es nicht, wird eines genommen, das es hat." />
+    <string id="AIL_e7b1df66" text="Bilder von Weltereignissen: Anbieter" />
+    <string id="AIL_e7b1df67" text="Bilder von Weltereignissen: Modell" />
+    <string id="AIL_e7b1df68" text="Bilder des Erinnerungsbuchs: Anbieter" />
+    <string id="AIL_e7b1df69" text="Bilder des Erinnerungsbuchs: Modell" />
+    <string id="AIL_e7b1df6a" text="Videos: Anbieter" />
+    <string id="AIL_e7b1df6b" text="Name eines Anbieters aus 0. AI Keys, dessen Schlüssel die Clips erstellt (OpenAI oder Gemini). Leer = der erste Anbieter dieses Dienstes dort. Das Modell steht unter «Videos: model» (OpenAI, zum Beispiel sora-2 oder sora-2-pro) oder «Videos: Gemini model»." />
   </strings>
 </base>

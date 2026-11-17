@@ -3104,5 +3104,17 @@
     <string id="AIL_e7b1df49" text="the model does not exist on your account" />
     <string id="AIL_e7b1df4a" text="the key is not valid or has no permission for this" />
     <string id="AIL_e7b1df4b" text="the service is overloaded; try again in a while" />
+    <string id="AIL_e7b1df4c" text="your Google account has no video model (Veo): billing must be turned on in Google AI Studio, or pick another service in «Videos of a scene»" />
+    <string id="AIL_e7b1df4d" text="there is no provider with a key for that service in 0. AI Keys" />
+    <string id="AIL_e7b1df62" text="Pictures in conversations: provider" />
+    <string id="AIL_e7b1df63" text="Name of a provider of 0. AI Keys whose key draws these pictures (needed for «OpenAI-compatible»). Empty = the first Gemini or OpenAI provider there." />
+    <string id="AIL_e7b1df64" text="Pictures in conversations: model" />
+    <string id="AIL_e7b1df65" text="The model that draws them (for example gpt-image-2, or a Gemini image model). Empty = the model of that service set below. If your account does not have it, one it has is used." />
+    <string id="AIL_e7b1df66" text="Pictures of world events: provider" />
+    <string id="AIL_e7b1df67" text="Pictures of world events: model" />
+    <string id="AIL_e7b1df68" text="Memory book pictures: provider" />
+    <string id="AIL_e7b1df69" text="Memory book pictures: model" />
+    <string id="AIL_e7b1df6a" text="Videos: provider" />
+    <string id="AIL_e7b1df6b" text="Name of a provider of 0. AI Keys whose key makes the clips (OpenAI or Gemini). Empty = the first provider of that service there. The model is set in «Videos: model» (OpenAI, for example sora-2 or sora-2-pro) or «Videos: Gemini model»." />
   </strings>
 </base>
