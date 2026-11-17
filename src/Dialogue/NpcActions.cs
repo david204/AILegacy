@@ -1119,13 +1119,28 @@ namespace AILegacy.Dialogue
                 Name = "go_into", Usage = "go_into:<place>",
                 Description = "You take the other person, on foot, to another part of this settlement and go in with them: you walk to the door and they come through it with you. " +
                               "Use it when they ask you to show them the way or to go there together, in the SAME reply in which you agree. Only to one of the places listed.",
-                IsAvailable = s => SceneAgent() != null && SceneTravel.CanLead(SceneAgent()),
-                Extra = s => "Places you can take them to from here: " + SceneTravel.Places() + ".",
+                IsAvailable = s => SceneAgent() != null && (SceneTravel.CanLead(SceneAgent()) || Doors.ClosedForHousehold(s).Length > 0),
+                Extra = s => "Places you can take them to from here: " + SceneTravel.Places() + "." + Doors.ClosedForHousehold(s),
                 Execute = (s, arg, ctx) =>
                 {
                     var a = SceneAgent();
                     if (a == null) return null;
+                    // someone of the house taking them into a closed place opens its door as well
+                    Doors.OpenForLead(s, arg);
                     return SceneActions.Apply(a, "go_into:" + arg, new List<TaleWorlds.MountAndBlade.Agent>()) ? L.F("AIL_e7b1c64b", $"{s.Name} te espera en la puerta cuando termines de hablar.") : null;
+                }
+            },
+            new ActionDef
+            {
+                Name = "let_in", Usage = "let_in:<place>[,gold:<denars>]",
+                Description = "You open a door of this settlement that is closed to the other person, for this visit: as a guard of that door, or as one of the house that holds the place. " +
+                              "Use it in the SAME reply in which you agree to let them in. Only for the doors listed below.",
+                IsAvailable = s => Doors.CanOpenAny(s),
+                Extra = s => Doors.PromptFor(s),
+                Execute = (s, arg, ctx) =>
+                {
+                    var msg = Doors.LetIn(s, arg, out var why);
+                    return msg ?? Nope(null, why);
                 }
             },
 

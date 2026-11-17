@@ -2909,5 +2909,12 @@
     <string id="AIL_e7b1de54" text="Iniciativa romántica: hombres" />
     <string id="AIL_e7b1de55" text="Probabilidad (de 0 a 1) de que un hombre tome él la iniciativa romántica en vez de esperarte: se le dice en la charla. Por defecto: 0,6." />
     <string id="AIL_e7b1de56" text="Eres prisionero: no puedes enviar cartas." />
+    <string id="AIL_e7b1de60" text="La puerta está abierta para ti: {PLACE} ({NPC_NAME})." />
+    <string id="AIL_e7b1de61" text="Tú y {NPC} habéis acordado un duelo a muerte. ¿Lucháis aquí mismo o vais a la arena de la ciudad? En la arena dejas este sitio y a la gente que te rodea." />
+    <string id="AIL_e7b1de62" text="Tú y {NPC} habéis acordado un duelo amistoso. ¿Lucháis aquí mismo o vais a la arena de la ciudad? En la arena dejas este sitio y a la gente que te rodea." />
+    <string id="AIL_e7b1de63" text="¿Dónde lucháis?" />
+    <string id="AIL_e7b1de64" text="En la arena" />
+    <string id="AIL_e7b1de65" text="Aquí mismo" />
+    <string id="AIL_e7b1de66" text="El duelo no ha podido empezar. Podéis concertar otro encuentro." />
   </strings>
 </base>

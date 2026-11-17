@@ -2909,5 +2909,12 @@
     <string id="AIL_e7b1de54" text="恋爱主动性：男性" />
     <string id="AIL_e7b1de55" text="男性主动示爱而非等你开口的几率（0 到 1），会在对话中告知他。默认：0.6。" />
     <string id="AIL_e7b1de56" text="你是囚犯：无法寄信。" />
+    <string id="AIL_e7b1de60" text="这扇门现在为你敞开：{PLACE}（{NPC_NAME}）。" />
+    <string id="AIL_e7b1de61" text="你和 {NPC} 约定了一场生死决斗。就在这里打，还是去城里的竞技场？去竞技场你会离开这里和周围的人。" />
+    <string id="AIL_e7b1de62" text="你和 {NPC} 约定了一场友好决斗。就在这里打，还是去城里的竞技场？去竞技场你会离开这里和周围的人。" />
+    <string id="AIL_e7b1de63" text="在哪里打？" />
+    <string id="AIL_e7b1de64" text="去竞技场" />
+    <string id="AIL_e7b1de65" text="就在这里" />
+    <string id="AIL_e7b1de66" text="决斗未能开始。你们可以另约时间。" />
   </strings>
 </base>

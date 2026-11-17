@@ -40,6 +40,8 @@ namespace AILegacy.Dialogue
             public bool Betrayed;
             /// <summary>A fist fight inside a tavern: part of the evening, the patrons stay and watch and nobody calls the guard.</summary>
             public bool Tavern;
+            /// <summary>An agreed duel in a town: the player is asked whether to fight here or at the arena first.</summary>
+            public bool AskVenue;
         }
 
         private static PendingFight _fight;
@@ -81,6 +83,7 @@ namespace AILegacy.Dialogue
             if (a == null) return null;
             // An agreed duel starts 3 seconds after the talk closes, with AIInfluence's warning (Tick)
             _fight = new PendingFight { Who = s, Opponent = a, Kind = kind, Wait = kind == "brawl" ? 0.6f : 3f };
+            if (kind != "brawl" && ArenaPossible(s)) _fight.AskVenue = true;
             Log.Info($"Pending fight with {s.Name}: {kind}");
             switch (kind)
             {
@@ -489,6 +492,7 @@ namespace AILegacy.Dialogue
             try { StopBells(); } catch { _bells = null; }
             try { Unguard(); } catch { GuardedAgents.Clear(); _friendly = null; _yield = 0; }
             _bandJoin = null;
+            ResetArena(); _arenaAfter = null;
             ToKill.Clear(); RoleDeaths.Clear(); ToFade.Clear(); ActiveFoes.Clear(); Summoned.Clear(); SummonedFrom.Clear(); Withdrawn.Clear(); TeamBefore.Clear();
             Coming.Clear(); SparedHeroes.Clear(); _reserve = 0; _ordersOn = false; _ordersIn = null; _summonHinted = false; _mapLordsAsked = false; _carried = false; _captured = false;
         }
@@ -1627,7 +1631,8 @@ namespace AILegacy.Dialogue
                 if (_fight != null && !talking)
                 {
                     if (Mission.Current == null) { _fight = null; }
-                    else
+                    else if (_fight.AskVenue) { _fight.AskVenue = false; AskVenue(_fight); }
+                    else if (!_venueOpen)
                     {
                         // an agreed duel: 3 seconds to ready your weapon
                         if (!_fight.Announced && _fight.Kind != "brawl" && !_fight.Unprovoked && _fight.Wait > 1f)
@@ -1694,6 +1699,7 @@ namespace AILegacy.Dialogue
                         catch (Exception ex) { Log.Error("Role-play death", ex); }
                     }
                 }
+                TickArena();
                 if (ToKill.Count > 0 && Mission.Current == null && !talking)
                 {
                     foreach (var h in ToKill.ToList())

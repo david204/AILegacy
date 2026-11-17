@@ -2910,5 +2910,12 @@
     <string id="AIL_e7b1de54" text="Romantic initiative: men" />
     <string id="AIL_e7b1de55" text="Chance (0 to 1) that a man takes the romantic initiative himself instead of waiting for you: told to him in the talk. Default: 0.6." />
     <string id="AIL_e7b1de56" text="You are a prisoner: you cannot send letters." />
+    <string id="AIL_e7b1de60" text="The door is open to you now: {PLACE} ({NPC_NAME})." />
+    <string id="AIL_e7b1de61" text="You and {NPC} agreed on a duel to the death. Fight right here, or go to the town arena? At the arena you leave this place and the people around you." />
+    <string id="AIL_e7b1de62" text="You and {NPC} agreed on a friendly duel. Fight right here, or go to the town arena? At the arena you leave this place and the people around you." />
+    <string id="AIL_e7b1de63" text="Where to fight?" />
+    <string id="AIL_e7b1de64" text="At the arena" />
+    <string id="AIL_e7b1de65" text="Right here" />
+    <string id="AIL_e7b1de66" text="The duel could not begin. You can arrange another meeting." />
   </strings>
 </base>
