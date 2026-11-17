@@ -3056,5 +3056,25 @@
     <string id="AIL_e7b1df17" text="Pelo que você contou, {0} condena {1} por conspirar contra {2}: perde seu favor e paga {3} denários." />
     <string id="AIL_e7b1df18" text="Intrigas: dias preso antes de o conspirador desistir" />
     <string id="AIL_e7b1df19" text="Um conspirador preso por este número de dias (somados) abandona a conspiração, inclusive a sua. Eles também desistem sozinhos se fizerem as pazes com o alvo ou acabarem na mesma casa. Padrão: 10." />
+    <string id="AIL_e7b1df20" text="Crônica dos grandes acontecimentos" />
+    <string id="AIL_e7b1df21" text="As notícias se esquecem em poucas semanas; os grandes acontecimentos ficam. A morte de um soberano e como foi, um casamento real, um reino destruído ou que troca de mãos, uma batalha com centenas de mortos, uma cidade tomada, um evento mundial de primeira ordem: a IA escreve cada um como uma entrada curta da crônica da terra, com quem pode vir a saber. Os personagens se lembram deles por anos (menos quanto mais antigo). Você pode lê-los, corrigi-los ou apagá-los no editor." />
+    <string id="AIL_e7b1df22" text="Crônica: mortos para uma batalha ser lembrada" />
+    <string id="AIL_e7b1df23" text="Uma batalha entra na crônica se ao menos este número de homens cair nela, somando os dois lados. Padrão: 300." />
+    <string id="AIL_e7b1df24" text="Crônica: entradas no prompt de um personagem" />
+    <string id="AIL_e7b1df25" text="No máximo este número de entradas da crônica de que um personagem se lembra vão com cada conversa, primeiro as de mais peso e as mais recentes. Padrão: 6." />
+    <string id="AIL_e7b1df26" text="Anais da campanha" />
+    <string id="AIL_e7b1df27" text="Os grandes acontecimentos que as pessoas lembram por anos: mortes de soberanos, casamentos reais, reinos que caem, grandes batalhas, cidades tomadas. A IA escreve cada um, com quem pode saber e com que probabilidade (menos quanto mais antigo). O texto fica em inglês porque é o que os personagens leem. Você pode corrigi-lo, mudar a probabilidade ou apagá-lo." />
+    <string id="AIL_e7b1df28" text="há {0}" />
+    <string id="AIL_e7b1df29" text="Podem saber:" />
+    <string id="AIL_e7b1df2a" text="Probabilidade de saber (%):" />
+    <string id="AIL_e7b1df2b" text="Ainda não há nenhuma: são escritas quando algo grande acontece no mundo." />
+    <string id="AIL_e7b1df2c" text="Apagar esta entrada dos anais?" />
+    <string id="AIL_e7b1df2d" text="ano(s)" />
+    <string id="AIL_e7b1df30" text="Às armas! A batalha contra {0} é aqui mesmo. F1-F7 para dar ordens; Tab para recuar." />
+    <string id="AIL_e7b1df31" text="Você caiu. O que restar da batalha se decide no mapa." />
+    <string id="AIL_e7b1df32" text="Vitória! As tropas de {0} caíram." />
+    <string id="AIL_e7b1df33" text="Sua gente caiu. A batalha está perdida." />
+    <string id="AIL_e7b1df34" text="Cena do mapa: a batalha é travada ali mesmo" />
+    <string id="AIL_e7b1df35" text="Quando uma conversa a pé com um inimigo termina em luta, a batalha começa ali mesmo, na mesma cena: cada soldado presente conta na batalha do mapa, o resto chega como reforço e o encontro no mapa decide o resultado como sempre. Desligado: a cena fecha e a batalha do jogo abre no mesmo terreno." />
   </strings>
 </base>

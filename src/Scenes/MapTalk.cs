@@ -51,7 +51,12 @@ namespace AILegacy.Scenes
         private static bool _open;
         private static string _fightKind;      // set when the scene opens for a fight (duel agreed on the map)
         internal static string TakeFight() { var k = _fightKind; _fightKind = null; return k; }
-        internal static void ResetSession() { _pending = null; _fightKind = null; _open = false; _current = null; _after = null; _settled = false; _battling = false; }
+        internal static void ResetSession() { _pending = null; _fightKind = null; _open = false; _current = null; _after = null; _settled = false; _battling = false; _battleHere = false; Leavers.Clear(); }
+
+        /// <summary>Parties of lords who rode with you and chose to leave the field: their men walk off before the battle.</summary>
+        internal static readonly HashSet<PartyBase> Leavers = new HashSet<PartyBase>();
+        // The battle was fought in the scene: the map encounter takes it from there
+        private static bool _battleHere;
 
         // The talk settled things with an enemy (they let you go): the encounter ends with the scene
         private static bool _settled;
@@ -204,7 +209,7 @@ namespace AILegacy.Scenes
                 rec.PatchEncounterDir = dir.Length > 0.001f ? dir.Normalized() : new Vec2(0f, 1f);
             }
             Log.Info($"[map scene] opening '{scene}' ({mode}) to talk with {h.Name}{(mode == MapTalkMode.Lord && AtWar(h) ? " (enemy: parley)" : "")}");
-            _open = true; _current = h; CurrentMode = mode;
+            _open = true; _current = h; CurrentMode = mode; _battleHere = false; Leavers.Clear();
             MissionState.OpenNew(MissionName, rec, mission => new MissionBehavior[]
             {
                 new CampaignMissionComponent(),
@@ -227,6 +232,7 @@ namespace AILegacy.Scenes
                 try
                 {
                     if (_after != null) return;      // a battle or a surrender takes over the encounter
+                    if (_battleHere) { _battleHere = false; Log.Info("[map scene] the battle fought in the scene goes on in the map encounter"); return; }
                     if (_settled)
                     {
                         _settled = false;
@@ -263,6 +269,8 @@ namespace AILegacy.Scenes
             {
                 if (done) return;
                 done = true; _battling = false;
+                // Fought right here, as it stands; or, if that is turned off, on the map's battle on this ground
+                if (S.Get.MapTalkBattleInScene && MapTalkLogic.Instance != null && MapTalkLogic.Instance.QueueBattle(s)) { _battleHere = true; return; }
                 AfterScene(() => Combat.QueueMapAttack(s));
                 LeaveSoon();
             }
@@ -329,6 +337,7 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                                     var p = h.PartyBelongedTo;
                                     if (p != null && p.Army != null && p.Army == MobileParty.MainParty.Army && p != p.Army.LeaderParty) p.Army = null;
                                     World.OrderSystem.Cancel(h, true);
+                                    if (p != null) Leavers.Add(p.Party);
                                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1dda5", $"{h.Name} se lleva a los suyos del campo."), Colors.Gray));
                                 }
                                 else InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1dda6", $"{h.Name} se pone de tu lado."), Colors.Green));
@@ -347,8 +356,15 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
     }
 
     /// <summary>Spawns both sides face to face, opens the talk, and gives the player the orders of their troops on F12.</summary>
-    internal class MapTalkLogic : MissionLogic
+    internal partial class MapTalkLogic : MissionLogic
     {
+        // who each agent stands for, which of them are the other side's, and the captives shown
+        private readonly Dictionary<Agent, PartyBase> _partyOf = new Dictionary<Agent, PartyBase>();
+        private readonly HashSet<Agent> _theirAgents = new HashSet<Agent>();
+        private readonly HashSet<PartyBase> _theirParties = new HashSet<PartyBase>();
+        private readonly HashSet<Agent> _captiveAgents = new HashSet<Agent>();
+        private Vec3 _myFront, _theirFront;
+        private Vec2 _toThem = new Vec2(0f, 1f);
         private readonly Hero _target;
         private readonly MobileParty _party;
         private readonly MapTalkMode _mode;
@@ -362,7 +378,7 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
         private const int MaxAgents = 260, MaxHeroesPerSide = 25, MaxCaptivesPerSide = 15, RankWidth = 10;
         private const float RankDepth = 11.5f;
 
-        public MapTalkLogic(Hero target, MobileParty party, MapTalkMode mode) { _target = target; _party = party; _mode = mode; LeaveIn = -1f; }
+        public MapTalkLogic(Hero target, MobileParty party, MapTalkMode mode) { _target = target; _party = party; _mode = mode; LeaveIn = -1f; Instance = this; }
 
         public override void AfterStart()
         {
@@ -385,16 +401,18 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                 toThem = toThem.Normalized();
                 Vec3 pPos = Ground(mine.origin - new Vec3(toThem.x, toThem.y) * 1.5f);
                 Vec3 tPos = Ground(theirs.origin + new Vec3(toThem.x, toThem.y) * 1.5f);
+                _myFront = pPos; _theirFront = tPos; _toThem = toThem;
 
                 Spawn(CharacterObject.PlayerCharacter, PartyBase.MainParty, pPos, toThem, true, Mission.PlayerTeam);
                 int left = MaxAgents - 2;
 
                 if (_mode == MapTalkMode.Lord)
                 {
-                    _targetAgent = Spawn(_target.CharacterObject, _party.Party, tPos, -toThem, false, Mission.PlayerTeam);
+                    _targetAgent = Spawn(_target.CharacterObject, _party.Party, tPos, -toThem, false, Mission.PlayerTeam, true);
                     var mySide = new List<MobileParty> { MobileParty.MainParty };
                     var theirSide = new List<MobileParty> { _party };
                     JoiningParties(mySide, theirSide);
+                    foreach (var tp in theirSide) _theirParties.Add(tp.Party);
                     Log.Info($"[map scene] nearby parties join the meeting: allies {mySide.Count - 1}, enemies {theirSide.Count - 1}");
                     var myCaptives = Captives(PartyBase.MainParty, null);
                     var theirCaptives = Captives(_party.Party, null);
@@ -404,8 +422,8 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                     var mine2 = Roster(mySide, Hero.MainHero, perSide);
                     var theirs2 = Roster(theirSide, _target, perSide);
                     Log.Info($"[map scene] rosters: player side {mySide.Count} parties, {mine2.Count} people; other side {theirSide.Count} parties, {theirs2.Count} people; captives {myCaptives.Count}/{theirCaptives.Count}");
-                    Ranks(mine2, pPos, -toThem, toThem);
-                    Ranks(theirs2, tPos, toThem, -toThem);
+                    Ranks(mine2, pPos, -toThem, toThem, false);
+                    Ranks(theirs2, tPos, toThem, -toThem, true);
                     Aside(myCaptives, pPos, -toThem, toThem, PartyBase.MainParty);
                     Aside(theirCaptives, tPos, toThem, -toThem, _party.Party);
                 }
@@ -417,7 +435,7 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                     else _targetAgent = Spawn(_target.CharacterObject, PartyBase.MainParty, tPos, -toThem, false, Mission.PlayerTeam);
                     left -= captives.Count;
                     int cap = S.Get.MapTalkEscort > 0 ? Math.Min(left, S.Get.MapTalkEscort) : left;
-                    var people = Roster(new List<MobileParty> { MobileParty.MainParty }, Hero.MainHero, cap).Where(c => c.HeroObject != _target).ToList();
+                    var people = Roster(new List<MobileParty> { MobileParty.MainParty }, Hero.MainHero, cap).Where(x => x.c.HeroObject != _target).Select(x => x.c).ToList();
                     Camp(people, pPos, tPos);
                     Aside(captives, tPos, toThem, -toThem, PartyBase.MainParty);
                     Log.Info($"[map scene] camp: {people.Count} of your people, {captives.Count} captives");
@@ -453,7 +471,9 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                     Mission.EndMission();
                     return;
                 }
-                if (Input.IsKeyPressed(InputKey.F12) && Agent.Main != null && Agent.Main.IsActive() && Campaign.Current.ConversationManager?.IsConversationInProgress != true)
+                PendingBattleTick();
+                BattleTick(dt);
+                if (!_battle && Input.IsKeyPressed(InputKey.F12) && Agent.Main != null && Agent.Main.IsActive() && Campaign.Current.ConversationManager?.IsConversationInProgress != true)
                     ToggleOrders();
             }
             catch (Exception ex) { Log.Error("Map scene tick", ex); }
@@ -519,11 +539,11 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
             catch (Exception ex) { Log.Warn("[map scene] nearby parties: " + ex.Message); }
         }
 
-        /// <summary>Everyone fit to stand from those parties: heroes first (at most 25), then the best troops, up to <paramref name="max"/>.</summary>
-        private static List<CharacterObject> Roster(List<MobileParty> parties, Hero leader, int max)
+        /// <summary>Everyone fit to stand from those parties, with the party each comes from: heroes first (at most 25), then the best troops, up to <paramref name="max"/>.</summary>
+        private static List<(CharacterObject c, PartyBase p)> Roster(List<MobileParty> parties, Hero leader, int max)
         {
-            var heroes = new List<CharacterObject>();
-            var troops = new List<CharacterObject>();
+            var heroes = new List<(CharacterObject c, PartyBase p)>();
+            var troops = new List<(CharacterObject c, PartyBase p)>();
             try
             {
                 foreach (var p in parties)
@@ -535,14 +555,14 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                         {
                             var h = e.Character.HeroObject;
                             if (h == null || h == leader || h == Hero.MainHero || h.IsWounded || heroes.Count >= MaxHeroesPerSide) continue;
-                            heroes.Add(e.Character);
+                            heroes.Add((e.Character, p.Party));
                         }
-                        else for (int i = 0; i < e.Number - e.WoundedNumber; i++) troops.Add(e.Character);
+                        else for (int i = 0; i < e.Number - e.WoundedNumber; i++) troops.Add((e.Character, p.Party));
                     }
                 }
             }
             catch (Exception ex) { Log.Error("Scene roster", ex); }
-            var all = heroes.Concat(troops.OrderByDescending(t => t.Tier)).Take(Math.Max(0, max)).ToList();
+            var all = heroes.Concat(troops.OrderByDescending(t => t.c.Tier)).Take(Math.Max(0, max)).ToList();
             return all;
         }
 
@@ -594,8 +614,9 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
         }
 
         /// <summary>Ranks of 10 behind their leader, the first rank 11.5 m back.</summary>
-        private void Ranks(List<CharacterObject> who, Vec3 leaderPos, Vec2 back, Vec2 facing)
+        private void Ranks(List<(CharacterObject c, PartyBase p)> people, Vec3 leaderPos, Vec2 back, Vec2 facing, bool theirs)
         {
+            var who = people.Select(x => x.c).ToList();
             var side = new Vec2(-back.y, back.x);
             for (int i = 0; i < who.Count; i++)
             {
@@ -603,8 +624,7 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                 int inRow = Math.Min(RankWidth, who.Count - row * RankWidth);
                 float depth = (who[i].IsHero && row == 0) ? 3f : RankDepth + row * 1.6f;
                 var off = back * depth + side * ((col - (inRow - 1) / 2f) * 1.5f);
-                var party = who[i].HeroObject?.PartyBelongedTo?.Party ?? (facing.DotProduct(back) < 0 ? null : null);
-                Spawn(who[i], party, Ground(leaderPos + new Vec3(off.x, off.y)), facing, false, Mission.PlayerTeam);
+                Spawn(who[i], people[i].p, Ground(leaderPos + new Vec3(off.x, off.y)), facing, false, Mission.PlayerTeam, theirs);
             }
         }
 
@@ -636,7 +656,7 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
 
         // ---------------------------------------------------------------- spawning
 
-        private Agent Spawn(CharacterObject c, PartyBase party, Vec3 pos, Vec2 dir, bool isPlayer, Team team)
+        private Agent Spawn(CharacterObject c, PartyBase party, Vec3 pos, Vec2 dir, bool isPlayer, Team team, bool theirs = false)
         {
             try
             {
@@ -648,6 +668,11 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                 if (party?.MapFaction != null) data.ClothingColor1(party.MapFaction.Color).ClothingColor2(party.MapFaction.Color2);
                 if (isPlayer) data.Controller(AgentControllerType.Player);
                 var agent = Mission.SpawnAgent(data);
+                if (agent != null)
+                {
+                    _partyOf[agent] = party;
+                    if (theirs) _theirAgents.Add(agent);
+                }
                 if (!isPlayer && agent != null)
                 {
                     try { agent.SetLookAgent(null); } catch { }
@@ -683,7 +708,7 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
                 var data = new AgentBuildData(c).TroopOrigin(new SimpleAgentOrigin(c)).Team(Mission.PlayerTeam)
                     .InitialPosition(in pos).InitialDirection(in dir).NoHorses(true).Equipment(Rags()).CivilianEquipment(true);
                 var agent = Mission.SpawnAgent(data);
-                if (agent != null) { try { agent.SetLookAgent(null); } catch { } }
+                if (agent != null) { _captiveAgents.Add(agent); try { agent.SetLookAgent(null); } catch { } }
                 return agent;
             }
             catch (Exception ex) { Log.Error($"Placing the captive {c?.Name} in the scene", ex); return null; }
@@ -692,6 +717,7 @@ Answer ONLY with JSON: {""decision"": ""fight"" or ""leave"", ""line"": ""what y
         protected override void OnEndMission()
         {
             base.OnEndMission();
+            if (Instance == this) Instance = null;
             MapTalk.Closed();
         }
     }

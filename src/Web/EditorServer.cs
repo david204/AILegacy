@@ -613,6 +613,16 @@ namespace AILegacy.Web
                         about = x.About.Select(i => Hero.Find(i)?.Name?.ToString() ?? i), known_by = x.KnownBy.Select(i => Hero.Find(i)?.Name?.ToString() ?? i),
                     });
 
+                // ---------------------------------------------------------------- the land's chronicle
+                case "/api/annals":
+                    return World.Annals.List();
+
+                case "/api/annals/save":
+                    return new { ok = World.Annals.Save((string)d["id"], (string)d["text"], (int?)d["chance"]) };
+
+                case "/api/annals/delete":
+                    return new { ok = World.Annals.Delete((string)d["id"]) };
+
                 case "/api/storysecrets/delete":
                     World.WorldSim.State.Secrets.RemoveAll(x => x.Id == (string)d["id"]);
                     SaveFiles.Flush();

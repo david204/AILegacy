@@ -3056,5 +3056,25 @@
     <string id="AIL_e7b1df17" text="根据你的说法，{0}判定{1}密谋对付{2}：此人失去宠信，并支付{3}第纳尔。" />
     <string id="AIL_e7b1df18" text="阴谋：密谋者被囚多少天后放弃" />
     <string id="AIL_e7b1df19" text="密谋者被囚禁累计达到这个天数后会放弃密谋，包括你委托的那件。密谋者若与目标和好或成为同一家族，也会自行放弃。默认：10。" />
+    <string id="AIL_e7b1df20" text="重大事件编年史" />
+    <string id="AIL_e7b1df21" text="新闻几周后就会被淡忘，重大事件却会留下来。君主之死及其死因、王室婚礼、王国覆灭或易主、死伤数百人的战役、城镇陷落、头等的世界事件：AI会把每一件写成这片土地编年史中的一则短文，并注明谁会得知。角色们会记得多年（越久远记得的人越少）。你可以在编辑器中阅读、修改或删除它们。" />
+    <string id="AIL_e7b1df22" text="编年史：战役需阵亡多少人才会被记住" />
+    <string id="AIL_e7b1df23" text="一场战役双方合计阵亡至少这么多人才会载入编年史。默认：300。" />
+    <string id="AIL_e7b1df24" text="编年史：角色提示词中的条目数" />
+    <string id="AIL_e7b1df25" text="每次对话最多附带角色记得的这么多条编年史条目，优先最重要和最近的。默认：6。" />
+    <string id="AIL_e7b1df26" text="战役编年史" />
+    <string id="AIL_e7b1df27" text="人们多年都会记得的重大事件：君主之死、王室婚礼、王国覆灭、大战役、城镇陷落。AI会写下每一件，并注明谁可能知道以及可能性多大（越久远越低）。文本使用英文，因为角色读的就是它。你可以修改文本、调整概率或删除。" />
+    <string id="AIL_e7b1df28" text="{0}前" />
+    <string id="AIL_e7b1df29" text="可能知道的人：" />
+    <string id="AIL_e7b1df2a" text="知晓概率（%）：" />
+    <string id="AIL_e7b1df2b" text="暂时还没有：世界上发生大事时才会写下。" />
+    <string id="AIL_e7b1df2c" text="删除这条编年史条目？" />
+    <string id="AIL_e7b1df2d" text="年" />
+    <string id="AIL_e7b1df30" text="拿起武器！与{0}的战斗就在此地打响。F1-F7 下达命令；Tab 撤退。" />
+    <string id="AIL_e7b1df31" text="你倒下了。剩下的战斗将在地图上决出胜负。" />
+    <string id="AIL_e7b1df32" text="胜利！{0}的部队已经倒下。" />
+    <string id="AIL_e7b1df33" text="你的人马已经倒下。这场战斗失败了。" />
+    <string id="AIL_e7b1df34" text="地图场景：战斗就地展开" />
+    <string id="AIL_e7b1df35" text="与敌人徒步交谈演变成战斗时，战斗会在同一场景中当场开始：在场的每名士兵都计入地图战斗，其余部队作为援军到来，结果照常由地图遭遇战决定。关闭：场景关闭，并在同一地形上打开游戏自带的战斗。" />
   </strings>
 </base>

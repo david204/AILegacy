@@ -1563,6 +1563,21 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_953a8770}7. News and rumors", GroupOrder = 7)]
         public int MaxNewsInPrompt { get; set; } = 8;
 
+        [SettingPropertyBool("{=AIL_e7b1df20}Chronicle of great events", Order = 10, RequireRestart = false,
+            HintText = "{=AIL_e7b1df21}News fades after some weeks; the great events stay. A ruler's death and how it came, a royal wedding, a realm destroyed or changing hands, a battle where hundreds fell, a town taken, a world event of the first rank: the AI writes each as a short entry of the land's chronicle, with who would come to know it. Characters remember them for years (fewer the older it is). You can read, correct or delete them in the editor.")]
+        [SettingPropertyGroup("{=AIL_953a8770}7. News and rumors", GroupOrder = 7)]
+        public bool EnableAnnals { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1df22}Chronicle: men fallen for a battle to be remembered", 50, 5000, Order = 11, RequireRestart = false,
+            HintText = "{=AIL_e7b1df23}A battle goes into the chronicle when at least this many men fell in it, on both sides together. Default: 300.")]
+        [SettingPropertyGroup("{=AIL_953a8770}7. News and rumors", GroupOrder = 7)]
+        public int AnnalsBattleDead { get; set; } = 300;
+
+        [SettingPropertyInteger("{=AIL_e7b1df24}Chronicle: entries in a character's prompt", 0, 20, Order = 12, RequireRestart = false,
+            HintText = "{=AIL_e7b1df25}At most this many entries of the chronicle that a character remembers go with each conversation, the weightiest and latest first. Default: 6.")]
+        [SettingPropertyGroup("{=AIL_953a8770}7. News and rumors", GroupOrder = 7)]
+        public int AnnalsInPrompt { get; set; } = 6;
+
         // ------------------------------------------------------------ Letters
         [SettingPropertyBool("{=AIL_1b9a1bfb}Letters from NPCs", Order = 0, RequireRestart = false,
             HintText = "{=AIL_7f30bf34}Characters you have history with write to you on their own.")]
@@ -1624,6 +1639,11 @@ namespace AILegacy.Settings
             HintText = "{=AIL_011ed64e}With an enemy lord you can also dismount and talk face to face. When you return to the map, the encounter continues where it was (attack, surrender, let you go), unless it was resolved in the chat.")]
         [SettingPropertyGroup("{=AIL_3a41f7a5}E. Scenes", GroupOrder = 14)]
         public bool MapTalkWithEnemies { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1df34}Map scene: the battle is fought right there", Order = 23, RequireRestart = false,
+            HintText = "{=AIL_e7b1df35}When a talk on foot with an enemy ends in a fight, the battle starts there and then, in the same scene: every soldier standing counts in the map battle, the rest come as reinforcements, and the map encounter settles the outcome as usual. Off: the scene closes and the game's battle opens on the same ground.")]
+        [SettingPropertyGroup("{=AIL_3a41f7a5}E. Scenes", GroupOrder = 14)]
+        public bool MapTalkBattleInScene { get; set; } = true;
 
         [SettingPropertyBool("{=AIL_fe9e2f63}Talk in the scene from the map", Order = 20, RequireRestart = false,
             HintText = "{=AIL_967570b4}When you meet a lord on the map you are not at war with, the option \"Let's dismount and talk face to face\" appears: a scene of the terrain opens with the two of you on foot and your people behind you. Tab to return to the map.")]

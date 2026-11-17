@@ -3056,5 +3056,25 @@
     <string id="AIL_e7b1df17" text="Sur votre parole, {0} condamne {1} pour avoir comploté contre {2} : il perd sa faveur et paie {3} deniers." />
     <string id="AIL_e7b1df18" text="Intrigues : jours de captivité avant qu’un comploteur abandonne" />
     <string id="AIL_e7b1df19" text="Un comploteur captif ce nombre de jours (au total) abandonne son complot, y compris le vôtre. Les comploteurs renoncent aussi d’eux-mêmes s’ils se réconcilient avec leur cible ou finissent dans la même maison. Par défaut : 10." />
+    <string id="AIL_e7b1df20" text="Chronique des grands événements" />
+    <string id="AIL_e7b1df21" text="Les nouvelles s’oublient en quelques semaines ; les grands événements restent. La mort d’un souverain et sa cause, un mariage royal, un royaume détruit ou qui change de mains, une bataille aux centaines de morts, une ville prise, un événement mondial de premier ordre : l’IA rédige chacun comme une courte entrée de la chronique du pays, avec qui peut l’apprendre. Les personnages s’en souviennent pendant des années (moins à mesure qu’il vieillit). Vous pouvez les lire, les corriger ou les supprimer dans l’éditeur." />
+    <string id="AIL_e7b1df22" text="Chronique : morts pour qu’une bataille reste dans les mémoires" />
+    <string id="AIL_e7b1df23" text="Une bataille entre dans la chronique si au moins ce nombre d’hommes y tombent, les deux camps réunis. Par défaut : 300." />
+    <string id="AIL_e7b1df24" text="Chronique : entrées dans le prompt d’un personnage" />
+    <string id="AIL_e7b1df25" text="Au plus ce nombre d’entrées de la chronique dont se souvient un personnage accompagnent chaque conversation, les plus importantes et les plus récentes d’abord. Par défaut : 6." />
+    <string id="AIL_e7b1df26" text="Annales de la campagne" />
+    <string id="AIL_e7b1df27" text="Les grands événements dont on se souvient pendant des années : morts de souverains, mariages royaux, royaumes qui tombent, grandes batailles, villes prises. L’IA rédige chacun, avec qui peut le savoir et avec quelle probabilité (moins à mesure qu’il vieillit). Le texte est en anglais, car c’est ce que lisent les personnages. Vous pouvez le corriger, changer la probabilité ou le supprimer." />
+    <string id="AIL_e7b1df28" text="il y a {0}" />
+    <string id="AIL_e7b1df29" text="Peuvent le savoir :" />
+    <string id="AIL_e7b1df2a" text="Probabilité de le savoir (%) :" />
+    <string id="AIL_e7b1df2b" text="Aucune pour l’instant : elles s’écrivent quand un grand événement se produit dans le monde." />
+    <string id="AIL_e7b1df2c" text="Supprimer cette entrée des annales ?" />
+    <string id="AIL_e7b1df2d" text="an(s)" />
+    <string id="AIL_e7b1df30" text="Aux armes ! La bataille contre {0} se livre ici même. F1-F7 pour donner des ordres ; Tab pour vous replier." />
+    <string id="AIL_e7b1df31" text="Vous êtes tombé. Le reste de la bataille se décide sur la carte." />
+    <string id="AIL_e7b1df32" text="Victoire ! Les troupes de {0} sont tombées." />
+    <string id="AIL_e7b1df33" text="Vos gens sont tombés. La bataille est perdue." />
+    <string id="AIL_e7b1df34" text="Scène de carte : la bataille se livre sur place" />
+    <string id="AIL_e7b1df35" text="Quand une discussion à pied avec un ennemi tourne au combat, la bataille commence sur-le-champ, dans la même scène : chaque soldat présent compte dans la bataille de la carte, les autres arrivent en renfort et la rencontre sur la carte règle l’issue comme d’habitude. Désactivé : la scène se ferme et la bataille du jeu s’ouvre sur le même terrain." />
   </strings>
 </base>

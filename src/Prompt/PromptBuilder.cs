@@ -244,7 +244,7 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             "(A note to yourself, not something they said: you opened your last replies with {openers}. Open this one differently, and do not reuse those turns of phrase.)");
 
         /// <summary>Forces every template (static fields) to register before they are written to disk.</summary>
-        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); InfoExchange.Touch(); Lessons.Touch(); Intrigue.Touch(); Bastards.Touch(); Concubines.Touch(); SceneVideos.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); SceneMatters.Touch(); AILegacy.Scenes.MapTalk.Touch(); Combat.TouchStreet(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
+        public static void Touch() { var _ = TIntro.Key; NpcActions.RegisterTemplates(); WorldSim.Touch(); Justice.Touch(); MapInitiative.Touch(); InfoExchange.Touch(); Lessons.Touch(); Intrigue.Touch(); Annals.Touch(); Bastards.Touch(); Concubines.Touch(); SceneVideos.Touch(); Lore.Touch(); Ambient.Touch(); GroupTalk.Touch(); SceneTravel.Touch(); SceneMatters.Touch(); AILegacy.Scenes.MapTalk.Touch(); Combat.TouchStreet(); FightBanter.Touch(); Mood.Touch(); Verdict.Touch(); PassBy.Touch(); AILegacy.World.StorySecrets.Touch(); AILegacy.World.UniqueCharacters.Touch(); AILegacy.World.Chronicle.Touch(); AILegacy.Battle.BattleAI.Touch(); Captivity.Touch(); var __ = TSummaryGround.Key + TSummaryFacts.Key; }
 
         // =========================================================== dialogue
 
@@ -671,6 +671,15 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
                 sys.AppendLine("## Things you know");
                 foreach (var i in info) sys.AppendLine("- " + i);
                 foreach (var x in secrets) sys.AppendLine("- " + x);
+            }
+
+            Annals.EnsureRolled(s);
+            var annals = Annals.For(s);
+            if (annals.Count > 0)
+            {
+                sys.AppendLine();
+                sys.AppendLine("## " + Annals.Header);
+                foreach (var a in annals) sys.AppendLine("- " + a);
             }
 
             var news = NewsStore.KnownBy(s, S.Get.MaxNewsInPrompt);

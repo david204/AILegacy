@@ -290,6 +290,8 @@ namespace AILegacy.World
         [JsonProperty("hospitals")] public Dictionary<string, HospitalRecord> Hospitals = new Dictionary<string, HospitalRecord>();
         /// <summary>Diseases that are over, for the record (the last thousand).</summary>
         [JsonProperty("sick_history")] public List<SicknessRecord> SickHistory = new List<SicknessRecord>();
+        /// <summary>The land's chronicle: the great events of this campaign.</summary>
+        [JsonProperty("annals")] public List<AnnalEntry> Annals = new List<AnnalEntry>();
     }
 
     // ===================================================================== engine
@@ -370,6 +372,7 @@ namespace AILegacy.World
             while (Pending.TryDequeue(out _)) { }
             lock (Queue) { Queue.Clear(); Reserved.Clear(); }
             try { Dialogue.Combat.ResetSession(); } catch { }
+            try { Annals.ResetSession(); } catch { }
             try { Dialogue.SceneActions.ResetSession(); } catch { }
             try { Dialogue.SceneMatters.ResetSession(); } catch { }
             try { AILegacy.Voice.Speech.ResetSession(); } catch { }

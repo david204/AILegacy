@@ -3056,5 +3056,25 @@
     <string id="AIL_e7b1df17" text="Auf dein Wort hin verurteilt {0} {1} wegen einer Verschwörung gegen {2}: Er verliert die Gunst und zahlt {3} Denare." />
     <string id="AIL_e7b1df18" text="Intrigen: Tage in Haft, bis ein Verschwörer aufgibt" />
     <string id="AIL_e7b1df19" text="Ein Verschwörer, der so viele Tage (insgesamt) gefangen ist, gibt seine Verschwörung auf, auch deine. Verschwörer geben auch von selbst auf, wenn sie sich mit ihrem Ziel versöhnen oder im selben Haus landen. Standard: 10." />
+    <string id="AIL_e7b1df20" text="Chronik der großen Ereignisse" />
+    <string id="AIL_e7b1df21" text="Nachrichten sind nach ein paar Wochen vergessen; die großen Ereignisse bleiben. Der Tod eines Herrschers und wie er kam, eine königliche Hochzeit, ein Reich, das untergeht oder den Herrscher wechselt, eine Schlacht mit Hunderten Gefallenen, eine eroberte Stadt, ein Weltereignis ersten Ranges: Die KI schreibt jedes als kurzen Eintrag der Landeschronik, mit dem, wer davon erfahren kann. Die Figuren erinnern sich jahrelang daran (je älter, desto weniger). Im Editor kannst du sie lesen, berichtigen oder löschen." />
+    <string id="AIL_e7b1df22" text="Chronik: Gefallene, damit eine Schlacht in Erinnerung bleibt" />
+    <string id="AIL_e7b1df23" text="Eine Schlacht kommt in die Chronik, wenn mindestens so viele Männer darin fallen, beide Seiten zusammen. Standard: 300." />
+    <string id="AIL_e7b1df24" text="Chronik: Einträge im Prompt einer Figur" />
+    <string id="AIL_e7b1df25" text="Höchstens so viele Einträge der Chronik, an die sich eine Figur erinnert, gehen in jedes Gespräch mit, die gewichtigsten und neuesten zuerst. Standard: 6." />
+    <string id="AIL_e7b1df26" text="Annalen der Kampagne" />
+    <string id="AIL_e7b1df27" text="Die großen Ereignisse, an die man sich jahrelang erinnert: Tod von Herrschern, königliche Hochzeiten, untergehende Reiche, große Schlachten, eroberte Städte. Die KI schreibt jedes, mit dem, wer es wissen kann und wie wahrscheinlich (je älter, desto weniger). Der Text ist auf Englisch, weil die Figuren ihn so lesen. Du kannst ihn berichtigen, die Wahrscheinlichkeit ändern oder ihn löschen." />
+    <string id="AIL_e7b1df28" text="vor {0}" />
+    <string id="AIL_e7b1df29" text="Wissen können es:" />
+    <string id="AIL_e7b1df2a" text="Wahrscheinlichkeit, es zu wissen (%):" />
+    <string id="AIL_e7b1df2b" text="Noch keine: Sie werden geschrieben, wenn in der Welt etwas Großes geschieht." />
+    <string id="AIL_e7b1df2c" text="Diesen Eintrag der Annalen löschen?" />
+    <string id="AIL_e7b1df2d" text="Jahr(e)" />
+    <string id="AIL_e7b1df30" text="Zu den Waffen! Die Schlacht gegen {0} findet genau hier statt. F1-F7 für Befehle; Tab zum Rückzug." />
+    <string id="AIL_e7b1df31" text="Du bist gefallen. Was von der Schlacht übrig ist, wird auf der Karte entschieden." />
+    <string id="AIL_e7b1df32" text="Sieg! Die Truppen von {0} sind gefallen." />
+    <string id="AIL_e7b1df33" text="Deine Leute sind gefallen. Die Schlacht ist verloren." />
+    <string id="AIL_e7b1df34" text="Kartenszene: Die Schlacht wird gleich dort geschlagen" />
+    <string id="AIL_e7b1df35" text="Endet ein Gespräch zu Fuß mit einem Feind im Kampf, beginnt die Schlacht sofort in derselben Szene: Jeder anwesende Soldat zählt in der Kartenschlacht, der Rest kommt als Verstärkung, und die Begegnung auf der Karte entscheidet den Ausgang wie gewohnt. Aus: Die Szene schließt sich und die Schlacht des Spiels öffnet sich auf demselben Gelände." />
   </strings>
 </base>

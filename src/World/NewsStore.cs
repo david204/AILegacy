@@ -15,6 +15,8 @@ namespace AILegacy.World
         [JsonProperty("day")] public double Day;
         [JsonProperty("type")] public string Type;           // war, peace, siege, capture, battle, death, ruler, clan, prisoner, rumor...
         [JsonProperty("text")] public string Text;
+        /// <summary>Men who fell (battles only), for the chronicle.</summary>
+        [JsonProperty("dead", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Casualties;
         /// <summary>1 = the place, 2 = the court (kingdom nobles), 3 = the whole kingdom, 4 = the whole world.</summary>
         [JsonProperty("imp")] public int Importance;
         [JsonProperty("kingdoms")] public List<string> Kingdoms = new List<string>();
@@ -172,6 +174,7 @@ namespace AILegacy.World
             if (_items.Count > MaxItems) _items.RemoveRange(0, _items.Count - MaxItems);
             Core.Log.Info($"News [{n.Type}, imp {n.Importance}]: {n.Text}");
             try { WorldSim.OnRealNews(n); } catch { }
+            try { Annals.Consider(n); } catch { }
         }
 
         /// <summary>News this character knows right now, most relevant first.</summary>

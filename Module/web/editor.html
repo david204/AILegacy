@@ -148,6 +148,11 @@
       <p class="hint">Los inventa la IA a partir de la gente real de cada reino y de los sucesos. Aparecen poco a poco (un reino por día de juego). Aquí ves de quién trata cada uno y quién lo sabe; puedes borrar los que no te gusten.</p>
       <div class="list" id="storySecrets" style="max-height:420px"></div>
     </div>
+      <div class="card">
+      <h2>Anales de la campaña</h2>
+      <p class="hint">Los sucesos grandes que la gente recuerda durante años: muertes de reyes, bodas reales, reinos que caen, grandes batallas, ciudades tomadas. La IA escribe cada uno con quién puede saberlo y con qué probabilidad (menos cuanto más antiguo). El texto va en inglés porque es lo que leen los personajes. Puedes corregirlo, cambiar la probabilidad o borrarlo.</p>
+      <div class="list" id="annals" style="max-height:520px"></div>
+    </div>
   </section>
 
   <section class="tab" id="t-npc">
@@ -435,6 +440,7 @@ function onPick(boxId, selector, fn) {
 onPick('fileList', 'div[data-name]', el => openFile(el.dataset.kind, el.dataset.name));
 onPick('itemList', 'button[data-item]', el => delItem(el.dataset.item));
 onPick('storySecrets', 'button[data-id]', el => delStorySecret(el.dataset.id));
+onPick('annals', 'button[data-act]', el => annalAct(el));
 onPick('npcList', 'div[data-id]', (el, e) => { if (e.target.closest('.star')) toggleFav(el.dataset.id); else openNpc(el.dataset.id); });
 onPick('heroResults', 'div[data-id]', el => { openNpc(el.dataset.id); setTimeout(refreshState, 300); });
 onPick('newsList', 'button[data-id]', el => delNews(el.dataset.id));
@@ -448,7 +454,7 @@ async function load() {
   loadWorld();
   $('e_kingdoms').innerHTML = state.kingdoms.map(k => `<label><input type="checkbox" value="${esc(k.id)}"> ${esc(k.name)}</label>`).join('');
   npcFilters(); renderNpcs(); renderNews();
-  files = await api('/api/files'); renderFiles(); loadItems(); loadStorySecrets(); loadRulers();
+  files = await api('/api/files'); renderFiles(); loadItems(); loadStorySecrets(); loadAnnals(); loadRulers();
   if ($('t-service').classList.contains('on')) loadBackups().catch(() => {});
 }
 // Fresh state for the NPC list only: the world forms keep whatever is being typed in them
@@ -753,6 +759,27 @@ async function loadStorySecrets() {
   $('storySecrets').innerHTML = s.map(x => `<div><span class="txt">${esc(x.text)}<small> ${TH('Trata de:')} ${esc((x.about || []).join(', ') || '—')} · ${TH('Lo saben:')} ${esc((x.known_by || []).join(', '))} · ${esc(lvl[x.access] || x.access)} · ${x.source === 'event' ? TH('nacido de un suceso') : TH('de origen')} · ${esc(x.days)} ${TH('día(s)')}</small></span> <button class="btn danger" data-id="${esc(x.id)}">Borrar</button></div>`).join('') || '<div><small>Todavía no hay ninguno: se van escribiendo con los días de juego.</small></div>';
 }
 async function delStorySecret(id) { await api('/api/storysecrets/delete', { id }); loadStorySecrets(); }
+
+async function loadAnnals() {
+  const a = await api('/api/annals');
+  const when = (d, y) => d < (y || 84) ? `${d} ${T('día(s)')}` : `${Math.floor(d / (y || 84))} ${T('año(s)')}`;
+  $('annals').innerHTML = a.map(x => `<div data-ann="${esc(x.id)}" style="display:block"><b>${esc(x.title)}</b><small> · ${esc(T('hace {0}').replace('{0}', when(x.days, x.year)))} · ${TH('Lo pueden saber:')} ${esc((x.who || []).join(', '))}${(x.about || []).length ? ' · ' + TH('Trata de:') + ' ' + esc(x.about.join(', ')) : ''}</small>
+    <textarea class="ann_text" rows="3" style="width:100%">${esc(x.text)}</textarea>
+    <div class="row"><small>${TH('Probabilidad de saberlo (%):')}</small> <input type="number" class="ann_chance" min="0" max="100" value="${esc(x.chance)}" style="width:80px"> <button class="btn main" data-act="save">${TH('Guardar')}</button><button class="btn danger" data-act="del">${TH('Borrar')}</button></div></div>`).join('')
+    || `<div><small>${TH('Todavía no hay ninguno: se escriben cuando pasa algo grande en el mundo.')}</small></div>`;
+}
+async function annalAct(el) {
+  const row = el.closest('[data-ann]'); if (!row) return;
+  const id = row.dataset.ann;
+  if (el.dataset.act === 'del') {
+    if (!confirm(T('¿Borrar esta entrada de los anales?'))) return;
+    await api('/api/annals/delete', { id });
+  } else {
+    await api('/api/annals/save', { id, text: row.querySelector('.ann_text').value, chance: parseInt(row.querySelector('.ann_chance').value || '0') });
+    toast(T('Guardado'));
+  }
+  loadAnnals();
+}
 
 // ---- family tree: rows linked to each other, to you and to people already in the world
 let famSeq = 0, famRelatives = [];

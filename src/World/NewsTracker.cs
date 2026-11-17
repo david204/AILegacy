@@ -214,6 +214,7 @@ namespace AILegacy.World
             else
             {
                 n.Type = "battle"; n.Importance = (wl.IsKingdomLeader || ll.IsKingdomLeader) ? 3 : 2;
+                try { n.Casualties = e.AttackerSide.TroopCasualties + e.DefenderSide.TroopCasualties; } catch { }
                 n.Text = $"{wl.Name}{FactionOf(wl)} defeated {ll.Name}{FactionOf(ll)} in battle" + (place != null ? $" near {place.Name}." : ".");
                 n.TitleEs = L.F("AIL_161727d1", $"Victoria de {wl.Name}");
                 n.TextEs = L.F("AIL_b4431c37", $"{wl.Name}{DeEs(wl)} ha derrotado en batalla a {ll.Name}{DeEs(ll)}") + (place != null ? L.F("AIL_2d23d9be", $" cerca de {place.Name}.") : ".");
@@ -367,6 +368,7 @@ namespace AILegacy.World
             try { FlushCaptures(); } catch (Exception ex) { Log.Error("News prisoners", ex); }
             try { FlushSieges(); } catch (Exception ex) { Log.Error("News siege end", ex); }
             try { CheckWatches(); } catch (Exception ex) { Log.Error("News prisoners held two weeks", ex); }
+            try { Annals.Pump(); } catch (Exception ex) { Log.Error("Chronicle", ex); }
         }
 
         private static string Short(Hero h)

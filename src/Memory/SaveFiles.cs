@@ -76,6 +76,7 @@ namespace AILegacy.Memory
             ["ailegacy_obituaries.json"] = new[] { "recent_kills", "executions", "executions_seeded" },
             ["ailegacy_correspondence.json"] = new[] { "letters_muted", "letters_replying", "letters_lost", "approach_muted", "hostile_initiative_day" },
             ["ailegacy_voice_cast.json"] = new[] { "tts_voices" },
+            ["ailegacy_annals.json"] = new[] { "annals" },
         };
 
         /// <summary>Queues the world's files: each subject's keys in its own file, the rest in ailegacy_world.json.</summary>
