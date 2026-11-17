@@ -97,19 +97,25 @@
       <h2>Descripción del mundo <span class="tag" data-own="world.txt"></span></h2>
       <p class="hint">Va al principio de cada conversación, y también se envía a quien escribe los sucesos del mundo y a los reyes cuando hacen una declaración. Escríbelo en inglés (las respuestas salen en tu idioma). Se aplica en la siguiente frase.</p>
       <textarea id="world" style="min-height:260px"></textarea>
-      <div class="row"><button class="btn main" data-click="saveWorld">Guardar</button><button class="btn" data-reset="world.txt" data-click="resetWD" data-args="world.txt">Volver a los del módulo</button></div>
+      <div class="row"><button class="btn main" data-click="saveWorld">Guardar</button><button class="btn" data-click="aiOpen" data-args="desc" data-pass="el">Pedir a la IA</button><button class="btn" data-reset="world.txt" data-click="resetWD" data-args="world.txt">Volver a los del módulo</button></div>
+    </div>
+    <div class="card">
+      <h2>Personalidades de los gobernantes</h2>
+      <p class="hint">Los reyes usan su personalidad escrita por la IA en sus declaraciones. Al empezar la partida no la tienen hasta que hablas con ellos o la generas aquí.</p>
+      <div id="rulersMissing" class="hint"></div>
+      <div class="row"><button class="btn" id="rulersBtn" data-click="rulersGenerate">Generar la personalidad de todos los gobernantes</button> <span id="rulersProgress" class="hint"></span></div>
     </div>
     <div class="card">
       <h2>Hechos públicos <span class="tag" data-own="info.json"></span></h2>
       <p class="hint">Cosas que se saben en el mundo. Cada personaje que encaja tira una vez la probabilidad; si le sale, lo sabe para siempre.</p>
       <div id="k_info"></div>
-      <div class="row"><button class="btn" data-click="addK" data-args="info">Añadir hecho</button><button class="btn main" data-click="saveK" data-args="info">Guardar</button><button class="btn" data-reset="info.json" data-click="resetWD" data-args="info.json">Volver a los del módulo</button></div>
+      <div class="row"><button class="btn" data-click="addK" data-args="info">Añadir hecho</button><button class="btn" data-click="aiOpen" data-args="info" data-pass="el">Pedir a la IA</button><button class="btn main" data-click="saveK" data-args="info">Guardar</button><button class="btn" data-reset="info.json" data-click="resetWD" data-args="info.json">Volver a los del módulo</button></div>
     </div>
     <div class="card">
       <h2>Secretos <span class="tag" data-own="secrets.json"></span></h2>
       <p class="hint">Como los hechos, pero quien lo sabe solo lo cuenta si se fía de ti lo bastante.</p>
       <div id="k_secrets"></div>
-      <div class="row"><button class="btn" data-click="addK" data-args="secrets">Añadir secreto</button><button class="btn main" data-click="saveK" data-args="secrets">Guardar</button><button class="btn" data-reset="secrets.json" data-click="resetWD" data-args="secrets.json">Volver a los del módulo</button></div>
+      <div class="row"><button class="btn" data-click="addK" data-args="secrets">Añadir secreto</button><button class="btn" data-click="aiOpen" data-args="secrets" data-pass="el">Pedir a la IA</button><button class="btn main" data-click="saveK" data-args="secrets">Guardar</button><button class="btn" data-reset="secrets.json" data-click="resetWD" data-args="secrets.json">Volver a los del módulo</button></div>
     </div>
     <div class="card">
       <h2>Moldes de carácter <span class="tag" data-own="archetypes.json"></span></h2>
@@ -128,13 +134,13 @@
         <h2>Fe de cada pueblo <span class="tag" data-own="religion.json"></span></h2>
         <p class="hint">Un texto por cultura. El de «default» vale para las culturas que no tengan el suyo.</p>
         <div id="m_religion"></div>
-        <div class="row"><select id="m_religion_add" style="width:auto" data-change="addMap" data-args="religion" data-pass="el"></select><button class="btn main" data-click="saveMap" data-args="religion">Guardar</button><button class="btn" data-reset="religion.json" data-click="resetWD" data-args="religion.json">Volver a los del módulo</button></div>
+        <div class="row"><select id="m_religion_add" style="width:auto" data-change="addMap" data-args="religion" data-pass="el"></select><button class="btn main" data-click="saveMap" data-args="religion">Guardar</button><button class="btn" data-click="aiOpen" data-args="religions" data-pass="el">Pedir a la IA</button><button class="btn" data-reset="religion.json" data-click="resetWD" data-args="religion.json">Volver a los del módulo</button></div>
       </div>
       <div class="card">
         <h2>Costumbres de cada pueblo <span class="tag" data-own="cultural_traditions.json"></span></h2>
         <p class="hint">Un texto por cultura. El de «default» vale para las culturas que no tengan el suyo.</p>
         <div id="m_traditions"></div>
-        <div class="row"><select id="m_traditions_add" style="width:auto" data-change="addMap" data-args="traditions" data-pass="el"></select><button class="btn main" data-click="saveMap" data-args="traditions">Guardar</button><button class="btn" data-reset="cultural_traditions.json" data-click="resetWD" data-args="cultural_traditions.json">Volver a los del módulo</button></div>
+        <div class="row"><select id="m_traditions_add" style="width:auto" data-change="addMap" data-args="traditions" data-pass="el"></select><button class="btn main" data-click="saveMap" data-args="traditions">Guardar</button><button class="btn" data-click="aiOpen" data-args="traditions" data-pass="el">Pedir a la IA</button><button class="btn" data-reset="cultural_traditions.json" data-click="resetWD" data-args="cultural_traditions.json">Volver a los del módulo</button></div>
       </div>
     </div>
       <div class="card">
@@ -442,7 +448,7 @@ async function load() {
   loadWorld();
   $('e_kingdoms').innerHTML = state.kingdoms.map(k => `<label><input type="checkbox" value="${esc(k.id)}"> ${esc(k.name)}</label>`).join('');
   npcFilters(); renderNpcs(); renderNews();
-  files = await api('/api/files'); renderFiles(); loadItems(); loadStorySecrets();
+  files = await api('/api/files'); renderFiles(); loadItems(); loadStorySecrets(); loadRulers();
   if ($('t-service').classList.contains('on')) loadBackups().catch(() => {});
 }
 // Fresh state for the NPC list only: the world forms keep whatever is being typed in them
@@ -824,6 +830,104 @@ async function editFace() {
   toast(T('El editor de cara está abierto en el juego.'));
 }
 
+// ---- the AI writes parts of the world: generated here, applied to the editor, saved with the editor's own buttons
+const AI_TITLE = { desc:'IA: descripción del mundo', info:'IA: hechos públicos', secrets:'IA: secretos del mundo', traditions:'IA: costumbres de cada pueblo', religions:'IA: fe de cada pueblo' };
+let aiKind = null, aiTimer = null;
+function aiPanel() {
+  let pn = $('aiPanel');
+  if (pn) return pn;
+  pn = document.createElement('div');
+  pn.id = 'aiPanel'; pn.className = 'card'; pn.style.marginTop = '10px'; pn.style.borderColor = '#d9b25f';
+  pn.innerHTML = `<h2 id="aiTitle"></h2><p class="hint" id="aiHelp"></p>
+    <div id="aiModeBox"><label>${esc(T('Qué se envía a la IA'))}</label><select id="aiMode"><option value="1">${esc(T('La descripción del mundo y mi petición'))}</option><option value="0">${esc(T('Solo mi petición'))}</option></select></div>
+    <label>${esc(T('Tu petición'))}</label><textarea id="aiRequest" placeholder="${esc(T('Describe lo que debe escribir la IA…'))}"></textarea>
+    <div class="row"><button class="btn main" data-click="aiGenerate">${esc(T('Generar'))}</button> <span id="aiStatus" class="hint"></span></div>
+    <label>${esc(T('Lo que ha escrito la IA'))}</label><textarea id="aiResult" style="min-height:160px"></textarea>
+    <div class="row"><button class="btn" id="aiApply" data-click="aiApply" data-args="replace">${esc(T('Pasar al editor'))}</button><button class="btn" id="aiAppend" data-click="aiApply" data-args="append">${esc(T('Añadir a la lista'))}</button><button class="btn" id="aiReplace" data-click="aiApply" data-args="replace">${esc(T('Reemplazar todo'))}</button><button class="btn" data-click="aiCopy">${esc(T('Copiar'))}</button><button class="btn" data-click="aiClose">${esc(T('Cerrar'))}</button></div>`;
+  return pn;
+}
+function aiOpen(kind, el) {
+  aiKind = kind;
+  const pn = aiPanel(), card = el.closest('.card');
+  card.after(pn); pn.style.display = '';
+  $('aiTitle').textContent = T(AI_TITLE[kind]);
+  $('aiHelp').textContent = kind === 'desc'
+    ? T('La IA te ayuda a escribir la descripción del mundo. Cuenta el escenario, el tono y la historia que quieres; revisa el resultado y pásalo al editor. No se guarda nada hasta que pulses Guardar.')
+    : T('La IA te ayuda a escribir entradas para esta lista. Elige qué se le envía; revisa el resultado y añádelo o reemplaza la lista. Guarda cuando esté bien.');
+  $('aiModeBox').style.display = kind === 'desc' ? 'none' : '';
+  $('aiApply').style.display = kind === 'desc' ? '' : 'none';
+  $('aiAppend').style.display = $('aiReplace').style.display = kind === 'desc' ? 'none' : '';
+  $('aiResult').value = ''; $('aiStatus').textContent = '';
+}
+function aiClose() { const pn = $('aiPanel'); if (pn) pn.style.display = 'none'; clearInterval(aiTimer); }
+async function aiGenerate() {
+  const withWorld = aiKind === 'desc' || $('aiMode').value === '1';
+  const req = $('aiRequest').value.trim();
+  if (!req && !(aiKind === 'desc' && $('world').value.trim())) { toast(T('Escribe tu petición para este modo.'), true); return; }
+  await api('/api/world/ai', { kind:aiKind, request:req, with_world:withWorld, world:$('world').value });
+  $('aiStatus').textContent = T('Generando… puede tardar un minuto.');
+  clearInterval(aiTimer);
+  aiTimer = setInterval(async () => {
+    const st = await api('/api/world/ai/status');
+    if (st.busy) return;
+    clearInterval(aiTimer);
+    if (st.error) { $('aiStatus').textContent = T('La IA no ha podido: ') + st.error; return; }
+    $('aiStatus').textContent = '';
+    $('aiResult').value = st.result || '';
+  }, 1500);
+}
+function aiParse(text, wantArray) {
+  const a = text.indexOf(wantArray ? '[' : '{'), b = text.lastIndexOf(wantArray ? ']' : '}');
+  if (a < 0 || b <= a) throw new Error('JSON');
+  return JSON.parse(text.slice(a, b + 1));
+}
+function aiApply(how) {
+  const text = $('aiResult').value.trim();
+  if (!text) return;
+  try {
+    if (aiKind === 'desc') { $('world').value = text; toast(T('Pasado al editor: pulsa Guardar.')); return; }
+    if (aiKind === 'info' || aiKind === 'secrets') {
+      if (how === 'replace' && !confirm(T('¿Reemplazar todas las entradas por lo que ha escrito la IA?'))) return;
+      const items = aiParse(text, true).filter(x => x && x.text).map(x => ({ id:'', text:String(x.text), chance:Number.isInteger(+x.chance) ? +x.chance : 50, access:['low','medium','high'].includes(x.access) ? x.access : 'medium', who:Array.isArray(x.who) ? x.who.filter(w => /^(kingdom|culture):/.test(w)) : [], about:[] }));
+      K[aiKind] = how === 'replace' ? items : K[aiKind].concat(items);
+      renderK(aiKind);
+    } else {
+      const map = aiKind === 'religions' ? 'religion' : 'traditions';
+      if (how === 'replace' && !confirm(T('¿Reemplazar todas las entradas por lo que ha escrito la IA?'))) return;
+      const obj = aiParse(text, false), rows = how === 'replace' ? [] : MAPS[map].slice();
+      for (const [key, val] of Object.entries(obj)) { const at = rows.findIndex(r => r.key === key); if (at >= 0) rows[at].text = String(val); else rows.push({ key, text:String(val) }); }
+      MAPS[map] = rows; renderMap(map);
+    }
+    toast(T('Pasado al editor: pulsa Guardar.'));
+  } catch { toast(T('La respuesta de la IA no se puede leer como lista. Prueba otra vez.'), true); }
+}
+async function aiCopy() { try { await navigator.clipboard.writeText($('aiResult').value); toast(T('Copiado')); } catch { $('aiResult').select(); } }
+
+// ---- rulers' personalities, all at once
+async function loadRulers() {
+  try {
+    const r = await api('/api/rulers/missing');
+    $('rulersMissing').textContent = r.length ? T('Gobernantes sin personalidad de IA: ') + r.map(x => x.name + ' (' + x.kingdom + ')').join(', ') : T('Todos los gobernantes tienen ya su personalidad de IA.');
+    $('rulersBtn').disabled = !r.length;
+  } catch {}
+}
+let rulersTimer = null;
+async function rulersGenerate() {
+  const r = await api('/api/rulers/missing');
+  if (!r.length) { loadRulers(); return; }
+  if (!confirm(T('¿Enviar a la IA una petición por gobernante para escribir la personalidad de ') + r.length + T(' gobernantes? Puede tardar unos minutos.'))) return;
+  await api('/api/rulers/generate_all', {});
+  $('rulersBtn').disabled = true;
+  clearInterval(rulersTimer);
+  rulersTimer = setInterval(async () => {
+    const st = await api('/api/rulers/status');
+    if (st.busy) { $('rulersProgress').textContent = T('Generando ') + st.current + ' / ' + st.total + ': ' + st.name + '…'; return; }
+    clearInterval(rulersTimer);
+    $('rulersProgress').textContent = T('Hecho: ') + st.ok + T(' generadas, ') + st.fail + T(' fallidas.');
+    loadRulers();
+  }, 2000);
+}
+
 async function generateNpc() {
   if (!npcId || !confirm(T('¿Generar la personalidad con IA? Pisa la ficha actual.'))) return;
   const id = npcId;
@@ -928,7 +1032,7 @@ async function importData() {
 // Buttons and fields say what they do in data-click, data-input, data-change or data-toggle: a name from ACTIONS,
 // with its fixed arguments in data-args and, in data-pass, what of the element goes last (its value, whether it is
 // open, or the element). No handler is written into the markup.
-const ACTIONS = { aRemove, aRole, aSet, addArch, addVoice, saveVoices, vRemove, vSet, addItem, addK, addMap, clearHistory, copyDefaults, createCompanion, createFamily, deleteNpc, editFace, famAdd, famLinks, famRemove, exportData, generateNpc, importData, kAbout, kDel, kRemove, kSearch, kSet, kWho, loadBackups, loadUsage, mRemove, mSet, openDir, publishEvent, renderFiles, renderNpcs, resetFile, resetWD, restoreBackup, saveArch, saveFile, saveK, saveMap, saveNpc, savePlayer, saveWorld, searchEventHeroes, searchHeroes };
+const ACTIONS = { aiApply, aiClose, aiCopy, aiGenerate, aiOpen, rulersGenerate, aRemove, aRole, aSet, addArch, addVoice, saveVoices, vRemove, vSet, addItem, addK, addMap, clearHistory, copyDefaults, createCompanion, createFamily, deleteNpc, editFace, famAdd, famLinks, famRemove, exportData, generateNpc, importData, kAbout, kDel, kRemove, kSearch, kSet, kWho, loadBackups, loadUsage, mRemove, mSet, openDir, publishEvent, renderFiles, renderNpcs, resetFile, resetWD, restoreBackup, saveArch, saveFile, saveK, saveMap, saveNpc, savePlayer, saveWorld, searchEventHeroes, searchHeroes };
 for (const type of ['click', 'input', 'change', 'toggle']) {
   // toggle does not bubble, so everything is caught on the way down
   document.addEventListener(type, e => {

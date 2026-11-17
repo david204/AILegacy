@@ -2995,5 +2995,47 @@
     <string id="AIL_e7b1deca" text="Закончились: следующая партия через {0} дн." />
     <string id="AIL_e7b1decb" text="Недостаточно {0}, и здесь их не делают." />
     <string id="AIL_e7b1decc" text="Недостаточно {0}: следующая партия через {1} дн." />
+    <string id="AIL_e7b1ded0" text="Напишите свой запрос для этого режима." />
+    <string id="AIL_e7b1ded1" text="Попросить ИИ" />
+    <string id="AIL_e7b1ded2" text="Характеры правителей" />
+    <string id="AIL_e7b1ded3" text="Короли используют в заявлениях характер, написанный ИИ. В начале кампании его нет, пока вы с ними не поговорите или не создадите его здесь." />
+    <string id="AIL_e7b1ded4" text="Создать характеры всех правителей" />
+    <string id="AIL_e7b1ded5" text="ИИ: описание мира" />
+    <string id="AIL_e7b1ded6" text="ИИ: общеизвестные факты" />
+    <string id="AIL_e7b1ded7" text="ИИ: тайны мира" />
+    <string id="AIL_e7b1ded8" text="ИИ: обычаи каждого народа" />
+    <string id="AIL_e7b1ded9" text="ИИ: вера каждого народа" />
+    <string id="AIL_e7b1deda" text="Что отправляется ИИ" />
+    <string id="AIL_e7b1dedb" text="Описание мира и мой запрос" />
+    <string id="AIL_e7b1dedc" text="Только мой запрос" />
+    <string id="AIL_e7b1dedd" text="Ваш запрос" />
+    <string id="AIL_e7b1dede" text="Опишите, что должен написать ИИ…" />
+    <string id="AIL_e7b1dedf" text="Что написал ИИ" />
+    <string id="AIL_e7b1dee0" text="Перенести в редактор" />
+    <string id="AIL_e7b1dee1" text="Добавить в список" />
+    <string id="AIL_e7b1dee2" text="Заменить всё" />
+    <string id="AIL_e7b1dee3" text="Копировать" />
+    <string id="AIL_e7b1dee4" text="ИИ поможет написать описание мира. Расскажите обстановку, тон и историю; проверьте результат и перенесите в редактор. Ничего не сохраняется, пока вы не нажмёте «Сохранить»." />
+    <string id="AIL_e7b1dee5" text="ИИ поможет написать записи для этого списка. Выберите, что ему отправить; проверьте результат и добавьте его или замените список. Сохраните, когда всё готово." />
+    <string id="AIL_e7b1dee6" text="Создаётся… это может занять минуту." />
+    <string id="AIL_e7b1dee7" text="ИИ не смог: " />
+    <string id="AIL_e7b1dee8" text="Перенесено в редактор: нажмите «Сохранить»." />
+    <string id="AIL_e7b1dee9" text="Заменить все записи тем, что написал ИИ?" />
+    <string id="AIL_e7b1deea" text="Ответ ИИ не читается как список. Попробуйте ещё раз." />
+    <string id="AIL_e7b1deeb" text="Скопировано" />
+    <string id="AIL_e7b1deec" text="Правители без характера от ИИ: " />
+    <string id="AIL_e7b1deed" text="У всех правителей уже есть характер от ИИ." />
+    <string id="AIL_e7b1deee" text="Отправить ИИ по запросу на правителя, чтобы написать характеры " />
+    <string id="AIL_e7b1deef" text=" правителей? Это может занять несколько минут." />
+    <string id="AIL_e7b1def0" text="Создаётся " />
+    <string id="AIL_e7b1def1" text="Готово: " />
+    <string id="AIL_e7b1def2" text=" создано, " />
+    <string id="AIL_e7b1def3" text=" с ошибкой." />
+    <string id="AIL_e7b1def4" text="Своя музыка в главном меню" />
+    <string id="AIL_e7b1def5" text="Ваши .ogg из Modules\AILegacy\music\menu звучат в главном меню вместо музыки игры. Мод не содержит музыки: при пустой папке ничего не меняется." />
+    <string id="AIL_e7b1def6" text="Своя музыка на карте кампании" />
+    <string id="AIL_e7b1def7" text="Ваши .ogg звучат на карте кампании: music\army в армии, music\map\[культура] по земле, где вы находитесь (empire, sturgia, aserai, vlandia, khuzait, battania, nord), иначе music\map, с паузой 30–60 секунд между треками. При пустых папках ничего не меняется." />
+    <string id="AIL_e7b1def8" text="Своя музыка меню и карты: громкость музыки игры в это время (%)" />
+    <string id="AIL_e7b1def9" text="Насколько громко звучит музыка игры, пока играет ваша в меню или на карте. 0 = ваша вместо неё. По умолчанию: 0." />
   </strings>
 </base>

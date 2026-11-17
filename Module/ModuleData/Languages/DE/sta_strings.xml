@@ -2995,5 +2995,47 @@
     <string id="AIL_e7b1deca" text="Aufgebraucht: das nächste Bündel kommt in {0} Tagen." />
     <string id="AIL_e7b1decb" text="Nicht genug {0} übrig, und hier werden keine gemacht." />
     <string id="AIL_e7b1decc" text="Nicht genug {0} übrig: das nächste Bündel kommt in {1} Tagen." />
+    <string id="AIL_e7b1ded0" text="Schreibe deine Anfrage für diesen Modus." />
+    <string id="AIL_e7b1ded1" text="Die KI fragen" />
+    <string id="AIL_e7b1ded2" text="Persönlichkeiten der Herrscher" />
+    <string id="AIL_e7b1ded3" text="Könige nutzen in ihren Erklärungen die Persönlichkeit, die die KI für sie schrieb. Zu Beginn der Kampagne haben sie keine, bis du mit ihnen sprichst oder sie hier erzeugst." />
+    <string id="AIL_e7b1ded4" text="Persönlichkeit aller Herrscher erzeugen" />
+    <string id="AIL_e7b1ded5" text="KI: Weltbeschreibung" />
+    <string id="AIL_e7b1ded6" text="KI: öffentliche Fakten" />
+    <string id="AIL_e7b1ded7" text="KI: Geheimnisse der Welt" />
+    <string id="AIL_e7b1ded8" text="KI: Bräuche jedes Volkes" />
+    <string id="AIL_e7b1ded9" text="KI: Glaube jedes Volkes" />
+    <string id="AIL_e7b1deda" text="Was an die KI geht" />
+    <string id="AIL_e7b1dedb" text="Die Weltbeschreibung und meine Anfrage" />
+    <string id="AIL_e7b1dedc" text="Nur meine Anfrage" />
+    <string id="AIL_e7b1dedd" text="Deine Anfrage" />
+    <string id="AIL_e7b1dede" text="Beschreibe, was die KI schreiben soll…" />
+    <string id="AIL_e7b1dedf" text="Was die KI geschrieben hat" />
+    <string id="AIL_e7b1dee0" text="In den Editor übernehmen" />
+    <string id="AIL_e7b1dee1" text="Zur Liste hinzufügen" />
+    <string id="AIL_e7b1dee2" text="Alles ersetzen" />
+    <string id="AIL_e7b1dee3" text="Kopieren" />
+    <string id="AIL_e7b1dee4" text="Die KI hilft dir, die Weltbeschreibung zu schreiben. Nenne Schauplatz, Ton und Geschichte; prüfe das Ergebnis und übernimm es in den Editor. Nichts wird gespeichert, bevor du Speichern drückst." />
+    <string id="AIL_e7b1dee5" text="Die KI hilft dir, Einträge für diese Liste zu schreiben. Wähle, was an sie geht; prüfe das Ergebnis und füge es hinzu oder ersetze die Liste. Speichere, wenn es passt." />
+    <string id="AIL_e7b1dee6" text="Wird erzeugt… das kann eine Minute dauern." />
+    <string id="AIL_e7b1dee7" text="Die KI konnte es nicht: " />
+    <string id="AIL_e7b1dee8" text="In den Editor übernommen: drücke Speichern." />
+    <string id="AIL_e7b1dee9" text="Alle Einträge durch das ersetzen, was die KI geschrieben hat?" />
+    <string id="AIL_e7b1deea" text="Die Antwort der KI lässt sich nicht als Liste lesen. Versuch es noch einmal." />
+    <string id="AIL_e7b1deeb" text="Kopiert" />
+    <string id="AIL_e7b1deec" text="Herrscher ohne KI-Persönlichkeit: " />
+    <string id="AIL_e7b1deed" text="Alle Herrscher haben schon eine KI-Persönlichkeit." />
+    <string id="AIL_e7b1deee" text="Der KI eine Anfrage pro Herrscher schicken, um die Persönlichkeit von " />
+    <string id="AIL_e7b1deef" text=" Herrschern zu schreiben? Das kann einige Minuten dauern." />
+    <string id="AIL_e7b1def0" text="Erzeuge " />
+    <string id="AIL_e7b1def1" text="Fertig: " />
+    <string id="AIL_e7b1def2" text=" erzeugt, " />
+    <string id="AIL_e7b1def3" text=" fehlgeschlagen." />
+    <string id="AIL_e7b1def4" text="Eigene Musik im Hauptmenü" />
+    <string id="AIL_e7b1def5" text="Deine eigenen .ogg-Dateien in Modules\AILegacy\music\menu laufen im Hauptmenü statt der Spielmusik. Die Mod bringt keine Musik mit: bei leerem Ordner ändert sich nichts." />
+    <string id="AIL_e7b1def6" text="Eigene Musik auf der Kampagnenkarte" />
+    <string id="AIL_e7b1def7" text="Deine eigenen .ogg laufen auf der Kampagnenkarte: music\army in einem Heer, music\map\[Kultur] je nach Land, in dem du bist (empire, sturgia, aserai, vlandia, khuzait, battania, nord), sonst music\map, mit 30 bis 60 Sekunden Pause zwischen den Stücken. Bei leeren Ordnern ändert sich nichts." />
+    <string id="AIL_e7b1def8" text="Eigene Menü- und Kartenmusik: Lautstärke der Spielmusik währenddessen (%)" />
+    <string id="AIL_e7b1def9" text="Wie laut die Spielmusik bleibt, während deine im Menü oder auf der Karte läuft. 0 = deine statt ihrer. Standard: 0." />
   </strings>
 </base>

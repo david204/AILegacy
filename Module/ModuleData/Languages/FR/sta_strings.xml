@@ -2995,5 +2995,47 @@
     <string id="AIL_e7b1deca" text="Épuisées : le prochain lot arrive dans {0} jours." />
     <string id="AIL_e7b1decb" text="Il ne reste pas assez de {0}, et on n'en fait pas ici." />
     <string id="AIL_e7b1decc" text="Il ne reste pas assez de {0} : le prochain lot arrive dans {1} jours." />
+    <string id="AIL_e7b1ded0" text="Écrivez votre demande pour ce mode." />
+    <string id="AIL_e7b1ded1" text="Demander à l'IA" />
+    <string id="AIL_e7b1ded2" text="Personnalités des souverains" />
+    <string id="AIL_e7b1ded3" text="Les rois utilisent dans leurs déclarations la personnalité écrite par l'IA. En début de partie, ils n'en ont pas tant que vous ne leur parlez pas ou que vous ne la générez pas ici." />
+    <string id="AIL_e7b1ded4" text="Générer la personnalité de tous les souverains" />
+    <string id="AIL_e7b1ded5" text="IA : description du monde" />
+    <string id="AIL_e7b1ded6" text="IA : faits publics" />
+    <string id="AIL_e7b1ded7" text="IA : secrets du monde" />
+    <string id="AIL_e7b1ded8" text="IA : coutumes de chaque peuple" />
+    <string id="AIL_e7b1ded9" text="IA : foi de chaque peuple" />
+    <string id="AIL_e7b1deda" text="Ce qui est envoyé à l'IA" />
+    <string id="AIL_e7b1dedb" text="La description du monde et ma demande" />
+    <string id="AIL_e7b1dedc" text="Ma demande seulement" />
+    <string id="AIL_e7b1dedd" text="Votre demande" />
+    <string id="AIL_e7b1dede" text="Décrivez ce que l'IA doit écrire…" />
+    <string id="AIL_e7b1dedf" text="Ce que l'IA a écrit" />
+    <string id="AIL_e7b1dee0" text="Mettre dans l'éditeur" />
+    <string id="AIL_e7b1dee1" text="Ajouter à la liste" />
+    <string id="AIL_e7b1dee2" text="Tout remplacer" />
+    <string id="AIL_e7b1dee3" text="Copier" />
+    <string id="AIL_e7b1dee4" text="L'IA vous aide à écrire la description du monde. Indiquez le cadre, le ton et l'histoire voulus ; vérifiez le résultat et mettez-le dans l'éditeur. Rien n'est enregistré avant d'appuyer sur Enregistrer." />
+    <string id="AIL_e7b1dee5" text="L'IA vous aide à écrire des entrées pour cette liste. Choisissez ce qui lui est envoyé ; vérifiez le résultat puis ajoutez-le ou remplacez la liste. Enregistrez quand c'est bon." />
+    <string id="AIL_e7b1dee6" text="Génération… cela peut prendre une minute." />
+    <string id="AIL_e7b1dee7" text="L'IA n'a pas pu : " />
+    <string id="AIL_e7b1dee8" text="Mis dans l'éditeur : appuyez sur Enregistrer." />
+    <string id="AIL_e7b1dee9" text="Remplacer toutes les entrées par ce que l'IA a écrit ?" />
+    <string id="AIL_e7b1deea" text="La réponse de l'IA ne peut pas être lue comme une liste. Réessayez." />
+    <string id="AIL_e7b1deeb" text="Copié" />
+    <string id="AIL_e7b1deec" text="Souverains sans personnalité d'IA : " />
+    <string id="AIL_e7b1deed" text="Tous les souverains ont déjà leur personnalité d'IA." />
+    <string id="AIL_e7b1deee" text="Envoyer à l'IA une demande par souverain pour écrire la personnalité de " />
+    <string id="AIL_e7b1deef" text=" souverains ? Cela peut prendre quelques minutes." />
+    <string id="AIL_e7b1def0" text="Génération " />
+    <string id="AIL_e7b1def1" text="Terminé : " />
+    <string id="AIL_e7b1def2" text=" générées, " />
+    <string id="AIL_e7b1def3" text=" échouées." />
+    <string id="AIL_e7b1def4" text="Musique perso dans le menu principal" />
+    <string id="AIL_e7b1def5" text="Vos propres fichiers .ogg de Modules\AILegacy\music\menu jouent dans le menu principal à la place de la musique du jeu. Le mod n'inclut aucune musique : dossier vide, rien ne change." />
+    <string id="AIL_e7b1def6" text="Musique perso sur la carte de campagne" />
+    <string id="AIL_e7b1def7" text="Vos propres .ogg jouent sur la carte de campagne : music\army en armée, music\map\[culture] selon la terre où vous êtes (empire, sturgia, aserai, vlandia, khuzait, battania, nord), sinon music\map, avec une pause de 30 à 60 secondes entre les morceaux. Dossiers vides, rien ne change." />
+    <string id="AIL_e7b1def8" text="Musique perso du menu et de la carte : volume de la musique du jeu pendant ce temps (%)" />
+    <string id="AIL_e7b1def9" text="Volume de la musique du jeu pendant que la vôtre joue dans le menu ou sur la carte. 0 = la vôtre à sa place. Par défaut : 0." />
   </strings>
 </base>

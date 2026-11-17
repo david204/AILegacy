@@ -2995,5 +2995,47 @@
     <string id="AIL_e7b1deca" text="已用完：下一批将在 {0} 天后到来。" />
     <string id="AIL_e7b1decb" text="{0} 不够了，且此地不制作。" />
     <string id="AIL_e7b1decc" text="{0} 不够了：下一批将在 {1} 天后到来。" />
+    <string id="AIL_e7b1ded0" text="请为此模式写下你的要求。" />
+    <string id="AIL_e7b1ded1" text="让 AI 生成" />
+    <string id="AIL_e7b1ded2" text="统治者的性格" />
+    <string id="AIL_e7b1ded3" text="国王在声明中会用到 AI 为其写下的性格。战役开始时他们还没有，直到你和他们交谈或在此生成。" />
+    <string id="AIL_e7b1ded4" text="为所有统治者生成性格" />
+    <string id="AIL_e7b1ded5" text="AI：世界描述" />
+    <string id="AIL_e7b1ded6" text="AI：公开事实" />
+    <string id="AIL_e7b1ded7" text="AI：世界秘密" />
+    <string id="AIL_e7b1ded8" text="AI：各民族习俗" />
+    <string id="AIL_e7b1ded9" text="AI：各民族信仰" />
+    <string id="AIL_e7b1deda" text="发送给 AI 的内容" />
+    <string id="AIL_e7b1dedb" text="世界描述和我的要求" />
+    <string id="AIL_e7b1dedc" text="只发送我的要求" />
+    <string id="AIL_e7b1dedd" text="你的要求" />
+    <string id="AIL_e7b1dede" text="描述 AI 应该写什么…" />
+    <string id="AIL_e7b1dedf" text="AI 写的内容" />
+    <string id="AIL_e7b1dee0" text="放入编辑器" />
+    <string id="AIL_e7b1dee1" text="添加到列表" />
+    <string id="AIL_e7b1dee2" text="全部替换" />
+    <string id="AIL_e7b1dee3" text="复制" />
+    <string id="AIL_e7b1dee4" text="AI 帮你写世界描述。说明你想要的背景、基调和历史；检查结果后放入编辑器。按下保存之前不会保存任何内容。" />
+    <string id="AIL_e7b1dee5" text="AI 帮你为这个列表写条目。选择发送给它的内容；检查结果后添加或替换列表。满意后保存。" />
+    <string id="AIL_e7b1dee6" text="生成中…可能需要一分钟。" />
+    <string id="AIL_e7b1dee7" text="AI 未能完成：" />
+    <string id="AIL_e7b1dee8" text="已放入编辑器：请按保存。" />
+    <string id="AIL_e7b1dee9" text="用 AI 写的内容替换所有条目吗？" />
+    <string id="AIL_e7b1deea" text="无法把 AI 的回答读成列表。请重试。" />
+    <string id="AIL_e7b1deeb" text="已复制" />
+    <string id="AIL_e7b1deec" text="没有 AI 性格的统治者：" />
+    <string id="AIL_e7b1deed" text="所有统治者都已有 AI 性格。" />
+    <string id="AIL_e7b1deee" text="要向 AI 为每位统治者发送一次请求，写出以下数量统治者的性格吗：" />
+    <string id="AIL_e7b1deef" text=" 位？可能需要几分钟。" />
+    <string id="AIL_e7b1def0" text="生成中 " />
+    <string id="AIL_e7b1def1" text="完成：" />
+    <string id="AIL_e7b1def2" text=" 个已生成，" />
+    <string id="AIL_e7b1def3" text=" 个失败。" />
+    <string id="AIL_e7b1def4" text="主菜单使用自己的音乐" />
+    <string id="AIL_e7b1def5" text="Modules\AILegacy\music\menu 中你自己的 .ogg 文件会在主菜单代替游戏音乐播放。本模组不附带音乐：文件夹为空时一切照旧。" />
+    <string id="AIL_e7b1def6" text="战役地图使用自己的音乐" />
+    <string id="AIL_e7b1def7" text="你自己的 .ogg 会在战役地图上播放：在军团中时播放 music\army，否则按所在地区播放 music\map\[文化]（empire、sturgia、aserai、vlandia、khuzait、battania、nord），再否则播放 music\map，曲目之间休息 30 到 60 秒。文件夹为空时一切照旧。" />
+    <string id="AIL_e7b1def8" text="自己的菜单与地图音乐：期间游戏音乐音量（%）" />
+    <string id="AIL_e7b1def9" text="你的音乐在菜单或地图播放时，游戏音乐保留的音量。0 = 用你的代替。默认：0。" />
   </strings>
 </base>

@@ -13,14 +13,23 @@ using Path = System.IO.Path;
 namespace AILegacy.Dialogue
 {
     /// <summary>
-    /// The player's own music during a conversation. The mod ships no audio: whatever .ogg files are dropped into
-    /// Modules\AILegacy\music\[moment]\ get played, one at a time, picked by how the talk is going (talk, tense,
-    /// romance, sad, victory). The game's music is turned down while a track plays and back up afterwards.
+    /// The player's own music. The mod ships no audio: whatever .ogg files are dropped into Modules\AILegacy\music\[folder]\
+    /// get played, one at a time. In a conversation the folder is picked by how the talk is going (talk, tense, romance, sad,
+    /// victory). Outside one, as AIInfluence has its own music there: the main menu plays «menu», and the campaign map
+    /// «army» while you ride in an army, else «map\[culture]» for the land you are in (empire, vlandia…), else «map», with a
+    /// rest of 30 to 60 seconds between pieces. The game's music is turned down while ours plays and back up afterwards.
     /// Files are played with the engine's own external-file sound event, the one the game uses for its voiced lines.
     /// </summary>
     internal static class TalkMusic
     {
-        public static readonly string[] Moments = { "talk", "tense", "romance", "sad", "victory" };
+        public static readonly string[] Moments = { "talk", "tense", "romance", "sad", "victory", "menu", "map", "army" };
+        private static readonly string[] Cultures = { "empire", "sturgia", "aserai", "vlandia", "khuzait", "battania", "nord" };
+
+        // between two pieces of the menu or map music, a rest (AIInfluence's themes rest 30 to 60 seconds)
+        private static DateTime _restUntil = DateTime.MinValue;
+        private static bool _ambient;
+        private static string _land;
+        private static float _landAge = 999f;
 
         // FMOD event the game plays its .ogg voiced lines through (SandBox conversation and notification code)
         private const string ProgrammerEvent = "event:/Extra/voiceover";
@@ -54,8 +63,8 @@ namespace AILegacy.Dialogue
                 if (_ducked || _sound != null) Silence();
                 return;
             }
-            bool on = S.Get.EnableTalkMusic;
-            if (!on && _sound == null && !_ducked) return;
+            bool on = S.Get.EnableTalkMusic, menuOn = S.Get.EnableMenuMusic, mapOn = S.Get.EnableMapMusic;
+            if (!on && !menuOn && !mapOn && _sound == null && !_ducked) return;
             try
             {
                 Fade(dt);
@@ -65,10 +74,33 @@ namespace AILegacy.Dialogue
                 _poll = 0.5f;
 
                 // A talk that was closed but is still referenced counts as over
-                var session = on && ChatSession.IsBusy ? ChatSession.Active : null;
+                var session = on && Campaign.Current != null && ChatSession.IsBusy ? ChatSession.Active : null;
                 var who = session?.Who;
-                if (who == null || Campaign.Current == null) { StopTrack(); return; }
                 EnsureFolders();
+                if (who == null)
+                {
+                    // the menu or the map, with music of the player's own for them
+                    string amb = AmbientFolder(menuOn, mapOn);
+                    // nothing of ours for this place (or the talk is over): back to the game's music
+                    if (amb == null) { _restUntil = DateTime.MinValue; if (_ambient || _sound != null) StopTrack(); return; }
+                    bool going = _sound != null && _sound.IsValid && _sound.IsPlaying();
+                    if (_ambient && going)
+                    {
+                        // a piece goes on until it ends, or until the place changes (not before 20 seconds)
+                        if (amb == _folder || _playedFor < MinSecondsBeforeSwitch) return;
+                        Start(amb, amb);
+                        return;
+                    }
+                    // a piece just ended: a rest before the next one, the game's music still down
+                    if (_ambient && _sound != null) { ReleaseSound(); _restUntil = DateTime.UtcNow.AddSeconds(30 + Rng.NextDouble() * 30); }
+                    else if (!_ambient && _sound != null) ReleaseSound();      // a talk's piece left over
+                    if (DateTime.UtcNow < _restUntil) return;
+                    _ambient = true;
+                    Start(amb, amb);
+                    return;
+                }
+                // a talk takes over from the menu or map music at once
+                if (_ambient) { _ambient = false; _restUntil = DateTime.MinValue; ReleaseSound(); _folder = null; }
 
                 string wanted = MomentFor(who);
                 // A moment with an empty folder falls back to the "talk" folder
@@ -102,6 +134,7 @@ namespace AILegacy.Dialogue
         public static void ResetSession()
         {
             Silence();
+            _ambient = false; _restUntil = DateTime.MinValue; _land = null; _landAge = 999f;
             _shortRuns = 0;
             _playedFor = 0f;
             _poll = 0f;
@@ -115,6 +148,44 @@ namespace AILegacy.Dialogue
         {
             try { StopTrack(); } catch { _sound = null; _folder = null; }
             try { RestoreNow(); } catch { _ducked = false; }
+        }
+
+        // ------------------------------------------------------------ the menu and the map
+
+        /// <summary>The menu's or the map's folder with files in it right now, or null when ours should not play.</summary>
+        private static string AmbientFolder(bool menuOn, bool mapOn)
+        {
+            if (Campaign.Current == null)
+            {
+                if (!menuOn || TaleWorlds.MountAndBlade.Mission.Current != null) return null;
+                return FilesFor("menu").Length > 0 ? "menu" : null;
+            }
+            if (!mapOn || TaleWorlds.MountAndBlade.Mission.Current != null) return null;
+            if (!(TaleWorlds.Core.Game.Current?.GameStateManager?.ActiveState is TaleWorlds.CampaignSystem.GameState.MapState)) return null;
+            var main = TaleWorlds.CampaignSystem.Party.MobileParty.MainParty;
+            if (main?.Army != null && FilesFor("army").Length > 0) return "army";
+            string land = Land();
+            if (land != null && FilesFor(Path.Combine("map", land)).Length > 0) return Path.Combine("map", land);
+            return FilesFor("map").Length > 0 ? "map" : null;
+        }
+
+        /// <summary>The culture of the land the party is in: that of the nearest town or castle (looked at every 30 seconds).</summary>
+        private static string Land()
+        {
+            _landAge += 0.5f;
+            if (_landAge < 30f) return _land;
+            _landAge = 0f;
+            try
+            {
+                var main = TaleWorlds.CampaignSystem.Party.MobileParty.MainParty;
+                if (main == null) return _land = null;
+                var pos = main.GetPosition2D;
+                var near = TaleWorlds.CampaignSystem.Settlements.Settlement.All.Where(x => x.IsFortification)
+                    .OrderBy(x => x.GetPosition2D.DistanceSquared(pos)).FirstOrDefault();
+                _land = near?.Culture?.StringId;
+            }
+            catch { _land = null; }
+            return _land;
         }
 
         // ------------------------------------------------------------ which moment
@@ -160,6 +231,7 @@ namespace AILegacy.Dialogue
             try
             {
                 foreach (var m in Moments) Directory.CreateDirectory(Path.Combine(Root, m));
+                foreach (var c in Cultures) Directory.CreateDirectory(Path.Combine(Root, "map", c));
             }
             catch (Exception ex) { Log.Warn("Own music: could not create folders: " + ex.Message); }
         }
@@ -216,6 +288,7 @@ namespace AILegacy.Dialogue
         {
             if (_sound != null) ReleaseSound();
             _folder = null;
+            _ambient = false;
             if (_ducked) _targetVolume = _savedVolume;
         }
 
@@ -253,7 +326,8 @@ namespace AILegacy.Dialogue
                 _volume = _savedVolume;
                 _ducked = true;
             }
-            _targetVolume = _savedVolume * Math.Max(0, Math.Min(100, S.Get.TalkMusicGameVolumePercent)) / 100f;
+            int pct = _ambient ? S.Get.AmbientMusicGameVolumePercent : S.Get.TalkMusicGameVolumePercent;
+            _targetVolume = _savedVolume * Math.Max(0, Math.Min(100, pct)) / 100f;
         }
 
         private static void Fade(float dt)

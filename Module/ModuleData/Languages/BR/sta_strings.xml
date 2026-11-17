@@ -2995,5 +2995,47 @@
     <string id="AIL_e7b1deca" text="Esgotadas: o próximo lote chega em {0} dias." />
     <string id="AIL_e7b1decb" text="Não restam {0} suficientes e aqui não se fazem." />
     <string id="AIL_e7b1decc" text="Não restam {0} suficientes: o próximo lote chega em {1} dias." />
+    <string id="AIL_e7b1ded0" text="Escreva seu pedido para este modo." />
+    <string id="AIL_e7b1ded1" text="Pedir à IA" />
+    <string id="AIL_e7b1ded2" text="Personalidades dos governantes" />
+    <string id="AIL_e7b1ded3" text="Os reis usam em suas declarações a personalidade escrita pela IA. No começo da campanha não a têm até você falar com eles ou gerá-la aqui." />
+    <string id="AIL_e7b1ded4" text="Gerar a personalidade de todos os governantes" />
+    <string id="AIL_e7b1ded5" text="IA: descrição do mundo" />
+    <string id="AIL_e7b1ded6" text="IA: fatos públicos" />
+    <string id="AIL_e7b1ded7" text="IA: segredos do mundo" />
+    <string id="AIL_e7b1ded8" text="IA: costumes de cada povo" />
+    <string id="AIL_e7b1ded9" text="IA: fé de cada povo" />
+    <string id="AIL_e7b1deda" text="O que é enviado à IA" />
+    <string id="AIL_e7b1dedb" text="A descrição do mundo e meu pedido" />
+    <string id="AIL_e7b1dedc" text="Só meu pedido" />
+    <string id="AIL_e7b1dedd" text="Seu pedido" />
+    <string id="AIL_e7b1dede" text="Descreva o que a IA deve escrever…" />
+    <string id="AIL_e7b1dedf" text="O que a IA escreveu" />
+    <string id="AIL_e7b1dee0" text="Passar para o editor" />
+    <string id="AIL_e7b1dee1" text="Adicionar à lista" />
+    <string id="AIL_e7b1dee2" text="Substituir tudo" />
+    <string id="AIL_e7b1dee3" text="Copiar" />
+    <string id="AIL_e7b1dee4" text="A IA ajuda você a escrever a descrição do mundo. Conte o cenário, o tom e a história que quer; revise o resultado e passe para o editor. Nada é salvo até você apertar Salvar." />
+    <string id="AIL_e7b1dee5" text="A IA ajuda você a escrever entradas para esta lista. Escolha o que é enviado; revise o resultado e adicione ou substitua a lista. Salve quando estiver bom." />
+    <string id="AIL_e7b1dee6" text="Gerando… pode levar um minuto." />
+    <string id="AIL_e7b1dee7" text="A IA não conseguiu: " />
+    <string id="AIL_e7b1dee8" text="Passado para o editor: aperte Salvar." />
+    <string id="AIL_e7b1dee9" text="Substituir todas as entradas pelo que a IA escreveu?" />
+    <string id="AIL_e7b1deea" text="A resposta da IA não pode ser lida como lista. Tente de novo." />
+    <string id="AIL_e7b1deeb" text="Copiado" />
+    <string id="AIL_e7b1deec" text="Governantes sem personalidade de IA: " />
+    <string id="AIL_e7b1deed" text="Todos os governantes já têm sua personalidade de IA." />
+    <string id="AIL_e7b1deee" text="Enviar à IA um pedido por governante para escrever a personalidade de " />
+    <string id="AIL_e7b1deef" text=" governantes? Pode levar alguns minutos." />
+    <string id="AIL_e7b1def0" text="Gerando " />
+    <string id="AIL_e7b1def1" text="Pronto: " />
+    <string id="AIL_e7b1def2" text=" geradas, " />
+    <string id="AIL_e7b1def3" text=" falharam." />
+    <string id="AIL_e7b1def4" text="Música própria no menu principal" />
+    <string id="AIL_e7b1def5" text="Seus próprios .ogg em Modules\AILegacy\music\menu tocam no menu principal no lugar da música do jogo. O mod não traz música: com a pasta vazia nada muda." />
+    <string id="AIL_e7b1def6" text="Música própria no mapa da campanha" />
+    <string id="AIL_e7b1def7" text="Seus próprios .ogg tocam no mapa da campanha: music\army quando você está num exército, music\map\[cultura] conforme a terra onde está (empire, sturgia, aserai, vlandia, khuzait, battania, nord), senão music\map, com uma pausa de 30 a 60 segundos entre as faixas. Com as pastas vazias nada muda." />
+    <string id="AIL_e7b1def8" text="Música própria do menu e do mapa: volume da música do jogo enquanto isso (%)" />
+    <string id="AIL_e7b1def9" text="O quanto a música do jogo continua tocando enquanto a sua toca no menu ou no mapa. 0 = a sua no lugar dela. Padrão: 0." />
   </strings>
 </base>

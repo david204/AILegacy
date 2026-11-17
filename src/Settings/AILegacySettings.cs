@@ -607,6 +607,21 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
         public int TalkMusicGameVolumePercent { get; set; } = 15;
 
+        [SettingPropertyBool("{=AIL_e7b1def4}Own music in the main menu", Order = 42, RequireRestart = false,
+            HintText = "{=AIL_e7b1def5}Your own .ogg files in Modules\\AILegacy\\music\\menu play in the main menu instead of the game's music. The mod ships no music: with the folder empty nothing changes.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
+        public bool EnableMenuMusic { get; set; } = true;
+
+        [SettingPropertyBool("{=AIL_e7b1def6}Own music on the campaign map", Order = 43, RequireRestart = false,
+            HintText = "{=AIL_e7b1def7}Your own .ogg files play on the campaign map: music\\army while you ride in an army, music\\map\\[culture] for the land you are in (empire, sturgia, aserai, vlandia, khuzait, battania, nord), else music\\map, with a rest of 30 to 60 seconds between pieces. With the folders empty nothing changes.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
+        public bool EnableMapMusic { get; set; } = true;
+
+        [SettingPropertyInteger("{=AIL_e7b1def8}Own menu and map music: game music volume meanwhile (%)", 0, 100, Order = 44, RequireRestart = false,
+            HintText = "{=AIL_e7b1def9}How loud the game's own music stays while yours plays in the menu or on the map. 0 = yours instead of it. Default: 0.")]
+        [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
+        public int AmbientMusicGameVolumePercent { get; set; } = 0;
+
         [SettingPropertyInteger("{=AIL_e7b1c6d5}Own music: tension from which the tense folder plays", 1, 100, Order = 42, RequireRestart = false)]
         [SettingPropertyGroup("{=AIL_dda0e8ca}3. General", GroupOrder = 3)]
         public int TalkMusicTenseFrom { get; set; } = 50;

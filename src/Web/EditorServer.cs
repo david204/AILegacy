@@ -671,6 +671,64 @@ namespace AILegacy.Web
                     return new { ok = true };
                 }
 
+                // ---------------------------------------------------------------- the AI writes parts of the world (AIInfluence's «Ask AI to generate»)
+                case "/api/world/ai":
+                {
+                    if (_worldAiBusy) return new { ok = true, started = false };
+                    string kind = ((string)d["kind"] ?? "").Trim(), request = ((string)d["request"] ?? "").Trim(), world = ((string)d["world"] ?? "").Trim();
+                    bool withWorld = (bool?)d["with_world"] == true;
+                    if (!new[] { "desc", "info", "secrets", "traditions", "religions" }.Contains(kind)) throw new ApiError("?");
+                    if (request.Length == 0 && (kind != "desc" || !withWorld)) throw new ApiError(L.T("AIL_e7b1ded0", "Escribe tu petición para este modo."));
+                    string prompt = WorldAiPrompt(kind, request, withWorld ? world : "");
+                    _worldAiBusy = true; _worldAiKind = kind; _worldAiResult = ""; _worldAiError = "";
+                    int session = WorldSim.Session, gen = ++_worldAiGen;
+                    Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: kind != "desc", task: "editor", maxTokensOverride: 3000, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
+                    {
+                        var res = t.IsFaulted ? null : t.Result;
+                        MainThread.Post(() =>
+                        {
+                            // only the answer to the last request counts, and only in the campaign that asked for it
+                            if (gen != _worldAiGen) return;
+                            _worldAiBusy = false;
+                            if (session != WorldSim.Session) return;
+                            if (res == null || !res.Ok) { _worldAiError = res?.Error ?? L.T("AIL_ea76bfc7", "la IA no ha respondido"); return; }
+                            _worldAiResult = res.Text ?? "";
+                            Log.Info($"Editor: the AI wrote {kind} ({_worldAiResult.Length} characters)");
+                        });
+                    });
+                    return new { ok = true, started = true };
+                }
+
+                case "/api/world/ai/status":
+                    return new { busy = _worldAiBusy, kind = _worldAiKind, result = _worldAiResult, error = _worldAiError };
+
+                // ---------------------------------------------------------------- personalities for every ruler at once
+                case "/api/rulers/missing":
+                    return RulersWithoutPersonality().Select(h => new { id = h.StringId, name = h.Name.ToString(), kingdom = h.MapFaction?.Name?.ToString() ?? "" });
+
+                case "/api/rulers/generate_all":
+                {
+                    if (_rulerQueue.Count > 0 || _rulerCurrent != null) return new { ok = true, started = false };
+                    _rulerQueue.Clear(); _rulerOk = 0; _rulerFail = 0;
+                    foreach (var h in RulersWithoutPersonality()) _rulerQueue.Enqueue(h.StringId);
+                    _rulerTotal = _rulerQueue.Count;
+                    NextRuler();
+                    return new { ok = true, started = true, total = _rulerTotal };
+                }
+
+                case "/api/rulers/status":
+                {
+                    // the queue moves on as the editor asks how it goes: each ruler once the last one is written
+                    if (_rulerCurrent != null && !Generating.Contains(_rulerCurrent))
+                    {
+                        if (GenerateError.ContainsKey(_rulerCurrent)) _rulerFail++; else _rulerOk++;
+                        _rulerCurrent = null;
+                        NextRuler();
+                    }
+                    var cur = _rulerCurrent != null ? Hero.Find(_rulerCurrent) : null;
+                    return new { busy = _rulerCurrent != null, current = _rulerOk + _rulerFail + (_rulerCurrent != null ? 1 : 0), total = _rulerTotal, name = cur?.Name?.ToString() ?? "", ok = _rulerOk, fail = _rulerFail };
+                }
+
                 case "/api/lang":
                     return new { code = L.Code, table = L.Current() };
 
@@ -740,6 +798,68 @@ namespace AILegacy.Web
                 default:
                     throw new ApiError(L.T("AIL_eb19bc3f", "Ruta desconocida: ") + path);
             }
+        }
+
+        // ---------------------------------------------------------------- the AI writes parts of the world
+        private static bool _worldAiBusy;
+        private static int _worldAiGen;
+        private static string _worldAiKind = "", _worldAiResult = "", _worldAiError = "";
+
+        private static string WorldAiPrompt(string kind, string request, string world)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("You help the author of a Mount & Blade II: Bannerlord campaign (the continent of Calradia) write the lore their characters will know.");
+            if (world.Length > 0) sb.AppendLine("The world as the author describes it:\n" + world);
+            var kingdoms = Kingdom.All.Where(k => !k.IsEliminated).Select(k => $"{k.StringId} ({k.Name})");
+            var cultures = TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObjectTypeList<CultureObject>().Where(c => c.IsMainCulture).Select(c => $"{c.StringId} ({c.Name})");
+            switch (kind)
+            {
+                case "desc":
+                    sb.AppendLine("Write the world description that goes at the start of every conversation: the setting, its tone, its history and lore, what everyone takes for granted. 150 to 600 words, in English, plain prose, no headings.");
+                    break;
+                case "info":
+                case "secrets":
+                    sb.AppendLine(kind == "info"
+                        ? "Write public facts of this world: things that are known and said, each one a sentence or two."
+                        : "Write secrets of this world: things few know and only tell those they trust, each one a sentence or two.");
+                    sb.AppendLine("Kingdoms: " + string.Join(", ", kingdoms) + ". Cultures: " + string.Join(", ", cultures) + ".");
+                    sb.AppendLine("Answer ONLY with a JSON array; each item: {\"text\": \"in English\", \"chance\": 0-100 (how likely a fitting character knows it), \"who\": [\"kingdom:<id>\" or \"culture:<id>\", empty for everyone]"
+                                  + (kind == "secrets" ? ", \"access\": \"low\" | \"medium\" | \"high\" (how hard it is to get out of them)" : "") + "}. Between 5 and 15 items.");
+                    break;
+                case "traditions":
+                case "religions":
+                    sb.AppendLine(kind == "traditions"
+                        ? "Write the customs of each people: how they live, marry, mourn, feast, settle quarrels, what they hold proper and shameful."
+                        : "Write the faith of each people: their gods or beliefs, rites, holy days, priests, oaths, what offends them.");
+                    sb.AppendLine("Cultures: " + string.Join(", ", cultures) + ".");
+                    sb.AppendLine("Answer ONLY with a JSON object: the culture id as the key (plus \"default\" for any other) and one paragraph in English as the value.");
+                    break;
+            }
+            if (request.Length > 0) sb.AppendLine("What the author asks for: " + request);
+            return sb.ToString();
+        }
+
+        // ---------------------------------------------------------------- rulers' personalities, one after another
+        private static readonly Queue<string> _rulerQueue = new Queue<string>();
+        private static string _rulerCurrent;
+        private static int _rulerTotal, _rulerOk, _rulerFail;
+
+        private static IEnumerable<Hero> RulersWithoutPersonality() =>
+            Kingdom.All.Where(k => !k.IsEliminated && k.Leader != null && k.Leader.IsAlive && k.Leader != Hero.MainHero)
+                .Select(k => k.Leader)
+                .Where(h => { var m = MemoryStore.Find(h.StringId); return m == null || m.Profile == null || m.Profile.IsEmpty; });
+
+        private static void NextRuler()
+        {
+            while (_rulerQueue.Count > 0)
+            {
+                var h = Hero.Find(_rulerQueue.Dequeue());
+                if (h == null || !h.IsAlive) { _rulerFail++; continue; }
+                GenerateError.Remove(h.StringId);
+                if (StartGenerate(h, "")) { _rulerCurrent = h.StringId; return; }
+                _rulerFail++;
+            }
+            _rulerCurrent = null;
         }
 
         /// <summary>Has the AI write this character's sheet (personality, past, speech…) from who they are in the campaign and the hint. False if already busy.</summary>

@@ -2995,5 +2995,47 @@
     <string id="AIL_e7b1deca" text="Agotadas: el próximo lote llega en {0} días." />
     <string id="AIL_e7b1decb" text="No quedan bastantes {0} y aquí no se hacen." />
     <string id="AIL_e7b1decc" text="No quedan bastantes {0}: el próximo lote llega en {1} días." />
+    <string id="AIL_e7b1ded0" text="Escribe tu petición para este modo." />
+    <string id="AIL_e7b1ded1" text="Pedir a la IA" />
+    <string id="AIL_e7b1ded2" text="Personalidades de los gobernantes" />
+    <string id="AIL_e7b1ded3" text="Los reyes usan su personalidad escrita por la IA en sus declaraciones. Al empezar la partida no la tienen hasta que hablas con ellos o la generas aquí." />
+    <string id="AIL_e7b1ded4" text="Generar la personalidad de todos los gobernantes" />
+    <string id="AIL_e7b1ded5" text="IA: descripción del mundo" />
+    <string id="AIL_e7b1ded6" text="IA: hechos públicos" />
+    <string id="AIL_e7b1ded7" text="IA: secretos del mundo" />
+    <string id="AIL_e7b1ded8" text="IA: costumbres de cada pueblo" />
+    <string id="AIL_e7b1ded9" text="IA: fe de cada pueblo" />
+    <string id="AIL_e7b1deda" text="Qué se envía a la IA" />
+    <string id="AIL_e7b1dedb" text="La descripción del mundo y mi petición" />
+    <string id="AIL_e7b1dedc" text="Solo mi petición" />
+    <string id="AIL_e7b1dedd" text="Tu petición" />
+    <string id="AIL_e7b1dede" text="Describe lo que debe escribir la IA…" />
+    <string id="AIL_e7b1dedf" text="Lo que ha escrito la IA" />
+    <string id="AIL_e7b1dee0" text="Pasar al editor" />
+    <string id="AIL_e7b1dee1" text="Añadir a la lista" />
+    <string id="AIL_e7b1dee2" text="Reemplazar todo" />
+    <string id="AIL_e7b1dee3" text="Copiar" />
+    <string id="AIL_e7b1dee4" text="La IA te ayuda a escribir la descripción del mundo. Cuenta el escenario, el tono y la historia que quieres; revisa el resultado y pásalo al editor. No se guarda nada hasta que pulses Guardar." />
+    <string id="AIL_e7b1dee5" text="La IA te ayuda a escribir entradas para esta lista. Elige qué se le envía; revisa el resultado y añádelo o reemplaza la lista. Guarda cuando esté bien." />
+    <string id="AIL_e7b1dee6" text="Generando… puede tardar un minuto." />
+    <string id="AIL_e7b1dee7" text="La IA no ha podido: " />
+    <string id="AIL_e7b1dee8" text="Pasado al editor: pulsa Guardar." />
+    <string id="AIL_e7b1dee9" text="¿Reemplazar todas las entradas por lo que ha escrito la IA?" />
+    <string id="AIL_e7b1deea" text="La respuesta de la IA no se puede leer como lista. Prueba otra vez." />
+    <string id="AIL_e7b1deeb" text="Copiado" />
+    <string id="AIL_e7b1deec" text="Gobernantes sin personalidad de IA: " />
+    <string id="AIL_e7b1deed" text="Todos los gobernantes tienen ya su personalidad de IA." />
+    <string id="AIL_e7b1deee" text="¿Enviar a la IA una petición por gobernante para escribir la personalidad de " />
+    <string id="AIL_e7b1deef" text=" gobernantes? Puede tardar unos minutos." />
+    <string id="AIL_e7b1def0" text="Generando " />
+    <string id="AIL_e7b1def1" text="Hecho: " />
+    <string id="AIL_e7b1def2" text=" generadas, " />
+    <string id="AIL_e7b1def3" text=" fallidas." />
+    <string id="AIL_e7b1def4" text="Música propia en el menú principal" />
+    <string id="AIL_e7b1def5" text="Tus propios .ogg de Modules\AILegacy\music\menu suenan en el menú principal en lugar de la música del juego. El mod no trae música: con la carpeta vacía no cambia nada." />
+    <string id="AIL_e7b1def6" text="Música propia en el mapa de campaña" />
+    <string id="AIL_e7b1def7" text="Tus propios .ogg suenan en el mapa de campaña: music\army mientras vas en un ejército, music\map\[cultura] según la tierra donde estás (empire, sturgia, aserai, vlandia, khuzait, battania, nord), si no music\map, con un descanso de 30 a 60 segundos entre pieza y pieza. Con las carpetas vacías no cambia nada." />
+    <string id="AIL_e7b1def8" text="Música propia del menú y el mapa: volumen de la música del juego mientras (%)" />
+    <string id="AIL_e7b1def9" text="Cuánto suena la música del juego mientras suena la tuya en el menú o en el mapa. 0 = la tuya en su lugar. Por defecto: 0." />
   </strings>
 </base>

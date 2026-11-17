@@ -2995,5 +2995,47 @@
     <string id="AIL_e7b1deca" text="Esaurite: il prossimo lotto arriva tra {0} giorni." />
     <string id="AIL_e7b1decb" text="Non restano abbastanza {0} e qui non si fanno." />
     <string id="AIL_e7b1decc" text="Non restano abbastanza {0}: il prossimo lotto arriva tra {1} giorni." />
+    <string id="AIL_e7b1ded0" text="Scrivi la tua richiesta per questa modalità." />
+    <string id="AIL_e7b1ded1" text="Chiedi all'IA" />
+    <string id="AIL_e7b1ded2" text="Personalità dei sovrani" />
+    <string id="AIL_e7b1ded3" text="I re usano nelle dichiarazioni la personalità scritta dall'IA. All'inizio della partita non ce l'hanno finché non parli con loro o non la generi qui." />
+    <string id="AIL_e7b1ded4" text="Genera la personalità di tutti i sovrani" />
+    <string id="AIL_e7b1ded5" text="IA: descrizione del mondo" />
+    <string id="AIL_e7b1ded6" text="IA: fatti pubblici" />
+    <string id="AIL_e7b1ded7" text="IA: segreti del mondo" />
+    <string id="AIL_e7b1ded8" text="IA: usanze di ogni popolo" />
+    <string id="AIL_e7b1ded9" text="IA: fede di ogni popolo" />
+    <string id="AIL_e7b1deda" text="Cosa viene inviato all'IA" />
+    <string id="AIL_e7b1dedb" text="La descrizione del mondo e la mia richiesta" />
+    <string id="AIL_e7b1dedc" text="Solo la mia richiesta" />
+    <string id="AIL_e7b1dedd" text="La tua richiesta" />
+    <string id="AIL_e7b1dede" text="Descrivi cosa deve scrivere l'IA…" />
+    <string id="AIL_e7b1dedf" text="Cosa ha scritto l'IA" />
+    <string id="AIL_e7b1dee0" text="Metti nell'editor" />
+    <string id="AIL_e7b1dee1" text="Aggiungi alla lista" />
+    <string id="AIL_e7b1dee2" text="Sostituisci tutto" />
+    <string id="AIL_e7b1dee3" text="Copia" />
+    <string id="AIL_e7b1dee4" text="L'IA ti aiuta a scrivere la descrizione del mondo. Indica ambientazione, tono e storia che vuoi; controlla il risultato e mettilo nell'editor. Nulla viene salvato finché non premi Salva." />
+    <string id="AIL_e7b1dee5" text="L'IA ti aiuta a scrivere voci per questa lista. Scegli cosa inviarle; controlla il risultato e aggiungilo o sostituisci la lista. Salva quando va bene." />
+    <string id="AIL_e7b1dee6" text="Generazione… può volerci un minuto." />
+    <string id="AIL_e7b1dee7" text="L'IA non è riuscita: " />
+    <string id="AIL_e7b1dee8" text="Messo nell'editor: premi Salva." />
+    <string id="AIL_e7b1dee9" text="Sostituire tutte le voci con ciò che ha scritto l'IA?" />
+    <string id="AIL_e7b1deea" text="La risposta dell'IA non si può leggere come lista. Riprova." />
+    <string id="AIL_e7b1deeb" text="Copiato" />
+    <string id="AIL_e7b1deec" text="Sovrani senza personalità IA: " />
+    <string id="AIL_e7b1deed" text="Tutti i sovrani hanno già la loro personalità IA." />
+    <string id="AIL_e7b1deee" text="Inviare all'IA una richiesta per sovrano per scrivere la personalità di " />
+    <string id="AIL_e7b1deef" text=" sovrani? Può volerci qualche minuto." />
+    <string id="AIL_e7b1def0" text="Generazione " />
+    <string id="AIL_e7b1def1" text="Fatto: " />
+    <string id="AIL_e7b1def2" text=" generate, " />
+    <string id="AIL_e7b1def3" text=" fallite." />
+    <string id="AIL_e7b1def4" text="Musica propria nel menu principale" />
+    <string id="AIL_e7b1def5" text="I tuoi file .ogg in Modules\AILegacy\music\menu suonano nel menu principale al posto della musica del gioco. La mod non include musica: con la cartella vuota non cambia nulla." />
+    <string id="AIL_e7b1def6" text="Musica propria sulla mappa della campagna" />
+    <string id="AIL_e7b1def7" text="I tuoi .ogg suonano sulla mappa della campagna: music\army in un esercito, music\map\[cultura] secondo la terra in cui sei (empire, sturgia, aserai, vlandia, khuzait, battania, nord), altrimenti music\map, con una pausa da 30 a 60 secondi tra un brano e l'altro. Con le cartelle vuote non cambia nulla." />
+    <string id="AIL_e7b1def8" text="Musica propria di menu e mappa: volume della musica del gioco nel frattempo (%)" />
+    <string id="AIL_e7b1def9" text="Quanto resta alta la musica del gioco mentre suona la tua nel menu o sulla mappa. 0 = la tua al suo posto. Predefinito: 0." />
   </strings>
 </base>

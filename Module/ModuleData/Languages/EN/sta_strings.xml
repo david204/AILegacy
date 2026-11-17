@@ -2996,5 +2996,47 @@
     <string id="AIL_e7b1deca" text="Used up: the next bundle comes in {0} days." />
     <string id="AIL_e7b1decb" text="Not enough {0} left, and none are made here." />
     <string id="AIL_e7b1decc" text="Not enough {0} left: the next bundle comes in {1} days." />
+    <string id="AIL_e7b1ded0" text="Write your request for this mode." />
+    <string id="AIL_e7b1ded1" text="Ask the AI" />
+    <string id="AIL_e7b1ded2" text="Rulers' personalities" />
+    <string id="AIL_e7b1ded3" text="Kings use the personality the AI wrote for them in their declarations. At the start of a campaign they have none until you talk to them or generate it here." />
+    <string id="AIL_e7b1ded4" text="Generate the personality of every ruler" />
+    <string id="AIL_e7b1ded5" text="AI: world description" />
+    <string id="AIL_e7b1ded6" text="AI: public facts" />
+    <string id="AIL_e7b1ded7" text="AI: world secrets" />
+    <string id="AIL_e7b1ded8" text="AI: each people's customs" />
+    <string id="AIL_e7b1ded9" text="AI: each people's faith" />
+    <string id="AIL_e7b1deda" text="What is sent to the AI" />
+    <string id="AIL_e7b1dedb" text="The world description and my request" />
+    <string id="AIL_e7b1dedc" text="My request only" />
+    <string id="AIL_e7b1dedd" text="Your request" />
+    <string id="AIL_e7b1dede" text="Describe what the AI should write…" />
+    <string id="AIL_e7b1dedf" text="What the AI wrote" />
+    <string id="AIL_e7b1dee0" text="Put in the editor" />
+    <string id="AIL_e7b1dee1" text="Add to the list" />
+    <string id="AIL_e7b1dee2" text="Replace all" />
+    <string id="AIL_e7b1dee3" text="Copy" />
+    <string id="AIL_e7b1dee4" text="The AI helps you write the world description. Tell it the setting, the tone and the history you want; check the result and put it in the editor. Nothing is saved until you press Save." />
+    <string id="AIL_e7b1dee5" text="The AI helps you write entries for this list. Choose what is sent to it; check the result and add it or replace the list. Save when it is right." />
+    <string id="AIL_e7b1dee6" text="Generating… it can take a minute." />
+    <string id="AIL_e7b1dee7" text="The AI could not do it: " />
+    <string id="AIL_e7b1dee8" text="Put in the editor: press Save." />
+    <string id="AIL_e7b1dee9" text="Replace every entry with what the AI wrote?" />
+    <string id="AIL_e7b1deea" text="The AI's answer cannot be read as a list. Try again." />
+    <string id="AIL_e7b1deeb" text="Copied" />
+    <string id="AIL_e7b1deec" text="Rulers without an AI personality: " />
+    <string id="AIL_e7b1deed" text="Every ruler already has an AI personality." />
+    <string id="AIL_e7b1deee" text="Send the AI one request per ruler to write the personality of " />
+    <string id="AIL_e7b1deef" text=" rulers? It can take a few minutes." />
+    <string id="AIL_e7b1def0" text="Generating " />
+    <string id="AIL_e7b1def1" text="Done: " />
+    <string id="AIL_e7b1def2" text=" generated, " />
+    <string id="AIL_e7b1def3" text=" failed." />
+    <string id="AIL_e7b1def4" text="Own music in the main menu" />
+    <string id="AIL_e7b1def5" text="Your own .ogg files in Modules\AILegacy\music\menu play in the main menu instead of the game's music. The mod ships no music: with the folder empty nothing changes." />
+    <string id="AIL_e7b1def6" text="Own music on the campaign map" />
+    <string id="AIL_e7b1def7" text="Your own .ogg files play on the campaign map: music\army while you ride in an army, music\map\[culture] for the land you are in (empire, sturgia, aserai, vlandia, khuzait, battania, nord), else music\map, with a rest of 30 to 60 seconds between pieces. With the folders empty nothing changes." />
+    <string id="AIL_e7b1def8" text="Own menu and map music: game music volume meanwhile (%)" />
+    <string id="AIL_e7b1def9" text="How loud the game's own music stays while yours plays in the menu or on the map. 0 = yours instead of it. Default: 0." />
   </strings>
 </base>
