@@ -3076,5 +3076,6 @@
     <string id="AIL_e7b1df33" text="你的人马已经倒下。这场战斗失败了。" />
     <string id="AIL_e7b1df34" text="地图场景：战斗就地展开" />
     <string id="AIL_e7b1df35" text="与敌人徒步交谈演变成战斗时，战斗会在同一场景中当场开始：在场的每名士兵都计入地图战斗，其余部队作为援军到来，结果照常由地图遭遇战决定。关闭：场景关闭，并在同一地形上打开游戏自带的战斗。" />
+    <string id="AIL_e7b1df40" text="{=!}交谈（附场景视频）[AI Legacy]" />
   </strings>
 </base>

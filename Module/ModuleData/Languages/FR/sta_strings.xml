@@ -3076,5 +3076,6 @@
     <string id="AIL_e7b1df33" text="Vos gens sont tombés. La bataille est perdue." />
     <string id="AIL_e7b1df34" text="Scène de carte : la bataille se livre sur place" />
     <string id="AIL_e7b1df35" text="Quand une discussion à pied avec un ennemi tourne au combat, la bataille commence sur-le-champ, dans la même scène : chaque soldat présent compte dans la bataille de la carte, les autres arrivent en renfort et la rencontre sur la carte règle l’issue comme d’habitude. Désactivé : la scène se ferme et la bataille du jeu s’ouvre sur le même terrain." />
+    <string id="AIL_e7b1df40" text="{=!}Parler (avec une vidéo de la scène) [AI Legacy]" />
   </strings>
 </base>

@@ -3076,5 +3076,6 @@
     <string id="AIL_e7b1df33" text="Tu gente ha caído. La batalla está perdida." />
     <string id="AIL_e7b1df34" text="Escena del mapa: la batalla se libra allí mismo" />
     <string id="AIL_e7b1df35" text="Cuando una charla a pie con un enemigo acaba en pelea, la batalla empieza allí mismo, en la misma escena: cada soldado presente cuenta en la batalla del mapa, el resto llega de refuerzo y el encuentro del mapa decide el resultado como siempre. Apagado: la escena se cierra y se abre la batalla del juego en el mismo terreno." />
+    <string id="AIL_e7b1df40" text="{=!}Hablar (con vídeo de escena) [AI Legacy]" />
   </strings>
 </base>

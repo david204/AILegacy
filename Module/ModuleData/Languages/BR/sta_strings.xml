@@ -3076,5 +3076,6 @@
     <string id="AIL_e7b1df33" text="Sua gente caiu. A batalha está perdida." />
     <string id="AIL_e7b1df34" text="Cena do mapa: a batalha é travada ali mesmo" />
     <string id="AIL_e7b1df35" text="Quando uma conversa a pé com um inimigo termina em luta, a batalha começa ali mesmo, na mesma cena: cada soldado presente conta na batalha do mapa, o resto chega como reforço e o encontro no mapa decide o resultado como sempre. Desligado: a cena fecha e a batalha do jogo abre no mesmo terreno." />
+    <string id="AIL_e7b1df40" text="{=!}Falar (com vídeo da cena) [AI Legacy]" />
   </strings>
 </base>

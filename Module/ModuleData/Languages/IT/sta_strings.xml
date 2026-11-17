@@ -3076,5 +3076,6 @@
     <string id="AIL_e7b1df33" text="La tua gente è caduta. La battaglia è persa." />
     <string id="AIL_e7b1df34" text="Scena della mappa: la battaglia si combatte lì stesso" />
     <string id="AIL_e7b1df35" text="Quando una conversazione a piedi con un nemico finisce in scontro, la battaglia inizia lì, nella stessa scena: ogni soldato presente conta nella battaglia della mappa, gli altri arrivano come rinforzi e l’incontro sulla mappa decide l’esito come sempre. Disattivato: la scena si chiude e si apre la battaglia del gioco sullo stesso terreno." />
+    <string id="AIL_e7b1df40" text="{=!}Parla (con video della scena) [AI Legacy]" />
   </strings>
 </base>

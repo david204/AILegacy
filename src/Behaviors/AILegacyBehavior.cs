@@ -469,6 +469,23 @@ namespace AILegacy.Behaviors
                     var s = ChatSession.StartDialog(ResidentSpeaker(null, false));
                     if (s != null) { s.WithPictures = true; MainThread.Post(s.AskInput); }
                 }, priority: 119);
+            // The same, with a video of each moment (only with a video service set up)
+            starter.AddPlayerLine("ailegacy_d_start_hv", "hero_main_options", "ailegacy_d_wait", L.T("AIL_e7b1df40", "{=!}Hablar (con vídeo de escena) [AI Legacy]"),
+                () => S.Get.UseDialogStyle && World.SceneVideos.Enabled && CanTalkHero(),
+                () =>
+                {
+                    ResetReturn();
+                    var s = ChatSession.StartDialog(Speaker.FromHero(Hero.OneToOneConversationHero));
+                    if (s != null) { s.WithVideo = true; MainThread.Post(s.AskInput); }
+                }, priority: 118);
+            starter.AddPlayerLine("ailegacy_d_start_rv", "town_or_village_player", "ailegacy_d_wait", L.T("AIL_e7b1df40", "{=!}Hablar (con vídeo de escena) [AI Legacy]"),
+                () => S.Get.UseDialogStyle && World.SceneVideos.Enabled && CanTalkResident(false),
+                () =>
+                {
+                    ResetReturn();
+                    var s = ChatSession.StartDialog(ResidentSpeaker(null, false));
+                    if (s != null) { s.WithVideo = true; MainThread.Post(s.AskInput); }
+                }, priority: 118);
             // An adult child of yours born out of wedlock: you acknowledge them before everyone
             starter.AddPlayerLine("ailegacy_acknowledge", "hero_main_options", "ailegacy_acknowledge_reply", L.T("AIL_e7b1c823", "{=!}Te reconozco como hijo mío. Desde hoy eres de verdad parte de nuestra familia."),
                 () => Bastards.CanAcknowledge(Hero.OneToOneConversationHero),

@@ -45,7 +45,8 @@ Answer with the prompt only, nothing else.");
         private static readonly Tpl TMoment = new Tpl("images/talk_moment.txt",
 @"Turn this moment of a conversation into ONE prompt in English for a still from the scene. 50 to 90 words.
 Describe only what would be seen: the two people face to face, their posture, gestures and expressions as the words suggest, and the place around them.
-Use the facts below EXACTLY: each person's sex, age, build, the look of their people and what they are wearing, and the place, weather and light. Do not change or leave out any of them, and add no weather, season or landscape they do not state (no snow unless it says snow). No names.
+Use the facts below EXACTLY: each person's sex, age, build, the look of their people and what they are wearing, and the place, landscape, season, weather and light. Do not change or leave out any of them, and add no weather, season or landscape they do not state. No names.
+Never name anything that is NOT in the picture, not even to say it is absent (""no snow"", ""without rain""): an image model draws every thing it reads.
 The world is Calradia, a medieval land with 12th-century technology: no magic, no modern objects. No writing or letters in the picture.
 The people in it:
 {people}
@@ -66,7 +67,7 @@ Headline: {title}
 No writing or letters in the picture. Answer with the prompt only, nothing else.");
 
         // For world events: wide, like a photograph
-        private const string EventStyle = "Photorealistic wide shot, like a photograph, natural light, worn metal, leather, wool, wood and stone, historically grounded medieval setting. No text, no watermark, no modern objects.";
+        private const string EventStyle = "Photorealistic wide shot, like a photograph, natural light, worn metal, leather, wool, wood and stone, historically grounded medieval setting.";
 
         private static readonly Queue<(HeroMemory mem, MemoryPage page, Action done, Tpl tpl, string people, bool wide)> Pending = new Queue<(HeroMemory, MemoryPage, Action, Tpl, string, bool)>();
 
@@ -240,11 +241,11 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
                     // A conversation picture: the facts of the place go again after the description, so the model
                     // cannot drop them, and it is drawn as a film still whatever the style for memory pages is
                     if (job.wide) full = prompt.TrimEnd('.', ' ') + ". " + EventStyle;
-                    else if (job.tpl != null) full = prompt.TrimEnd('.', ' ') + ". Setting: " + (job.page.Title ?? "") + ". " + MomentStyle;
+                    else if (job.tpl != null) full = NoSnowWords(prompt, Snowy(job.page.Title)).TrimEnd('.', ' ') + ". Setting: " + (job.page.Title ?? "") + ". " + MomentStyle;
                     else full = style.Length > 0 ? prompt.TrimEnd('.', ' ') + ". " + style : prompt;
                     byte[] raw = source == Free ? await FromPollinations(full, SeedFor(job.mem), job.wide).ConfigureAwait(false)
                                : source == OpenAi ? await FromOpenAi(full, openAi, openAiModel).ConfigureAwait(false)
-                               : await FromLocal(full, localUrl, job.wide).ConfigureAwait(false);
+                               : await FromLocal(full, localUrl, job.wide, job.wide || job.tpl == null || Snowy(job.page.Title)).ConfigureAwait(false);
                     if (raw == null || raw.Length < 2000) { Finish(false, null, prompt, "el servicio no devolvió una imagen"); return; }
                     Directory.CreateDirectory(dir);
                     string file = (job.wide ? "e_" : job.tpl == null ? "p_" : "t_") + Guid.NewGuid().ToString("N").Substring(0, 12) + ".png";
@@ -339,11 +340,12 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
                 }
                 else
                 {
-                    string terrain = "open country";
-                    try { if (party != null) terrain = Campaign.Current.MapSceneWrapper.GetFaceTerrainType(party.CurrentNavigationFace).ToString().ToLowerInvariant(); } catch { }
-                    if (party != null && party.IsCurrentlyAtSea) terrain = "the deck of a ship at sea";
-                    sb.Append($"outdoors on {terrain} ground");
+                    string terrain = "";
+                    try { if (party != null) terrain = Campaign.Current.MapSceneWrapper.GetFaceTerrainType(party.CurrentNavigationFace).ToString(); } catch { }
+                    if (party != null && party.IsCurrentlyAtSea) sb.Append("on the deck of a ship at sea");
+                    else sb.Append("outdoors, " + Land(terrain, Season()));
                 }
+                sb.Append(", " + Season() + "");
                 bool snow = false;
                 string sky = "clear or lightly clouded sky";
                 try
@@ -363,14 +365,61 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
                 int hour = CampaignTime.Now.GetHourOfDay;
                 string light = hour < 5 ? "night, moonlight or torchlight" : hour < 8 ? "dawn" : hour < 11 ? "morning light" : hour < 15 ? "midday sun" : hour < 18 ? "afternoon light" : hour < 21 ? "dusk, evening light" : "night, torchlight";
                 sb.Append($", {sky}, {light}");
-                if (!snow) sb.Append(", no snow anywhere");
             }
             catch { }
             return sb.Length == 0 ? "a place in Calradia" : sb.ToString();
         }
 
-        // For conversation pictures: a still from a film, not a painting
-        private const string MomentStyle = "Cinematic photorealistic film still, natural light, 35mm lens, detailed faces, historically grounded medieval setting. No text, no watermark, no modern objects.";
+        /// <summary>Whether the place described for this very picture has snow (each picture carries its own).</summary>
+        internal static bool Snowy(string setting) => !string.IsNullOrEmpty(setting) && (setting.IndexOf("snow", StringComparison.OrdinalIgnoreCase) >= 0 || setting.IndexOf("blizzard", StringComparison.OrdinalIgnoreCase) >= 0);
+
+        private static string Season()
+        {
+            try
+            {
+                switch (CampaignTime.Now.GetSeasonOfYear)
+                {
+                    case CampaignTime.Seasons.Spring: return "spring";
+                    case CampaignTime.Seasons.Summer: return "summer";
+                    case CampaignTime.Seasons.Autumn: return "autumn";
+                    default: return "winter";
+                }
+            }
+            catch { return "summer"; }
+        }
+
+        /// <summary>The ground under the party as it looks in that season, in words an image model draws (only snow where there is snow).</summary>
+        private static string Land(string terrain, string season)
+        {
+            bool winter = season == "winter", autumn = season == "autumn";
+            switch ((terrain ?? "").ToLowerInvariant())
+            {
+                case "snow": return "snow-covered land";
+                case "forest": return winter ? "a bare leafless winter forest" : autumn ? "a forest in autumn colours" : "a green leafy forest";
+                case "steppe": return winter ? "wide brown winter grassland steppe" : "wide open grassland steppe, long grass to the horizon";
+                case "desert": return "sandy desert with rocky outcrops under a hot sun";
+                case "mountain": return "rocky mountain slopes";
+                case "swamp": return "a reedy marsh";
+                case "lake": case "river": case "water": case "fording": return winter ? "the bank of a river, bare brown fields" : "the grassy bank of a river";
+                case "beach": case "coastline": return "a sea shore";
+                case "canyon": return "a rocky canyon";
+                case "dune": return "desert sand dunes";
+                case "rurala": case "ruralarea": return winter ? "farmland with bare brown winter fields" : "green farmland and fields";
+                default: return winter ? "open country, brown winter grass" : autumn ? "open country, golden autumn grass" : "open green countryside, grassy fields";
+            }
+        }
+
+        /// <summary>Takes out of a prompt any words about snow when there is none (image models draw what they read, even after "no").</summary>
+        private static string NoSnowWords(string p, bool snowy)
+        {
+            if (snowy || string.IsNullOrEmpty(p)) return p;
+            p = System.Text.RegularExpressions.Regex.Replace(p, @"[,;]?\s*\b(no|without|free of|not|never|nor)\b[^,.;]{0,30}\bsnow\w*[^,.;]*", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            p = System.Text.RegularExpressions.Regex.Replace(p, @"\bsnow\w*\b", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return System.Text.RegularExpressions.Regex.Replace(p, @"\s{2,}", " ").Replace(" ,", ",").Replace(" .", ".");
+        }
+
+        // For conversation pictures: a still from a film, not a painting (nothing named that is not to be drawn)
+        private const string MomentStyle = "Cinematic photorealistic film still, natural light, 35mm lens, detailed faces, historically grounded medieval setting.";
 
         /// <summary>The same seed for the same person, so their pictures stay alike from one to the next.</summary>
         private static int SeedFor(HeroMemory mem) => Math.Abs((mem?.HeroId ?? "x").GetHashCode() % 999983) + 1;
@@ -420,12 +469,12 @@ No writing or letters in the picture. Answer with the prompt only, nothing else.
         }
 
         // AUTOMATIC1111 and compatible servers started with their API on
-        private static async Task<byte[]> FromLocal(string prompt, string baseUrl, bool wide = false)
+        private static async Task<byte[]> FromLocal(string prompt, string baseUrl, bool wide = false, bool snowOk = true)
         {
             if (baseUrl.Length == 0) baseUrl = "http://127.0.0.1:7860";
             var body = new JObject
             {
-                ["prompt"] = prompt, ["negative_prompt"] = "text, letters, watermark, signature, modern objects, blurry, deformed hands",
+                ["prompt"] = prompt, ["negative_prompt"] = "text, letters, watermark, signature, modern objects, blurry, deformed hands" + (snowOk ? "" : ", snow, winter, ice"),
                 ["width"] = 1024, ["height"] = wide ? 512 : 576, ["steps"] = 24,
             };
             var req = new HttpRequestMessage(HttpMethod.Post, baseUrl + "/sdapi/v1/txt2img") { Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json") };

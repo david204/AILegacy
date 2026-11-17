@@ -60,18 +60,20 @@ Answer with the prompt only, nothing else.");
         /// <summary>
         /// Ask the player first (with the cost), then make the clip. <paramref name="done"/> gets the file on the main thread.
         /// </summary>
-        public static void Offer(string people, string where, string exchange, Action<string> done)
+        public static void Offer(string people, string where, string exchange, Action<string> done, bool ask = true, Action accepted = null)
         {
             var cfg = S.Get;
             if (!Enabled || Busy || string.IsNullOrWhiteSpace(exchange)) return;
             if (!UnderCap()) { WorldSim.Say(L.F("AIL_e7b1c855", $"Ya has hecho los {cfg.VideoPerDay} vídeos de hoy (tope de los ajustes)."), Colors.Yellow); return; }
+            // a talk with video asks once, with the cost of each clip; after that every reply gets its clip
+            if (!ask) { Make(people, where, exchange, done); return; }
             int secs = Math.Max(4, Math.Min(12, cfg.VideoSeconds));
             double cost = secs * Math.Max(0, cfg.VideoCentsPerSecond) / 100.0;
             string costText = Source == OpenAi ? L.F("AIL_e7b1c856", $"Unos {cost:0.00} $ de tu cuenta de OpenAI ({secs} s).") : L.F("AIL_e7b1c857", $"Lo hace tu servidor de vídeo ({secs} s).");
             InformationManager.ShowInquiry(new InquiryData(L.T("AIL_e7b1c858", "Vídeo de la escena"),
                 L.F("AIL_e7b1c859", $"{costText} Tarda unos minutos; puedes seguir jugando y te aviso cuando esté.\n\n¿Lo hago?"),
                 true, true, L.T("AIL_e7b1c85a", "Hacerlo"), L.T("AIL_e5c9b3a4", "Cancelar"),
-                () => Make(people, where, exchange, done), null), true);
+                () => { accepted?.Invoke(); Make(people, where, exchange, done); }, null), true);
         }
 
         private static void Make(string people, string where, string exchange, Action<string> done)

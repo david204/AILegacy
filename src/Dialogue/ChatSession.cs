@@ -812,6 +812,9 @@ namespace AILegacy.Dialogue
 
         /// <summary>"Talk (with a picture of the scene)": every reply also gets a picture of that moment.</summary>
         public bool WithPictures;
+        /// <summary>A talk with video: after each reply, a clip of the moment (asked once, with its cost).</summary>
+        public bool WithVideo;
+        private bool _videoAgreed;
         private string _picture, _pictureText;
         public bool HasPicture => _picture != null && System.IO.File.Exists(_picture);
 
@@ -831,8 +834,7 @@ namespace AILegacy.Dialogue
         {
             if (!CanMakeVideo) return;
             string player = Hero.MainHero?.Name?.ToString() ?? "";
-            var st = TaleWorlds.CampaignSystem.Settlements.Settlement.CurrentSettlement;
-            string where = (st != null ? st.Name.ToString() : "the open country") + ", " + (CampaignTime.Now.IsNightTime ? "at night" : "by day");
+            string where = World.SceneImages.Setting();
             string exchange = $"{player}: {_pairPlayer}\n{_s.Name}: {_pairNpc}";
             var self = this;
             World.SceneVideos.Offer(World.SceneImages.People(Mem), where, exchange, path =>
@@ -840,7 +842,7 @@ namespace AILegacy.Dialogue
                 self._video = path;
                 if (self.UseWindow && !self._closed) self.ShowVideo();
                 else Notify(L.T("AIL_e7b1c85e", "El vídeo de la escena está listo: elige «Ver el vídeo»."), Colors.Gray);
-            });
+            }, !WithVideo || !_videoAgreed, () => _videoAgreed = true);
         }
 
         public void ShowVideo()
@@ -853,6 +855,11 @@ namespace AILegacy.Dialogue
             _pairPlayer = playerText; _pairNpc = npcText;
             try
             {
+                if (WithVideo && World.SceneVideos.Enabled)
+                {
+                    if (World.SceneVideos.Busy) Log.Info("Talk video: the previous clip is still being made; this reply gets none");
+                    else { _video = null; MakeVideo(); }
+                }
                 if (!WithPictures || !World.SceneImages.Enabled) return;
                 string player = Hero.MainHero?.Name?.ToString() ?? "";
                 string where = World.SceneImages.Setting();

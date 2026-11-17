@@ -3077,5 +3077,6 @@
     <string id="AIL_e7b1df33" text="Your people have fallen. The battle is lost." />
     <string id="AIL_e7b1df34" text="Map scene: the battle is fought right there" />
     <string id="AIL_e7b1df35" text="When a talk on foot with an enemy ends in a fight, the battle starts there and then, in the same scene: every soldier standing counts in the map battle, the rest come as reinforcements, and the map encounter settles the outcome as usual. Off: the scene closes and the game's battle opens on the same ground." />
+    <string id="AIL_e7b1df40" text="{=!}Talk (with a video of the scene) [AI Legacy]" />
   </strings>
 </base>

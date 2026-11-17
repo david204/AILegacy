@@ -3076,5 +3076,6 @@
     <string id="AIL_e7b1df33" text="Deine Leute sind gefallen. Die Schlacht ist verloren." />
     <string id="AIL_e7b1df34" text="Kartenszene: Die Schlacht wird gleich dort geschlagen" />
     <string id="AIL_e7b1df35" text="Endet ein Gespräch zu Fuß mit einem Feind im Kampf, beginnt die Schlacht sofort in derselben Szene: Jeder anwesende Soldat zählt in der Kartenschlacht, der Rest kommt als Verstärkung, und die Begegnung auf der Karte entscheidet den Ausgang wie gewohnt. Aus: Die Szene schließt sich und die Schlacht des Spiels öffnet sich auf demselben Gelände." />
+    <string id="AIL_e7b1df40" text="{=!}Sprechen (mit Video der Szene) [AI Legacy]" />
   </strings>
 </base>
