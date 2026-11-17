@@ -2918,5 +2918,71 @@
     <string id="AIL_e7b1de66" text="O duelo não pôde começar. Vocês podem marcar outro encontro." />
     <string id="AIL_e7b1de70" text="Documento" />
     <string id="AIL_e7b1de71" text="De {0}" />
+    <string id="AIL_e7b1de80" text="Não há nenhuma campanha em andamento." />
+    <string id="AIL_e7b1de81" text="Adicione pelo menos um familiar." />
+    <string id="AIL_e7b1de82" text="Cada familiar precisa de um identificador." />
+    <string id="AIL_e7b1de83" text="Identificadores que começam com @ são para personagens que já existem." />
+    <string id="AIL_e7b1de84" text="Identificador repetido: {0}." />
+    <string id="AIL_e7b1de85" text="Cada familiar precisa de um nome." />
+    <string id="AIL_e7b1de86" text="Idade inválida para {0}." />
+    <string id="AIL_e7b1de87" text="Cultura inválida para {0}." />
+    <string id="AIL_e7b1de88" text="{0} não pode ser parente de si mesmo." />
+    <string id="AIL_e7b1de89" text="Um parentesco de {0} aponta para alguém que não existe." />
+    <string id="AIL_e7b1de8a" text="O pai de {0} tem que ser um homem." />
+    <string id="AIL_e7b1de8b" text="A mãe de {0} tem que ser uma mulher." />
+    <string id="AIL_e7b1de8c" text="Um pai ou mãe de {0} tem que ser pelo menos {1} anos mais velho." />
+    <string id="AIL_e7b1de8d" text="{0} e o cônjuge têm que ser adultos." />
+    <string id="AIL_e7b1de8e" text="{0} é jovem demais para ser seu pai ou sua mãe." />
+    <string id="AIL_e7b1de8f" text="{0} é velho demais para ser seu filho." />
+    <string id="AIL_e7b1de90" text="Não foi possível criar a família; veja ailegacy.log." />
+    <string id="AIL_e7b1de91" text="Avô" />
+    <string id="AIL_e7b1de92" text="Avó" />
+    <string id="AIL_e7b1de93" text="Bisavô" />
+    <string id="AIL_e7b1de94" text="Bisavó" />
+    <string id="AIL_e7b1de95" text="Bisneto" />
+    <string id="AIL_e7b1de96" text="Bisneta" />
+    <string id="AIL_e7b1de97" text="Primo" />
+    <string id="AIL_e7b1de98" text="Prima" />
+    <string id="AIL_e7b1de99" text="Meio-irmão" />
+    <string id="AIL_e7b1de9a" text="Meia-irmã" />
+    <string id="AIL_e7b1de9b" text="Padrasto" />
+    <string id="AIL_e7b1de9c" text="Madrasta" />
+    <string id="AIL_e7b1de9d" text="Enteado" />
+    <string id="AIL_e7b1de9e" text="Enteada" />
+    <string id="AIL_e7b1de9f" text="Meio-irmão por casamento" />
+    <string id="AIL_e7b1dea0" text="Meia-irmã por casamento" />
+    <string id="AIL_e7b1dea1" text="Abra o editor de rosto pelo mapa, fora de cenas e menus." />
+    <string id="AIL_e7b1dea2" text="Não foi possível abrir o editor de rosto; veja ailegacy.log." />
+    <string id="AIL_e7b1dea3" text="Sua família cresce: {0}." />
+    <string id="AIL_e7b1dea4" text="Descrição para a IA (opcional: a IA escreve a ficha a partir disto)" />
+    <string id="AIL_e7b1dea5" text="Relação com você no começo (de −100 a 100)" />
+    <string id="AIL_e7b1dea6" text="Traços (de −2 a 2)" />
+    <string id="AIL_e7b1dea7" text="Honra" />
+    <string id="AIL_e7b1dea8" text="Valor" />
+    <string id="AIL_e7b1dea9" text="Generosidade" />
+    <string id="AIL_e7b1deaa" text="Cálculo" />
+    <string id="AIL_e7b1deab" text="Habilidades (uma por linha: «Charm 80», «Leadership 60»…)" />
+    <string id="AIL_e7b1deac" text="O que sabe sobre você (opcional)" />
+    <string id="AIL_e7b1dead" text="História que vocês compartilham (opcional)" />
+    <string id="AIL_e7b1deae" text="Criar família" />
+    <string id="AIL_e7b1deaf" text="Um ou vários parentes de uma vez, com parentesco de verdade no jogo. Ligue-os a você, entre si ou a personagens que já existem: assim surgem avós, tios, primos, parentes por casamento ou padrastos. Idades e sexos são verificados." />
+    <string id="AIL_e7b1deb0" text="Adicionar familiar" />
+    <string id="AIL_e7b1deb1" text="Editar rosto no jogo" />
+    <string id="AIL_e7b1deb2" text="Com você" />
+    <string id="AIL_e7b1deb3" text="(nenhum laço direto)" />
+    <string id="AIL_e7b1deb4" text="É seu pai" />
+    <string id="AIL_e7b1deb5" text="É sua mãe" />
+    <string id="AIL_e7b1deb6" text="É seu filho ou filha" />
+    <string id="AIL_e7b1deb7" text="É seu irmão ou irmã" />
+    <string id="AIL_e7b1deb8" text="É seu cônjuge" />
+    <string id="AIL_e7b1deb9" text="Pai" />
+    <string id="AIL_e7b1deba" text="Mãe" />
+    <string id="AIL_e7b1debb" text="No seu clã" />
+    <string id="AIL_e7b1debc" text="No seu grupo (os adultos)" />
+    <string id="AIL_e7b1debd" text="Novo:" />
+    <string id="AIL_e7b1debe" text="Sua família cresce: " />
+    <string id="AIL_e7b1debf" text="O editor de rosto está aberto no jogo." />
+    <string id="AIL_e7b1dec0" text="{0} já é casado: não pode se casar com {1}." />
+    <string id="AIL_e7b1dec1" text="{0} não pode ter dois cônjuges." />
   </strings>
 </base>

@@ -2918,5 +2918,71 @@
     <string id="AIL_e7b1de66" text="Дуэль не смогла начаться. Можно договориться о другой встрече." />
     <string id="AIL_e7b1de70" text="Документ" />
     <string id="AIL_e7b1de71" text="От {0}" />
+    <string id="AIL_e7b1de80" text="Кампания не запущена." />
+    <string id="AIL_e7b1de81" text="Добавьте хотя бы одного родственника." />
+    <string id="AIL_e7b1de82" text="Каждому родственнику нужен идентификатор." />
+    <string id="AIL_e7b1de83" text="Идентификаторы с @ — для уже существующих персонажей." />
+    <string id="AIL_e7b1de84" text="Повторный идентификатор: {0}." />
+    <string id="AIL_e7b1de85" text="Каждому родственнику нужно имя." />
+    <string id="AIL_e7b1de86" text="Недопустимый возраст для {0}." />
+    <string id="AIL_e7b1de87" text="Недопустимая культура для {0}." />
+    <string id="AIL_e7b1de88" text="{0} не может быть родственником самому себе." />
+    <string id="AIL_e7b1de89" text="Родство {0} указывает на несуществующего человека." />
+    <string id="AIL_e7b1de8a" text="Отец {0} должен быть мужчиной." />
+    <string id="AIL_e7b1de8b" text="Мать {0} должна быть женщиной." />
+    <string id="AIL_e7b1de8c" text="Родитель {0} должен быть старше хотя бы на {1} лет." />
+    <string id="AIL_e7b1de8d" text="{0} и супруг должны быть взрослыми." />
+    <string id="AIL_e7b1de8e" text="{0} слишком молод, чтобы быть вашим родителем." />
+    <string id="AIL_e7b1de8f" text="{0} слишком стар, чтобы быть вашим ребёнком." />
+    <string id="AIL_e7b1de90" text="Не удалось создать семью; смотрите ailegacy.log." />
+    <string id="AIL_e7b1de91" text="Дедушка" />
+    <string id="AIL_e7b1de92" text="Бабушка" />
+    <string id="AIL_e7b1de93" text="Прадедушка" />
+    <string id="AIL_e7b1de94" text="Прабабушка" />
+    <string id="AIL_e7b1de95" text="Правнук" />
+    <string id="AIL_e7b1de96" text="Правнучка" />
+    <string id="AIL_e7b1de97" text="Двоюродный брат" />
+    <string id="AIL_e7b1de98" text="Двоюродная сестра" />
+    <string id="AIL_e7b1de99" text="Единокровный брат" />
+    <string id="AIL_e7b1de9a" text="Единокровная сестра" />
+    <string id="AIL_e7b1de9b" text="Отчим" />
+    <string id="AIL_e7b1de9c" text="Мачеха" />
+    <string id="AIL_e7b1de9d" text="Пасынок" />
+    <string id="AIL_e7b1de9e" text="Падчерица" />
+    <string id="AIL_e7b1de9f" text="Сводный брат" />
+    <string id="AIL_e7b1dea0" text="Сводная сестра" />
+    <string id="AIL_e7b1dea1" text="Открывайте редактор лица с карты, вне сцен и меню." />
+    <string id="AIL_e7b1dea2" text="Не удалось открыть редактор лица; смотрите ailegacy.log." />
+    <string id="AIL_e7b1dea3" text="Ваша семья растёт: {0}." />
+    <string id="AIL_e7b1dea4" text="Описание для ИИ (необязательно: ИИ напишет анкету по нему)" />
+    <string id="AIL_e7b1dea5" text="Отношение к вам в начале (от −100 до 100)" />
+    <string id="AIL_e7b1dea6" text="Черты (от −2 до 2)" />
+    <string id="AIL_e7b1dea7" text="Честь" />
+    <string id="AIL_e7b1dea8" text="Доблесть" />
+    <string id="AIL_e7b1dea9" text="Щедрость" />
+    <string id="AIL_e7b1deaa" text="Расчётливость" />
+    <string id="AIL_e7b1deab" text="Навыки (по одному в строке: «Charm 80», «Leadership 60»…)" />
+    <string id="AIL_e7b1deac" text="Что знает о вас (необязательно)" />
+    <string id="AIL_e7b1dead" text="Общая история (необязательно)" />
+    <string id="AIL_e7b1deae" text="Создать семью" />
+    <string id="AIL_e7b1deaf" text="Один или несколько родственников сразу, с настоящим родством в игре. Свяжите их с собой, друг с другом или с существующими персонажами: так появятся бабушки и дедушки, дяди, кузены, родня по браку или сводная семья. Возраст и пол проверяются." />
+    <string id="AIL_e7b1deb0" text="Добавить родственника" />
+    <string id="AIL_e7b1deb1" text="Изменить лицо в игре" />
+    <string id="AIL_e7b1deb2" text="С вами" />
+    <string id="AIL_e7b1deb3" text="(нет прямой связи)" />
+    <string id="AIL_e7b1deb4" text="Ваш отец" />
+    <string id="AIL_e7b1deb5" text="Ваша мать" />
+    <string id="AIL_e7b1deb6" text="Ваш сын или дочь" />
+    <string id="AIL_e7b1deb7" text="Ваш брат или сестра" />
+    <string id="AIL_e7b1deb8" text="Ваш супруг" />
+    <string id="AIL_e7b1deb9" text="Отец" />
+    <string id="AIL_e7b1deba" text="Мать" />
+    <string id="AIL_e7b1debb" text="В вашем клане" />
+    <string id="AIL_e7b1debc" text="В вашем отряде (взрослые)" />
+    <string id="AIL_e7b1debd" text="Новый:" />
+    <string id="AIL_e7b1debe" text="Ваша семья растёт: " />
+    <string id="AIL_e7b1debf" text="Редактор лица открыт в игре." />
+    <string id="AIL_e7b1dec0" text="{0} уже в браке: не может жениться на {1}." />
+    <string id="AIL_e7b1dec1" text="У {0} не может быть двух супругов." />
   </strings>
 </base>

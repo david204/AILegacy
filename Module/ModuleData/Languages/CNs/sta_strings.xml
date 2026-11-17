@@ -2918,5 +2918,71 @@
     <string id="AIL_e7b1de66" text="决斗未能开始。你们可以另约时间。" />
     <string id="AIL_e7b1de70" text="文书" />
     <string id="AIL_e7b1de71" text="来自 {0}" />
+    <string id="AIL_e7b1de80" text="没有正在进行的战役。" />
+    <string id="AIL_e7b1de81" text="至少添加一名家庭成员。" />
+    <string id="AIL_e7b1de82" text="每名家庭成员都需要一个标识。" />
+    <string id="AIL_e7b1de83" text="以 @ 开头的标识留给已存在的角色。" />
+    <string id="AIL_e7b1de84" text="重复的标识：{0}。" />
+    <string id="AIL_e7b1de85" text="每名家庭成员都需要名字。" />
+    <string id="AIL_e7b1de86" text="{0} 的年龄无效。" />
+    <string id="AIL_e7b1de87" text="{0} 的文化无效。" />
+    <string id="AIL_e7b1de88" text="{0} 不能是自己的亲属。" />
+    <string id="AIL_e7b1de89" text="{0} 的某个亲属关系指向了不存在的人。" />
+    <string id="AIL_e7b1de8a" text="{0} 的父亲必须是男性。" />
+    <string id="AIL_e7b1de8b" text="{0} 的母亲必须是女性。" />
+    <string id="AIL_e7b1de8c" text="{0} 的父母至少要比其年长 {1} 岁。" />
+    <string id="AIL_e7b1de8d" text="{0} 和其配偶都必须是成年人。" />
+    <string id="AIL_e7b1de8e" text="{0} 太年轻，不能做你的父母。" />
+    <string id="AIL_e7b1de8f" text="{0} 年纪太大，不能做你的孩子。" />
+    <string id="AIL_e7b1de90" text="无法创建家族；请查看 ailegacy.log。" />
+    <string id="AIL_e7b1de91" text="祖父" />
+    <string id="AIL_e7b1de92" text="祖母" />
+    <string id="AIL_e7b1de93" text="曾祖父" />
+    <string id="AIL_e7b1de94" text="曾祖母" />
+    <string id="AIL_e7b1de95" text="曾孙" />
+    <string id="AIL_e7b1de96" text="曾孙女" />
+    <string id="AIL_e7b1de97" text="堂/表兄弟" />
+    <string id="AIL_e7b1de98" text="堂/表姐妹" />
+    <string id="AIL_e7b1de99" text="同父异母/同母异父兄弟" />
+    <string id="AIL_e7b1de9a" text="同父异母/同母异父姐妹" />
+    <string id="AIL_e7b1de9b" text="继父" />
+    <string id="AIL_e7b1de9c" text="继母" />
+    <string id="AIL_e7b1de9d" text="继子" />
+    <string id="AIL_e7b1de9e" text="继女" />
+    <string id="AIL_e7b1de9f" text="继兄弟" />
+    <string id="AIL_e7b1dea0" text="继姐妹" />
+    <string id="AIL_e7b1dea1" text="请在地图上打开面容编辑器，不要在场景或菜单中。" />
+    <string id="AIL_e7b1dea2" text="无法打开面容编辑器；请查看 ailegacy.log。" />
+    <string id="AIL_e7b1dea3" text="你的家族壮大了：{0}。" />
+    <string id="AIL_e7b1dea4" text="给 AI 的描述（可选：AI 会据此写出角色档案）" />
+    <string id="AIL_e7b1dea5" text="初始与你的关系（−100 到 100）" />
+    <string id="AIL_e7b1dea6" text="特质（−2 到 2）" />
+    <string id="AIL_e7b1dea7" text="荣誉" />
+    <string id="AIL_e7b1dea8" text="勇气" />
+    <string id="AIL_e7b1dea9" text="慷慨" />
+    <string id="AIL_e7b1deaa" text="精明" />
+    <string id="AIL_e7b1deab" text="技能（每行一个：“Charm 80”、“Leadership 60”…）" />
+    <string id="AIL_e7b1deac" text="对你的了解（可选）" />
+    <string id="AIL_e7b1dead" text="你们共同的过往（可选）" />
+    <string id="AIL_e7b1deae" text="创建家族" />
+    <string id="AIL_e7b1deaf" text="一次添加一名或多名亲属，在游戏中有真实的亲属关系。把他们与你、彼此或已有角色相连：就能得到祖父母、叔伯、堂表亲、姻亲或继亲。年龄和性别会被检查。" />
+    <string id="AIL_e7b1deb0" text="添加亲属" />
+    <string id="AIL_e7b1deb1" text="在游戏中编辑面容" />
+    <string id="AIL_e7b1deb2" text="与你" />
+    <string id="AIL_e7b1deb3" text="（无直接关系）" />
+    <string id="AIL_e7b1deb4" text="是你的父亲" />
+    <string id="AIL_e7b1deb5" text="是你的母亲" />
+    <string id="AIL_e7b1deb6" text="是你的儿子或女儿" />
+    <string id="AIL_e7b1deb7" text="是你的兄弟或姐妹" />
+    <string id="AIL_e7b1deb8" text="是你的配偶" />
+    <string id="AIL_e7b1deb9" text="父亲" />
+    <string id="AIL_e7b1deba" text="母亲" />
+    <string id="AIL_e7b1debb" text="加入你的家族" />
+    <string id="AIL_e7b1debc" text="加入你的队伍（成年人）" />
+    <string id="AIL_e7b1debd" text="新：" />
+    <string id="AIL_e7b1debe" text="你的家族壮大了：" />
+    <string id="AIL_e7b1debf" text="面容编辑器已在游戏中打开。" />
+    <string id="AIL_e7b1dec0" text="{0} 已婚：不能与 {1} 结婚。" />
+    <string id="AIL_e7b1dec1" text="{0} 不能有两个配偶。" />
   </strings>
 </base>

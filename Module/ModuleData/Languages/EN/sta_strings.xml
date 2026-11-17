@@ -2919,5 +2919,71 @@
     <string id="AIL_e7b1de66" text="The duel could not begin. You can arrange another meeting." />
     <string id="AIL_e7b1de70" text="Document" />
     <string id="AIL_e7b1de71" text="From {0}" />
+    <string id="AIL_e7b1de80" text="No campaign is running." />
+    <string id="AIL_e7b1de81" text="Add at least one family member." />
+    <string id="AIL_e7b1de82" text="Each family member needs an id." />
+    <string id="AIL_e7b1de83" text="Ids starting with @ are for characters who already exist." />
+    <string id="AIL_e7b1de84" text="Repeated id: {0}." />
+    <string id="AIL_e7b1de85" text="Each family member needs a name." />
+    <string id="AIL_e7b1de86" text="Age not valid for {0}." />
+    <string id="AIL_e7b1de87" text="Culture not valid for {0}." />
+    <string id="AIL_e7b1de88" text="{0} cannot be their own relative." />
+    <string id="AIL_e7b1de89" text="A kinship of {0} points to someone who does not exist." />
+    <string id="AIL_e7b1de8a" text="{0}'s father has to be a man." />
+    <string id="AIL_e7b1de8b" text="{0}'s mother has to be a woman." />
+    <string id="AIL_e7b1de8c" text="A parent of {0} has to be at least {1} years older." />
+    <string id="AIL_e7b1de8d" text="{0} and their spouse have to be adults." />
+    <string id="AIL_e7b1de8e" text="{0} is too young to be your parent." />
+    <string id="AIL_e7b1de8f" text="{0} is too old to be your child." />
+    <string id="AIL_e7b1de90" text="The family could not be made; see ailegacy.log." />
+    <string id="AIL_e7b1de91" text="Grandfather" />
+    <string id="AIL_e7b1de92" text="Grandmother" />
+    <string id="AIL_e7b1de93" text="Great-grandfather" />
+    <string id="AIL_e7b1de94" text="Great-grandmother" />
+    <string id="AIL_e7b1de95" text="Great-grandson" />
+    <string id="AIL_e7b1de96" text="Great-granddaughter" />
+    <string id="AIL_e7b1de97" text="Cousin" />
+    <string id="AIL_e7b1de98" text="Cousin" />
+    <string id="AIL_e7b1de99" text="Half-brother" />
+    <string id="AIL_e7b1de9a" text="Half-sister" />
+    <string id="AIL_e7b1de9b" text="Stepfather" />
+    <string id="AIL_e7b1de9c" text="Stepmother" />
+    <string id="AIL_e7b1de9d" text="Stepson" />
+    <string id="AIL_e7b1de9e" text="Stepdaughter" />
+    <string id="AIL_e7b1de9f" text="Stepbrother" />
+    <string id="AIL_e7b1dea0" text="Stepsister" />
+    <string id="AIL_e7b1dea1" text="Open the face editor from the map, away from scenes and menus." />
+    <string id="AIL_e7b1dea2" text="The face editor could not be opened; see ailegacy.log." />
+    <string id="AIL_e7b1dea3" text="Your family grows: {0}." />
+    <string id="AIL_e7b1dea4" text="Description for the AI (optional: the AI writes their sheet from this)" />
+    <string id="AIL_e7b1dea5" text="Relation with you to start with (−100 to 100)" />
+    <string id="AIL_e7b1dea6" text="Traits (−2 to 2)" />
+    <string id="AIL_e7b1dea7" text="Honor" />
+    <string id="AIL_e7b1dea8" text="Valor" />
+    <string id="AIL_e7b1dea9" text="Generosity" />
+    <string id="AIL_e7b1deaa" text="Calculating" />
+    <string id="AIL_e7b1deab" text="Skills (one per line: «Charm 80», «Leadership 60»…)" />
+    <string id="AIL_e7b1deac" text="What they know about you (optional)" />
+    <string id="AIL_e7b1dead" text="History you share (optional)" />
+    <string id="AIL_e7b1deae" text="Create family" />
+    <string id="AIL_e7b1deaf" text="One or several relatives at once, with real kinship in the game. Link them to you, to each other or to characters who already exist: that gives grandparents, uncles, cousins, in-laws or a stepfamily. Ages and sexes are checked." />
+    <string id="AIL_e7b1deb0" text="Add relative" />
+    <string id="AIL_e7b1deb1" text="Edit face in the game" />
+    <string id="AIL_e7b1deb2" text="With you" />
+    <string id="AIL_e7b1deb3" text="(no direct tie)" />
+    <string id="AIL_e7b1deb4" text="Is your father" />
+    <string id="AIL_e7b1deb5" text="Is your mother" />
+    <string id="AIL_e7b1deb6" text="Is your son or daughter" />
+    <string id="AIL_e7b1deb7" text="Is your brother or sister" />
+    <string id="AIL_e7b1deb8" text="Is your spouse" />
+    <string id="AIL_e7b1deb9" text="Father" />
+    <string id="AIL_e7b1deba" text="Mother" />
+    <string id="AIL_e7b1debb" text="In your clan" />
+    <string id="AIL_e7b1debc" text="In your party (adults)" />
+    <string id="AIL_e7b1debd" text="New:" />
+    <string id="AIL_e7b1debe" text="Your family grows: " />
+    <string id="AIL_e7b1debf" text="The face editor is open in the game." />
+    <string id="AIL_e7b1dec0" text="{0} is already married: they cannot marry {1}." />
+    <string id="AIL_e7b1dec1" text="{0} cannot have two spouses." />
   </strings>
 </base>

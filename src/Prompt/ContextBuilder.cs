@@ -351,10 +351,9 @@ namespace AILegacy.Prompt
                 var mail = RecentLetters(mem);
                 if (mail.Length > 0) sb.Append(mail);
 
-                if (npc.Spouse == p) sb.AppendLine("They are your spouse.");
-                else if (npc.Father == p || npc.Mother == p) sb.AppendLine("They are your parent.");
-                else if (p.Father == npc || p.Mother == npc) sb.AppendLine("They are your child.");
-                else if (npc.Siblings.Contains(p)) sb.AppendLine("They are your sibling.");
+                // what the player is to them, the wider kin too (a grandson, a cousin, a stepdaughter…)
+                string kin = World.FamilyTree.Resolve(p, npc);
+                if (kin != null) sb.AppendLine($"They are your {kin}.");
                 if (npc.IsPlayerCompanion) sb.AppendLine("You serve in their clan as a companion.");
                 else if (npc.Clan != null && npc.Clan == Clan.PlayerClan) sb.AppendLine("You belong to their clan.");
 

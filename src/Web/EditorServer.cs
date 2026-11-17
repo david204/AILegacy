@@ -594,52 +594,7 @@ namespace AILegacy.Web
                 {
                     var id = (string)d["id"];
                     var hero = Hero.Find(id) ?? throw new ApiError(L.T("AIL_10f114fb", "Ese personaje ya no existe en la partida."));
-                    if (Generating.Contains(id)) return new { ok = true, started = false };
-                    var sp = Dialogue.Speaker.FromHero(hero);
-                    World.Lore.EnsureArchetype(sp);
-                    var m = sp.Memory;
-                    var facts = new StringBuilder();
-                    string habitLine = World.Lore.HabitForCreation(sp);
-                    facts.AppendLine($"{hero.Name}, {(hero.IsFemale ? "woman" : "man")}, {(int)hero.Age} years old, of {hero.Culture?.Name} culture.");
-                    facts.AppendLine(hero.IsLord ? $"A noble of clan {hero.Clan?.Name}{(hero.Clan?.Leader == hero ? " (its head)" : "")}; the clan is a {World.Facts.ClanKind(hero.Clan)}{(hero.MapFaction is Kingdom kk && kk.Leader == hero ? " — and this is its ruler" : "")}."
-                                   : hero.IsNotable ? $"A notable ({hero.Occupation}) of {hero.CurrentSettlement?.Name ?? hero.HomeSettlement?.Name}." : hero.IsWanderer ? "A wanderer who sells their sword or wits." : "A person of some name.");
-                    if (hero.Spouse != null) facts.AppendLine($"Married to {hero.Spouse.Name}.");
-                    if (hero.Father != null || hero.Mother != null) facts.AppendLine($"Child of {hero.Father?.Name}{(hero.Father != null && hero.Mother != null ? " and " : "")}{hero.Mother?.Name}.");
-                    if (hero.Children.Count > 0) facts.AppendLine($"Children: {string.Join(", ", hero.Children.Take(5).Select(c => c.Name.ToString()))}.");
-                    if (hero.Clan != null && hero.Clan.Fiefs.Count > 0) facts.AppendLine($"The clan holds: {string.Join(", ", hero.Clan.Fiefs.Take(5).Select(f => f.Name.ToString()))}.");
-                    facts.AppendLine($"Traits (each -2 to 2): honor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor)}, mercy {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Mercy)}, valor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Valor)}, generosity {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Generosity)}, calculating {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)}.");
-                    if (!string.IsNullOrEmpty(m.Archetype)) facts.AppendLine($"Mould of character: {m.Archetype} — {m.ArchetypeText}");
-                    try { var enc = hero.EncyclopediaText?.ToString(); if (!string.IsNullOrWhiteSpace(enc)) facts.AppendLine("What is commonly said of them: " + enc); } catch { }
-                    string hint = ((string)d["hint"] ?? "").Trim();
-                    if (habitLine.Length > 0) facts.AppendLine(habitLine);
-                    string prompt = TGenerate.Format("facts", facts.ToString().TrimEnd(), "hint", hint.Length > 0 ? "The author of this world asks for this in particular: " + hint : "", "language", Settings.S.Get.Language);
-                    Generating.Add(id);
-                    int session = WorldSim.Session;
-                    Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "editor", maxTokensOverride: 1200, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
-                    {
-                        var res = t.IsFaulted ? null : t.Result;
-                        MainThread.Post(() =>
-                        {
-                            Generating.Remove(id);
-                            try
-                            {
-                                // another save was loaded meanwhile: that memory is not this campaign's, and saving would write it here
-                                if (session != WorldSim.Session) { Log.Info("Editor: personality from another save, discarded"); return; }
-                                if (res == null || !res.Ok) { GenerateError[id] = res?.Error ?? L.T("AIL_ea76bfc7", "la IA no ha respondido"); return; }
-                                int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
-                                if (a < 0 || b <= a) { GenerateError[id] = "respuesta ilegible"; return; }
-                                var p = JObject.Parse(res.Text.Substring(a, b - a + 1)).ToObject<CharacterProfile>();
-                                if (p == null || p.IsEmpty) { GenerateError[id] = L.T("AIL_e514530a", "respuesta vacía"); return; }
-                                if (m.Profile != null && !string.IsNullOrWhiteSpace(m.Profile.GivenName)) p.GivenName = m.Profile.GivenName;
-                                m.Profile = p; m.ProfileRevision++;
-                                GenerateError.Remove(id);
-                                SaveFiles.Flush();
-                                Log.Info("Editor: personality generated for " + m.HeroName);
-                            }
-                            catch (Exception ex) { GenerateError[id] = "respuesta ilegible"; Log.Error("Generating personality", ex); }
-                        });
-                    });
-                    return new { ok = true, started = true };
+                    return new { ok = true, started = StartGenerate(hero, ((string)d["hint"] ?? "").Trim()) };
                 }
 
                 case "/api/npc/generating":
@@ -675,6 +630,10 @@ namespace AILegacy.Web
                         if (m.Profile == null) m.Profile = new CharacterProfile();
                         m.Profile.Backstory = story; m.Profile.Personality = pers;
                     }
+                    var fam = World.FamilyTree.Parse(new JArray(d))[0];
+                    World.FamilyTree.Sheet(h, fam.Traits, fam.Skills, fam.Description, fam.Known, fam.History);
+                    int rel = (int?)d["relation"] ?? 0;
+                    if (rel != 0) TaleWorlds.CampaignSystem.Actions.ChangeRelationAction.ApplyPlayerRelation(h, Math.Max(-100, Math.Min(100, rel)), false, false);
                     SaveFiles.Flush();
                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_858c74a8", $"{h.Name} se une a tu partida como compañero."), Colors.Yellow));
                     return new { ok = true, id = h.StringId, name = h.Name.ToString() };
@@ -690,6 +649,26 @@ namespace AILegacy.Web
                     SaveFiles.Flush();
                     InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_254648d0", $"{h.Name} ya es de tu familia."), Colors.Yellow));
                     return new { ok = true, id = h.StringId, name = h.Name.ToString() };
+                }
+
+                case "/api/family/relatives":
+                    return World.FamilyTree.Relatives().Select(h => new { id = "@" + h.StringId, name = h.Name.ToString(), female = h.IsFemale, age = (int)h.Age, what = World.FamilyTree.Resolve(h, Hero.MainHero) ?? "" });
+
+                case "/api/family/tree":
+                {
+                    var members = World.FamilyTree.Parse(d["members"] as JArray);
+                    var made = World.FamilyTree.Create(members, out string err);
+                    if (made == null) throw new ApiError(err ?? "No se pudo crear.");
+                    InformationManager.DisplayMessage(new InformationMessage(L.F("AIL_e7b1dea3", $"Tu familia crece: {string.Join(", ", made.Select(h => h.Name.ToString()))}."), Colors.Yellow));
+                    return new { ok = true, ids = made.Select(h => h.StringId), names = made.Select(h => h.Name.ToString()) };
+                }
+
+                case "/api/npc/face":
+                {
+                    var hero = Hero.Find((string)d["id"]) ?? throw new ApiError(L.T("AIL_10f114fb", "Ese personaje ya no existe en la partida."));
+                    string why = UI.FaceEditor.Open(hero);
+                    if (why != null) throw new ApiError(why);
+                    return new { ok = true };
                 }
 
                 case "/api/lang":
@@ -761,6 +740,58 @@ namespace AILegacy.Web
                 default:
                     throw new ApiError(L.T("AIL_eb19bc3f", "Ruta desconocida: ") + path);
             }
+        }
+
+        /// <summary>Has the AI write this character's sheet (personality, past, speech…) from who they are in the campaign and the hint. False if already busy.</summary>
+        public static bool StartGenerate(Hero hero, string hint)
+        {
+            string id = hero.StringId;
+            hint = hint ?? "";
+            if (Generating.Contains(id)) return false;
+            var sp = Dialogue.Speaker.FromHero(hero);
+            World.Lore.EnsureArchetype(sp);
+            var m = sp.Memory;
+            var facts = new StringBuilder();
+            string habitLine = World.Lore.HabitForCreation(sp);
+            facts.AppendLine($"{hero.Name}, {(hero.IsFemale ? "woman" : "man")}, {(int)hero.Age} years old, of {hero.Culture?.Name} culture.");
+            facts.AppendLine(hero.IsLord ? $"A noble of clan {hero.Clan?.Name}{(hero.Clan?.Leader == hero ? " (its head)" : "")}; the clan is a {World.Facts.ClanKind(hero.Clan)}{(hero.MapFaction is Kingdom kk && kk.Leader == hero ? " — and this is its ruler" : "")}."
+                           : hero.IsNotable ? $"A notable ({hero.Occupation}) of {hero.CurrentSettlement?.Name ?? hero.HomeSettlement?.Name}." : hero.IsWanderer ? "A wanderer who sells their sword or wits." : "A person of some name.");
+            if (hero.Spouse != null) facts.AppendLine($"Married to {hero.Spouse.Name}.");
+            if (hero.Father != null || hero.Mother != null) facts.AppendLine($"Child of {hero.Father?.Name}{(hero.Father != null && hero.Mother != null ? " and " : "")}{hero.Mother?.Name}.");
+            if (hero.Children.Count > 0) facts.AppendLine($"Children: {string.Join(", ", hero.Children.Take(5).Select(c => c.Name.ToString()))}.");
+            if (hero.Clan != null && hero.Clan.Fiefs.Count > 0) facts.AppendLine($"The clan holds: {string.Join(", ", hero.Clan.Fiefs.Take(5).Select(f => f.Name.ToString()))}.");
+            facts.AppendLine($"Traits (each -2 to 2): honor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor)}, mercy {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Mercy)}, valor {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Valor)}, generosity {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Generosity)}, calculating {hero.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)}.");
+            if (!string.IsNullOrEmpty(m.Archetype)) facts.AppendLine($"Mould of character: {m.Archetype} — {m.ArchetypeText}");
+            try { var enc = hero.EncyclopediaText?.ToString(); if (!string.IsNullOrWhiteSpace(enc)) facts.AppendLine("What is commonly said of them: " + enc); } catch { }
+            if (habitLine.Length > 0) facts.AppendLine(habitLine);
+            string prompt = TGenerate.Format("facts", facts.ToString().TrimEnd(), "hint", hint.Length > 0 ? "The author of this world asks for this in particular: " + hint : "", "language", Settings.S.Get.Language);
+            Generating.Add(id);
+            int session = WorldSim.Session;
+            Llm.LlmClient.CompleteAsync(new List<Llm.ChatMessage> { new Llm.ChatMessage("user", prompt) }, wantJson: true, task: "editor", maxTokensOverride: 1200, preferredProvider: Settings.S.Get.ProviderHeroes).ContinueWith(t =>
+            {
+                var res = t.IsFaulted ? null : t.Result;
+                MainThread.Post(() =>
+                {
+                    Generating.Remove(id);
+                    try
+                    {
+                        // another save was loaded meanwhile: that memory is not this campaign's, and saving would write it here
+                        if (session != WorldSim.Session) { Log.Info("Editor: personality from another save, discarded"); return; }
+                        if (res == null || !res.Ok) { GenerateError[id] = res?.Error ?? L.T("AIL_ea76bfc7", "la IA no ha respondido"); return; }
+                        int a = res.Text.IndexOf('{'), b = res.Text.LastIndexOf('}');
+                        if (a < 0 || b <= a) { GenerateError[id] = "respuesta ilegible"; return; }
+                        var p = JObject.Parse(res.Text.Substring(a, b - a + 1)).ToObject<CharacterProfile>();
+                        if (p == null || p.IsEmpty) { GenerateError[id] = L.T("AIL_e514530a", "respuesta vacía"); return; }
+                        if (m.Profile != null && !string.IsNullOrWhiteSpace(m.Profile.GivenName)) p.GivenName = m.Profile.GivenName;
+                        m.Profile = p; m.ProfileRevision++;
+                        GenerateError.Remove(id);
+                        SaveFiles.Flush();
+                        Log.Info("Editor: personality generated for " + m.HeroName);
+                    }
+                    catch (Exception ex) { GenerateError[id] = "respuesta ilegible"; Log.Error("Generating personality", ex); }
+                });
+            });
+            return true;
         }
 
         private static readonly HashSet<string> Generating = new HashSet<string>();

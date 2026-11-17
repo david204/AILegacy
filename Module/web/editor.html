@@ -178,20 +178,20 @@
           <label>Cultura</label><select id="c_culture"></select>
           <label>Pasado (opcional)</label><textarea id="c_backstory"></textarea>
           <label>Personalidad (opcional)</label><textarea id="c_personality"></textarea>
+          <label>Descripción para la IA (opcional: la IA escribe su ficha a partir de esto)</label><textarea id="c_description"></textarea>
+          <label>Relación contigo al empezar (de −100 a 100)</label><input id="c_relation" type="number" min="-100" max="100" value="0">
+          <label>Rasgos (de −2 a 2)</label>
+          <div class="grid2"><div><label>Honor</label><select data-trait="honor" class="c_trait"><option value="-2">-2</option><option value="-1">-1</option><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option></select></div><div><label>Piedad</label><select data-trait="mercy" class="c_trait"><option value="-2">-2</option><option value="-1">-1</option><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option></select></div><div><label>Valor</label><select data-trait="valor" class="c_trait"><option value="-2">-2</option><option value="-1">-1</option><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option></select></div><div><label>Generosidad</label><select data-trait="generosity" class="c_trait"><option value="-2">-2</option><option value="-1">-1</option><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option></select></div><div><label>Cálculo</label><select data-trait="calculating" class="c_trait"><option value="-2">-2</option><option value="-1">-1</option><option value="0" selected>0</option><option value="1">1</option><option value="2">2</option></select></div></div>
+          <label>Habilidades (una por línea: «Charm 80», «Leadership 60»…)</label><textarea id="c_skills"></textarea>
+          <label>Lo que sabe de ti (opcional)</label><textarea id="c_known"></textarea>
+          <label>Historia que compartís (opcional)</label><textarea id="c_history"></textarea>
           <div class="row"><button class="btn main" data-click="createCompanion">Crear</button></div>
         </div>
         <div class="card" style="margin-top:12px">
-          <h2>Crear familiar</h2>
-          <p class="hint">Un pariente tuyo con el parentesco de verdad en el juego. Para un hermano hace falta tener antes padre o madre.</p>
-          <label>Parentesco</label><select id="fam_rel"><option value="child">Hijo o hija</option><option value="sibling">Hermano o hermana</option><option value="parent">Padre o madre</option><option value="spouse">Cónyuge</option></select>
-          <input id="fam_name" placeholder="Nombre" style="margin-top:8px">
-          <div class="grid2">
-            <div><label>Sexo</label><select id="fam_female"><option value="0">Hombre</option><option value="1">Mujer</option></select></div>
-            <div><label>Edad</label><input id="fam_age" type="number" min="0" max="90" value="20"></div>
-          </div>
-          <label>Cultura</label><select id="fam_culture"></select>
-          <label>Pasado (opcional)</label><textarea id="fam_backstory"></textarea>
-          <div class="row"><button class="btn main" data-click="createFamily">Crear</button></div>
+          <h2>Crear familia</h2>
+          <p class="hint">Uno o varios parientes a la vez, con el parentesco de verdad en el juego. Enlázalos contigo, entre ellos o con personajes que ya existen: así salen abuelos, tíos, primos, políticos o padrastros. Las edades y los sexos se comprueban.</p>
+          <div id="famRows"></div>
+          <div class="row"><button class="btn" data-click="famAdd">Añadir familiar</button><button class="btn main" data-click="createFamily">Crear familia</button></div>
         </div>
       </div>
       <div class="card" id="npcForm" style="display:none">
@@ -217,7 +217,7 @@
           <h2>Personalidad con IA</h2>
           <p class="hint">Escribe toda la ficha de arriba a partir de quién es en la partida (familia, clan, rasgos, molde de carácter), sin tener que hablar con el personaje en el juego. Pisa lo que haya. Es una petición a la IA.</p>
           <input id="f_hint" placeholder="Opcional: algo que quieras que tenga (p. ej. «es cobarde pero lo disimula con bravatas»)">
-          <div class="row"><button class="btn" id="genBtn" data-click="generateNpc">Generar personalidad</button></div>
+          <div class="row"><button class="btn" id="genBtn" data-click="generateNpc">Generar personalidad</button><button class="btn" data-click="editFace">Editar cara en el juego</button></div>
         </div>
         <div class="grid2">
           <div><label>Molde de carácter</label><select id="f_archetype"></select><p class="hint" id="f_archetype_text"></p></div>
@@ -732,10 +732,12 @@ async function addItem() {
 async function delItem(name) { await api('/api/item/delete', { name }); loadItems(); }
 async function openDir(what) { await api('/api/open', { what }); toast(T('Carpeta abierta en el equipo del juego')); }
 
-async function loadCultures() { const c = cultures = await api('/api/cultures'); $('c_culture').innerHTML = $('fam_culture').innerHTML = c.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); }
+async function loadCultures() { const c = cultures = await api('/api/cultures'); $('c_culture').innerHTML = c.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''); }
 async function createCompanion() {
-  const r = await api('/api/companion/create', { name:$('c_name').value, female:$('c_female').value === '1', age:parseInt($('c_age').value || '25'), culture:$('c_culture').value, backstory:$('c_backstory').value, personality:$('c_personality').value });
-  toast(r.name + T(' se une a tu partida')); $('c_name').value = ''; $('c_backstory').value = ''; $('c_personality').value = '';
+  const card = $('c_name').closest('.card');
+  const r = await api('/api/companion/create', { name:$('c_name').value, female:$('c_female').value === '1', age:parseInt($('c_age').value || '25'), culture:$('c_culture').value, backstory:$('c_backstory').value, personality:$('c_personality').value,
+    description:$('c_description').value, relation:parseInt($('c_relation').value || '0'), known:$('c_known').value, history:$('c_history').value, traits:famTraitValues(card, 'c_trait'), skills:famSkills($('c_skills').value) });
+  toast(r.name + T(' se une a tu partida')); for (const k of ['c_name', 'c_backstory', 'c_personality', 'c_description', 'c_known', 'c_history', 'c_skills']) $(k).value = ''; $('c_relation').value = '0';
   await refreshState(); openNpc(r.id);
 }
 
@@ -746,10 +748,80 @@ async function loadStorySecrets() {
 }
 async function delStorySecret(id) { await api('/api/storysecrets/delete', { id }); loadStorySecrets(); }
 
+// ---- family tree: rows linked to each other, to you and to people already in the world
+let famSeq = 0, famRelatives = [];
+function famTraits(prefix) {
+  const names = [['honor', T('Honor')], ['mercy', T('Piedad')], ['valor', T('Valor')], ['generosity', T('Generosidad')], ['calculating', T('Cálculo')]];
+  return names.map(([k, lab]) => `<div><label>${esc(lab)}</label><select data-trait="${k}" class="${prefix}">${[-2, -1, 0, 1, 2].map(v => `<option value="${v}"${v === 0 ? ' selected' : ''}>${v}</option>`).join('')}</select></div>`).join('');
+}
+function famSkills(text) {
+  const o = {};
+  (text || '').split('\n').forEach(l => { const m = l.trim().match(/^([A-Za-z_ ]+?)\s*[:=]?\s*(\d+)$/); if (m) o[m[1].trim()] = parseInt(m[2]); });
+  return o;
+}
+function famTraitValues(root, prefix) { const o = {}; root.querySelectorAll('select.' + prefix).forEach(s => { const v = parseInt(s.value); if (v) o[s.getAttribute('data-trait')] = v; }); return o; }
+async function famAdd() {
+  if (!famRelatives.length) { try { famRelatives = await api('/api/family/relatives'); } catch { famRelatives = []; } }
+  const id = 'm' + (++famSeq);
+  const div = document.createElement('div');
+  div.className = 'card'; div.style.marginTop = '8px'; div.setAttribute('data-fam', id);
+  div.innerHTML = `
+    <div class="grid2">
+      <div><label>${esc(T('Nombre'))}</label><input class="f_name" data-input="famLinks"></div>
+      <div><label>${esc(T('Contigo'))}</label><select class="f_direct"><option value="">${esc(T('(ningún lazo directo)'))}</option><option value="father">${esc(T('Es tu padre'))}</option><option value="mother">${esc(T('Es tu madre'))}</option><option value="child">${esc(T('Es tu hijo o hija'))}</option><option value="sibling">${esc(T('Es tu hermano o hermana'))}</option><option value="spouse">${esc(T('Es tu cónyuge'))}</option></select></div>
+      <div><label>${esc(T('Sexo'))}</label><select class="f_female"><option value="0">${esc(T('Hombre'))}</option><option value="1">${esc(T('Mujer'))}</option></select></div>
+      <div><label>${esc(T('Edad'))}</label><input class="f_age" type="number" min="0" max="100" value="30"></div>
+      <div><label>${esc(T('Cultura'))}</label><select class="f_culture">${cultures.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select></div>
+      <div><label>${esc(T('Padre'))}</label><select class="f_father f_link"></select></div>
+      <div><label>${esc(T('Madre'))}</label><select class="f_mother f_link"></select></div>
+      <div><label>${esc(T('Cónyuge'))}</label><select class="f_spouse f_link"></select></div>
+    </div>
+    <div class="row"><label><input type="checkbox" class="f_clan" checked> ${esc(T('En tu clan'))}</label> <label><input type="checkbox" class="f_party" checked> ${esc(T('En tu partida (los adultos)'))}</label></div>
+    <label>${esc(T('Descripción para la IA (opcional: la IA escribe su ficha a partir de esto)'))}</label><textarea class="f_desc"></textarea>
+    <label>${esc(T('Rasgos (de −2 a 2)'))}</label><div class="grid2">${famTraits('f_trait')}</div>
+    <label>${esc(T('Habilidades (una por línea: «Charm 80», «Leadership 60»…)'))}</label><textarea class="f_skills"></textarea>
+    <label>${esc(T('Lo que sabe de ti (opcional)'))}</label><textarea class="f_known"></textarea>
+    <label>${esc(T('Historia que compartís (opcional)'))}</label><textarea class="f_history"></textarea>
+    <div class="row"><button class="btn danger" data-click="famRemove" data-args="${id}">${esc(T('Quitar'))}</button></div>`;
+  $('famRows').appendChild(div);
+  famLinks();
+}
+function famRemove(id) { const el = document.querySelector(`[data-fam="${id}"]`); if (el) el.remove(); famLinks(); }
+function famLinks() {
+  const rows = [...document.querySelectorAll('[data-fam]')];
+  const others = rows.map(r => ({ id: r.getAttribute('data-fam'), name: r.querySelector('.f_name').value || r.getAttribute('data-fam') }));
+  rows.forEach(r => {
+    const me = r.getAttribute('data-fam');
+    r.querySelectorAll('.f_link').forEach(sel => {
+      const keep = sel.value;
+      const opts = [`<option value="">—</option>`, `<option value="player">${esc(T('Tú'))}</option>`]
+        .concat(famRelatives.map(x => `<option value="${esc(x.id)}">${esc(x.name)}${x.what ? ' (' + esc(x.what) + ')' : ''}</option>`))
+        .concat(others.filter(o => o.id !== me).map(o => `<option value="${esc(o.id)}">${esc(T('Nuevo:'))} ${esc(o.name)}</option>`));
+      sel.innerHTML = opts.join('');
+      sel.value = keep;
+    });
+  });
+}
 async function createFamily() {
-  const r = await api('/api/family/create', { relation:$('fam_rel').value, name:$('fam_name').value, female:$('fam_female').value === '1', age:parseInt($('fam_age').value || '20'), culture:$('fam_culture').value, backstory:$('fam_backstory').value });
-  toast(r.name + T(' ya es de tu familia')); $('fam_name').value = ''; $('fam_backstory').value = '';
-  await refreshState(); openNpc(r.id);
+  const rows = [...document.querySelectorAll('[data-fam]')];
+  if (!rows.length) { toast(T('Añade al menos un familiar.'), true); return; }
+  const members = rows.map(r => ({
+    id: r.getAttribute('data-fam'), name: r.querySelector('.f_name').value, female: r.querySelector('.f_female').value === '1',
+    age: parseInt(r.querySelector('.f_age').value || '30'), culture: r.querySelector('.f_culture').value, direct: r.querySelector('.f_direct').value,
+    father: r.querySelector('.f_father').value, mother: r.querySelector('.f_mother').value, spouse: r.querySelector('.f_spouse').value,
+    in_clan: r.querySelector('.f_clan').checked, in_party: r.querySelector('.f_party').checked,
+    description: r.querySelector('.f_desc').value, known: r.querySelector('.f_known').value, history: r.querySelector('.f_history').value,
+    traits: famTraitValues(r, 'f_trait'), skills: famSkills(r.querySelector('.f_skills').value),
+  }));
+  const r = await api('/api/family/tree', { members });
+  toast(T('Tu familia crece: ') + r.names.join(', '));
+  $('famRows').innerHTML = ''; famSeq = 0; famRelatives = [];
+  await refreshState(); if (r.ids && r.ids.length) openNpc(r.ids[0]);
+}
+async function editFace() {
+  if (!npcId) return;
+  await api('/api/npc/face', { id: npcId });
+  toast(T('El editor de cara está abierto en el juego.'));
 }
 
 async function generateNpc() {
@@ -856,7 +928,7 @@ async function importData() {
 // Buttons and fields say what they do in data-click, data-input, data-change or data-toggle: a name from ACTIONS,
 // with its fixed arguments in data-args and, in data-pass, what of the element goes last (its value, whether it is
 // open, or the element). No handler is written into the markup.
-const ACTIONS = { aRemove, aRole, aSet, addArch, addVoice, saveVoices, vRemove, vSet, addItem, addK, addMap, clearHistory, copyDefaults, createCompanion, createFamily, deleteNpc, exportData, generateNpc, importData, kAbout, kDel, kRemove, kSearch, kSet, kWho, loadBackups, loadUsage, mRemove, mSet, openDir, publishEvent, renderFiles, renderNpcs, resetFile, resetWD, restoreBackup, saveArch, saveFile, saveK, saveMap, saveNpc, savePlayer, saveWorld, searchEventHeroes, searchHeroes };
+const ACTIONS = { aRemove, aRole, aSet, addArch, addVoice, saveVoices, vRemove, vSet, addItem, addK, addMap, clearHistory, copyDefaults, createCompanion, createFamily, deleteNpc, editFace, famAdd, famLinks, famRemove, exportData, generateNpc, importData, kAbout, kDel, kRemove, kSearch, kSet, kWho, loadBackups, loadUsage, mRemove, mSet, openDir, publishEvent, renderFiles, renderNpcs, resetFile, resetWD, restoreBackup, saveArch, saveFile, saveK, saveMap, saveNpc, savePlayer, saveWorld, searchEventHeroes, searchHeroes };
 for (const type of ['click', 'input', 'change', 'toggle']) {
   // toggle does not bubble, so everything is caught on the way down
   document.addEventListener(type, e => {
