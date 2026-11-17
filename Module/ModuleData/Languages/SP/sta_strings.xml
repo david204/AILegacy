@@ -2916,5 +2916,7 @@
     <string id="AIL_e7b1de64" text="En la arena" />
     <string id="AIL_e7b1de65" text="Aquí mismo" />
     <string id="AIL_e7b1de66" text="El duelo no ha podido empezar. Podéis concertar otro encuentro." />
+    <string id="AIL_e7b1de70" text="Documento" />
+    <string id="AIL_e7b1de71" text="De {0}" />
   </strings>
 </base>

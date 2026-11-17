@@ -514,6 +514,10 @@ namespace AILegacy.World
         [JsonProperty("from")] public string FromId;
         [JsonProperty("from_name")] public string FromName;
         [JsonProperty("day")] public double Day;
+        /// <summary>Which of the mod's document items stands for it in the inventory (1..40); 0 = none yet.</summary>
+        [JsonProperty("slot", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Slot;
+        /// <summary>It has been put in the player's inventory: from then on, gone from there means gone.</summary>
+        [JsonProperty("in_inventory", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Delivered;
     }
 
     internal static class Belongings

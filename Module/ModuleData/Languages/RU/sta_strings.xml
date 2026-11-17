@@ -2916,5 +2916,7 @@
     <string id="AIL_e7b1de64" text="На арене" />
     <string id="AIL_e7b1de65" text="Прямо здесь" />
     <string id="AIL_e7b1de66" text="Дуэль не смогла начаться. Можно договориться о другой встрече." />
+    <string id="AIL_e7b1de70" text="Документ" />
+    <string id="AIL_e7b1de71" text="От {0}" />
   </strings>
 </base>

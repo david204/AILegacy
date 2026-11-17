@@ -2917,5 +2917,7 @@
     <string id="AIL_e7b1de64" text="At the arena" />
     <string id="AIL_e7b1de65" text="Right here" />
     <string id="AIL_e7b1de66" text="The duel could not begin. You can arrange another meeting." />
+    <string id="AIL_e7b1de70" text="Document" />
+    <string id="AIL_e7b1de71" text="From {0}" />
   </strings>
 </base>

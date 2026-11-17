@@ -1486,7 +1486,7 @@ namespace AILegacy.Dialogue
                 Name = "give_document", Usage = "give_document:<short name>|<what it is and what it says, one or two sentences>",
                 Description = "You write or hand over a document or token that the other person will carry and can show to others: a letter of introduction, a safe-conduct, a signed contract, " +
                               "a receipt for a debt, a sealed order, a ring or keepsake. Only when you truly decided to give it. Write the name and contents in English.",
-                IsAvailable = s => S.Get.AllowItems && s.IsHero && !s.Hero.IsPrisoner && Belongings.Items.Count < 40,
+                IsAvailable = s => S.Get.AllowItems && s.IsHero && !s.Hero.IsPrisoner && Belongings.Items.Count < RpInventory.Slots,
                 Execute = (s, arg, ctx) =>
                 {
                     var parts = (arg ?? "").Split(new[] { '|' }, 2);

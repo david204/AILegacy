@@ -375,6 +375,7 @@ namespace AILegacy.World
             try { Scenes.DeckTalk.ResetSession(); } catch { }
             try { PartyRepair.ResetSession(); } catch { }
             try { Dialogue.Doors.ResetSession(); } catch { }
+            try { RpInventory.ResetSession(); } catch { }
             try { Letters.LetterSystem.ResetSession(); } catch { }
             try { Dialogue.Verdict.ResetSession(); } catch { }
             try { Dialogue.Initiative.ResetSession(); } catch { }
