@@ -2122,7 +2122,8 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                 }
                 else if (d.Kind == "peace")
                 {
-                    if (o != null ? k.IsAtWarWith(o) : newPeace.Count == 0)
+                    // with no realm named, "the war is over" only lies while some war of this realm goes on
+                    if (o != null ? k.IsAtWarWith(o) : newPeace.Count == 0 && WorldSim.Kingdoms.Any(x => x != k && !x.IsEliminated && k.IsAtWarWith(x)))
                         line = $"the words speak of a peace{(o != null ? " with " + o.Name : "")} as made («{d.Phrase}»), and none was signed" +
                                (attempts.Any(a => a.Done && a.Type == "propose_peace" && (o == null || a.Target == o)) ? ": your proposal only waits for their answer" : "");
                 }

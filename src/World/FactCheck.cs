@@ -1772,6 +1772,8 @@ namespace AILegacy.World
             " make peace ", " made peace ", " makes peace ", " sign peace ", " signed peace ", " signs peace ", " sign the peace ", " signed the peace ",
             " signs the peace ", " peace is signed ", " peace is made ", " peace has been signed ", " peace has been made ", " accept peace ",
             " accepts peace ", " accepted peace ", " accept the peace ", " accepts the peace ", " accepted the peace ", " accept their peace ",
+            " accepts their peace ", " accept his peace ", " accepts his peace ", " accepted his peace ", " accept her peace ", " accepts her peace ",
+            " accept your peace ", " aceptamos su paz ", " acepto su paz ", " acepta su paz ", " aceptamos vuestra paz ",
             " seal peace ", " sealed peace ", " seal the peace ", " sealed the peace ", " now at peace with ",
             " firmamos la paz ", " firmo la paz ", " firmado la paz ", " firma la paz ", " aceptamos la paz ", " acepto la paz ", " acepta la paz ",
             " aceptado la paz ", " hacemos las paces ", " hacemos la paz ", " sellamos la paz ", " paz está firmada ", " paz esta firmada ",
@@ -1800,7 +1802,21 @@ namespace AILegacy.World
             "willing", "intend", "aim",
         };
         private static readonly HashSet<string> ExactDeedHedges = new HashSet<string> { "to", "si", "no", "tal", "antes", "aim" };
-        private static readonly HashSet<string> DeedConditions = new HashSet<string> { "if", "unless", "should", "si", "salvo", "menos", "until", "hasta" };
+        private static readonly HashSet<string> DeedConditions = new HashSet<string> { "if", "unless", "should", "si", "salvo", "menos", "until", "hasta", "when", "once", "cuando" };
+        // "the war is finished", "the war with Sturgia ends now", "we end this war", "la guerra ha terminado": a peace
+        // told as done in words of its own (read on the soft text: lowercase, single spaces)
+        private static readonly System.Text.RegularExpressions.Regex WarEndsDeed = new System.Text.RegularExpressions.Regex(
+            @" (the|our|this|that) war (with (\w+ ){1,3})?((is|has|now|finally|at|last) )*(over|finished|ended|done|ends|an end) "
+            + @"| war is no more | (end|ends) (the|this|our) war "
+            + @"| (la|esta|nuestra) guerra (con (\w+ ){1,3})?((ha|se|ya|por|fin) )*(terminado|terminó|termina|acabado|acabó|acaba|concluido|concluyó|finalizado|finalizó) ",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        private static readonly HashSet<string> WarEndWishes = new HashSet<string>
+        {
+            "after", "pray", "praying", "hope", "hopes", "may", "let", "until", "till", "before", "once", "when", "whenever", "wish", "unless",
+            "ojalá", "ojala", "cuando", "después", "despues", "hasta", "antes", "recemos", "espero", "esperamos",
+        };
+        private static readonly System.Text.RegularExpressions.Regex DeedNegations = new System.Text.RegularExpressions.Regex(
+            @" (not|never|no|nor|nunca|jamás|jamas|ni) ", System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
         private static bool DeedHedge(string w)
         {
@@ -1839,9 +1855,24 @@ namespace AILegacy.World
                 foreach (var kind in new[] { "war", "peace", "alliance" })
                 {
                     var phrases = kind == "war" ? WarDeeds : kind == "peace" ? PeaceDeeds : AllianceDeeds;
+                    var found = new List<KeyValuePair<int, string>>();
                     foreach (var ph in phrases)
                         for (int at = soft.IndexOf(ph, StringComparison.Ordinal); at >= 0; at = soft.IndexOf(ph, at + 1, StringComparison.Ordinal))
+                            found.Add(new KeyValuePair<int, string>(at, ph));
+                    if (kind == "peace")
+                        for (var mt = WarEndsDeed.Match(soft); mt.Success; mt = WarEndsDeed.Match(soft, mt.Index + 1))
                         {
+                            if (DeedNegations.IsMatch(mt.Value)) continue;   // "the war is not over"
+                            // "after the war is over", "pray that the war ends", "the war is over soon": a time or a wish to come
+                            var prev = Words(soft.Substring(0, mt.Index + 1)).Reverse().TakeWhile(x => x != "|").Take(3);
+                            var next = Words(soft.Substring(mt.Index + mt.Length - 1)).Where(x => x != "|").Take(1);
+                            if (prev.Any(WarEndWishes.Contains) || next.Any(x => x == "soon" || x == "pronto")) continue;
+                            found.Add(new KeyValuePair<int, string>(mt.Index, mt.Value));
+                        }
+                    foreach (var hit in found)
+                        {
+                            int at = hit.Key;
+                            string ph = hit.Value;
                             if (HedgeBefore(soft.Substring(0, at + 1), 4, DeedHedge)) continue;
                             int end = at + ph.Length - 1;
                             if (Words(soft.Substring(end)).TakeWhile(x => x != "|").Take(5).Any(DeedConditions.Contains)) continue;
@@ -1857,7 +1888,9 @@ namespace AILegacy.World
                                 var gap = Words(soft.Substring(before.End, at + 1 - before.End)).Where(x => x != "|").ToList();
                                 if (gap.Count <= 3 && !gap.Any(FirstPerson.Contains)) continue;
                             }
-                            string target = after.Id ?? before.Id;
+                            // "the war with Sturgia ends now": the realm named inside the words themselves
+                            var inside = ms.FirstOrDefault(x => x.Start > at && x.End <= end + 1);
+                            string target = inside.Id ?? after.Id ?? before.Id;
                             if (!res.Any(d => d.Kind == kind && d.Target == target)) res.Add(new Deed { Kind = kind, Target = target, Phrase = ph.Trim() });
                         }
                 }
