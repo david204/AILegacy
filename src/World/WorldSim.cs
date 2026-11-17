@@ -582,6 +582,7 @@ Rules:
 - Do not overreact to the ordinary business of war. Lords taken prisoner, villages raided, sieges, battles won and lost, feuds between nobles: in this world they happen every season and are not outrages. People answer them by working towards something real: a ransom, an exchange of captives, envoys and bargaining, revenge sought in the field, a raid in return. Never the modern kind of demand that the winning side give everything back at once. A side that has just lost its army or its lords is shaken and on the defensive: it mourns, rallies, bargains or begs for time; it does not threaten as if it were winning.
 - Between realms that are not at war there are no sieges, siege lines, battles or raids: only threats, demands, patrols, border posts and watchtowers, troops gathering, spies and skirmishes of words. A siege is only written where the data shows a war, or a place under siege.
 - Between realms that ARE at war there is no open trade: no deals or pacts, no caravans welcomed or let through, no ports, markets or mines opened to the enemy. War cuts trade: write seized caravans, closed roads, tolls on enemy goods, shortages. Only smugglers or a secret deal cross the lines, and then the text says so.
+- Realms that are already allies are not offered, sought or sealed a new alliance: write about the one they have (an ally called on, an alliance strained or honoured).
 - Every place, realm, clan and person you name must be one in the data, written as it is there. Never make up a village, a town, a region, a clan, a family or a person: someone without a name in the data is described instead (a miller of Rhotae, a Nord captain, a merchant of the Aserai).
 - Do not involve the person named as ""the realm of ..."" personally unless the data does.
 - Mind the dates in the data. A kingdom marked NEWLY FOUNDED is young and growing: holding little land is its beginning, so never write it as collapsing, dying or fallen. Each war says how long it has lasted and each recent peace when it was made: a war of a few days is new, one of years is old and wearing, and where a peace was made lately the war before it is over.
@@ -1386,7 +1387,7 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             return FactCheck.CheckInventedNames(e.Text, names.Words, names.People) ?? FactCheck.CheckInventedNames(e.SummaryEn, names.Words, names.People)
                    // any other made-up name ("burned Varmonath farms"), read in the English summary alone
                    ?? FactCheck.CheckStrayNames(e.SummaryEn, names.Words, names.People, names.Others)
-                   ?? TradeAcrossWar(e, x);
+                   ?? TradeAcrossWar(e, x) ?? AllianceAmongAllies(e, x);
         }
 
         // ---- open trade between realms at war
@@ -1412,6 +1413,18 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
         {
             string s = e.SummaryEn ?? "";
             if (s.Length == 0 || !TradeTies.IsMatch(s) || TradeAgainst.IsMatch(s)) return null;
+            var pair = NamedPair(s, x);
+            if (pair == null || !pair[0].IsAtWarWith(pair[1])) return null;
+            return $"has {pair[0].Name} and {pair[1].Name} trading in the open while they are at war: a war cuts trade between them (only smugglers or a secret deal cross the lines, and the text must say so)";
+        }
+
+        /// <summary>
+        /// The two realms an English text is about: the ones it names, or the event's two when it names fewer. null
+        /// when it is not exactly two, since with a third named the deal or the war may be with someone else
+        /// ("Sturgia opens its markets to the Aserai while its war with Khuzait drags on").
+        /// </summary>
+        private static List<Kingdom> NamedPair(string s, JObject x)
+        {
             var alive = Kingdoms.Where(k => k != null && !k.IsEliminated).ToList();
             // a short name that is part of another realm's name ("Empire") says nothing about which one
             bool Ambiguous(Kingdom k, string n) => alive.Any(o => o != k && (o.Name?.ToString() ?? "").IndexOf(n.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
@@ -1423,10 +1436,36 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
                 var involved = ks.Select(t => t != null && t.Type == JTokenType.String ? FindKingdom((string)t) : null).Where(k => k != null && !k.IsEliminated).Distinct().ToList();
                 if (involved.Count == 2) named = involved;
             }
-            // only two realms make the traders plain: with a third named, the war may be with someone else
-            // ("Sturgia opens its markets to the Aserai while its war with Khuzait drags on")
-            if (named.Count != 2 || !named[0].IsAtWarWith(named[1])) return null;
-            return $"has {named[0].Name} and {named[1].Name} trading in the open while they are at war: a war cuts trade between them (only smugglers or a secret deal cross the lines, and the text must say so)";
+            return named.Count == 2 ? named : null;
+        }
+
+        // ---- an alliance offered to an ally
+
+        private static readonly System.Text.RegularExpressions.Regex AllianceOffer = new System.Text.RegularExpressions.Regex(
+            @"\b(offer\w*|propos\w*|seek\w*|sought|court\w*|request\w*|ask\w*|woo\w*|sue\w*|forg\w*|seal\w*|form\w*)\b[^.;]{0,40}\b(an? |new |an? new )(alliance|pact|league)\b"
+            + @"|\b(alliance|pact) (is |was )?(offered|proposed|sought|forged|sealed|formed)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+        // the alliance they have, renewed, reaffirmed or called on: fine
+        private static readonly System.Text.RegularExpressions.Regex AllianceKept = new System.Text.RegularExpressions.Regex(
+            @"\b(renew\w*|reaffirm\w*|extend\w*|strengthen\w*|honou?r\w*|invok\w*|call\w* (on|upon)|existing|old|standing)\b",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+        /// <summary>
+        /// The title or the English summary has a realm offering, seeking or sealing a new alliance with a realm it is
+        /// already allied with ("Northern Empire offers Sturgia an alliance"). Renewing or calling on the alliance they
+        /// have reads "the alliance", "their pact", and is fine. null when fine.
+        /// </summary>
+        private static string AllianceAmongAllies(WorldEvent e, JObject x)
+        {
+            foreach (var s in new[] { e.SummaryEn ?? "", e.Title ?? "" })
+            {
+                if (s.Length == 0 || !AllianceOffer.IsMatch(s) || AllianceKept.IsMatch(s)) continue;
+                var pair = NamedPair(s, x);
+                if (pair != null && Diplomacy.Allied(pair[0], pair[1]))
+                    return $"has {pair[0].Name} and {pair[1].Name} seeking or making an alliance, and they are already allies: write about the alliance they have (calling on it, straining it, honouring it) instead";
+            }
+            return null;
         }
 
         private static string Str(JToken t) => t != null && t.Type == JTokenType.String ? (string)t : "";
