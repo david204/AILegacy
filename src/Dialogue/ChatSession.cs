@@ -293,6 +293,30 @@ namespace AILegacy.Dialogue
         }
         public bool IsWaiting => _waiting;
 
+        /// <summary>When the last question went out, for the panel's «Listening… N s».</summary>
+        public DateTime AskedAt { get; private set; } = DateTime.UtcNow;
+
+        /// <summary>What the character's last reply did, in a few words, for the panel (Illegitimate Children's «AI signal»).</summary>
+        public string LastSignal { get; private set; } = "";
+
+        private static string SignalOf(NpcReply r)
+        {
+            var parts = new List<string>();
+            try
+            {
+                foreach (var a in r.Actions ?? new List<string>()) if (!string.IsNullOrWhiteSpace(a)) parts.Add(a.Split(':')[0].Trim().Replace('_', ' '));
+                void Change(int v, string what) { if (v != 0) parts.Add($"{what} {v:+0;-0}"); }
+                Change(r.RomanceChange, L.T("AIL_e7b1de46", "romance"));
+                Change(r.RelationChange, L.T("AIL_e7b1de47", "relación"));
+                Change(r.TrustChange, L.T("AIL_e7b1de48", "confianza"));
+                Change(r.TensionChange, L.T("AIL_e7b1de49", "tensión"));
+                if (!string.IsNullOrWhiteSpace(r.Emotion)) parts.Add(r.Emotion.Trim().Replace('_', ' '));
+                if (r.EndConversation) parts.Add(L.T("AIL_e7b1de4a", "se despide"));
+            }
+            catch { }
+            return string.Join(" · ", parts.Distinct().Take(6));
+        }
+
         /// <summary>The text box of the open chat window (for voice input), or null when there is none.</summary>
         internal sealed class InputBox { public Func<string> Get; public Action<string> Set; }
         internal static InputBox ActiveWindowInput
@@ -890,6 +914,7 @@ namespace AILegacy.Dialogue
         {
             _pendingAsked = messages;
             _waiting = true;
+            AskedAt = DateTime.UtcNow;
             UiWaiting(true);
             // they think it over while the reply is on its way
             try { Gestures.Think(SceneAgent()); } catch { }
@@ -952,6 +977,7 @@ namespace AILegacy.Dialogue
             }
 
             var reply = NpcReply.Parse(res.Text);
+            LastSignal = SignalOf(reply);
             Mem.LastAiResponse = res.Text != null && res.Text.Length > 4000 ? res.Text.Substring(0, 4000) : res.Text;
             if (_s.IsHero) Mem.Snapshot = ContextBuilder.Snapshot(_s.Hero);
             if (string.IsNullOrWhiteSpace(reply.Reply)) reply.Reply = L.T("AIL_da6122fe", "*te mira en silencio*");

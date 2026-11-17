@@ -889,6 +889,16 @@ namespace AILegacy.Settings
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
         public int RomanceForMarriage { get; set; } = 50;
 
+        [SettingPropertyFloatingInteger("{=AIL_e7b1de52}Romantic initiative: women", 0f, 1f, "0.0", Order = 23, RequireRestart = false,
+            HintText = "{=AIL_e7b1de53}Chance (0 to 1) that a woman takes the romantic initiative herself instead of waiting for you: told to her in the talk. Default: 0.2.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public float FemaleRomanceInitiative { get; set; } = 0.2f;
+
+        [SettingPropertyFloatingInteger("{=AIL_e7b1de54}Romantic initiative: men", 0f, 1f, "0.0", Order = 24, RequireRestart = false,
+            HintText = "{=AIL_e7b1de55}Chance (0 to 1) that a man takes the romantic initiative himself instead of waiting for you: told to him in the talk. Default: 0.6.")]
+        [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
+        public float MaleRomanceInitiative { get; set; } = 0.6f;
+
         [SettingPropertyInteger("{=AIL_635ff613}Days without seeing each other before romance cools", 1, 120, Order = 10, RequireRestart = false,
             HintText = "{=AIL_e7b1d612}After this many days without talking or writing to each other, romance drops every day by the amount below (with your spouse it doesn't drop below 40).")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]

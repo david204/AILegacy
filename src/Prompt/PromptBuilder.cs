@@ -299,6 +299,8 @@ An oath of fealty, a surrender, a handover of land, gold or men, a marriage, a p
             AppendMemory(sys, s, playerName, withRecall: false);
             bool quests = AppendQuestsAndItems(sys, s);
             bool romance = Bonds.RomancePossible(s);
+            if (romance && s.IsHero && Bonds.RomanceForced(s.Hero))
+                sys.AppendLine("[RomanceOverride] The player has marked you as someone who may have a romance with them; whether you want one is still yours to decide.");
 
             var fields = new List<string>();
             if (cfg.EnableThoughts) fields.Add(TThoughts.Text);

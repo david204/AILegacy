@@ -2886,5 +2886,28 @@
     <string id="AIL_e7b1de30" text="мать больше не беременна" />
     <string id="AIL_e7b1de31" text="повторная запись" />
     <string id="AIL_e7b1de32" text="{0}, от {1}: закрыта как потерянная ({2})." />
+    <string id="AIL_e7b1de40" text="{=!}(Разрешить роман с этим персонажем.)" />
+    <string id="AIL_e7b1de41" text="{=!}(Теперь с этим персонажем возможен роман.)" />
+    <string id="AIL_e7b1de42" text="{=!}(Отменить разрешение на роман с этим персонажем.)" />
+    <string id="AIL_e7b1de43" text="{=!}(Разрешение на роман отменено.)" />
+    <string id="AIL_e7b1de44" text="Связи пока нет" />
+    <string id="AIL_e7b1de45" text="Флирт · свадьба с {0}" />
+    <string id="AIL_e7b1de4e" text="Флирт · близость с {0}" />
+    <string id="AIL_e7b1de4f" text="Ухаживание · близость с {0}" />
+    <string id="AIL_e7b1de50" text="Ухаживание · свадьба с {0}" />
+    <string id="AIL_e7b1de51" text="Близкая связь" />
+    <string id="AIL_e7b1de46" text="роман" />
+    <string id="AIL_e7b1de47" text="отношение" />
+    <string id="AIL_e7b1de48" text="доверие" />
+    <string id="AIL_e7b1de49" text="напряжение" />
+    <string id="AIL_e7b1de4a" text="прощается" />
+    <string id="AIL_e7b1de4b" text="Ждёт ребёнка" />
+    <string id="AIL_e7b1de4c" text="Слушает… {0} с" />
+    <string id="AIL_e7b1de4d" text="Сигнал ИИ: {0}" />
+    <string id="AIL_e7b1de52" text="Романтическая инициатива: женщины" />
+    <string id="AIL_e7b1de53" text="Шанс (от 0 до 1), что женщина сама проявит романтическую инициативу, а не будет ждать вас: сообщается ей в разговоре. По умолчанию: 0,2." />
+    <string id="AIL_e7b1de54" text="Романтическая инициатива: мужчины" />
+    <string id="AIL_e7b1de55" text="Шанс (от 0 до 1), что мужчина сам проявит романтическую инициативу, а не будет ждать вас: сообщается ему в разговоре. По умолчанию: 0,6." />
+    <string id="AIL_e7b1de56" text="Вы в плену: вы не можете отправлять письма." />
   </strings>
 </base>

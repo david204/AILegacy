@@ -280,8 +280,12 @@ namespace AILegacy.World
         [JsonProperty("letters_muted")] public Dictionary<string, double> LettersMuted = new Dictionary<string, double>();
         /// <summary>Characters told not to come and ask for a word, by hero id, with the day. Lifted when the player talks to them.</summary>
         [JsonProperty("approach_muted")] public Dictionary<string, double> ApproachMuted = new Dictionary<string, double>();
+        /// <summary>Characters the player has marked as open to romance with them, kin included (hero ids).</summary>
+        [JsonProperty("romance_forced")] public List<string> RomanceForced = new List<string>();
         /// <summary>Characters whose answer to a letter of the player is on its way. That answer still arrives if they were muted meanwhile.</summary>
         [JsonProperty("letters_replying")] public List<string> LettersReplying = new List<string>();
+        /// <summary>Those whose messenger could not find the player in captivity: they do not write again until the player is free.</summary>
+        [JsonProperty("letters_lost")] public List<string> LettersLost = new List<string>();
     }
 
     // ===================================================================== engine

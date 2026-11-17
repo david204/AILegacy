@@ -768,8 +768,7 @@ namespace AILegacy.Dialogue
                 WhyNot = s =>
                 {
                     var h = s.Hero;
-                    if (h.IsChild || h.Age < 18 || P.Spouse == h || Bonds.IsCloseFamily(h)) return null;
-                    if (h.IsFemale == P.IsFemale && !S.Get.RomanceSameSex) return null;
+                    if (h.IsChild || h.Age < 18 || P.Spouse == h || Bonds.RomanceBarred(h)) return null;
                     if (!S.Get.AllowMarriage) return "no marriage can be made in a talk in this world";
                     if (h.IsPrisoner) return "you are a prisoner: no wedding can be held from a cell, and a promise of one is only a promise";
                     if (!CanWed(h))
@@ -2240,8 +2239,7 @@ namespace AILegacy.Dialogue
                 if (SafeSuitable(h)) return true;
                 var cfg = S.Get;
                 if (!cfg.MarryCommoners && !(h.IsLord)) return false;
-                if (h == null || !h.IsAlive || h.IsChild || h.Age < 18 || P.Age < 18 || h == P || Bonds.IsCloseFamily(h)) return false;
-                if (h.IsFemale == P.IsFemale && !cfg.RomanceSameSex) return false;
+                if (h == null || !h.IsAlive || h.IsChild || h.Age < 18 || P.Age < 18 || h == P || Bonds.RomanceBarred(h)) return false;
                 if ((h.Spouse != null && h.Spouse != P || P.Spouse != null && P.Spouse != h) && !cfg.RomanceWithMarried) return false;
                 // The head of another clan can marry and steps down first (AIInfluence), unless nobody could take it over
                 if (h.Clan != null && h.Clan.Leader == h && h.Clan != Clan.PlayerClan && !HasHeir(h)) return false;

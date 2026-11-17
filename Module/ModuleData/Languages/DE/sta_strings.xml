@@ -2886,5 +2886,28 @@
     <string id="AIL_e7b1de30" text="die Mutter ist nicht mehr schwanger" />
     <string id="AIL_e7b1de31" text="doppelter Eintrag" />
     <string id="AIL_e7b1de32" text="{0}, von {1}: als verloren geschlossen ({2})." />
+    <string id="AIL_e7b1de40" text="{=!}(Romanze mit dieser Figur erzwingen.)" />
+    <string id="AIL_e7b1de41" text="{=!}(Mit dieser Figur ist jetzt eine Romanze möglich.)" />
+    <string id="AIL_e7b1de42" text="{=!}(Erzwungene Romanze mit dieser Figur aufheben.)" />
+    <string id="AIL_e7b1de43" text="{=!}(Die erzwungene Romanze wurde aufgehoben.)" />
+    <string id="AIL_e7b1de44" text="Noch keine Bindung" />
+    <string id="AIL_e7b1de45" text="Flirt · Heirat ab {0}" />
+    <string id="AIL_e7b1de4e" text="Flirt · Intimität ab {0}" />
+    <string id="AIL_e7b1de4f" text="Werben · Intimität ab {0}" />
+    <string id="AIL_e7b1de50" text="Werben · Heirat ab {0}" />
+    <string id="AIL_e7b1de51" text="Innige Bindung" />
+    <string id="AIL_e7b1de46" text="Romanze" />
+    <string id="AIL_e7b1de47" text="Beziehung" />
+    <string id="AIL_e7b1de48" text="Vertrauen" />
+    <string id="AIL_e7b1de49" text="Spannung" />
+    <string id="AIL_e7b1de4a" text="verabschiedet sich" />
+    <string id="AIL_e7b1de4b" text="Erwartet ein Kind" />
+    <string id="AIL_e7b1de4c" text="Hört zu… {0} s" />
+    <string id="AIL_e7b1de4d" text="KI-Signal: {0}" />
+    <string id="AIL_e7b1de52" text="Romantische Initiative: Frauen" />
+    <string id="AIL_e7b1de53" text="Chance (0 bis 1), dass eine Frau selbst die romantische Initiative ergreift, statt auf dich zu warten: wird ihr im Gespräch gesagt. Standard: 0,2." />
+    <string id="AIL_e7b1de54" text="Romantische Initiative: Männer" />
+    <string id="AIL_e7b1de55" text="Chance (0 bis 1), dass ein Mann selbst die romantische Initiative ergreift, statt auf dich zu warten: wird ihm im Gespräch gesagt. Standard: 0,6." />
+    <string id="AIL_e7b1de56" text="Du bist gefangen: du kannst keine Briefe schicken." />
   </strings>
 </base>

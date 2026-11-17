@@ -480,6 +480,17 @@ namespace AILegacy.Behaviors
                 () => { var h = Hero.OneToOneConversationHero; Campaign.Current.ConversationManager.ConversationEndOneShot += () => NpcActions.WedConcubine(h); }, priority: 600);
             starter.AddDialogLine("ailegacy_concubine_marry_reply", "ailegacy_concubine_marry_reply", "close_window", L.T("AIL_e7b1de26", "{=!}¡Preparémoslo, entonces!"),
                 null, null, priority: 100);
+            // Romance with someone kinship or sex would keep out, as Illegitimate Children lets the player mark them
+            starter.AddPlayerLine("ailegacy_romance_force_on", "hero_main_options", "ailegacy_romance_force_on_reply", L.T("AIL_e7b1de40", "{=!}(Forzar que este personaje pueda tener romance.)"),
+                () => Bonds.CanForceRomance(Hero.OneToOneConversationHero),
+                () => Bonds.SetRomanceForced(Hero.OneToOneConversationHero, true), priority: 10);
+            starter.AddDialogLine("ailegacy_romance_force_on_reply", "ailegacy_romance_force_on_reply", "lord_pretalk", L.T("AIL_e7b1de41", "{=!}(Ahora este personaje puede tener romance contigo.)"),
+                null, null, priority: 100);
+            starter.AddPlayerLine("ailegacy_romance_force_off", "hero_main_options", "ailegacy_romance_force_off_reply", L.T("AIL_e7b1de42", "{=!}(Quitar el romance forzado de este personaje.)"),
+                () => Bonds.RomanceForced(Hero.OneToOneConversationHero),
+                () => Bonds.SetRomanceForced(Hero.OneToOneConversationHero, false), priority: 10);
+            starter.AddDialogLine("ailegacy_romance_force_off_reply", "ailegacy_romance_force_off_reply", "lord_pretalk", L.T("AIL_e7b1de43", "{=!}(Ya no se fuerza el romance con este personaje.)"),
+                null, null, priority: 100);
             starter.AddPlayerLine("ailegacy_concubine_steal", "hero_main_options", "ailegacy_concubine_steal_reply", L.T("AIL_e7b1de20", "{=!}Vente conmigo. Deja lo que tienes con tu amante."),
                 () => Concubines.CanSteal(Hero.OneToOneConversationHero),
                 () => Concubines.Steal(Hero.OneToOneConversationHero), priority: 700);

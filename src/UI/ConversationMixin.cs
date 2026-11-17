@@ -236,7 +236,7 @@ namespace AILegacy.UI
                 try { canLove = Bonds.RomancePossible(Speaker.FromHero(h)); } catch { }
                 AilRomanceVisible = canLove || romanceNow > 0;
                 AilRomanceInfoVisible = canLove && h.Spouse != Hero.MainHero;
-                AilRomanceInfoText = L.F("AIL_e7b1c4e3", $"Intimidad {cfg.RomanceForIntimacy} · Boda {cfg.RomanceForMarriage}");
+                AilRomanceInfoText = Phase(romanceNow, cfg.RomanceForMarriage, cfg.RomanceForIntimacy);
                 // Family ties with the player
                 string family = "";
                 try
@@ -248,6 +248,8 @@ namespace AILegacy.UI
                     if (kids > 0) family += (family.Length > 0 ? " · " : "") + L.F("AIL_e7b1c4e5", $"{kids} hijo(s) en común");
                     // expecting your child, or children of yours out of wedlock that pass for someone else's
                     string outside = AILegacy.World.Bastards.PanelLine(h);
+                    // your spouse or concubine carrying your child (out of wedlock it is in the line above already)
+                    if (outside.Length == 0 && h.IsPregnant && (h.Spouse == pc || AILegacy.World.Concubines.IsWithPlayer(h))) outside = L.T("AIL_e7b1de4b", "Espera un hijo");
                     if (outside.Length > 0) family += (family.Length > 0 ? " · " : "") + outside;
                 }
                 catch { }
@@ -257,8 +259,18 @@ namespace AILegacy.UI
                 if (ill.Length > 0) warn = warn.Length > 0 ? warn + " · " + ill : ill;
                 AilWarnText = warn;
                 AilWarnVisible = warn.Length > 0;
+                // the AI's signal: what the last reply did, or how long the character has been thinking
+                string signal = "";
+                var cs = ChatSession.Active;
+                if (cs != null && cs.Who != null && cs.Who.IsHero && cs.Who.Hero == h)
+                {
+                    if (cs.IsWaiting) signal = L.F("AIL_e7b1de4c", $"Escuchando… {(int)(DateTime.UtcNow - cs.AskedAt).TotalSeconds} s");
+                    else if (cs.LastSignal.Length > 0) signal = L.F("AIL_e7b1de4d", $"Señal de la IA: {cs.LastSignal}");
+                }
+                AilSignalText = signal;
+                AilSignalVisible = signal.Length > 0;
             }
-            else { AilTrustVisible = false; AilRomanceVisible = false; AilTensionVisible = false; AilWarnVisible = false; AilMoodVisible = false; AilRomanceInfoVisible = false; AilFamilyVisible = false; }
+            else { AilTrustVisible = false; AilRomanceVisible = false; AilTensionVisible = false; AilWarnVisible = false; AilMoodVisible = false; AilRomanceInfoVisible = false; AilFamilyVisible = false; AilSignalVisible = false; }
 
             // ---- history
             bool can = h != null && cfg.ShowDialogHistory && mem != null && mem.Turns.Any(t => !t.IsNote);
@@ -280,6 +292,22 @@ namespace AILegacy.UI
             }
             AilScrollVersion = _scrollVersion + 1;       // scroll to the bottom
         }
+
+        /// <summary>Where the romance stands, as Illegitimate Children names it: no bond yet, flirting (until marriage), courting (until intimacy), an intimate bond.</summary>
+        private static string Phase(int lvl, int marry, int intimacy)
+        {
+            int first = Math.Min(marry, intimacy), second = Math.Max(marry, intimacy);
+            bool marryFirst = marry <= intimacy;
+            if (lvl <= 0) return L.T("AIL_e7b1de44", "Aún no hay vínculo");
+            if (lvl < first) return marryFirst ? L.F("AIL_e7b1de45", $"Coqueteo · boda en {marry}") : L.F("AIL_e7b1de4e", $"Coqueteo · intimidad en {intimacy}");
+            if (lvl < second) return marryFirst ? L.F("AIL_e7b1de4f", $"Cortejo · intimidad en {intimacy}") : L.F("AIL_e7b1de50", $"Cortejo · boda en {marry}");
+            return L.T("AIL_e7b1de51", "Vínculo íntimo");
+        }
+
+        private string _signalText = "";
+        private bool _signalVisible;
+        [DataSourceProperty] public string AilSignalText { get => _signalText; set { if (value != _signalText) { _signalText = value; OnPropertyChangedWithValue(value, nameof(AilSignalText)); } } }
+        [DataSourceProperty] public bool AilSignalVisible { get => _signalVisible; set { if (value != _signalVisible) { _signalVisible = value; OnPropertyChangedWithValue(value, nameof(AilSignalVisible)); } } }
 
         [DataSourceMethod]
         public void ExecuteAilToggleHistory()
@@ -412,6 +440,7 @@ namespace AILegacy.UI
             "</ListPanel>" +
             "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" MarginTop=\"4\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#E8D9A6FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@AilFamilyText\" IsVisible=\"@AilFamilyVisible\" />" +
             "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" MarginTop=\"2\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"17\" Brush.FontColor=\"#F0A040FF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@AilWarnText\" IsVisible=\"@AilWarnVisible\" />" +
+            "<TextWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"CoverChildren\" SuggestedWidth=\"280\" MarginTop=\"4\" Brush=\"Popup.Title.Text\" Brush.FontSize=\"14\" Brush.FontColor=\"#8FA39AFF\" Brush.TextHorizontalAlignment=\"Center\" Text=\"@AilSignalText\" IsVisible=\"@AilSignalVisible\" />" +
             "</Children>" +
             "</ListPanel>" +
             "<ButtonWidget WidthSizePolicy=\"Fixed\" HeightSizePolicy=\"Fixed\" SuggestedWidth=\"280\" SuggestedHeight=\"36\" MarginTop=\"8\" Command.Click=\"ExecuteAilToggleHistory\" IsVisible=\"@AilHistoryAvailable\" UpdateChildrenStates=\"true\">" +

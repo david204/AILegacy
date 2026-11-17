@@ -79,9 +79,41 @@ namespace AILegacy.Dialogue
             var cfg = S.Get;
             if (!cfg.EnableRomance || !s.IsHero) return false;
             var h = s.Hero;
-            if (h.Age < 18 || P.Age < 18 || IsCloseFamily(h)) return false;
+            if (h.Age < 18 || P.Age < 18) return false;
+            if (RomanceForced(h)) return true;
+            if (IsCloseFamily(h)) return false;
             if (h.IsFemale == P.IsFemale && !cfg.RomanceSameSex) return false;
             return true;
+        }
+
+        /// <summary>The player has marked this character as open to romance with them, kin or not (Illegitimate Children's line).</summary>
+        public static bool RomanceForced(Hero h) => h != null && World.WorldSim.State?.RomanceForced?.Contains(h.StringId) == true;
+
+        /// <summary>Kinship or sex keeps romance out, unless the player has forced it for this character.</summary>
+        public static bool RomanceBarred(Hero h)
+        {
+            if (h == null) return true;
+            if (RomanceForced(h) && S.Get.EnableRomance && h.Age >= 18 && P.Age >= 18) return false;
+            return IsCloseFamily(h) || (h.IsFemale == P.IsFemale && !S.Get.RomanceSameSex);
+        }
+
+        /// <summary>The «force romance» line shows for an adult whom kinship or sex would keep out.</summary>
+        public static bool CanForceRomance(Hero h) =>
+            h != null && h != P && h.IsAlive && S.Get.EnableRomance && h.Age >= 18 && P.Age >= 18 && !RomanceForced(h)
+            && (IsCloseFamily(h) || (h.IsFemale == P.IsFemale && !S.Get.RomanceSameSex));
+
+        public static void SetRomanceForced(Hero h, bool on)
+        {
+            try
+            {
+                var list = World.WorldSim.State?.RomanceForced;
+                if (h == null || list == null) return;
+                if (on) { if (!list.Contains(h.StringId)) list.Add(h.StringId); }
+                else list.Remove(h.StringId);
+                Log.Info($"[romance] {h.Name}: romance {(on ? "forced on" : "no longer forced")} by the player");
+                SaveFiles.Dirty();
+            }
+            catch (Exception ex) { Log.Error("Forcing romance", ex); }
         }
 
         /// <summary>A spouse already loves the player even if AI Legacy hadn't recorded it yet.</summary>
@@ -307,6 +339,13 @@ namespace AILegacy.Dialogue
                     line += $" You are married to {h.Spouse.Name}: giving in would be adultery — a grave scandal that your honour, fear or loyalty may forbid.";
                 else if (h.Spouse != P && mem.Romance < cfg.RomanceForMarriage)
                     line += $" You would not accept a marriage proposal yet (romance {cfg.RomanceForMarriage}+ needed): love has to be earned over time, not in one conversation.";
+                if (mem.LastIntimacyDay >= 0)
+                {
+                    int ago = (int)Math.Floor(CampaignTime.Now.ToDays - mem.LastIntimacyDay);
+                    line += " Last intimacy with them: " + (ago <= 0 ? "today." : ago == 1 ? "yesterday." : $"{ago} days ago.");
+                }
+                int initiative = (int)Math.Round((h.IsFemale ? cfg.FemaleRomanceInitiative : cfg.MaleRomanceInitiative) * 100f);
+                line += $" Chance that you take the romantic initiative yourself: {Math.Max(0, Math.Min(100, initiative))}%.";
                 sys.AppendLine(line);
             }
             if (s.IsHero && OrderSystem.PartyLedBy(s.Hero) != null)

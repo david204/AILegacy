@@ -286,7 +286,7 @@ other: the Baseborn, of No House, Roadborn, Nameless, Wayfarer, Foundling");
         {
             try
             {
-                if (!Enabled || other == null || P == null || other.IsFemale == P.IsFemale || other.Spouse == P) return;
+                if (!Enabled || other == null || P == null || other.IsFemale == P.IsFemale || other.Spouse == P || Kin(other, P)) return;
                 var mother = other.IsFemale ? other : P; var father = other.IsFemale ? P : other;
                 if (mother.IsPregnant || mother.Age < 18 || mother.Age >= 46) return;
                 float chance = S.Get.BastardChancePercent * 10f * Mood.FertilityFactor(mother);

@@ -2886,5 +2886,28 @@
     <string id="AIL_e7b1de30" text="la madre ya no está embarazada" />
     <string id="AIL_e7b1de31" text="registro repetido" />
     <string id="AIL_e7b1de32" text="{0}, de {1}: se da por perdido ({2})." />
+    <string id="AIL_e7b1de40" text="{=!}(Forzar que este personaje pueda tener romance.)" />
+    <string id="AIL_e7b1de41" text="{=!}(Ahora este personaje puede tener romance contigo.)" />
+    <string id="AIL_e7b1de42" text="{=!}(Quitar el romance forzado de este personaje.)" />
+    <string id="AIL_e7b1de43" text="{=!}(Ya no se fuerza el romance con este personaje.)" />
+    <string id="AIL_e7b1de44" text="Aún no hay vínculo" />
+    <string id="AIL_e7b1de45" text="Coqueteo · boda en {0}" />
+    <string id="AIL_e7b1de4e" text="Coqueteo · intimidad en {0}" />
+    <string id="AIL_e7b1de4f" text="Cortejo · intimidad en {0}" />
+    <string id="AIL_e7b1de50" text="Cortejo · boda en {0}" />
+    <string id="AIL_e7b1de51" text="Vínculo íntimo" />
+    <string id="AIL_e7b1de46" text="romance" />
+    <string id="AIL_e7b1de47" text="relación" />
+    <string id="AIL_e7b1de48" text="confianza" />
+    <string id="AIL_e7b1de49" text="tensión" />
+    <string id="AIL_e7b1de4a" text="se despide" />
+    <string id="AIL_e7b1de4b" text="Espera un hijo" />
+    <string id="AIL_e7b1de4c" text="Escuchando… {0} s" />
+    <string id="AIL_e7b1de4d" text="Señal de la IA: {0}" />
+    <string id="AIL_e7b1de52" text="Iniciativa romántica: mujeres" />
+    <string id="AIL_e7b1de53" text="Probabilidad (de 0 a 1) de que una mujer tome ella la iniciativa romántica en vez de esperarte: se le dice en la charla. Por defecto: 0,2." />
+    <string id="AIL_e7b1de54" text="Iniciativa romántica: hombres" />
+    <string id="AIL_e7b1de55" text="Probabilidad (de 0 a 1) de que un hombre tome él la iniciativa romántica en vez de esperarte: se le dice en la charla. Por defecto: 0,6." />
+    <string id="AIL_e7b1de56" text="Eres prisionero: no puedes enviar cartas." />
   </strings>
 </base>

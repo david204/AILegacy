@@ -2886,5 +2886,28 @@
     <string id="AIL_e7b1de30" text="la mère n'est plus enceinte" />
     <string id="AIL_e7b1de31" text="fiche en double" />
     <string id="AIL_e7b1de32" text="{0}, de {1} : close comme perdue ({2})." />
+    <string id="AIL_e7b1de40" text="{=!}(Forcer la possibilité de romance avec ce personnage.)" />
+    <string id="AIL_e7b1de41" text="{=!}(La romance est désormais possible avec ce personnage.)" />
+    <string id="AIL_e7b1de42" text="{=!}(Retirer la romance forcée de ce personnage.)" />
+    <string id="AIL_e7b1de43" text="{=!}(La romance forcée a été retirée.)" />
+    <string id="AIL_e7b1de44" text="Aucun lien pour l'instant" />
+    <string id="AIL_e7b1de45" text="Flirt · mariage à {0}" />
+    <string id="AIL_e7b1de4e" text="Flirt · intimité à {0}" />
+    <string id="AIL_e7b1de4f" text="Cour · intimité à {0}" />
+    <string id="AIL_e7b1de50" text="Cour · mariage à {0}" />
+    <string id="AIL_e7b1de51" text="Lien intime" />
+    <string id="AIL_e7b1de46" text="romance" />
+    <string id="AIL_e7b1de47" text="relation" />
+    <string id="AIL_e7b1de48" text="confiance" />
+    <string id="AIL_e7b1de49" text="tension" />
+    <string id="AIL_e7b1de4a" text="prend congé" />
+    <string id="AIL_e7b1de4b" text="Attend un enfant" />
+    <string id="AIL_e7b1de4c" text="Écoute… {0} s" />
+    <string id="AIL_e7b1de4d" text="Signal de l'IA : {0}" />
+    <string id="AIL_e7b1de52" text="Initiative romantique : femmes" />
+    <string id="AIL_e7b1de53" text="Chance (de 0 à 1) qu'une femme prenne elle-même l'initiative romantique au lieu de vous attendre : on le lui dit dans la conversation. Par défaut : 0,2." />
+    <string id="AIL_e7b1de54" text="Initiative romantique : hommes" />
+    <string id="AIL_e7b1de55" text="Chance (de 0 à 1) qu'un homme prenne lui-même l'initiative romantique au lieu de vous attendre : on le lui dit dans la conversation. Par défaut : 0,6." />
+    <string id="AIL_e7b1de56" text="Vous êtes prisonnier : vous ne pouvez pas envoyer de lettres." />
   </strings>
 </base>

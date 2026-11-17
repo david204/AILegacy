@@ -2887,5 +2887,28 @@
     <string id="AIL_e7b1de30" text="the mother is no longer pregnant" />
     <string id="AIL_e7b1de31" text="a repeated record" />
     <string id="AIL_e7b1de32" text="{0}, by {1}: closed as lost ({2})." />
+    <string id="AIL_e7b1de40" text="{=!}(Force romance eligibility for this character.)" />
+    <string id="AIL_e7b1de41" text="{=!}(Romance eligibility is now forced for this character.)" />
+    <string id="AIL_e7b1de42" text="{=!}(Remove the forced romance eligibility for this character.)" />
+    <string id="AIL_e7b1de43" text="{=!}(The forced romance eligibility has been removed.)" />
+    <string id="AIL_e7b1de44" text="No bond formed yet" />
+    <string id="AIL_e7b1de45" text="Flirting · wed at {0}" />
+    <string id="AIL_e7b1de4e" text="Flirting · intimate at {0}" />
+    <string id="AIL_e7b1de4f" text="Courting · intimate at {0}" />
+    <string id="AIL_e7b1de50" text="Courting · wed at {0}" />
+    <string id="AIL_e7b1de51" text="Intimate bond" />
+    <string id="AIL_e7b1de46" text="romance" />
+    <string id="AIL_e7b1de47" text="relation" />
+    <string id="AIL_e7b1de48" text="trust" />
+    <string id="AIL_e7b1de49" text="tension" />
+    <string id="AIL_e7b1de4a" text="says goodbye" />
+    <string id="AIL_e7b1de4b" text="Expecting" />
+    <string id="AIL_e7b1de4c" text="Listening… {0} s" />
+    <string id="AIL_e7b1de4d" text="AI signal: {0}" />
+    <string id="AIL_e7b1de52" text="Romantic initiative: women" />
+    <string id="AIL_e7b1de53" text="Chance (0 to 1) that a woman takes the romantic initiative herself instead of waiting for you: told to her in the talk. Default: 0.2." />
+    <string id="AIL_e7b1de54" text="Romantic initiative: men" />
+    <string id="AIL_e7b1de55" text="Chance (0 to 1) that a man takes the romantic initiative himself instead of waiting for you: told to him in the talk. Default: 0.6." />
+    <string id="AIL_e7b1de56" text="You are a prisoner: you cannot send letters." />
   </strings>
 </base>

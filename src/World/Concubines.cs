@@ -144,8 +144,7 @@ namespace AILegacy.World
             if (!h.IsAlive || h.IsChild || h.Age < 18 || P.Age < 18) return "you are not of age for that";
             if (h.Spouse == P) return "you are already their spouse";
             if (!allowMarried && h.Spouse != null && h.Spouse.IsAlive) return "you are married";
-            if (h.IsFemale == P.IsFemale && !cfg.RomanceSameSex) return "it is not done";
-            if (Bonds.IsCloseFamily(h)) return "you are close kin";
+            if (Bonds.RomanceBarred(h)) return Bonds.IsCloseFamily(h) ? "you are close kin" : "it is not done";
             if (h.IsPrisoner) return "you are their prisoner";
             if (h.MapFaction is Kingdom k && k.Leader == h) return "you rule a kingdom and will not live as anyone's concubine";
             if (!checkRomance) return null;

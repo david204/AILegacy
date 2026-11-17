@@ -2886,5 +2886,28 @@
     <string id="AIL_e7b1de30" text="母亲已不再怀孕" />
     <string id="AIL_e7b1de31" text="重复记录" />
     <string id="AIL_e7b1de32" text="{0}，与 {1}：标记为流产（{2}）。" />
+    <string id="AIL_e7b1de40" text="{=!}（强制允许与此角色发展恋情。）" />
+    <string id="AIL_e7b1de41" text="{=!}（现在可以与此角色发展恋情。）" />
+    <string id="AIL_e7b1de42" text="{=!}（取消对此角色的强制恋情许可。）" />
+    <string id="AIL_e7b1de43" text="{=!}（已取消强制恋情许可。）" />
+    <string id="AIL_e7b1de44" text="尚未建立关系" />
+    <string id="AIL_e7b1de45" text="调情 · {0} 可成婚" />
+    <string id="AIL_e7b1de4e" text="调情 · {0} 可亲密" />
+    <string id="AIL_e7b1de4f" text="追求 · {0} 可亲密" />
+    <string id="AIL_e7b1de50" text="追求 · {0} 可成婚" />
+    <string id="AIL_e7b1de51" text="亲密关系" />
+    <string id="AIL_e7b1de46" text="恋情" />
+    <string id="AIL_e7b1de47" text="关系" />
+    <string id="AIL_e7b1de48" text="信任" />
+    <string id="AIL_e7b1de49" text="紧张" />
+    <string id="AIL_e7b1de4a" text="道别" />
+    <string id="AIL_e7b1de4b" text="怀有身孕" />
+    <string id="AIL_e7b1de4c" text="聆听中… {0} 秒" />
+    <string id="AIL_e7b1de4d" text="AI 信号：{0}" />
+    <string id="AIL_e7b1de52" text="恋爱主动性：女性" />
+    <string id="AIL_e7b1de53" text="女性主动示爱而非等你开口的几率（0 到 1），会在对话中告知她。默认：0.2。" />
+    <string id="AIL_e7b1de54" text="恋爱主动性：男性" />
+    <string id="AIL_e7b1de55" text="男性主动示爱而非等你开口的几率（0 到 1），会在对话中告知他。默认：0.6。" />
+    <string id="AIL_e7b1de56" text="你是囚犯：无法寄信。" />
   </strings>
 </base>

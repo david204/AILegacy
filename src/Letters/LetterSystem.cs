@@ -54,6 +54,11 @@ namespace AILegacy.Letters
 
         private static void PickRecipient()
         {
+            if (Hero.MainHero.IsPrisoner)
+            {
+                InformationManager.DisplayMessage(new InformationMessage(L.T("AIL_e7b1de56", "Eres prisionero: no puedes enviar cartas."), Colors.Red));
+                return;
+            }
             // Only people you know: you've talked to them in AI Legacy, or the game says you've met
             var heroes = Hero.AllAliveHeroes
                 .Where(h => h != Hero.MainHero && !h.IsChild && h.PartyBelongedTo != MobileParty.MainParty)
@@ -159,6 +164,12 @@ namespace AILegacy.Letters
                     bool reply = !l.FromPlayer && l.HeroId != null && (World.WorldSim.State.LettersReplying?.Remove(l.HeroId) ?? false);
                     var hero = Hero.Find(l.HeroId);
                     if (hero == null || hero.IsDead) continue;
+                    // a messenger cannot reach a prisoner: the letter comes back unread and its writer waits for the player to be free
+                    if (!l.FromPlayer && Hero.MainHero.IsPrisoner)
+                    {
+                        Lost(hero, $"[System: Your messenger came back with your letter to {Hero.MainHero.Name}: he searched but could not find them anywhere, and the letter never reached them.]");
+                        continue;
+                    }
                     if (l.FromPlayer) Deliver(hero, l.Text);
                     else Receive(hero, l.Text, reply);
                 }
@@ -184,6 +195,13 @@ namespace AILegacy.Letters
             try
             {
                 var cfg = S.Get;
+                var lost = World.WorldSim.State?.LettersLost;
+                if (lost != null && lost.Count > 0 && !Hero.MainHero.IsPrisoner)
+                {
+                    // free again: those who could not reach the player may write at once
+                    foreach (var id in lost) { var m = MemoryStore.Find(id); if (m != null) m.LastLetterDay = -1; }
+                    lost.Clear(); Log.Info("Letters: the player is free again; everyone may write");
+                }
                 if (!cfg.EnableLetters || _generating) return;
                 double now = CampaignTime.Now.ToDays;
                 if (MemoryStore.LastLetterDay >= 0 && now - MemoryStore.LastLetterDay < cfg.MinDaysBetweenLetters) return;
@@ -202,14 +220,37 @@ namespace AILegacy.Letters
                 foreach (var c in candidates)
                 {
                     roll -= Weight(c);
-                    if (roll <= 0) { Generate(c.hero, false); return; }
+                    if (roll <= 0)
+                    {
+                        // the player is a prisoner: the messenger finds nobody, and the writer stops trying until they are free
+                        if (Hero.MainHero.IsPrisoner) { Lost(c.hero, $"[System: You sent a messenger to {Hero.MainHero.Name}, but he could not find them anywhere and came back with nothing.]"); return; }
+                        Generate(c.hero, false); return;
+                    }
                 }
             }
             catch (Exception ex) { Log.Error("Letters: daily tick", ex); }
         }
 
         private static bool CanWrite(Hero h) =>
-            h != null && h.IsAlive && !h.IsChild && h != Hero.MainHero && !h.IsPrisoner && h.PartyBelongedTo != MobileParty.MainParty && !HoldsPlayer(h);
+            h != null && h.IsAlive && !h.IsChild && h != Hero.MainHero && !h.IsPrisoner && h.PartyBelongedTo != MobileParty.MainParty && !HoldsPlayer(h)
+            && World.WorldSim.State?.LettersLost?.Contains(h.StringId) != true;
+
+        /// <summary>The writer learns the messenger found nobody, and does not write again while the player is a prisoner.</summary>
+        private static void Lost(Hero hero, string note)
+        {
+            try
+            {
+                var lost = World.WorldSim.State?.LettersLost;
+                if (lost != null && lost.Contains(hero.StringId)) return;      // they already know; once is enough
+                var mem = MemoryStore.Get(hero.StringId, hero.Name.ToString());
+                mem.Turns.Add(new ChatTurn { Role = "player", Text = note, Day = CampaignTime.Now.ToDays });
+                mem.LastLetterDay = CampaignTime.Now.ToDays;
+                if (lost != null) lost.Add(hero.StringId);
+                Log.Info($"Letters: {hero.Name}'s messenger could not find the imprisoned player");
+                SaveFiles.Dirty();
+            }
+            catch (Exception ex) { Log.Error("Letters: messenger lost", ex); }
+        }
 
         // Nobody writes a letter to the prisoner riding in their own column or sitting in their own dungeon
         private static bool HoldsPlayer(Hero h)
