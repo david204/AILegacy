@@ -515,7 +515,7 @@ Read it and answer ONLY with JSON: { ""summary"": ""what was said and how it wen
             // The world doesn't pause while you type, it goes into slow motion
             bool slow = cfg.GroupSlowMotion;
             if (slow) { try { m.AddTimeSpeedRequest(new Mission.TimeSpeedRequest(0.2f, SlowId)); _slowed = m; } catch { slow = false; } }
-            InformationManager.ShowTextInquiry(new TextInquiryData(title, L.F("AIL_26906366", $"Te oyen: {names}.{last}{how}"), true, true, L.T("AIL_aa23f794", "Decir"), L.T("AIL_b8f9f7be", "Callar"),
+            InformationManager.ShowTextInquiry(new TextInquiryData(title, L.F("AIL_26906366", $"Te oyen: {names}.{last}{how}"), true, true, L.T("AIL_aa23f794", "Decir"), L.T("AIL_e5c9b3a4", "Cancelar"),
                 t => { Unslow(); OnSaid(t); }, Unslow, false, t => new Tuple<bool, string>(!string.IsNullOrWhiteSpace(t), L.T("AIL_e07caced", "Escribe algo"))), !slow);
         }
 

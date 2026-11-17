@@ -454,9 +454,16 @@ namespace AILegacy.World
                 if (list.Count == 1)
                 {
                     var p = list[0].Prisoner;
-                    n.Text = $"{p.Name}{TitleOf(p)} has been taken prisoner" + (by != null ? $" by {by.Name}{FactionOf(by)}." : ".");
+                    // A party with no lord at its head (corsairs, bandits, a patrol) is named by its side: with no taker at
+                    // all in the news, the AI made one up
+                    string nearEn = near != null ? $" near {near.Name}" : "";
+                    string nearEs = near != null ? L.F("AIL_e7b1c72e", $" cerca de {near.Name}") : "";
+                    n.Text = $"{p.Name}{TitleOf(p)} has been taken prisoner"
+                             + (by != null ? $" by {by.Name}{FactionOf(by)}" : captor != null ? $" by {captor.Name}" : " by unknown captors") + nearEn + ".";
                     n.TitleEs = L.F("AIL_0b611224", $"{p.Name}, capturado");
-                    n.TextEs = L.F("AIL_c704d473", $"{p.Name}{TitleOfEs(p)} ha sido hecho prisionero") + (by != null ? L.F("AIL_c6442751", $" por {by.Name}{DeEs(by)}.") : ".");
+                    n.TextEs = L.F("AIL_c704d473", $"{p.Name}{TitleOfEs(p)} ha sido hecho prisionero")
+                               + (by != null ? L.F("AIL_c6442751", $" por {by.Name}{DeEs(by)}.").TrimEnd('.', '。') : captor != null ? L.F("AIL_f0a10402", $" por {captor.Name}") : "")
+                               + nearEs + ".";
                 }
                 else
                 {

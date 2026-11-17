@@ -3137,5 +3137,114 @@
     <string id="AIL_e7b1df81" text="“0. AI Keys”中用来生成短片的提供商名称（OpenAI 或 Google）。留空 = 使用其中该服务的第一个提供商。" />
     <string id="AIL_e7b1df82" text="{=!}再说些什么，并生成场景图片" />
     <string id="AIL_e7b1df83" text="{=!}再说些什么，并生成场景视频" />
+    <string id="AIL_f0a10101" text="自定义图片与视频模型" />
+    <string id="AIL_f0a10102" text="从AI错误中吸取的教训" />
+    <string id="AIL_f0a10103" text="诊断" />
+    <string id="AIL_f0a10104" text="对话窗口" />
+    <string id="AIL_f0a10105" text="谁认得你" />
+    <string id="AIL_f0a10106" text="告诉AI的内容" />
+    <string id="AIL_f0a10107" text="镇民" />
+    <string id="AIL_f0a10108" text="城镇活动" />
+    <string id="AIL_f0a10109" text="音乐" />
+    <string id="AIL_f0a1010a" text="信任与谎言" />
+    <string id="AIL_f0a1010b" text="紧张与情绪" />
+    <string id="AIL_f0a1010c" text="恋爱" />
+    <string id="AIL_f0a1010d" text="亲密与怀孕" />
+    <string id="AIL_f0a1010e" text="其他角色之间的追求" />
+    <string id="AIL_f0a1010f" text="私生子" />
+    <string id="AIL_f0a10110" text="私生子：承认与生育" />
+    <string id="AIL_f0a10111" text="情妇" />
+    <string id="AIL_f0a10112" text="外交、附庸与婚姻" />
+    <string id="AIL_f0a10113" text="地图命令与部队" />
+    <string id="AIL_f0a10114" text="委托、物品与交易" />
+    <string id="AIL_f0a10115" text="打斗与决斗" />
+    <string id="AIL_f0a10116" text="卫兵与警报" />
+    <string id="AIL_f0a10117" text="司法、证人与监狱" />
+    <string id="AIL_f0a10118" text="竞技场训练" />
+    <string id="AIL_f0a10119" text="回忆录" />
+    <string id="AIL_f0a1011a" text="性格" />
+    <string id="AIL_f0a1011b" text="编年史" />
+    <string id="AIL_f0a1011c" text="世界事件" />
+    <string id="AIL_f0a1011d" text="事件类型" />
+    <string id="AIL_f0a1011e" text="经济影响" />
+    <string id="AIL_f0a1011f" text="秘密、编年史与独特角色" />
+    <string id="AIL_f0a10120" text="君主外交" />
+    <string id="AIL_f0a10121" text="厌战" />
+    <string id="AIL_f0a10122" text="叛乱与放逐" />
+    <string id="AIL_f0a10123" text="角色之间的消息" />
+    <string id="AIL_f0a10124" text="在地图上主动找你的领主" />
+    <string id="AIL_f0a10125" text="阴谋" />
+    <string id="AIL_f0a10126" text="角色之间的闲聊" />
+    <string id="AIL_f0a10127" text="路过时对你说的话" />
+    <string id="AIL_f0a10128" text="群体对话" />
+    <string id="AIL_f0a10129" text="你的话会被旁人听到" />
+    <string id="AIL_f0a1012a" text="从地图进入场景交谈" />
+    <string id="AIL_f0a1012b" text="语音：模型、服务器与密钥" />
+    <string id="AIL_f0a1012c" text="语音输入（说话代替打字）" />
+    <string id="AIL_f0a10201" text="Ollama（本机运行，无需密钥）" />
+    <string id="AIL_f0a10202" text="其他（兼容OpenAI：在下方填写地址）" />
+    <string id="AIL_f0a10203" text="自动（按顺序1到6）" />
+    <string id="AIL_f0a10204" text="服务商" />
+    <string id="AIL_f0a10205" text="已关闭" />
+    <string id="AIL_f0a10206" text="关闭" />
+    <string id="AIL_f0a10207" text="自定义模型（1. AI › 自定义模型）" />
+    <string id="AIL_f0a10208" text="免费 · Pollinations（不还原面容）" />
+    <string id="AIL_f0a10209" text="本地 Stable Diffusion（不还原面容）" />
+    <string id="AIL_f0a1020a" text="自定义模型或服务器（1. AI › 自定义模型）" />
+    <string id="AIL_f0a1020b" text="兼容服务器（地址和密钥见下方）" />
+    <string id="AIL_f0a1020c" text="1280x720 · 横屏" />
+    <string id="AIL_f0a1020d" text="720x1280 · 竖屏" />
+    <string id="AIL_f0a1020e" text="1792x1024 · 横屏（仅限 sora-2-pro）" />
+    <string id="AIL_f0a1020f" text="1024x1792 · 竖屏（仅限 sora-2-pro）" />
+    <string id="AIL_f0a10210" text="低" />
+    <string id="AIL_f0a10211" text="中" />
+    <string id="AIL_f0a10212" text="高" />
+    <string id="AIL_f0a10213" text="最高" />
+    <string id="AIL_f0a10214" text="仅你自己" />
+    <string id="AIL_f0a10215" text="你和你的家人" />
+    <string id="AIL_f0a10216" text="所有人" />
+    <string id="AIL_f0a10217" text="所有俘虏消息" />
+    <string id="AIL_f0a10218" text="仅重要人物（君主及王国本族家族首领）" />
+    <string id="AIL_f0a10219" text="仅君主" />
+    <string id="AIL_f0a1021a" text="Windows 语音（免费，本机）" />
+    <string id="AIL_f0a1021b" text="OpenAI（你的密钥）" />
+    <string id="AIL_f0a1021c" text="兼容OpenAI的服务器（本地或其他）" />
+    <string id="AIL_f0a1021d" text="Piper（本机）" />
+    <string id="AIL_f0a1021e" text="Fish Audio（你的密钥，免费模型）" />
+    <string id="AIL_f0a1021f" text="Groq（你的密钥，免费）" />
+    <string id="AIL_f0a10220" text="本地或其他服务器" />
+    <string id="AIL_f0a10221" text="你的家族" />
+    <string id="AIL_f0a10222" text="随母亲" />
+    <string id="AIL_f0a10224" text="自动（游戏语言）" />
+    <string id="AIL_f0a10301" text="此密钥属于哪个服务。“其他”指任何支持 OpenAI API 的服务器：请在下方栏位填写其地址。" />
+    <string id="AIL_f0a10302" text="由“0. AI密钥”中的哪个服务商负责。自动：按顺序使用服务商1到6。所选服务商失败时会尝试其他服务商。列表显示的是打开本菜单时各栏位的服务。" />
+    <string id="AIL_f0a10303" text="对话图片：使用哪个密钥" />
+    <string id="AIL_f0a10304" text="由“0. AI密钥”中的哪个服务商为这些图片付费。自动：第一个有密钥的 Google Gemini 或 OpenAI 服务商。选择“自定义模型”时，该服务商还决定向谁请求图片：Google、OpenAI，或任何支持 OpenAI 图片 API 的服务器。" />
+    <string id="AIL_f0a10305" text="对话图片：你的模型" />
+    <string id="AIL_f0a10306" text="仅当“按任务指定服务商”中为这些图片选择了“自定义模型”时使用。填写模型的准确名称，例如 gemini-3-pro-image-preview 或 gpt-image-1。留空：使用该服务的常用模型。" />
+    <string id="AIL_f0a10307" text="世界事件图片：使用哪个密钥" />
+    <string id="AIL_f0a10308" text="世界事件图片：你的模型" />
+    <string id="AIL_f0a10309" text="回忆录图片：使用哪个密钥" />
+    <string id="AIL_f0a1030a" text="回忆录图片：你的模型" />
+    <string id="AIL_f0a1030b" text="视频：使用哪个密钥" />
+    <string id="AIL_f0a1030c" text="由“0. AI密钥”中的哪个服务商制作视频。自动：根据你的模型名称判断（veo 为 Google，sora 为 OpenAI）；其他名称则使用下方的兼容服务器。“兼容服务器”使用下方填写的地址和密钥。" />
+    <string id="AIL_f0a1030d" text="视频：你的模型" />
+    <string id="AIL_f0a1030e" text="仅当“按任务指定服务商”中为视频选择了“自定义模型或服务器”时使用。填写准确名称，例如 veo-3.1-generate-preview 或 sora-2-pro。留空：使用该服务的常用模型。" />
+    <string id="AIL_f0a1030f" text="视频尺寸。OpenAI 的 sora-2 支持 1280x720 和 720x1280；两个较大的尺寸需要 sora-2-pro。Google 的 Veo 支持 720p 横屏或竖屏。" />
+    <string id="AIL_f0a10225" text="无" />
+    <string id="AIL_f0a10226" text="无按键" />
+    <string id="AIL_f0a10310" text="此快捷键的按键。“无按键”表示关闭。下一行设置需要同时按住的键。" />
+    <string id="AIL_f0a10311" text="↳ 同时按住" />
+    <string id="AIL_f0a10312" text="与上方按键同时按住的键。“无”：只按该键，此时在对话中打字也会触发。" />
+    <string id="AIL_f0a10401" text="&#10;&#10;（输入 /help 查看命令。想保持沉默，请留空消息并点击“确认”。）" />
+    <string id="AIL_f0a10402" text="（俘获者：{0}）" />
+    <string id="AIL_f0a10320" text="↳ 对众人说话（同时按住）" />
+    <string id="AIL_f0a10321" text="↳ 结束群聊（同时按住）" />
+    <string id="AIL_f0a10322" text="↳ 用自己的话下达战斗命令（同时按住）" />
+    <string id="AIL_f0a10323" text="↳ 打斗：认输（同时按住）" />
+    <string id="AIL_f0a10324" text="↳ 打斗：请求停手（同时按住）" />
+    <string id="AIL_f0a10325" text="↳ 打斗：召来十名部下（同时按住）" />
+    <string id="AIL_f0a10326" text="↳ 打斗：召来所有容得下的部下（同时按住）" />
+    <string id="AIL_f0a10327" text="↳ 打开回忆之书（同时按住）" />
   </strings>
 </base>

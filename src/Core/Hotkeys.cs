@@ -7,8 +7,9 @@ using TaleWorlds.InputSystem;
 namespace AILegacy.Core
 {
     /// <summary>
-    /// The mod's keyboard shortcuts, read from MCM (1. General, Keys). Each one is written as text: "Alt+T",
-    /// "Ctrl+Shift+F5", "F9". Empty turns it off, and text that can't be read falls back to the default.
+    /// The mod's keyboard shortcuts, chosen in MCM (3. General › Keys) as a key and what is held down with it. The
+    /// settings hand them over as text ("Alt+T", "Ctrl+Alt+X", "F9"); empty turns one off, and text that can't be read
+    /// falls back to the default.
     /// </summary>
     internal static class Hotkeys
     {

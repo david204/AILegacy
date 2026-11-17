@@ -885,6 +885,32 @@ namespace AILegacy.World
             "once", "formerly", "previously", "was", "were", "had", "been", "until", "long", "lately", "recently", "ago", "fue", "era", "estuvo", "antes", "antaño", "hasta",
         };
 
+        // "Vlandia cedes Ortysia", "Vlandia refuses to hand over Ortysia", "que Vlandia entregue Ortysia": only the realm that
+        // holds a place can give it up (or refuse to), so the giver must be its holder, said or denied
+        private static readonly HashSet<string> CedeWords = new HashSet<string>
+        {
+            "cede", "cedes", "ceding", "cession", "surrender", "surrenders", "surrendering", "relinquish", "relinquishes", "relinquishing",
+            "yield", "yields", "yielding", "return", "returns", "returning", "hand", "hands", "handing",
+            "ceder", "ceda", "cedan", "cederá", "cedera", "cederán", "cederan", "entregar", "entregue", "entreguen", "entregará", "entregara",
+            "devolver", "devuelva", "devuelvan", "renunciar", "renuncie", "renuncien",
+        };
+        // "Ortysia must be ceded by Vlandia": the passive, only after "be"
+        private static readonly HashSet<string> CededWords = new HashSet<string>
+        {
+            "ceded", "surrendered", "relinquished", "yielded", "returned", "handed", "cedida", "cedido", "entregada", "entregado", "devuelta", "devuelto",
+        };
+        // "The Empire demands Ortysia from Vlandia", "exige Ortysia a Vlandia": the one it is asked of must hold it
+        private static readonly HashSet<string> DemandWords = new HashSet<string>
+        {
+            "demand", "demands", "demanding", "claim", "claims", "claiming", "exige", "exigen", "exigir", "exija", "exijan", "reclama", "reclaman", "reclamar",
+            "reclame", "reclamen", "pide", "piden", "pedir", "pida", "pidan",
+        };
+        private static readonly HashSet<string> FromWords = new HashSet<string> { "from", "of", "a", "de" };
+        private static readonly HashSet<string> PlaceLead = new HashSet<string>
+        {
+            "the", "town", "city", "castle", "fortress", "village", "of", "la", "el", "ciudad", "villa", "castillo", "fortaleza", "aldea", "de", "del",
+        };
+
         private struct Place { public string[] Words; public string Name, Owner; }
         private struct Realm { public int From, To; public string Id; }
 
@@ -943,6 +969,61 @@ namespace AILegacy.World
                         if (subject.Id == null || subject.Id != place.Owner) continue;
                         if (subjectEnd >= 0 && Range(w, subjectEnd, i).Any(NotWords.Contains)) continue;
                         return $"has {subject.Id} set out to recover {place.Name}, and {place.Name} already belongs to {place.Owner}";
+                    }
+
+                    // a realm that gives up a place, or refuses to: it must hold it (negation changes nothing here)
+                    bool ceded = i > 0 && CededWords.Contains(w[i]) && BeWords.Contains(w[i - 1]);
+                    if (CedeWords.Contains(w[i]) || ceded)
+                    {
+                        int from = i + 1;
+                        // "on the other hand": only "hand over" is giving something up
+                        if (w[i].StartsWith("hand") && !ceded && (from >= w.Length || w[from] != "over")) continue;
+                        if (from < w.Length && (w[from] == "over" || w[from] == "up" || w[from] == "back")) from++;
+                        if (from < w.Length && (w[from] == "a" || w[from] == "de") && (w[i].StartsWith("renunci"))) from++;
+                        // "returns to Ortysia", "yields to the Empire": going somewhere or giving in, not giving a place up
+                        else if (!ceded && from < w.Length && (w[from] == "to" || w[from] == "a" || w[from] == "al" || w[from] == "hacia")) continue;
+                        int at = -1; Place place = default(Place);
+                        for (int j = from; !ceded && j <= Math.Min(w.Length - 1, from + 4) && at < 0; j++)
+                            foreach (var p in places)
+                                if (Matches(w, j, p.Words)) { at = j; place = p; break; }
+                        for (int j = i - 2; ceded && j >= Math.Max(0, i - 7) && at < 0; j--)
+                            foreach (var p in places)
+                                if (Matches(w, j, p.Words)) { at = j; place = p; break; }
+                        if (at < 0) continue;
+                        Realm giver = default(Realm);
+                        if (ceded)
+                        {
+                            for (int j = i + 1; j <= Math.Min(w.Length - 1, i + 3); j++)
+                                if (w[j] == "by" || w[j] == "por") { giver = realms.FirstOrDefault(r => r.From > j && r.From <= j + 2); break; }
+                        }
+                        else giver = realms.Where(r => r.To <= i && i - r.To <= 8).OrderByDescending(r => r.To).FirstOrDefault();
+                        if (giver.Id == null || giver.Id == place.Owner) continue;
+                        if (HedgeIn(string.Join(" ", Range(w, Math.Max(0, Math.Min(giver.From, at) - 2), Math.Max(i, at) + 1)), w2 => w2 == "if" || w2 == "si" || w2 == "should" || w2 == "were")) continue;
+                        return $"has {giver.Id} give up {place.Name} (or refuse to), and {place.Name} belongs to {place.Owner}, not to {giver.Id}";
+                    }
+
+                    // a place demanded of a realm: that realm must hold it
+                    if (DemandWords.Contains(w[i]))
+                    {
+                        for (int j = i + 1; j <= Math.Min(w.Length - 1, i + 5); j++)
+                        {
+                            // only "the town of", "la ciudad de" may stand between: "exige la entrega de Ortysia a Vlandia" gives it TO Vlandia
+                            if (!PlaceLead.Contains(w[j]) && !places.Any(p => Matches(w, j, p.Words))) break;
+                            Place place = default(Place); bool hit = false;
+                            foreach (var p in places) if (Matches(w, j, p.Words)) { place = p; hit = true; break; }
+                            if (!hit) continue;
+                            int after = j + place.Words.Length;
+                            if (after < w.Length && w[after] == "|") after++;
+                            for (int k = after; k <= Math.Min(w.Length - 1, after + 1); k++)
+                            {
+                                if (!FromWords.Contains(w[k])) continue;
+                                var asked = realms.FirstOrDefault(r => r.From > k && r.From <= k + 2);
+                                if (asked.Id != null && asked.Id != place.Owner)
+                                    return $"demands {place.Name} of {asked.Id}, and {place.Name} belongs to {place.Owner}, not to {asked.Id}";
+                                break;
+                            }
+                            break;
+                        }
                     }
                 }
                 // a place said to be held by a realm that does not hold it

@@ -852,8 +852,31 @@ namespace AILegacy.Voice
         // s2.1-pro-free costs nothing (fair use); s2.1-pro and the others are paid per character.
         private const string FishUrl = "https://api.fish.audio/v1/tts", FishFreeModel = "s2.1-pro-free";
 
+        // The free model takes few requests at once: lines go one at a time, and one turned away for "too many requests"
+        // waits what the service asks (at most a few seconds) and tries again, instead of staying silent
+        private static readonly SemaphoreSlim FishGate = new SemaphoreSlim(1, 1);
+        private const int FishTries = 3;
+
         private static byte[] FromFish(string key, bool female, string text, AILegacySettings cfg)
         {
+            if (!FishGate.Wait(TimeSpan.FromSeconds(45))) { Log.Warn("Voice: Fish Audio queue too long, line skipped"); return null; }
+            try
+            {
+                for (int attempt = 1; ; attempt++)
+                {
+                    var r = FishOnce(key, female, text, cfg, attempt < FishTries, out TimeSpan wait);
+                    if (r != null || wait <= TimeSpan.Zero) return r;
+                    Log.Info($"Voice: Fish Audio asked to slow down; trying again in {wait.TotalSeconds:0.#} s (attempt {attempt + 1} of {FishTries})");
+                    Thread.Sleep(wait);
+                }
+            }
+            finally { FishGate.Release(); }
+        }
+
+        /// <summary>One request. On HTTP 429 with tries left, <paramref name="retryIn"/> says how long to wait; otherwise it is zero.</summary>
+        private static byte[] FishOnce(string key, bool female, string text, AILegacySettings cfg, bool canRetry, out TimeSpan retryIn)
+        {
+            retryIn = TimeSpan.Zero;
             string apiKey = (cfg.VoiceFishKey ?? "").Trim();
             if (apiKey.Length == 0) { Tell("fish_key", L.T("AIL_e7b1dd41", "Fish Audio: falta tu clave en H. Voz (se crea en fish.audio, en API Keys).")); return null; }
             string model = (cfg.VoiceModel ?? "").Trim();
@@ -872,6 +895,19 @@ namespace AILegacy.Voice
                 var bytes = resp.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
                 if (resp.IsSuccessStatusCode) return bytes;
                 int code = (int)resp.StatusCode;
+                if (code == 429 && canRetry)
+                {
+                    double secs = 2;
+                    try
+                    {
+                        var ra = resp.Headers.RetryAfter;
+                        if (ra?.Delta != null) secs = ra.Delta.Value.TotalSeconds;
+                        else if (ra?.Date != null) secs = (ra.Date.Value - DateTimeOffset.UtcNow).TotalSeconds;
+                    }
+                    catch { }
+                    retryIn = TimeSpan.FromSeconds(Math.Max(1, Math.Min(8, secs)));
+                    return null;
+                }
                 string said = Encoding.UTF8.GetString(bytes, 0, Math.Min(300, bytes.Length));
                 Log.Warn($"Voice: Fish Audio HTTP {code} (model {model}, voice {voice ?? "default"}): {said}");
                 switch (code)

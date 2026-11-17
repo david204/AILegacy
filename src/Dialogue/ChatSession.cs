@@ -436,12 +436,35 @@ namespace AILegacy.Dialogue
             // What was written for a reply that never came is offered again
             string retry = _retryText ?? "";
             _retryText = null;
-            // Nothing written, or cancelled: the player keeps silent, and the character answers to that silence
+            // Confirm with nothing written: the player keeps silent and the character answers to that silence.
+            // Cancel: nothing is said and nothing is asked of the AI, so a wrong choice of how to speak can be undone
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                L.F("AIL_4f47d62d", $"Tu mensaje para {_s.Name}"), body + L.T("AIL_904fdecc", "\n\n(/ayuda para ver los comandos)") + AILegacy.Voice.Listen.HintForMessage(),
-                true, true, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e7b1ca01", "Callar"),
-                t => OnPlayerSaid(t), () => MainThread.Post(() => OnPlayerSaid("")), false,
+                L.F("AIL_4f47d62d", $"Tu mensaje para {_s.Name}"), body + L.T("AIL_f0a10401", "\n\n(/ayuda para ver los comandos. Para quedarte callado, deja el mensaje vacío y pulsa Confirmar.)") + AILegacy.Voice.Listen.HintForMessage(),
+                true, true, L.T("AIL_e5c9b3a3", "Confirmar"), L.T("AIL_e5c9b3a4", "Cancelar"),
+                t => OnPlayerSaid(t), () => MainThread.Post(CancelInput), false,
                 t => new Tuple<bool, string>(true, ""), "", retry), true);
+        }
+
+        /// <summary>
+        /// The message box was cancelled: no line, no AI request, no picture or video. The conversation goes back to
+        /// where the player chose how to speak: the last reply and its options if they were already talking, otherwise
+        /// the menu the talk was opened from.
+        /// </summary>
+        private void CancelInput()
+        {
+            if (_closed) return;
+            WithPictures = false;
+            WithVideo = false;
+            Log.Info($"Message to {_s.Name} cancelled: nothing was sent");
+            try
+            {
+                var cm = Campaign.Current?.ConversationManager;
+                if (cm == null || !cm.IsConversationInProgress || cm.CurOptions == null) return;
+                string id = _lastNpc.Length > 0 && !_waiting ? "ailegacy_d_view" : "ailegacy_d_backw";
+                if (cm.CurOptions.Any(o => o.Id == id)) cm.DoOption(id);
+                else if (cm.CurOptions.Any(o => o.Id == "ailegacy_d_backw")) cm.DoOption("ailegacy_d_backw");
+            }
+            catch (Exception ex) { Log.Error("Cancel the message", ex); }
         }
 
         /// <summary>What the character is told when the player says nothing at all.</summary>

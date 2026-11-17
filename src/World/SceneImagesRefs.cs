@@ -33,14 +33,14 @@ namespace AILegacy.World
         internal static readonly (string label, int source, string model)[] PictureOptions =
         {
             ("Off", Off, ""),
-            ("OpenAI · gpt-image-2 (your key)", OpenAi, "gpt-image-2"),
-            ("Google · Nano Banana · gemini-2.5-flash-image (your key)", Gemini, "gemini-2.5-flash-image"),
-            ("Google · Nano Banana 2 · gemini-3.1-flash-image-preview (your key)", Gemini, "gemini-3.1-flash-image-preview"),
-            ("Google · Nano Banana 2 Lite · gemini-3.1-flash-lite-image-preview (your key)", Gemini, "gemini-3.1-flash-lite-image-preview"),
-            ("Google · Nano Banana Pro · gemini-3-pro-image-preview (your key)", Gemini, "gemini-3-pro-image-preview"),
-            ("OpenAI-compatible · provider and model in Advanced", Compatible, ""),
-            ("Free · Pollinations (no key; does not copy the characters)", Free, ""),
-            ("Local Stable Diffusion (does not copy the characters)", Local, ""),
+            ("OpenAI · gpt-image-2", OpenAi, "gpt-image-2"),
+            ("Google · Nano Banana · gemini-2.5-flash-image", Gemini, "gemini-2.5-flash-image"),
+            ("Google · Nano Banana 2 · gemini-3.1-flash-image-preview", Gemini, "gemini-3.1-flash-image-preview"),
+            ("Google · Nano Banana 2 Lite · gemini-3.1-flash-lite-image-preview", Gemini, "gemini-3.1-flash-lite-image-preview"),
+            ("Google · Nano Banana Pro · gemini-3-pro-image-preview", Gemini, "gemini-3-pro-image-preview"),
+            ("Your own model (1. AI › Own models)", Compatible, ""),
+            ("Free · Pollinations (does not copy the faces)", Free, ""),
+            ("Local Stable Diffusion (does not copy the faces)", Local, ""),
         };
 
         public static string[] PictureLabels => PictureOptions.Select(o => o.label).ToArray();
@@ -56,7 +56,49 @@ namespace AILegacy.World
             catch { return 0; }
         }
 
-        public static int SourceOf(Kind k) => PictureOptions[ChoiceOf(k)].source;
+        /// <summary>The choice «Your own model»: model and key written in 1. AI › Own models.</summary>
+        private static bool IsOwn(Kind k) => PictureOptions[ChoiceOf(k)].source == Compatible;
+
+        public static int SourceOf(Kind k) => IsOwn(k) ? OwnSource(k) : PictureOptions[ChoiceOf(k)].source;
+
+        private static string OwnModel(Kind k)
+        {
+            var cfg = S.Get;
+            return ((k == Kind.Talk ? cfg.TalkImageModel : k == Kind.Event ? cfg.EventImageModel : cfg.BookImageModel) ?? "").Trim();
+        }
+
+        /// <summary>
+        /// Which API an own model goes to: the service of the chosen provider (Google, OpenAI, or any other server that
+        /// takes OpenAI's image API); with Automatic, the model's name (gemini or imagen is Google) or else OpenAI.
+        /// </summary>
+        private static int OwnSource(Kind k)
+        {
+            var p = Chosen(k);
+            if (p != null)
+            {
+                string host = p.BaseUrl ?? "";
+                if (host.IndexOf("generativelanguage.googleapis.com", StringComparison.OrdinalIgnoreCase) >= 0) return Gemini;
+                if (host.IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0) return OpenAi;
+                return Compatible;
+            }
+            string m = OwnModel(k).ToLowerInvariant();
+            return m.StartsWith("gemini") || m.StartsWith("imagen") ? Gemini : OpenAi;
+        }
+
+        /// <summary>The provider chosen in «whose key» for this kind of picture, or null for Automatic.</summary>
+        private static ProviderConfig Chosen(Kind k)
+        {
+            var cfg = S.Get;
+            string name = ((k == Kind.Talk ? cfg.TalkImageProvider : k == Kind.Event ? cfg.EventImageProvider : cfg.BookImageProvider) ?? "").Trim();
+            if (name.Length == 0) return null;
+            try
+            {
+                var named = LegacyConfig.Current.Providers.FirstOrDefault(p => p.IsUsable && string.Equals((p.Name ?? "").Trim(), name, StringComparison.OrdinalIgnoreCase));
+                if (named == null) Log.Warn($"Pictures: the provider '{name}' chosen in Own models is off or has no key; using the first one that fits");
+                return named;
+            }
+            catch { return null; }
+        }
 
         public static bool EnabledFor(Kind k) => SourceOf(k) != Off;
         public static bool TalkEnabled => EnabledFor(Kind.Talk);
@@ -64,20 +106,21 @@ namespace AILegacy.World
         /// <summary>Services that take reference pictures of the characters.</summary>
         internal static bool TakesReferences(int source) => source == Gemini || source == OpenAi || source == Compatible;
 
-        /// <summary>The provider of 0. AI Keys named for this kind of picture, or the first that fits the service.</summary>
+        /// <summary>
+        /// The provider chosen in «whose key» for this kind of picture, or the first that fits the service. With a model of
+        /// the list, a chosen key of another service is not used (a Google model cannot be drawn with an OpenAI key).
+        /// </summary>
         internal static ProviderConfig ProviderFor(Kind k, int source)
         {
-            var cfg = S.Get;
-            string name = ((k == Kind.Talk ? cfg.TalkImageProvider : k == Kind.Event ? cfg.EventImageProvider : cfg.BookImageProvider) ?? "").Trim();
-            if (name.Length > 0)
+            var named = Chosen(k);
+            if (named != null)
             {
-                try
-                {
-                    var named = LegacyConfig.Current.Providers.FirstOrDefault(p => p.IsUsable && string.Equals((p.Name ?? "").Trim(), name, StringComparison.OrdinalIgnoreCase));
-                    if (named != null) return named;
-                    Log.Warn($"Pictures: no usable provider named '{name}' in 0. AI Keys; using the first one that fits");
-                }
-                catch { }
+                if (IsOwn(k)) return named;
+                string host = named.BaseUrl ?? "";
+                bool fits = source == Gemini ? host.IndexOf("generativelanguage.googleapis.com", StringComparison.OrdinalIgnoreCase) >= 0
+                          : source == OpenAi ? host.IndexOf("api.openai.com", StringComparison.OrdinalIgnoreCase) >= 0 : true;
+                if (fits) return named;
+                Log.Warn($"Pictures: the key chosen for {k} ({named.Name}) is not of the service of the chosen model; using the first one that fits");
             }
             return source == Gemini ? GeminiProvider : source == OpenAi ? OpenAiProvider : null;
         }
@@ -85,14 +128,11 @@ namespace AILegacy.World
         /// <summary>The model of a service when nothing else says which: the first of its list.</summary>
         internal static string DefaultModel(int source) => source == Gemini ? "gemini-2.5-flash-image" : "gpt-image-2";
 
-        /// <summary>The model chosen for this kind of picture: the one written in Advanced, or the one of the list.</summary>
+        /// <summary>The model chosen for this kind of picture: the one of the list, or with «Your own model» the one written in Own models.</summary>
         internal static string ModelFor(Kind k, int source)
         {
-            var cfg = S.Get;
-            string m = ((k == Kind.Talk ? cfg.TalkImageModel : k == Kind.Event ? cfg.EventImageModel : cfg.BookImageModel) ?? "").Trim();
-            if (m.Length > 0) return m;
-            string listed = PictureOptions[ChoiceOf(k)].model;
-            return listed.Length > 0 ? listed : DefaultModel(source);
+            string m = IsOwn(k) ? OwnModel(k) : PictureOptions[ChoiceOf(k)].model;
+            return m.Length > 0 ? m : DefaultModel(source);
         }
 
         internal static ProviderConfig ProviderFor(string host)

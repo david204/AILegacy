@@ -31,27 +31,41 @@ namespace AILegacy.World
         internal static readonly (string label, int source, string model)[] VideoOptions =
         {
             ("Off", Off, ""),
-            ("OpenAI · sora-2 (your key)", OpenAi, "sora-2"),
-            ("OpenAI · sora-2-pro (your key)", OpenAi, "sora-2-pro"),
-            ("Google · Veo 3.1 fast · veo-3.1-fast-generate-preview (your key)", Gemini, "veo-3.1-fast-generate-preview"),
-            ("Google · Veo 3.1 · veo-3.1-generate-preview (your key)", Gemini, "veo-3.1-generate-preview"),
-            ("OpenAI-compatible server · address and key in Advanced", Endpoint, ""),
+            ("OpenAI · sora-2", OpenAi, "sora-2"),
+            ("OpenAI · sora-2-pro", OpenAi, "sora-2-pro"),
+            ("Google · Veo 3.1 fast · veo-3.1-fast-generate-preview", Gemini, "veo-3.1-fast-generate-preview"),
+            ("Google · Veo 3.1 · veo-3.1-generate-preview", Gemini, "veo-3.1-generate-preview"),
+            ("Your own model or server (1. AI › Own models)", Endpoint, ""),
         };
 
         public static string[] VideoLabels => VideoOptions.Select(o => o.label).ToArray();
 
         private static int Choice { get { try { return Math.Max(0, Math.Min(VideoOptions.Length - 1, S.Get.VideoService.SelectedIndex)); } catch { return 0; } } }
-        public static int Source => VideoOptions[Choice].source;
+        /// <summary>The last choice of the list: the player's own model or server, set in 1. AI › Own models.</summary>
+        private static bool Own => VideoOptions[Choice].source == Endpoint;
 
-        /// <summary>The model: the one written in Advanced, or the one of the list.</summary>
-        private static string ChosenModel
+        public static int Source => Own ? OwnSource : VideoOptions[Choice].source;
+
+        /// <summary>
+        /// Which API an own model goes to: the compatible server when that is the key chosen; the service of the chosen
+        /// provider (Google is Veo, any other one takes OpenAI's /videos at its own address); with Automatic, the model's
+        /// name (veo is Google, sora is OpenAI) or else the compatible server.
+        /// </summary>
+        private static int OwnSource
         {
             get
             {
-                string m = (S.Get.VideoCustomModel ?? "").Trim();
-                return m.Length > 0 ? m : VideoOptions[Choice].model;
+                var cfg = S.Get;
+                if (cfg.VideoUsesServer) return Endpoint;
+                var p = Named(cfg.VideoProvider);
+                if (p != null) return (p.BaseUrl ?? "").IndexOf("generativelanguage.googleapis.com", StringComparison.OrdinalIgnoreCase) >= 0 ? Gemini : OpenAi;
+                string m = (cfg.VideoCustomModel ?? "").Trim().ToLowerInvariant();
+                return m.StartsWith("veo") ? Gemini : m.StartsWith("sora") ? OpenAi : Endpoint;
             }
         }
+
+        /// <summary>The model: the one of the list, or with the own choice the one written in 1. AI › Own models (empty = the usual one).</summary>
+        private static string ChosenModel => Own ? (S.Get.VideoCustomModel ?? "").Trim() : VideoOptions[Choice].model;
 
         /// <summary>The clip made from the scene picture: who says what, so they speak it in the clip.</summary>
         public sealed class Scene
@@ -345,13 +359,20 @@ Answer with the prompt only, nothing else.");
         /// </summary>
         private static string _veoFound;
 
-        /// <summary>The provider of 0. AI Keys named in the video setting, or null.</summary>
+        /// <summary>The provider of 0. AI Keys chosen in 1. AI › Own models › Videos: whose key, or null.</summary>
         private static ProviderConfig Named(string name)
         {
             name = (name ?? "").Trim();
             if (name.Length == 0) return null;
             try { return LegacyConfig.Current.Providers.FirstOrDefault(p => p.IsUsable && string.Equals((p.Name ?? "").Trim(), name, StringComparison.OrdinalIgnoreCase)); }
             catch { return null; }
+        }
+
+        /// <summary>A size such as 720x1280 that is taller than it is wide.</summary>
+        private static bool Vertical(string size)
+        {
+            var d = (size ?? "").Split('x');
+            return d.Length == 2 && int.TryParse(d[0], out int w) && int.TryParse(d[1], out int h) && h > w;
         }
 
         /// <summary>Veo with the chosen model; if this key does not have it, with one it has.</summary>
@@ -378,7 +399,7 @@ Answer with the prompt only, nothing else.");
             var body = new JObject
             {
                 ["instances"] = new JArray { instance },
-                ["parameters"] = new JObject { ["aspectRatio"] = "16:9", ["durationSeconds"] = seconds, ["personGeneration"] = firstFrame != null ? "allow_adult" : "allow_all" },
+                ["parameters"] = new JObject { ["aspectRatio"] = Vertical(S.Get.VideoSize) ? "9:16" : "16:9", ["durationSeconds"] = seconds, ["personGeneration"] = firstFrame != null ? "allow_adult" : "allow_all" },
             };
             string op;
             using (var req = new HttpRequestMessage(HttpMethod.Post, root + "models/" + Uri.EscapeDataString(model) + ":predictLongRunning"))

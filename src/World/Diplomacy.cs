@@ -1866,8 +1866,17 @@ Use only the fields an action needs. relation_changes: how your stance towards o
                         }
                     }
                 var named = j["own_people"] is JArray arr ? arr.Where(x => x != null && x.Type == JTokenType.String).Select(x => (string)x).Take(20).ToList() : new List<string>();
-                return FactCheck.CheckOwnPeople(named, OwnNames(k), model)
-                       ?? FactCheck.CheckSummary((string)(j["summary"]?.Type == JTokenType.String ? j["summary"] : null), model, k.StringId);
+                string summary = (string)(j["summary"]?.Type == JTokenType.String ? j["summary"] : null);
+                string bad = FactCheck.CheckOwnPeople(named, OwnNames(k), model) ?? FactCheck.CheckSummary(summary, model, k.StringId);
+                if (bad != null) return bad;
+                // a town or castle claimed of, given up by or said to be held by a realm that does not hold it
+                WorldSim.PlaceOwners(out var owners, out var threatened);
+                foreach (var t in new[] { summary, (string)(j["statement"]?.Type == JTokenType.String ? j["statement"] : null) })
+                {
+                    bad = FactCheck.CheckOwnership(t, owners, model, threatened);
+                    if (bad != null) return bad;
+                }
+                return null;
             }
             catch (Exception ex) { Log.Error("[diplomacy] checking a declaration", ex); return null; }
         }

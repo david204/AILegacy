@@ -78,6 +78,8 @@ namespace AILegacy.Behaviors
             CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener(this, World.Mood.OnPrisonerTaken);
             CampaignEvents.OnSettlementOwnerChangedEvent.AddNonSerializedListener(this, WorldSim.OnSettlementOwnerChanged);
             CampaignEvents.MobilePartyDestroyed.AddNonSerializedListener(this, QuestObjectives.OnPartyDestroyed);
+            CampaignEvents.MapEventStarted.AddNonSerializedListener(this, QuestObjectives.OnMapEventStarted);
+            CampaignEvents.OnPlayerBattleEndEvent.AddNonSerializedListener(this, QuestObjectives.OnPlayerBattleEnd);
             // Remembered townsfolk get their face back right before the game spawns the people of a place
             CampaignEvents.LocationCharactersAreReadyToSpawnEvent.AddNonSerializedListener(this, World.ResidentFaces.OnLocationCharactersReady);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, World.LandlessPatrols.OnDailyTick);

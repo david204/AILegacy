@@ -7,15 +7,16 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.75.6</Version>
+    <Version>0.76.0</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <DebugType>portable</DebugType>
     <NoWarn>$(NoWarn);NU1701</NoWarn>
 
-    <!-- Game folder (this project lives inside it) -->
-    <GameDir Condition="'$(GameDir)' == ''">$(MSBuildProjectDirectory)\..</GameDir>
+    <!-- Game folder: the first folder above this project that holds bin\Win64_Shipping_Client\Bannerlord.exe
+         (the project can sit at any depth inside the game folder). Override with -p:GameDir=... -->
+    <GameDir Condition="'$(GameDir)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove('$(MSBuildProjectDirectory)', 'bin\Win64_Shipping_Client\Bannerlord.exe'))</GameDir>
     <GameBin>$(GameDir)\bin\Win64_Shipping_Client</GameBin>
     <ModuleDir>$(GameDir)\Modules\AILegacy</ModuleDir>
     <OutputPath>$(ModuleDir)\bin\Win64_Shipping_Client\</OutputPath>

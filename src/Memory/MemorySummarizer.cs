@@ -151,7 +151,7 @@ namespace AILegacy.Memory
                         UI.PageNotices.Notify(s.Hero, added);
                     }
                     else if (cfg.EnableMemoryPages && s.IsHero && page.Length > 20)
-                        Log.Info($"Memory book: no page for {s.Name}, that stretch is outside \"whose memories\" ({S.Get.MemoryBookScope?.SelectedValue})");
+                        Log.Info($"Memory book: no page for {s.Name}, that stretch is outside \"whose memories\" ({S.Get.MemoryBookScopeEnglish})");
                     SaveFiles.Flush();
                 });
             });
@@ -240,7 +240,7 @@ namespace AILegacy.Memory
                     var sp = Speaker.FromHero(h);
                     if (sp == null || !ReferenceEquals(sp.Memory, m)) continue;
                     MaybeSummarize(sp);
-                    if (m.SummarizeInFlight) { started++; Log.Info($"Memory book ({cfg.MemoryBookScope?.SelectedValue}): summarizing the history of {h.Name} lived without you"); }
+                    if (m.SummarizeInFlight) { started++; Log.Info($"Memory book ({cfg.MemoryBookScopeEnglish}): summarizing the history of {h.Name} lived without you"); }
                 }
             }
             catch (Exception ex) { Log.Error("Memory book: daily pass", ex); }

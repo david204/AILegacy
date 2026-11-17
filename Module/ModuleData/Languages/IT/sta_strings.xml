@@ -3137,5 +3137,114 @@
     <string id="AIL_e7b1df81" text="Nome di un fornitore di 0. AI Keys la cui chiave fa i video (OpenAI o Google). Vuoto = il primo fornitore di quel servizio presente." />
     <string id="AIL_e7b1df82" text="{=!}Dire qualcos’altro con un’immagine della scena" />
     <string id="AIL_e7b1df83" text="{=!}Dire qualcos’altro con un video della scena" />
+    <string id="AIL_f0a10101" text="Modelli propri per immagini e video" />
+    <string id="AIL_f0a10102" text="Lezioni dagli errori dell'IA" />
+    <string id="AIL_f0a10103" text="Diagnostica" />
+    <string id="AIL_f0a10104" text="Finestra di conversazione" />
+    <string id="AIL_f0a10105" text="Chi ti riconosce" />
+    <string id="AIL_f0a10106" text="Cosa viene detto all'IA" />
+    <string id="AIL_f0a10107" text="Popolani" />
+    <string id="AIL_f0a10108" text="Attività in città" />
+    <string id="AIL_f0a10109" text="Musica" />
+    <string id="AIL_f0a1010a" text="Fiducia e bugie" />
+    <string id="AIL_f0a1010b" text="Tensione e umore" />
+    <string id="AIL_f0a1010c" text="Romanticismo" />
+    <string id="AIL_f0a1010d" text="Intimità e gravidanza" />
+    <string id="AIL_f0a1010e" text="Corteggiamenti tra altri personaggi" />
+    <string id="AIL_f0a1010f" text="Figli fuori dal matrimonio" />
+    <string id="AIL_f0a10110" text="Fuori dal matrimonio: riconoscimento e nascite" />
+    <string id="AIL_f0a10111" text="Concubine" />
+    <string id="AIL_f0a10112" text="Diplomazia, vassallaggio e matrimonio" />
+    <string id="AIL_f0a10113" text="Ordini sulla mappa e truppe" />
+    <string id="AIL_f0a10114" text="Incarichi, oggetti e commercio" />
+    <string id="AIL_f0a10115" text="Risse e duelli" />
+    <string id="AIL_f0a10116" text="Le guardie e l'allarme" />
+    <string id="AIL_f0a10117" text="Giustizia, testimoni e prigione" />
+    <string id="AIL_f0a10118" text="Addestramento nell'arena" />
+    <string id="AIL_f0a10119" text="Libro dei ricordi" />
+    <string id="AIL_f0a1011a" text="Personalità" />
+    <string id="AIL_f0a1011b" text="Cronaca" />
+    <string id="AIL_f0a1011c" text="Eventi del mondo" />
+    <string id="AIL_f0a1011d" text="Tipi di eventi" />
+    <string id="AIL_f0a1011e" text="Effetti economici" />
+    <string id="AIL_f0a1011f" text="Segreti, cronache e personaggi unici" />
+    <string id="AIL_f0a10120" text="Diplomazia dei re" />
+    <string id="AIL_f0a10121" text="Stanchezza della guerra" />
+    <string id="AIL_f0a10122" text="Ribellioni ed esilio" />
+    <string id="AIL_f0a10123" text="Messaggi tra personaggi" />
+    <string id="AIL_f0a10124" text="Signori che ti raggiungono sulla mappa" />
+    <string id="AIL_f0a10125" text="Intrighi" />
+    <string id="AIL_f0a10126" text="Chiacchiere tra personaggi" />
+    <string id="AIL_f0a10127" text="Cosa ti dicono di passaggio" />
+    <string id="AIL_f0a10128" text="Conversazione di gruppo" />
+    <string id="AIL_f0a10129" text="Ciò che dici viene udito" />
+    <string id="AIL_f0a1012a" text="Parlare nella scena dalla mappa" />
+    <string id="AIL_f0a1012b" text="Voce: modello, server e chiavi" />
+    <string id="AIL_f0a1012c" text="Input vocale (parlare invece di scrivere)" />
+    <string id="AIL_f0a10201" text="Ollama (sul tuo PC, senza chiave)" />
+    <string id="AIL_f0a10202" text="Altro (compatibile OpenAI: scrivi il suo indirizzo sotto)" />
+    <string id="AIL_f0a10203" text="Automatico (da 1 a 6, in ordine)" />
+    <string id="AIL_f0a10204" text="Fornitore" />
+    <string id="AIL_f0a10205" text="spento" />
+    <string id="AIL_f0a10206" text="Disattivato" />
+    <string id="AIL_f0a10207" text="Il tuo modello (1. IA › Modelli propri)" />
+    <string id="AIL_f0a10208" text="Gratis · Pollinations (non copia i volti)" />
+    <string id="AIL_f0a10209" text="Stable Diffusion locale (non copia i volti)" />
+    <string id="AIL_f0a1020a" text="Il tuo modello o server (1. IA › Modelli propri)" />
+    <string id="AIL_f0a1020b" text="Server compatibile (indirizzo e chiave sotto)" />
+    <string id="AIL_f0a1020c" text="1280x720 · orizzontale" />
+    <string id="AIL_f0a1020d" text="720x1280 · verticale" />
+    <string id="AIL_f0a1020e" text="1792x1024 · orizzontale (solo sora-2-pro)" />
+    <string id="AIL_f0a1020f" text="1024x1792 · verticale (solo sora-2-pro)" />
+    <string id="AIL_f0a10210" text="Basso" />
+    <string id="AIL_f0a10211" text="Medio" />
+    <string id="AIL_f0a10212" text="Alto" />
+    <string id="AIL_f0a10213" text="Massimo" />
+    <string id="AIL_f0a10214" text="Solo tu" />
+    <string id="AIL_f0a10215" text="Tu e la tua famiglia" />
+    <string id="AIL_f0a10216" text="Tutti" />
+    <string id="AIL_f0a10217" text="Tutte le catture" />
+    <string id="AIL_f0a10218" text="Solo i notabili (sovrani e capi dei clan del regno)" />
+    <string id="AIL_f0a10219" text="Solo i sovrani" />
+    <string id="AIL_f0a1021a" text="Voci di Windows (gratis, sul tuo PC)" />
+    <string id="AIL_f0a1021b" text="OpenAI (la tua chiave)" />
+    <string id="AIL_f0a1021c" text="Server compatibile OpenAI (locale o altro)" />
+    <string id="AIL_f0a1021d" text="Piper (sul tuo PC)" />
+    <string id="AIL_f0a1021e" text="Fish Audio (la tua chiave, modello gratuito)" />
+    <string id="AIL_f0a1021f" text="Groq (la tua chiave, gratis)" />
+    <string id="AIL_f0a10220" text="Server locale o altro" />
+    <string id="AIL_f0a10221" text="Il tuo clan" />
+    <string id="AIL_f0a10222" text="Quella della madre" />
+    <string id="AIL_f0a10224" text="Auto (lingua del gioco)" />
+    <string id="AIL_f0a10301" text="Il servizio a cui appartiene questa chiave. «Altro» è qualsiasi server che accetta l'API di OpenAI: scrivi il suo indirizzo nel campo sotto." />
+    <string id="AIL_f0a10302" text="Quale fornitore di 0. Chiavi IA se ne occupa. Automatico: i fornitori da 1 a 6 in ordine. Se quello scelto fallisce, si provano gli altri. L'elenco mostra il servizio di ogni posto com'era all'apertura di questo menu." />
+    <string id="AIL_f0a10303" text="Immagini nelle conversazioni: quale chiave" />
+    <string id="AIL_f0a10304" text="Quale fornitore di 0. Chiavi IA paga queste immagini. Automatico: il primo fornitore Google Gemini o OpenAI con una chiave. Con «Il tuo modello», questo fornitore decide anche a chi chiedere l'immagine: Google, OpenAI o qualsiasi altro server con l'API immagini di OpenAI." />
+    <string id="AIL_f0a10305" text="Immagini nelle conversazioni: il tuo modello" />
+    <string id="AIL_f0a10306" text="Usato solo se in Fornitore per attività hai scelto «Il tuo modello» per queste immagini. Il nome esatto del modello, ad es. gemini-3-pro-image-preview o gpt-image-1. Vuoto: il modello abituale di quel servizio." />
+    <string id="AIL_f0a10307" text="Immagini degli eventi del mondo: quale chiave" />
+    <string id="AIL_f0a10308" text="Immagini degli eventi del mondo: il tuo modello" />
+    <string id="AIL_f0a10309" text="Immagini del libro dei ricordi: quale chiave" />
+    <string id="AIL_f0a1030a" text="Immagini del libro dei ricordi: il tuo modello" />
+    <string id="AIL_f0a1030b" text="Video: quale chiave" />
+    <string id="AIL_f0a1030c" text="Quale fornitore di 0. Chiavi IA crea i video. Automatico: in base al nome del tuo modello (veo è Google, sora è OpenAI); con qualsiasi altro nome, il server compatibile sotto. «Server compatibile» usa l'indirizzo e la chiave scritti sotto." />
+    <string id="AIL_f0a1030d" text="Video: il tuo modello" />
+    <string id="AIL_f0a1030e" text="Usato solo se in Fornitore per attività hai scelto «Il tuo modello o server» per i video. Il nome esatto, ad es. veo-3.1-generate-preview o sora-2-pro. Vuoto: il modello abituale di quel servizio." />
+    <string id="AIL_f0a1030f" text="Dimensione del video. sora-2 di OpenAI fa 1280x720 e 720x1280; le due misure più grandi richiedono sora-2-pro. Veo di Google fa 720p, orizzontale o verticale." />
+    <string id="AIL_f0a10225" text="Niente" />
+    <string id="AIL_f0a10226" text="Nessun tasto" />
+    <string id="AIL_f0a10310" text="Il tasto di questa scorciatoia. «Nessun tasto» la disattiva. La riga sotto dice cosa tenere premuto insieme." />
+    <string id="AIL_f0a10311" text="↳ tenendo premuto" />
+    <string id="AIL_f0a10312" text="Cosa tenere premuto insieme al tasto sopra. «Niente»: il tasto da solo, che allora scatta anche mentre scrivi in una conversazione." />
+    <string id="AIL_f0a10401" text="&#10;&#10;(/help per vedere i comandi. Per restare in silenzio, lascia vuoto il messaggio e premi Conferma.)" />
+    <string id="AIL_f0a10402" text=" da {0}" />
+    <string id="AIL_f0a10320" text="↳ Parla al gruppo (tenendo premuto)" />
+    <string id="AIL_f0a10321" text="↳ Termina la conversazione di gruppo (tenendo premuto)" />
+    <string id="AIL_f0a10322" text="↳ Ordini di battaglia con parole tue (tenendo premuto)" />
+    <string id="AIL_f0a10323" text="↳ Rissa: arrendersi (tenendo premuto)" />
+    <string id="AIL_f0a10324" text="↳ Rissa: chiedere una tregua (tenendo premuto)" />
+    <string id="AIL_f0a10325" text="↳ Rissa: chiama dieci dei tuoi uomini (tenendo premuto)" />
+    <string id="AIL_f0a10326" text="↳ Rissa: chiama tutti gli uomini che ci stanno (tenendo premuto)" />
+    <string id="AIL_f0a10327" text="↳ Apri il libro dei ricordi (tenendo premuto)" />
   </strings>
 </base>

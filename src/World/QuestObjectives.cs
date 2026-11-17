@@ -5,6 +5,7 @@ using AILegacy.Core;
 using AILegacy.Dialogue;
 using AILegacy.Settings;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Party.PartyComponents;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -315,6 +316,39 @@ namespace AILegacy.World
             catch (Exception ex) { Log.Error("Quests: settlement entry", ex); }
         }
 
+        // Quest bands the player went into battle with, and when (game hours). The game names who destroyed a party, but
+        // after a battle it names the leader of the winning side, and by then that side can already be emptied: the
+        // player's own victory then came with nobody as the destroyer and was told as someone else's.
+        private static readonly Dictionary<string, double> FoughtByPlayer = new Dictionary<string, double>();
+
+        private static void NoteFight(MapEvent me, params PartyBase[] also)
+        {
+            if (me == null) return;
+            var bands = QuestSystem.Quests.Where(x => x.Active && x.ObjType == "defeat_bandits" && !string.IsNullOrEmpty(x.PartyId)).Select(x => x.PartyId).ToList();
+            if (bands.Count == 0) return;
+            var ids = new HashSet<string>(also.Where(p => p?.MobileParty != null).Select(p => p.MobileParty.StringId));
+            try { foreach (var p in me.InvolvedParties) if (p?.MobileParty != null) ids.Add(p.MobileParty.StringId); } catch { }
+            foreach (var b in bands)
+                if (ids.Contains(b)) { FoughtByPlayer[b] = CampaignTime.Now.ToHours; Log.Info($"Quests: you are fighting the band {b}"); }
+        }
+
+        public static void OnMapEventStarted(MapEvent me, PartyBase attacker, PartyBase defender)
+        {
+            try
+            {
+                if (me == null || !(attacker == PartyBase.MainParty || defender == PartyBase.MainParty || me.IsPlayerMapEvent)) return;
+                NoteFight(me, attacker, defender);
+            }
+            catch (Exception ex) { Log.Error("Quests: battle start", ex); }
+        }
+
+        /// <summary>Also a battle the player joined after it began (no start event for the player then).</summary>
+        public static void OnPlayerBattleEnd(MapEvent me)
+        {
+            try { NoteFight(me); }
+            catch (Exception ex) { Log.Error("Quests: battle end", ex); }
+        }
+
         public static void OnPartyDestroyed(MobileParty destroyed, PartyBase destroyer)
         {
             try
@@ -323,6 +357,12 @@ namespace AILegacy.World
                 foreach (var q in QuestSystem.Quests.Where(x => x.Active && x.ObjType == "defeat_bandits" && x.PartyId == destroyed.StringId).ToList())
                 {
                     bool mine = destroyer != null && (destroyer == PartyBase.MainParty || (MobileParty.MainParty?.Army != null && destroyer.MobileParty?.Army == MobileParty.MainParty.Army));
+                    bool fought = FoughtByPlayer.TryGetValue(destroyed.StringId, out double hour) && CampaignTime.Now.ToHours - hour < 24;
+                    // destroyed right after a battle the player fought against this band: the player's victory, whoever the
+                    // game names (nobody, or an ally such as reinforcements from another mod that led the side)
+                    if (!mine && fought) mine = true;
+                    Log.Info($"Quest {q.Id}: band destroyed, destroyer {(destroyer?.Name?.ToString() ?? "none given")}{(fought ? ", right after a battle with you" : "")} → {(mine ? "yours" : "someone else's")}");
+                    FoughtByPlayer.Remove(destroyed.StringId);
                     q.BandByPlayer = mine;
                     GameJournal.Untrack(q, destroyed);      // a destroyed party shouldn't stay tracked in the journal
                     MarkMet(q, mine ? L.F("AIL_d83e63f4", $"Has acabado con la banda de {q.ObjTargetName}. Vuelve con {q.GiverName}.")

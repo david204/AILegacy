@@ -1219,6 +1219,28 @@ kingdoms_involved and kingdom_engagement may only name: {allowed}.");
             public bool AnyPort;
         }
 
+        /// <summary>
+        /// Who holds each town, castle and village now (name to kingdom id) and the places under siege or being raided,
+        /// for checking a text other than an event against the world (a ruler's statement).
+        /// </summary>
+        internal static void PlaceOwners(out Dictionary<string, string> owners, out HashSet<string> threatened)
+        {
+            owners = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            threatened = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var st in Settlement.All)
+            {
+                if (st == null || !(st.IsTown || st.IsCastle || st.IsVillage)) continue;
+                string name = st.Name?.ToString();
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                if (st.MapFaction is Kingdom k && !owners.ContainsKey(name)) owners[name] = k.StringId;
+                try
+                {
+                    if (st.IsUnderSiege || (st.IsVillage && st.Village != null && st.Village.VillageState != Village.VillageStates.Normal)) threatened.Add(name);
+                }
+                catch { }
+            }
+        }
+
         private static WorldNames BuildNames()
         {
             var n = new WorldNames();

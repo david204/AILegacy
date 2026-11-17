@@ -168,6 +168,23 @@ namespace AILegacy.Core
 
         public static string T(string id, string fallback) => Find(id) ?? fallback;
 
+        /// <summary>
+        /// The text in the language given ("auto" = the game's), not the one read from the settings. For the settings
+        /// themselves: asking them for the language while MCM is still building them would go round in a loop.
+        /// </summary>
+        public static string TFor(string code, string id, string fallback)
+        {
+            if (string.IsNullOrEmpty(id)) return fallback;
+            try
+            {
+                if (string.IsNullOrEmpty(code) || code == "auto") code = FromGame();
+                if (Table(code).TryGetValue(id, out var v)) return v;
+                if (code != "en" && code != "es" && Table("en").TryGetValue(id, out v)) return v;
+            }
+            catch { }
+            return fallback;
+        }
+
         /// <summary>Translates the format template ("Pagas {0} denarios a {1}.") and then fills in the holes.</summary>
         public static string F(string id, FormattableString text)
         {
