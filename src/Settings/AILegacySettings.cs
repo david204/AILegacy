@@ -3392,7 +3392,7 @@ namespace AILegacy.Settings
         public int EditorPort { get; set; } = 17890;
 
         [SettingPropertyBool("{=AIL_c3a7f1e5}Background tasks on free providers only", Order = 4, RequireRestart = false,
-            HintText = "{=AIL_c3a7f1e6}Ambient talk, world events, summaries and other tasks you are not waiting for never use a paid provider while a free one exists. The paid one is kept in reserve for dialogue.")]
+            HintText = "{=AIL_c3a7f1e6}Ambient talk, world events, summaries and other tasks you are not waiting for never use a paid provider while a free one exists. The paid one is kept in reserve for dialogue. A provider you pick for a task in «Provider per task» is always used for it.")]
         [SettingPropertyGroup("{=AIL_a96fe2c6}1. AI", GroupOrder = 1)]
         public bool BackgroundOnFreeProviders { get; set; } = true;
 

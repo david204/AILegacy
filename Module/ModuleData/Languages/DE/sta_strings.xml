@@ -1285,7 +1285,7 @@
     <string id="AIL_c3a7f1e3" text="Was dieser Anbieter pro Million Token berechnet. 0 = kostenlos. Dient zur Berechnung der Ausgaben (im Editor, Reiter Service) und für das Tageslimit; sonst ändert es nichts." />
     <string id="AIL_c3a7f1e4" text="Ausgabepreis ($ pro Million Token)" />
     <string id="AIL_c3a7f1e5" text="Hintergrundaufgaben nur mit kostenlosen Anbietern" />
-    <string id="AIL_c3a7f1e6" text="Umgebungsgespräche, Weltereignisse, Zusammenfassungen und andere Aufgaben, auf die du nicht wartest, nutzen nie einen kostenpflichtigen Anbieter, solange es einen kostenlosen gibt. Der kostenpflichtige bleibt als Reserve für den Dialog." />
+    <string id="AIL_c3a7f1e6" text="Umgebungsgespräche, Weltereignisse, Zusammenfassungen und andere Aufgaben, auf die du nicht wartest, nutzen nie einen kostenpflichtigen Anbieter, solange es einen kostenlosen gibt. Der kostenpflichtige bleibt als Reserve für den Dialog. Ein Anbieter, den du unter „Anbieter je Aufgabe“ für eine Aufgabe wählst, wird dafür immer genutzt." />
     <string id="AIL_c3a7f1e7" text="Tägliches Ausgabenlimit (US-Cent, 0 = kein Limit)" />
     <string id="AIL_c3a7f1e8" text="Ist dieser Betrag an einem Tag erreicht (echter Tag, nicht Spieltag), werden kostenpflichtige Anbieter bis morgen nicht mehr genutzt. Gezählt wird nur, wofür unter 0. KI-Schlüssel ein Preis eingetragen ist." />
     <string id="AIL_c3a7f1e9" text="Daten zu dem, was genannt wird" />

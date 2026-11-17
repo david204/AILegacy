@@ -359,8 +359,12 @@ namespace AILegacy.Llm
             var providers = opts.Providers;
             if (providers.Count == 0) return new LlmResult { Ok = false, Error = opts.NoProvidersError ?? "sin proveedores" };
 
-            // Background tasks stick to free providers when there are any, paid ones are kept for what the player waits on
-            if (opts.Priority >= 2 && opts.BackgroundFreeOnly && providers.Any(p => !p.IsPaid) && providers.Any(p => p.IsPaid))
+            // Background tasks stick to free providers when there are any, paid ones are kept for what the player waits on.
+            // A provider the player picked for a background task of its own (1. AI › Provider per task: world, summaries,
+            // battles) is kept all the same. Ambient talk only borrows the dialogue's provider, so it stays on the free ones.
+            bool ownTask = opts.Task == "world" || opts.Task == "errand" || opts.Task == "summary" || opts.Task == "lore" || opts.Task == "battle";
+            bool chosen = ownTask && !string.IsNullOrEmpty(opts.Preferred) && providers.Any(p => string.Equals(p.Name, opts.Preferred, StringComparison.OrdinalIgnoreCase));
+            if (opts.Priority >= 2 && opts.BackgroundFreeOnly && !chosen && providers.Any(p => !p.IsPaid) && providers.Any(p => p.IsPaid))
                 providers = providers.Where(p => !p.IsPaid).ToList();
             // Daily spend cap reached: paid providers are left out
             if (opts.DailyCapUsd > 0 && UsageMeter.SpentToday >= opts.DailyCapUsd)

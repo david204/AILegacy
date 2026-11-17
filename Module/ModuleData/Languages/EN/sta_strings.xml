@@ -1285,7 +1285,7 @@
     <string id="AIL_c3a7f1e3" text="What this provider charges per million tokens. 0 = free. Used to work out spending (shown in the editor, Service tab) and for the daily cap; it changes nothing else." />
     <string id="AIL_c3a7f1e4" text="Output price ($ per million tokens)" />
     <string id="AIL_c3a7f1e5" text="Background tasks on free providers only" />
-    <string id="AIL_c3a7f1e6" text="Ambient talk, world events, summaries and other tasks you are not waiting for never use a paid provider while a free one exists. The paid one is kept in reserve for dialogue." />
+    <string id="AIL_c3a7f1e6" text="Ambient talk, world events, summaries and other tasks you are not waiting for never use a paid provider while a free one exists. The paid one is kept in reserve for dialogue. A provider you pick for a task in «Provider per task» is always used for it." />
     <string id="AIL_c3a7f1e7" text="Daily spending cap (US cents, 0 = no cap)" />
     <string id="AIL_c3a7f1e8" text="Once that amount is reached in a day (real day, not game day) paid providers stop being used until tomorrow. Only providers with a price set under 0. AI keys are counted." />
     <string id="AIL_c3a7f1e9" text="Facts about what is named" />

@@ -1285,7 +1285,7 @@
     <string id="AIL_c3a7f1e3" text="Ce que ce fournisseur facture par million de tokens. 0 = gratuit. Sert à calculer la dépense (visible dans l'éditeur, onglet Service) et pour le plafond quotidien ; ne change rien d'autre." />
     <string id="AIL_c3a7f1e4" text="Prix de sortie ($ par million de tokens)" />
     <string id="AIL_c3a7f1e5" text="Tâches de fond uniquement avec des fournisseurs gratuits" />
-    <string id="AIL_c3a7f1e6" text="Les conversations d'ambiance, les événements du monde, les résumés et les autres tâches que vous n'attendez pas n'utilisent jamais un fournisseur payant tant qu'il en existe un gratuit. Le payant reste en réserve pour le dialogue." />
+    <string id="AIL_c3a7f1e6" text="Les conversations d'ambiance, les événements du monde, les résumés et les autres tâches que vous n'attendez pas n'utilisent jamais un fournisseur payant tant qu'il en existe un gratuit. Le payant reste en réserve pour le dialogue. Le fournisseur choisi pour une tâche dans « Fournisseur par tâche » est toujours utilisé pour elle." />
     <string id="AIL_c3a7f1e7" text="Plafond de dépense quotidien (cents de $, 0 = sans plafond)" />
     <string id="AIL_c3a7f1e8" text="Une fois ce montant atteint dans la journée (jour réel, pas du jeu), les fournisseurs payants ne sont plus utilisés jusqu'au lendemain. Seuls comptent ceux dont le prix est renseigné dans 0. Clés d'IA." />
     <string id="AIL_c3a7f1e9" text="Données sur ce qui est nommé" />

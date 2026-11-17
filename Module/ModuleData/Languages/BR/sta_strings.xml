@@ -1285,7 +1285,7 @@
     <string id="AIL_c3a7f1e3" text="Quanto este provedor cobra por milhão de tokens. 0 = grátis. Serve para calcular o gasto (aparece no editor, aba Serviço) e para o limite diário; não muda mais nada." />
     <string id="AIL_c3a7f1e4" text="Preço de saída ($ por milhão de tokens)" />
     <string id="AIL_c3a7f1e5" text="Tarefas de fundo só com provedores gratuitos" />
-    <string id="AIL_c3a7f1e6" text="As conversas de ambiente, os eventos do mundo, os resumos e as outras tarefas que você não está esperando nunca usam um provedor pago enquanto houver um gratuito. O pago fica de reserva para o diálogo." />
+    <string id="AIL_c3a7f1e6" text="As conversas de ambiente, os eventos do mundo, os resumos e as outras tarefas que você não está esperando nunca usam um provedor pago enquanto houver um gratuito. O pago fica de reserva para o diálogo. O provedor que você escolher para uma tarefa em «Provedor por tarefa» é sempre usado para ela." />
     <string id="AIL_c3a7f1e7" text="Limite de gasto diário (centavos de $, 0 = sem limite)" />
     <string id="AIL_c3a7f1e8" text="Ao chegar a esse valor em um dia (dia real, não do jogo), os provedores pagos deixam de ser usados até amanhã. Só conta o que tiver preço definido em 0. Chaves de IA." />
     <string id="AIL_c3a7f1e9" text="Dados do que é mencionado" />
