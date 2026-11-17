@@ -1091,10 +1091,11 @@ siege: far away, but under your siege right now");
             var cfg = S.Get;
             var lines = new List<string>();
             if (cfg.MaxWarsPerKingdom > 0) lines.Add($"- No kingdom may be at war with more than {cfg.MaxWarsPerKingdom} kingdom(s) at once. You are at war with {WarCount(k)}.");
-            if (cfg.MinTruceDays > 0) lines.Add($"- After a peace, neither side may declare war on the other for {cfg.MinTruceDays} days.");
+            if (cfg.MinTruceDays > 0) lines.Add($"- A truce binds only two realms that were at war with each other and made peace: for {cfg.MinTruceDays} days after that peace, neither may declare war on the other. Realms that were not at war with each other have no truce between them, whatever the news says of peace in the land.");
             if (cfg.ForcedPeaceStalemateDays > 0 && !PlayerRules(k)) lines.Add(TRuleForcedTruce.Format("days", ForcedTruceLength));
             {
                 var no = new List<string>();
+                var may = new List<string>();
                 // the realm the player rules is protected like any other target (WarBlocked); nothing is listed for the player himself
                 foreach (var o in WorldSim.Kingdoms.Where(x => x != k && !k.IsAtWarWith(x) && !PlayerRules(k)))
                 {
@@ -1103,10 +1104,15 @@ siege: far away, but under your siege right now");
                     else if (truce > 0) no.Add($"{o.StringId} (truce, {truce} more days)");
                     else if (cfg.MaxWarsPerKingdom > 0 && WarCount(k) >= cfg.MaxWarsPerKingdom) no.Add($"{o.StringId} (you are at your limit of wars)");
                     else if (cfg.MaxWarsPerKingdom > 0 && WarCount(o) >= cfg.MaxWarsPerKingdom) no.Add($"{o.StringId} (it is already fighting {WarCount(o)}: no piling on)");
+                    else if (PlayerRules(o) && !cfg.AllowAiWarOnPlayer) no.Add($"{o.StringId} (no crown may declare war on that realm in this world)");
+                    else may.Add(o.StringId);
                 }
-                // a truce left by a forced peace is listed even with every house rule off
-                if (cfg.MaxWarsPerKingdom > 0 || cfg.MinTruceDays > 0 || no.Count > 0)
+                // both lists, every time: a ruler told only whom they may not fight reads a general truce into a world at peace
+                if (!PlayerRules(k))
+                {
                     lines.Add("- Right now you may NOT declare war on: " + (no.Count > 0 ? string.Join(", ", no) : "nobody is barred") + ".");
+                    lines.Add("- Right now you MAY declare war on, if you have cause: " + (may.Count > 0 ? string.Join(", ", may) : "nobody") + ". No truce or rule stands between you and these realms.");
+                }
             }
             if (cfg.MaxAlliancesPerKingdom > 0)
             {
@@ -1180,6 +1186,7 @@ siege: far away, but under your siege right now");
                 var mine = PlayerRealm;
                 var ks = WorldSim.Kingdoms.Where(k => k != mine && k.RulingClan != null && !k.RulingClan.IsRebelClan && !k.RulingClan.IsBanditFaction).ToList();
                 int made = 0;
+                var ended = new List<string>();
                 bool live = NewsTracker.Live;
                 NewsTracker.Live = false;      // a dozen treaties signed at once are one piece of news, not a dozen
                 try
@@ -1190,7 +1197,7 @@ siege: far away, but under your siege right now");
                             if (!ks[i].IsAtWarWith(ks[j])) continue;
                             Kingdom a = ks[i], b = ks[j];
                             Ours(() => MakePeaceAction.Apply(a, b));
-                            if (!a.IsAtWarWith(b)) made++;
+                            if (!a.IsAtWarWith(b)) { made++; ended.Add($"{a.Name} and {b.Name}"); }
                         }
                 }
                 finally { NewsTracker.Live = live; }
@@ -1205,9 +1212,11 @@ siege: far away, but under your siege right now");
                 NewsStore.Add(new NewsItem
                 {
                     Type = "custom", Importance = 3, Kingdoms = ks.Select(x => x.StringId).ToList(),
-                    Text = "For the first time in years, no kingdom of Calradia is at war with another: every crown has laid down its arms.",
-                    TitleEs = L.T("AIL_e7b1c738", "Calradia en paz"),
-                    TextEs = L.T("AIL_e7b1c739", "Por primera vez en años, ningún reino de Calradia está en guerra con otro: todas las coronas han depuesto las armas."),
+                    // the pairs are named: each peace binds the two that signed it, not every crown
+                    Text = "For the first time in years, no kingdom of Calradia is at war with another: the wars that were being fought have ended in peace ("
+                         + string.Join("; ", ended) + "). Each peace binds only the two realms that signed it; there is no truce among the others.",
+                    TitleEs = L.T("AIL_e7b1c738", "Fin de las guerras"),
+                    TextEs = L.T("AIL_e7b1c739", "Por primera vez en años, ningún reino de Calradia está en guerra con otro: las guerras que había han terminado con una paz entre los dos bandos."),
                 });
                 WorldSim.Say(L.T("AIL_e7b1c73a", "AI Legacy: la partida empieza con todos los reinos en paz."), Colors.Cyan);
             }

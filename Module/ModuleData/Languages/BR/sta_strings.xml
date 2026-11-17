@@ -1911,8 +1911,8 @@
     <string id="AIL_e7b1c735" text="O cerco de {0} foi rompido pelas armas: {1} foi derrotado e {2} continua nas mãos de {3}." />
     <string id="AIL_e7b1c736" text="Levantado o cerco de {0}" />
     <string id="AIL_e7b1c737" text="O cerco de {0} foi levantado: {1} desistiu e retirou-se, e {2} continua nas mãos de {3}." />
-    <string id="AIL_e7b1c738" text="Calradia em paz" />
-    <string id="AIL_e7b1c739" text="Pela primeira vez em anos, nenhum reino de Calradia está em guerra com outro: todas as coroas depuseram as armas." />
+    <string id="AIL_e7b1c738" text="O fim das guerras" />
+    <string id="AIL_e7b1c739" text="Pela primeira vez em anos, nenhum reino de Calradia está em guerra com outro: as guerras que havia terminaram com uma paz entre os dois lados." />
     <string id="AIL_e7b1c73a" text="AI Legacy: a campanha começa com todos os reinos em paz." />
     <string id="AIL_e7b1c73b" text="Notícias de prisioneiros guardadas" />
     <string id="AIL_e7b1c73c" text="Os senhores são capturados a toda hora e as notícias enchem-se disso. Só notáveis: a captura de um soberano (notícia para o mundo inteiro) e a do chefe de um clã vassalo de um reino (notícia para esse reino). Os chefes de clãs mercenários e menores e os nobres comuns ficam de fora. Todas: esses também são guardados, como falatório local que nunca provoca uma reação. Nos dois casos, os cativos de uma mesma batalha formam uma só notícia, e o que você captura ou quem captura você é sempre contado." />

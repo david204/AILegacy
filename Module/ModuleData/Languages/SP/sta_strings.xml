@@ -1911,8 +1911,8 @@
     <string id="AIL_e7b1c735" text="El asedio de {0} ha sido roto por las armas: {1} ha sido derrotado y {2} sigue en manos de {3}." />
     <string id="AIL_e7b1c736" text="Levantado el asedio de {0}" />
     <string id="AIL_e7b1c737" text="El asedio de {0} se ha levantado: {1} ha desistido y se ha retirado, y {2} sigue en manos de {3}." />
-    <string id="AIL_e7b1c738" text="Calradia en paz" />
-    <string id="AIL_e7b1c739" text="Por primera vez en años, ningún reino de Calradia está en guerra con otro: todas las coronas han depuesto las armas." />
+    <string id="AIL_e7b1c738" text="Fin de las guerras" />
+    <string id="AIL_e7b1c739" text="Por primera vez en años, ningún reino de Calradia está en guerra con otro: las guerras que había han terminado con una paz entre los dos bandos." />
     <string id="AIL_e7b1c73a" text="AI Legacy: la partida empieza con todos los reinos en paz." />
     <string id="AIL_e7b1c73b" text="Noticias de prisioneros que se guardan" />
     <string id="AIL_e7b1c73c" text="A los señores los capturan a todas horas y las noticias se llenan de eso. Solo notables: la captura de un soberano (noticia para todo el mundo) y la del jefe de un clan vasallo de un reino (noticia para ese reino). Los jefes de clanes mercenarios y menores y los nobles corrientes se quedan fuera. Todas: esos también se guardan, como habladurías locales que nunca provocan una reacción. En los dos casos, los cautivos de una misma batalla van en una sola noticia, y lo que captures tú o quien te capture a ti se cuenta siempre." />

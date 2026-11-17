@@ -1911,8 +1911,8 @@
     <string id="AIL_e7b1c735" text="The siege of {0} has been broken by force of arms: {1} has been defeated and {2} remains in the hands of {3}." />
     <string id="AIL_e7b1c736" text="The siege of {0} is lifted" />
     <string id="AIL_e7b1c737" text="The siege of {0} has been lifted: {1} has given it up and withdrawn, and {2} remains in the hands of {3}." />
-    <string id="AIL_e7b1c738" text="Calradia at peace" />
-    <string id="AIL_e7b1c739" text="For the first time in years, no kingdom of Calradia is at war with another: every crown has laid down its arms." />
+    <string id="AIL_e7b1c738" text="The wars are over" />
+    <string id="AIL_e7b1c739" text="For the first time in years, no kingdom of Calradia is at war with another: the wars that were being fought have ended in a peace between the two sides." />
     <string id="AIL_e7b1c73a" text="AI Legacy: the campaign starts with every kingdom at peace." />
     <string id="AIL_e7b1c73b" text="Prisoner news kept" />
     <string id="AIL_e7b1c73c" text="Lords are captured all the time, and the news fills up with it. Notable only: the capture of a ruler (news for the whole world) and of the head of a clan sworn to a kingdom (news for that kingdom). Leaders of mercenary and minor clans and ordinary nobles are left out. All: those are kept too, as local talk that never provokes a reaction. Either way the captives of one battle make a single piece of news, and what you capture or who captures you is always told." />
