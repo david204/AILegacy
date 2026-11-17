@@ -2677,7 +2677,7 @@
     <string id="AIL_e7b1db05" text="Désactiver la grossesse quotidienne du jeu pour vous et votre conjoint" />
     <string id="AIL_e7b1db06" text="Chaque jour, le jeu tire au sort un enfant entre vous et votre conjoint, que vous soyez l’homme ou la femme. Activé : ce tirage n’a plus lieu et les enfants ne viennent que de l’intimité en conversation. Les grossesses déjà en cours et les autres couples ne changent pas. Par défaut : désactivé." />
     <string id="AIL_e7b1db07" text="Hors mariage : influence pour reconnaître un enfant" />
-    <string id="AIL_e7b1db08" text="Ce que coûte à votre clan, en influence, la reconnaissance d’un de vos enfants adultes né hors mariage ; le double si vous ne régnez pas sur un royaume. Sans assez d’influence, l’option est grisée. 0 = gratuit. Par défaut : 150." />
+    <string id="AIL_e7b1db08" text="Ce que coûte à votre clan, en influence, la reconnaissance d’un de vos enfants adultes né hors mariage ; le double si vous ne régnez pas sur un royaume. Sans assez d’influence, l’option est grisée. 0 = gratuit. Par défaut : 0." />
     <string id="AIL_e7b1db09" text="Libérer toutes les concubines" />
     <string id="AIL_e7b1db0a" text="Libérer" />
     <string id="AIL_e7b1db0b" text="Libère d’un coup toutes les concubines du monde, les vôtres et celles des seigneurs. Chacune retourne à sa maison et à sa vie d’avant, rentre chez elle et en veut à celui qui la gardait. Impossible à annuler." />
@@ -3037,5 +3037,24 @@
     <string id="AIL_e7b1def7" text="Vos propres .ogg jouent sur la carte de campagne : music\army en armée, music\map\[culture] selon la terre où vous êtes (empire, sturgia, aserai, vlandia, khuzait, battania, nord), sinon music\map, avec une pause de 30 à 60 secondes entre les morceaux. Dossiers vides, rien ne change." />
     <string id="AIL_e7b1def8" text="Musique perso du menu et de la carte : volume de la musique du jeu pendant ce temps (%)" />
     <string id="AIL_e7b1def9" text="Volume de la musique du jeu pendant que la vôtre joue dans le menu ou sur la carte. 0 = la vôtre à sa place. Par défaut : 0." />
+    <string id="AIL_e7b1defa" text="rang {0} : {1}" />
+    <string id="AIL_e7b1df01" text="Vous emportez son or et ce qu’il produit ; le village perd des foyers mais reste debout." />
+    <string id="AIL_e7b1df02" text="Seulement l’incendier" />
+    <string id="AIL_e7b1df03" text="Le feu aux maisons sans rien emporter : il reste rasé et sans milice." />
+    <string id="AIL_e7b1df04" text="Le piller et l’incendier" />
+    <string id="AIL_e7b1df05" text="D’abord le butin, ensuite le feu." />
+    <string id="AIL_e7b1df06" text="Vous pillez {0} et y mettez le feu : {1} deniers, et {2} foyers de moins." />
+    <string id="AIL_e7b1df07" text="{0} brûle. Vous n’emportez rien." />
+    <string id="AIL_e7b1df08" text="Vous pillez {0} : {1} deniers, et {2} foyers de moins." />
+    <string id="AIL_e7b1df10" text="Une rumeur vous parvient : {0} complote contre {1} ({2}). {3} n’en sait rien." />
+    <string id="AIL_e7b1df11" text="Votre complot avec {0} contre {1} tombe à l’eau : il est captif depuis des jours." />
+    <string id="AIL_e7b1df12" text="{0} a cessé de comploter contre vous." />
+    <string id="AIL_e7b1df13" text="{0} vous croit : il sait désormais que {1} complote dans son dos." />
+    <string id="AIL_e7b1df14" text="{0} dénonce auprès de {1} que {2} complotait dans son dos. {3} perd la faveur de son suzerain et paie {4} deniers." />
+    <string id="AIL_e7b1df15" text="{0} affronte {1}" />
+    <string id="AIL_e7b1df16" text="{0} a découvert le complot de {1} et le lui a jeté au visage devant tout le monde." />
+    <string id="AIL_e7b1df17" text="Sur votre parole, {0} condamne {1} pour avoir comploté contre {2} : il perd sa faveur et paie {3} deniers." />
+    <string id="AIL_e7b1df18" text="Intrigues : jours de captivité avant qu’un comploteur abandonne" />
+    <string id="AIL_e7b1df19" text="Un comploteur captif ce nombre de jours (au total) abandonne son complot, y compris le vôtre. Les comploteurs renoncent aussi d’eux-mêmes s’ils se réconcilient avec leur cible ou finissent dans la même maison. Par défaut : 10." />
   </strings>
 </base>

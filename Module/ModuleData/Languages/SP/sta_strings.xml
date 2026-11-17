@@ -2677,7 +2677,7 @@
     <string id="AIL_e7b1db05" text="Quitar el embarazo diario del juego para ti y tu cónyuge" />
     <string id="AIL_e7b1db06" text="El juego tira cada día los dados para que tengáis un hijo tu cónyuge y tú, seas el hombre o la mujer. Activado: esa tirada no se hace y los hijos solo llegan por la intimidad en la conversación. Los embarazos que ya están en curso y las demás parejas no cambian. Por defecto: desactivado." />
     <string id="AIL_e7b1db07" text="Fuera del matrimonio: influencia para reconocer a un hijo" />
-    <string id="AIL_e7b1db08" text="Lo que cuesta a tu clan en influencia reconocer a un hijo tuyo adulto nacido fuera del matrimonio; el doble si no gobiernas un reino. Sin influencia suficiente, la opción sale en gris. 0 = gratis. Por defecto: 150." />
+    <string id="AIL_e7b1db08" text="Lo que cuesta a tu clan en influencia reconocer a un hijo tuyo adulto nacido fuera del matrimonio; el doble si no gobiernas un reino. Sin influencia suficiente, la opción sale en gris. 0 = gratis. Por defecto: 0." />
     <string id="AIL_e7b1db09" text="Liberar a todas las concubinas" />
     <string id="AIL_e7b1db0a" text="Liberar" />
     <string id="AIL_e7b1db0b" text="Libera de golpe a todas las concubinas del mundo, las tuyas y las de los señores. Cada una vuelve a su antigua casa y a su vida de antes y regresa a su hogar, y se lo toma mal con quien la tenía. No se puede deshacer." />
@@ -3037,5 +3037,24 @@
     <string id="AIL_e7b1def7" text="Tus propios .ogg suenan en el mapa de campaña: music\army mientras vas en un ejército, music\map\[cultura] según la tierra donde estás (empire, sturgia, aserai, vlandia, khuzait, battania, nord), si no music\map, con un descanso de 30 a 60 segundos entre pieza y pieza. Con las carpetas vacías no cambia nada." />
     <string id="AIL_e7b1def8" text="Música propia del menú y el mapa: volumen de la música del juego mientras (%)" />
     <string id="AIL_e7b1def9" text="Cuánto suena la música del juego mientras suena la tuya en el menú o en el mapa. 0 = la tuya en su lugar. Por defecto: 0." />
+    <string id="AIL_e7b1defa" text="nivel {0}: {1}" />
+    <string id="AIL_e7b1df01" text="Os lleváis su oro y lo que produce; la aldea pierde hogares, pero sigue en pie." />
+    <string id="AIL_e7b1df02" text="Solo quemarla" />
+    <string id="AIL_e7b1df03" text="Fuego a las casas sin llevaros nada: queda arrasada y sin milicia." />
+    <string id="AIL_e7b1df04" text="Saquearla y quemarla" />
+    <string id="AIL_e7b1df05" text="Primero el botín, luego el fuego." />
+    <string id="AIL_e7b1df06" text="Saqueáis {0} y le prendéis fuego: {1} denarios y {2} hogares menos." />
+    <string id="AIL_e7b1df07" text="{0} arde. No os lleváis nada." />
+    <string id="AIL_e7b1df08" text="Saqueáis {0}: {1} denarios y {2} hogares menos." />
+    <string id="AIL_e7b1df10" text="Te llega un rumor: {0} trama contra {1} ({2}). {3} no lo sabe." />
+    <string id="AIL_e7b1df11" text="Tu conjura con {0} contra {1} se deshace: lleva días preso." />
+    <string id="AIL_e7b1df12" text="{0} ha dejado de tramar contra ti." />
+    <string id="AIL_e7b1df13" text="{0} te cree: ya sabe que {1} trama a sus espaldas." />
+    <string id="AIL_e7b1df14" text="{0} denuncia ante {1} que {2} conspiraba a sus espaldas. {3} pierde el favor de su señor y paga {4} denarios." />
+    <string id="AIL_e7b1df15" text="{0} se enfrenta a {1}" />
+    <string id="AIL_e7b1df16" text="{0} ha descubierto la conjura de {1} y se lo ha echado en cara delante de todos." />
+    <string id="AIL_e7b1df17" text="Por lo que le has contado, {0} condena a {1} por conspirar contra {2}: pierde su favor y paga {3} denarios." />
+    <string id="AIL_e7b1df18" text="Intrigas: días preso antes de que el conspirador lo deje" />
+    <string id="AIL_e7b1df19" text="Un conspirador preso este número de días (sumados) abandona su conjura, también la que le encargaste tú. Además la dejan solos si hacen las paces con su objetivo o acaban en la misma casa. Por defecto: 10." />
   </strings>
 </base>

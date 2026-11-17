@@ -514,7 +514,7 @@ namespace AILegacy.Web
                     var backup = SaveFiles.BackupMemory(Campaign.Current.UniqueGameId, "borrar_npc");
                     if (backup == null) throw new ApiError(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
                     MemoryStore.Remove((string)d["id"]);
-                    SaveFiles.Flush();   // moves its file to _papelera now instead of on the next daily flush
+                    SaveFiles.Flush();   // moves its file to _trash now instead of on the next daily flush
                     return new { ok = true, backup };
                 }
 
@@ -791,7 +791,7 @@ namespace AILegacy.Web
                     if (backup == null) throw new ApiError(L.T("AIL_0490687a", "No se pudo hacer la copia previa; no se ha cambiado nada."));
                     if (!MemoryStore.Replace(parsed, out bool rollbackFailed))
                         throw rollbackFailed ? new ApiError(SaveFiles.RollbackFailedText(backup), 500) : new ApiError(damaged);
-                    SaveFiles.Flush();   // files missing from the import go to _papelera, they aren't deleted
+                    SaveFiles.Flush();   // files missing from the import go to _trash, they aren't deleted
                     return new { ok = true, npcs = MemoryStore.Count, backup };
                 }
 

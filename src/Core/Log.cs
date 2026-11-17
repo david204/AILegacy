@@ -12,7 +12,7 @@ namespace AILegacy.Core
         // Outside the game (test bench) we write to another file so we don't overwrite the running game's log
         private static readonly bool InGame = System.Diagnostics.Process.GetCurrentProcess().ProcessName.IndexOf("TaleWorlds", StringComparison.OrdinalIgnoreCase) >= 0
                                               || System.Diagnostics.Process.GetCurrentProcess().ProcessName.IndexOf("Bannerlord", StringComparison.OrdinalIgnoreCase) >= 0;
-        private static string LogFile => Path.Combine(Paths.LogDir, InGame ? "ailegacy.log" : "banco_de_pruebas.log");
+        private static string LogFile => Path.Combine(Paths.LogDir, InGame ? "ailegacy.log" : "test_bench.log");
 
         public static void Info(string msg) => Write("INFO", msg);
         public static void Warn(string msg) => Write("WARN", msg);

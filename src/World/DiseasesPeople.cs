@@ -55,6 +55,36 @@ namespace AILegacy.World
         [JsonProperty("warned")] public int Warned;            // no longer used: kept so older saves load the same
         /// <summary>The Cheat Death perk already pulled this hero back once from this illness.</summary>
         [JsonProperty("cheated", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool CheatedDeath;
+        /// <summary>Soldiers or prisoners: how many of the sick are of each tier ("1".."6"). Their sum is Count.</summary>
+        [JsonProperty("tiers", NullValueHandling = NullValueHandling.Ignore)] public Dictionary<string, int> Tiers;
+        /// <summary>How many men the band had when it was last looked at.</summary>
+        [JsonProperty("total", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Total;
+        [JsonProperty("peak", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Peak;
+        [JsonProperty("dead", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Dead;
+        /// <summary>The herb (1..5) of the course of treatment, 0 = the local care alone; and where it was given.</summary>
+        [JsonProperty("herb", DefaultValueHandling = DefaultValueHandling.Ignore)] public int HerbStrength;
+        [JsonProperty("treated_at", NullValueHandling = NullValueHandling.Ignore)] public string TreatedAt;
+        [JsonProperty("doctor", DefaultValueHandling = DefaultValueHandling.Ignore)] public int DoctorSkill;
+    }
+
+    /// <summary>A disease that is over, kept for the record: who, what, how long, how many fell ill and died, how it ended.</summary>
+    public class SicknessRecord
+    {
+        [JsonProperty("who")] public string TargetId;
+        [JsonProperty("who_name")] public string TargetName;
+        [JsonProperty("kind")] public int Kind;
+        [JsonProperty("disease")] public string NameEn;
+        [JsonProperty("severity")] public int Severity;
+        [JsonProperty("start")] public double StartDay;
+        [JsonProperty("end")] public double EndDay;
+        [JsonProperty("peak", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Peak;
+        [JsonProperty("dead", DefaultValueHandling = DefaultValueHandling.Ignore)] public int Dead;
+        [JsonProperty("tiers", NullValueHandling = NullValueHandling.Ignore)] public Dictionary<string, int> Tiers;
+        [JsonProperty("treated")] public bool Treated;
+        [JsonProperty("herb", DefaultValueHandling = DefaultValueHandling.Ignore)] public int HerbStrength;
+        [JsonProperty("treated_at", NullValueHandling = NullValueHandling.Ignore)] public string TreatedAt;
+        /// <summary>recovered, died, gone (the party or person is no more), ended.</summary>
+        [JsonProperty("outcome")] public string Outcome;
     }
 
     /// <summary>
@@ -153,7 +183,122 @@ namespace AILegacy.World
         }
         private static Hero FindHero(string id) { try { return Campaign.Current.CampaignObjectManager.Find<Hero>(id); } catch { return null; } }
         private static MobileParty FindParty(string id) { try { return Campaign.Current.CampaignObjectManager.Find<MobileParty>(id); } catch { return null; } }
-        private static void Remove(Sickness s) { Sick.Remove(s); Touch(); }
+        private static void Remove(Sickness s, string outcome = "ended")
+        {
+            Sick.Remove(s); Touch();
+            try
+            {
+                var hist = WorldSim.State?.SickHistory;
+                if (hist == null || s == null) return;
+                string name = s.Kind == Sickness.Hero ? FindHero(s.TargetId)?.Name?.ToString() : FindParty(s.TargetId)?.Name?.ToString();
+                hist.Add(new SicknessRecord
+                {
+                    TargetId = s.TargetId, TargetName = name ?? s.TargetId, Kind = s.Kind, NameEn = s.NameEn, Severity = s.Severity, StartDay = s.StartDay,
+                    EndDay = CampaignTime.Now.ToDays, Peak = Math.Max(s.Peak, s.Count), Dead = s.Dead, Tiers = s.Tiers, Treated = s.Treated || s.TreatDay >= 0,
+                    HerbStrength = s.HerbStrength, TreatedAt = s.TreatedAt, Outcome = outcome,
+                });
+                while (hist.Count > 1000) hist.RemoveAt(0);
+            }
+            catch { }
+        }
+
+        // ---- the sick of a band, by tier
+
+        private static int TierOf(CharacterObject c) => Math.Max(1, Math.Min(6, c.Tier));
+
+        /// <summary>Healthy regulars of each tier in the roster (those not already counted sick).</summary>
+        private static Dictionary<int, int> HealthyByTier(TroopRoster roster, Sickness s)
+        {
+            var d = new Dictionary<int, int>();
+            foreach (var e in roster.GetTroopRoster())
+            {
+                if (e.Character == null || e.Character.IsHero || e.Number <= 0) continue;
+                int t = TierOf(e.Character);
+                d[t] = (d.TryGetValue(t, out var n) ? n : 0) + e.Number;
+            }
+            if (s?.Tiers != null) foreach (var kv in s.Tiers) if (int.TryParse(kv.Key, out int t) && d.ContainsKey(t)) d[t] = Math.Max(0, d[t] - kv.Value);
+            return d;
+        }
+
+        /// <summary>Lays <paramref name="added"/> new sick men over the tiers, as the men of the band are spread over them.</summary>
+        private static void AddSickByTier(Sickness s, TroopRoster roster, int added)
+        {
+            if (s.Tiers == null) s.Tiers = new Dictionary<string, int>();
+            var healthy = HealthyByTier(roster, s);
+            for (int i = 0; i < added; i++)
+            {
+                int pool = healthy.Values.Sum();
+                if (pool <= 0) break;
+                int pick = Rng.Next(pool), t = 0;
+                foreach (var kv in healthy) { if ((pick -= kv.Value) < 0) { t = kv.Key; break; } }
+                healthy[t]--;
+                string k = t.ToString();
+                s.Tiers[k] = (s.Tiers.TryGetValue(k, out var n) ? n : 0) + 1;
+            }
+            s.Total = roster.TotalRegulars;
+            s.Peak = Math.Max(s.Peak, s.Count);
+        }
+
+        /// <summary>The sick of each tier never more than the men of that tier left; older records get their tiers laid out once.</summary>
+        private static void FitTiers(Sickness s, TroopRoster roster)
+        {
+            if (s.Tiers == null) { int c = s.Count; s.Count = 0; AddSickByTier(s, roster, c); s.Count = s.Tiers.Values.Sum(); return; }
+            var have = HealthyByTier(roster, null);
+            foreach (var k in s.Tiers.Keys.ToList())
+            {
+                int t = int.TryParse(k, out var x) ? x : 1;
+                int cap = have.TryGetValue(t, out var n) ? n : 0;
+                if (s.Tiers[k] > cap) s.Tiers[k] = cap;
+                if (s.Tiers[k] <= 0) s.Tiers.Remove(k);
+            }
+            s.Count = s.Tiers.Values.Sum();
+            s.Total = roster.TotalRegulars;
+        }
+
+        /// <summary>Takes <paramref name="n"/> men off the sick of the given tiers (they got over it), weakest tiers first when asked.</summary>
+        private static int HealSick(Sickness s, int n, int maxTier = 6)
+        {
+            int done = 0;
+            if (s.Tiers == null) return 0;
+            foreach (var k in s.Tiers.Keys.OrderBy(x => x).ToList())
+            {
+                if (done >= n) break;
+                if (!int.TryParse(k, out int t) || t > maxTier) continue;
+                int take = Math.Min(s.Tiers[k], n - done);
+                s.Tiers[k] -= take; done += take;
+                if (s.Tiers[k] <= 0) s.Tiers.Remove(k);
+            }
+            s.Count = s.Tiers.Values.Sum();
+            return done;
+        }
+
+        /// <summary>
+        /// The disease's dead fall among the sick, tier by tier as they are spread: each death picks a sick man's tier and a
+        /// soldier of that tier leaves the roster. The tiers the surgeon's perk spares never lose anyone.
+        /// </summary>
+        private static int KillSick(Sickness s, TroopRoster roster, int toll, int sparedTier)
+        {
+            if (s.Tiers == null || s.Tiers.Count == 0) return KillRegulars(roster, toll, sparedTier);
+            int done = 0;
+            for (int i = 0; i < toll; i++)
+            {
+                var open = s.Tiers.Where(kv => int.TryParse(kv.Key, out int t) && t > sparedTier && kv.Value > 0).ToList();
+                int pool = open.Sum(kv => kv.Value);
+                if (pool <= 0) break;
+                int pick = Rng.Next(pool); string tier = null;
+                foreach (var kv in open) { if ((pick -= kv.Value) < 0) { tier = kv.Key; break; } }
+                int tt = int.Parse(tier);
+                var e = roster.GetTroopRoster().Where(x => x.Character != null && !x.Character.IsHero && x.Number > 0 && TierOf(x.Character) == tt).OrderByDescending(x => x.Number).FirstOrDefault();
+                if (e.Character == null) { s.Tiers.Remove(tier); continue; }
+                roster.AddToCounts(e.Character, -1, false, e.WoundedNumber >= e.Number ? -1 : 0);
+                s.Tiers[tier]--;
+                if (s.Tiers[tier] <= 0) s.Tiers.Remove(tier);
+                done++;
+            }
+            s.Count = s.Tiers.Values.Sum();
+            s.Dead += done;
+            return done;
+        }
         private static int Sev(int s) => Math.Max(1, Math.Min(5, s));
         private static bool Roll(float chance) => chance > 0f && Rng.NextDouble() < chance;
         private static int Whole(float expected) => expected <= 0f ? 0 : (int)expected + (Rng.NextDouble() < expected - (int)expected ? 1 : 0);
@@ -283,9 +428,11 @@ namespace AILegacy.World
             return t <= 0.5f ? 2f - 2f * t : 1f - 0.75f * ((t - 0.5f) / 0.5f);      // early it heals fast, late it barely moves
         }
 
-        private static void StartTreatment(Sickness s, float quality)
+        private static void StartTreatment(Sickness s, float quality, int herb = 0, Settlement at = null)
         {
             s.Treated = true; s.TreatDay = CampaignTime.Now.ToDays; s.Quality = Math.Max(0.5f, quality);
+            s.HerbStrength = herb; s.TreatedAt = at?.StringId ?? s.TreatedAt;
+            try { if (at != null) s.DoctorSkill = MedicalTier(at) * 50; } catch { }
             s.AfterRate = 0f; s.AfterDays = 0;
         }
 
@@ -390,7 +537,8 @@ namespace AILegacy.World
                 {
                     added = Math.Min(count, total - s.Count);
                     if (added <= 0) return 0;
-                    s.Count += added;
+                    AddSickByTier(s, roster, added);
+                    s.Count = s.Tiers.Values.Sum();
                 }
                 else
                 {
@@ -404,6 +552,8 @@ namespace AILegacy.World
                         StartDay = now, UntilDay = Math.Max(now + 5, untilDay), Count = added,
                         Progress = Math.Max(1f, 15f - 15f * MedEff(TroopMedicine(p, kind == Sickness.Prisoners), sev) * 2f),
                     };
+                    s.Count = 0; AddSickByTier(s, roster, added); s.Count = s.Tiers.Values.Sum(); added = s.Count;
+                    s.Peak = s.Count;
                     Sick.Add(s); Touch();
                 }
                 if (p.IsMainParty)
@@ -923,7 +1073,7 @@ namespace AILegacy.World
         private static void TickHero(Sickness s, double now)
         {
             var h = FindHero(s.TargetId);
-            if (h == null || !h.IsAlive) { Remove(s); return; }
+            if (h == null || !h.IsAlive) { Remove(s, "gone"); return; }
             if (now >= s.UntilDay) { Recover(s, h, now); return; }
             // at home or lodged in a settlement, someone looks after them
             if (h != Hero.MainHero && h.PartyBelongedTo == null && h.PartyBelongedToAsPrisoner == null && h.CurrentSettlement != null && NeedsCare(s))
@@ -972,10 +1122,11 @@ namespace AILegacy.World
             NoteDeath(h, s);
             Log.Info($"[disease] {who} dies of {s.NameEn}");
             KillCharacterAction.ApplyByOldAge(h, false);
-            if (isPlayer) { Remove(s); return; }      // the game takes over from here (heir, or the end)
+            if (isPlayer) { s.Dead = 1; Remove(s, "died"); return; }      // the game takes over from here (heir, or the end)
             if (h.IsAlive) { ForgetDeath(h); s.Progress = 95f; Log.Info($"[disease] {who} did not die after all"); return; }
             ConfirmDeath(h);
-            Remove(s);
+            s.Dead = 1;
+            Remove(s, "died");
             if (notice)
                 try { MBInformationManager.AddQuickInformation(new TextObject("{=!}" + L.F("AIL_e7b1c5f8", $"{who} ha muerto de {s.Name}.")), 0, h.CharacterObject, null, ""); }
                 catch (Exception ex) { Log.Error("[disease] death notice", ex); }
@@ -983,7 +1134,7 @@ namespace AILegacy.World
 
         private static void Recover(Sickness s, Hero h, double now)
         {
-            Remove(s);
+            Remove(s, "recovered");
             int days = s.Seasonal ? S.Get.SeasonalPostRecoveryImmunityDays : OutbreakImmunityDays;
             if (days > 0) Immune[ImmuneKey(h, s.Seasonal, s.NameEn)] = now + days;
             if (h == Hero.MainHero && OfHero(h) == null) WorldSim.Say(L.T("AIL_e7b1d703", "Te has recuperado del todo."), Colors.Green);
@@ -992,15 +1143,16 @@ namespace AILegacy.World
         private static void TickBand(Sickness s, double now)
         {
             var p = FindParty(s.TargetId);
-            if (p == null || !p.IsActive) { Remove(s); return; }
+            if (p == null || !p.IsActive) { Remove(s, "gone"); return; }
             bool prisoners = s.Kind == Sickness.Prisoners;
             var roster = prisoners ? p.PrisonRoster : p.MemberRoster;
-            s.Count = Math.Min(s.Count, roster?.TotalRegulars ?? 0);
-            if (s.Count <= 0) { Remove(s); return; }
+            if (roster == null) { Remove(s, "gone"); return; }
+            FitTiers(s, roster);
+            if (s.Count <= 0) { Remove(s, "gone"); return; }
             if (now < s.UntilDay) Advance(s, TroopMedicine(p, prisoners), now, false, prisoners ? 1f : TroopRecovery(p), SiegeSlowing(p), prisoners ? BaseLow : LowProgress(p));
             if (now >= s.UntilDay || s.Progress <= 0f)
             {
-                Remove(s);
+                Remove(s, "recovered");
                 if (!prisoners) Harden(p, s);
                 if (p.IsMainParty)
                 {
@@ -1014,17 +1166,16 @@ namespace AILegacy.World
             int healed = prisoners ? 0 : PhysicianRecovers(p, s, roster);
             if (healed > 0)
             {
-                s.Count -= healed;
+                healed = HealSick(s, healed, 2);
                 Log.Info($"[disease] Physician of the People: {healed} tier 1-2 soldier(s) of {p.Name} get over {s.NameEn} on their own");
-                if (s.Count <= 0) { Remove(s); Harden(p, s); return; }
+                if (s.Count <= 0) { Remove(s, "recovered"); Harden(p, s); return; }
             }
-            int dead = KillRegulars(roster, Whole(s.Count * DailyDeathRate(s.Progress, s.Severity, FxOf(s).Death)), prisoners ? 0 : SparedTier(p, s));
+            int dead = KillSick(s, roster, Whole(s.Count * DailyDeathRate(s.Progress, s.Severity, FxOf(s).Death)), prisoners ? 0 : SparedTier(p, s));
             if (dead <= 0) return;
-            s.Count -= dead;
             Log.Info($"[disease] {dead} {(prisoners ? "prisoner(s)" : "soldier(s)")} of {p.Name} die of {s.NameEn}");
             // the player hears of dead prisoners; the soldiers who die of it go quietly, the party screen shows them gone
             if (prisoners && p.IsMainParty) WorldSim.Say(L.F("AIL_e7b1c5f7", $"{dead} de tus prisioneros mueren de {s.Name}."), Colors.Gray);
-            if (s.Count <= 0) Remove(s);
+            if (s.Count <= 0) Remove(s, "died");
         }
 
         /// <summary>

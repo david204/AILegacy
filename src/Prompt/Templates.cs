@@ -139,7 +139,8 @@ namespace AILegacy.Prompt
                 }
                 File.WriteAllText(manifestPath, JsonConvert.SerializeObject(manifest, Formatting.Indented));
 
-                var readme = Path.Combine(dir, "LEEME.txt");
+                var readme = Path.Combine(dir, "README.txt");
+                try { var old = Path.Combine(dir, "LEEME.txt"); if (File.Exists(old)) File.Delete(old); } catch { }
                 if (!File.Exists(readme))
                     File.WriteAllText(readme,
                         L.T("AIL_089c5db1", "Plantillas de instrucciones de AI Legacy para ESTA campaña.\r\n\r\n") +

@@ -181,9 +181,14 @@ namespace AILegacy.World
             {
                 int sev = Sev(s.Severity);
                 if (sev < 3 || sev >= 5 || s.Kind != Sickness.Troops || !Has(Surgeon(p), DefaultPerks.Medicine.PhysicianOfPeople)) return 0;
-                int regulars = Math.Max(1, roster.TotalRegulars);
-                int low = roster.GetTroopRoster().Where(e => e.Character != null && !e.Character.IsHero && e.Character.Tier <= 2).Sum(e => e.Number);
-                int sickLow = (int)Math.Round(s.Count * Math.Min(1f, low / (float)regulars));
+                int sickLow;
+                if (s.Tiers != null) sickLow = s.Tiers.Where(kv => kv.Key == "1" || kv.Key == "2").Sum(kv => kv.Value);
+                else
+                {
+                    int regulars = Math.Max(1, roster.TotalRegulars);
+                    int low = roster.GetTroopRoster().Where(e => e.Character != null && !e.Character.IsHero && e.Character.Tier <= 2).Sum(e => e.Number);
+                    sickLow = (int)Math.Round(s.Count * Math.Min(1f, low / (float)regulars));
+                }
                 return Math.Min(s.Count, Whole(sickLow * PhysicianOfPeople));
             }
             catch { return 0; }

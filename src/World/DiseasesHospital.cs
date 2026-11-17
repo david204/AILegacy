@@ -249,7 +249,10 @@ namespace AILegacy.World
         {
             string sev = SeverityEs(s.Severity);
             int progress = (int)s.Progress;
-            return L.F("AIL_e7b1c923", $"{who}: {s.Name} ({sev}), avance {progress}%");
+            string line = L.F("AIL_e7b1c923", $"{who}: {s.Name} ({sev}), avance {progress}%");
+            if (s.Kind != Sickness.Hero && s.Tiers != null && s.Tiers.Count > 0)
+                line += " · " + string.Join(", ", s.Tiers.OrderBy(kv => kv.Key).Select(kv => L.F("AIL_e7b1defa", $"nivel {kv.Key}: {kv.Value}")));
+            return line;
         }
 
         private static string StateText(Sickness s, int med, double now)
@@ -364,7 +367,7 @@ namespace AILegacy.World
             if (m.Herb >= 0) UseStock(st, strength, bundles);
             else if (!UseStock(st, 1, bundles)) quality = OwnCareWithoutHerbs(st, quality);
             // a hero's own Good Lodgings and the governor's Clean Infrastructure count a level more (DiseasesPerks.cs)
-            foreach (var s in open) StartTreatment(s, quality * LodgingBonus(st, s.Kind == Sickness.Hero ? FindHero(s.TargetId) : null));
+            foreach (var s in open) StartTreatment(s, quality * LodgingBonus(st, s.Kind == Sickness.Hero ? FindHero(s.TargetId) : null), m.Herb >= 0 ? strength : 0, st);
             int n = open.Count;
             WorldSim.Say(L.F("AIL_e7b1c944", $"Los médicos empiezan el tratamiento de {n} enfermo(s) por {cost} denarios."), Colors.Green);
             Log.Info($"[disease] hospital of {st?.Name}: {n} case(s) put under treatment for {cost} denars (strength {m.Quality:0.##})");

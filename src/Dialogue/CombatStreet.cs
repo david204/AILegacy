@@ -10,7 +10,9 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
+using Helpers;
 using TaleWorlds.Core;
 using TaleWorlds.Engine;
 using TaleWorlds.Library;
@@ -439,7 +441,7 @@ Answer ONLY with JSON: {""decision"": ""come"" or ""stay"", ""line"": ""what you
 
         // ---------------------------------------------------------------- a beaten village
 
-        /// <summary>Every defender of the village lies beaten: loot it, burn it, or leave it be.</summary>
+        /// <summary>Every defender of the village lies beaten: loot it, burn it, both, or leave it be.</summary>
         private static void AskLootOrBurn(Settlement st)
         {
             try
@@ -448,8 +450,9 @@ Answer ONLY with JSON: {""decision"": ""come"" or ""stay"", ""line"": ""what you
                 int session = WorldSim.Session;
                 var options = new List<InquiryElement>
                 {
-                    new InquiryElement("loot", L.T("AIL_e7b1ddbe", "Saquearla"), null, true, L.T("AIL_e7b1ddbf", "Os lleváis lo que hay de valor. Delito y enemistad del señor y de la gente.")),
-                    new InquiryElement("burn", L.T("AIL_e7b1ddc0", "Quemarla"), null, true, L.T("AIL_e7b1ddc1", "Fuego a las casas: la aldea queda arrasada. Delito grave y enemistad fuerte.")),
+                    new InquiryElement("loot", L.T("AIL_e7b1ddbe", "Saquearla"), null, true, L.T("AIL_e7b1df01", "Os lleváis su oro y lo que produce; la aldea pierde hogares, pero sigue en pie.")),
+                    new InquiryElement("burn", L.T("AIL_e7b1df02", "Solo quemarla"), null, true, L.T("AIL_e7b1df03", "Fuego a las casas sin llevaros nada: queda arrasada y sin milicia.")),
+                    new InquiryElement("both", L.T("AIL_e7b1df04", "Saquearla y quemarla"), null, true, L.T("AIL_e7b1df05", "Primero el botín, luego el fuego.")),
                     new InquiryElement("spare", L.T("AIL_e7b1ddc2", "Dejarla en paz"), null, true, ""),
                 };
                 MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(L.F("AIL_e7b1ddc3", $"{st.Name} está a tu merced"),
@@ -464,36 +467,79 @@ Answer ONLY with JSON: {""decision"": ""come"" or ""stay"", ""line"": ""what you
             catch (Exception ex) { Log.Error("Loot or burn", ex); }
         }
 
+        /// <summary>
+        /// The village's fate. Loot: a third of its hearths (20 at least) are lost, the game's raid gold for each, and its
+        /// produce in proportion (a sixtieth of each day's making per hearth lost), handed over in the loot screen; it
+        /// stays standing. Burn: only a village still whole; it is left looted and its militia gone. Both: loot, then fire.
+        /// </summary>
         private static void ApplyVillageFate(Settlement st, string what)
         {
-            if (what != "loot" && what != "burn") return;
+            if (what == "spare") { Log.Info($"[fight] the player leaves {st.Name} untouched"); return; }
+            bool loot = what == "loot" || what == "both", burn = what == "burn" || what == "both";
+            if (!loot && !burn) return;
             var v = st.Village;
-            var lord = st.OwnerClan?.Leader;
-            bool burn = what == "burn";
+            int gold = 0; int lost = 0; ItemRoster goods = null;
+            if (loot)
+            {
+                try { (gold, lost, goods) = LootVillage(v); } catch (Exception ex) { Log.Error("village spoils (loot)", ex); }
+            }
+            bool burned = false;
             if (burn)
             {
-                ChangeVillageStateAction.ApplyBySettingToLooted(st, MobileParty.MainParty);
-                v.Hearth = Math.Max(10f, v.Hearth * 0.75f);
+                try { burned = BurnVillage(st); } catch (Exception ex) { Log.Error("village spoils (burn)", ex); }
             }
-            int gold = (int)Math.Min(4000f, Math.Max(150f, v.Hearth * (burn ? 1f : 1.5f)));
-            GiveGoldAction.ApplyBetweenCharacters(null, Hero.MainHero, gold, false);
-            try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, burn ? 40f : 20f, true); } catch { }
-            try { if (lord != null && lord != Hero.MainHero) ChangeRelationAction.ApplyPlayerRelation(lord, burn ? -15 : -5, true, true); } catch { }
-            foreach (var n in st.Notables.ToList()) { try { ChangeRelationAction.ApplyPlayerRelation(n, burn ? -20 : -10, false, true); } catch { } }
-            Say(burn ? L.F("AIL_e7b1ddc5", $"{st.Name} arde. Os lleváis {gold} denarios entre las cenizas.") : L.F("AIL_e7b1ddc6", $"Saqueáis {st.Name}: {gold} denarios."), Colors.Yellow);
-            Log.Info($"[fight] the player {(burn ? "burns" : "loots")} {st.Name} after beating its defenders ({gold} denars)");
+            if (!(loot && lost > 0) && !burned) return;
+            var lord = st.OwnerClan?.Leader;
+            // what the game makes of preying on peasants: their realm's law and their lord and headmen remember it
+            try { if (st.MapFaction != null) ChangeCrimeRatingAction.Apply(st.MapFaction, burned ? 40f : 20f, true); } catch { }
+            try { if (lord != null && lord != Hero.MainHero) ChangeRelationAction.ApplyPlayerRelation(lord, burned ? -15 : -5, true, true); } catch { }
+            foreach (var n in st.Notables.ToList()) { try { ChangeRelationAction.ApplyPlayerRelation(n, burned ? -20 : -10, false, true); } catch { } }
+            string es = burned && loot ? L.F("AIL_e7b1df06", $"Saqueáis {st.Name} y le prendéis fuego: {gold} denarios y {lost} hogares menos.")
+                      : burned ? L.F("AIL_e7b1df07", $"{st.Name} arde. No os lleváis nada.")
+                      : L.F("AIL_e7b1df08", $"Saqueáis {st.Name}: {gold} denarios y {lost} hogares menos.");
+            Say(es, Colors.Yellow);
+            Log.Info($"[fight] the player {(loot && burned ? "loots and burns" : burned ? "burns" : "loots")} {st.Name} after beating its defenders ({gold} denars, {lost} hearths)");
             try
             {
+                string en = burned && loot ? $"{Hero.MainHero.Name} looted {st.Name} and burned it after beating its defenders."
+                          : burned ? $"{Hero.MainHero.Name} burned {st.Name} after beating its defenders."
+                          : $"{Hero.MainHero.Name} looted {st.Name} after beating its defenders.";
                 NewsStore.Add(new NewsItem
                 {
-                    Id = WorldSim.NewId("vf"), Type = "raid", Importance = 2, SettlementId = st.StringId,
-                    Text = burn ? $"{Hero.MainHero.Name} burned {st.Name} after beating its defenders." : $"{Hero.MainHero.Name} looted {st.Name} after beating its defenders.",
-                    TitleEs = burn ? L.F("AIL_e7b1ddc7", $"{st.Name}, quemada") : L.F("AIL_e7b1ddc8", $"{st.Name}, saqueada"),
-                    TextEs = burn ? L.F("AIL_e7b1ddc5", $"{st.Name} arde. Os lleváis {gold} denarios entre las cenizas.") : L.F("AIL_e7b1ddc6", $"Saqueáis {st.Name}: {gold} denarios."),
+                    Id = WorldSim.NewId("vf"), Type = "raid", Importance = 2, SettlementId = st.StringId, Text = en,
+                    TitleEs = burned ? L.F("AIL_e7b1ddc7", $"{st.Name}, quemada") : L.F("AIL_e7b1ddc8", $"{st.Name}, saqueada"), TextEs = es,
                     Kingdoms = st.MapFaction is Kingdom k ? new List<string> { k.StringId } : new List<string>(),
                 });
             }
             catch { }
+            if (goods != null && goods.Count > 0)
+                MainThread.Post(() => { try { if (Mission.Current == null) InventoryScreenHelper.OpenScreenAsLoot(new Dictionary<PartyBase, ItemRoster> { [PartyBase.MainParty] = goods }); } catch (Exception ex) { Log.Error("village loot screen", ex); } });
+        }
+
+        internal static (int gold, int lost, ItemRoster goods) LootVillage(Village v)
+        {
+            if (v?.VillageType == null || MobileParty.MainParty == null) return (0, 0, null);
+            int lost = (int)Math.Max(20f, v.Hearth * 0.35f);
+            int perHearth = 4;
+            try { perHearth = Campaign.Current.Models.RaidModel.GoldRewardForEachLostHearth; } catch { }
+            int gold = lost * perHearth;
+            if (gold > 0) GiveGoldAction.ApplyBetweenCharacters(null, Hero.MainHero, gold, false);
+            var goods = new ItemRoster();
+            foreach (var (item, rate) in v.VillageType.Productions)
+            {
+                int n = (int)(rate / 60f * lost);
+                if (item != null && n > 0) goods.AddToCounts(item, n);
+            }
+            v.Hearth = Math.Max(1f, v.Hearth - lost);
+            return (gold, lost, goods);
+        }
+
+        internal static bool BurnVillage(Settlement st)
+        {
+            if (st?.Village == null || MobileParty.MainParty == null || st.Village.VillageState != Village.VillageStates.Normal) return false;
+            ChangeVillageStateAction.ApplyBySettingToLooted(st, MobileParty.MainParty);
+            if (st.Militia > 0f) st.Militia = 0f;
+            return true;
         }
     }
 }

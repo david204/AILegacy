@@ -725,7 +725,7 @@ namespace AILegacy.Llm
             try
             {
                 Log.Dump(kind == "req" ? "last_request.json" : "last_response.json", content);
-                string dir = Path.Combine(Paths.LogDir, "peticiones");
+                string dir = Path.Combine(Paths.LogDir, "requests");
                 Directory.CreateDirectory(dir);
                 string safe = new string((task + "_" + provider).Select(c => char.IsLetterOrDigit(c) || c == '_' || c == '-' ? c : '_').ToArray());
                 File.WriteAllText(Path.Combine(dir, $"{seq % 20:00}_{kind}_{safe}.json"), content ?? "");

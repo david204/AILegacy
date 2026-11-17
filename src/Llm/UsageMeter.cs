@@ -10,7 +10,7 @@ namespace AILegacy.Llm
 {
     /// <summary>
     /// Tracks requests, tokens (input, output, cached) and estimated cost per provider and task. Session totals stay in
-    /// memory; spend per real-world day is saved to logs\gasto.json for the daily cap. Cost is only known if the provider
+    /// memory; spend per real-world day is saved to logs\spending.json for the daily cap. Cost is only known if the provider
     /// has a price set (in MCM or config.json).
     /// </summary>
     public static class UsageMeter
@@ -34,7 +34,15 @@ namespace AILegacy.Llm
         private static int _sinceWrite;
 
         private static string DayKey => DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        private static string FilePath => Path.Combine(Paths.LogDir, "gasto.json");
+        private static string FilePath
+        {
+            get
+            {
+                string now = Path.Combine(Paths.LogDir, "spending.json"), old = Path.Combine(Paths.LogDir, "gasto.json");
+                try { if (File.Exists(old) && !File.Exists(now)) File.Move(old, now); } catch { }
+                return now;
+            }
+        }
 
         private static Dictionary<string, double> Days
         {

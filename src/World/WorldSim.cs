@@ -288,6 +288,8 @@ namespace AILegacy.World
         [JsonProperty("letters_lost")] public List<string> LettersLost = new List<string>();
         /// <summary>Hospitals and infirmaries by settlement id: level, building progress, place in the lists and herbs (DiseasesStock.cs).</summary>
         [JsonProperty("hospitals")] public Dictionary<string, HospitalRecord> Hospitals = new Dictionary<string, HospitalRecord>();
+        /// <summary>Diseases that are over, for the record (the last thousand).</summary>
+        [JsonProperty("sick_history")] public List<SicknessRecord> SickHistory = new List<SicknessRecord>();
     }
 
     // ===================================================================== engine

@@ -2074,9 +2074,16 @@ namespace AILegacy.Dialogue
             new ActionDef
             {
                 Name = "condemn_plot", Usage = "condemn_plot:<name of the plotter>",
-                Description = "As ruler, you condemn a noble of your realm for plotting against the one in front of you: they lose your favour and pay a heavy fine. Only if you believe the accusation and will act on it.",
+                Description = "As ruler, you condemn a noble of your realm for plotting against the one in front of you or against another of your nobles, as the one in front of you tells it: they lose your favour and pay a heavy fine. Only if you believe the accusation and will act on it.",
                 IsAvailable = s => s.IsHero && Intrigue.Enabled && Intrigue.AnyKnownForRuler(s.Hero),
                 Execute = (s, arg, ctx) => Intrigue.Condemn(s.Hero, arg)
+            },
+            new ActionDef
+            {
+                Name = "believe_plot", Usage = "believe_plot:<name of the plotter>",
+                Description = "The one in front of you has told you that this noble is secretly plotting against you, and you believe them. You will answer it your own way: denounce them to your ruler, pay them back, or confront them. Only if they really told you and you believe it.",
+                IsAvailable = s => s.IsHero && Intrigue.Enabled && Intrigue.AgainstUnaware(s.Hero) != null,
+                Execute = (s, arg, ctx) => Intrigue.Believe(s.Hero, arg)
             },
             new ActionDef
             {

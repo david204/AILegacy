@@ -19,10 +19,14 @@ namespace AILegacy.Memory
     ///   ailegacy_quests.json         quests
     ///   ailegacy_items.json          documents and roleplay items
     ///   ailegacy_campaign.json       loose campaign data
-    ///   _escritos.json               hashes of what the mod wrote (to spot files you edited by hand)
-    ///   _ramas\YYYYMMDD_HHMMSS\      files from a branch dropped when loading an older save (last 5 kept)
-    ///   _papelera\                   leftover files (forgotten characters, unknown files) moved here instead of deleted
-    ///   _copias_editor\              full memory backup before an import or delete from the editor
+    ///   ailegacy_world.json          what of the world has no file of its own
+    ///   ailegacy_pacts.json, ailegacy_war_ledger.json, ailegacy_the_sick.json, ailegacy_infirmaries.json,
+    ///   ailegacy_baseborn.json… the world's state, one file per subject (WorldParts)
+    ///   _save_copies\[save name]\     a copy of the files as they were when that save was made, one folder per save
+    ///   _written.json                hashes of what the mod wrote (to spot files you edited by hand)
+    ///   _branches\YYYYMMDD_HHMMSS\   files from a branch dropped when loading an older save (last 5 kept)
+    ///   _trash\                      leftover files (forgotten characters, unknown files) moved here instead of deleted
+    ///   _editor_backups\             full memory backup before an import or delete from the editor
     /// Written right away (after each reply, letter, order...) and when the game saves.
     /// On load, the copy inside the save wins, except for files you edited by hand.
     /// What changed is decided and serialized on the game thread. The disk writes go to a writer thread, the file of
@@ -36,8 +40,123 @@ namespace AILegacy.Memory
         private const string CampaignFile = "ailegacy_campaign.json";
         private const string QuestsFile = "ailegacy_quests.json";
         private const string ItemsFile = "ailegacy_items.json";
-        private const string ManifestFile = "_escritos.json";
+        private const string ManifestFile = "_written.json";
         private const string WorldFile = "ailegacy_world.json";
+        private const string SnapshotsDir = "_save_copies";
+
+        /// <summary>
+        /// The world's state split by subject, one file each: the keys of each file
+        /// are WorldState's own. Whatever has no file here stays in ailegacy_world.json. Reading merges them all back, so
+        /// an older campaign with a single ailegacy_world.json still loads and is split on its next write.
+        /// </summary>
+        private static readonly Dictionary<string, string[]> WorldParts = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["ailegacy_proclamations.json"] = new[] { "statements", "statement_queue", "last_statement_day", "last_statement_any", "proposals" },
+            ["ailegacy_pacts.json"] = new[] { "alliance_since", "stance", "kingdom_seen" },
+            ["ailegacy_tribute_payments.json"] = new[] { "tributes" },
+            ["ailegacy_war_ledger.json"] = new[] { "war_tolls", "strength_log", "captive_tolls", "captive_watch", "fatigue", "war_seen", "war_peace_day", "forced_truce", "peace_notes", "last_capture", "refused", "pariahs" },
+            ["ailegacy_realm_laws.json"] = new[] { "taxes", "tax_scope", "tax_places", "laws" },
+            ["ailegacy_economy.json"] = new[] { "effects" },
+            ["ailegacy_rulers_past.json"] = new[] { "rulers" },
+            ["ailegacy_fief_holders.json"] = new[] { "owners" },
+            ["ailegacy_outcast_clans.json"] = new[] { "banished" },
+            ["ailegacy_chronicle_events.json"] = new[] { "events", "last_event_day", "next_event_day", "last_reactive_hour", "plots", "next_plot_day" },
+            ["ailegacy_hidden_truths.json"] = new[] { "secrets", "secret_kingdoms" },
+            ["ailegacy_plagues.json"] = new[] { "outbreaks", "last_outbreak_day" },
+            ["ailegacy_closed_gates.json"] = new[] { "quarantines" },
+            ["ailegacy_the_sick.json"] = new[] { "sick", "sick_immune", "treatment_debt", "disease_deaths", "herb_guard_until", "herb_guard", "prevention_until", "sick_history" },
+            ["ailegacy_sick_garrisons.json"] = new[] { "sick_forces" },
+            ["ailegacy_infirmaries.json"] = new[] { "hospitals" },
+            ["ailegacy_baseborn.json"] = new[] { "bastards", "conceived" },
+            ["ailegacy_households.json"] = new[] { "concubines" },
+            ["ailegacy_suitors.json"] = new[] { "courtships" },
+            ["ailegacy_your_house.json"] = new[] { "player_description", "player_family", "romance_forced" },
+            ["ailegacy_townsfolk.json"] = new[] { "residents", "uniques", "next_unique_day" },
+            ["ailegacy_moods.json"] = new[] { "mood_events" },
+            ["ailegacy_obituaries.json"] = new[] { "recent_kills", "executions", "executions_seeded" },
+            ["ailegacy_correspondence.json"] = new[] { "letters_muted", "letters_replying", "letters_lost", "approach_muted", "hostile_initiative_day" },
+            ["ailegacy_voice_cast.json"] = new[] { "tts_voices" },
+        };
+
+        /// <summary>Queues the world's files: each subject's keys in its own file, the rest in ailegacy_world.json.</summary>
+        private static int QueueWorld(string dir, HashSet<string> keep)
+        {
+            int written = 0;
+            var all = JObject.Parse(JsonConvert.SerializeObject(WorldSim.State));
+            foreach (var part in WorldParts)
+            {
+                var o = new JObject();
+                foreach (var key in part.Value)
+                {
+                    var p = all.Property(key);
+                    if (p == null) continue;
+                    o.Add(key, p.Value);
+                    p.Remove();
+                }
+                keep.Add(part.Key);
+                if (QueueIfChanged(dir, part.Key, o.ToString(Formatting.Indented))) written++;
+            }
+            if (QueueIfChanged(dir, WorldFile, all.ToString(Formatting.Indented))) written++;
+            return written;
+        }
+
+        /// <summary>The world's state from its files: ailegacy_world.json with each subject's file laid over it.</summary>
+        private static WorldState ReadWorld(string dir, bool strict)
+        {
+            var root = Read<JObject>(dir, WorldFile, strict && !WorldParts.Keys.Any(k => File.Exists(Path.Combine(dir, k)))) ?? new JObject();
+            bool any = File.Exists(Path.Combine(dir, WorldFile));
+            foreach (var part in WorldParts.Keys)
+            {
+                var o = Read<JObject>(dir, part, strict);
+                if (o == null) continue;
+                any = true;
+                foreach (var p in o.Properties()) root[p.Name] = p.Value;
+            }
+            if (!any) return null;
+            try { return root.ToObject<WorldState>(JsonSerializer.Create(BoundedJson)); }
+            catch (Exception ex)
+            {
+                if (strict) throw new InvalidDataException("world: " + ex.Message, ex);
+                Log.Warn("World files unreadable, starting the world afresh: " + ex.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// After a save: a copy of the campaign's files as they are now, in _save_copies\[save name]\, one folder per save.
+        /// The memory that loads with a save is still the copy inside the save
+        /// itself; this is the same data where it can be seen and kept by hand.
+        /// </summary>
+        public static void Snapshot(bool ok, string saveName)
+        {
+            try
+            {
+                if (!ok || TaleWorlds.CampaignSystem.Campaign.Current == null || string.IsNullOrWhiteSpace(saveName)) return;
+                Flush(wait: true);
+                var dir = DirFor(TaleWorlds.CampaignSystem.Campaign.Current.UniqueGameId);
+                if (!Directory.Exists(dir)) return;
+                var to = Path.Combine(dir, SnapshotsDir, Safe(saveName));
+                // copied whole into a new folder first: the last good copy is only replaced once this one is complete
+                var tmp = to + ".new";
+                if (Directory.Exists(tmp)) Directory.Delete(tmp, true);
+                Directory.CreateDirectory(tmp);
+                int n = 0;
+                try
+                {
+                    foreach (var f in Directory.GetFiles(dir, "*.json"))
+                    {
+                        if (IsLink(f)) continue;
+                        File.Copy(f, Path.Combine(tmp, Path.GetFileName(f)), true);
+                        n++;
+                    }
+                }
+                catch { try { Directory.Delete(tmp, true); } catch { } throw; }
+                if (Directory.Exists(to)) Directory.Delete(to, true);
+                Directory.Move(tmp, to);
+                Log.Info($"Save snapshot «{saveName}»: {n} files copied");
+            }
+            catch (Exception ex) { Log.Warn("Save snapshot: " + ex.Message); }
+        }
         private const string MessagesFile = "ailegacy_messages.json";
 
         // Hash of the last content written to each file of the current campaign (key = file name)
@@ -49,9 +168,57 @@ namespace AILegacy.Memory
         private static string _stamp;
 
         // Campaign subfolders
-        private const string BranchesDir = "_ramas";
-        private const string TrashDir = "_papelera";
-        private const string EditorBackupsDir = "_copias_editor";
+        private const string BranchesDir = "_branches";
+        private const string TrashDir = "_trash";
+        private const string EditorBackupsDir = "_editor_backups";
+        private const string UnreadableDir = "_unreadable";
+
+        /// <summary>Names older versions gave these folders and files, moved to the new ones the first time a campaign is opened.</summary>
+        private static readonly (string Old, string New)[] OldNames =
+        {
+            ("_escritos.json", "_written.json"), ("_ramas", "_branches"), ("_papelera", "_trash"),
+            ("_copias_editor", "_editor_backups"), ("_ilegibles", "_unreadable"), ("_guardados", "_save_copies"),
+        };
+        private static readonly Dictionary<string, int> Renamed = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Moves the old-named folders and files of a campaign to their new names (once per session and campaign).</summary>
+        private static void RenameOld(string dir)
+        {
+            // done once all moved; a move that failed (a file in use) is tried again on a later call, three times at most
+            lock (Renamed)
+            {
+                Renamed.TryGetValue(dir, out int tries);
+                if (tries < 0 || tries >= 3) return;
+                Renamed[dir] = tries + 1;
+            }
+            bool allDone = true;
+            try
+            {
+                if (!Directory.Exists(dir)) { lock (Renamed) Renamed.Remove(dir); return; }
+                foreach (var (oldName, newName) in OldNames)
+                {
+                    string from = Path.Combine(dir, oldName), to = Path.Combine(dir, newName);
+                    try
+                    {
+                        if (File.Exists(from)) { if (!File.Exists(to)) File.Move(from, to); else File.Delete(from); continue; }
+                        if (!Directory.Exists(from)) continue;
+                        if (!Directory.Exists(to)) { Directory.Move(from, to); continue; }
+                        // both there: what the old folder holds goes inside the new one
+                        foreach (var e in Directory.GetFileSystemEntries(from))
+                        {
+                            string target = Path.Combine(to, Path.GetFileName(e));
+                            if (File.Exists(target) || Directory.Exists(target)) continue;
+                            if (Directory.Exists(e)) Directory.Move(e, target); else File.Move(e, target);
+                        }
+                        if (Directory.GetFileSystemEntries(from).Length == 0) Directory.Delete(from);
+                        else allDone = false;
+                    }
+                    catch (Exception ex) { allDone = false; Log.Warn($"Could not rename {oldName} to {newName}: {ex.Message}"); }
+                }
+            }
+            catch { allDone = false; }
+            if (allDone) lock (Renamed) Renamed[dir] = -1;
+        }
         private const int MaxBranches = 5;
         private const int MaxTrash = 100;
         private const int MaxEditorBackups = 10;
@@ -70,7 +237,12 @@ namespace AILegacy.Memory
         private static string NewStamp() => Guid.NewGuid().ToString("N").Substring(0, 16);
 
         public static string Root => Path.Combine(Paths.ModuleDir, "save_data");
-        public static string DirFor(string campaignId) => Path.Combine(Root, Safe(campaignId));
+        public static string DirFor(string campaignId)
+        {
+            var dir = Path.Combine(Root, Safe(campaignId));
+            RenameOld(dir);
+            return dir;
+        }
         public static bool Exists(string campaignId) => !string.IsNullOrEmpty(campaignId) && File.Exists(Path.Combine(DirFor(campaignId), CampaignFile));
 
         private static string Safe(string s)
@@ -355,7 +527,7 @@ namespace AILegacy.Memory
             catch { }
         }
 
-        /// <summary>Moves a file to _papelera (date prefixed) instead of deleting it. Keeps the last MaxTrash.</summary>
+        /// <summary>Moves a file to _trash (date prefixed) instead of deleting it. Keeps the last MaxTrash.</summary>
         private static bool MoveToTrash(string dir, string file)
         {
             try
@@ -437,7 +609,7 @@ namespace AILegacy.Memory
 
                 var keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { NewsFile, LettersFile, OrdersFile, CampaignFile, QuestsFile, ItemsFile, ManifestFile, WorldFile, MessagesFile };
                 if (QueueIfChanged(dir, MessagesFile, JsonConvert.SerializeObject(InfoExchange.Messages, Formatting.Indented))) written++;
-                if (QueueIfChanged(dir, WorldFile, JsonConvert.SerializeObject(WorldSim.State, Formatting.Indented))) written++;
+                written += QueueWorld(dir, keep);
                 if (QueueIfChanged(dir, QuestsFile, JsonConvert.SerializeObject(QuestSystem.Quests, Formatting.Indented))) written++;
                 if (QueueIfChanged(dir, ItemsFile, JsonConvert.SerializeObject(Belongings.Items, Formatting.Indented))) written++;
                 // Only serialize characters whose signature changed since the last flush (with hundreds of them, serializing
@@ -477,7 +649,7 @@ namespace AILegacy.Memory
                 if (QueueIfChanged(dir, CampaignFile, JsonConvert.SerializeObject(
                         new CampaignInfo { LastLetterDay = MemoryStore.LastLetterDay, SavedDay = campaignDay, Stamp = _stamp }, Formatting.Indented))) written++;
 
-                // Forgotten (/olvidar) or renamed characters and unknown files go to _papelera, never deleted
+                // Forgotten (/olvidar) or renamed characters and unknown files go to _trash, never deleted
                 int removed = 0;
                 foreach (var f in heroes ? Directory.GetFiles(dir, "*.json") : new string[0])
                 {
@@ -485,7 +657,7 @@ namespace AILegacy.Memory
                     if (keep.Contains(n)) continue;
                     if (MoveToTrash(dir, f)) { ForgetFile(n); removed++; }
                 }
-                // The writer leaves the manifest (_escritos.json) for last, once the files it names are in place
+                // The writer leaves the manifest (_written.json) for last, once the files it names are in place
                 if (written + removed > 0)
                     Log.Info($"Campaign {campaignId} files: {written} written, {removed} sent to the trash" +
                              (heroes ? $"; characters serialized {serialized} of {list.Count}" + (checkedHeroes > 0 ? $" ({checkedHeroes} rechecked)" : "") : ""));
@@ -633,7 +805,7 @@ namespace AILegacy.Memory
             var info = Read<CampaignInfo>(dir, CampaignFile, strict) ?? new CampaignInfo();
             var quests = Read<List<AiQuest>>(dir, QuestsFile, strict) ?? new List<AiQuest>();
             var items = Read<List<RpItem>>(dir, ItemsFile, strict) ?? new List<RpItem>();
-            var world = Read<WorldState>(dir, WorldFile, strict) ?? new WorldState();
+            var world = ReadWorld(dir, strict) ?? new WorldState();
             var messages = Read<List<NpcMessage>>(dir, MessagesFile, strict) ?? new List<NpcMessage>();
 
             var s = MemoryStore.Compose(heroes, news, info.LastLetterDay, letters, orders, quests, items, world, messages, strict, out string why);
@@ -736,7 +908,7 @@ namespace AILegacy.Memory
 
         /// <summary>
         /// Runs when loading a save whose memory is about to overwrite the files. If the files belong to another branch
-        /// (you kept playing after that save, or came from a different save), copy them first to _ramas\YYYYMMDD_HHMMSS\
+        /// (you kept playing after that save, or came from a different save), copy them first to _branches\YYYYMMDD_HHMMSS\
         /// (last MaxBranches kept). Compares the save's stamp with the files' stamp. For saves older than the stamp,
         /// compares the day stored in the files with the save's day.
         /// </summary>
@@ -769,7 +941,7 @@ namespace AILegacy.Memory
             catch (Exception ex) { Log.Error("Archiving the discarded branch", ex); return null; }
         }
 
-        /// <summary>Copies the campaign's .json files to a new folder of _ramas (last MaxBranches kept). Null when there are none.</summary>
+        /// <summary>Copies the campaign's .json files to a new folder of _branches (last MaxBranches kept). Null when there are none.</summary>
         private static string ArchiveFiles(string dir, out int copied)
         {
             copied = 0;
@@ -791,7 +963,7 @@ namespace AILegacy.Memory
         /// <summary>
         /// The memory inside the save could not be read, or the campaign files did not load. Nothing is emptied: the
         /// campaign files are tried first, then the editor's copies from the newest back. If none of them reads,
-        /// whatever files are on disk are copied whole to _ramas before the game goes on with an empty memory and
+        /// whatever files are on disk are copied whole to _branches before the game goes on with an empty memory and
         /// writes over them. True when a memory was recovered.
         /// </summary>
         public static bool Recover(string campaignId)
@@ -843,7 +1015,7 @@ namespace AILegacy.Memory
         }
 
         /// <summary>
-        /// Backs up the whole memory (same as the editor export) to _copias_editor\ before an import, delete or restore.
+        /// Backs up the whole memory (same as the editor export) to _editor_backups\ before an import, delete or restore.
         /// The copy is read back and checked before it counts: a copy that can't be restored is no copy.
         /// Keeps the last MaxEditorBackups. Returns the path, or null on failure.
         /// </summary>
@@ -993,7 +1165,7 @@ namespace AILegacy.Memory
         /// <summary>
         /// Brings a copy back, all of it or nothing. First the copy is read and checked in full into temporary
         /// objects (an editor copy as a whole memory, a branch as a folder of campaign files, a trash file as one
-        /// character). Then the current memory is copied to _copias_editor and that copy is read back. Only then is
+        /// character). Then the current memory is copied to _editor_backups and that copy is read back. Only then is
         /// the live memory swapped, and everything written so disk and memory match. If any step fails the memory
         /// stays exactly as it was. Returns the safety copy's file name, or null with the reason in error.
         /// </summary>
@@ -1125,11 +1297,11 @@ namespace AILegacy.Memory
                 // Keep an untouched copy so the data can be recovered by hand
                 try
                 {
-                    string keep = Path.Combine(dir, "_ilegibles");
+                    string keep = Path.Combine(dir, UnreadableDir);
                     Directory.CreateDirectory(keep);
                     string to = Path.Combine(keep, Path.GetFileNameWithoutExtension(file) + "." + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json");
                     File.Copy(path, to, true);
-                    Log.Error($"{file} is unreadable ({ex.Message}). Copy saved in _ilegibles\\{Path.GetFileName(to)}; continuing without that data.");
+                    Log.Error($"{file} is unreadable ({ex.Message}). Copy saved in {UnreadableDir}\\{Path.GetFileName(to)}; continuing without that data.");
                 }
                 catch (Exception ex2) { Log.Error($"{file} unreadable and could not be set aside: {ex.Message} / {ex2.Message}"); }
                 return null;

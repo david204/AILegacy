@@ -43,6 +43,12 @@ namespace AILegacy.World
         [JsonProperty("warned")] public bool Warned;
         [JsonProperty("over")] public bool Over;
         [JsonProperty("party", NullValueHandling = NullValueHandling.Ignore)] public string PartyId;
+        /// <summary>Days the plotter has spent in a cell since it began.</summary>
+        [JsonProperty("jailed", DefaultValueHandling = DefaultValueHandling.Ignore)] public int JailedDays;
+        /// <summary>The target (another noble) has learned of it and will answer.</summary>
+        [JsonProperty("target_knows", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool TargetKnows;
+        /// <summary>It is someone's answer to a plot against them.</summary>
+        [JsonProperty("payback", DefaultValueHandling = DefaultValueHandling.Ignore)] public bool Payback;
     }
 
     /// <summary>
@@ -70,6 +76,8 @@ Keep it hidden unless you choose otherwise. If they confront you or ask about it
             "{player} has learned, or strongly suspects, that you are plotting against {target}.");
         private static readonly Tpl TRuler = new Tpl("intrigue/ruler.txt",
 @"{player} may come to you about {plotter}, who serves your realm and has been plotting against {target}: {kind}. Weigh what they show you and your opinion of each. If you believe it and will act, use condemn_plot:{plotter}.");
+        private static readonly Tpl TVictim = new Tpl("intrigue/victim.txt",
+@"{player} knows that {plotter} is secretly plotting against you: {kind}. You do not know it yet. If {player} tells you and you believe them, use believe_plot:{plotter}; you will then answer it in your own way.");
         private static readonly Tpl TKinds = new Tpl("intrigue/kinds.txt",
 @"smear: spreading lies about them with no name on the rumours, to turn people against them
 murder: having them killed by hired blades or poison
@@ -89,7 +97,7 @@ seduce2: You and their spouse are close to an affair.");
 Write ONE false rumour that people are now repeating about {target}: believable for this world, damaging, with no name of who started it. Not about magic, not about anything modern. Do not say it is false.
 Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""title"": ""3 to 6 words in {language}"", ""text"": ""the rumour as people tell it, 1 or 2 sentences in {language}"" }");
 
-        public static void Touch() { var _ = TPlotter.Key + TAccomplice.Key + TKnown.Key + TRuler.Key + TKinds.Key + TStages.Key + TRumour.Key; }
+        public static void Touch() { var _ = TPlotter.Key + TAccomplice.Key + TKnown.Key + TRuler.Key + TVictim.Key + TKinds.Key + TStages.Key + TRumour.Key; }
 
         private static string Line(Tpl t, string key) => Diplomacy.Line(t, key);
 
@@ -107,7 +115,15 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                     if (plotter == null || target == null || !plotter.IsAlive || !target.IsAlive) { End(p, "dead"); continue; }
                     // another noble's plot whose target has since become someone the player knows, a ruler or family is dropped
                     if (!p.ByPlayer && target != P && !NpcTargetAllowed(target)) { End(p, $"{target.Name} is no longer a target for another noble's plot"); continue; }
-                    if (plotter.IsPrisoner) { p.NextDay = Math.Max(p.NextDay, now + 1); continue; }
+                    if (plotter.IsPrisoner)
+                    {
+                        p.NextDay = Math.Max(p.NextDay, now + 1);
+                        if (++p.JailedDays >= Math.Max(1, S.Get.IntriguePrisonDays)) GiveUp(p, plotter, target, "prison");
+                        continue;
+                    }
+                    string why = ReasonToStop(p, plotter, target);
+                    if (why != null) { GiveUp(p, plotter, target, why); continue; }
+                    if (p.TargetKnows && target != P) { TargetAnswers(p, plotter, target); continue; }
                     if (now >= p.NextDay) Advance(p, plotter, target, now);
                 }
                 St.Plots.RemoveAll(p => p.Over && now - p.NextDay > 120);
@@ -272,7 +288,19 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                 int chance = 6 + (Trait(a, DefaultTraits.Honor) > 0 ? 10 : 0);
                 if (Rng.Next(100) >= chance) continue;
                 if (target == P && !p.Known && !p.ByPlayer) { Warn(p, plotter, a); return; }
-                if (target != P && !p.Exposed && Rng.Next(100) < 40) { Expose(p, plotter, target); return; }
+                if (target != P && !p.Exposed)
+                {
+                    int r = Rng.Next(100);
+                    if (r < 40) { Expose(p, plotter, target); return; }
+                    if (r < 65 && !p.ByPlayer) { p.TargetKnows = true; Log.Info($"[plot] {a.Name} lets {target.Name} know of {plotter.Name}'s plot"); return; }
+                    if (!p.Known && !p.ByPlayer)
+                    {
+                        p.Known = true;
+                        WorldSim.Say(L.F("AIL_e7b1df10", $"Te llega un rumor: {plotter.Name} trama contra {target.Name} ({KindWordOtherEs(p.Kind)}). {target.Name} no lo sabe."), Colors.Yellow);
+                        Log.Info($"[plot] the player hears of {plotter.Name}'s plot against {target.Name}");
+                        return;
+                    }
+                }
             }
         }
 
@@ -506,6 +534,113 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
             End(p, "done");
         }
 
+        // ============================================================ giving it up, and the victim's answer
+
+        /// <summary>
+        /// Why the plotter would drop it on their own, or null: they made peace with the target, they now share a house, or
+        /// a seducer got married. The player's own commissions only stop when the player or the plotter calls them off.
+        /// </summary>
+        private static string ReasonToStop(Plot p, Hero plotter, Hero target)
+        {
+            if (p.ByPlayer) return null;
+            try
+            {
+                int rel = target == P ? (int)plotter.GetRelationWithPlayer() : plotter.GetRelation(target);
+                if (rel >= (target == P ? 0 : -20)) return "reconciled";
+                if (plotter.Clan != null && plotter.Clan == target.Clan) return "same house";
+                if (p.Kind == "seduce" && plotter.Spouse != null && plotter.Spouse.IsAlive) return "married";
+            }
+            catch { }
+            return null;
+        }
+
+        private static void GiveUp(Plot p, Hero plotter, Hero target, string why)
+        {
+            End(p, "gave up: " + why);
+            string tname = target == P ? "you" : target.Name.ToString();
+            Note(plotter, why == "prison" ? $"[Done: your days in a cell made you give up your plot against {tname}.]"
+                         : why == "reconciled" ? $"[Done: you gave up your plot against {tname}: things are better between you now.]"
+                         : $"[Done: you gave up your plot against {tname}: you no longer need it.]");
+            if (p.ByPlayer) WorldSim.Say(L.F("AIL_e7b1df11", $"Tu conjura con {plotter.Name} contra {target.Name} se deshace: lleva días preso."), Colors.Gray);
+            else if (target == P && p.Known) WorldSim.Say(L.F("AIL_e7b1df12", $"{plotter.Name} ha dejado de tramar contra ti."), Colors.Green);
+        }
+
+        private static void Note(Hero h, string text)
+        {
+            try { MemoryStore.Get(h.StringId, h.Name.ToString()).Turns.Add(new ChatTurn { Role = "player", Text = text, Day = CampaignTime.Now.ToDays }); } catch { }
+        }
+
+        /// <summary>A plot against the one in front of the player, which the player knows and they do not.</summary>
+        public static Plot AgainstUnaware(Hero target, string plotterName = null)
+        {
+            if (target == null || target == P) return null;
+            string n = WorldSim.Norm(plotterName ?? "");
+            return Active.FirstOrDefault(p => p.Known && !p.TargetKnows && !p.ByPlayer && p.TargetId == target.StringId && Hero.Find(p.PlotterId) is Hero pl
+                                              && (n.Length == 0 || WorldSim.Norm(pl.Name.ToString()).Contains(n) || n.Contains(WorldSim.Norm(pl.Name.ToString()))));
+        }
+
+        /// <summary>The player warned them and they believe it: grateful, and they will answer it from tomorrow.</summary>
+        public static string Believe(Hero target, string plotterName)
+        {
+            var p = AgainstUnaware(target, plotterName);
+            if (p == null) return null;
+            var plotter = Hero.Find(p.PlotterId);
+            if (plotter == null) return null;
+            p.TargetKnows = true;
+            try { ChangeRelationAction.ApplyPlayerRelation(target, 5, false, true); } catch { }
+            Note(target, $"[Done: {P.Name} warned you that {plotter.Name} is plotting against you, and you believe it.]");
+            Log.Info($"[plot] {target.Name} believes the player's warning about {plotter.Name}");
+            SaveFiles.Dirty();
+            return L.F("AIL_e7b1df13", $"{target.Name} te cree: ya sabe que {plotter.Name} trama a sus espaldas.");
+        }
+
+        /// <summary>
+        /// A noble who has learned of a plot against them answers it: to their ruler if the plotter serves the same crown and
+        /// the ruler thinks better of them than of the plotter; otherwise they strike back with a scheme of their own (when
+        /// the plotter may be a target), or confront them openly. Either way the original plot is over: they are on guard.
+        /// </summary>
+        private static void TargetAnswers(Plot p, Hero plotter, Hero target)
+        {
+            try
+            {
+                var ruler = (target.MapFaction as Kingdom)?.Leader;
+                if (ruler != null && ruler != plotter && ruler != target && ruler != P && plotter.MapFaction == target.MapFaction
+                    && ruler.GetRelation(target) >= ruler.GetRelation(plotter))
+                {
+                    int fine = Math.Min(5000, Math.Max(0, plotter.Gold / 2));
+                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(ruler, plotter, -20, false);
+                    if (fine > 0) GiveGoldAction.ApplyBetweenCharacters(plotter, ruler, fine, true);
+                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(plotter, target, -20, false);
+                    p.Exposed = true;
+                    News(L.F("AIL_e7b1c7fd", $"{ruler.Name} condena a {plotter.Name}"),
+                         L.F("AIL_e7b1df14", $"{target.Name} denuncia ante {ruler.Name} que {plotter.Name} conspiraba a sus espaldas. {plotter.Name} pierde el favor de su señor y paga {fine} denarios."),
+                         $"{target.Name} denounced {plotter.Name} to {ruler.Name} for plotting against them; {ruler.Name} condemned {plotter.Name}.", 2, plotter, target);
+                    Note(target, $"[Done: you denounced {plotter.Name}'s plot against you to {ruler.Name}, who condemned them.]");
+                    End(p, "denounced by the target");
+                    return;
+                }
+                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(plotter, target, -15, false);
+                bool canPayBack = S.Get.IntrigueAgainstNpcs && CanPlot(target) && NpcTargetAllowed(plotter) && !Active.Any(x => x.TargetId == plotter.StringId)
+                                  && (Schemer(target) || Trait(target, DefaultTraits.Mercy) < 0);
+                End(p, "the target found out");
+                if (canPayBack)
+                {
+                    var back = Begin(target, plotter, Pick(target, plotter), "they plotted against you, and you are paying them back", false, CampaignTime.Now.ToDays);
+                    back.Payback = true;
+                    Note(target, $"[Done: you learned that {plotter.Name} plotted against you, and you set out to pay them back in kind.]");
+                    Log.Info($"[plot] {target.Name} strikes back at {plotter.Name}");
+                }
+                else
+                {
+                    News(L.F("AIL_e7b1df15", $"{target.Name} se enfrenta a {plotter.Name}"),
+                         L.F("AIL_e7b1df16", $"{target.Name} ha descubierto la conjura de {plotter.Name} y se lo ha echado en cara delante de todos."),
+                         $"{target.Name} found out that {plotter.Name} was plotting against them and confronted them openly.", 2, plotter, target);
+                    Note(target, $"[Done: you found out that {plotter.Name} was plotting against you and confronted them openly.]");
+                }
+            }
+            catch (Exception ex) { Log.Error("[plot] the target's answer", ex); End(p, "the target found out"); }
+        }
+
         // ============================================================ ends and news
 
         private static void End(Plot p, string why)
@@ -564,8 +699,10 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
                     }
                     else if (p.Accomplices.Contains(h.StringId))
                         lines.Add(TAccomplice.Format("plotter", plotter.Name.ToString(), "target", tname, "kind", kind));
-                    else if (p.Known && target == P && h.MapFaction is Kingdom k && k.Leader == h && plotter.MapFaction == k)
+                    else if (p.Known && h.MapFaction is Kingdom k && k.Leader == h && plotter.MapFaction == k && target != h)
                         lines.Add(TRuler.Format("player", player, "plotter", plotter.Name.ToString(), "target", tname, "kind", kind));
+                    else if (p.Known && !p.TargetKnows && !p.ByPlayer && target == h)
+                        lines.Add(TVictim.Format("player", player, "plotter", plotter.Name.ToString(), "kind", kind));
                 }
                 return string.Join("\n", lines);
             }
@@ -580,7 +717,7 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
         {
             if (ruler == null || !(ruler.MapFaction is Kingdom k) || k.Leader != ruler) return null;
             string n = WorldSim.Norm(plotterName ?? "");
-            return Active.FirstOrDefault(p => p.Known && p.TargetId == P?.StringId && Hero.Find(p.PlotterId) is Hero pl && pl.MapFaction == k
+            return Active.FirstOrDefault(p => p.Known && !p.ByPlayer && p.TargetId != ruler.StringId && Hero.Find(p.PlotterId) is Hero pl && pl.MapFaction == k
                                               && (n.Length == 0 || WorldSim.Norm(pl.Name.ToString()).Contains(n) || n.Contains(WorldSim.Norm(pl.Name.ToString()))));
         }
         public static bool AnyKnownForRuler(Hero ruler) => KnownBy(ruler, null) != null;
@@ -624,8 +761,16 @@ Answer ONLY with JSON: { ""summary"": ""the rumour in one English sentence"", ""
             }
             catch { }
             p.Exposed = true;
-            News(L.F("AIL_e7b1c7fd", $"{ruler.Name} condena a {plotter.Name}"), L.F("AIL_e7b1c7fe", $"{ruler.Name} condena a {plotter.Name} por conspirar contra ti: pierde su favor y paga {fine} denarios."),
-                 $"{ruler.Name} condemned {plotter.Name} for plotting against {P.Name}.", 2, plotter, P);
+            var target = Hero.Find(p.TargetId) ?? P;
+            if (target == P)
+                News(L.F("AIL_e7b1c7fd", $"{ruler.Name} condena a {plotter.Name}"), L.F("AIL_e7b1c7fe", $"{ruler.Name} condena a {plotter.Name} por conspirar contra ti: pierde su favor y paga {fine} denarios."),
+                     $"{ruler.Name} condemned {plotter.Name} for plotting against {P.Name}.", 2, plotter, P);
+            else
+            {
+                try { ChangeRelationAction.ApplyPlayerRelation(target, 8, false, true); } catch { }
+                News(L.F("AIL_e7b1c7fd", $"{ruler.Name} condena a {plotter.Name}"), L.F("AIL_e7b1df17", $"Por lo que le has contado, {ruler.Name} condena a {plotter.Name} por conspirar contra {target.Name}: pierde su favor y paga {fine} denarios."),
+                     $"On {P.Name}'s word, {ruler.Name} condemned {plotter.Name} for plotting against {target.Name}.", 2, plotter, target);
+            }
             End(p, "condemned");
             return "";
         }

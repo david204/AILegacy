@@ -67,6 +67,7 @@ namespace AILegacy.Behaviors
             CampaignEvents.OnSaveStartedEvent.AddNonSerializedListener(this, World.Diseases.OnSaveStarted);
             CampaignEvents.OnBeforeSaveEvent.AddNonSerializedListener(this, World.Diseases.OnSaveStarted);
             CampaignEvents.OnSaveOverEvent.AddNonSerializedListener(this, World.Diseases.OnSaveOver);
+            CampaignEvents.OnSaveOverEvent.AddNonSerializedListener(this, SaveFiles.Snapshot);
             CampaignEvents.OnChildConceivedEvent.AddNonSerializedListener(this, World.Mood.OnChildConceived);
             // Political history: rulers and fief owners
             CampaignEvents.RulingClanChanged.AddNonSerializedListener(this, World.History.OnRulingClanChanged);

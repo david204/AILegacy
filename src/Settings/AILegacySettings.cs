@@ -1226,9 +1226,9 @@ namespace AILegacy.Settings
         public bool BastardLegitimizeOnMarriage { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_e7b1db07}Out of wedlock: influence to acknowledge a child", 0, 5000, Order = 58, RequireRestart = false,
-            HintText = "{=AIL_e7b1db08}What acknowledging an adult child of yours born out of wedlock costs your clan in influence; twice as much if you do not rule a kingdom. Without enough influence the option is greyed out. 0 = free. Default: 150.")]
+            HintText = "{=AIL_e7b1db08}What acknowledging an adult child of yours born out of wedlock costs your clan in influence; twice as much if you do not rule a kingdom. Without enough influence the option is greyed out. 0 = free. Default: 0.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public int BastardLegitimizeInfluenceCost { get; set; } = 150;
+        public int BastardLegitimizeInfluenceCost { get; set; } = 0;
 
         [SettingPropertyInteger("{=AIL_e7b1de16}Out of wedlock: lower worth in a marriage (%)", 0, 100, Order = 59, RequireRestart = false,
             HintText = "{=AIL_e7b1de17}When a marriage is negotiated, a baseborn child asked for makes the deal worth this share less, and a baseborn child asking makes it worth this share more. 0 = no difference. Default: 75.")]
@@ -1254,7 +1254,7 @@ namespace AILegacy.Settings
         [SettingPropertyBool("{=AIL_e7b1c873}Concubines: also between other characters", Order = 63, RequireRestart = false,
             HintText = "{=AIL_e7b1c874}Married lords of the AI who are not happy at home can take a concubine of another house when they spend time together (same town, army or party): she joins his clan, her head of house takes it badly, his spouse too, and children may come. It ends when either dies. Needs «Concubines» on.")]
         [SettingPropertyGroup("{=AIL_d770d7bc}4. Relation, trust and romance", GroupOrder = 4)]
-        public bool ConcubinesForNpcs { get; set; } = false;
+        public bool ConcubinesForNpcs { get; set; } = true;
 
         [SettingPropertyInteger("{=AIL_e7b1c875}Concubines between others: chance (% a year)", 0, 100, Order = 64, RequireRestart = false,
             HintText = "{=AIL_e7b1c876}Chance a year that a married lord who meets the conditions takes a concubine, if someone suitable is near. Recommended: 5 to 20.")]
@@ -2262,6 +2262,11 @@ namespace AILegacy.Settings
             HintText = "{=AIL_e7b1c80d}A plotter may court their target's husband or wife behind their back: the spouse warms to them and cools to the target, and in the end tongues wag. Yours too. Recommended: off unless you want it.")]
         [SettingPropertyGroup("{=AIL_884d0de2}C. Initiative and errands", GroupOrder = 12)]
         public bool IntrigueSeduction { get; set; } = false;
+
+        [SettingPropertyInteger("{=AIL_e7b1df18}Intrigue: days in a cell before a plotter gives up", 1, 120, Order = 27, RequireRestart = false,
+            HintText = "{=AIL_e7b1df19}A plotter held prisoner this many days (all told) drops their plot, yours included. Plotters also give up on their own when they make peace with their target or end up in the same house. Default: 10.")]
+        [SettingPropertyGroup("{=AIL_884d0de2}C. Initiative and errands", GroupOrder = 12)]
+        public int IntriguePrisonDays { get; set; } = 10;
 
         // ------------------------------------------------------------ World and diplomacy
         [SettingPropertyBool("{=AIL_8a4cc812}AI world events", Order = 0, RequireRestart = false,

@@ -2677,7 +2677,7 @@
     <string id="AIL_e7b1db05" text="Tägliche Schwangerschaft des Spiels für dich und deinen Ehepartner abschalten" />
     <string id="AIL_e7b1db06" text="Das Spiel würfelt jeden Tag um ein Kind zwischen dir und deinem Ehepartner, ob du der Mann oder die Frau bist. An: Dieser Wurf entfällt, Kinder kommen nur durch Intimität im Gespräch. Laufende Schwangerschaften und alle anderen Paare bleiben unberührt. Standard: aus." />
     <string id="AIL_e7b1db07" text="Unehelich: Einfluss, um ein Kind anzuerkennen" />
-    <string id="AIL_e7b1db08" text="Was es deinen Clan an Einfluss kostet, ein erwachsenes, unehelich geborenes Kind von dir anzuerkennen; doppelt so viel, wenn du kein Reich regierst. Ohne genug Einfluss ist die Option ausgegraut. 0 = kostenlos. Standard: 150." />
+    <string id="AIL_e7b1db08" text="Was es deinen Clan an Einfluss kostet, ein erwachsenes, unehelich geborenes Kind von dir anzuerkennen; doppelt so viel, wenn du kein Reich regierst. Ohne genug Einfluss ist die Option ausgegraut. 0 = kostenlos. Standard: 0." />
     <string id="AIL_e7b1db09" text="Alle Konkubinen freilassen" />
     <string id="AIL_e7b1db0a" text="Freilassen" />
     <string id="AIL_e7b1db0b" text="Lässt auf einen Schlag alle Konkubinen der Welt frei, deine und die der Lords. Jede kehrt zu ihrem alten Haus und Leben zurück, geht nach Hause und nimmt es dem übel, der sie hielt. Kann nicht rückgängig gemacht werden." />
@@ -3037,5 +3037,24 @@
     <string id="AIL_e7b1def7" text="Deine eigenen .ogg laufen auf der Kampagnenkarte: music\army in einem Heer, music\map\[Kultur] je nach Land, in dem du bist (empire, sturgia, aserai, vlandia, khuzait, battania, nord), sonst music\map, mit 30 bis 60 Sekunden Pause zwischen den Stücken. Bei leeren Ordnern ändert sich nichts." />
     <string id="AIL_e7b1def8" text="Eigene Menü- und Kartenmusik: Lautstärke der Spielmusik währenddessen (%)" />
     <string id="AIL_e7b1def9" text="Wie laut die Spielmusik bleibt, während deine im Menü oder auf der Karte läuft. 0 = deine statt ihrer. Standard: 0." />
+    <string id="AIL_e7b1defa" text="Stufe {0}: {1}" />
+    <string id="AIL_e7b1df01" text="Ihr nehmt sein Gold und was es erzeugt; das Dorf verliert Herdstellen, bleibt aber stehen." />
+    <string id="AIL_e7b1df02" text="Nur niederbrennen" />
+    <string id="AIL_e7b1df03" text="Feuer an die Häuser, ohne etwas mitzunehmen: Es bleibt verwüstet und ohne Miliz zurück." />
+    <string id="AIL_e7b1df04" text="Plündern und niederbrennen" />
+    <string id="AIL_e7b1df05" text="Erst die Beute, dann das Feuer." />
+    <string id="AIL_e7b1df06" text="Ihr plündert {0} und steckt es in Brand: {1} Denare, und {2} Herdstellen weniger." />
+    <string id="AIL_e7b1df07" text="{0} brennt. Ihr nehmt nichts mit." />
+    <string id="AIL_e7b1df08" text="Ihr plündert {0}: {1} Denare, und {2} Herdstellen weniger." />
+    <string id="AIL_e7b1df10" text="Ein Gerücht erreicht dich: {0} schmiedet Pläne gegen {1} ({2}). {3} ahnt nichts." />
+    <string id="AIL_e7b1df11" text="Deine Verschwörung mit {0} gegen {1} zerfällt: Er sitzt seit Tagen in Gefangenschaft." />
+    <string id="AIL_e7b1df12" text="{0} schmiedet keine Pläne mehr gegen dich." />
+    <string id="AIL_e7b1df13" text="{0} glaubt dir: Jetzt weiß er, dass {1} hinter seinem Rücken Pläne schmiedet." />
+    <string id="AIL_e7b1df14" text="{0} zeigt bei {1} an, dass {2} hinter seinem Rücken Pläne schmiedete. {3} verliert die Gunst seines Lehnsherrn und zahlt {4} Denare." />
+    <string id="AIL_e7b1df15" text="{0} stellt {1} zur Rede" />
+    <string id="AIL_e7b1df16" text="{0} hat die Verschwörung von {1} aufgedeckt und ihm das vor allen vorgehalten." />
+    <string id="AIL_e7b1df17" text="Auf dein Wort hin verurteilt {0} {1} wegen einer Verschwörung gegen {2}: Er verliert die Gunst und zahlt {3} Denare." />
+    <string id="AIL_e7b1df18" text="Intrigen: Tage in Haft, bis ein Verschwörer aufgibt" />
+    <string id="AIL_e7b1df19" text="Ein Verschwörer, der so viele Tage (insgesamt) gefangen ist, gibt seine Verschwörung auf, auch deine. Verschwörer geben auch von selbst auf, wenn sie sich mit ihrem Ziel versöhnen oder im selben Haus landen. Standard: 10." />
   </strings>
 </base>

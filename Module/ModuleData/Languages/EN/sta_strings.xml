@@ -2678,7 +2678,7 @@
     <string id="AIL_e7b1db05" text="Turn off the game's daily pregnancy for you and your spouse" />
     <string id="AIL_e7b1db06" text="The game rolls every day for a child between you and your spouse, whether you are the man or the woman. On: that roll is skipped, and children only come from intimacy in conversation. Pregnancies already under way and every other couple are not affected. Default: off." />
     <string id="AIL_e7b1db07" text="Out of wedlock: influence to acknowledge a child" />
-    <string id="AIL_e7b1db08" text="What acknowledging an adult child of yours born out of wedlock costs your clan in influence; twice as much if you do not rule a kingdom. Without enough influence the option is greyed out. 0 = free. Default: 150." />
+    <string id="AIL_e7b1db08" text="What acknowledging an adult child of yours born out of wedlock costs your clan in influence; twice as much if you do not rule a kingdom. Without enough influence the option is greyed out. 0 = free. Default: 0." />
     <string id="AIL_e7b1db09" text="Release all concubines" />
     <string id="AIL_e7b1db0a" text="Release" />
     <string id="AIL_e7b1db0b" text="Releases at once every concubine in the world, yours and the lords'. Each goes back to their old house and way of life and returns home, taking it badly with whoever kept them. It cannot be undone." />
@@ -3038,5 +3038,24 @@
     <string id="AIL_e7b1def7" text="Your own .ogg files play on the campaign map: music\army while you ride in an army, music\map\[culture] for the land you are in (empire, sturgia, aserai, vlandia, khuzait, battania, nord), else music\map, with a rest of 30 to 60 seconds between pieces. With the folders empty nothing changes." />
     <string id="AIL_e7b1def8" text="Own menu and map music: game music volume meanwhile (%)" />
     <string id="AIL_e7b1def9" text="How loud the game's own music stays while yours plays in the menu or on the map. 0 = yours instead of it. Default: 0." />
+    <string id="AIL_e7b1defa" text="tier {0}: {1}" />
+    <string id="AIL_e7b1df01" text="You take its gold and what it makes; the village loses hearths but stays standing." />
+    <string id="AIL_e7b1df02" text="Only burn it" />
+    <string id="AIL_e7b1df03" text="Fire to the houses and nothing taken: it is left razed and without militia." />
+    <string id="AIL_e7b1df04" text="Loot it and burn it" />
+    <string id="AIL_e7b1df05" text="First the spoils, then the fire." />
+    <string id="AIL_e7b1df06" text="You loot {0} and set it on fire: {1} denars, and {2} hearths fewer." />
+    <string id="AIL_e7b1df07" text="{0} burns. You take nothing." />
+    <string id="AIL_e7b1df08" text="You loot {0}: {1} denars, and {2} hearths fewer." />
+    <string id="AIL_e7b1df10" text="A rumour reaches you: {0} is plotting against {1} ({2}). {3} does not know." />
+    <string id="AIL_e7b1df11" text="Your plot with {0} against {1} falls apart: they have been held prisoner for days." />
+    <string id="AIL_e7b1df12" text="{0} has stopped plotting against you." />
+    <string id="AIL_e7b1df13" text="{0} believes you: they now know {1} is plotting behind their back." />
+    <string id="AIL_e7b1df14" text="{0} denounces {2} to {1} for plotting behind their back. {3} loses their liege's favour and pays {4} denars." />
+    <string id="AIL_e7b1df15" text="{0} confronts {1}" />
+    <string id="AIL_e7b1df16" text="{0} has uncovered {1}'s plot and thrown it in their face in front of everyone." />
+    <string id="AIL_e7b1df17" text="On your word, {0} condemns {1} for plotting against {2}: they lose favour and pay {3} denars." />
+    <string id="AIL_e7b1df18" text="Intrigue: days in a cell before a plotter gives up" />
+    <string id="AIL_e7b1df19" text="A plotter held prisoner this many days (all told) drops their plot, yours included. Plotters also give up on their own when they make peace with their target or end up in the same house. Default: 10." />
   </strings>
 </base>

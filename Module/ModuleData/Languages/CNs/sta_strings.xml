@@ -2677,7 +2677,7 @@
     <string id="AIL_e7b1db05" text="关闭游戏对你和配偶的每日怀孕判定" />
     <string id="AIL_e7b1db06" text="游戏每天都会为你和配偶掷一次生子判定，无论你是男是女。开启后：跳过这次判定，孩子只能来自对话中的亲密。已经开始的怀孕和其他夫妇不受影响。默认：关闭。" />
     <string id="AIL_e7b1db07" text="婚外子女：认子所需影响力" />
-    <string id="AIL_e7b1db08" text="承认你一名已成年的婚外子女需要你的家族付出的影响力；如果你不是一国之君则翻倍。影响力不足时该选项显示为灰色。0 = 免费。默认：150。" />
+    <string id="AIL_e7b1db08" text="承认你一名已成年的婚外子女需要你的家族付出的影响力；如果你不是一国之君则翻倍。影响力不足时该选项显示为灰色。0 = 免费。默认：0。" />
     <string id="AIL_e7b1db09" text="遣散所有情人" />
     <string id="AIL_e7b1db0a" text="遣散" />
     <string id="AIL_e7b1db0b" text="立即遣散世界上所有的情人，包括你的和领主们的。每人都会回到原来的家族和生活，返回家乡，并对收留她的人心怀怨恨。无法撤销。" />
@@ -3037,5 +3037,24 @@
     <string id="AIL_e7b1def7" text="你自己的 .ogg 会在战役地图上播放：在军团中时播放 music\army，否则按所在地区播放 music\map\[文化]（empire、sturgia、aserai、vlandia、khuzait、battania、nord），再否则播放 music\map，曲目之间休息 30 到 60 秒。文件夹为空时一切照旧。" />
     <string id="AIL_e7b1def8" text="自己的菜单与地图音乐：期间游戏音乐音量（%）" />
     <string id="AIL_e7b1def9" text="你的音乐在菜单或地图播放时，游戏音乐保留的音量。0 = 用你的代替。默认：0。" />
+    <string id="AIL_e7b1defa" text="{0}阶：{1}" />
+    <string id="AIL_e7b1df01" text="你们拿走它的金钱和出产；村庄失去一些户数，但仍然屹立。" />
+    <string id="AIL_e7b1df02" text="只烧掉它" />
+    <string id="AIL_e7b1df03" text="放火烧屋，分文不取：村庄化为废墟，民兵尽失。" />
+    <string id="AIL_e7b1df04" text="洗劫并烧掉它" />
+    <string id="AIL_e7b1df05" text="先抢战利品，再放火。" />
+    <string id="AIL_e7b1df06" text="你们洗劫了{0}并放火焚烧：得到{1}第纳尔，户数减少{2}。" />
+    <string id="AIL_e7b1df07" text="{0}燃起大火。你们分文未取。" />
+    <string id="AIL_e7b1df08" text="你们洗劫了{0}：得到{1}第纳尔，户数减少{2}。" />
+    <string id="AIL_e7b1df10" text="你听到一个传言：{0}正在密谋对付{1}（{2}）。{3}对此一无所知。" />
+    <string id="AIL_e7b1df11" text="你与{0}针对{1}的密谋告吹了：此人已被囚禁多日。" />
+    <string id="AIL_e7b1df12" text="{0}已不再密谋对付你。" />
+    <string id="AIL_e7b1df13" text="{0}相信了你：已经知道{1}在背后密谋。" />
+    <string id="AIL_e7b1df14" text="{0}向{1}揭发{2}在背后密谋。{3}失去了领主的宠信，并支付{4}第纳尔。" />
+    <string id="AIL_e7b1df15" text="{0}与{1}当面对质" />
+    <string id="AIL_e7b1df16" text="{0}识破了{1}的阴谋，并当着众人的面当场揭穿。" />
+    <string id="AIL_e7b1df17" text="根据你的说法，{0}判定{1}密谋对付{2}：此人失去宠信，并支付{3}第纳尔。" />
+    <string id="AIL_e7b1df18" text="阴谋：密谋者被囚多少天后放弃" />
+    <string id="AIL_e7b1df19" text="密谋者被囚禁累计达到这个天数后会放弃密谋，包括你委托的那件。密谋者若与目标和好或成为同一家族，也会自行放弃。默认：10。" />
   </strings>
 </base>

@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Version>0.71.0</Version>
+    <Version>0.72.0</Version>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -68,7 +68,7 @@
   </ItemGroup>
 
   <!-- Copy module files. config.json, world_data and world.txt are only copied if they don't exist yet -->
-  <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /><MusicNotes Include="Module\music\**\LEEME.txt" /><RhubarbFiles Include="libs\rhubarb\**\*" /></ItemGroup>
+  <ItemGroup><LangFiles Include="Module\ModuleData\Languages\**\*.xml" /><GuiPrefabs Include="Module\GUI\Prefabs\*.xml" /><GuiBrushes Include="Module\GUI\Brushes\*.xml" /><MusicNotes Include="Module\music\**\README.txt" /><RhubarbFiles Include="libs\rhubarb\**\*" /></ItemGroup>
   <Target Name="CopyModuleFiles" AfterTargets="Build">
     <Copy SourceFiles="Module\SubModule.xml" DestinationFolder="$(ModuleDir)" />
     <Copy SourceFiles="Module\ModuleData\ailegacy_items.xml" DestinationFolder="$(ModuleDir)\ModuleData" />
